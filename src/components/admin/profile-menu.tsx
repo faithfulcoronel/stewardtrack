@@ -1,5 +1,7 @@
 "use client";
 
+import { useTransition } from "react";
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +21,13 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
   const initials = name ? name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() : "U";
   const { mode, setMode, resolvedMode } = useTheme();
   const isDark = mode === "dark" || (mode === "system" && resolvedMode === "dark");
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -91,12 +100,19 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
             {isDark ? "Light Mode" : "Dark Mode"}
           </span>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
-          <form action={logoutAction} className="w-full">
-            <button type="submit" className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm">
-              <LogOut className="size-4" /> Logout
-            </button>
-          </form>
+        <DropdownMenuItem
+          className="px-4 py-2 text-sm text-destructive focus:text-destructive"
+          onSelect={(event) => {
+            event.preventDefault();
+            if (!isPending) {
+              handleLogout();
+            }
+          }}
+          disabled={isPending}
+        >
+          <span className="flex w-full items-center gap-2">
+            <LogOut className="size-4" /> Logout
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
