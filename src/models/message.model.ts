@@ -6,5 +6,5 @@ export interface Message extends BaseModel {
   tenant_id: string;
   sender_id: string;
   body: string;
-  attachments?: any[];
+  attachments?: unknown[];
 }

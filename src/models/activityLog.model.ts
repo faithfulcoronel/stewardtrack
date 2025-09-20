@@ -5,11 +5,11 @@ export interface ActivityLog extends BaseModel {
   action: string;
   entity_type: string;
   entity_id: string;
-  changes: Record<string, any> | null;
+  changes: Record<string, unknown> | null;
   performed_by: string;
   auth_users?: {
     id: string;
     email: string;
-    raw_user_meta_data?: Record<string, any>;
+    raw_user_meta_data?: Record<string, unknown>;
   } | null;
 }

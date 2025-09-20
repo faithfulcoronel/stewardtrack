@@ -4,5 +4,5 @@ export interface ErrorLog extends BaseModel {
   id: string;
   message: string;
   stack?: string | null;
-  context?: Record<string, any> | null;
+  context?: Record<string, unknown> | null;
 }

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="marketing"
+  route="home"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="marketing-home">
+    <Title>Flowspace marketing home</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-section" type="HeroSection">
+          <RBAC allow="guest,member" />
+          <Props>
+            <Prop name="eyebrow" kind="static">Flowspace platform</Prop>
+            <Prop name="headline" kind="binding" source="heroCopy" path="headline" />
+            <Prop name="description" kind="binding" source="heroCopy" path="description" />
+            <Prop name="metrics" kind="binding" source="heroMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="get-started" />
+            <Prop name="secondaryCta" kind="action" actionId="view-docs" />
+          </Props>
+        </Component>
+      </Region>
+      <Region id="feature-grid">
+        <Component id="feature-grid-section" type="FeatureGrid">
+          <Props>
+            <Prop name="title" kind="static">Why teams choose Flowspace</Prop>
+            <Prop name="features" kind="binding" source="featureCopy" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="heroCopy" kind="static">
+        <Json><![CDATA[
+          {
+            "headline": "Ship operations that feel effortless",
+            "description": "Blueprint-driven experiences power every steward experience so that customers see the right value fast."
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="featureCopy" kind="static">
+        <Json><![CDATA[
+          [
+            {
+              "title": "Composable blueprints",
+              "description": "Author XML once and reuse it everywhere with deterministic overlays."
+            },
+            {
+              "title": "Type-safe runtime",
+              "description": "Generated TypeScript types keep renderers honest and fast."
+            },
+            {
+              "title": "Observability ready",
+              "description": "Versioned registries expose metadata history and dependency graphs."
+            }
+          ]
+        ]]></Json>
+      </DataSource>
+      <DataSource id="heroMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Tenant launches", "value": "3.2x" },
+              { "label": "Blueprint reuse", "value": "87%" },
+              { "label": "Authoring errors", "value": "-62%" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="get-started" kind="link">
+        <Config>
+          <Label>Start building</Label>
+          <Url>/signup</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-docs" kind="link">
+        <Config>
+          <Label>View docs</Label>
+          <Url>/docs</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

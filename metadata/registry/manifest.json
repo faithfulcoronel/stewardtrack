@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2025-09-20T15:58:08.439Z",
+  "entries": {
+    "acme::marketing::home::-::-::en-US": {
+      "key": "acme::marketing::home::-::-::en-US",
+      "kind": "overlay",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.1",
+      "checksum": "f21e36586a3ba2a1b7aa047c24dfa708a4ff54a58365a2cf083814d0023ba135",
+      "layer": {
+        "module": "marketing",
+        "route": "home",
+        "tenant": "acme",
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml",
+      "compiledPath": "metadata/compiled/acme/marketing/locale/en-US/home/1.0.0/1.0.1.json",
+      "dependsOn": [
+        "global::marketing::home::-::-::en-US"
+      ]
+    },
+    "global::marketing::home::-::-::en-US": {
+      "key": "global::marketing::home::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+      "layer": {
+        "module": "marketing",
+        "route": "home",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/marketing/home.xml",
+      "compiledPath": "metadata/compiled/global/marketing/locale/en-US/home/1.0.0/1.0.0.json"
+    }
+  }
+}

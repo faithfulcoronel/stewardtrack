@@ -4,8 +4,8 @@ export interface User extends BaseModel {
   id: string;
   email: string;
   password?: string;
-  raw_user_meta_data?: Record<string, any> | null;
-  raw_app_meta_data?: Record<string, any> | null;
+  raw_user_meta_data?: Record<string, unknown> | null;
+  raw_app_meta_data?: Record<string, unknown> | null;
   last_sign_in_at?: string | null;
   phone?: string | null;
 }
