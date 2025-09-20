@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+  "kind": "blueprint",
+  "layer": {
+    "module": "marketing",
+    "route": "home",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "marketing-home",
+    "title": "Flowspace marketing home",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-section",
+            "type": "HeroSection",
+            "rbac": {
+              "allow": [
+                "guest",
+                "member"
+              ]
+            },
+            "props": {
+              "eyebrow": {
+                "kind": "static",
+                "value": "Flowspace platform"
+              },
+              "headline": {
+                "kind": "binding",
+                "source": "heroCopy",
+                "path": "headline"
+              },
+              "description": {
+                "kind": "binding",
+                "source": "heroCopy",
+                "path": "description"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "heroMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "get-started"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-docs"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "feature-grid-section",
+            "type": "FeatureGrid",
+            "props": {
+              "title": {
+                "kind": "static",
+                "value": "Why teams choose Flowspace"
+              },
+              "features": {
+                "kind": "binding",
+                "source": "featureCopy",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "heroCopy",
+        "kind": "static",
+        "config": {
+          "value": {
+            "headline": "Ship operations that feel effortless",
+            "description": "Blueprint-driven experiences power every steward experience so that customers see the right value fast."
+          }
+        }
+      },
+      {
+        "id": "featureCopy",
+        "kind": "static",
+        "config": {
+          "value": [
+            {
+              "title": "Composable blueprints",
+              "description": "Author XML once and reuse it everywhere with deterministic overlays."
+            },
+            {
+              "title": "Type-safe runtime",
+              "description": "Generated TypeScript types keep renderers honest and fast."
+            },
+            {
+              "title": "Observability ready",
+              "description": "Versioned registries expose metadata history and dependency graphs."
+            }
+          ]
+        }
+      },
+      {
+        "id": "heroMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Tenant launches",
+                "value": "3.2x"
+              },
+              {
+                "label": "Blueprint reuse",
+                "value": "87%"
+              },
+              {
+                "label": "Authoring errors",
+                "value": "-62%"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "get-started",
+        "kind": "link",
+        "config": {
+          "Label": "Start building",
+          "Url": "/signup",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-docs",
+        "kind": "link",
+        "config": {
+          "Label": "View docs",
+          "Url": "/docs",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/marketing/home.xml"
+}

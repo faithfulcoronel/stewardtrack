@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="overlay"
+  module="marketing"
+  route="home"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.1"
+  tenant="acme"
+  locale="en-US"
+>
+  <Overlay>
+    <Components>
+      <Component id="hero-section" operation="merge">
+        <Props>
+          <Prop name="headline" kind="static">Acme accelerates every steward</Prop>
+          <Prop name="description" kind="static">Acme teams use Flowspace metadata to turn XML into high-converting journeys in days.</Prop>
+        </Props>
+      </Component>
+    </Components>
+    <DataSources>
+      <DataSource id="heroCopy" operation="merge" kind="static">
+        <Json><![CDATA[
+          {
+            "headline": "Acme accelerates every steward",
+            "description": "Acme teams use Flowspace metadata to turn XML into high-converting journeys in days."
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Overlay>
+</PageDefinition>

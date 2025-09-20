@@ -1,0 +1,17 @@
+{
+  "key": "global::marketing::home::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+  "layer": {
+    "module": "marketing",
+    "route": "home",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/marketing/home.xml",
+  "compiledPath": "metadata/compiled/global/marketing/locale/en-US/home/1.0.0/1.0.0.json"
+}

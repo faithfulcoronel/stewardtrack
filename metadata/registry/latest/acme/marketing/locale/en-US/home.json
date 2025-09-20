@@ -1,0 +1,17 @@
+{
+  "key": "acme::marketing::home::-::-::en-US",
+  "kind": "overlay",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.1",
+  "checksum": "f21e36586a3ba2a1b7aa047c24dfa708a4ff54a58365a2cf083814d0023ba135",
+  "layer": {
+    "module": "marketing",
+    "route": "home",
+    "tenant": "acme",
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml",
+  "compiledPath": "metadata/compiled/acme/marketing/locale/en-US/home/1.0.0/1.0.1.json"
+}

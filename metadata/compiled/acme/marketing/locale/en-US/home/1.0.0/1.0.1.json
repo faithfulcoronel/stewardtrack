@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.1",
+  "checksum": "f21e36586a3ba2a1b7aa047c24dfa708a4ff54a58365a2cf083814d0023ba135",
+  "kind": "overlay",
+  "layer": {
+    "module": "marketing",
+    "route": "home",
+    "tenant": "acme",
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "components": [
+      {
+        "id": "hero-section",
+        "operation": "merge",
+        "props": {
+          "headline": {
+            "kind": "static",
+            "value": "Acme accelerates every steward"
+          },
+          "description": {
+            "kind": "static",
+            "value": "Acme teams use Flowspace metadata to turn XML into high-converting journeys in days."
+          }
+        }
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "heroCopy",
+        "kind": "static",
+        "operation": "merge",
+        "config": {
+          "value": {
+            "headline": "Acme accelerates every steward",
+            "description": "Acme teams use Flowspace metadata to turn XML into high-converting journeys in days."
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml"
+}

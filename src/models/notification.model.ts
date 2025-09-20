@@ -10,6 +10,6 @@ export interface Notification extends BaseModel {
   is_read: boolean;
   action_type: 'redirect' | 'modal' | 'none';
   action_payload?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   expires_at?: string;
 }
