@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,9 +14,32 @@ import { ADMIN_NAV_ICONS, type AdminNavSection } from "./sidebar-nav";
 
 export function AdminMobileNav({ sections }: { sections: AdminNavSection[] }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    if (mediaQuery.matches) {
+      setOpen(false);
+    }
+
+    const handler = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setOpen(false);
+      }
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handler);
+      return () => mediaQuery.removeEventListener("change", handler);
+    }
+
+    mediaQuery.addListener(handler);
+    return () => mediaQuery.removeListener(handler);
+  }, []);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           type="button"
@@ -29,7 +53,11 @@ export function AdminMobileNav({ sections }: { sections: AdminNavSection[] }) {
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="w-72 gap-0 overflow-hidden border-r border-white/20 bg-[color:var(--sidebar)] p-0 text-[color:var(--sidebar-foreground)]"
+        className="w-72 gap-0 overflow-hidden border-r border-white/20 p-0"
+        style={{
+          background: "var(--sidebar)",
+          color: "var(--sidebar-foreground)",
+        }}
       >
         <div className="flex items-center gap-3 px-5 pb-5 pt-12">
           <Link
