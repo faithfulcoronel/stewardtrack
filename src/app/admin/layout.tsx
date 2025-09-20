@@ -1,13 +1,9 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import { AdminMobileNav } from "@/components/admin/mobile-nav";
-import { AdminSidebar, type AdminNavSection } from "@/components/admin/sidebar-nav";
-import { ProfileMenu } from "@/components/admin/profile-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { type AdminNavSection } from "@/components/admin/sidebar-nav";
+import { AdminLayoutShell } from "@/components/admin/layout-shell";
 import { signOut } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Bell } from "lucide-react";
 
 const NAV_SECTIONS: AdminNavSection[] = [
   {
@@ -62,40 +58,15 @@ export default async function AdminLayout({
   const planLabel = (user.user_metadata?.plan as string | undefined) ?? "Pro";
 
   return (
-    <div className="flex min-h-screen bg-muted/10">
-      <AdminSidebar sections={NAV_SECTIONS} />
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 px-4 py-4 backdrop-blur sm:px-6">
-          <div className="flex w-full items-center gap-3">
-            <AdminMobileNav sections={NAV_SECTIONS} />
-            <div className="flex-1 min-w-0">
-              <Input
-                placeholder="Search projects, users..."
-                className="h-11 w-full rounded-full border border-border/60 bg-muted/20 px-4 text-sm"
-              />
-            </div>
-            <div className="flex items-center justify-end gap-2 sm:gap-3 md:gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="flex-none rounded-full border border-border/60 text-muted-foreground"
-              >
-                <Bell className="size-4" />
-              </Button>
-              <ProfileMenu
-                name={name}
-                email={user.email ?? ""}
-                avatarUrl={avatarUrl}
-                planLabel={planLabel}
-                logoutAction={signOut}
-              />
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
-        </main>
-      </div>
-    </div>
+    <AdminLayoutShell
+      sections={NAV_SECTIONS}
+      name={name}
+      email={user.email ?? ""}
+      avatarUrl={avatarUrl}
+      planLabel={planLabel}
+      logoutAction={signOut}
+    >
+      {children}
+    </AdminLayoutShell>
   );
 }

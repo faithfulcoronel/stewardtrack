@@ -1,8 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   LayoutDashboard,
   BarChart3,
@@ -13,12 +12,9 @@ import {
   FileChartColumn,
   Wallet,
   Briefcase,
-  Layers,
-  ChevronLeft,
-  ChevronRight,
+  Layers
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const ADMIN_NAV_ICONS = {
@@ -48,9 +44,14 @@ export type AdminNavSection = {
   items: AdminNavItem[];
 };
 
-export function AdminSidebar({ sections }: { sections: AdminNavSection[] }) {
+export function AdminSidebar({
+  sections,
+  collapsed = false,
+}: {
+  sections: AdminNavSection[];
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
   const showLabels = !collapsed;
 
   return (
@@ -64,7 +65,7 @@ export function AdminSidebar({ sections }: { sections: AdminNavSection[] }) {
         color: "var(--sidebar-foreground)",
       }}
     >
-      <div className="relative flex items-center gap-3 px-5 py-6">
+      <div className="flex items-center gap-3 px-5 py-6">
         <Link
           href="/"
           className="flex size-11 items-center justify-center rounded-2xl bg-[color:var(--sidebar-foreground)] text-base font-semibold text-[color:var(--sidebar-primary-foreground)] shadow-lg shadow-black/10"
@@ -81,15 +82,6 @@ export function AdminSidebar({ sections }: { sections: AdminNavSection[] }) {
             </p>
           </div>
         )}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="absolute -right-3 top-1/2 hidden h-8 w-8 translate-y-[-50%] items-center justify-center rounded-full border border-white/40 bg-background/90 text-foreground shadow lg:flex"
-          onClick={() => setCollapsed((prev) => !prev)}
-        >
-          {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-        </Button>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-8">
         <div className="space-y-8">
