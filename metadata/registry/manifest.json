@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2025-09-20T15:58:08.439Z",
+  "generatedAt": "2025-09-20T23:00:41.587Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
       "kind": "overlay",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.1",
-      "checksum": "f21e36586a3ba2a1b7aa047c24dfa708a4ff54a58365a2cf083814d0023ba135",
+      "checksum": "da7082182c4d1663bfe4a57b4bf829403fcffbaa4ab0425758a2c3fdddc28c41",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -15,8 +15,8 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml",
-      "compiledPath": "metadata/compiled/acme/marketing/locale/en-US/home/1.0.0/1.0.1.json",
+      "sourcePath": "metadata\\authoring\\overlays\\acme\\marketing\\home.xml",
+      "compiledPath": "metadata\\compiled\\acme\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.1.json",
       "dependsOn": [
         "global::marketing::home::-::-::en-US"
       ]
@@ -26,7 +26,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+      "checksum": "9d6d6bf7a01a47846b2be4fc7925ee1553e627ec1b66b2806e1879021f7773c1",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -35,8 +35,8 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata/authoring/blueprints/marketing/home.xml",
-      "compiledPath": "metadata/compiled/global/marketing/locale/en-US/home/1.0.0/1.0.0.json"
+      "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml",
+      "compiledPath": "metadata\\compiled\\global\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.0.json"
     }
   }
 }

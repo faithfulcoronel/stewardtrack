@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-import { resolvePageMetadata } from '@/lib/metadata/resolver';
-import { renderResolvedPage } from '@/lib/metadata/interpreter';
+import type { Metadata } from "next";
+import { resolvePageMetadata } from "@/lib/metadata/resolver";
+import { renderResolvedPage } from "@/lib/metadata/interpreter";
 
 export const revalidate = 120;
 
@@ -10,32 +10,40 @@ interface PageParams {
   segments?: string[];
 }
 
+type Awaitable<T> = T | Promise<T>;
+type PageSearchParams = Record<string, string | string[] | undefined>;
+
 interface PageProps {
-  params: PageParams;
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Awaitable<PageParams>;
+  searchParams: Awaitable<PageSearchParams>;
 }
 
 export const metadata: Metadata = {
-  title: 'Dynamic experience'
+  title: "Dynamic experience",
 };
 
 export default async function DynamicExperiencePage({ params, searchParams }: PageProps) {
-  const tenant = params.tenant === 'global' ? null : params.tenant;
-  const routeSegments = params.segments ?? [];
-  const route = routeSegments.length > 0 ? routeSegments.join('/') : 'home';
-  const role = getSingle(searchParams.role) ?? 'guest';
-  const variant = getSingle(searchParams.variant) ?? null;
-  const locale = getSingle(searchParams.locale) ?? 'en-US';
-  const featureFlags = extractFlags(searchParams);
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    Promise.resolve(params),
+    Promise.resolve(searchParams),
+  ]);
+
+  const tenant = resolvedParams.tenant === "global" ? null : resolvedParams.tenant;
+  const routeSegments = resolvedParams.segments ?? [];
+  const route = routeSegments.length > 0 ? routeSegments.join("/") : "home";
+  const role = getSingle(resolvedSearchParams.role) ?? "guest";
+  const variant = getSingle(resolvedSearchParams.variant) ?? null;
+  const locale = getSingle(resolvedSearchParams.locale) ?? "en-US";
+  const featureFlags = extractFlags(resolvedSearchParams);
 
   const resolved = await resolvePageMetadata({
-    module: params.module,
+    module: resolvedParams.module,
     route,
     tenant,
     role,
     variant,
     locale,
-    featureFlags
+    featureFlags,
   });
 
   const content = await renderResolvedPage(resolved, {
@@ -43,7 +51,7 @@ export default async function DynamicExperiencePage({ params, searchParams }: Pa
     tenant,
     locale,
     featureFlags,
-    searchParams
+    searchParams: resolvedSearchParams,
   });
 
   return (
@@ -60,15 +68,15 @@ function getSingle(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-function extractFlags(searchParams: Record<string, string | string[] | undefined>) {
+function extractFlags(searchParams: PageSearchParams) {
   const flags: Record<string, boolean> = {};
   for (const [key, value] of Object.entries(searchParams)) {
-    if (!key.startsWith('ff_')) {
+    if (!key.startsWith("ff_")) {
       continue;
     }
     const normalized = key.slice(3);
-    const raw = getSingle(value) ?? '';
-    flags[normalized] = raw === 'true' || raw === '1' || raw === 'enabled';
+    const raw = getSingle(value) ?? "";
+    flags[normalized] = raw === "true" || raw === "1" || raw === "enabled";
   }
   return flags;
 }

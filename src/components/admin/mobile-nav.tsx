@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import { ADMIN_NAV_ICONS, type AdminNavSection } from "./sidebar-nav";
@@ -59,6 +59,7 @@ export function AdminMobileNav({ sections }: { sections: AdminNavSection[] }) {
           color: "var(--sidebar-foreground)",
         }}
       >
+        <SheetTitle className="sr-only">Navigation menu</SheetTitle>
         <div className="flex items-center gap-3 px-5 pb-5 pt-12">
           <Link
             href="/"

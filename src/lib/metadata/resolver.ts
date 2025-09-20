@@ -36,7 +36,7 @@ const resolveCached = unstable_cache(
     };
   },
   ['metadata-resolver'],
-  { revalidate: 0 }
+  { revalidate: 60 }
 );
 
 export async function resolvePageMetadata(options: ResolveOptions): Promise<ResolvedMetadata> {
@@ -312,3 +312,5 @@ function computeCacheKey(
   hash.update(merged.checksum);
   return hash.digest('hex');
 }
+
+

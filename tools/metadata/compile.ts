@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
-import { parseXml, type Document } from 'libxmljs2';
+import { validateXML } from 'xmllint-wasm';
 import semver from 'semver';
 
 const ROOT = process.cwd();
@@ -122,13 +122,13 @@ async function main() {
   }
 
   const xsdContent = await fs.readFile(XSD_PATH, 'utf-8');
-  const xsdSchema = parseXml(xsdContent);
+  const xsdSchema = xsdContent;
 
   const manifest = await loadManifest();
 
   for (const file of xmlFiles) {
     const xmlContent = await fs.readFile(file, 'utf-8');
-    validateAgainstSchema(xmlContent, xsdSchema, file);
+    await validateAgainstSchema(xmlContent, xsdSchema, file);
     const parsed = parser.parse(xmlContent);
     const canonical = transformToCanonical(parsed, file);
     runCustomValidators(canonical, file);
@@ -158,12 +158,15 @@ async function collectXmlFiles(dir: string): Promise<string[]> {
   return result.sort();
 }
 
-function validateAgainstSchema(xmlContent: string, xsdSchema: Document, filePath: string) {
-  const xmlDoc = parseXml(xmlContent);
-  const isValid = xmlDoc.validate(xsdSchema);
-  if (!isValid) {
-    const errors = xmlDoc.validationErrors.map((err) => err.message).join('\n');
-    throw new Error(`XSD validation failed for ${filePath}:\n${errors}`);
+async function validateAgainstSchema(xmlContent: string, xsdSchema: string, filePath: string) {
+  const result = await validateXML({
+    xml: [{ fileName: path.basename(filePath), contents: xmlContent }],
+    schema: [xsdSchema]
+  });
+  if (!result.valid) {
+    const errors = (result.errors ?? []).map((err) => err.rawMessage ?? err.message ?? String(err)).join('\n');
+    const message = errors || 'Unknown validation error.';
+    throw new Error(`XSD validation failed for ${filePath}:\n${message}`);
   }
 }
 

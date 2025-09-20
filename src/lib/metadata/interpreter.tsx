@@ -1,5 +1,4 @@
 import React, { Fragment } from 'react';
-import { Parser } from 'expr-eval';
 import type { CanonicalAction, CanonicalComponent, CanonicalDataSource, PropValue } from './generated/canonical';
 import type { ResolvedMetadata } from './resolver';
 import { FeatureGrid, type FeatureGridProps } from '@/components/dynamic/FeatureGrid';
@@ -31,7 +30,16 @@ interface ActionScope {
   [key: string]: CanonicalAction & { config: Record<string, unknown> };
 }
 
-const parser = new Parser();
+interface ExpressionScope {
+  data: DataScope;
+  flags: Record<string, boolean>;
+  params: Record<string, string | string[] | undefined>;
+  role: string;
+}
+
+type ExpressionEvaluator = (scope: ExpressionScope) => unknown;
+
+const expressionCache = new Map<string, ExpressionEvaluator>();
 
 export async function renderResolvedPage(
   resolved: ResolvedMetadata,
@@ -166,14 +174,14 @@ function evaluateProp(
       return resolved ?? prop.fallback ?? null;
     }
     case 'expression': {
+      const scope: ExpressionScope = {
+        data: dataScope,
+        flags: context.featureFlags ?? {},
+        params: context.searchParams ?? {},
+        role: context.role ?? 'guest'
+      };
       try {
-        const scope = {
-          data: dataScope,
-          flags: context.featureFlags ?? {},
-          params: context.searchParams ?? {},
-          role: context.role ?? 'guest'
-        };
-        return parser.parse(prop.expression).evaluate(scope);
+        return evaluateExpression(prop.expression, scope);
       } catch (error) {
         console.error(`Failed to evaluate expression ${prop.expression}`, toError(error));
         return prop.fallback ?? null;
@@ -183,6 +191,45 @@ function evaluateProp(
       return actions[prop.actionId] ?? null;
     default:
       return null;
+  }
+}
+
+function evaluateExpression(expression: string, scope: ExpressionScope): unknown {
+  const evaluator = getExpressionEvaluator(expression);
+  return evaluator(scope);
+}
+
+function getExpressionEvaluator(expression: string): ExpressionEvaluator {
+  let evaluator = expressionCache.get(expression);
+  if (!evaluator) {
+    evaluator = compileExpression(expression);
+    expressionCache.set(expression, evaluator);
+  }
+  return evaluator;
+}
+
+function compileExpression(expression: string): ExpressionEvaluator {
+  try {
+    const compiled = new Function(
+      'data',
+      'flags',
+      'params',
+      'role',
+      `"use strict"; return (${expression});`
+    ) as (
+      data: DataScope,
+      flags: Record<string, boolean>,
+      params: Record<string, string | string[] | undefined>,
+      role: string
+    ) => unknown;
+
+    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role);
+  } catch (error) {
+    const err = toError(error);
+    console.error(`Failed to compile expression ${expression}`, err);
+    return () => {
+      throw err;
+    };
   }
 }
 
