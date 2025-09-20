@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const ICONS = {
+export const ADMIN_NAV_ICONS = {
   dashboard: LayoutDashboard,
   reports: BarChart3,
   customers: Users2,
@@ -34,7 +34,7 @@ const ICONS = {
   modules: Layers,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
-type IconKey = keyof typeof ICONS;
+type IconKey = keyof typeof ADMIN_NAV_ICONS;
 
 export type AdminNavItem = {
   title: string;
@@ -105,7 +105,7 @@ export function AdminSidebar({ sections }: { sections: AdminNavSection[] }) {
               )}
               <nav className="grid gap-1">
                 {section.items.map((item) => {
-                  const Icon = ICONS[item.icon] ?? LayoutDashboard;
+                  const Icon = ADMIN_NAV_ICONS[item.icon] ?? LayoutDashboard;
                   const target = new URL(item.href, "https://placeholder.local");
                   const isActive = pathname === target.pathname;
                   return (
