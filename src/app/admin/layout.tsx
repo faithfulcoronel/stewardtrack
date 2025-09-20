@@ -1,5 +1,6 @@
 ﻿import { redirect } from "next/navigation";
 
+import { AdminMobileNav } from "@/components/admin/mobile-nav";
 import { AdminSidebar, type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { ProfileMenu } from "@/components/admin/profile-menu";
 import { Button } from "@/components/ui/button";
@@ -65,12 +66,20 @@ export default async function AdminLayout({
       <AdminSidebar sections={NAV_SECTIONS} />
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 px-4 py-4 backdrop-blur sm:px-6">
-          <div className="flex w-full flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-            <div className="w-full md:max-w-md lg:max-w-lg">
-              <Input placeholder="Search projects, users..." className="w-full" />
+          <div className="flex w-full items-center gap-3">
+            <AdminMobileNav sections={NAV_SECTIONS} />
+            <div className="flex-1 min-w-0">
+              <Input
+                placeholder="Search projects, users..."
+                className="h-11 w-full rounded-full border border-border/60 bg-muted/20 px-4 text-sm"
+              />
             </div>
-            <div className="flex items-center justify-end gap-3 md:gap-5">
-              <Button variant="ghost" size="icon" className="rounded-full border border-border/60 text-muted-foreground">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 md:gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-none rounded-full border border-border/60 text-muted-foreground"
+              >
                 <Bell className="size-4" />
               </Button>
               <ProfileMenu
