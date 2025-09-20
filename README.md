@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flowspace Starter
 
-## Getting Started
+A Next.js 15 starter that pairs a polished marketing page with Supabase-powered authentication and an admin dashboard. It uses the `@supabase/ssr` helpers to keep sessions in sync between server components, server actions, and browser interactions.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Modern landing page with feature and pricing sections suitable for SaaS products
+- Email/password login form backed by Supabase server actions and secure cookies
+- Protected admin route that redirects unauthenticated visitors and surfaces session data
+- Reusable Supabase helpers for browser and server environments
+
+## Prerequisites
+
+- Node.js 20+
+- A Supabase project with email/password authentication enabled
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You can find both values in the **Settings > API** section of your Supabase dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Install dependencies and start the dev server:
 
-## Learn More
+```
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Visit `http://localhost:3000` to explore the landing experience. Use the **Sign in** button to access the login flow. Successful authentication redirects to `/admin`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Extending the admin area
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Add new server components under `src/app/admin` to expose metrics or management tools
+- Use the `createSupabaseServerClient()` helper for protected data fetching
+- Update Supabase Row Level Security (RLS) policies to suit your app's access rules
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+When you're ready, push to a Git provider and deploy with platforms like Vercel. Remember to configure the same environment variables in your hosting dashboard.
