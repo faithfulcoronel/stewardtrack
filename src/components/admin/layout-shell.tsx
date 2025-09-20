@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Bell, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,11 @@ export function AdminLayoutShell({
                 className="hidden size-10 rounded-full border-border/60 text-muted-foreground shadow-xs lg:ml-1 lg:flex"
                 onClick={() => setCollapsed((prev) => !prev)}
               >
-                {collapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}
+                {collapsed ? (
+                  <PanelLeftOpen className="size-5" />
+                ) : (
+                  <PanelLeftClose className="size-5" />
+                )}
                 <span className="sr-only">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span>
               </Button>
             </div>
