@@ -5,6 +5,7 @@ import { FeatureGrid, type FeatureGridProps } from '@/components/dynamic/Feature
 import { FeatureSection, type FeatureSectionProps } from '@/components/dynamic/FeatureSection';
 import { HeroSection, type HeroSectionProps } from '@/components/dynamic/HeroSection';
 import { CTASection, type CTASectionProps } from '@/components/dynamic/CTASection';
+import { BentoGrid, type BentoGridProps } from '@/components/dynamic/BentoGrid';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -16,6 +17,7 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
   CTASection: (props, children) => <CTASection {...(props as CTASectionProps)}>{children}</CTASection>,
   FeatureGrid: (props, children) => <FeatureGrid {...(props as FeatureGridProps)}>{children}</FeatureGrid>,
   FeatureSection: (props, children) => <FeatureSection {...(props as FeatureSectionProps)}>{children}</FeatureSection>,
+  BentoGrid: (props, children) => <BentoGrid {...(props as BentoGridProps)}>{children}</BentoGrid>,
 };
 
 export interface InterpreterContext {

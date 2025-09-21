@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/revops-symmetry"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-revops-symmetry">
+    <Title>UI Block: RevOps symmetry bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-revops-symmetry" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">revops-symmetry</Prop>
+            <Prop name="eyebrow" kind="static">Revenue operations</Prop>
+            <Prop name="headline" kind="static">Create revenue symmetry across marketing, sales, and success</Prop>
+            <Prop name="description" kind="static">Align pipeline health, playbooks, and enablement in one revenue cockpit built for cross-functional execution.</Prop>
+            <Prop name="cards" kind="binding" source="revopsSymmetryCards" path="items" />
+            <Prop name="metrics" kind="binding" source="revopsSymmetryMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-forecast" />
+            <Prop name="secondaryCta" kind="action" actionId="share-enablement-pack" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="revopsSymmetryCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Pipeline",
+                "title": "Hygiene heatmap",
+                "description": "Spot stale deals, missing next steps, and coverage gaps by segment.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Scoring",
+                "title": "Propensity engine",
+                "description": "Blend product usage, intent, and support tickets into account prioritization.",
+                "tone": "brand",
+                "footnote": "Feeds weekly standups automatically."
+              },
+              {
+                "badge": "Playbooks",
+                "title": "Deal room library",
+                "description": "Serve best-practice templates with role-specific tasks and assets.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Forecast",
+                "stat": "96%",
+                "title": "Signal-aligned forecast",
+                "description": "Roll up AI-assisted predictions with manager overrides and scenario modeling.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Enablement",
+                "title": "Momentum pulses",
+                "description": "Weekly digest summarizing wins, risks, and competitive intel for every pod.",
+                "tone": "light"
+              },
+              {
+                "badge": "Success",
+                "title": "Expansion radar",
+                "description": "Track product-qualified accounts and renewal sentiment side-by-side.",
+                "tone": "dark"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="revopsSymmetryMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Forecast accuracy",
+                "value": "±4.6%",
+                "change": "Improved from ±8.9%",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Win rate",
+                "value": "32%",
+                "change": "+6 pts after playbook rollout",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Sales cycle",
+                "value": "41 days",
+                "change": "↓ 9 days vs Q1",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Expansion pipeline",
+                "value": "$8.4M",
+                "change": "Qualified across 27 accounts",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-forecast" kind="link">
+        <Config>
+          <Label>Open revenue forecast</Label>
+          <Url>/revops/forecast</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-enablement-pack" kind="link">
+        <Config>
+          <Label>Share enablement pack</Label>
+          <Url>/revops/enablement-pack</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

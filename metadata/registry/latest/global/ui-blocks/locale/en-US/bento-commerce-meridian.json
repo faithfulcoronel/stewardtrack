@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/commerce-meridian::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "dd1b043957c1076ee5f4cad47214f2f82bb4736ec91791b05eada128313df6bc",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/commerce-meridian",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-commerce-meridian\\1.0.0\\1.0.0.json"
+}

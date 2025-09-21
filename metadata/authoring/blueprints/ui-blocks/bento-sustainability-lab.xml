@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/sustainability-lab"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-sustainability-lab">
+    <Title>UI Block: Sustainability lab bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-sustainability-lab" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">sustainability-lab</Prop>
+            <Prop name="eyebrow" kind="static">Sustainability</Prop>
+            <Prop name="headline" kind="static">Operationalize sustainability pledges with measurable progress</Prop>
+            <Prop name="description" kind="static">Bring emissions, supplier data, and initiatives into one transparency lab everyone can trust.</Prop>
+            <Prop name="cards" kind="binding" source="sustainabilityLabCards" path="items" />
+            <Prop name="metrics" kind="binding" source="sustainabilityLabMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-impact-hub" />
+            <Prop name="secondaryCta" kind="action" actionId="download-reporting-kit" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="sustainabilityLabCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Carbon",
+                "title": "Real-time inventory",
+                "description": "Scope 1-3 data with ledger-backed calculations and supplier attestations.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Insights",
+                "title": "Supply chain lens",
+                "description": "Spot hotspots, offsets, and logistics routes to optimize footprint.",
+                "tone": "sand"
+              },
+              {
+                "badge": "Policy",
+                "title": "Regulation tracker",
+                "description": "Monitor CSRD, SEC climate, and region-specific disclosure timelines.",
+                "tone": "frost"
+              },
+              {
+                "eyebrow": "Innovation",
+                "title": "Initiative studio",
+                "description": "Plan pilots, allocate budgets, and assign owners with milestone reporting.",
+                "tone": "light"
+              },
+              {
+                "badge": "Transparency",
+                "title": "Stakeholder portal",
+                "description": "Publish dashboards, commitments, and audit-ready evidence to partners.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Engagement",
+                "title": "Employee challenges",
+                "description": "Launch sustainability sprints with leaderboards and reward automation.",
+                "tone": "brand"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="sustainabilityLabMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Carbon intensity",
+                "value": "38 kg/HC",
+                "change": "↓ 14% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Renewables mix",
+                "value": "67%",
+                "change": "+8 pts quarter-over-quarter",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Supplier compliance",
+                "value": "84%",
+                "change": "Contracts with ESG clauses",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Active initiatives",
+                "value": "29",
+                "change": "Tracking across 11 regions",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-impact-hub" kind="link">
+        <Config>
+          <Label>View impact hub</Label>
+          <Url>/sustainability/impact-hub</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-reporting-kit" kind="link">
+        <Config>
+          <Label>Download reporting kit</Label>
+          <Url>/sustainability/reporting-kit</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d8ec1dd3e11f7fd1e4f1fe7ec08d3933d520a9c32ceb7e414147bbd1e70ea8ab",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/platform-compass",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-platform-compass",
+    "title": "UI Block: Platform compass bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-platform-compass",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "platform-compass"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Platform connectivity"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Compose secure integrations without engineering bottlenecks"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Blueprint connections, auth scopes, and lifecycle automation from a unified partner console."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "platformCompassCards",
+                "path": "items"
+              },
+              "logos": {
+                "kind": "binding",
+                "source": "platformCompassLogos",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "browse-catalog"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "contact-platform"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "platformCompassCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Launchpad",
+                "title": "Connector blueprints",
+                "description": "Provision pre-vetted integration scaffolds with data contracts, retries, and observability baked in.",
+                "tone": "brand"
+              },
+              {
+                "eyebrow": "API",
+                "title": "Interactive explorer",
+                "description": "Test endpoints with environment switching, schema diffs, and consent-aware payloads.",
+                "tone": "frost",
+                "footnote": "Syncs with developer portal automatically."
+              },
+              {
+                "badge": "Automation",
+                "title": "Lifecycle orchestration",
+                "description": "Drive activation emails, webhook validation, and marketplace listings from one flow.",
+                "tone": "sand"
+              },
+              {
+                "eyebrow": "Security",
+                "title": "Scope governance",
+                "description": "Define OAuth recipes, least-privilege roles, and secrets rotation policies.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Monitoring",
+                "title": "Runtime health",
+                "description": "Receive latency, error, and saturation alerts mapped to partner SLAs.",
+                "tone": "surface"
+              },
+              {
+                "badge": "Support",
+                "title": "Partner desk",
+                "description": "Surface changelog alerts, co-marketing assets, and sandbox resets for your ecosystem.",
+                "tone": "light"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "platformCompassLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Salesforce",
+              "Workday",
+              "ServiceNow",
+              "NetSuite",
+              "Slack",
+              "Okta"
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "browse-catalog",
+        "kind": "link",
+        "config": {
+          "Label": "Browse integration catalog",
+          "Url": "/platform/catalog",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "contact-platform",
+        "kind": "link",
+        "config": {
+          "Label": "Talk with platform team",
+          "Url": "/platform/contact",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-platform-compass.xml"
+}

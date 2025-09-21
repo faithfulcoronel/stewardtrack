@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/commerce-meridian"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-commerce-meridian">
+    <Title>UI Block: Commerce meridian bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-commerce-meridian" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">commerce-meridian</Prop>
+            <Prop name="eyebrow" kind="static">Commerce acceleration</Prop>
+            <Prop name="headline" kind="static">Launch high-converting storefronts with operational clarity</Prop>
+            <Prop name="description" kind="static">Coordinate merchandising, fulfillment, and lifecycle messaging with a bento built for omnichannel teams.</Prop>
+            <Prop name="cards" kind="binding" source="commerceMeridianCards" path="items" />
+            <Prop name="metrics" kind="binding" source="commerceMeridianMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-commerce-playbook" />
+            <Prop name="secondaryCta" kind="action" actionId="talk-retail-ops" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="commerceMeridianCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Merchandising",
+                "title": "Dynamic assortment studio",
+                "description": "Blend inventory health, demand signals, and creative to auto-build landing experiences.",
+                "tone": "amber"
+              },
+              {
+                "eyebrow": "Fulfillment",
+                "title": "Promise accuracy",
+                "description": "Surface ship-from-store, curbside, and parcel ETAs that react to capacity in real-time.",
+                "tone": "forest",
+                "footnote": "Connected to warehouse control plane."
+              },
+              {
+                "badge": "Engagement",
+                "title": "Lifecycle journeys",
+                "description": "Trigger SMS, email, and push campaigns tied to basket health and loyalty tiers.",
+                "tone": "blossom"
+              },
+              {
+                "eyebrow": "Insights",
+                "title": "Margin intelligence",
+                "description": "Track bundle mix, promo leakage, and vendor funding in one view.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Trust",
+                "title": "Returns concierge",
+                "description": "Automate policy-driven approvals, restocking, and exchange experiences.",
+                "tone": "frost"
+              },
+              {
+                "badge": "Performance",
+                "stat": "+38%",
+                "title": "Checkout uplift",
+                "description": "Personalized checkout modules with A/B governance built in.",
+                "tone": "dark"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="commerceMeridianMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Average order value",
+                "value": "$184",
+                "change": "↑ 12% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Conversion uplift",
+                "value": "+3.8 pts",
+                "change": "Across priority segments",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Return automation",
+                "value": "76%",
+                "change": "Requests processed without agent",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Campaign velocity",
+                "value": "5 launches/wk",
+                "change": "Coordinated across 12 locales",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-commerce-playbook" kind="link">
+        <Config>
+          <Label>View commerce playbook</Label>
+          <Url>/commerce/playbook</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="talk-retail-ops" kind="link">
+        <Config>
+          <Label>Talk with retail ops</Label>
+          <Url>/commerce/retail-ops</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

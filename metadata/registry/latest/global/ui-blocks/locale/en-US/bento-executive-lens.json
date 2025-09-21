@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/executive-lens::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "65c5e8870a634e0513266984c677f0cdbd5549d037b4cbdb961a5e2762695d34",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/executive-lens",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-executive-lens.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-executive-lens\\1.0.0\\1.0.0.json"
+}

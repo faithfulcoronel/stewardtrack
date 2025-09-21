@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/product-orbit"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-product-orbit">
+    <Title>UI Block: Product orbit bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-product-orbit" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">product-orbit</Prop>
+            <Prop name="eyebrow" kind="static">Product enablement</Prop>
+            <Prop name="headline" kind="static">Accelerate adoption across every release train</Prop>
+            <Prop name="description" kind="static">Curate progressive onboarding with telemetry-backed segmentation and embedded coaching lanes.</Prop>
+            <Prop name="cards" kind="binding" source="productOrbitCards" path="items" />
+            <Prop name="metrics" kind="binding" source="productOrbitMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-roadmap" />
+            <Prop name="secondaryCta" kind="action" actionId="schedule-workshop" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="productOrbitCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Activation",
+                "stat": "92%",
+                "title": "Guided launch blueprint",
+                "description": "Stage interactive tours by persona with release-aware gating and tailored goal checks.",
+                "bullets": [
+                  "Progressive discovery per champion cohort",
+                  "Automated nudges triggered by telemetry milestones"
+                ],
+                "footnote": "Syncs nightly with product release metadata.",
+                "tone": "brand"
+              },
+              {
+                "eyebrow": "Signals",
+                "title": "Engagement constellation",
+                "description": "Blend clickstream, feature flags, and workspace health into a shared activation score.",
+                "icon": "🛰️",
+                "bullets": [
+                  "Weights adapt per lifecycle stage",
+                  "Exports to RevOps scorecards"
+                ],
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Playbooks",
+                "title": "Persona-specific tracks",
+                "description": "Launch activation canvases with curated assets and progress receipts.",
+                "bullets": [
+                  "Invite champions with workspace-ready agendas",
+                  "Route blockers directly to support automations"
+                ],
+                "tone": "light",
+                "footnote": "Updates auto-translate for local markets."
+              },
+              {
+                "badge": "Insights",
+                "title": "Adoption velocity",
+                "description": "Monitor momentum across squads with week-over-week deltas and burn-down projections.",
+                "stat": "3.2x",
+                "footnote": "Compared to control cohorts without metadata orchestration.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Guides",
+                "title": "Launch rehearsal studio",
+                "description": "Preview customer journeys and validate gating logic before publishing live.",
+                "icon": "🎛️",
+                "tone": "violet"
+              },
+              {
+                "eyebrow": "Trust",
+                "title": "Value confirmation",
+                "description": "Capture verified outcomes with embedded surveys and auto-generated success stories.",
+                "tone": "surface",
+                "footnote": "Stories share to community hub in one click."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="productOrbitMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Time-to-value",
+                "value": "3.2 days",
+                "change": "↓ 47% vs last quarter",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Champion coverage",
+                "value": "94%",
+                "change": "+6 pts across enterprise",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Live experiments",
+                "value": "28",
+                "change": "Autopublished each sprint",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Weekly NPS",
+                "value": "67",
+                "change": "+9 vs baseline",
+                "sentiment": "positive"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-roadmap" kind="link">
+        <Config>
+          <Label>View adoption roadmap</Label>
+          <Url>/product/adoption-roadmap</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="schedule-workshop" kind="link">
+        <Config>
+          <Label>Schedule onboarding workshop</Label>
+          <Url>/product/onboarding-workshop</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

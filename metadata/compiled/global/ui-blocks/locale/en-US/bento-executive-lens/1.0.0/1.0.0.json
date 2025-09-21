@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "65c5e8870a634e0513266984c677f0cdbd5549d037b4cbdb961a5e2762695d34",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/executive-lens",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-executive-lens",
+    "title": "UI Block: Executive lens bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-executive-lens",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "executive-lens"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Executive briefing"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "See the enterprise at a glance and act with conviction"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Combine financial health, customer momentum, and strategic bets in one executive-ready grid."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "executiveLensCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "executiveLensMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "open-board-brief"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "share-investor-update"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "executiveLensCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Finance",
+                "title": "Quarter pulse",
+                "description": "Revenue, margin, and cash runway scenarios aligned with board targets.",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Customers",
+                "title": "Health score",
+                "description": "Expansion risk, logo retention, and advocacy momentum summarized for top cohorts.",
+                "tone": "frost"
+              },
+              {
+                "badge": "Product",
+                "title": "Roadmap reality",
+                "description": "View delivery confidence, launch impact, and dependency alerts in real-time.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Strategy",
+                "title": "Capital allocation",
+                "description": "Model opex shifts, hiring, and investments against macro signals.",
+                "tone": "brand"
+              },
+              {
+                "badge": "Risk",
+                "title": "Executive watchlist",
+                "description": "Track compliance, security, and talent signals needing attention.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Culture",
+                "title": "People resonance",
+                "description": "Engagement, attrition, and DEI indicators with commentary from each region.",
+                "tone": "light"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "executiveLensMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "ARR run rate",
+                "value": "$212M",
+                "change": "+18% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Adjusted EBITDA",
+                "value": "12%",
+                "change": "Within guidance range",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Customer health index",
+                "value": "8.7/10",
+                "change": "\u2191 0.4 after success motions",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Innovation throughput",
+                "value": "24 launches",
+                "change": "Quarter-to-date",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-board-brief",
+        "kind": "link",
+        "config": {
+          "Label": "Open board brief",
+          "Url": "/executive/board-brief",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "share-investor-update",
+        "kind": "link",
+        "config": {
+          "Label": "Share investor update",
+          "Url": "/executive/investor-update",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-executive-lens.xml"
+}

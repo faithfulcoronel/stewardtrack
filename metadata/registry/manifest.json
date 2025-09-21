@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-21T11:37:28.802Z",
+  "generatedAt": "2025-09-21T12:01:57.626Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -37,6 +37,210 @@
       },
       "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml",
       "compiledPath": "metadata\\compiled\\global\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/ai-laboratory::-::-::en-US": {
+      "key": "global::ui-blocks::bento/ai-laboratory::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "926a68ec660c5ffd08af2983a59aae25042198d07bdf9388dcc5ad47a5973c75",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/ai-laboratory",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ai-laboratory.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-ai-laboratory\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/analytics-pulse::-::-::en-US": {
+      "key": "global::ui-blocks::bento/analytics-pulse::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b689cae47c4487aaf27fb6af03738cee743f476900d21ac6b107ef4e695c50d2",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/analytics-pulse",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-analytics-pulse.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-analytics-pulse\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/commerce-meridian::-::-::en-US": {
+      "key": "global::ui-blocks::bento/commerce-meridian::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "dd1b043957c1076ee5f4cad47214f2f82bb4736ec91791b05eada128313df6bc",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/commerce-meridian",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-commerce-meridian\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/community-constellation::-::-::en-US": {
+      "key": "global::ui-blocks::bento/community-constellation::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "cb8877fb704e54360bc84db8ccde17631c4259ffefab299252a5fd01b189b051",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/community-constellation",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-community-constellation.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-community-constellation\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/executive-lens::-::-::en-US": {
+      "key": "global::ui-blocks::bento/executive-lens::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "65c5e8870a634e0513266984c677f0cdbd5549d037b4cbdb961a5e2762695d34",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/executive-lens",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-executive-lens.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-executive-lens\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/healthcare-synthesis::-::-::en-US": {
+      "key": "global::ui-blocks::bento/healthcare-synthesis::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "1baf3fcc8d43f39b66fead053412f99b542be5f8e6c2dc46ce20fae244bbbd6b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/healthcare-synthesis",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-healthcare-synthesis.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-healthcare-synthesis\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/ops-horizon::-::-::en-US": {
+      "key": "global::ui-blocks::bento/ops-horizon::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d8f721805e948182a50e381d0d1b891e7d6569d2993235d21171d172c206690b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/ops-horizon",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ops-horizon.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-ops-horizon\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/platform-compass::-::-::en-US": {
+      "key": "global::ui-blocks::bento/platform-compass::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d8ec1dd3e11f7fd1e4f1fe7ec08d3933d520a9c32ceb7e414147bbd1e70ea8ab",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/platform-compass",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-platform-compass.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-platform-compass\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/product-orbit::-::-::en-US": {
+      "key": "global::ui-blocks::bento/product-orbit::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "0cf26f81b3bfc2eefb7b37e6818a43ac56a06ba7a7314cd485a87118cc366c21",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/product-orbit",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-product-orbit.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-product-orbit\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/revops-symmetry::-::-::en-US": {
+      "key": "global::ui-blocks::bento/revops-symmetry::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a07e9036b636c0180b879959b488a3ae8b4cb5d19a7a846a897b58c83af358f2",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/revops-symmetry",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-revops-symmetry.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-revops-symmetry\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/support-lattice::-::-::en-US": {
+      "key": "global::ui-blocks::bento/support-lattice::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "373e6859c063d846dd255af5af0c9c296a54bd4de93e692d3c1ffee4ea6a8b09",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/support-lattice",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-support-lattice.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-support-lattice\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::bento/sustainability-lab::-::-::en-US": {
+      "key": "global::ui-blocks::bento/sustainability-lab::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b7888c46bc0033c861aa91bd98dcf46390142f08cc4db3fed2a0f6a658f7607b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/sustainability-lab",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-sustainability-lab.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-sustainability-lab\\1.0.0\\1.0.0.json"
     },
     "global::ui-blocks::hero/activation::-::-::en-US": {
       "key": "global::ui-blocks::hero/activation::-::-::en-US",

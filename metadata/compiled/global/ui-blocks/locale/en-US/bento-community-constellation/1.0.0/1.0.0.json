@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "cb8877fb704e54360bc84db8ccde17631c4259ffefab299252a5fd01b189b051",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/community-constellation",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-community-constellation",
+    "title": "UI Block: Community constellation bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-community-constellation",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "community-constellation"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Community programs"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Unite advocates, contributors, and customer councils"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Bring programs, events, and story amplification into one orbit that celebrates your community."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "communityConstellationCards",
+                "path": "items"
+              },
+              "logos": {
+                "kind": "binding",
+                "source": "communityConstellationLogos",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "explore-community"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "submit-story"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "communityConstellationCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Programs",
+                "title": "Advocate pathways",
+                "description": "Design tracks for builders, strategists, and champions with themed missions.",
+                "tone": "brand"
+              },
+              {
+                "eyebrow": "Spotlight",
+                "title": "Member stories",
+                "description": "Curated success narratives with ready-to-share assets and social copy.",
+                "tone": "blossom"
+              },
+              {
+                "eyebrow": "Events",
+                "title": "Galaxy calendar",
+                "description": "Auto-sync meetups, AMAs, and advisory boards across time zones.",
+                "tone": "surface",
+                "footnote": "Includes streaming links and recordings archive."
+              },
+              {
+                "badge": "Enablement",
+                "title": "Playbook exchange",
+                "description": "Share templates, frameworks, and labs with upvote feedback loops.",
+                "tone": "violet"
+              },
+              {
+                "eyebrow": "Recognition",
+                "title": "Constellation awards",
+                "description": "Nominate outstanding contributors and celebrate peer-to-peer impact.",
+                "tone": "light"
+              },
+              {
+                "badge": "Advisory",
+                "title": "Customer council",
+                "description": "Capture roadmap insights, sentiment, and beta interest in one place.",
+                "tone": "forest"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "communityConstellationLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Champions Guild",
+              "Makers Hub",
+              "Navigator Circle",
+              "Product Council",
+              "Growth Guild",
+              "Advisor Forum"
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "explore-community",
+        "kind": "link",
+        "config": {
+          "Label": "Explore community hub",
+          "Url": "/community/hub",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "submit-story",
+        "kind": "link",
+        "config": {
+          "Label": "Submit a story",
+          "Url": "/community/submit-story",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-community-constellation.xml"
+}

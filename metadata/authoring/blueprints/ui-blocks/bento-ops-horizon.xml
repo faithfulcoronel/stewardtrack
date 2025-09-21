@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/ops-horizon"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-ops-horizon">
+    <Title>UI Block: Ops horizon bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-ops-horizon" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">ops-horizon</Prop>
+            <Prop name="eyebrow" kind="static">Operations control</Prop>
+            <Prop name="headline" kind="static">Keep mission-critical workflows resilient and audit-ready</Prop>
+            <Prop name="description" kind="static">Coordinate changes, evidence, and service health through one orchestrated command center.</Prop>
+            <Prop name="cards" kind="binding" source="opsHorizonCards" path="items" />
+            <Prop name="metrics" kind="binding" source="opsHorizonMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-runbook" />
+            <Prop name="secondaryCta" kind="action" actionId="book-audit-briefing" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="opsHorizonCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Runbooks",
+                "title": "Automated response playbooks",
+                "description": "Trigger templated workflows, evidence capture, and sign-off routing from the same dashboard.",
+                "bullets": [
+                  "Stakeholder paging with context",
+                  "Embedded root-cause narratives"
+                ],
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Compliance",
+                "title": "Continuous controls",
+                "description": "Track SOC 2, ISO, and HIPAA controls with real-time attestations and drift detection.",
+                "tone": "sand",
+                "footnote": "Mapped to auditor-ready evidence lockers."
+              },
+              {
+                "badge": "Insights",
+                "stat": "99.96%",
+                "title": "Change success rate",
+                "description": "Risk-based approvals guide pre-flight checks and dependency notifications.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Reliability",
+                "title": "Incident bridge",
+                "description": "Spin up a war room with chat, timeline, and live run metrics in under 30 seconds.",
+                "icon": "🛠️",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Capacity",
+                "title": "SLO planner",
+                "description": "See burn rates, forecasted debt, and recommended error budget guardrails.",
+                "tone": "light"
+              },
+              {
+                "badge": "Governance",
+                "title": "Policy autopilot",
+                "description": "Generate change windows, review cadences, and exception workflows from your policy graph.",
+                "tone": "brand"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="opsHorizonMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Change success",
+                "value": "99.1%",
+                "change": "↑ 2.3 pts quarter-to-date",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Rollback rate",
+                "value": "0.4%",
+                "change": "Down from 1.2%",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Audit findings",
+                "value": "0",
+                "change": "Closed 14 outstanding items",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Average RTO",
+                "value": "26 min",
+                "change": "Meets 45 min objective",
+                "sentiment": "positive"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-runbook" kind="link">
+        <Config>
+          <Label>Open global runbook</Label>
+          <Url>/operations/global-runbook</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="book-audit-briefing" kind="link">
+        <Config>
+          <Label>Book audit briefing</Label>
+          <Url>/operations/audit-briefing</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

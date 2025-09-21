@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d8f721805e948182a50e381d0d1b891e7d6569d2993235d21171d172c206690b",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/ops-horizon",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-ops-horizon",
+    "title": "UI Block: Ops horizon bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-ops-horizon",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "ops-horizon"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Operations control"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Keep mission-critical workflows resilient and audit-ready"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Coordinate changes, evidence, and service health through one orchestrated command center."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "opsHorizonCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "opsHorizonMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "open-runbook"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "book-audit-briefing"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "opsHorizonCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Runbooks",
+                "title": "Automated response playbooks",
+                "description": "Trigger templated workflows, evidence capture, and sign-off routing from the same dashboard.",
+                "bullets": [
+                  "Stakeholder paging with context",
+                  "Embedded root-cause narratives"
+                ],
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Compliance",
+                "title": "Continuous controls",
+                "description": "Track SOC 2, ISO, and HIPAA controls with real-time attestations and drift detection.",
+                "tone": "sand",
+                "footnote": "Mapped to auditor-ready evidence lockers."
+              },
+              {
+                "badge": "Insights",
+                "stat": "99.96%",
+                "title": "Change success rate",
+                "description": "Risk-based approvals guide pre-flight checks and dependency notifications.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Reliability",
+                "title": "Incident bridge",
+                "description": "Spin up a war room with chat, timeline, and live run metrics in under 30 seconds.",
+                "icon": "\ud83d\udee0\ufe0f",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Capacity",
+                "title": "SLO planner",
+                "description": "See burn rates, forecasted debt, and recommended error budget guardrails.",
+                "tone": "light"
+              },
+              {
+                "badge": "Governance",
+                "title": "Policy autopilot",
+                "description": "Generate change windows, review cadences, and exception workflows from your policy graph.",
+                "tone": "brand"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "opsHorizonMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Change success",
+                "value": "99.1%",
+                "change": "\u2191 2.3 pts quarter-to-date",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Rollback rate",
+                "value": "0.4%",
+                "change": "Down from 1.2%",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Audit findings",
+                "value": "0",
+                "change": "Closed 14 outstanding items",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Average RTO",
+                "value": "26 min",
+                "change": "Meets 45 min objective",
+                "sentiment": "positive"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-runbook",
+        "kind": "link",
+        "config": {
+          "Label": "Open global runbook",
+          "Url": "/operations/global-runbook",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "book-audit-briefing",
+        "kind": "link",
+        "config": {
+          "Label": "Book audit briefing",
+          "Url": "/operations/audit-briefing",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ops-horizon.xml"
+}

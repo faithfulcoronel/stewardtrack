@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/executive-lens"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-executive-lens">
+    <Title>UI Block: Executive lens bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-executive-lens" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">executive-lens</Prop>
+            <Prop name="eyebrow" kind="static">Executive briefing</Prop>
+            <Prop name="headline" kind="static">See the enterprise at a glance and act with conviction</Prop>
+            <Prop name="description" kind="static">Combine financial health, customer momentum, and strategic bets in one executive-ready grid.</Prop>
+            <Prop name="cards" kind="binding" source="executiveLensCards" path="items" />
+            <Prop name="metrics" kind="binding" source="executiveLensMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-board-brief" />
+            <Prop name="secondaryCta" kind="action" actionId="share-investor-update" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="executiveLensCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Finance",
+                "title": "Quarter pulse",
+                "description": "Revenue, margin, and cash runway scenarios aligned with board targets.",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Customers",
+                "title": "Health score",
+                "description": "Expansion risk, logo retention, and advocacy momentum summarized for top cohorts.",
+                "tone": "frost"
+              },
+              {
+                "badge": "Product",
+                "title": "Roadmap reality",
+                "description": "View delivery confidence, launch impact, and dependency alerts in real-time.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Strategy",
+                "title": "Capital allocation",
+                "description": "Model opex shifts, hiring, and investments against macro signals.",
+                "tone": "brand"
+              },
+              {
+                "badge": "Risk",
+                "title": "Executive watchlist",
+                "description": "Track compliance, security, and talent signals needing attention.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Culture",
+                "title": "People resonance",
+                "description": "Engagement, attrition, and DEI indicators with commentary from each region.",
+                "tone": "light"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="executiveLensMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "ARR run rate",
+                "value": "$212M",
+                "change": "+18% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Adjusted EBITDA",
+                "value": "12%",
+                "change": "Within guidance range",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Customer health index",
+                "value": "8.7/10",
+                "change": "↑ 0.4 after success motions",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Innovation throughput",
+                "value": "24 launches",
+                "change": "Quarter-to-date",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-board-brief" kind="link">
+        <Config>
+          <Label>Open board brief</Label>
+          <Url>/executive/board-brief</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-investor-update" kind="link">
+        <Config>
+          <Label>Share investor update</Label>
+          <Url>/executive/investor-update</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

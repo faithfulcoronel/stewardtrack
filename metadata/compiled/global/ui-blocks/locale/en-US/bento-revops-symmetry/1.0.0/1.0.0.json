@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "a07e9036b636c0180b879959b488a3ae8b4cb5d19a7a846a897b58c83af358f2",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/revops-symmetry",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-revops-symmetry",
+    "title": "UI Block: RevOps symmetry bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-revops-symmetry",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "revops-symmetry"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Revenue operations"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Create revenue symmetry across marketing, sales, and success"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Align pipeline health, playbooks, and enablement in one revenue cockpit built for cross-functional execution."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "revopsSymmetryCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "revopsSymmetryMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "open-forecast"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "share-enablement-pack"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "revopsSymmetryCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Pipeline",
+                "title": "Hygiene heatmap",
+                "description": "Spot stale deals, missing next steps, and coverage gaps by segment.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Scoring",
+                "title": "Propensity engine",
+                "description": "Blend product usage, intent, and support tickets into account prioritization.",
+                "tone": "brand",
+                "footnote": "Feeds weekly standups automatically."
+              },
+              {
+                "badge": "Playbooks",
+                "title": "Deal room library",
+                "description": "Serve best-practice templates with role-specific tasks and assets.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Forecast",
+                "stat": "96%",
+                "title": "Signal-aligned forecast",
+                "description": "Roll up AI-assisted predictions with manager overrides and scenario modeling.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Enablement",
+                "title": "Momentum pulses",
+                "description": "Weekly digest summarizing wins, risks, and competitive intel for every pod.",
+                "tone": "light"
+              },
+              {
+                "badge": "Success",
+                "title": "Expansion radar",
+                "description": "Track product-qualified accounts and renewal sentiment side-by-side.",
+                "tone": "dark"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "revopsSymmetryMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Forecast accuracy",
+                "value": "\u00b14.6%",
+                "change": "Improved from \u00b18.9%",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Win rate",
+                "value": "32%",
+                "change": "+6 pts after playbook rollout",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Sales cycle",
+                "value": "41 days",
+                "change": "\u2193 9 days vs Q1",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Expansion pipeline",
+                "value": "$8.4M",
+                "change": "Qualified across 27 accounts",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-forecast",
+        "kind": "link",
+        "config": {
+          "Label": "Open revenue forecast",
+          "Url": "/revops/forecast",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "share-enablement-pack",
+        "kind": "link",
+        "config": {
+          "Label": "Share enablement pack",
+          "Url": "/revops/enablement-pack",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-revops-symmetry.xml"
+}
