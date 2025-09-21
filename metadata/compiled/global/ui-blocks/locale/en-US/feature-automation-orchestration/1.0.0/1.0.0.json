@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "cce241028b1d83b9b1410d41c9ac9129b22967c00e210ab0af6576479349e0af",
+  "checksum": "f4f94ddc3ff6003a972ea467b96591e8ba806b1f7e011647b97d4fbfad19d2e5",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -72,28 +72,28 @@
           "value": {
             "items": [
               {
-                "icon": "\u26a1",
+                "icon": "⚡",
                 "badge": "Policy aware",
                 "title": "Guardrail templates",
                 "description": "Codify approvals, risk thresholds, and SLAs as reusable, auditable automation blocks.",
                 "href": "/workflows/guardrails"
               },
               {
-                "icon": "\ud83c\udf10",
+                "icon": "🌐",
                 "badge": "Multi-system",
                 "title": "Graph orchestration",
                 "description": "Visualize dependencies across CRM, billing, and data warehouse events in one timeline.",
                 "href": "/platform/graph-orchestration"
               },
               {
-                "icon": "\ud83e\udde9",
+                "icon": "🧩",
                 "badge": "Composable",
                 "title": "Runtime adapters",
                 "description": "Swap integrations without editing the core business logic using adapter contracts.",
                 "href": "/integrations/runtime-adapters"
               },
               {
-                "icon": "\ud83d\udd01",
+                "icon": "🔁",
                 "badge": "Lifecycle",
                 "title": "Exception loops",
                 "description": "Automatically route fallbacks to human review with context from upstream automations.",
@@ -125,5 +125,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-automation-orchestration.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-automation-orchestration.xml"
 }

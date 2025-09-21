@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/regional-presence"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-regional-presence">
+    <Title>UI Block: Regional presence pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-regional-presence" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">regional-cards</Prop>
+            <Prop name="eyebrow" kind="static">Global availability</Prop>
+            <Prop name="title" kind="static">Regional packages that honor compliance and go-to-market nuance</Prop>
+            <Prop name="description" kind="static">Pick a regional blueprint to match languages, currencies, and buyer expectations. Each package includes localized onboarding journeys.</Prop>
+            <Prop name="tiers" kind="binding" source="regionalPresenceTiers" path="items" />
+            <Prop name="footnote" kind="static">Exchange rates updated monthly. Regional success pods available during local business hours.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="talk-to-regional-team" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="regionalPresenceTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "North America",
+                "price": "$2,250",
+                "period": "month",
+                "badge": "USD",
+                "description": "Support U.S. and Canada go-to-market teams with localized compliance checklists.",
+                "features": [
+                  "SOC 2 + HIPAA addendum",
+                  "USD & CAD billing",
+                  "EN/FR localization",
+                  "Dedicated PST support window"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Launch North America",
+                    "url": "/checkout?region=na",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Latin America",
+                "price": "$1,480",
+                "period": "month",
+                "badge": "MXN/BRL",
+                "description": "Regionalized onboarding journeys with Portuguese and Spanish content and tax handling.",
+                "features": [
+                  "MXN, BRL, CLP billing",
+                  "Spanish & Portuguese playbooks",
+                  "LATAM compliance library",
+                  "Regional partner ecosystem"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Activate LATAM",
+                    "url": "/checkout?region=latam",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Europe",
+                "price": "€1,990",
+                "period": "month",
+                "badge": "EUR",
+                "description": "Manage GDPR, multilingual onboarding, and EU procurement requirements in one plan.",
+                "features": [
+                  "GDPR & ISO controls",
+                  "EU data residency",
+                  "DE/FR/EN localization",
+                  "In-region customer success"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Scale across EU",
+                    "url": "/checkout?region=eu",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Middle East & Africa",
+                "price": "$1,650",
+                "period": "month",
+                "badge": "AED/ZAR",
+                "description": "Blend multi-currency billing and hybrid deployment models to serve MEA customers.",
+                "features": [
+                  "Dual cloud deployment",
+                  "Arabic localization",
+                  "VAT invoicing",
+                  "MEA enablement resources"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Enable MEA",
+                    "url": "/checkout?region=mea",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Asia Pacific",
+                "price": "$2,050",
+                "period": "month",
+                "badge": "SGD/JPY",
+                "description": "Handle local hosting, compliance, and language coverage across APAC markets.",
+                "features": [
+                  "Data residency in SG & JP",
+                  "Mandarin & Japanese playbooks",
+                  "APAC compliance accelerators",
+                  "Local procurement templates"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Deploy APAC",
+                    "url": "/checkout?region=apac",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Australia & New Zealand",
+                "price": "$1,420",
+                "period": "month",
+                "badge": "AUD",
+                "description": "Support ANZ customers with localized automation, GST compliance, and time-zone aligned teams.",
+                "features": [
+                  "GST-ready invoicing",
+                  "EN/NZ localization",
+                  "Regional integrations",
+                  "Sydney support pod"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Launch ANZ",
+                    "url": "/checkout?region=anz",
+                    "variant": "secondary"
+                  }
+                }
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="talk-to-regional-team" kind="link">
+        <Config>
+          <Label>Talk to a regional specialist</Label>
+          <Url>/contact/regional-teams</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

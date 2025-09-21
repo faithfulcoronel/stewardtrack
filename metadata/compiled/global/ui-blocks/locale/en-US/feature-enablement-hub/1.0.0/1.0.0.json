@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "38ad157614791251ccd649a1da85e269fcc9c4df342f25bc0ed553f54aa4dfff",
+  "checksum": "ca30ea33050d5fcb17ec6f819e085707585d69d7b5e2e274fa340398c940ed19",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -68,12 +68,12 @@
                 "description": "Tailor onboarding and ongoing development paths with adaptive assessments.",
                 "items": [
                   {
-                    "icon": "\ud83d\udcda",
+                    "icon": "📚",
                     "title": "Role libraries",
                     "description": "Map competencies for SDR, AE, CSM, and partner roles."
                   },
                   {
-                    "icon": "\ud83e\uddd1\u200d\ud83c\udfeb",
+                    "icon": "🧑‍🏫",
                     "title": "Coaching loops",
                     "description": "Blend live call reviews with asynchronous feedback."
                   }
@@ -84,12 +84,12 @@
                 "description": "Serve the right collateral at the right moment directly in team workflows.",
                 "items": [
                   {
-                    "icon": "\ud83d\udd0e",
+                    "icon": "🔎",
                     "title": "Contextual search",
                     "description": "Surface battlecards and decks based on deal stage."
                   },
                   {
-                    "icon": "\ud83d\udd17",
+                    "icon": "🔗",
                     "title": "CRM automation",
                     "description": "Trigger follow-up tasks when assets are viewed or shared."
                   }
@@ -100,12 +100,12 @@
                 "description": "Connect learning progress with pipeline and revenue outcomes.",
                 "items": [
                   {
-                    "icon": "\ud83d\udcc8",
+                    "icon": "📈",
                     "title": "Readiness scores",
                     "description": "Spot skill gaps with data-backed recommendations."
                   },
                   {
-                    "icon": "\ud83e\udd1d",
+                    "icon": "🤝",
                     "title": "Deal influence",
                     "description": "Attribute asset usage to closed-won revenue."
                   }
@@ -137,5 +137,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-enablement-hub.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-enablement-hub.xml"
 }

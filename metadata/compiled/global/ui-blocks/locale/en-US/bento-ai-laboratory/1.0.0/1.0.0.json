@@ -78,7 +78,7 @@
                 "eyebrow": "Evaluation",
                 "title": "Safety matrix",
                 "description": "Pair human review queues with automated guardrails that score toxicity, bias, and hallucinations.",
-                "icon": "\ud83e\uddea",
+                "icon": "🧪",
                 "tone": "dark"
               },
               {
@@ -120,7 +120,7 @@
               {
                 "label": "Evaluation coverage",
                 "value": "1,240 cases",
-                "change": "\u2191 32% vs last sprint",
+                "change": "↑ 32% vs last sprint",
                 "sentiment": "positive"
               },
               {
@@ -167,5 +167,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ai-laboratory.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ai-laboratory.xml"
 }

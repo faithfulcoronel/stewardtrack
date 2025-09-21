@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ec23e4df2f251049b17c6dfccd28f0cece691032ded53f66dd04c4a441704fba",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/creative-cloud",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-pricing-creative-cloud",
+    "title": "UI Block: Creative cloud pricing",
+    "regions": [
+      {
+        "id": "pricing",
+        "components": [
+          {
+            "id": "pricing-creative-cloud",
+            "type": "PricingSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "gradient-panels"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Creative operations"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Curate editorial, video, and motion design in one contract"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Studios and agencies use these bundles to align creative output with campaign cadences, approvals, and analytics."
+              },
+              "tiers": {
+                "kind": "binding",
+                "source": "creativeCloudTiers",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Production windows reset each quarter. Additional revision cycles billed at $90/hr."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "book-creative-tour"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "creativeCloudTiers",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "name": "Editorial",
+                "price": "$2,400",
+                "period": "month",
+                "description": "Build a consistent publishing cadence with briefs, production boards, and insight reports.",
+                "features": [
+                  "8 long-form assets",
+                  "SEO playbooks",
+                  "Review + approval workspace",
+                  "Analytics recaps"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start editorial",
+                    "url": "/checkout?plan=editorial",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Video",
+                "price": "$4,100",
+                "period": "month",
+                "highlight": "Most requested",
+                "description": "Deliver product explainers, launch teasers, and customer stories with motion design support.",
+                "features": [
+                  "6 produced videos",
+                  "Storyboard collaboration",
+                  "Animation + subtitle kit",
+                  "Usage rights tracking"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Book video crew",
+                    "url": "/checkout?plan=video",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Campaign",
+                "price": "Custom",
+                "period": "quarter",
+                "description": "Combine brand strategy, design systems, and cross-channel execution for integrated launches.",
+                "features": [
+                  "Integrated planning board",
+                  "24/7 creative hotline",
+                  "Localization management",
+                  "Attribution + performance dashboards"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design campaign",
+                    "url": "/contact/creative-campaign",
+                    "variant": "primary"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "book-creative-tour",
+        "kind": "link",
+        "config": {
+          "Label": "Book a creative ops tour",
+          "Url": "/demos/creative-operations",
+          "Variant": "primary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-creative-cloud.xml"
+}

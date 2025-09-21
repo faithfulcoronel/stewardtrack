@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/flexible-cycle"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-flexible-cycle">
+    <Title>UI Block: Flexible cycle pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-flexible-cycle" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">toggle-contrast</Prop>
+            <Prop name="eyebrow" kind="static">Billing flexibility</Prop>
+            <Prop name="title" kind="static">Switch between monthly and annual momentum without migrations</Prop>
+            <Prop name="description" kind="static">Operational finance teams use these tiers to calibrate adoption targets and pay-for-performance guardrails in the same view.</Prop>
+            <Prop name="tiers" kind="binding" source="flexibleCycleTiers" path="items" />
+            <Prop name="toggles" kind="binding" source="flexibleCycleToggles" path="items" />
+            <Prop name="footnote" kind="static">Annual pricing reflects a 17% savings. Usage above contracted thresholds is billed at month end.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="schedule-forecast-session" />
+            <Prop name="secondaryCta" kind="action" actionId="view-usage-policy" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="flexibleCycleTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Momentum",
+                "price": "$489",
+                "period": "month",
+                "badge": "Billing optimized",
+                "highlight": "Annual discount",
+                "description": "Bundle lifecycle orchestration, automation, and workspace analytics for hybrid revenue teams.",
+                "features": [
+                  "Quarterly usage coaching",
+                  "Sandbox + production environments",
+                  "Automation throttles",
+                  "Slack + Teams notifications",
+                  "Saved forecast scenarios"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Activate annual",
+                    "url": "/checkout?plan=momentum",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Eligible for quarterly billing." 
+              },
+              {
+                "name": "Sprint",
+                "price": "$189",
+                "period": "month",
+                "highlight": "Best for pilots",
+                "description": "Spin up regional experiments and observe activation metrics before committing to a full rollout.",
+                "features": [
+                  "2 orchestration canvases",
+                  "5k participant events",
+                  "Segment + HubSpot integrations",
+                  "Weekly AI adoption recaps"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Launch pilot",
+                    "url": "/checkout?plan=sprint",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Add-on seats",
+                "price": "$35",
+                "period": "user",
+                "description": "Extend workspace governance to contractors, partners, and seasonal teams.",
+                "features": [
+                  "Role-based templates",
+                  "1:Many workspace invites",
+                  "Security review tooling"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Add collaborators",
+                    "url": "/checkout?plan=add-on",
+                    "variant": "ghost"
+                  }
+                }
+              },
+              {
+                "name": "Data warehouse",
+                "price": "$0.45",
+                "period": "per 1k events",
+                "description": "Stream raw product signals to your warehouse with governance and lineage intact.",
+                "features": [
+                  "Snowflake + BigQuery connectors",
+                  "Field-level filtering",
+                  "Latency alerts"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Estimate volume",
+                    "url": "/contact/data-streams",
+                    "variant": "ghost"
+                  }
+                }
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="flexibleCycleToggles" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Annual",
+                "description": "17% savings",
+                "active": true
+              },
+              {
+                "label": "Monthly",
+                "description": "Cancel anytime",
+                "active": false
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="schedule-forecast-session" kind="link">
+        <Config>
+          <Label>Schedule a forecast session</Label>
+          <Url>/contact/forecasting</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-usage-policy" kind="link">
+        <Config>
+          <Label>Review usage policy</Label>
+          <Url>/legal/usage-policy</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

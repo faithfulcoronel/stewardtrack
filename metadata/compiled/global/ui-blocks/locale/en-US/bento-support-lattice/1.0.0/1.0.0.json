@@ -118,7 +118,7 @@
               {
                 "label": "First response",
                 "value": "3m 42s",
-                "change": "\u2193 29% after lattice rollout",
+                "change": "↓ 29% after lattice rollout",
                 "sentiment": "positive"
               },
               {
@@ -165,5 +165,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-support-lattice.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-support-lattice.xml"
 }

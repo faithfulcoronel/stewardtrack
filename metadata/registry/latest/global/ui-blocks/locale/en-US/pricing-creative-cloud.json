@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::pricing/creative-cloud::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ec23e4df2f251049b17c6dfccd28f0cece691032ded53f66dd04c4a441704fba",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/creative-cloud",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-creative-cloud.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-creative-cloud/1.0.0/1.0.0.json"
+}

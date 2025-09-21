@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c33aba7a15b59c05eeda8c8a659a9bdefe10422c7b16e981c9498dee12fac6b6",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/modular-suite",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-pricing-modular-suite",
+    "title": "UI Block: Modular suite pricing",
+    "regions": [
+      {
+        "id": "pricing",
+        "components": [
+          {
+            "id": "pricing-modular-suite",
+            "type": "PricingSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "modular-addons"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Composable suite"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Start with the orchestration core, layer only what you need"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Teams mix and match modules to orchestrate onboarding, retention, and expansion without bloated bundles."
+              },
+              "note": {
+                "kind": "static",
+                "value": "Base plan required. Add-ons can be toggled each quarter to match evolving priorities."
+              },
+              "tiers": {
+                "kind": "binding",
+                "source": "modularSuiteBase",
+                "path": "items"
+              },
+              "addOns": {
+                "kind": "binding",
+                "source": "modularSuiteAddOns",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Usage for automation runs beyond included volume billed at $0.004 per action."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "configure-suite"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-solution-templates"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "modularSuiteBase",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "name": "Orchestration core",
+                "price": "$640",
+                "period": "month",
+                "description": "Centralize user journeys, automate lifecycle nudges, and instrument success metrics.",
+                "features": [
+                  "Unified journey canvas",
+                  "Role-based permissions",
+                  "5M automation actions",
+                  "Insights workspace"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Activate core",
+                    "url": "/checkout?plan=orchestration-core",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Includes onboarding concierge and template migration assistance."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "modularSuiteAddOns",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "name": "Customer marketing",
+                "price": "+$240/mo",
+                "description": "Email, in-app, and webinar campaigns with shared insights dashboard.",
+                "features": [
+                  "Journey-based audiences",
+                  "Campaign QA sandbox",
+                  "Deliverability monitor"
+                ]
+              },
+              {
+                "name": "Revenue intelligence",
+                "price": "+$320/mo",
+                "description": "Connect usage signals with pipeline data to accelerate expansion.",
+                "features": [
+                  "CRM bi-directional sync",
+                  "Deal risk scoring",
+                  "Forecast variance alerts"
+                ]
+              },
+              {
+                "name": "Advocacy studio",
+                "price": "+$180/mo",
+                "description": "Capture testimonials, referrals, and community contributions automatically.",
+                "features": [
+                  "Advocate portal",
+                  "Incentive wallet",
+                  "Content release approvals"
+                ]
+              },
+              {
+                "name": "Service desk",
+                "price": "+$90/mo",
+                "description": "Add concierge support for configuration, QA, and migrations on demand.",
+                "features": [
+                  "Unlimited ticketing",
+                  "Specialist pairing",
+                  "SLA-backed responses"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "configure-suite",
+        "kind": "link",
+        "config": {
+          "Label": "Configure my suite",
+          "Url": "/pricing/configure",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-solution-templates",
+        "kind": "link",
+        "config": {
+          "Label": "View solution templates",
+          "Url": "/solutions/templates",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-modular-suite.xml"
+}

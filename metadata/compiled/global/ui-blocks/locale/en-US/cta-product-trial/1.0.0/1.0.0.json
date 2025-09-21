@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "c7968fe663b85e3f7c7dabb20c525d5a42c779b4348ba0f06c959a120378a26a",
+  "checksum": "e4d22fc2a51bc12f8ffded1ac39258f2a87d9160bdacdde7c812152627fa35e1",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -84,7 +84,7 @@
         "kind": "static",
         "config": {
           "value": {
-            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80",
+            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80",
             "alt": "Product team collaborating during a trial onboarding"
           }
         }
@@ -111,5 +111,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-product-trial.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-product-trial.xml"
 }

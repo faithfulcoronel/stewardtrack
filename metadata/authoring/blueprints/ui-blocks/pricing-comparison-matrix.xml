@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/comparison-matrix"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-comparison-matrix">
+    <Title>UI Block: Comparison matrix pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-comparison-matrix" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">comparison-table</Prop>
+            <Prop name="eyebrow" kind="static">Benchmark capabilities</Prop>
+            <Prop name="title" kind="static">Compare platform depth before you choose a revenue tier</Prop>
+            <Prop name="description" kind="static">Procurement teams can inspect security, automation, and support coverage in a single matrix. Every row maps to our compliance handbook.</Prop>
+            <Prop name="tiers" kind="binding" source="matrixTiers" path="items" />
+            <Prop name="comparisons" kind="binding" source="matrixRows" path="items" />
+            <Prop name="footnote" kind="static">All plans include SOC 2 Type II, GDPR readiness, and 99.9% uptime SLA. Enterprise support response within 30 minutes.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="request-matrix-review" />
+            <Prop name="secondaryCta" kind="action" actionId="export-detailed-matrix" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="matrixTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Launch",
+                "price": "$199",
+                "period": "month"
+              },
+              {
+                "name": "Scale",
+                "price": "$499",
+                "period": "month"
+              },
+              {
+                "name": "Enterprise",
+                "price": "Custom",
+                "period": "annual"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="matrixRows" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "feature": "Automation canvas",
+                "values": [
+                  { "included": true },
+                  { "included": true },
+                  { "included": true }
+                ]
+              },
+              {
+                "feature": "Seats included",
+                "values": [
+                  { "value": "25 builders" },
+                  { "value": "75 builders" },
+                  { "value": "Unlimited" }
+                ]
+              },
+              {
+                "feature": "Regional data residency",
+                "values": [
+                  { "label": "US only" },
+                  { "value": "US + EU" },
+                  { "value": "Global coverage" }
+                ]
+              },
+              {
+                "feature": "Lifecycle advisors",
+                "values": [
+                  { "label": "Community sessions" },
+                  { "value": "Monthly coaching" },
+                  { "value": "Dedicated pod" }
+                ]
+              },
+              {
+                "feature": "Audit logging",
+                "values": [
+                  { "included": true },
+                  { "included": true },
+                  { "included": true }
+                ]
+              },
+              {
+                "feature": "Service-level agreement",
+                "values": [
+                  { "value": "99.5%" },
+                  { "value": "99.9%" },
+                  { "value": "99.95%" }
+                ]
+              },
+              {
+                "feature": "Escalation path",
+                "values": [
+                  { "label": "Email support" },
+                  { "value": "Priority queue" },
+                  { "value": "Dedicated Slack" }
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="request-matrix-review" kind="link">
+        <Config>
+          <Label>Request a matrix review</Label>
+          <Url>/contact/procurement</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="export-detailed-matrix" kind="link">
+        <Config>
+          <Label>Export detailed comparison</Label>
+          <Url>/resources/comparison-matrix.xlsx</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

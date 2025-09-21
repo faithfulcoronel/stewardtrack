@@ -130,7 +130,7 @@
               {
                 "label": "Clinician satisfaction",
                 "value": "4.6/5",
-                "change": "\u2191 0.8 vs baseline",
+                "change": "↑ 0.8 vs baseline",
                 "sentiment": "positive"
               },
               {
@@ -165,5 +165,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-healthcare-synthesis.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-healthcare-synthesis.xml"
 }

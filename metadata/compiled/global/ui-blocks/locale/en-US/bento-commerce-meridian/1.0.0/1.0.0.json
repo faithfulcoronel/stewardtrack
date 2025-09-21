@@ -119,7 +119,7 @@
               {
                 "label": "Average order value",
                 "value": "$184",
-                "change": "\u2191 12% YoY",
+                "change": "↑ 12% YoY",
                 "sentiment": "positive"
               },
               {
@@ -166,5 +166,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-meridian.xml"
 }

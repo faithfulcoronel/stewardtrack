@@ -118,8 +118,8 @@
             "items": [
               {
                 "label": "Forecast accuracy",
-                "value": "\u00b14.6%",
-                "change": "Improved from \u00b18.9%",
+                "value": "±4.6%",
+                "change": "Improved from ±8.9%",
                 "sentiment": "positive"
               },
               {
@@ -131,7 +131,7 @@
               {
                 "label": "Sales cycle",
                 "value": "41 days",
-                "change": "\u2193 9 days vs Q1",
+                "change": "↓ 9 days vs Q1",
                 "sentiment": "positive"
               },
               {
@@ -166,5 +166,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-revops-symmetry.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-revops-symmetry.xml"
 }

@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "40e231e029955a61163c3dd8d3ef4885adf5fad6e4b5d84b3a3f939ed21f9c5a",
+  "checksum": "e762814dcc2d3bad1b9403f336e16fd657d153d2d055398d3df684761698ac43",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/live-workshop",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-live-workshop.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-live-workshop\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-live-workshop.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-live-workshop/1.0.0/1.0.0.json"
 }

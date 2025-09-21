@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "7e04af73cf58c0ce1970711dc848c2d847b69a4a3ad33dca9c2ff8672c8da732",
+  "checksum": "a4ce14be25853c74936fed78c751ecd181f48059a0e10d9d3381960af26a5f5c",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -92,5 +92,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-activation.xml"
 }

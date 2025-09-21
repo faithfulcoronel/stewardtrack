@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/studio-launch"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-studio-launch">
+    <Title>UI Block: Studio launch pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-studio-launch" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">three-column-highlight</Prop>
+            <Prop name="eyebrow" kind="static">Plans for every launch</Prop>
+            <Prop name="title" kind="static">Choose a workspace that scales with your product velocity</Prop>
+            <Prop name="description" kind="static">From scrappy experiments to funded teams, these tiers keep your activation, usage, and governance aligned without surprise fees.</Prop>
+            <Prop name="tiers" kind="binding" source="studioLaunchTiers" path="items" />
+            <Prop name="footnote" kind="static">Prices listed in USD. All plans include SOC 2 controls, SSO, and localized email support.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="speak-to-pricing" />
+            <Prop name="secondaryCta" kind="action" actionId="download-pricing-guide" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="studioLaunchTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Starter",
+                "price": "$0",
+                "period": "forever",
+                "badge": "Launch-ready",
+                "description": "For founders building the first version with telemetry and guided onboarding.",
+                "features": [
+                  "Up to 3 active journeys",
+                  "1k tracked participants",
+                  "Usage dashboards refreshed daily",
+                  "Email-based workspace invites"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start for free",
+                    "url": "/get-started?plan=starter",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Growth",
+                "price": "$349",
+                "period": "month",
+                "badge": "Most adopted",
+                "highlight": "2 months free annual",
+                "description": "Ideal for product-led teams coordinating launches across squads and geos.",
+                "features": [
+                  "Unlimited experiments",
+                  "10k tracked participants",
+                  "AI insight digests",
+                  "Lifecycle journey templates",
+                  "Regional feature flag controls"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start growth trial",
+                    "url": "/signup?plan=growth",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Includes a 30-day guided onboarding sprint."
+              },
+              {
+                "name": "Scale",
+                "price": "Custom",
+                "period": "annual",
+                "badge": "Enterprise",
+                "description": "Designed for multi-product organizations with strict compliance and volume requirements.",
+                "features": [
+                  "Unlimited workspaces",
+                  "Unlimited tracked participants",
+                  "Private deployment regions",
+                  "Audit-ready activity log exports",
+                  "Dedicated adoption architect"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design my plan",
+                    "url": "/contact/pricing?plan=scale",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Volume-based pricing with quarterly true-up."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="speak-to-pricing" kind="link">
+        <Config>
+          <Label>Talk with pricing strategist</Label>
+          <Url>/contact/pricing</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-pricing-guide" kind="link">
+        <Config>
+          <Label>Download pricing guide</Label>
+          <Url>/resources/pricing-guide.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

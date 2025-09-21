@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "80baf02cf64c0994cd2b1cef7d068c731d6438c2ee5f994976d801445f17c658",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/lifecycle-upgrade",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-pricing-lifecycle-upgrade",
+    "title": "UI Block: Lifecycle upgrade pricing",
+    "regions": [
+      {
+        "id": "pricing",
+        "components": [
+          {
+            "id": "pricing-lifecycle-upgrade",
+            "type": "PricingSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "tiered-journey"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Lifecycle roadmap"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Level up adoption with milestones that compound value"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Each tier unlocks new rituals—coaching, analytics, and automation—so customer teams can prove ROI at every checkpoint."
+              },
+              "tiers": {
+                "kind": "binding",
+                "source": "lifecycleSteps",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Milestone reviews included at each upgrade. Cancel or pause between stages with 30 days notice."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "map-lifecycle"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "explore-case-studies"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "lifecycleSteps",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "name": "Orientation",
+                "price": "$2k",
+                "period": "one-time",
+                "description": "Align teams, map critical journeys, and deploy best-practice instrumentation within two weeks.",
+                "features": [
+                  "Discovery workshop",
+                  "KPI alignment charter",
+                  "Workspace configuration",
+                  "Platform enablement"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start orientation",
+                    "url": "/checkout?plan=orientation",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Activation",
+                "price": "$1.5k",
+                "period": "month",
+                "highlight": "Popular",
+                "description": "Orchestrate product tours, trial conversions, and nurture sequences with guided reviews.",
+                "features": [
+                  "Weekly performance clinics",
+                  "Experiment backlog management",
+                  "Automated lifecycle scoring",
+                  "Executive adoption dashboard"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Unlock activation",
+                    "url": "/checkout?plan=activation",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Includes up to 5 workspaces."
+              },
+              {
+                "name": "Expansion",
+                "price": "$2.8k",
+                "period": "month",
+                "description": "Scale enterprise handoffs, ROI storytelling, and partner enablement across business units.",
+                "features": [
+                  "Account health scoring",
+                  "Forecast-to-adoption bridge",
+                  "Revenue instrumentation reviews",
+                  "Partner enablement portal"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Expand coverage",
+                    "url": "/checkout?plan=expansion",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Advocacy",
+                "price": "Custom",
+                "period": "annual",
+                "description": "Co-create customer councils, roadmap visibility, and influence programs tied to revenue goals.",
+                "features": [
+                  "Customer story studio",
+                  "Roadmap feedback cadences",
+                  "Executive sponsor briefings",
+                  "Advocacy fund management"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design advocacy plan",
+                    "url": "/contact/advocacy",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Includes bespoke OKR tracking and voice-of-customer research."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "map-lifecycle",
+        "kind": "link",
+        "config": {
+          "Label": "Map your lifecycle",
+          "Url": "/workshops/lifecycle-blueprint",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "explore-case-studies",
+        "kind": "link",
+        "config": {
+          "Label": "Explore case studies",
+          "Url": "/customers/lifecycle-success",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-lifecycle-upgrade.xml"
+}

@@ -79,7 +79,7 @@
                 "eyebrow": "Signals",
                 "title": "Outcome radar",
                 "description": "Blend revenue, adoption, and churn propensity into pulse quadrants your GTM teams can own.",
-                "icon": "\ud83d\udce1",
+                "icon": "📡",
                 "tone": "cobalt"
               },
               {
@@ -125,7 +125,7 @@
               {
                 "label": "Query freshness",
                 "value": "98.7%",
-                "change": "\u2191 4.1 pts week-over-week",
+                "change": "↑ 4.1 pts week-over-week",
                 "sentiment": "positive"
               },
               {
@@ -172,5 +172,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-analytics-pulse.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-analytics-pulse.xml"
 }
