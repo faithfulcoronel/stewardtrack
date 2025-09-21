@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/enablement-hub"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-enablement-hub">
+    <Title>UI Block: Enablement hub feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-enablement-hub" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">columns</Prop>
+            <Prop name="eyebrow" kind="static">Revenue enablement</Prop>
+            <Prop name="title" kind="static">Orchestrate learning, assets, and coaching in one hub</Prop>
+            <Prop name="description" kind="static">Equip sales, customer success, and partners with curated paths tied directly to outcomes.</Prop>
+            <Prop name="columns" kind="binding" source="enablementColumns" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="explore-enablement" />
+            <Prop name="secondaryCta" kind="action" actionId="download-enablement-guide" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="enablementColumns" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Learning journeys",
+                "description": "Tailor onboarding and ongoing development paths with adaptive assessments.",
+                "items": [
+                  { "icon": "📚", "title": "Role libraries", "description": "Map competencies for SDR, AE, CSM, and partner roles." },
+                  { "icon": "🧑‍🏫", "title": "Coaching loops", "description": "Blend live call reviews with asynchronous feedback." }
+                ]
+              },
+              {
+                "title": "Asset delivery",
+                "description": "Serve the right collateral at the right moment directly in team workflows.",
+                "items": [
+                  { "icon": "🔎", "title": "Contextual search", "description": "Surface battlecards and decks based on deal stage." },
+                  { "icon": "🔗", "title": "CRM automation", "description": "Trigger follow-up tasks when assets are viewed or shared." }
+                ]
+              },
+              {
+                "title": "Performance insights",
+                "description": "Connect learning progress with pipeline and revenue outcomes.",
+                "items": [
+                  { "icon": "📈", "title": "Readiness scores", "description": "Spot skill gaps with data-backed recommendations." },
+                  { "icon": "🤝", "title": "Deal influence", "description": "Attribute asset usage to closed-won revenue." }
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="explore-enablement" kind="link">
+        <Config>
+          <Label>Explore enablement hub</Label>
+          <Url>/solutions/revenue-enablement</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-enablement-guide" kind="link">
+        <Config>
+          <Label>Download enablement guide</Label>
+          <Url>/resources/enablement-guide</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

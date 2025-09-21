@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d98f5900589ede16cd362121ca68a7b9c613553d2c6187fd6e81a42b4e4a67a7",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/support-intelligence",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-feature-support-intelligence",
+    "title": "UI Block: Support intelligence feature section",
+    "regions": [
+      {
+        "id": "features",
+        "components": [
+          {
+            "id": "feature-support-intelligence",
+            "type": "FeatureSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "callout"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Support intelligence"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Give agents superpowers, not silos"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Pair real-time assistance with operational analytics to boost CSAT while reducing handle time."
+              },
+              "features": {
+                "kind": "binding",
+                "source": "supportHighlights",
+                "path": "items"
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "AI-suggested resolutions cut manual triage by 63% across our enterprise customers."
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Benchmark performance against peers and set goals grounded in anonymized industry telemetry."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "explore-support-ai"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "join-support-benchmark"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "supportHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "icon": "\ud83e\udde0",
+                "title": "Agent copilots",
+                "description": "Surface suggested replies, knowledge base snippets, and policy guidance instantly."
+              },
+              {
+                "icon": "\ud83d\udce5",
+                "title": "Smart intake",
+                "description": "Detect intent, risk, and sentiment to route cases with the right context every time."
+              },
+              {
+                "icon": "\ud83d\udcca",
+                "title": "Operations dashboard",
+                "description": "Track backlog health, channel mix, and staffing forecasts in one adaptive view."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "explore-support-ai",
+        "kind": "link",
+        "config": {
+          "Label": "Explore support AI",
+          "Url": "/solutions/support-intelligence",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "join-support-benchmark",
+        "kind": "link",
+        "config": {
+          "Label": "Join the benchmark cohort",
+          "Url": "/community/support-benchmark",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-support-intelligence.xml"
+}

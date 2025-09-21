@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::feature/support-intelligence::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d98f5900589ede16cd362121ca68a7b9c613553d2c6187fd6e81a42b4e4a67a7",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/support-intelligence",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-support-intelligence.xml",
+  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-support-intelligence\\\\1.0.0\\\\1.0.0.json"
+}

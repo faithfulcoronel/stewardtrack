@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b2fd5fc23b25b563eca6b510e5952ce583f52bceeac880b8b7b25e8d0d743462",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/product-discovery",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-feature-product-discovery",
+    "title": "UI Block: Product discovery feature section",
+    "regions": [
+      {
+        "id": "features",
+        "components": [
+          {
+            "id": "feature-product-discovery",
+            "type": "FeatureSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "icon-grid"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Product intelligence"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Illuminate every discovery signal"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Bundle research intake, synthesis, and roadmap conversations into a single surface that teams can skim in seconds."
+              },
+              "features": {
+                "kind": "binding",
+                "source": "discoveryFeatures",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Designed for research operations teams coordinating insight backlogs across product, design, and go-to-market partners."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-discovery"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-research-playbook"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "discoveryFeatures",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "icon": "\ud83e\udded",
+                "title": "Journey heatmaps",
+                "description": "Surface volume, sentiment, and blockers across every discovery request in real time.",
+                "href": "/playbooks/discovery-maps"
+              },
+              {
+                "icon": "\ud83e\uddea",
+                "title": "Experiment registry",
+                "description": "Track hypotheses, owners, and evidence with linked artifacts from your favorite tools.",
+                "href": "/integrations/experiment-registry"
+              },
+              {
+                "icon": "\ud83d\udcac",
+                "title": "Voice of customer",
+                "description": "Route qualitative interviews into structured themes with automated tagging and summaries.",
+                "href": "/solutions/voice-of-customer"
+              },
+              {
+                "icon": "\ud83d\udcc8",
+                "title": "Opportunity sizing",
+                "description": "Blend demand scoring with impact projections to prioritize the next best research sprint.",
+                "href": "/guides/opportunity-model"
+              },
+              {
+                "icon": "\ud83e\udd1d",
+                "title": "Partner review",
+                "description": "Align PMs, design leads, and analysts around weekly decisions using collaborative scorecards.",
+                "href": "/templates/decision-review"
+              },
+              {
+                "icon": "\ud83d\udcda",
+                "title": "Insight library",
+                "description": "Publish canonical learnings with lineage back to the original transcript, clip, and note.",
+                "href": "/library/insight-atlas"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-discovery",
+        "kind": "link",
+        "config": {
+          "Label": "Start a discovery intake",
+          "Url": "/get-started/discovery",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-research-playbook",
+        "kind": "link",
+        "config": {
+          "Label": "View research playbook",
+          "Url": "/resources/research-playbook",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-product-discovery.xml"
+}

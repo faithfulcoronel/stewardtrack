@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::feature/compliance-readiness::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "90e5b73bca9166cc98a5e26c1064271ee6a78b5257981c6b94cd77c5b369c10f",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/compliance-readiness",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-compliance-readiness.xml",
+  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-compliance-readiness\\\\1.0.0\\\\1.0.0.json"
+}

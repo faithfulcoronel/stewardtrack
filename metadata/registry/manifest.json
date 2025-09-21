@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-21T10:04:58.763Z",
+  "generatedAt": "2025-09-21T10:40:02.739Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -241,6 +241,210 @@
       },
       "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-story.xml",
       "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-story\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::feature/product-discovery::-::-::en-US": {
+      "key": "global::ui-blocks::feature/product-discovery::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b2fd5fc23b25b563eca6b510e5952ce583f52bceeac880b8b7b25e8d0d743462",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/product-discovery",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-product-discovery.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-product-discovery\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/automation-orchestration::-::-::en-US": {
+      "key": "global::ui-blocks::feature/automation-orchestration::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "cce241028b1d83b9b1410d41c9ac9129b22967c00e210ab0af6576479349e0af",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/automation-orchestration",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-automation-orchestration.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-automation-orchestration\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/ai-workbench::-::-::en-US": {
+      "key": "global::ui-blocks::feature/ai-workbench::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "2e051938f5ca349a2fe4043213927871f1b017c8a2ba0a64f9648484845bfcd7",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/ai-workbench",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-ai-workbench.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-ai-workbench\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/customer-success::-::-::en-US": {
+      "key": "global::ui-blocks::feature/customer-success::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "e92b40ddc9ee1c366ea970214e25124b43831ee1094ccb46eb70fa6d2fcc07ab",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/customer-success",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-customer-success.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-customer-success\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/analytics-observability::-::-::en-US": {
+      "key": "global::ui-blocks::feature/analytics-observability::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "50997bd8cc8584a2202ae7403abd716747cd1606089d7c03daf02fee3f92b9f3",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/analytics-observability",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-analytics-observability.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-analytics-observability\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/compliance-readiness::-::-::en-US": {
+      "key": "global::ui-blocks::feature/compliance-readiness::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "90e5b73bca9166cc98a5e26c1064271ee6a78b5257981c6b94cd77c5b369c10f",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/compliance-readiness",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-compliance-readiness.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-compliance-readiness\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/operations-control::-::-::en-US": {
+      "key": "global::ui-blocks::feature/operations-control::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "c941ca8aa8f2b61fccb4f19ad700465b35341c229b1b51167f45e3907957c1ac",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/operations-control",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-operations-control.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-operations-control\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/platform-ecosystem::-::-::en-US": {
+      "key": "global::ui-blocks::feature/platform-ecosystem::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "4d8f53e61c0770aee1b1df6c034ffac60124810f7e2ef426e4fbe2487db42e17",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/platform-ecosystem",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-platform-ecosystem.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-platform-ecosystem\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/content-lifecycle::-::-::en-US": {
+      "key": "global::ui-blocks::feature/content-lifecycle::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "2650f13c734242ad8753b146a6c96492cfc8ba6918e15da96bb761ac0bb127a9",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/content-lifecycle",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-content-lifecycle.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-content-lifecycle\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/commerce-launch::-::-::en-US": {
+      "key": "global::ui-blocks::feature/commerce-launch::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "008452d8d3d7413cf1fb3bf4c6dc1983912bbbca040489f2283d1a0b508ef4d6",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/commerce-launch",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-commerce-launch.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-commerce-launch\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/support-intelligence::-::-::en-US": {
+      "key": "global::ui-blocks::feature/support-intelligence::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d98f5900589ede16cd362121ca68a7b9c613553d2c6187fd6e81a42b4e4a67a7",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/support-intelligence",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-support-intelligence.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-support-intelligence\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::feature/enablement-hub::-::-::en-US": {
+      "key": "global::ui-blocks::feature/enablement-hub::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "38ad157614791251ccd649a1da85e269fcc9c4df342f25bc0ed553f54aa4dfff",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "feature/enablement-hub",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-enablement-hub.xml",
+      "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-enablement-hub\\\\1.0.0\\\\1.0.0.json"
     }
   }
 }
