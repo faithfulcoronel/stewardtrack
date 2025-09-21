@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "cce241028b1d83b9b1410d41c9ac9129b22967c00e210ab0af6576479349e0af",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/automation-orchestration",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-feature-automation-orchestration",
+    "title": "UI Block: Automation orchestration feature section",
+    "regions": [
+      {
+        "id": "features",
+        "components": [
+          {
+            "id": "feature-automation-orchestration",
+            "type": "FeatureSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "split"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Automation control tower"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Coordinate workflows across every system"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Give operators a real-time runway for sequencing triggers, approvals, and fallbacks without asking engineering for help."
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Teams stitch together automations 42% faster by abstracting each policy into reusable playbooks."
+              },
+              "features": {
+                "kind": "binding",
+                "source": "automationFeatures",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Trusted by revenue operations teams modernizing quote-to-cash and renewal journeys."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "launch-automation"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "schedule-ops-workshop"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "automationFeatures",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "icon": "\u26a1",
+                "badge": "Policy aware",
+                "title": "Guardrail templates",
+                "description": "Codify approvals, risk thresholds, and SLAs as reusable, auditable automation blocks.",
+                "href": "/workflows/guardrails"
+              },
+              {
+                "icon": "\ud83c\udf10",
+                "badge": "Multi-system",
+                "title": "Graph orchestration",
+                "description": "Visualize dependencies across CRM, billing, and data warehouse events in one timeline.",
+                "href": "/platform/graph-orchestration"
+              },
+              {
+                "icon": "\ud83e\udde9",
+                "badge": "Composable",
+                "title": "Runtime adapters",
+                "description": "Swap integrations without editing the core business logic using adapter contracts.",
+                "href": "/integrations/runtime-adapters"
+              },
+              {
+                "icon": "\ud83d\udd01",
+                "badge": "Lifecycle",
+                "title": "Exception loops",
+                "description": "Automatically route fallbacks to human review with context from upstream automations.",
+                "href": "/guides/exception-loops"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-automation",
+        "kind": "link",
+        "config": {
+          "Label": "Launch orchestration sandbox",
+          "Url": "/get-started/automation",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "schedule-ops-workshop",
+        "kind": "link",
+        "config": {
+          "Label": "Schedule an ops workshop",
+          "Url": "/events/automation-workshop",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-automation-orchestration.xml"
+}

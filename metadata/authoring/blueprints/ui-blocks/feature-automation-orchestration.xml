@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/automation-orchestration"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-automation-orchestration">
+    <Title>UI Block: Automation orchestration feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-automation-orchestration" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="static">Automation control tower</Prop>
+            <Prop name="title" kind="static">Coordinate workflows across every system</Prop>
+            <Prop name="description" kind="static">Give operators a real-time runway for sequencing triggers, approvals, and fallbacks without asking engineering for help.</Prop>
+            <Prop name="highlight" kind="static">Teams stitch together automations 42% faster by abstracting each policy into reusable playbooks.</Prop>
+            <Prop name="features" kind="binding" source="automationFeatures" path="items" />
+            <Prop name="footnote" kind="static">Trusted by revenue operations teams modernizing quote-to-cash and renewal journeys.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="launch-automation" />
+            <Prop name="secondaryCta" kind="action" actionId="schedule-ops-workshop" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="automationFeatures" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "⚡",
+                "badge": "Policy aware",
+                "title": "Guardrail templates",
+                "description": "Codify approvals, risk thresholds, and SLAs as reusable, auditable automation blocks.",
+                "href": "/workflows/guardrails"
+              },
+              {
+                "icon": "🌐",
+                "badge": "Multi-system",
+                "title": "Graph orchestration",
+                "description": "Visualize dependencies across CRM, billing, and data warehouse events in one timeline.",
+                "href": "/platform/graph-orchestration"
+              },
+              {
+                "icon": "🧩",
+                "badge": "Composable",
+                "title": "Runtime adapters",
+                "description": "Swap integrations without editing the core business logic using adapter contracts.",
+                "href": "/integrations/runtime-adapters"
+              },
+              {
+                "icon": "🔁",
+                "badge": "Lifecycle",
+                "title": "Exception loops",
+                "description": "Automatically route fallbacks to human review with context from upstream automations.",
+                "href": "/guides/exception-loops"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-automation" kind="link">
+        <Config>
+          <Label>Launch orchestration sandbox</Label>
+          <Url>/get-started/automation</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="schedule-ops-workshop" kind="link">
+        <Config>
+          <Label>Schedule an ops workshop</Label>
+          <Url>/events/automation-workshop</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/ai-workbench"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-ai-workbench">
+    <Title>UI Block: AI workbench feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-ai-workbench" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">media</Prop>
+            <Prop name="eyebrow" kind="static">Applied AI</Prop>
+            <Prop name="title" kind="static">Operationalize machine intelligence in days</Prop>
+            <Prop name="description" kind="static">Bundle prompts, evaluation harnesses, and human-in-the-loop reviews into a governed workspace teams actually trust.</Prop>
+            <Prop name="highlight" kind="static">Security and platform teams get consolidated audit trails while product squads experiment safely.</Prop>
+            <Prop name="features" kind="binding" source="workbenchHighlights" path="items" />
+            <Prop name="image" kind="binding" source="workbenchMedia" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="tour-workbench" />
+            <Prop name="secondaryCta" kind="action" actionId="review-architecture" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="workbenchHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Prompt versioning",
+                "description": "Compare quality scores and safety checks across every release in a single diff view."
+              },
+              {
+                "title": "Evaluator studio",
+                "description": "Blend automated metrics with calibrated human rubrics for nuanced generative tasks."
+              },
+              {
+                "title": "Isolation sandboxes",
+                "description": "Spin up governed environments with per-model secrets, guardrails, and access policies."
+              },
+              {
+                "title": "Feedback signals",
+                "description": "Route real user reactions into retraining pipelines without compromising privacy."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="workbenchMedia" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&fit=crop&w=1600&q=80",
+            "alt": "Team collaborating around AI dashboards"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="tour-workbench" kind="link">
+        <Config>
+          <Label>Take the interactive tour</Label>
+          <Url>/product/ai-workbench/tour</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="review-architecture" kind="link">
+        <Config>
+          <Label>Review architecture guide</Label>
+          <Url>/resources/ai-architecture</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

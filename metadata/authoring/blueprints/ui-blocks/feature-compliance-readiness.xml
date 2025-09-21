@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/compliance-readiness"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-compliance-readiness">
+    <Title>UI Block: Compliance readiness feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-compliance-readiness" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">offset</Prop>
+            <Prop name="eyebrow" kind="static">Trust &amp; compliance</Prop>
+            <Prop name="title" kind="static">Ship audits with confidence</Prop>
+            <Prop name="description" kind="static">Automate evidence collection, control testing, and board reporting without slowing product velocity.</Prop>
+            <Prop name="highlight" kind="static">Maintain a live system of record for SOC 2, ISO 27001, HIPAA, and GDPR frameworks in one workspace.</Prop>
+            <Prop name="features" kind="binding" source="complianceFeatures" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="review-control-library" />
+            <Prop name="secondaryCta" kind="action" actionId="book-trust-briefing" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="complianceFeatures" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "🛡️",
+                "title": "Continuous controls",
+                "description": "Automate evidence pulls from code repos, cloud accounts, and HR systems with zero touch."
+              },
+              {
+                "icon": "🧾",
+                "title": "Policy workspace",
+                "description": "Draft, approve, and distribute policies with version history and employee attestation."
+              },
+              {
+                "icon": "🔍",
+                "title": "Audit trails",
+                "description": "Centralize control owners, reviewer notes, and test results for fast auditor handoffs."
+              },
+              {
+                "icon": "📦",
+                "title": "Trust portal",
+                "description": "Publish curated compliance packages for prospects and customers with automated NDA gating."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="review-control-library" kind="link">
+        <Config>
+          <Label>Review control library</Label>
+          <Url>/trust/control-library</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="book-trust-briefing" kind="link">
+        <Config>
+          <Label>Book a trust briefing</Label>
+          <Url>/trust/briefing</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/product-discovery"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-product-discovery">
+    <Title>UI Block: Product discovery feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-product-discovery" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">icon-grid</Prop>
+            <Prop name="eyebrow" kind="static">Product intelligence</Prop>
+            <Prop name="title" kind="static">Illuminate every discovery signal</Prop>
+            <Prop name="description" kind="static">Bundle research intake, synthesis, and roadmap conversations into a single surface that teams can skim in seconds.</Prop>
+            <Prop name="features" kind="binding" source="discoveryFeatures" path="items" />
+            <Prop name="footnote" kind="static">Designed for research operations teams coordinating insight backlogs across product, design, and go-to-market partners.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="start-discovery" />
+            <Prop name="secondaryCta" kind="action" actionId="view-research-playbook" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="discoveryFeatures" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "🧭",
+                "title": "Journey heatmaps",
+                "description": "Surface volume, sentiment, and blockers across every discovery request in real time.",
+                "href": "/playbooks/discovery-maps"
+              },
+              {
+                "icon": "🧪",
+                "title": "Experiment registry",
+                "description": "Track hypotheses, owners, and evidence with linked artifacts from your favorite tools.",
+                "href": "/integrations/experiment-registry"
+              },
+              {
+                "icon": "💬",
+                "title": "Voice of customer",
+                "description": "Route qualitative interviews into structured themes with automated tagging and summaries.",
+                "href": "/solutions/voice-of-customer"
+              },
+              {
+                "icon": "📈",
+                "title": "Opportunity sizing",
+                "description": "Blend demand scoring with impact projections to prioritize the next best research sprint.",
+                "href": "/guides/opportunity-model"
+              },
+              {
+                "icon": "🤝",
+                "title": "Partner review",
+                "description": "Align PMs, design leads, and analysts around weekly decisions using collaborative scorecards.",
+                "href": "/templates/decision-review"
+              },
+              {
+                "icon": "📚",
+                "title": "Insight library",
+                "description": "Publish canonical learnings with lineage back to the original transcript, clip, and note.",
+                "href": "/library/insight-atlas"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-discovery" kind="link">
+        <Config>
+          <Label>Start a discovery intake</Label>
+          <Url>/get-started/discovery</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-research-playbook" kind="link">
+        <Config>
+          <Label>View research playbook</Label>
+          <Url>/resources/research-playbook</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

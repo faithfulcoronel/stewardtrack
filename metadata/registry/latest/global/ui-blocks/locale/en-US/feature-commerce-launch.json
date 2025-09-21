@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::feature/commerce-launch::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "008452d8d3d7413cf1fb3bf4c6dc1983912bbbca040489f2283d1a0b508ef4d6",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/commerce-launch",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-commerce-launch.xml",
+  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-commerce-launch\\\\1.0.0\\\\1.0.0.json"
+}

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/content-lifecycle"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-content-lifecycle">
+    <Title>UI Block: Content lifecycle feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-content-lifecycle" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">accent</Prop>
+            <Prop name="eyebrow" kind="static">Content operations</Prop>
+            <Prop name="title" kind="static">Plan, produce, and measure from one canvas</Prop>
+            <Prop name="description" kind="static">Help editorial, demand gen, and product marketing teams align on priorities, briefs, and performance loops.</Prop>
+            <Prop name="features" kind="binding" source="contentHighlights" path="items" />
+            <Prop name="highlight" kind="static">Repurpose winning assets into localized campaigns with automated approvals and translation handoffs.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="launch-editorial-hub" />
+            <Prop name="secondaryCta" kind="action" actionId="view-content-metrics" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="contentHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "🗂️",
+                "title": "Editorial calendar",
+                "description": "Visualize production stages, owners, and deadlines across every channel."
+              },
+              {
+                "icon": "📝",
+                "title": "Brief builder",
+                "description": "Standardize research, messaging, and SEO requirements with smart templates."
+              },
+              {
+                "icon": "🔄",
+                "title": "Reuse matrix",
+                "description": "Track derivative assets and distribution experiments with performance tags."
+              },
+              {
+                "icon": "📣",
+                "title": "Stakeholder updates",
+                "description": "Automate rollups for execs, regional leads, and sales enablement teams."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-editorial-hub" kind="link">
+        <Config>
+          <Label>Launch editorial hub</Label>
+          <Url>/solutions/content-operations</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-content-metrics" kind="link">
+        <Config>
+          <Label>View content metrics</Label>
+          <Url>/analytics/content</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

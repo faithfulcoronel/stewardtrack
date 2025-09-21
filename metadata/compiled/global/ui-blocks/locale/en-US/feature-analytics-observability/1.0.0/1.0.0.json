@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "50997bd8cc8584a2202ae7403abd716747cd1606089d7c03daf02fee3f92b9f3",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/analytics-observability",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-feature-analytics-observability",
+    "title": "UI Block: Analytics observability feature section",
+    "regions": [
+      {
+        "id": "features",
+        "components": [
+          {
+            "id": "feature-analytics-observability",
+            "type": "FeatureSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "metrics"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Analytics observability"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Prove impact with trustworthy telemetry"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Unify product analytics, revenue signals, and adoption milestones with governed definitions that never drift."
+              },
+              "features": {
+                "kind": "binding",
+                "source": "analyticsFeatures",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "analyticsMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Observability teams rely on this template to standardize definitions across data engineering, finance, and product leadership."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "explore-observability"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-metrics-guide"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "analyticsFeatures",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "icon": "\ud83d\udef0\ufe0f",
+                "title": "Event lineage",
+                "description": "Trace every dashboard metric back to its raw source, transformation, and owner."
+              },
+              {
+                "icon": "\ud83e\uddee",
+                "title": "Governed formulas",
+                "description": "Version control KPIs with approvals, change logs, and proactive anomaly detection."
+              },
+              {
+                "icon": "\ud83e\ude84",
+                "title": "Narrative snapshots",
+                "description": "Auto-generate executive briefs that combine metrics, insights, and recommended actions."
+              },
+              {
+                "icon": "\ud83d\udef0",
+                "title": "Signal routing",
+                "description": "Pipe alerts to Slack, PagerDuty, or email with contextual play suggestions."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "analyticsMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Unified sources",
+                "value": "18",
+                "caption": "Systems monitored"
+              },
+              {
+                "label": "Metric freshness",
+                "value": "99.3%",
+                "caption": "Updates within SLA"
+              },
+              {
+                "label": "Insights published",
+                "value": "240/mo",
+                "caption": "Automated recaps"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "explore-observability",
+        "kind": "link",
+        "config": {
+          "Label": "Explore observability hub",
+          "Url": "/solutions/analytics-observability",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-metrics-guide",
+        "kind": "link",
+        "config": {
+          "Label": "Download metrics guide",
+          "Url": "/resources/metrics-handbook",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-analytics-observability.xml"
+}

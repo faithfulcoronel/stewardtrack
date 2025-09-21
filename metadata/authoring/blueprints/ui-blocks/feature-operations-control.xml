@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/operations-control"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-operations-control">
+    <Title>UI Block: Operations control feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-operations-control" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">testimonial</Prop>
+            <Prop name="eyebrow" kind="static">Operational excellence</Prop>
+            <Prop name="title" kind="static">Keep every launch on rails</Prop>
+            <Prop name="description" kind="static">Bring PMO, engineering, and GTM teams into the same command center with realtime status and risk signals.</Prop>
+            <Prop name="features" kind="binding" source="operationsHighlights" path="items" />
+            <Prop name="testimonial" kind="binding" source="opsTestimonial" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="launch-control-room" />
+            <Prop name="secondaryCta" kind="action" actionId="meet-ops-lead" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="operationsHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "🧭",
+                "title": "Critical path tracker",
+                "description": "Understand dependencies and unblockers across teams with automated risk scoring."
+              },
+              {
+                "icon": "📊",
+                "title": "Status intelligence",
+                "description": "Auto-curate launch digests with metrics, blockers, and next actions for every workstream."
+              },
+              {
+                "icon": "🎯",
+                "title": "Outcome alignment",
+                "description": "Tie every project milestone back to OKRs with dashboards built for executives and doers."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="opsTestimonial" kind="static">
+        <Json><![CDATA[
+          {
+            "quote": "We replaced six status meetings and finally have a single view of impact, risk, and owners.",
+            "author": "Priya Natarajan",
+            "role": "Head of Program Operations, Heliograph"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-control-room" kind="link">
+        <Config>
+          <Label>Open the control room</Label>
+          <Url>/solutions/operations-control</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="meet-ops-lead" kind="link">
+        <Config>
+          <Label>Meet with an ops lead</Label>
+          <Url>/contact/operations</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
