@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c92e31c82bb48c8ee20e1df154c6d60fa46b9b34435d895198309b280b5e1744",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/split",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-split",
+    "title": "UI Block: Split CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-split",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "split" },
+              "eyebrow": { "kind": "static", "value": "Release readiness" },
+              "headline": {
+                "kind": "static",
+                "value": "Guide product teams from idea to shipped update"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Automate release reviews, assign owners, and leave stakeholders confident that every scenario is covered."
+              },
+              "highlights": { "kind": "binding", "source": "splitHighlights", "path": "items" },
+              "media": { "kind": "binding", "source": "splitMedia", "path": "$" },
+              "primaryCta": { "kind": "action", "actionId": "launch-playbook" },
+              "secondaryCta": { "kind": "action", "actionId": "talk-with-advisor" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "splitHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Trigger checklists when Jira epics move to ready for QA.",
+              "Schedule enablement briefings with localized collateral.",
+              "Track launch health with color-coded insights."
+            ]
+          }
+        }
+      },
+      {
+        "id": "splitMedia",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80",
+            "alt": "Product managers collaborating over a roadmap"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-playbook",
+        "kind": "link",
+        "config": {
+          "Label": "Launch the playbook",
+          "Url": "/playbooks/launch",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "talk-with-advisor",
+        "kind": "link",
+        "config": {
+          "Label": "Talk with an advisor",
+          "Url": "/consulting",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

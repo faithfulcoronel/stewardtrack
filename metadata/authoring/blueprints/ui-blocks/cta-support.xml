@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/support"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-support">
+    <Title>UI Block: Support CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-support" type="CtaSection">
+          <Props>
+            <Prop name="variant" kind="static">support</Prop>
+            <Prop name="eyebrow" kind="static">Always-on support</Prop>
+            <Prop name="headline" kind="static">Need a quicker answer? Reach the team however you prefer</Prop>
+            <Prop name="description" kind="static">We combine fast human help with documentation, office hours, and proactive monitoring.</Prop>
+            <Prop name="contacts" kind="binding" source="supportContacts" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-ticket" />
+            <Prop name="secondaryCta" kind="action" actionId="join-office-hours" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="supportContacts" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Live support chat",
+                "description": "Connect with a real specialist in under two minutes.",
+                "href": "/support/chat"
+              },
+              {
+                "label": "Status page updates",
+                "description": "Track incidents and scheduled maintenance in real time.",
+                "href": "https://status.flowspace.com"
+              },
+              {
+                "label": "Weekly office hours",
+                "description": "Bring your workspace questions to our live session.",
+                "href": "/support/office-hours"
+              },
+              {
+                "label": "Implementation knowledge base",
+                "description": "Deep technical guides maintained by our architects.",
+                "href": "/docs"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-ticket" kind="link">
+        <Config>
+          <Label>Open a support ticket</Label>
+          <Url>/support/ticket</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="join-office-hours" kind="link">
+        <Config>
+          <Label>Join office hours</Label>
+          <Url>/support/office-hours</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

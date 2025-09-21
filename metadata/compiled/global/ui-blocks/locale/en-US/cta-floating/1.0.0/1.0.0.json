@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "52dac0f03e7ed76747af120407a30489f2887d62f6a1490c033aa8c5971a0652",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/floating",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-floating",
+    "title": "UI Block: Floating CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-floating",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "floating" },
+              "eyebrow": { "kind": "static", "value": "Activation path" },
+              "headline": {
+                "kind": "static",
+                "value": "Roll out go-to-market programs in three focused steps"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Use Flowspace to align teams, capture feedback, and iterate without slowing momentum."
+              },
+              "steps": { "kind": "binding", "source": "floatingSteps", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "launch-rollout" },
+              "secondaryCta": { "kind": "action", "actionId": "view-checklist" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "floatingSteps",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Align the crew",
+                "description": "Kick off with a shared workspace, linked plans, and automated owner assignments."
+              },
+              {
+                "title": "Ship the narrative",
+                "description": "Layer localized messaging, partner enablement, and product updates without a deploy."
+              },
+              {
+                "title": "Measure the loops",
+                "description": "Sync feedback to analytics and decide the next iteration during retro."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-rollout",
+        "kind": "link",
+        "config": {
+          "Label": "Launch your rollout",
+          "Url": "/activate",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-checklist",
+        "kind": "link",
+        "config": {
+          "Label": "View the checklist",
+          "Url": "/resources/activation-checklist",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

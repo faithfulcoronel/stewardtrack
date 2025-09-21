@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "01ee7feffa5d757300b18a31adcd6c62e44f1a875757c118ff801bafbedf4aed",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/pill",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-pill",
+    "title": "UI Block: Pill CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-pill",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "pill" },
+              "badge": { "kind": "static", "value": "Enablement series" },
+              "eyebrow": { "kind": "static", "value": "Masterclass invitation" },
+              "headline": {
+                "kind": "static",
+                "value": "Reserve seats in the revenue enablement masterclass"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Bring your full revenue pod for a hands-on workshop covering systems, automation, and measurement."
+              },
+              "highlights": { "kind": "binding", "source": "pillHighlights", "path": "items" },
+              "logos": { "kind": "binding", "source": "pillLogos", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "reserve-workshop" },
+              "secondaryCta": { "kind": "action", "actionId": "share-with-team" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "pillHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Live system build",
+              "Automation recipes",
+              "Operator Q&A",
+              "Scorecard templates",
+              "Peer accountability",
+              "Lifetime recording"
+            ]
+          }
+        }
+      },
+      {
+        "id": "pillLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": ["Linear", "Segment", "Ramp", "Figma"]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "reserve-workshop",
+        "kind": "link",
+        "config": {
+          "Label": "Reserve workshop seats",
+          "Url": "/workshops/masterclass",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "share-with-team",
+        "kind": "link",
+        "config": {
+          "Label": "Share with your team",
+          "Url": "/share/masterclass",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

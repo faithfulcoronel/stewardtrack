@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "32c632c78285cbc154dbd15ce87416c5d0c4b5f0839dd13269ef7a8f8a5b3468",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/tiered",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-tiered",
+    "title": "UI Block: Tiered CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-tiered",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "tiered" },
+              "badge": { "kind": "static", "value": "Growth packages" },
+              "eyebrow": { "kind": "static", "value": "Choose your rollout path" },
+              "headline": {
+                "kind": "static",
+                "value": "Pick the enablement program that matches your stage"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Bundle strategy sessions, workspace setup, and training credits into the package that meets your timeline."
+              },
+              "metrics": { "kind": "binding", "source": "tieredMetrics", "path": "items" },
+              "links": { "kind": "binding", "source": "tieredPlans", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "choose-growth-package" },
+              "secondaryCta": { "kind": "action", "actionId": "compare-inclusions" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "tieredMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              { "label": "Average time to value", "value": "21 days" },
+              { "label": "Operator satisfaction", "value": "97%" }
+            ]
+          }
+        }
+      },
+      {
+        "id": "tieredPlans",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Launch Lab",
+                "description": "For teams shipping their first coordinated release.",
+                "href": "/pricing/launch-lab",
+                "badge": "Popular"
+              },
+              {
+                "label": "Scale Studio",
+                "description": "For organizations orchestrating regional programs.",
+                "href": "/pricing/scale-studio"
+              },
+              {
+                "label": "Enterprise Collective",
+                "description": "For global rollouts with compliance workflows.",
+                "href": "/pricing/enterprise-collective"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "choose-growth-package",
+        "kind": "link",
+        "config": {
+          "Label": "Choose a growth package",
+          "Url": "/pricing",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "compare-inclusions",
+        "kind": "link",
+        "config": {
+          "Label": "Compare inclusions",
+          "Url": "/pricing/compare",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

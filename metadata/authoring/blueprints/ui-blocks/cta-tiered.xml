@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/tiered"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-tiered">
+    <Title>UI Block: Tiered CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-tiered" type="CtaSection">
+          <Props>
+            <Prop name="variant" kind="static">tiered</Prop>
+            <Prop name="badge" kind="static">Growth packages</Prop>
+            <Prop name="eyebrow" kind="static">Choose your rollout path</Prop>
+            <Prop name="headline" kind="static">Pick the enablement program that matches your stage</Prop>
+            <Prop name="description" kind="static">Bundle strategy sessions, workspace setup, and training credits into the package that meets your timeline.</Prop>
+            <Prop name="metrics" kind="binding" source="tieredMetrics" path="items" />
+            <Prop name="links" kind="binding" source="tieredPlans" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="choose-growth-package" />
+            <Prop name="secondaryCta" kind="action" actionId="compare-inclusions" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="tieredMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Average time to value", "value": "21 days" },
+              { "label": "Operator satisfaction", "value": "97%" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="tieredPlans" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Launch Lab",
+                "description": "For teams shipping their first coordinated release.",
+                "href": "/pricing/launch-lab",
+                "badge": "Popular"
+              },
+              {
+                "label": "Scale Studio",
+                "description": "For organizations orchestrating regional programs.",
+                "href": "/pricing/scale-studio"
+              },
+              {
+                "label": "Enterprise Collective",
+                "description": "For global rollouts with compliance workflows.",
+                "href": "/pricing/enterprise-collective"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="choose-growth-package" kind="link">
+        <Config>
+          <Label>Choose a growth package</Label>
+          <Url>/pricing</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="compare-inclusions" kind="link">
+        <Config>
+          <Label>Compare inclusions</Label>
+          <Url>/pricing/compare</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
