@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ca9f29de3a645f9e0b2caa59031da44b8596e5f0826403b6e4ce3a1fc96b9812",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/centered-pill",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-centered-pill",
+    "title": "UI Block: Centered pill header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-centered-pill",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "centered-pill"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Customer marketing"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Campaigns with conviction"
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Q2 spotlight"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Use a balanced, centered header to introduce quarterly moments with crisp positioning and resourceful CTAs."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "pillHighlights",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-campaign"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-calendar"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "pillHighlights",
+        "kind": "static",
+        "config": {
+          "value": [
+            "Persona-tuned nurture journeys",
+            "Message testing in every activation",
+            "Campaign analytics built for storytelling"
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-campaign",
+        "kind": "link",
+        "config": {
+          "Label": "Start a campaign",
+          "Url": "/campaigns/new",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-calendar",
+        "kind": "link",
+        "config": {
+          "Label": "View launch calendar",
+          "Url": "/campaigns/calendar",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-centered-pill.xml"
+}

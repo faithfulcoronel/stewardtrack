@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/breadcrumb-ledger"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-breadcrumb-ledger">
+    <Title>UI Block: Breadcrumb ledger header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-breadcrumb-ledger" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">breadcrumb-ledger</Prop>
+            <Prop name="headline" kind="static">Quarterly narrative hub</Prop>
+            <Prop name="description" kind="static">Help teams orient quickly with a breadcrumb trail and snapshot ledger of key data points anchoring the story.</Prop>
+            <Prop name="breadcrumbs" kind="binding" source="ledgerBreadcrumbs" path="$" />
+            <Prop name="meta" kind="binding" source="ledgerMeta" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="download-brief" />
+            <Prop name="secondaryCta" kind="action" actionId="view-all" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="ledgerBreadcrumbs" kind="static">
+        <Json><![CDATA[
+          [
+            { "label": "Docs", "href": "/docs" },
+            { "label": "Narratives", "href": "/docs/narratives" },
+            { "label": "Q2 customer story" }
+          ]
+        ]]></Json>
+      </DataSource>
+      <DataSource id="ledgerMeta" kind="static">
+        <Json><![CDATA[
+          [
+            { "label": "Audience", "value": "Revenue & lifecycle leaders" },
+            { "label": "Publish date", "value": "May 6, 2025" },
+            { "label": "Status", "value": "In review" },
+            { "label": "Owner", "value": "Narrative studio" }
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="download-brief" kind="link">
+        <Config>
+          <Label>Download brief</Label>
+          <Url>/docs/narratives/q2-customer-story.pdf</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-all" kind="link">
+        <Config>
+          <Label>View all narratives</Label>
+          <Url>/docs/narratives</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

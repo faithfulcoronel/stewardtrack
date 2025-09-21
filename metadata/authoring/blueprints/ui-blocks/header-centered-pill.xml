@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/centered-pill"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-centered-pill">
+    <Title>UI Block: Centered pill header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-centered-pill" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">centered-pill</Prop>
+            <Prop name="badge" kind="static">Customer marketing</Prop>
+            <Prop name="headline" kind="static">Campaigns with conviction</Prop>
+            <Prop name="highlight" kind="static">Q2 spotlight</Prop>
+            <Prop name="description" kind="static">Use a balanced, centered header to introduce quarterly moments with crisp positioning and resourceful CTAs.</Prop>
+            <Prop name="highlights" kind="binding" source="pillHighlights" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="start-campaign" />
+            <Prop name="secondaryCta" kind="action" actionId="view-calendar" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="pillHighlights" kind="static">
+        <Json><![CDATA[
+          [
+            "Persona-tuned nurture journeys",
+            "Message testing in every activation",
+            "Campaign analytics built for storytelling"
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-campaign" kind="link">
+        <Config>
+          <Label>Start a campaign</Label>
+          <Url>/campaigns/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-calendar" kind="link">
+        <Config>
+          <Label>View launch calendar</Label>
+          <Url>/campaigns/calendar</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

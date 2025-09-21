@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "89f7d6c889b0e4d5730cff07c8b9a994e6c6ffbbbc8d661342d9316434f463bf",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/breadcrumb-ledger",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-breadcrumb-ledger",
+    "title": "UI Block: Breadcrumb ledger header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-breadcrumb-ledger",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "breadcrumb-ledger"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Quarterly narrative hub"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Help teams orient quickly with a breadcrumb trail and snapshot ledger of key data points anchoring the story."
+              },
+              "breadcrumbs": {
+                "kind": "binding",
+                "source": "ledgerBreadcrumbs",
+                "path": "$"
+              },
+              "meta": {
+                "kind": "binding",
+                "source": "ledgerMeta",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "download-brief"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-all"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "ledgerBreadcrumbs",
+        "kind": "static",
+        "config": {
+          "value": [
+            {
+              "label": "Docs",
+              "href": "/docs"
+            },
+            {
+              "label": "Narratives",
+              "href": "/docs/narratives"
+            },
+            {
+              "label": "Q2 customer story"
+            }
+          ]
+        }
+      },
+      {
+        "id": "ledgerMeta",
+        "kind": "static",
+        "config": {
+          "value": [
+            {
+              "label": "Audience",
+              "value": "Revenue & lifecycle leaders"
+            },
+            {
+              "label": "Publish date",
+              "value": "May 6, 2025"
+            },
+            {
+              "label": "Status",
+              "value": "In review"
+            },
+            {
+              "label": "Owner",
+              "value": "Narrative studio"
+            }
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "download-brief",
+        "kind": "link",
+        "config": {
+          "Label": "Download brief",
+          "Url": "/docs/narratives/q2-customer-story.pdf",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-all",
+        "kind": "link",
+        "config": {
+          "Label": "View all narratives",
+          "Url": "/docs/narratives",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-breadcrumb-ledger.xml"
+}

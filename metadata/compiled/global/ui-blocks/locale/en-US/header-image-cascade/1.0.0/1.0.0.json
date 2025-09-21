@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "1a967ecccfc8ee659706fb65f8e64414dfed93a88d6a23d58cf90dc622acdd6e",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/image-cascade",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-image-cascade",
+    "title": "UI Block: Image cascade header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-image-cascade",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "image-cascade"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Platform update"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Design once, scale everywhere"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Showcase a visual product story with a crisp layout that pairs narrative and imagery for teams comparing solutions."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "cascadeHighlights",
+                "path": "$"
+              },
+              "image": {
+                "kind": "binding",
+                "source": "cascadeImage",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "explore-platform"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "watch-demo"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "cascadeHighlights",
+        "kind": "static",
+        "config": {
+          "value": [
+            "Adaptive layouts that speak your brand language",
+            "Collaborative approvals directly inside every screen",
+            "Global component tokens shipped with governance"
+          ]
+        }
+      },
+      {
+        "id": "cascadeImage",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1440&q=80",
+            "alt": "Team reviewing a design system dashboard"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "explore-platform",
+        "kind": "link",
+        "config": {
+          "Label": "Explore platform",
+          "Url": "/product",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "watch-demo",
+        "kind": "link",
+        "config": {
+          "Label": "Watch demo",
+          "Url": "/demo/library",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-image-cascade.xml"
+}

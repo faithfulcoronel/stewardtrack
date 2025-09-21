@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/announcement-bar"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-announcement-bar">
+    <Title>UI Block: Announcement bar header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-announcement-bar" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">announcement-bar</Prop>
+            <Prop name="announcement" kind="binding" source="announcementData" path="$" />
+            <Prop name="headline" kind="static">Rewriting retention playbooks</Prop>
+            <Prop name="description" kind="static">Invite your audience into the moment with an announcement bar that pairs urgency with a succinct value promise.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="read-whitepaper" />
+            <Prop name="secondaryCta" kind="action" actionId="join-briefing" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="announcementData" kind="static">
+        <Json><![CDATA[
+          {
+            "label": "New research",
+            "message": "Download the retention playbook",
+            "href": "/resources/retention-playbook",
+            "timestamp": "May 2025"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="read-whitepaper" kind="link">
+        <Config>
+          <Label>Read whitepaper</Label>
+          <Url>/resources/retention-playbook</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="join-briefing" kind="link">
+        <Config>
+          <Label>Join analyst briefing</Label>
+          <Url>/events/retention-briefing</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

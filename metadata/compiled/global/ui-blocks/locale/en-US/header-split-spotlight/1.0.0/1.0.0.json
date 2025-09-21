@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "0a57441b083f8a64753fb842a7a9e8142878b8966407a8a0ca3e21236c91e1a6",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/split-spotlight",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-split-spotlight",
+    "title": "UI Block: Split spotlight header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-split-spotlight",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "split-spotlight"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Workflow spotlight"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Personalize onboarding at scale"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Pair a focused narrative with supporting highlights and a contextual image to preview a product workflow or program."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "spotlightHighlights",
+                "path": "$"
+              },
+              "image": {
+                "kind": "binding",
+                "source": "spotlightImage",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "launch-workflows"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "see-library"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "spotlightHighlights",
+        "kind": "static",
+        "config": {
+          "value": [
+            "Segment audiences by lifecycle triggers and intent",
+            "Feed product usage into nurture journeys automatically",
+            "Unlock partner accelerators with curated templates"
+          ]
+        }
+      },
+      {
+        "id": "spotlightImage",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
+            "alt": "Team collaboration interface preview"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-workflows",
+        "kind": "link",
+        "config": {
+          "Label": "Launch workflows",
+          "Url": "/workflows/new",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "see-library",
+        "kind": "link",
+        "config": {
+          "Label": "See template library",
+          "Url": "/workflows/library",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-split-spotlight.xml"
+}

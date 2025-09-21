@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/search-hub"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-search-hub">
+    <Title>UI Block: Search hub header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-search-hub" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">search-hub</Prop>
+            <Prop name="badge" kind="static">Resource library</Prop>
+            <Prop name="headline" kind="static">Search the enablement hub</Prop>
+            <Prop name="description" kind="static">A practical header for knowledge bases or partner portals that features instant search and curated tags.</Prop>
+            <Prop name="search" kind="binding" source="searchConfig" path="$" />
+            <Prop name="highlights" kind="binding" source="searchTags" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="searchConfig" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "Search playbooks, templates, or policies",
+            "buttonLabel": "Find resources",
+            "helpText": "Try activation playbook, sales onboarding, or partner kit"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="searchTags" kind="static">
+        <Json><![CDATA[
+          [
+            "Lifecycle",
+            "Revenue operations",
+            "Product marketing",
+            "Enablement",
+            "Adoption"
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

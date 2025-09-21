@@ -4,6 +4,7 @@ import type { ResolvedMetadata } from './resolver';
 import { FeatureGrid, type FeatureGridProps } from '@/components/dynamic/FeatureGrid';
 import { FeatureSection, type FeatureSectionProps } from '@/components/dynamic/FeatureSection';
 import { HeroSection, type HeroSectionProps } from '@/components/dynamic/HeroSection';
+import { HeaderSection, type HeaderSectionProps } from '@/components/dynamic/HeaderSection';
 import { CTASection, type CTASectionProps } from '@/components/dynamic/CTASection';
 import { BentoGrid, type BentoGridProps } from '@/components/dynamic/BentoGrid';
 import { PricingSection, type PricingSectionProps } from '@/components/dynamic/PricingSection';
@@ -15,6 +16,9 @@ type ComponentRenderer<Props extends Record<string, unknown>> = (
 
 const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown>>> = {
   HeroSection: (props, children) => <HeroSection {...(props as HeroSectionProps)}>{children}</HeroSection>,
+  HeaderSection: (props, children) => (
+    <HeaderSection {...(props as HeaderSectionProps)}>{children}</HeaderSection>
+  ),
   CTASection: (props, children) => <CTASection {...(props as CTASectionProps)}>{children}</CTASection>,
   FeatureGrid: (props, children) => <FeatureGrid {...(props as FeatureGridProps)}>{children}</FeatureGrid>,
   FeatureSection: (props, children) => <FeatureSection {...(props as FeatureSectionProps)}>{children}</FeatureSection>,

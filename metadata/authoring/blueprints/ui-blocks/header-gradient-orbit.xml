@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/gradient-orbit"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-gradient-orbit">
+    <Title>UI Block: Gradient orbit header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-gradient-orbit" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">gradient-orbit</Prop>
+            <Prop name="badge" kind="static">New release</Prop>
+            <Prop name="eyebrow" kind="static">Flowspace updates</Prop>
+            <Prop name="headline" kind="static">Blueprint Orbit is live</Prop>
+            <Prop name="highlight" kind="static">Product launch</Prop>
+            <Prop name="description" kind="static">Bring attention to a flagship release with a cinematic gradient header that cues the story and invites deeper exploration.</Prop>
+            <Prop name="highlights" kind="binding" source="orbitHighlights" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="view-roadmap" />
+            <Prop name="secondaryCta" kind="action" actionId="read-blog" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="orbitHighlights" kind="static">
+        <Json><![CDATA[
+          [
+            "Orchestrate product, marketing, and success milestones in one canvas",
+            "Launch guided onboarding built from reusable blueprints",
+            "Automate launch alerts directly into the channels your teams trust",
+            "Measure activation with decision-ready dashboards"
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-roadmap" kind="link">
+        <Config>
+          <Label>View roadmap</Label>
+          <Url>/product/roadmap</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="read-blog" kind="link">
+        <Config>
+          <Label>Read launch brief</Label>
+          <Url>/blog/blueprint-orbit-launch</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/metric-stride"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-metric-stride">
+    <Title>UI Block: Metric stride header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-metric-stride" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">metric-stride</Prop>
+            <Prop name="eyebrow" kind="static">Impact snapshot</Prop>
+            <Prop name="headline" kind="static">Metrics that prove momentum</Prop>
+            <Prop name="description" kind="static">Lead with data in a confident summary header designed for release notes, board updates, or internal launch recaps.</Prop>
+            <Prop name="metrics" kind="binding" source="strideMetrics" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="view-report" />
+            <Prop name="secondaryCta" kind="action" actionId="share-update" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="strideMetrics" kind="static">
+        <Json><![CDATA[
+          [
+            { "label": "Activation lift", "value": "+42%", "caption": "vs. previous quarter" },
+            { "label": "Playbooks launched", "value": "128", "caption": "Cross-functional campaigns" },
+            { "label": "Customer NPS", "value": "68", "caption": "Rolling 90-day average" },
+            { "label": "Time saved", "value": "340h", "caption": "Automation reclaimed hours" }
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-report" kind="link">
+        <Config>
+          <Label>View full report</Label>
+          <Url>/reports/q2-impact</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-update" kind="link">
+        <Config>
+          <Label>Share update</Label>
+          <Url>/share/impact-summary</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
