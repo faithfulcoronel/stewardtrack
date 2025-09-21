@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "19ce74908863890e3ed228b16d58809223aa9f0b6b7ce3affac1a2db05353ed6",
+  "checksum": "5d82aad938deb12779d7a3555a2ce707b42102bd9309732c8b97f9ebef31a682",
   "layer": {
     "module": "ui-blocks",
     "route": "hero/product-launch",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-product-launch.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-product-launch\\1.0.0\\2.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-product-launch.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-product-launch/1.0.0/2.0.0.json"
 }

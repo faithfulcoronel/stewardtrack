@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "c941ca8aa8f2b61fccb4f19ad700465b35341c229b1b51167f45e3907957c1ac",
+  "checksum": "c759a8716953a3d15ac30f147ec3357e327fac7ffe64f74cf2be3d8d51e7e367",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -69,17 +69,17 @@
           "value": {
             "items": [
               {
-                "icon": "\ud83e\udded",
+                "icon": "🧭",
                 "title": "Critical path tracker",
                 "description": "Understand dependencies and unblockers across teams with automated risk scoring."
               },
               {
-                "icon": "\ud83d\udcca",
+                "icon": "📊",
                 "title": "Status intelligence",
                 "description": "Auto-curate launch digests with metrics, blockers, and next actions for every workstream."
               },
               {
-                "icon": "\ud83c\udfaf",
+                "icon": "🎯",
                 "title": "Outcome alignment",
                 "description": "Tie every project milestone back to OKRs with dashboards built for executives and doers."
               }
@@ -120,5 +120,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-operations-control.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-operations-control.xml"
 }

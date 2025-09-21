@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/product-led"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-product-led">
+    <Title>UI Block: Product-led pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-product-led" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">stacked-showcase</Prop>
+            <Prop name="eyebrow" kind="static">Product-led foundations</Prop>
+            <Prop name="title" kind="static">Pair self-serve adoption with guided expansion</Prop>
+            <Prop name="description" kind="static">These stacked tiers balance upgrade nudges, lifecycle education, and white-glove coaching so teams can convert users at their pace.</Prop>
+            <Prop name="highlight" kind="static">All packages are bundled with experimentation best practices, cohort playbooks, and a dedicated revenue desk for escalations.</Prop>
+            <Prop name="features" kind="binding" source="productLedHighlights" path="items" />
+            <Prop name="tiers" kind="binding" source="productLedTiers" path="items" />
+            <Prop name="footnote" kind="static">Seat counts reset monthly. Expansion credit balances roll over for 90 days.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="book-pdlab" />
+            <Prop name="secondaryCta" kind="action" actionId="share-with-finance" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="productLedHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Usage-based scoring that syncs to HubSpot and Salesforce",
+              "Launch center with reusable multi-language email templates",
+              "Advanced segmentation with cohort recipes across product and billing data"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="productLedTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Starter motions",
+                "price": "$129",
+                "period": "month",
+                "badge": "PLG essentials",
+                "description": "Activate your first monetization loop with guided onboarding flows and experiment templates.",
+                "features": [
+                  "In-app checklist builder",
+                  "3 monetization triggers",
+                  "Churn prediction alerts",
+                  "Weekly activation review"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Launch starter",
+                    "url": "/checkout?plan=plg-starter",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Revenue studio",
+                "price": "$459",
+                "period": "month",
+                "badge": "Signal + action",
+                "highlight": "Top pick",
+                "description": "Automate paywall experiences, contextual upsells, and lifecycle messaging while aligning GTM teams.",
+                "features": [
+                  "Unlimited monetization triggers",
+                  "Usage-to-CRM sync",
+                  "Campaign attribution",
+                  "Deal acceleration workspace"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start revenue studio",
+                    "url": "/checkout?plan=revenue-studio",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Retention guild",
+                "price": "Custom",
+                "period": "annual",
+                "badge": "Strategic",
+                "description": "Partner with our adoption strategists to orchestrate account expansions, renewal health, and partner enablement.",
+                "features": [
+                  "Quarterly business reviews",
+                  "Voice-of-customer research sprints",
+                  "Shared experimentation backlog",
+                  "Embedded lifecycle architect"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design retention guild",
+                    "url": "/contact/retention-guild",
+                    "variant": "primary"
+                  }
+                }
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-pdlab" kind="link">
+        <Config>
+          <Label>Book a product-led lab</Label>
+          <Url>/demos/product-led-lab</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-with-finance" kind="link">
+        <Config>
+          <Label>Share with finance</Label>
+          <Url>/resources/product-led-pricing.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

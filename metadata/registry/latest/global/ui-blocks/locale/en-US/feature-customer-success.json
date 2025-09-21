@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "e92b40ddc9ee1c366ea970214e25124b43831ee1094ccb46eb70fa6d2fcc07ab",
+  "checksum": "ea861940804e588881063d50900847e498489605880db4709b8f1cb2370eb246",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/customer-success",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-customer-success.xml",
-  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-customer-success\\\\1.0.0\\\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-customer-success.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-customer-success/1.0.0/1.0.0.json"
 }

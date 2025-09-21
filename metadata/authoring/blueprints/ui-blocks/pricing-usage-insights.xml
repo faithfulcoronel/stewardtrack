@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/usage-insights"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-usage-insights">
+    <Title>UI Block: Usage insights pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-usage-insights" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">usage-meter</Prop>
+            <Prop name="eyebrow" kind="static">Usage clarity</Prop>
+            <Prop name="title" kind="static">Predictable telemetry for product, revops, and finance</Prop>
+            <Prop name="description" kind="static">Lock in real-time visibility across your activation funnel with transparent thresholds, rollovers, and insights bundled together.</Prop>
+            <Prop name="highlight" kind="static">Usage overages billed at 68% capacity to protect experimentation bursts.</Prop>
+            <Prop name="tiers" kind="binding" source="usageInsightsTier" path="items" />
+            <Prop name="metrics" kind="binding" source="usageInsightMetrics" path="items" />
+            <Prop name="footnote" kind="static">Billing reconciled monthly. Export raw telemetry to your warehouse at no additional cost.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="forecast-usage" />
+            <Prop name="secondaryCta" kind="action" actionId="download-usage-brief" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="usageInsightsTier" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Insight envelope",
+                "price": "$0.009",
+                "period": "per tracked event",
+                "description": "Standardize activation telemetry and automation triggers without overage surprises.",
+                "features": [
+                  "50M events included",
+                  "Adaptive sampling",
+                  "24h replay buffer",
+                  "Real-time anomaly detection"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Estimate events",
+                    "url": "/calculator/usage",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Events beyond 50M priced at $0.006 each."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="usageInsightMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Realtime dashboards", "value": "12", "caption": "Included seats" },
+              { "label": "Adoption lift", "value": "+18%", "caption": "Median after 90 days" },
+              { "label": "Warehoused data", "value": "<5m", "caption": "Pipeline latency" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="forecast-usage" kind="link">
+        <Config>
+          <Label>Forecast my usage</Label>
+          <Url>/pricing/usage-calculator</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-usage-brief" kind="link">
+        <Config>
+          <Label>Download usage brief</Label>
+          <Url>/resources/usage-brief.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

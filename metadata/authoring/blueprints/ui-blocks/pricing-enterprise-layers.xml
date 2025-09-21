@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/enterprise-layers"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-enterprise-layers">
+    <Title>UI Block: Enterprise layers pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-enterprise-layers" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">starter-enterprise-split</Prop>
+            <Prop name="eyebrow" kind="static">Enterprise layers</Prop>
+            <Prop name="title" kind="static">Standardize governance and adoption in one layered plan</Prop>
+            <Prop name="description" kind="static">Blend self-serve collaboration with enterprise guardrails. Configure seats, data residency, and support depth as you grow.</Prop>
+            <Prop name="highlight" kind="static">Every contract includes a quarterly innovation review, roadmap access, and budget forecasting templates.</Prop>
+            <Prop name="features" kind="binding" source="enterpriseLayerHighlights" path="items" />
+            <Prop name="tiers" kind="binding" source="enterpriseLayerTiers" path="items" />
+            <Prop name="footnote" kind="static">Annual contracts billed upfront. Enterprise desk response times under 20 minutes.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="start-enterprise-pilot" />
+            <Prop name="secondaryCta" kind="action" actionId="download-security-brief" />
+            <Prop name="supportCta" kind="action" actionId="contact-enterprise-desk" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="enterpriseLayerHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Native SSO, SCIM, and advanced RBAC included",
+              "Regional data residency with customer-managed keys",
+              "Change management playbooks for adoption and communications"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="enterpriseLayerTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Operational foundation",
+                "price": "$1,250",
+                "period": "month",
+                "badge": "Core",
+                "description": "Centralize lifecycle execution, reporting, and permissions for go-to-market teams.",
+                "features": [
+                  "20 orchestrator seats",
+                  "Regional segmentation",
+                  "Playbook library",
+                  "Email + chat support"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Launch foundation",
+                    "url": "/checkout?plan=foundation",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Enterprise scale",
+                "price": "$3,400",
+                "period": "month",
+                "badge": "Global",
+                "highlight": "Security-approved",
+                "description": "Extend governance to subsidiaries, partner ecosystems, and mission-critical workflows.",
+                "features": [
+                  "Unlimited orchestrator seats",
+                  "Customer-managed keys",
+                  "Advanced audit log export",
+                  "24/7 incident desk"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Scale globally",
+                    "url": "/checkout?plan=enterprise-scale",
+                    "variant": "primary"
+                  }
+                },
+                "footnote": "Includes red/blue team onboarding sessions."
+              },
+              {
+                "name": "Strategic success",
+                "price": "Custom",
+                "period": "annual",
+                "description": "Pair a dedicated success architect with quarterly innovation councils and custom ROI frameworks.",
+                "features": [
+                  "Adoption architect residency",
+                  "Executive briefing center",
+                  "Custom analytics pipelines",
+                  "Joint value realization models"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Tailor engagement",
+                    "url": "/contact/strategic-success",
+                    "variant": "primary"
+                  }
+                }
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-enterprise-pilot" kind="link">
+        <Config>
+          <Label>Start enterprise pilot</Label>
+          <Url>/demos/enterprise-pilot</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-security-brief" kind="link">
+        <Config>
+          <Label>Download security brief</Label>
+          <Url>/security/brief.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+      <Action id="contact-enterprise-desk" kind="link">
+        <Config>
+          <Label>Contact enterprise desk</Label>
+          <Url>/contact/enterprise</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

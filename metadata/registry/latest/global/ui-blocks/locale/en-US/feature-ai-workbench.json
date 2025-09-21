@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2e051938f5ca349a2fe4043213927871f1b017c8a2ba0a64f9648484845bfcd7",
+  "checksum": "80914009aad6e6408bf187eb2d4007f8fe34b533b079a20bf5720ea728316b81",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/ai-workbench",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-ai-workbench.xml",
-  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-ai-workbench\\\\1.0.0\\\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-ai-workbench.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-ai-workbench/1.0.0/1.0.0.json"
 }

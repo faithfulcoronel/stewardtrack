@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-executive-lens.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-executive-lens\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-executive-lens.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-executive-lens/1.0.0/1.0.0.json"
 }

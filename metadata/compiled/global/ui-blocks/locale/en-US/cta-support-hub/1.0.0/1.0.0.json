@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "dfb676089d7c8dfb61c0cc2e4baf98993fd949b9d9d3dbcab0457112ae5a6bde",
+  "checksum": "92eac0e599e05e96e31f35fef16dcbd83a0c015c4134828d8895b174bd3154ef",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -76,7 +76,7 @@
               {
                 "label": "Enablement office hours",
                 "value": "Every Tuesday • 9:00 AM PT",
-                "description": "Live Q&A with customer success and product specialists.",
+                "description": "Live Q&amp;A with customer success and product specialists.",
                 "url": "/events/office-hours"
               },
               {
@@ -120,5 +120,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-support-hub.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-support-hub.xml"
 }

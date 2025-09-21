@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::pricing/modular-suite::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c33aba7a15b59c05eeda8c8a659a9bdefe10422c7b16e981c9498dee12fac6b6",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/modular-suite",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-modular-suite.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-modular-suite/1.0.0/1.0.0.json"
+}

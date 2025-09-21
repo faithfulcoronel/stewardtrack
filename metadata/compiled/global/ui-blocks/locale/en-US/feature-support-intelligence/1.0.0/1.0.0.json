@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d98f5900589ede16cd362121ca68a7b9c613553d2c6187fd6e81a42b4e4a67a7",
+  "checksum": "2bf2523c0539df09528ce1f931147f64132f9c03d49d783b8306bbfce9ba53e4",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -72,17 +72,17 @@
           "value": {
             "items": [
               {
-                "icon": "\ud83e\udde0",
+                "icon": "🧠",
                 "title": "Agent copilots",
                 "description": "Surface suggested replies, knowledge base snippets, and policy guidance instantly."
               },
               {
-                "icon": "\ud83d\udce5",
+                "icon": "📥",
                 "title": "Smart intake",
                 "description": "Detect intent, risk, and sentiment to route cases with the right context every time."
               },
               {
-                "icon": "\ud83d\udcca",
+                "icon": "📊",
                 "title": "Operations dashboard",
                 "description": "Track backlog health, channel mix, and staffing forecasts in one adaptive view."
               }
@@ -112,5 +112,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-support-intelligence.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-support-intelligence.xml"
 }

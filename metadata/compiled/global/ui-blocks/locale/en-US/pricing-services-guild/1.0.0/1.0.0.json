@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "6f80cde873b73f441a9f5f0d7566b19412f245096243723380bf251c59af7e87",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "pricing/services-guild",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-pricing-services-guild",
+    "title": "UI Block: Services guild retainers",
+    "regions": [
+      {
+        "id": "pricing",
+        "components": [
+          {
+            "id": "pricing-services-guild",
+            "type": "PricingSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "partner-retainers"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Services guild"
+              },
+              "title": {
+                "kind": "static",
+                "value": "Retainers that adapt to delivery rhythms and stakeholder needs"
+              },
+              "description": {
+                "kind": "static",
+                "value": "From tactical execution to executive orchestration, these retainers keep your metadata, launches, and adoption aligned."
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Retainers renew every six months with a mid-cycle optimization sprint built in."
+              },
+              "features": {
+                "kind": "binding",
+                "source": "servicesGuildHighlights",
+                "path": "items"
+              },
+              "tiers": {
+                "kind": "binding",
+                "source": "servicesGuildTiers",
+                "path": "items"
+              },
+              "faqs": {
+                "kind": "binding",
+                "source": "servicesGuildFaqs",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Travel and on-site sessions billed separately. Retainers include unlimited async reviews."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "schedule-guild-consult"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-sow-template"
+              },
+              "supportCta": {
+                "kind": "action",
+                "actionId": "connect-partner-success"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "servicesGuildHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Dedicated producer orchestrating every workstream",
+              "Async office hours for marketing, product, and operations",
+              "Retainer reporting with KPIs, decisions, and backlog next actions"
+            ]
+          }
+        }
+      },
+      {
+        "id": "servicesGuildTiers",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "name": "Launch pod",
+                "price": "$5,800",
+                "period": "month",
+                "badge": "3 workstreams",
+                "description": "Ideal for growth-stage companies juggling launches, lifecycle, and content ops.",
+                "features": [
+                  "Producer + strategist",
+                  "Weekly planning standups",
+                  "Asset QA + approvals",
+                  "KPI reporting cadence"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start launch pod",
+                    "url": "/checkout?plan=launch-pod",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Scale guild",
+                "price": "$8,900",
+                "period": "month",
+                "badge": "5 workstreams",
+                "description": "Designed for enterprises coordinating multi-product stories and partner enablement.",
+                "features": [
+                  "Producer + two strategists",
+                  "Enablement + advocacy tracks",
+                  "Change management comms",
+                  "Quarterly stakeholder summit"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Engage scale guild",
+                    "url": "/checkout?plan=scale-guild",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Executive studio",
+                "price": "Custom",
+                "period": "annual",
+                "badge": "Leadership aligned",
+                "description": "Partner directly with our executive producers to steward GTM, product, and customer narratives.",
+                "features": [
+                  "Executive producer residency",
+                  "Investor + board communications",
+                  "Voice-of-customer workshops",
+                  "ROI + adoption instrumentation"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design executive studio",
+                    "url": "/contact/executive-studio",
+                    "variant": "primary"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "servicesGuildFaqs",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "question": "How fast can a pod onboard?",
+                "answer": "Most pods begin shipping within 10 business days. We run a kickoff, align on KPIs, then enter the delivery cadence."
+              },
+              {
+                "question": "Can we pause a retainer?",
+                "answer": "Yes. Pause up to 60 days each contract year with two-week notice. We'll keep backlog context warm."
+              },
+              {
+                "question": "Do retainers cover in-product metadata work?",
+                "answer": "Absolutely. Guild producers collaborate with your engineering and product teams to orchestrate metadata changes."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "schedule-guild-consult",
+        "kind": "link",
+        "config": {
+          "Label": "Schedule a guild consult",
+          "Url": "/demos/services-guild",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-sow-template",
+        "kind": "link",
+        "config": {
+          "Label": "View SOW template",
+          "Url": "/resources/services-sow.docx",
+          "Variant": "ghost"
+        }
+      },
+      {
+        "id": "connect-partner-success",
+        "kind": "link",
+        "config": {
+          "Label": "Connect with partner success",
+          "Url": "/contact/partner-success",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-services-guild.xml"
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2650f13c734242ad8753b146a6c96492cfc8ba6918e15da96bb761ac0bb127a9",
+  "checksum": "5d57d0073f568d9a80c741479eb5ff2ff5c8b304428cbaa56c2f600211bb2c7d",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -68,22 +68,22 @@
           "value": {
             "items": [
               {
-                "icon": "\ud83d\uddc2\ufe0f",
+                "icon": "🗂️",
                 "title": "Editorial calendar",
                 "description": "Visualize production stages, owners, and deadlines across every channel."
               },
               {
-                "icon": "\ud83d\udcdd",
+                "icon": "📝",
                 "title": "Brief builder",
                 "description": "Standardize research, messaging, and SEO requirements with smart templates."
               },
               {
-                "icon": "\ud83d\udd04",
+                "icon": "🔄",
                 "title": "Reuse matrix",
                 "description": "Track derivative assets and distribution experiments with performance tags."
               },
               {
-                "icon": "\ud83d\udce3",
+                "icon": "📣",
                 "title": "Stakeholder updates",
                 "description": "Automate rollups for execs, regional leads, and sales enablement teams."
               }
@@ -113,5 +113,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-content-lifecycle.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-content-lifecycle.xml"
 }

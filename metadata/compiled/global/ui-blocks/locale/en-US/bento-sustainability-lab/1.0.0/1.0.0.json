@@ -117,7 +117,7 @@
               {
                 "label": "Carbon intensity",
                 "value": "38 kg/HC",
-                "change": "\u2193 14% YoY",
+                "change": "↓ 14% YoY",
                 "sentiment": "positive"
               },
               {
@@ -164,5 +164,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-sustainability-lab.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-sustainability-lab.xml"
 }

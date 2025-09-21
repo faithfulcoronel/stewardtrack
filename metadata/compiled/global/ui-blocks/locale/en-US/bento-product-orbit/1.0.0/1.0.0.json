@@ -84,7 +84,7 @@
                 "eyebrow": "Signals",
                 "title": "Engagement constellation",
                 "description": "Blend clickstream, feature flags, and workspace health into a shared activation score.",
-                "icon": "\ud83d\udef0\ufe0f",
+                "icon": "🛰️",
                 "bullets": [
                   "Weights adapt per lifecycle stage",
                   "Exports to RevOps scorecards"
@@ -114,7 +114,7 @@
                 "eyebrow": "Guides",
                 "title": "Launch rehearsal studio",
                 "description": "Preview customer journeys and validate gating logic before publishing live.",
-                "icon": "\ud83c\udf9b\ufe0f",
+                "icon": "🎛️",
                 "tone": "violet"
               },
               {
@@ -137,7 +137,7 @@
               {
                 "label": "Time-to-value",
                 "value": "3.2 days",
-                "change": "\u2193 47% vs last quarter",
+                "change": "↓ 47% vs last quarter",
                 "sentiment": "positive"
               },
               {
@@ -184,5 +184,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-product-orbit.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-product-orbit.xml"
 }

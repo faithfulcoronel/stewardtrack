@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-community-constellation.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-community-constellation\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-community-constellation.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-community-constellation/1.0.0/1.0.0.json"
 }

@@ -96,7 +96,7 @@
                 "eyebrow": "Reliability",
                 "title": "Incident bridge",
                 "description": "Spin up a war room with chat, timeline, and live run metrics in under 30 seconds.",
-                "icon": "\ud83d\udee0\ufe0f",
+                "icon": "🛠️",
                 "tone": "dark"
               },
               {
@@ -124,7 +124,7 @@
               {
                 "label": "Change success",
                 "value": "99.1%",
-                "change": "\u2191 2.3 pts quarter-to-date",
+                "change": "↑ 2.3 pts quarter-to-date",
                 "sentiment": "positive"
               },
               {
@@ -171,5 +171,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ops-horizon.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ops-horizon.xml"
 }

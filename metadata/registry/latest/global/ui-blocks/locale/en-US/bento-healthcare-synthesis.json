@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-healthcare-synthesis.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-healthcare-synthesis\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-healthcare-synthesis.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-healthcare-synthesis/1.0.0/1.0.0.json"
 }

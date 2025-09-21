@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="pricing/creative-cloud"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-pricing-creative-cloud">
+    <Title>UI Block: Creative cloud pricing</Title>
+    <Regions>
+      <Region id="pricing">
+        <Component id="pricing-creative-cloud" type="PricingSection">
+          <Props>
+            <Prop name="variant" kind="static">gradient-panels</Prop>
+            <Prop name="eyebrow" kind="static">Creative operations</Prop>
+            <Prop name="title" kind="static">Curate editorial, video, and motion design in one contract</Prop>
+            <Prop name="description" kind="static">Studios and agencies use these bundles to align creative output with campaign cadences, approvals, and analytics.</Prop>
+            <Prop name="tiers" kind="binding" source="creativeCloudTiers" path="items" />
+            <Prop name="footnote" kind="static">Production windows reset each quarter. Additional revision cycles billed at $90/hr.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="book-creative-tour" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="creativeCloudTiers" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "name": "Editorial",
+                "price": "$2,400",
+                "period": "month",
+                "description": "Build a consistent publishing cadence with briefs, production boards, and insight reports.",
+                "features": [
+                  "8 long-form assets",
+                  "SEO playbooks",
+                  "Review + approval workspace",
+                  "Analytics recaps"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Start editorial",
+                    "url": "/checkout?plan=editorial",
+                    "variant": "secondary"
+                  }
+                }
+              },
+              {
+                "name": "Video",
+                "price": "$4,100",
+                "period": "month",
+                "highlight": "Most requested",
+                "description": "Deliver product explainers, launch teasers, and customer stories with motion design support.",
+                "features": [
+                  "6 produced videos",
+                  "Storyboard collaboration",
+                  "Animation + subtitle kit",
+                  "Usage rights tracking"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Book video crew",
+                    "url": "/checkout?plan=video",
+                    "variant": "primary"
+                  }
+                }
+              },
+              {
+                "name": "Campaign",
+                "price": "Custom",
+                "period": "quarter",
+                "description": "Combine brand strategy, design systems, and cross-channel execution for integrated launches.",
+                "features": [
+                  "Integrated planning board",
+                  "24/7 creative hotline",
+                  "Localization management",
+                  "Attribution + performance dashboards"
+                ],
+                "cta": {
+                  "config": {
+                    "label": "Design campaign",
+                    "url": "/contact/creative-campaign",
+                    "variant": "primary"
+                  }
+                }
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-creative-tour" kind="link">
+        <Config>
+          <Label>Book a creative ops tour</Label>
+          <Url>/demos/creative-operations</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "90e5b73bca9166cc98a5e26c1064271ee6a78b5257981c6b94cd77c5b369c10f",
+  "checksum": "b70018a1ab687587969b7f1dbfadad9137c32edcf5fc45448c47dd6cda0400c8",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -68,22 +68,22 @@
           "value": {
             "items": [
               {
-                "icon": "\ud83d\udee1\ufe0f",
+                "icon": "🛡️",
                 "title": "Continuous controls",
                 "description": "Automate evidence pulls from code repos, cloud accounts, and HR systems with zero touch."
               },
               {
-                "icon": "\ud83e\uddfe",
+                "icon": "🧾",
                 "title": "Policy workspace",
                 "description": "Draft, approve, and distribute policies with version history and employee attestation."
               },
               {
-                "icon": "\ud83d\udd0d",
+                "icon": "🔍",
                 "title": "Audit trails",
                 "description": "Centralize control owners, reviewer notes, and test results for fast auditor handoffs."
               },
               {
-                "icon": "\ud83d\udce6",
+                "icon": "📦",
                 "title": "Trust portal",
                 "description": "Publish curated compliance packages for prospects and customers with automated NDA gating."
               }
@@ -113,5 +113,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-compliance-readiness.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-compliance-readiness.xml"
 }
