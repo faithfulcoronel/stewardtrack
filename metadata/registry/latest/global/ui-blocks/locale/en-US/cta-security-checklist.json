@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "00b40c19ad57bc47e062dcb2cbf97a12c609eec5a724a672e8b57699862f1f2f",
+  "checksum": "d7a0cab1a966393621fd81019d4b2633fb59f3cf07b63b1a5250c3f1cc6320c2",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/security-checklist",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-security-checklist.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-security-checklist/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-security-checklist.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-security-checklist\\1.0.0\\1.0.0.json"
 }

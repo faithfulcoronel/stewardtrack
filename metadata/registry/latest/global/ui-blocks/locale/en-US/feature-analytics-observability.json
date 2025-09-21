@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "5f767ed9b223136f8caf5698ec993f2150979b115bc36cbf08f8e315d5bda485",
+  "checksum": "d120237751e3aaab48e97a66a83de7f1827beb4002befeac406345c472e2bd7d",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/analytics-observability",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-analytics-observability.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-analytics-observability/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-analytics-observability.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-analytics-observability\\1.0.0\\1.0.0.json"
 }

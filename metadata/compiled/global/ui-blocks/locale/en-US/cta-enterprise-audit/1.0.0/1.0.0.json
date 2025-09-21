@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "574640c7abd5451945202145ccb05f3e02bb18c359f71a8d2cb26eb1f55ace83",
+  "checksum": "dde3a27e29590b89e263415b43bda1702be0e01084c8daf65c5b1b3f5614d736",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -121,5 +121,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-enterprise-audit.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-enterprise-audit.xml"
 }

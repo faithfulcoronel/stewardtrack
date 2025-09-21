@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "ed0bcc533ad6d58730bc877ec4570154f5917e22872ad6d83b8bb08c37e06506",
+  "checksum": "8f6b36acd48b31027864dc73403a52a3962966b54d217cc9ce848f43d8a01e5e",
   "layer": {
     "module": "ui-blocks",
     "route": "hero/newsletter",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-newsletter.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-newsletter/1.0.0/2.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-newsletter.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-newsletter\\1.0.0\\2.0.0.json"
 }

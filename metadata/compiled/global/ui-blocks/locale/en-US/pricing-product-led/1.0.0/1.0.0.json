@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "0dc090651da6b117adfab6dc0982c4f2367639a14984550606a33bea1597475a",
+  "checksum": "90a1bf42adf8782cef8d6eacb41d33e8a12707cabc3de3e23217fb55c0ac0382",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -176,5 +176,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-product-led.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-product-led.xml"
 }

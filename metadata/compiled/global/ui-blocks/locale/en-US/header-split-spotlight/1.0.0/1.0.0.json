@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "0a57441b083f8a64753fb842a7a9e8142878b8966407a8a0ca3e21236c91e1a6",
+  "checksum": "5cc9cd551d736d0b79d6e0083ea2e2db3d37a343c9fee9c8cf85d38aa6e0005d",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-split-spotlight.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-split-spotlight.xml"
 }

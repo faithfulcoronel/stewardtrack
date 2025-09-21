@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "65c5e8870a634e0513266984c677f0cdbd5549d037b4cbdb961a5e2762695d34",
+  "checksum": "a777b191b774cd3415e759b0a31c0825af4f00fe18e362ce7a1832112982fe87",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -164,5 +164,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-executive-lens.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-executive-lens.xml"
 }

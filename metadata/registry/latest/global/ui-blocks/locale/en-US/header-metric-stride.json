@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::header/metric-stride::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "27d254072855ba6b421c28b632b4c15913ec9d71fe95a7afbce7ca0e233d0d3a",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/metric-stride",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-metric-stride.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-metric-stride\\1.0.0\\1.0.0.json"
+}

@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::header/centered-pill::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "41df4682c41a2cf146a5702cf22a807fe7cfe5078ea1dc602008e778abd45030",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/centered-pill",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-centered-pill.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-centered-pill\\1.0.0\\1.0.0.json"
+}

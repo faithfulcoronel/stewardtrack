@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "01c849a666312110216ba620c537d7d08a4df824970fa954188284c3c8eb24eb",
+  "checksum": "4461cc181e898e641572238baee849367e72785dd8fae72776b19f2c0228db0b",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -104,5 +104,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-event.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml"
 }

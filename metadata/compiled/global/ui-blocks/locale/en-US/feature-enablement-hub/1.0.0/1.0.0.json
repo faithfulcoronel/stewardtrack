@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "ca30ea33050d5fcb17ec6f819e085707585d69d7b5e2e274fa340398c940ed19",
+  "checksum": "09e62cdc337eaab75c59c89cb6eed774d9d616d49160c03e810e0e194ccc4070",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -137,5 +137,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-enablement-hub.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-enablement-hub.xml"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "ca9f29de3a645f9e0b2caa59031da44b8596e5f0826403b6e4ce3a1fc96b9812",
+  "checksum": "41df4682c41a2cf146a5702cf22a807fe7cfe5078ea1dc602008e778abd45030",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -94,5 +94,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-centered-pill.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-centered-pill.xml"
 }

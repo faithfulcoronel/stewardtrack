@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "1a967ecccfc8ee659706fb65f8e64414dfed93a88d6a23d58cf90dc622acdd6e",
+  "checksum": "d084d7cd02d339e6a208e15b3ff813f5e21a132e6ff86aa5f69c6211182ec846",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-image-cascade.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-image-cascade.xml"
 }

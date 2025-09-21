@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "5743e6b276b2616d91bc3bdc0c29cdfa4ac0290a49c7115065813532d084a2c5",
+  "checksum": "68ae50669297553300a165a76050a5654ed4fbcbb5736220f2f315f9012e6911",
   "layer": {
     "module": "ui-blocks",
     "route": "hero/conversion",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-conversion.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-conversion/1.0.0/2.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-conversion.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-conversion\\1.0.0\\2.0.0.json"
 }

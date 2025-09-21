@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "80baf02cf64c0994cd2b1cef7d068c731d6438c2ee5f994976d801445f17c658",
+  "checksum": "5d565c882ebbb480202960392e4f21fe1528150a0aeeb366896d28d142c627f9",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -172,5 +172,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-lifecycle-upgrade.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-lifecycle-upgrade.xml"
 }

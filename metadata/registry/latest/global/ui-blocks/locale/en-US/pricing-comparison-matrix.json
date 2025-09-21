@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "737c62d05182895259ad8dab3300b0ccaaeb83c732bd7d211001652d36366e1c",
+  "checksum": "e19b108385bab3e2feecfc887a397aa11971b4204ebfda15b27ecd5f1725f252",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/comparison-matrix",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-comparison-matrix.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-comparison-matrix/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-comparison-matrix.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-comparison-matrix\\1.0.0\\1.0.0.json"
 }

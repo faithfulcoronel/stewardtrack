@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::header/image-cascade::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d084d7cd02d339e6a208e15b3ff813f5e21a132e6ff86aa5f69c6211182ec846",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/image-cascade",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-image-cascade.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-image-cascade\\1.0.0\\1.0.0.json"
+}

@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "a8cdad4c109880462ca2fc19806aa9b85fa8971aa92556465a7522d3ce89e2b9",
+  "checksum": "0f18da04e3b7d0364aaed481a38b62e8590db17e7b3341726f9c3999d93bc6dc",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/usage-insights",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-usage-insights.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-usage-insights/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-usage-insights.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-usage-insights\\1.0.0\\1.0.0.json"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2bf2523c0539df09528ce1f931147f64132f9c03d49d783b8306bbfce9ba53e4",
+  "checksum": "9048fe2f789ccd8f7eac7c6c2ec8ab8cf865f85e9525702d5d4579fd99eaaeae",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -112,5 +112,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-support-intelligence.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-support-intelligence.xml"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "4440cf94ed488b360291f5f467bf20d969b9ad6a6018284c13c185d819ab7d60",
+  "checksum": "1eb8f8e8823382f5f857fe614c4a6f1056603fec47dd65b47bcecbc81e396459",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -36,7 +36,7 @@
               },
               "description": {
                 "kind": "static",
-                "value": "A strategic header with tabbed entry points for different audiences\u2014perfect for solution overviews or pricing guides."
+                "value": "A strategic header with tabbed entry points for different audiences—perfect for solution overviews or pricing guides."
               },
               "tabs": {
                 "kind": "binding",
@@ -99,5 +99,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-tabbed-overview.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-tabbed-overview.xml"
 }

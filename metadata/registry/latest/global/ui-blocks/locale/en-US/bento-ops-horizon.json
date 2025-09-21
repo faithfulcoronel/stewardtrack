@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d8f721805e948182a50e381d0d1b891e7d6569d2993235d21171d172c206690b",
+  "checksum": "7f7259aa3e6e2a5a19aa23aab2ec49725cdb8cdd7f15b9486f3abf4dc851333b",
   "layer": {
     "module": "ui-blocks",
     "route": "bento/ops-horizon",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ops-horizon.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-ops-horizon/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ops-horizon.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-ops-horizon\\1.0.0\\1.0.0.json"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "1cfd504e714c45600492472edd9b3e241c8ed57c6c3b0fca7edbc8ec184d226e",
+  "checksum": "59e5e4818009cee0c66a4251db7de7a8beea04acad1b679dbad4414d7ffa5132",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -90,5 +90,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-video-trailer.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-video-trailer.xml"
 }

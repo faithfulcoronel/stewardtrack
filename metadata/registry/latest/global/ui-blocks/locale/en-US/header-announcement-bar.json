@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::header/announcement-bar::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "1adf39e9e7fe0d31c477fcc44a41e0757e21c6c906aaf513e5347ac1b5be5790",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/announcement-bar",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-announcement-bar.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-announcement-bar\\1.0.0\\1.0.0.json"
+}

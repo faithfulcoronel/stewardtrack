@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::header/split-spotlight::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "5cc9cd551d736d0b79d6e0083ea2e2db3d37a343c9fee9c8cf85d38aa6e0005d",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/split-spotlight",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-split-spotlight.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-split-spotlight\\1.0.0\\1.0.0.json"
+}

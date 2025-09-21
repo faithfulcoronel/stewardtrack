@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "890df92f3f073056f84ecafc4349827f8895f981a66ed99fef466702dbcd9ec8",
+  "checksum": "0ec6bcd89bda099ff088bbd2c71cfe3bc4b78071d450df246875e992f56a685a",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -107,5 +107,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-analytics.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-analytics.xml"
 }

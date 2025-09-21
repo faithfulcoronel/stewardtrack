@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "4b0b5409b395257d18f378f2e58d93c06a2247719dfc7072bde0f3fa5e7ac7ed",
+  "checksum": "cca036d2c2df25a3db8dca62fe767072ca485a86bf4dfa21d322745fce63551f",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -93,5 +93,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-logo-array.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-logo-array.xml"
 }

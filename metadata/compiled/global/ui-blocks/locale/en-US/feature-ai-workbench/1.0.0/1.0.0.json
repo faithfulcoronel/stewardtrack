@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "80914009aad6e6408bf187eb2d4007f8fe34b533b079a20bf5720ea728316b81",
+  "checksum": "0ca245ee2e72b2b7e541995a5d3721df1c8d8a5c08b33813d67139b8b3ef86ab",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -124,5 +124,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-ai-workbench.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-ai-workbench.xml"
 }

@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "c29ae75b1b02a278c25dacc6fa85bf5f6566af991319ccfc4b139ca67a3c2486",
+  "checksum": "c89196fccf8c1ea006b2897ef843648d97de996f3f168d4081dec954a4ecd4fb",
   "layer": {
     "module": "ui-blocks",
     "route": "hero/spotlight",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-spotlight.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-spotlight/1.0.0/2.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-spotlight.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-spotlight\\1.0.0\\2.0.0.json"
 }
