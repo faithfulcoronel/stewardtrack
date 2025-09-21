@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/floating"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-floating">
+    <Title>UI Block: Floating CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-floating" type="CtaSection">
+          <Props>
+            <Prop name="variant" kind="static">floating</Prop>
+            <Prop name="eyebrow" kind="static">Activation path</Prop>
+            <Prop name="headline" kind="static">Roll out go-to-market programs in three focused steps</Prop>
+            <Prop name="description" kind="static">Use Flowspace to align teams, capture feedback, and iterate without slowing momentum.</Prop>
+            <Prop name="steps" kind="binding" source="floatingSteps" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="launch-rollout" />
+            <Prop name="secondaryCta" kind="action" actionId="view-checklist" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="floatingSteps" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Align the crew",
+                "description": "Kick off with a shared workspace, linked plans, and automated owner assignments."
+              },
+              {
+                "title": "Ship the narrative",
+                "description": "Layer localized messaging, partner enablement, and product updates without a deploy."
+              },
+              {
+                "title": "Measure the loops",
+                "description": "Sync feedback to analytics and decide the next iteration during retro."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-rollout" kind="link">
+        <Config>
+          <Label>Launch your rollout</Label>
+          <Url>/activate</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-checklist" kind="link">
+        <Config>
+          <Label>View the checklist</Label>
+          <Url>/resources/activation-checklist</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

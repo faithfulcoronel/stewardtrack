@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/sidebar"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-sidebar">
+    <Title>UI Block: Sidebar CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-sidebar" type="CtaSection">
+          <Props>
+            <Prop name="variant" kind="static">sidebar</Prop>
+            <Prop name="eyebrow" kind="static">Customer success</Prop>
+            <Prop name="headline" kind="static">Unlock a dedicated success pod</Prop>
+            <Prop name="description" kind="static">Pair your team with enablement strategists, technical architects, and analytics partners who stay aligned to your KPIs.</Prop>
+            <Prop name="highlights" kind="binding" source="sidebarHighlights" path="items" />
+            <Prop name="contacts" kind="binding" source="sidebarContacts" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="talk-to-success" />
+            <Prop name="secondaryCta" kind="action" actionId="email-success" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="sidebarHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Weekly office hours with your pod.",
+              "Launch retros with actionable insights.",
+              "Slack channel with 2-hour response SLA."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="sidebarContacts" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Chat with success lead",
+                "description": "Meet the team guiding Fortune 500 rollouts.",
+                "href": "mailto:success@flowspace.com"
+              },
+              {
+                "label": "Download engagement overview",
+                "description": "Scope deliverables, outcomes, and playbooks.",
+                "href": "/assets/success-overview.pdf"
+              },
+              {
+                "label": "Book readiness audit",
+                "description": "Review metrics before your next major launch.",
+                "href": "/success/audit"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="talk-to-success" kind="link">
+        <Config>
+          <Label>Talk to our success team</Label>
+          <Url>/success/meeting</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="email-success" kind="link">
+        <Config>
+          <Label>Email us your goals</Label>
+          <Url>mailto:success@flowspace.com</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "0500e46196b79ce318014e47ed4fea950f693d4e63e8c64e4c93d345442bbd8f",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/newsletter",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-newsletter",
+    "title": "UI Block: Newsletter CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-newsletter",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "newsletter" },
+              "eyebrow": { "kind": "static", "value": "Content fuel" },
+              "headline": {
+                "kind": "static",
+                "value": "Subscribe to the GTM Systems newsletter"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Every Tuesday we unpack workflows that help marketing, product, and revenue teams stay in sync."
+              },
+              "form": { "kind": "binding", "source": "newsletterForm", "path": "$" },
+              "highlights": { "kind": "binding", "source": "newsletterHighlights", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "view-past-issues" },
+              "secondaryCta": { "kind": "action", "actionId": "download-media-kit" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "newsletterHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "3 actionable workflows per issue.",
+              "Interviews with operators shipping weekly.",
+              "Templates you can duplicate in Flowspace."
+            ]
+          }
+        }
+      },
+      {
+        "id": "newsletterForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "you@company.com",
+            "buttonLabel": "Join the list",
+            "disclaimer": "No spam—just battle-tested tactics.",
+            "url": "/api/subscribe"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-past-issues",
+        "kind": "link",
+        "config": {
+          "Label": "Browse past issues",
+          "Url": "/newsletter/archive",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "download-media-kit",
+        "kind": "link",
+        "config": {
+          "Label": "Download media kit",
+          "Url": "/newsletter/media-kit",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "adbeff9f98d22e3dd36d0a85a174150981e6c808699444b24ae4c0d163859aa5",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/stats",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-stats",
+    "title": "UI Block: Stats CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-stats",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "stats" },
+              "badge": { "kind": "static", "value": "Revenue intelligence" },
+              "headline": {
+                "kind": "static",
+                "value": "Quantify the lift from every experiment"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Connect activation events with revenue systems to understand which journeys compound growth."
+              },
+              "highlight": { "kind": "static", "value": "4.6x ROI" },
+              "highlights": { "kind": "binding", "source": "statsHighlights", "path": "items" },
+              "metrics": { "kind": "binding", "source": "statsMetrics", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "activate-insights" },
+              "secondaryCta": { "kind": "action", "actionId": "download-revenue-brief" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "statsHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Integrates with Snowflake, BigQuery, and Redshift.",
+              "Stream insights into every go-to-market workflow."
+            ]
+          }
+        }
+      },
+      {
+        "id": "statsMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              { "label": "Attribution coverage", "value": "93%" },
+              { "label": "Average lift", "value": "18%" },
+              { "label": "Decisions automated", "value": "27" }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "activate-insights",
+        "kind": "link",
+        "config": {
+          "Label": "Activate insights",
+          "Url": "/activate-insights",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-revenue-brief",
+        "kind": "link",
+        "config": {
+          "Label": "Download revenue brief",
+          "Url": "/briefs/revenue-intelligence",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}

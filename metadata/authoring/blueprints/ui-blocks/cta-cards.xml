@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/cards"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-cards">
+    <Title>UI Block: Cards CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-cards" type="CtaSection">
+          <Props>
+            <Prop name="variant" kind="static">cards</Prop>
+            <Prop name="eyebrow" kind="static">Partner ecosystem</Prop>
+            <Prop name="headline" kind="static">Launch partner programs that scale with demand</Prop>
+            <Prop name="description" kind="static">Give partners curated toolkits, shared roadmaps, and real-time attribution in a single workspace.</Prop>
+            <Prop name="cards" kind="binding" source="cardsFeatures" path="items" />
+            <Prop name="links" kind="binding" source="cardsLinks" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="explore-integrations" />
+            <Prop name="secondaryCta" kind="action" actionId="view-customer-stories" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="cardsFeatures" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Blueprint catalogs",
+                "description": "Package campaigns with step-by-step guides and automation triggers.",
+                "badge": "Guided"
+              },
+              {
+                "title": "Co-marketing studio",
+                "description": "Approve partner assets with version control and brand guardrails.",
+                "badge": "Brand safe"
+              },
+              {
+                "title": "Revenue loops",
+                "description": "Pipe referrals directly into CRM workflows with mutual visibility.",
+                "badge": "Shared data"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="cardsLinks" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Download partner kit",
+                "href": "/assets/partner-kit.zip",
+                "description": "Templates, reporting dashboards, and enablement checklists.",
+                "badge": "New"
+              },
+              {
+                "label": "See attribution dashboards",
+                "href": "/dashboards/partner-attribution"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="explore-integrations" kind="link">
+        <Config>
+          <Label>Explore integrations</Label>
+          <Url>/integrations</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-customer-stories" kind="link">
+        <Config>
+          <Label>View customer stories</Label>
+          <Url>/stories</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

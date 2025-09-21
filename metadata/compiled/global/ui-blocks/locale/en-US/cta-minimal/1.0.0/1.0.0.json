@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "9e3d68bba17c4c345dc955004e0c0317da923d029cfed15a9c7fa30dfbbadd27",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/minimal",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-minimal",
+    "title": "UI Block: Minimal CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-minimal",
+            "type": "CtaSection",
+            "props": {
+              "variant": { "kind": "static", "value": "minimal" },
+              "eyebrow": { "kind": "static", "value": "Audience personalization" },
+              "headline": {
+                "kind": "static",
+                "value": "Deliver tailored onboarding journeys in hours"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Spin up audience-specific CTA modules without engineering releases or design handoffs."
+              },
+              "links": { "kind": "binding", "source": "minimalLinks", "path": "items" },
+              "primaryCta": { "kind": "action", "actionId": "start-free-workspace" },
+              "secondaryCta": { "kind": "action", "actionId": "schedule-kickoff" }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "minimalLinks",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "View personalization examples",
+                "href": "/library/personalization",
+                "description": "Explore ready-to-ship journeys for every audience segment."
+              },
+              {
+                "label": "Download onboarding brief",
+                "href": "/assets/onboarding-brief.pdf",
+                "description": "Align your team on messaging, milestones, and success metrics."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-free-workspace",
+        "kind": "link",
+        "config": {
+          "Label": "Start free workspace",
+          "Url": "/signup",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "schedule-kickoff",
+        "kind": "link",
+        "config": {
+          "Label": "Schedule kickoff",
+          "Url": "/get-started",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  }
+}
