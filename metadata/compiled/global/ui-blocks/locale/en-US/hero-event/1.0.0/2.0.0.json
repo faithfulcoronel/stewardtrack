@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "4461cc181e898e641572238baee849367e72785dd8fae72776b19f2c0228db0b",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/event",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-event",
+    "title": "UI Block: Event hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-event",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "video"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Live summit"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Flowspace Blueprint Summit 2025"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Invite your audience with a hero anchored by a video teaser and clear calls to register or explore the agenda."
+              },
+              "video": {
+                "kind": "binding",
+                "source": "eventVideo",
+                "path": "$"
+              },
+              "image": {
+                "kind": "binding",
+                "source": "eventThumbnail",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "register-now"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-agenda"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "eventVideo",
+        "kind": "static",
+        "config": {
+          "value": {
+            "label": "Play highlight reel",
+            "url": "https://example.com/summit-teaser"
+          }
+        }
+      },
+      {
+        "id": "eventThumbnail",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1515169067865-5387ec356754?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
+            "alt": "Conference stage lighting"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "register-now",
+        "kind": "link",
+        "config": {
+          "Label": "Register now",
+          "Url": "/events/blueprint-summit/register",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-agenda",
+        "kind": "link",
+        "config": {
+          "Label": "View agenda",
+          "Url": "/events/blueprint-summit/agenda",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml"
+}

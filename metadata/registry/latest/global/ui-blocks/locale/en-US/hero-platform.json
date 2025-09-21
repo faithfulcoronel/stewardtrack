@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/platform::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "10ba972f95dbd1e0b8dbe3eefbe84366d764a0895f908c8f4d612b27fe6dbc39",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/platform",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-platform.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-platform\\1.0.0\\2.0.0.json"
+}

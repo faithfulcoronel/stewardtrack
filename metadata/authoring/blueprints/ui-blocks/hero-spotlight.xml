@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/spotlight"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-spotlight">
+    <Title>UI Block: Spotlight hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-spotlight" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">spotlight</Prop>
+            <Prop name="badge" kind="static">Blueprint release</Prop>
+            <Prop name="headline" kind="static">Launch products faster with Flowspace blocks</Prop>
+            <Prop name="description" kind="static">Pick a curated hero blueprint, orchestrate overlays, and ship a marketing launch page without waiting on deploys.</Prop>
+            <Prop name="highlights" kind="binding" source="spotlightHighlights" path="items" />
+            <Prop name="metrics" kind="binding" source="spotlightMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-library" />
+            <Prop name="secondaryCta" kind="action" actionId="watch-demo" />
+            <Prop name="image" kind="binding" source="spotlightMedia" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="spotlightHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Blueprint previews render instantly inside admin sandbox routes.",
+              "Layer tenant overlays without redeploying code.",
+              "Roll back content versions with deterministic diffs."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="spotlightMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Time to publish", "value": "2x faster", "caption": "Compared to ad-hoc React deploys." },
+              { "label": "Reusable heroes", "value": "48", "caption": "Maintained across modules." },
+              { "label": "Author satisfaction", "value": "94%" },
+              { "label": "Metadata PRs", "value": "-63%", "caption": "Less engineering review time." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="spotlightMedia" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
+            "alt": "Product team collaborating on laptops"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-library" kind="link">
+        <Config>
+          <Label>Browse library</Label>
+          <Url>/blocks</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="watch-demo" kind="link">
+        <Config>
+          <Label>Watch demo</Label>
+          <Url>/demo</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

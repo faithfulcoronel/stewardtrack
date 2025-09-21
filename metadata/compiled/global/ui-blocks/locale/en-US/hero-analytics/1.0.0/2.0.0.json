@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "0ec6bcd89bda099ff088bbd2c71cfe3bc4b78071d450df246875e992f56a685a",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/analytics",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-analytics",
+    "title": "UI Block: Analytics hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-analytics",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "aurora"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Analytics hub"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Operational visibility for every stakeholder"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Showcase dashboards, alerts, and the instrumentation that proves your platform runs at scale."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "analyticsHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-dashboards"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "request-tour"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "analyticsHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Dashboards",
+                "value": "140+",
+                "caption": "Blueprint-driven analytics suites."
+              },
+              {
+                "label": "Alert rules",
+                "value": "380"
+              },
+              {
+                "label": "Data freshness",
+                "value": "&lt; 5 min"
+              },
+              {
+                "label": "API latency",
+                "value": "43 ms",
+                "caption": "P95 across production tenants."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-dashboards",
+        "kind": "link",
+        "config": {
+          "Label": "View dashboards",
+          "Url": "/analytics/dashboards",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "request-tour",
+        "kind": "link",
+        "config": {
+          "Label": "Request a tour",
+          "Url": "/analytics/tour",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-analytics.xml"
+}

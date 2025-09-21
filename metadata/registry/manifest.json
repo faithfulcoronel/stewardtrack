@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-20T23:00:41.587Z",
+  "generatedAt": "2025-09-21T10:04:58.763Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -37,6 +37,210 @@
       },
       "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml",
       "compiledPath": "metadata\\compiled\\global\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::hero/activation::-::-::en-US": {
+      "key": "global::ui-blocks::hero/activation::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "7e04af73cf58c0ce1970711dc848c2d847b69a4a3ad33dca9c2ff8672c8da732",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/activation",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-activation\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/analytics::-::-::en-US": {
+      "key": "global::ui-blocks::hero/analytics::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "0ec6bcd89bda099ff088bbd2c71cfe3bc4b78071d450df246875e992f56a685a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/analytics",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-analytics.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-analytics\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/community::-::-::en-US": {
+      "key": "global::ui-blocks::hero/community::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "935674051ccca7cb0b244faa72d02655db25942551f65298785c96685142333a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/community",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-community.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-community\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/conversion::-::-::en-US": {
+      "key": "global::ui-blocks::hero/conversion::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "68ae50669297553300a165a76050a5654ed4fbcbb5736220f2f315f9012e6911",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/conversion",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-conversion.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-conversion\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/enterprise::-::-::en-US": {
+      "key": "global::ui-blocks::hero/enterprise::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "ec1581b30934de5189e0e028b2d62b3744fe8c4de9dac8a00db9053cb9f9112f",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/enterprise",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-enterprise.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-enterprise\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/event::-::-::en-US": {
+      "key": "global::ui-blocks::hero/event::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "4461cc181e898e641572238baee849367e72785dd8fae72776b19f2c0228db0b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/event",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-event\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/minimal::-::-::en-US": {
+      "key": "global::ui-blocks::hero/minimal::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "72b3ce062f5fd61887181a965e4a5df4b7bf65ae04d7f3b044bee6f3f56e70ed",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/minimal",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-minimal.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-minimal\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/newsletter::-::-::en-US": {
+      "key": "global::ui-blocks::hero/newsletter::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "8f6b36acd48b31027864dc73403a52a3962966b54d217cc9ce848f43d8a01e5e",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/newsletter",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-newsletter.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-newsletter\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/platform::-::-::en-US": {
+      "key": "global::ui-blocks::hero/platform::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "10ba972f95dbd1e0b8dbe3eefbe84366d764a0895f908c8f4d612b27fe6dbc39",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/platform",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-platform.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-platform\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/product-launch::-::-::en-US": {
+      "key": "global::ui-blocks::hero/product-launch::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "19ce74908863890e3ed228b16d58809223aa9f0b6b7ce3affac1a2db05353ed6",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/product-launch",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-product-launch.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-product-launch\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/spotlight::-::-::en-US": {
+      "key": "global::ui-blocks::hero/spotlight::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "c89196fccf8c1ea006b2897ef843648d97de996f3f168d4081dec954a4ecd4fb",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/spotlight",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-spotlight.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-spotlight\\1.0.0\\2.0.0.json"
+    },
+    "global::ui-blocks::hero/story::-::-::en-US": {
+      "key": "global::ui-blocks::hero/story::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "2.0.0",
+      "checksum": "0c898548bb2e3977142d0fdf23cefa658b3a0911d65e62994bf6453a5b2df138",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "hero/story",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-story.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-story\\1.0.0\\2.0.0.json"
     }
   }
 }

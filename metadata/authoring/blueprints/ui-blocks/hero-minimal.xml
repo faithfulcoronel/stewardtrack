@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/minimal"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-minimal">
+    <Title>UI Block: Minimal hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-minimal" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="static">Just launched</Prop>
+            <Prop name="headline" kind="static">Ship a focused announcement without the noise</Prop>
+            <Prop name="description" kind="static">Use this minimal hero for changelog drops or product updates where clarity matters most.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="learn-more" />
+            <Prop name="secondaryCta" kind="action" actionId="view-history" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <Actions>
+      <Action id="learn-more" kind="link">
+        <Config>
+          <Label>Learn more</Label>
+          <Url>/learn/minimal-hero</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-history" kind="link">
+        <Config>
+          <Label>View changelog</Label>
+          <Url>/changelog</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

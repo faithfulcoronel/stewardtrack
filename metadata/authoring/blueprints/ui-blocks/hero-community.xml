@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/community"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-community">
+    <Title>UI Block: Community hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-community" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">logos</Prop>
+            <Prop name="headline" kind="static">Join a community that ships metadata-first</Prop>
+            <Prop name="description" kind="static">Highlight the teams that trust your blueprint library and invite new members to collaborate.</Prop>
+            <Prop name="logos" kind="binding" source="communityLogos" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="join-community" />
+            <Prop name="secondaryCta" kind="action" actionId="view-stories" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="communityLogos" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Acme Labs",
+              "Parcelly",
+              "Northwind",
+              "Launchbase",
+              "Orbit",
+              "Skylight"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="join-community" kind="link">
+        <Config>
+          <Label>Join the community</Label>
+          <Url>/community/join</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-stories" kind="link">
+        <Config>
+          <Label>Read member stories</Label>
+          <Url>/community/stories</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

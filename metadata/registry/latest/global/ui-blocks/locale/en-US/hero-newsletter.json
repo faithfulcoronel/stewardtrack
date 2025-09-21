@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/newsletter::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "8f6b36acd48b31027864dc73403a52a3962966b54d217cc9ce848f43d8a01e5e",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/newsletter",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-newsletter.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-newsletter\\1.0.0\\2.0.0.json"
+}

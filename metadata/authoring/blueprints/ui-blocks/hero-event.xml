@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/event"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-event">
+    <Title>UI Block: Event hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-event" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">video</Prop>
+            <Prop name="badge" kind="static">Live summit</Prop>
+            <Prop name="headline" kind="static">Flowspace Blueprint Summit 2025</Prop>
+            <Prop name="description" kind="static">Invite your audience with a hero anchored by a video teaser and clear calls to register or explore the agenda.</Prop>
+            <Prop name="video" kind="binding" source="eventVideo" path="$" />
+            <Prop name="image" kind="binding" source="eventThumbnail" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="register-now" />
+            <Prop name="secondaryCta" kind="action" actionId="view-agenda" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="eventVideo" kind="static">
+        <Json><![CDATA[
+          {
+            "label": "Play highlight reel",
+            "url": "https://example.com/summit-teaser"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="eventThumbnail" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1515169067865-5387ec356754?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
+            "alt": "Conference stage lighting"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="register-now" kind="link">
+        <Config>
+          <Label>Register now</Label>
+          <Url>/events/blueprint-summit/register</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-agenda" kind="link">
+        <Config>
+          <Label>View agenda</Label>
+          <Url>/events/blueprint-summit/agenda</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

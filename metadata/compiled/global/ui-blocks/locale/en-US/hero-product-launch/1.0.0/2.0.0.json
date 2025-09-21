@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "19ce74908863890e3ed228b16d58809223aa9f0b6b7ce3affac1a2db05353ed6",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/product-launch",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-product-launch",
+    "title": "UI Block: Product launch hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-product-launch",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "split"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Launch week"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Adaptive workflows that sync every launch team"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Showcase the release, link to the roadmap, and let marketing, product, and success stay aligned inside one metadata-powered hero."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "launchHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-trial"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-roadmap"
+              },
+              "image": {
+                "kind": "binding",
+                "source": "launchMedia",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "launchHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Blueprint overlays gate features by tenant and role.",
+              "Run launch checklists with metadata-driven status badges.",
+              "Sync roadmap cards automatically from product spec sources."
+            ]
+          }
+        }
+      },
+      {
+        "id": "launchMedia",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
+            "alt": "Team planning a launch release"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-trial",
+        "kind": "link",
+        "config": {
+          "Label": "Start free trial",
+          "Url": "/signup/trial",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-roadmap",
+        "kind": "link",
+        "config": {
+          "Label": "View roadmap",
+          "Url": "/roadmap",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-product-launch.xml"
+}

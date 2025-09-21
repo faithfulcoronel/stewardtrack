@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/platform"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-platform">
+    <Title>UI Block: Platform hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-platform" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">cards</Prop>
+            <Prop name="eyebrow" kind="static">Platform core</Prop>
+            <Prop name="headline" kind="static">Turn metadata into a composable system</Prop>
+            <Prop name="description" kind="static">Anchor your hero around three pillars and let visitors dive deeper with card callouts.</Prop>
+            <Prop name="cards" kind="binding" source="platformCards" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-platform" />
+            <Prop name="secondaryCta" kind="action" actionId="talk-platform" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="platformCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "title": "Orchestrate", "description": "Coordinate page, data, and action layers from a unified schema." },
+              { "title": "Experiment", "description": "Toggle variants and rollout flags without shipping new code." },
+              { "title": "Observe", "description": "Trace lineage from XML through compiled assets to runtime." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-platform" kind="link">
+        <Config>
+          <Label>Explore platform</Label>
+          <Url>/platform</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="talk-platform" kind="link">
+        <Config>
+          <Label>Talk with platform team</Label>
+          <Url>/platform/contact</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

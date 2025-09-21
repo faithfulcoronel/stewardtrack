@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/conversion::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "68ae50669297553300a165a76050a5654ed4fbcbb5736220f2f315f9012e6911",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/conversion",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-conversion.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-conversion\\1.0.0\\2.0.0.json"
+}

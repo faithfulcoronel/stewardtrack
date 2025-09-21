@@ -5,6 +5,7 @@ import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 import { AdminMobileNav } from "./mobile-nav";
 import { AdminSidebar, type AdminNavSection } from "./sidebar-nav";
@@ -32,9 +33,14 @@ export function AdminLayoutShell({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-muted/10">
+    <div
+      className={cn(
+        "min-h-screen bg-muted/10 transition-[padding-left] duration-300 ease-in-out",
+        collapsed ? "lg:pl-20" : "lg:pl-72",
+      )}
+    >
       <AdminSidebar sections={sections} collapsed={collapsed} />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 px-4 py-4 backdrop-blur sm:px-6">
           <div className="flex w-full items-center gap-3">
             <div className="flex items-center gap-2 sm:gap-3">

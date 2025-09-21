@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "7e04af73cf58c0ce1970711dc848c2d847b69a4a3ad33dca9c2ff8672c8da732",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/activation",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-activation",
+    "title": "UI Block: Activation hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-activation",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "pattern"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Activation sprint"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Guide new teams to value in days, not weeks"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Underpin onboarding with metadata-driven playbooks, telemetry, and editor-friendly flows."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "activationHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-guide"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "see-checklist"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "activationHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Blueprints include embedded onboarding flows per segment.",
+              "Usage telemetry flows back into metadata scoring.",
+              "Success teams tweak overlays without code pushes."
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-guide",
+        "kind": "link",
+        "config": {
+          "Label": "View guide",
+          "Url": "/activation/guide",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "see-checklist",
+        "kind": "link",
+        "config": {
+          "Label": "See checklist",
+          "Url": "/activation/checklist",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml"
+}

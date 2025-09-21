@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { signOut } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -17,7 +17,7 @@ export default async function PublicLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:py-5">
+        <div className="flex w-full items-center justify-between px-6 py-4 sm:px-10 sm:py-5">
           <Link href="/" className="text-lg font-semibold text-foreground">
             Flowspace
           </Link>
@@ -55,7 +55,7 @@ export default async function PublicLayout({
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-border/60 bg-background py-8">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-sm text-muted-foreground sm:flex-row sm:justify-between">
+        <div className="flex w-full flex-col items-center gap-2 px-6 text-sm text-muted-foreground sm:flex-row sm:justify-between sm:px-10">
           <p>Copyright {year} Flowspace. All rights reserved.</p>
           <p className="flex gap-3">
             <Link className="transition hover:text-foreground" href="/privacy">

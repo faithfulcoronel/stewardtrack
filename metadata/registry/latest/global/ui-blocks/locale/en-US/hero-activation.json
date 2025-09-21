@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/activation::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "7e04af73cf58c0ce1970711dc848c2d847b69a4a3ad33dca9c2ff8672c8da732",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/activation",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-activation\\1.0.0\\2.0.0.json"
+}

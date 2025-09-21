@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/event::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "4461cc181e898e641572238baee849367e72785dd8fae72776b19f2c0228db0b",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/event",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-event\\1.0.0\\2.0.0.json"
+}

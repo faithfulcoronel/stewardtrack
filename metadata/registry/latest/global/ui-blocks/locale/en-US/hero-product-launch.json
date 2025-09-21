@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/product-launch::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "19ce74908863890e3ed228b16d58809223aa9f0b6b7ce3affac1a2db05353ed6",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/product-launch",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-product-launch.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-product-launch\\1.0.0\\2.0.0.json"
+}

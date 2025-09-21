@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::hero/minimal::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "72b3ce062f5fd61887181a965e4a5df4b7bf65ae04d7f3b044bee6f3f56e70ed",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/minimal",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-minimal.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-minimal\\1.0.0\\2.0.0.json"
+}

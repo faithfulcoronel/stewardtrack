@@ -12,6 +12,7 @@ import {
   FileChartColumn,
   Wallet,
   Briefcase,
+  Blocks,
   Layers
 } from "lucide-react";
 
@@ -27,6 +28,7 @@ export const ADMIN_NAV_ICONS = {
   finances: FileChartColumn,
   expenses: Wallet,
   projects: Briefcase,
+  uiBlocks: Blocks,
   modules: Layers,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
@@ -57,7 +59,7 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "hidden h-screen flex-col border-r border-border/10 shadow-xl lg:flex",
+        "fixed inset-y-0 left-0 hidden flex-col border-r border-border/10 shadow-xl transition-[width] duration-300 lg:flex z-30",
         collapsed ? "w-20" : "w-72",
       )}
       style={{
@@ -83,7 +85,7 @@ export function AdminSidebar({
           </div>
         )}
       </div>
-      <div className="flex-1 overflow-y-auto px-3 pb-8">
+      <div className="sidebar-scroll flex-1 overflow-y-auto px-3 pb-8">
         <div className="space-y-8">
           {sections.map((section) => (
             <div key={section.label} className="space-y-2">
@@ -137,3 +139,4 @@ export function AdminSidebar({
     </aside>
   );
 }
+

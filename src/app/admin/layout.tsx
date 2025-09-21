@@ -16,6 +16,12 @@ const NAV_SECTIONS: AdminNavSection[] = [
     ],
   },
   {
+    label: "UI Blocks",
+    items: [
+      { title: "Hero sections", href: "/admin/ui-blocks/hero-sections", icon: "uiBlocks" },
+    ],
+  },
+  {
     label: "Community",
     items: [{ title: "Members", href: "/admin/members", icon: "customers" }],
   },
@@ -70,3 +76,4 @@ export default async function AdminLayout({
     </AdminLayoutShell>
   );
 }
+

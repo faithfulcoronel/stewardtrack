@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.1.0",
+  "checksum": "57a2799681453c1135d22e35aa4b0c690628c29a741c43267f248736ee06d155",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/platform",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-platform",
+    "title": "UI Block: Platform hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-platform",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "cards"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Platform core"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Turn metadata into a composable system"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Anchor your hero around three pillars and let visitors dive deeper with card callouts."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "platformCards",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-platform"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "talk-platform"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "platformCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Orchestrate",
+                "description": "Coordinate page, data, and action layers from a unified schema."
+              },
+              {
+                "title": "Experiment",
+                "description": "Toggle variants and flags without swapping component code."
+              },
+              {
+                "title": "Observe",
+                "description": "Trace lineage from XML through compiled assets to runtime."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-platform",
+        "kind": "link",
+        "config": {
+          "Label": "Explore platform",
+          "Url": "/platform",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "talk-platform",
+        "kind": "link",
+        "config": {
+          "Label": "Talk with platform team",
+          "Url": "/platform/contact",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-platform.xml"
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/analytics"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-analytics">
+    <Title>UI Block: Analytics hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-analytics" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">aurora</Prop>
+            <Prop name="badge" kind="static">Analytics hub</Prop>
+            <Prop name="headline" kind="static">Operational visibility for every stakeholder</Prop>
+            <Prop name="description" kind="static">Showcase dashboards, alerts, and the instrumentation that proves your platform runs at scale.</Prop>
+            <Prop name="metrics" kind="binding" source="analyticsHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-dashboards" />
+            <Prop name="secondaryCta" kind="action" actionId="request-tour" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="analyticsHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Dashboards", "value": "140+", "caption": "Blueprint-driven analytics suites." },
+              { "label": "Alert rules", "value": "380" },
+              { "label": "Data freshness", "value": "&lt; 5 min" },
+              { "label": "API latency", "value": "43 ms", "caption": "P95 across production tenants." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-dashboards" kind="link">
+        <Config>
+          <Label>View dashboards</Label>
+          <Url>/analytics/dashboards</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="request-tour" kind="link">
+        <Config>
+          <Label>Request a tour</Label>
+          <Url>/analytics/tour</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

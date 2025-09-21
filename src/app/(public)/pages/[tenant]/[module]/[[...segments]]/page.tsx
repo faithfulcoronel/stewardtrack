@@ -55,7 +55,7 @@ export default async function DynamicExperiencePage({ params, searchParams }: Pa
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16 sm:px-12">
+    <main className="flex w-full flex-col gap-16 px-4 py-16 sm:px-8">
       {content}
     </main>
   );
@@ -80,3 +80,4 @@ function extractFlags(searchParams: PageSearchParams) {
   }
   return flags;
 }
+

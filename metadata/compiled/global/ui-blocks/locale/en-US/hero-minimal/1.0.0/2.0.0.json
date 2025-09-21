@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "72b3ce062f5fd61887181a965e4a5df4b7bf65ae04d7f3b044bee6f3f56e70ed",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/minimal",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-minimal",
+    "title": "UI Block: Minimal hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-minimal",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "minimal"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Just launched"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Ship a focused announcement without the noise"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Use this minimal hero for changelog drops or product updates where clarity matters most."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "learn-more"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-history"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "learn-more",
+        "kind": "link",
+        "config": {
+          "Label": "Learn more",
+          "Url": "/learn/minimal-hero",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-history",
+        "kind": "link",
+        "config": {
+          "Label": "View changelog",
+          "Url": "/changelog",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-minimal.xml"
+}

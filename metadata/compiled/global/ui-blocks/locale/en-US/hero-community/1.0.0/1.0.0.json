@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "44e98fdd58acefd5df8ac3966a1835274d0736887a597f16f2742ac7e2bf72ea",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/community",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-community",
+    "title": "UI Block: Community hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-community",
+            "type": "HeroSection",
+            "props": {
+              "eyebrow": {
+                "kind": "static",
+                "value": "Community edition"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Grow with a community that ships together"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Spotlight your user base, testimonials, or partner network with a hero designed around social proof."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "communitySignals",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "join-community"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-stories"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "communitySignals",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Active makers",
+                "value": "8.4k"
+              },
+              {
+                "label": "Shared templates",
+                "value": "1.2k"
+              },
+              {
+                "label": "Monthly events",
+                "value": "14"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "join-community",
+        "kind": "link",
+        "config": {
+          "Label": "Join the community",
+          "Url": "/community/join",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-stories",
+        "kind": "link",
+        "config": {
+          "Label": "Read member stories",
+          "Url": "/community/stories",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-community.xml"
+}

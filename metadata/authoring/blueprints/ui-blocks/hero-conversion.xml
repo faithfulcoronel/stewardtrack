@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/conversion"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-conversion">
+    <Title>UI Block: Conversion hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-conversion" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stacked</Prop>
+            <Prop name="badge" kind="static">Conversion playbook</Prop>
+            <Prop name="headline" kind="static">Personalize every hero with metadata-driven targeting</Prop>
+            <Prop name="description" kind="static">Experiment with copy, CTAs, and overlays in real time while surfacing the results in a stats ribbon.</Prop>
+            <Prop name="metrics" kind="binding" source="conversionData" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="build-experiment" />
+            <Prop name="secondaryCta" kind="action" actionId="view-template" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="conversionData" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Variant uplift", "value": "+18%", "caption": "Median improvement across 8 segments." },
+              { "label": "Segmentation rules", "value": "24" },
+              { "label": "Runtime targeting", "value": "Real-time" },
+              { "label": "Overlay updates", "value": "0 deploys" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="build-experiment" kind="link">
+        <Config>
+          <Label>Build experiment</Label>
+          <Url>/experiments/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-template" kind="link">
+        <Config>
+          <Label>View template</Label>
+          <Url>/templates/conversion-hero</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

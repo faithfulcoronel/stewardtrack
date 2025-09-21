@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/enterprise"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-enterprise">
+    <Title>UI Block: Enterprise hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-enterprise" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="static">Enterprise launchpad</Prop>
+            <Prop name="headline" kind="static">Governed experiences at global scale</Prop>
+            <Prop name="description" kind="static">Speak directly to procurement and compliance teams with quantified proof points.</Prop>
+            <Prop name="metrics" kind="binding" source="enterpriseProof" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="talk-sales" />
+            <Prop name="secondaryCta" kind="action" actionId="review-security" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="enterpriseProof" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Uptime", "value": "99.99%", "caption": "Measured across 4 global regions." },
+              { "label": "Certifications", "value": "SOC2 + ISO 27001" },
+              { "label": "Data regions", "value": "12", "caption": "Geo-fenced blueprint registries." },
+              { "label": "Access reviews", "value": "Quarterly" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="talk-sales" kind="link">
+        <Config>
+          <Label>Talk to sales</Label>
+          <Url>/contact/enterprise</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="review-security" kind="link">
+        <Config>
+          <Label>Review security</Label>
+          <Url>/trust/security</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "935674051ccca7cb0b244faa72d02655db25942551f65298785c96685142333a",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/community",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-community",
+    "title": "UI Block: Community hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-community",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "logos"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Join a community that ships metadata-first"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Highlight the teams that trust your blueprint library and invite new members to collaborate."
+              },
+              "logos": {
+                "kind": "binding",
+                "source": "communityLogos",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "join-community"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-stories"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "communityLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Acme Labs",
+              "Parcelly",
+              "Northwind",
+              "Launchbase",
+              "Orbit",
+              "Skylight"
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "join-community",
+        "kind": "link",
+        "config": {
+          "Label": "Join the community",
+          "Url": "/community/join",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-stories",
+        "kind": "link",
+        "config": {
+          "Label": "Read member stories",
+          "Url": "/community/stories",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-community.xml"
+}

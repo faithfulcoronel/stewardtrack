@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "2.0.0",
+  "checksum": "ec1581b30934de5189e0e028b2d62b3744fe8c4de9dac8a00db9053cb9f9112f",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/enterprise",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-enterprise",
+    "title": "UI Block: Enterprise hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-enterprise",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "stats-panel"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Enterprise launchpad"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Governed experiences at global scale"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Speak directly to procurement and compliance teams with quantified proof points."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "enterpriseProof",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "talk-sales"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "review-security"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "enterpriseProof",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Uptime",
+                "value": "99.99%",
+                "caption": "Measured across 4 global regions."
+              },
+              {
+                "label": "Certifications",
+                "value": "SOC2 + ISO 27001"
+              },
+              {
+                "label": "Data regions",
+                "value": "12",
+                "caption": "Geo-fenced blueprint registries."
+              },
+              {
+                "label": "Access reviews",
+                "value": "Quarterly"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "talk-sales",
+        "kind": "link",
+        "config": {
+          "Label": "Talk to sales",
+          "Url": "/contact/enterprise",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "review-security",
+        "kind": "link",
+        "config": {
+          "Label": "Review security",
+          "Url": "/trust/security",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-enterprise.xml"
+}

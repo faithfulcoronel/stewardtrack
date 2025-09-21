@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bf45ff568fa5178d4cb8cb9ce925ad136e13ae1da224f761f6b0b4efd2669d5e",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/enterprise",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-enterprise",
+    "title": "UI Block: Enterprise hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-enterprise",
+            "type": "HeroSection",
+            "props": {
+              "eyebrow": {
+                "kind": "static",
+                "value": "Enterprise launchpad"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Governed experiences at global scale"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Speak to procurement teams with a hero that highlights compliance, uptime, and certifications."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "enterpriseProof",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "talk-sales"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "review-security"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "enterpriseProof",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Uptime",
+                "value": "99.99%"
+              },
+              {
+                "label": "Certifications",
+                "value": "SOC2, ISO 27001"
+              },
+              {
+                "label": "Data regions",
+                "value": "12"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "talk-sales",
+        "kind": "link",
+        "config": {
+          "Label": "Talk to sales",
+          "Url": "/contact/enterprise",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "review-security",
+        "kind": "link",
+        "config": {
+          "Label": "Review security",
+          "Url": "/trust/security",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-enterprise.xml"
+}

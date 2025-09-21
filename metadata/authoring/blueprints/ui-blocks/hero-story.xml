@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/story"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-story">
+    <Title>UI Block: Story-driven hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-story" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">testimonial</Prop>
+            <Prop name="badge" kind="static">Founder spotlight</Prop>
+            <Prop name="headline" kind="static">Metadata that tells your customer story</Prop>
+            <Prop name="description" kind="static">Introduce your audience to the vision behind your product with a quote-driven hero and confident next steps.</Prop>
+            <Prop name="testimonial" kind="binding" source="storyTestimonial" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="meet-founders" />
+            <Prop name="secondaryCta" kind="action" actionId="download-deck" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="storyTestimonial" kind="static">
+        <Json><![CDATA[
+          {
+            "quote": "Flowspace gives our lifecycle team the guardrails to ship dream experiences without waking up engineering.",
+            "author": "Jordan Winters",
+            "role": "Director of Lifecycle, Acme"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="meet-founders" kind="link">
+        <Config>
+          <Label>Meet the founders</Label>
+          <Url>/about/team</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-deck" kind="link">
+        <Config>
+          <Label>Download deck</Label>
+          <Url>/assets/company-overview.pdf</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

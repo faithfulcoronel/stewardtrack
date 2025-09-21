@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/newsletter"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-newsletter">
+    <Title>UI Block: Newsletter hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-newsletter" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">newsletter</Prop>
+            <Prop name="badge" kind="static">Weekly insights</Prop>
+            <Prop name="headline" kind="static">Teach customers how you build with metadata</Prop>
+            <Prop name="description" kind="static">Pair your content series with a hero that focuses on education, highlights, and simple subscription flows.</Prop>
+            <Prop name="highlights" kind="binding" source="newsletterHighlights" path="items" />
+            <Prop name="form" kind="binding" source="newsletterForm" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="subscribe" />
+            <Prop name="secondaryCta" kind="action" actionId="read-archive" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="newsletterHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Frameworks for shipping metadata experiments.",
+              "Playbooks from teams moving to blueprint-driven sites.",
+              "Design patterns for marketing, docs, and success."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="newsletterForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "flowspace-fan@company.com",
+            "buttonLabel": "Subscribe",
+            "disclaimer": "We send one curated update each week.",
+            "url": "/newsletter/join"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="subscribe" kind="link">
+        <Config>
+          <Label>Subscribe</Label>
+          <Url>/newsletter/subscribe</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="read-archive" kind="link">
+        <Config>
+          <Label>Read the archive</Label>
+          <Url>/newsletter/archive</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

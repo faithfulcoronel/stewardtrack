@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.1.0",
+  "checksum": "497e448c60b68c5ca02994ed49ab88605bd2da5edee70ff9528e3d7547a1acd0",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "hero/activation",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-hero-activation",
+    "title": "UI Block: Activation hero",
+    "regions": [
+      {
+        "id": "hero",
+        "components": [
+          {
+            "id": "hero-activation",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "pattern"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Activation sprint"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Guide new teams to value in days, not weeks"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Use this hero to highlight onboarding wins, playbooks, and the telemetry that proves adoption is working."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "activationHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-guide"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "see-checklist"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "activationHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Blueprints include embedded onboarding flows per segment.",
+              "Usage telemetry feeds straight back into metadata actions.",
+              "Success managers can tweak overlays without code pushes."
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-guide",
+        "kind": "link",
+        "config": {
+          "Label": "View guide",
+          "Url": "/activation/guide",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "see-checklist",
+        "kind": "link",
+        "config": {
+          "Label": "See checklist",
+          "Url": "/activation/checklist",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml"
+}

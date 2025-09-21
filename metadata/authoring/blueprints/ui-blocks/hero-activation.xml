@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="hero/activation"
+  schemaVersion="1.0.0"
+  contentVersion="2.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-hero-activation">
+    <Title>UI Block: Activation hero</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-activation" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">pattern</Prop>
+            <Prop name="eyebrow" kind="static">Activation sprint</Prop>
+            <Prop name="headline" kind="static">Guide new teams to value in days, not weeks</Prop>
+            <Prop name="description" kind="static">Underpin onboarding with metadata-driven playbooks, telemetry, and editor-friendly flows.</Prop>
+            <Prop name="highlights" kind="binding" source="activationHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-guide" />
+            <Prop name="secondaryCta" kind="action" actionId="see-checklist" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="activationHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Blueprints include embedded onboarding flows per segment.",
+              "Usage telemetry flows back into metadata scoring.",
+              "Success teams tweak overlays without code pushes."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-guide" kind="link">
+        <Config>
+          <Label>View guide</Label>
+          <Url>/activation/guide</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="see-checklist" kind="link">
+        <Config>
+          <Label>See checklist</Label>
+          <Url>/activation/checklist</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
