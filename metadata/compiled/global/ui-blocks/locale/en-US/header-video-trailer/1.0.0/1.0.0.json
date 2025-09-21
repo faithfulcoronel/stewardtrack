@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "1cfd504e714c45600492472edd9b3e241c8ed57c6c3b0fca7edbc8ec184d226e",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/video-trailer",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-video-trailer",
+    "title": "UI Block: Video trailer header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-video-trailer",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "video-trailer"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Event premiere"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Blueprint Sessions: The Trailer"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Anchor a launch or event with a cinematic trailer preview paired with confident calls to engage."
+              },
+              "video": {
+                "kind": "binding",
+                "source": "trailerVideo",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "reserve-seat"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-agenda"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "trailerVideo",
+        "kind": "static",
+        "config": {
+          "value": {
+            "label": "Play trailer",
+            "url": "https://example.com/trailer",
+            "thumbnail": "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1400&q=80"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "reserve-seat",
+        "kind": "link",
+        "config": {
+          "Label": "Reserve your seat",
+          "Url": "/events/blueprint-sessions/register",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-agenda",
+        "kind": "link",
+        "config": {
+          "Label": "View agenda",
+          "Url": "/events/blueprint-sessions/agenda",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-video-trailer.xml"
+}

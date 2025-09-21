@@ -650,6 +650,210 @@
       "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-support-intelligence.xml",
       "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-support-intelligence/1.0.0/1.0.0.json"
     },
+    "global::ui-blocks::header/announcement-bar::-::-::en-US": {
+      "key": "global::ui-blocks::header/announcement-bar::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "68481c47be46a0da52575ee3b03ba83585ae890a1c6c60331a0bd46f0ee7e187",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/announcement-bar",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-announcement-bar.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-announcement-bar/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/breadcrumb-ledger::-::-::en-US": {
+      "key": "global::ui-blocks::header/breadcrumb-ledger::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "89f7d6c889b0e4d5730cff07c8b9a994e6c6ffbbbc8d661342d9316434f463bf",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/breadcrumb-ledger",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-breadcrumb-ledger.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-breadcrumb-ledger/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/card-beam::-::-::en-US": {
+      "key": "global::ui-blocks::header/card-beam::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d54f6c0ee9c70f9497501286ee88bd579fa61149b755f407e84ebce4a1be125e",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/card-beam",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-card-beam.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-card-beam/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/centered-pill::-::-::en-US": {
+      "key": "global::ui-blocks::header/centered-pill::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "ca9f29de3a645f9e0b2caa59031da44b8596e5f0826403b6e4ce3a1fc96b9812",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/centered-pill",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-centered-pill.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-centered-pill/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/gradient-orbit::-::-::en-US": {
+      "key": "global::ui-blocks::header/gradient-orbit::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "bbfe98822e08f7a6f42e480f3218a73fa371b5da4bef05e4608a1a5e8e5ca737",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/gradient-orbit",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-gradient-orbit.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-gradient-orbit/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/image-cascade::-::-::en-US": {
+      "key": "global::ui-blocks::header/image-cascade::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "1a967ecccfc8ee659706fb65f8e64414dfed93a88d6a23d58cf90dc622acdd6e",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/image-cascade",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-image-cascade.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-image-cascade/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/logo-array::-::-::en-US": {
+      "key": "global::ui-blocks::header/logo-array::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "4b0b5409b395257d18f378f2e58d93c06a2247719dfc7072bde0f3fa5e7ac7ed",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/logo-array",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-logo-array.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-logo-array/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/metric-stride::-::-::en-US": {
+      "key": "global::ui-blocks::header/metric-stride::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "3ae2dc9b446c37119acb106413d53183d3ff5362ae0919962f3e3f317975de16",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/metric-stride",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-metric-stride.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-metric-stride/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/search-hub::-::-::en-US": {
+      "key": "global::ui-blocks::header/search-hub::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "c055e6ca3add4be89a13ca52c3bf285b5b0fedddbafe6cbd17da68fe878a0438",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/search-hub",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-search-hub.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-search-hub/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/split-spotlight::-::-::en-US": {
+      "key": "global::ui-blocks::header/split-spotlight::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "0a57441b083f8a64753fb842a7a9e8142878b8966407a8a0ca3e21236c91e1a6",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/split-spotlight",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-split-spotlight.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-split-spotlight/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/tabbed-overview::-::-::en-US": {
+      "key": "global::ui-blocks::header/tabbed-overview::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "4440cf94ed488b360291f5f467bf20d969b9ad6a6018284c13c185d819ab7d60",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/tabbed-overview",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-tabbed-overview.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-tabbed-overview/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::header/video-trailer::-::-::en-US": {
+      "key": "global::ui-blocks::header/video-trailer::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "1cfd504e714c45600492472edd9b3e241c8ed57c6c3b0fca7edbc8ec184d226e",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "header/video-trailer",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-video-trailer.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-video-trailer/1.0.0/1.0.0.json"
+    },
     "global::ui-blocks::hero/activation::-::-::en-US": {
       "key": "global::ui-blocks::hero/activation::-::-::en-US",
       "kind": "blueprint",

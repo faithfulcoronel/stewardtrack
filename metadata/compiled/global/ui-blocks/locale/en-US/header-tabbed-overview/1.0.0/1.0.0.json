@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "4440cf94ed488b360291f5f467bf20d969b9ad6a6018284c13c185d819ab7d60",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/tabbed-overview",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-tabbed-overview",
+    "title": "UI Block: Tabbed overview header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-tabbed-overview",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "tabbed-overview"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Product pillars"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Choose your starting point"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A strategic header with tabbed entry points for different audiences\u2014perfect for solution overviews or pricing guides."
+              },
+              "tabs": {
+                "kind": "binding",
+                "source": "overviewTabs",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "request-access"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "compare-plans"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "overviewTabs",
+        "kind": "static",
+        "config": {
+          "value": [
+            {
+              "label": "Lifecycle automation",
+              "description": "Blueprint journeys, routing, and scoring"
+            },
+            {
+              "label": "Revenue intelligence",
+              "description": "Forecast-ready dashboards and alerts"
+            },
+            {
+              "label": "Partner velocity",
+              "description": "Co-selling workspaces and deal rooms"
+            }
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "request-access",
+        "kind": "link",
+        "config": {
+          "Label": "Request access",
+          "Url": "/request-access",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "compare-plans",
+        "kind": "link",
+        "config": {
+          "Label": "Compare plans",
+          "Url": "/pricing",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-tabbed-overview.xml"
+}

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c055e6ca3add4be89a13ca52c3bf285b5b0fedddbafe6cbd17da68fe878a0438",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "header/search-hub",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-header-search-hub",
+    "title": "UI Block: Search hub header",
+    "regions": [
+      {
+        "id": "header",
+        "components": [
+          {
+            "id": "header-search-hub",
+            "type": "HeaderSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "search-hub"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Resource library"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Search the enablement hub"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A practical header for knowledge bases or partner portals that features instant search and curated tags."
+              },
+              "search": {
+                "kind": "binding",
+                "source": "searchConfig",
+                "path": "$"
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "searchTags",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "searchConfig",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "Search playbooks, templates, or policies",
+            "buttonLabel": "Find resources",
+            "helpText": "Try activation playbook, sales onboarding, or partner kit"
+          }
+        }
+      },
+      {
+        "id": "searchTags",
+        "kind": "static",
+        "config": {
+          "value": [
+            "Lifecycle",
+            "Revenue operations",
+            "Product marketing",
+            "Enablement",
+            "Adoption"
+          ]
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-search-hub.xml"
+}

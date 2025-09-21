@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/logo-array"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-logo-array">
+    <Title>UI Block: Logo array header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-logo-array" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">logo-array</Prop>
+            <Prop name="badge" kind="static">Trusted by teams</Prop>
+            <Prop name="headline" kind="static">Adopted by leading operators</Prop>
+            <Prop name="description" kind="static">Highlight social proof with a clean grid of customer logos alongside your primary invitation to learn more.</Prop>
+            <Prop name="logos" kind="binding" source="logoArray" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="view-case-studies" />
+            <Prop name="secondaryCta" kind="action" actionId="see-integrations" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="logoArray" kind="static">
+        <Json><![CDATA[
+          [
+            "Atlas Logistics",
+            "Brightside Health",
+            "Northwind Energy",
+            "Horizon Retail",
+            "Polaris Cloud",
+            "Union Analytics"
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-case-studies" kind="link">
+        <Config>
+          <Label>View case studies</Label>
+          <Url>/customers</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="see-integrations" kind="link">
+        <Config>
+          <Label>See integrations</Label>
+          <Url>/integrations</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

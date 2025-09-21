@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/tabbed-overview"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-tabbed-overview">
+    <Title>UI Block: Tabbed overview header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-tabbed-overview" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">tabbed-overview</Prop>
+            <Prop name="eyebrow" kind="static">Product pillars</Prop>
+            <Prop name="headline" kind="static">Choose your starting point</Prop>
+            <Prop name="description" kind="static">A strategic header with tabbed entry points for different audiences—perfect for solution overviews or pricing guides.</Prop>
+            <Prop name="tabs" kind="binding" source="overviewTabs" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="request-access" />
+            <Prop name="secondaryCta" kind="action" actionId="compare-plans" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="overviewTabs" kind="static">
+        <Json><![CDATA[
+          [
+            { "label": "Lifecycle automation", "description": "Blueprint journeys, routing, and scoring" },
+            { "label": "Revenue intelligence", "description": "Forecast-ready dashboards and alerts" },
+            { "label": "Partner velocity", "description": "Co-selling workspaces and deal rooms" }
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="request-access" kind="link">
+        <Config>
+          <Label>Request access</Label>
+          <Url>/request-access</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="compare-plans" kind="link">
+        <Config>
+          <Label>Compare plans</Label>
+          <Url>/pricing</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

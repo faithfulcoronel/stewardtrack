@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/split-spotlight"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-split-spotlight">
+    <Title>UI Block: Split spotlight header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-split-spotlight" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">split-spotlight</Prop>
+            <Prop name="eyebrow" kind="static">Workflow spotlight</Prop>
+            <Prop name="headline" kind="static">Personalize onboarding at scale</Prop>
+            <Prop name="description" kind="static">Pair a focused narrative with supporting highlights and a contextual image to preview a product workflow or program.</Prop>
+            <Prop name="highlights" kind="binding" source="spotlightHighlights" path="$" />
+            <Prop name="image" kind="binding" source="spotlightImage" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="launch-workflows" />
+            <Prop name="secondaryCta" kind="action" actionId="see-library" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="spotlightHighlights" kind="static">
+        <Json><![CDATA[
+          [
+            "Segment audiences by lifecycle triggers and intent",
+            "Feed product usage into nurture journeys automatically",
+            "Unlock partner accelerators with curated templates"
+          ]
+        ]]></Json>
+      </DataSource>
+      <DataSource id="spotlightImage" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
+            "alt": "Team collaboration interface preview"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-workflows" kind="link">
+        <Config>
+          <Label>Launch workflows</Label>
+          <Url>/workflows/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="see-library" kind="link">
+        <Config>
+          <Label>See template library</Label>
+          <Url>/workflows/library</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

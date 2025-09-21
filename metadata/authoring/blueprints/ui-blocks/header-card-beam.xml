@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="header/card-beam"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-header-card-beam">
+    <Title>UI Block: Card beam header</Title>
+    <Regions>
+      <Region id="header">
+        <Component id="header-card-beam" type="HeaderSection">
+          <Props>
+            <Prop name="variant" kind="static">card-beam</Prop>
+            <Prop name="eyebrow" kind="static">Lifecycle orchestration</Prop>
+            <Prop name="headline" kind="static">Guide every customer journey</Prop>
+            <Prop name="description" kind="static">Deliver a dramatic headline card with supporting proof points, ideal for executive updates or campaign landing pages.</Prop>
+            <Prop name="highlights" kind="binding" source="cardBeamHighlights" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="open-playbook" />
+            <Prop name="secondaryCta" kind="action" actionId="talk-to-team" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="cardBeamHighlights" kind="static">
+        <Json><![CDATA[
+          [
+            "Map triggers to every lifecycle stage in minutes",
+            "Reclaim revenue with automated renewal nudges",
+            "Roll out experiments with governed guardrails",
+            "Align GTM teams around shared, living playbooks"
+          ]
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-playbook" kind="link">
+        <Config>
+          <Label>Open the playbook</Label>
+          <Url>/playbooks/journey-ops</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="talk-to-team" kind="link">
+        <Config>
+          <Label>Talk to our team</Label>
+          <Url>/contact</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
