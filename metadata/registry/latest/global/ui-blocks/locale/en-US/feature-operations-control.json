@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::feature/operations-control::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c941ca8aa8f2b61fccb4f19ad700465b35341c229b1b51167f45e3907957c1ac",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/operations-control",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-operations-control.xml",
+  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-operations-control\\\\1.0.0\\\\1.0.0.json"
+}

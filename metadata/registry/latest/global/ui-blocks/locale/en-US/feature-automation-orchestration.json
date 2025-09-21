@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::feature/automation-orchestration::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "cce241028b1d83b9b1410d41c9ac9129b22967c00e210ab0af6576479349e0af",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "feature/automation-orchestration",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-automation-orchestration.xml",
+  "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-automation-orchestration\\\\1.0.0\\\\1.0.0.json"
+}

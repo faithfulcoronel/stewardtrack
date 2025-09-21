@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/customer-success"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-customer-success">
+    <Title>UI Block: Customer success journey feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-customer-success" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">timeline</Prop>
+            <Prop name="eyebrow" kind="static">Customer lifecycle</Prop>
+            <Prop name="title" kind="static">Map every handoff before churn happens</Prop>
+            <Prop name="description" kind="static">Give success, marketing, and product teams one shared system of record for onboarding, adoption, and expansion moments.</Prop>
+            <Prop name="steps" kind="binding" source="successMilestones" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="launch-success-playbook" />
+            <Prop name="secondaryCta" kind="action" actionId="talk-with-csm" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="successMilestones" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Activation briefing",
+                "description": "Auto-assemble stakeholder intel, goals, and integrations within 24 hours of signature.",
+                "duration": "Day 0"
+              },
+              {
+                "title": "Guided onboarding",
+                "description": "Coordinate cross-team tasks with shared timelines, due dates, and dependency alerts.",
+                "duration": "Weeks 1-3"
+              },
+              {
+                "title": "Insight reviews",
+                "description": "Blend product usage, sentiment surveys, and support themes into one recurring agenda.",
+                "duration": "Monthly"
+              },
+              {
+                "title": "Expansion forecast",
+                "description": "Project growth scenarios with health scoring, play recommendations, and champions identified.",
+                "duration": "Quarterly"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-success-playbook" kind="link">
+        <Config>
+          <Label>Launch success playbook</Label>
+          <Url>/playbooks/customer-success</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="talk-with-csm" kind="link">
+        <Config>
+          <Label>Talk with a CSM</Label>
+          <Url>/contact/customer-success</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

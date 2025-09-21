@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="feature/commerce-launch"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-feature-commerce-launch">
+    <Title>UI Block: Commerce launch feature section</Title>
+    <Regions>
+      <Region id="features">
+        <Component id="feature-commerce-launch" type="FeatureSection">
+          <Props>
+            <Prop name="variant" kind="static">steps</Prop>
+            <Prop name="eyebrow" kind="static">Digital commerce</Prop>
+            <Prop name="title" kind="static">Launch new storefronts without the guesswork</Prop>
+            <Prop name="description" kind="static">Give merchandising, engineering, and finance teams a shared playbook for orchestrating revenue-critical releases.</Prop>
+            <Prop name="steps" kind="binding" source="commerceSteps" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="launch-commerce-kit" />
+            <Prop name="secondaryCta" kind="action" actionId="connect-payments" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="commerceSteps" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Blueprint alignment",
+                "description": "Lock scope, personas, and KPIs with stakeholders across growth, product, and operations.",
+                "duration": "Week 1"
+              },
+              {
+                "title": "Catalog readiness",
+                "description": "Sync product data, pricing rules, and localized content with automated validations.",
+                "duration": "Week 2"
+              },
+              {
+                "title": "Experience QA",
+                "description": "Run device labs, payments testing, and accessibility reviews with status dashboards.",
+                "duration": "Week 3"
+              },
+              {
+                "title": "Growth orchestration",
+                "description": "Coordinate launch campaigns, promo codes, and lifecycle journeys from one calendar.",
+                "duration": "Launch week"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-commerce-kit" kind="link">
+        <Config>
+          <Label>Launch the commerce kit</Label>
+          <Url>/kits/commerce-launch</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="connect-payments" kind="link">
+        <Config>
+          <Label>Connect payments partners</Label>
+          <Url>/integrations/payments</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
