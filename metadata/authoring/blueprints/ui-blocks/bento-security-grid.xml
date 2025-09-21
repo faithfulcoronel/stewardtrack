@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/security-grid"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-security-grid">
+    <Title>UI Block: Security Grid bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-security-grid" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">security-grid</Prop>
+            <Prop name="eyebrow" kind="static">Trust center</Prop>
+            <Prop name="headline" kind="static">Operationalize compliance, threat response, and customer trust</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Highlight controls, certifications, and live security health indicators for customers and auditors.</Prop>
+            <Prop name="items" kind="binding" source="securityGridItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-trust-portal" />
+            <Prop name="secondaryCta" kind="action" actionId="download-security-whitepaper" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="securityGridItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Security baseline dashboard",
+                "description": "Monitor posture across infrastructure, application, and people vectors.",
+                "list": [
+                  "Real-time view of patching cadence and drift.",
+                  "IAM and SSO compliance with conditional access policies.",
+                  "Vendor risk reviews and renewal cycles in one lane."
+                ]
+              },
+              {
+                "badge": "Compliance",
+                "title": "Certifications and attestations",
+                "description": "SOC2 Type II, ISO 27001, GDPR, and HIPAA controls mapped to the evidence library.",
+                "list": [
+                  "Request auditor access without waiting on email threads.",
+                  "Live roadmap of in-progress certifications."
+                ]
+              },
+              {
+                "badge": "Encryption",
+                "title": "Encryption policies",
+                "description": "Bring-your-own-key, hardware backed secrets, and client-side encryption at a glance.",
+                "list": [
+                  "AES-256 at rest with automatic key rotation.",
+                  "Field-level controls for regulated industries."
+                ]
+              },
+              {
+                "badge": "Audits",
+                "title": "Audit center",
+                "description": "Log retention, change management, and approvals tracked without spreadsheets.",
+                "list": [
+                  "Continuous compliance reports exportable in CSV or JSON.",
+                  "Third-party penetration test summaries with remediation status."
+                ]
+              },
+              {
+                "badge": "Incidents",
+                "title": "Incident readiness",
+                "description": "Simulation playbooks, communication templates, and RACI matrices ready for the next drill.",
+                "list": [
+                  "Mean time to detect: 4.7 minutes (p95).",
+                  "On-call rotations synced with PagerDuty and Opsgenie."
+                ]
+              },
+              {
+                "badge": "Trust",
+                "title": "Customer assurance",
+                "description": "Share the security story in plain language with proof artifacts attached.",
+                "list": [
+                  "Personalized trust packages for enterprise prospects.",
+                  "Embed security badges directly into your app footer."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-trust-portal" kind="link">
+        <Config>
+          <Label>View trust portal</Label>
+          <Url>/trust-center</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-security-whitepaper" kind="link">
+        <Config>
+          <Label>Download security whitepaper</Label>
+          <Url>/trust/security-whitepaper.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

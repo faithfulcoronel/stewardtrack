@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ff2e8bb061c4bd066c9f99673ffcf6c17147b7b3498ac4281134bd99f1c54e2c",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/event-panels",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-event-panels",
+    "title": "UI Block: Event Panels bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-event-panels",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "event-panels"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Signature events"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Design your hybrid conference experience like a broadcast studio"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Spotlight headliners, curated sessions, lounges, and digital moments in a modular event grid."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "eventPanelsItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "reserve-pass"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "sponsor-kit"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "eventPanelsItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Keynote broadcast center",
+                "description": "Two stages, simultaneous translation, and broadcast-grade production in one glance.",
+                "list": [
+                  "Opening keynote with surprise customer reveal.",
+                  "Product roadmap premiere and live Q&A.",
+                  "Diversity in tech fireside, streamed globally."
+                ]
+              },
+              {
+                "badge": "Workshops",
+                "title": "Hands-on lab schedule",
+                "description": "Reserve seats for deep dives, certifications, and AI labs.",
+                "list": [
+                  "Product build-alongs with PMs and designers.",
+                  "Partner-led solution clinics with live sandboxes."
+                ]
+              },
+              {
+                "badge": "Lounges",
+                "title": "Immersive lounges",
+                "description": "Curated networking for operators, founders, and developers.",
+                "list": [
+                  "Operator lounge hosted by CXOs.",
+                  "Builders bar with code pairing sessions."
+                ]
+              },
+              {
+                "badge": "Stages",
+                "title": "Breakout stages",
+                "description": "Thematic tracks highlight AI, product craft, and customer stories.",
+                "list": [
+                  "AI adoption field guide.",
+                  "Scaling product ops playbooks.",
+                  "Customer storytelling lab."
+                ]
+              },
+              {
+                "badge": "Streams",
+                "title": "Digital streaming",
+                "description": "Remote attendees get curated mixes of live, on-demand, and backstage content.",
+                "list": [
+                  "Live chat with session hosts.",
+                  "Instant replay library for global timezones."
+                ]
+              },
+              {
+                "badge": "Network",
+                "title": "Connection concierge",
+                "description": "Automated matching for founders, customers, and investors.",
+                "list": [
+                  "AI matchmaking based on goals and industries.",
+                  "Pop-up meetups powered by attendee signals."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "reserve-pass",
+        "kind": "link",
+        "config": {
+          "Label": "Reserve your pass",
+          "Url": "/events/flow23/register",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "sponsor-kit",
+        "kind": "link",
+        "config": {
+          "Label": "Download sponsor kit",
+          "Url": "/events/flow23/sponsor-kit.pdf",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-event-panels.xml"
+}

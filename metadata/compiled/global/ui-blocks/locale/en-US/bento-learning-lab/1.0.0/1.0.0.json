@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3b38530f0a36200118a6675a074a2211cc7962fe6cb845a50a8a0f5bede03e99",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/learning-lab",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-learning-lab",
+    "title": "UI Block: Learning Lab bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-learning-lab",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "learning-lab"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Enablement hub"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Curate live, async, and cohort learning in one delightful lab"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Educators, enablement leads, and mentors curate personalised skill journeys with reusable blocks."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "learningLabItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-learning-plan"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "browse-course-catalog"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "learningLabItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Learning catalog",
+                "description": "Discover live cohorts, on-demand videos, and guided certifications.",
+                "list": [
+                  "Search by role, skill, and product area.",
+                  "Prerequisites and time commitment at a glance.",
+                  "Automated reminders keep learners on track."
+                ]
+              },
+              {
+                "badge": "Cohorts",
+                "title": "Cohort journeys",
+                "description": "Facilitated cohorts with milestone-based outcomes and peer accountability.",
+                "list": [
+                  "Capstone projects reviewed by instructors.",
+                  "Breakout rooms powered by timezone-friendly scheduling."
+                ]
+              },
+              {
+                "badge": "Mentors",
+                "title": "Mentor marketplace",
+                "description": "Match learners with certified mentors for office hours and coaching.",
+                "list": [
+                  "Mentor bios with specialties and availability.",
+                  "Session recordings saved to learner notebooks."
+                ]
+              },
+              {
+                "badge": "Projects",
+                "title": "Project library",
+                "description": "Hands-on briefs with scoring rubrics and solution walkthroughs.",
+                "list": [
+                  "Clone templates into your workspace.",
+                  "Publish showcases to share with hiring managers."
+                ]
+              },
+              {
+                "badge": "Library",
+                "title": "Resource library",
+                "description": "Articles, podcasts, and community threads curated around each skill.",
+                "list": [
+                  "Save favourites and build personal reading lists.",
+                  "Auto-recommend next steps based on skill gaps."
+                ]
+              },
+              {
+                "badge": "Badges",
+                "title": "Certification badges",
+                "description": "Celebrate mastery with shareable badges, transcripts, and endorsements.",
+                "list": [
+                  "Issue verifiable credentials with blockchain proofs.",
+                  "Sync achievements to Slack and LinkedIn automatically."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-learning-plan",
+        "kind": "link",
+        "config": {
+          "Label": "Start a learning plan",
+          "Url": "/learning/plans/new",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "browse-course-catalog",
+        "kind": "link",
+        "config": {
+          "Label": "Browse course catalog",
+          "Url": "/learning/catalog",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-learning-lab.xml"
+}

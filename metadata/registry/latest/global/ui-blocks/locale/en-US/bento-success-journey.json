@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/success-journey::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3617046e553814268cd62084d95d40c759ae8d04567603bb57a30accb7d77dfc",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/success-journey",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-success-journey.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-success-journey/1.0.0/1.0.0.json"
+}

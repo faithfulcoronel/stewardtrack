@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/sustainability-loop"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-sustainability-loop">
+    <Title>UI Block: Sustainability Loop bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-sustainability-loop" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">sustainability-loop</Prop>
+            <Prop name="eyebrow" kind="static">Impact office</Prop>
+            <Prop name="headline" kind="static">Turn climate commitments into transparent daily practice</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Track carbon, suppliers, and storytelling in a single sustainability loop grid.</Prop>
+            <Prop name="items" kind="binding" source="sustainabilityLoopItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="request-impact-review" />
+            <Prop name="secondaryCta" kind="action" actionId="download-impact-report" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="sustainabilityLoopItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Footprint dashboard",
+                "description": "Measure scope 1-3 emissions, renewable usage, and water stewardship in one view.",
+                "metrics": [
+                  { "value": "-32%", "label": "Carbon intensity", "change": "vs. 2022", "positive": true },
+                  { "value": "68%", "label": "Renewable energy mix", "change": "+21 pts", "positive": true },
+                  { "value": "92", "label": "Supplier ESG score" }
+                ]
+              },
+              {
+                "badge": "Suppliers",
+                "title": "Supplier engagement",
+                "description": "Tier suppliers by ESG rating and improvement plans.",
+                "list": [
+                  "Onboard suppliers to code of conduct workflows.",
+                  "Track corrective actions and follow-up cadence."
+                ]
+              },
+              {
+                "badge": "Initiatives",
+                "title": "Impact initiatives",
+                "description": "Highlight regenerative agriculture, circular packaging, and community grants.",
+                "list": [
+                  "Each initiative linked to SDG goals.",
+                  "Budget utilisation visible to finance partners."
+                ]
+              },
+              {
+                "badge": "Reporting",
+                "title": "Reporting studio",
+                "description": "Automate GRI, CSRD, and SEC climate disclosures with annotated evidence.",
+                "list": [
+                  "Auditor view with traceable calculations.",
+                  "Narratives version-controlled for stakeholder reviews."
+                ]
+              },
+              {
+                "badge": "Offsets",
+                "title": "Offsets & removals",
+                "description": "Curate certified offset portfolios with live verification status.",
+                "list": [
+                  "Direct air capture, reforestation, and soil credits.",
+                  "Risk scoring ensures diversified coverage."
+                ]
+              },
+              {
+                "badge": "Story",
+                "title": "Impact storytelling",
+                "description": "Share progress with employees, investors, and customers.",
+                "list": [
+                  "Auto-generate quarterly impact newsletters.",
+                  "Embed interactive sustainability dashboards on your site."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="request-impact-review" kind="link">
+        <Config>
+          <Label>Request an impact review</Label>
+          <Url>/impact/review</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-impact-report" kind="link">
+        <Config>
+          <Label>Download 2024 impact report</Label>
+          <Url>/impact/report-2024.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

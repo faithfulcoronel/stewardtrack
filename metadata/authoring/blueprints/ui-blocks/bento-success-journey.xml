@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/success-journey"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-success-journey">
+    <Title>UI Block: Success Journey bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-success-journey" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">success-journey</Prop>
+            <Prop name="eyebrow" kind="static">Customer success</Prop>
+            <Prop name="headline" kind="static">Craft a success journey that scales with every segment</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Map onboarding, adoption, and expansion rituals in one actionable grid for CSMs and growth teams.</Prop>
+            <Prop name="items" kind="binding" source="successJourneyItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="schedule-journey-review" />
+            <Prop name="secondaryCta" kind="action" actionId="share-success-stories" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="successJourneyItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Success journey blueprint",
+                "description": "Every touchpoint is orchestrated with measurable leading indicators and ownership clarity.",
+                "list": [
+                  "Welcome milestone: align on business outcomes and executive sponsor.",
+                  "First value: deliver guided walkthrough with instrumentation attached.",
+                  "Momentum: schedule adoption councils with usage dashboards embedded."
+                ],
+                "footnote": "Customer health scoring updates instantly as steps complete."
+              },
+              {
+                "badge": "Onboarding",
+                "title": "Segment-aware onboarding",
+                "description": "Self-serve or white-glove flows adapt based on ARR, industry, and region.",
+                "list": [
+                  "Curated enablement tracks by persona.",
+                  "Technical validation checklists with automation."
+                ]
+              },
+              {
+                "badge": "Health",
+                "title": "Health signals",
+                "description": "Blend product usage, support sentiment, and exec engagement in one view.",
+                "list": [
+                  "Alerts for trending-down cohorts.",
+                  "Champion participation tracked with meeting intelligence."
+                ]
+              },
+              {
+                "badge": "Champions",
+                "title": "Champion activation",
+                "description": "Capture testimonials, referrals, and advocate spotlights.",
+                "list": [
+                  "Advocacy ladder to show next best ask.",
+                  "Auto-trigger G2 and Gartner review requests."
+                ]
+              },
+              {
+                "badge": "Playbooks",
+                "title": "Expansion playbooks",
+                "description": "Detect expansion readiness and tee up success + sales collaboration.",
+                "list": [
+                  "Usage tipping points matched to upgrade offers.",
+                  "Sequence cross-sell cadences when health is green."
+                ]
+              },
+              {
+                "badge": "Community",
+                "title": "Community moments",
+                "description": "Invite customers into communities, advisory boards, and office hours.",
+                "list": [
+                  "Segmented forums with product area owners.",
+                  "Office hours schedule auto-personalized to timezone."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="schedule-journey-review" kind="link">
+        <Config>
+          <Label>Schedule a journey review</Label>
+          <Url>/success/journey-review</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-success-stories" kind="link">
+        <Config>
+          <Label>Share success stories</Label>
+          <Url>/success/stories</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

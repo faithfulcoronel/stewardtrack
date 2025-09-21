@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/ai-nebula"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-ai-nebula">
+    <Title>UI Block: AI Nebula bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-ai-nebula" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">ai-nebula</Prop>
+            <Prop name="eyebrow" kind="static">Intelligence platform</Prop>
+            <Prop name="headline" kind="static">Launch an AI operations hub with trusted guardrails</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Coordinate copilots, orchestrations, evaluations, and governance inside one luminous grid.</Prop>
+            <Prop name="items" kind="binding" source="aiNebulaItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="book-ai-lab" />
+            <Prop name="secondaryCta" kind="action" actionId="explore-ai-gallery" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="aiNebulaItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Orchestrate every AI workflow",
+                "description": "Govern prompts, context stores, and output routing with the controls product teams expect.",
+                "metrics": [
+                  { "value": "7.4M", "label": "Calls orchestrated / day", "change": "+41% MoM", "positive": true },
+                  { "value": "98%", "label": "Latency SLA hit", "change": "+6 pts" },
+                  { "value": "36", "label": "Regions deployed", "change": "Edge + on-prem" }
+                ]
+              },
+              {
+                "badge": "Copilots",
+                "title": "Launch domain copilots",
+                "description": "Compose modular skills, guardrails, and escalation paths.",
+                "list": [
+                  "Fine-tune prompts with evaluation scorecards inline.",
+                  "Hand-off to humans with full conversation history."
+                ]
+              },
+              {
+                "badge": "Studio",
+                "title": "Prompt studio",
+                "description": "Version prompts, inject structured context, and A/B test output quality.",
+                "list": [
+                  "Prompt change requests route to reviewers.",
+                  "Diff view highlights semantic shifts."
+                ]
+              },
+              {
+                "badge": "Signals",
+                "title": "Observability signals",
+                "description": "Drift detection, toxicity scoring, and cost dashboards keep teams accountable.",
+                "list": [
+                  "Automated rollback to safe prompts if guardrails fire.",
+                  "Cost envelopes compare vendors side-by-side."
+                ]
+              },
+              {
+                "badge": "Benchmarks",
+                "title": "Benchmark playground",
+                "description": "Evaluate new models with curated datasets from product, support, and docs.",
+                "list": [
+                  "Multi-metric scoring (accuracy, tone, hallucination).",
+                  "Approval workflows before production promotion."
+                ]
+              },
+              {
+                "badge": "Ethics",
+                "title": "Responsible AI board",
+                "description": "Track model cards, data lineage, and legal reviews in one place.",
+                "list": [
+                  "Bias audits scheduled quarterly per region.",
+                  "Consent expirations surface ahead of renewals."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-ai-lab" kind="link">
+        <Config>
+          <Label>Book an AI adoption lab</Label>
+          <Url>/ai/nebula-lab</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="explore-ai-gallery" kind="link">
+        <Config>
+          <Label>Explore AI gallery</Label>
+          <Url>/ai/gallery</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

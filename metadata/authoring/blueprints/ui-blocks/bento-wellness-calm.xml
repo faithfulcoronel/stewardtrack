@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/wellness-calm"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-wellness-calm">
+    <Title>UI Block: Wellness Calm bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-wellness-calm" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">wellness-calm</Prop>
+            <Prop name="eyebrow" kind="static">Employee wellbeing</Prop>
+            <Prop name="headline" kind="static">Bring restorative wellness programs into everyday work rhythms</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Highlight rituals, focus modes, and care benefits that energise globally distributed teams.</Prop>
+            <Prop name="items" kind="binding" source="wellnessCalmItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="book-wellness-consult" />
+            <Prop name="secondaryCta" kind="action" actionId="explore-benefits" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="wellnessCalmItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Programs with measurable impact",
+                "description": "Mindfulness, movement, and recovery experiences curated for every region.",
+                "metrics": [
+                  { "value": "89%", "label": "Employees engaged", "change": "+11 pts", "positive": true },
+                  { "value": "2.3 hrs", "label": "Focus time reclaimed", "change": "+34%" },
+                  { "value": "6", "label": "Global hubs", "change": "24/7 coverage" }
+                ]
+              },
+              {
+                "badge": "Rituals",
+                "title": "Daily rituals",
+                "description": "Five-minute breathing resets, gratitude circles, and stretch prompts.",
+                "list": [
+                  "Slack nudges based on work patterns.",
+                  "Accessible in 14 languages."
+                ]
+              },
+              {
+                "badge": "Focus",
+                "title": "Focus playlists",
+                "description": "Immersive soundscapes, ambient lighting presets, and calendar holds.",
+                "list": [
+                  "Pair with virtual coworking rooms.",
+                  "Flow state metrics surfaced to managers."
+                ]
+              },
+              {
+                "badge": "Breaks",
+                "title": "Micro-break library",
+                "description": "Guided mobility, breathwork, and hydration reminders built into your day.",
+                "list": [
+                  "Adaptive to location and ergonomic needs.",
+                  "Gamified streaks with team leaderboards."
+                ]
+              },
+              {
+                "badge": "Care",
+                "title": "Care pathways",
+                "description": "Confidential therapy, coaching, and financial wellness resources.",
+                "list": [
+                  "Match with culturally aligned providers.",
+                  "Claim reimbursements in less than 48 hours."
+                ]
+              },
+              {
+                "badge": "Recovery",
+                "title": "Recovery retreats",
+                "description": "Quarterly digital detox and movement retreats hosted across regions.",
+                "list": [
+                  "Hybrid experiences for remote-friendly teams.",
+                  "Wellness reports exported to HRIS insights."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-wellness-consult" kind="link">
+        <Config>
+          <Label>Book a wellness consult</Label>
+          <Url>/people/wellness/consult</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="explore-benefits" kind="link">
+        <Config>
+          <Label>Explore benefits guide</Label>
+          <Url>/people/wellness/benefits</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

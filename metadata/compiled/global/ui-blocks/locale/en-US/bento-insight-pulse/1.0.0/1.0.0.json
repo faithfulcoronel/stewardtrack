@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "9f18858904fd1f8a19eab26976bf3da368574915e4171ac4a12a2b253e8650ec",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/insight-pulse",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-insight-pulse",
+    "title": "UI Block: Insight Pulse bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-insight-pulse",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "insight-pulse"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Growth telemetry"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Surface the product signals that matter this week"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Merge adoption, retention, experimentation, and qualitative insight tiles into a single decision console."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "insightPulseItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-analytics-trial"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-report"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "insightPulseItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Signal fusion",
+                "title": "North-star metrics refreshed every six minutes",
+                "description": "Blend warehouse aggregates, session replays, and NPS verbatims. Each tile highlights the outliers demanding attention.",
+                "metrics": [
+                  {
+                    "value": "148%",
+                    "label": "Net revenue retention",
+                    "change": "+12 pts",
+                    "positive": true
+                  },
+                  {
+                    "value": "37",
+                    "label": "Experiments live",
+                    "change": "6 flagged"
+                  },
+                  {
+                    "value": "2.4M",
+                    "label": "Weekly active accounts",
+                    "change": "+7% WoW",
+                    "positive": true
+                  }
+                ],
+                "list": [
+                  "Impact tags applied automatically from looker explores.",
+                  "Confidence scoring weighs sample size and cohort drift.",
+                  "Alerts piped to the teams owning each KPI."
+                ]
+              },
+              {
+                "badge": "Experimentation",
+                "title": "Runtime experiment control",
+                "description": "Pause, ramp, or clone tests without leaving the pulse grid.",
+                "list": [
+                  "Halt failing variants with one click.",
+                  "Auto-promote winners when guardrails hold."
+                ]
+              },
+              {
+                "badge": "Retention",
+                "title": "Cohort health lens",
+                "description": "Spot where trial-to-paid conversions drop off and why.",
+                "stat": {
+                  "value": "81%",
+                  "label": "Activation in day 3",
+                  "change": "-4 pts",
+                  "positive": false
+                }
+              },
+              {
+                "badge": "Spotlight",
+                "title": "Most mentioned friction themes",
+                "description": "Topic clustering highlights the conversations spiking this week across support, forums, and surveys.",
+                "list": [
+                  "Billing exports timing out on EU accounts.",
+                  "Workflow builder lacking branch previews."
+                ]
+              },
+              {
+                "badge": "Signal map",
+                "title": "Segment-specific shifts",
+                "description": "Track enterprise, mid-market, and self-serve baselines on one heatmap.",
+                "list": [
+                  "Self-serve retention stabilised after onboarding refresh.",
+                  "Enterprise adoption dipping in APAC due to SSO delays."
+                ]
+              },
+              {
+                "badge": "Automation",
+                "title": "Playbooks triggered on anomaly",
+                "description": "Route context-rich alerts to success, product, or revenue teams the moment a trend flips.",
+                "list": [
+                  "Success receives a red account list with suggested outreach.",
+                  "Product backlog stories created with impact annotations."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-analytics-trial",
+        "kind": "link",
+        "config": {
+          "Label": "Start analytics trial",
+          "Url": "/analytics/trial",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-report",
+        "kind": "link",
+        "config": {
+          "Label": "Download executive report",
+          "Url": "/analytics/weekly-pulse.pdf",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-insight-pulse.xml"
+}

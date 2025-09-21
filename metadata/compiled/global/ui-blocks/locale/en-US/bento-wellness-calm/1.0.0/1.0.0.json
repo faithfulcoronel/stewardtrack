@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d9cb6950a2da7b79020f231a8a05124e5e5bba69c7c043f49f03815f513ed180",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/wellness-calm",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-wellness-calm",
+    "title": "UI Block: Wellness Calm bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-wellness-calm",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "wellness-calm"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Employee wellbeing"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Bring restorative wellness programs into everyday work rhythms"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Highlight rituals, focus modes, and care benefits that energise globally distributed teams."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "wellnessCalmItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "book-wellness-consult"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "explore-benefits"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "wellnessCalmItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Programs with measurable impact",
+                "description": "Mindfulness, movement, and recovery experiences curated for every region.",
+                "metrics": [
+                  {
+                    "value": "89%",
+                    "label": "Employees engaged",
+                    "change": "+11 pts",
+                    "positive": true
+                  },
+                  {
+                    "value": "2.3 hrs",
+                    "label": "Focus time reclaimed",
+                    "change": "+34%"
+                  },
+                  {
+                    "value": "6",
+                    "label": "Global hubs",
+                    "change": "24/7 coverage"
+                  }
+                ]
+              },
+              {
+                "badge": "Rituals",
+                "title": "Daily rituals",
+                "description": "Five-minute breathing resets, gratitude circles, and stretch prompts.",
+                "list": [
+                  "Slack nudges based on work patterns.",
+                  "Accessible in 14 languages."
+                ]
+              },
+              {
+                "badge": "Focus",
+                "title": "Focus playlists",
+                "description": "Immersive soundscapes, ambient lighting presets, and calendar holds.",
+                "list": [
+                  "Pair with virtual coworking rooms.",
+                  "Flow state metrics surfaced to managers."
+                ]
+              },
+              {
+                "badge": "Breaks",
+                "title": "Micro-break library",
+                "description": "Guided mobility, breathwork, and hydration reminders built into your day.",
+                "list": [
+                  "Adaptive to location and ergonomic needs.",
+                  "Gamified streaks with team leaderboards."
+                ]
+              },
+              {
+                "badge": "Care",
+                "title": "Care pathways",
+                "description": "Confidential therapy, coaching, and financial wellness resources.",
+                "list": [
+                  "Match with culturally aligned providers.",
+                  "Claim reimbursements in less than 48 hours."
+                ]
+              },
+              {
+                "badge": "Recovery",
+                "title": "Recovery retreats",
+                "description": "Quarterly digital detox and movement retreats hosted across regions.",
+                "list": [
+                  "Hybrid experiences for remote-friendly teams.",
+                  "Wellness reports exported to HRIS insights."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "book-wellness-consult",
+        "kind": "link",
+        "config": {
+          "Label": "Book a wellness consult",
+          "Url": "/people/wellness/consult",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "explore-benefits",
+        "kind": "link",
+        "config": {
+          "Label": "Explore benefits guide",
+          "Url": "/people/wellness/benefits",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-wellness-calm.xml"
+}

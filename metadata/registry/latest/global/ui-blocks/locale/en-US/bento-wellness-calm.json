@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/wellness-calm::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d9cb6950a2da7b79020f231a8a05124e5e5bba69c7c043f49f03815f513ed180",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/wellness-calm",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-wellness-calm.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-wellness-calm/1.0.0/1.0.0.json"
+}

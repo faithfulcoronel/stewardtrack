@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/security-grid::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "09d6b6e82ea5a9fa667a9be749d900f037168528db6ca0526aedbd2405bacd7c",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/security-grid",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-security-grid.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-security-grid/1.0.0/1.0.0.json"
+}

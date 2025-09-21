@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/workflow-lattice::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "491af546a6445718aefbe4167f0a2c7926e3eb946564775d346931f4bf1118ae",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/workflow-lattice",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-workflow-lattice.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-workflow-lattice/1.0.0/1.0.0.json"
+}

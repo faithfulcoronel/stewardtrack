@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "09d6b6e82ea5a9fa667a9be749d900f037168528db6ca0526aedbd2405bacd7c",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/security-grid",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-security-grid",
+    "title": "UI Block: Security Grid bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-security-grid",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "security-grid"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Trust center"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Operationalize compliance, threat response, and customer trust"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Highlight controls, certifications, and live security health indicators for customers and auditors."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "securityGridItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-trust-portal"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-security-whitepaper"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "securityGridItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Security baseline dashboard",
+                "description": "Monitor posture across infrastructure, application, and people vectors.",
+                "list": [
+                  "Real-time view of patching cadence and drift.",
+                  "IAM and SSO compliance with conditional access policies.",
+                  "Vendor risk reviews and renewal cycles in one lane."
+                ]
+              },
+              {
+                "badge": "Compliance",
+                "title": "Certifications and attestations",
+                "description": "SOC2 Type II, ISO 27001, GDPR, and HIPAA controls mapped to the evidence library.",
+                "list": [
+                  "Request auditor access without waiting on email threads.",
+                  "Live roadmap of in-progress certifications."
+                ]
+              },
+              {
+                "badge": "Encryption",
+                "title": "Encryption policies",
+                "description": "Bring-your-own-key, hardware backed secrets, and client-side encryption at a glance.",
+                "list": [
+                  "AES-256 at rest with automatic key rotation.",
+                  "Field-level controls for regulated industries."
+                ]
+              },
+              {
+                "badge": "Audits",
+                "title": "Audit center",
+                "description": "Log retention, change management, and approvals tracked without spreadsheets.",
+                "list": [
+                  "Continuous compliance reports exportable in CSV or JSON.",
+                  "Third-party penetration test summaries with remediation status."
+                ]
+              },
+              {
+                "badge": "Incidents",
+                "title": "Incident readiness",
+                "description": "Simulation playbooks, communication templates, and RACI matrices ready for the next drill.",
+                "list": [
+                  "Mean time to detect: 4.7 minutes (p95).",
+                  "On-call rotations synced with PagerDuty and Opsgenie."
+                ]
+              },
+              {
+                "badge": "Trust",
+                "title": "Customer assurance",
+                "description": "Share the security story in plain language with proof artifacts attached.",
+                "list": [
+                  "Personalized trust packages for enterprise prospects.",
+                  "Embed security badges directly into your app footer."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-trust-portal",
+        "kind": "link",
+        "config": {
+          "Label": "View trust portal",
+          "Url": "/trust-center",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-security-whitepaper",
+        "kind": "link",
+        "config": {
+          "Label": "Download security whitepaper",
+          "Url": "/trust/security-whitepaper.pdf",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-security-grid.xml"
+}

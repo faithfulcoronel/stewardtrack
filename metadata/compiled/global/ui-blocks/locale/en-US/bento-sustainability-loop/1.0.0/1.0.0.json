@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f0390dd8862d58e609d3a70b986105598dfa2268bd2533af2f153e256153e3ce",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/sustainability-loop",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-sustainability-loop",
+    "title": "UI Block: Sustainability Loop bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-sustainability-loop",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "sustainability-loop"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Impact office"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Turn climate commitments into transparent daily practice"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Track carbon, suppliers, and storytelling in a single sustainability loop grid."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "sustainabilityLoopItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "request-impact-review"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-impact-report"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "sustainabilityLoopItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Footprint dashboard",
+                "description": "Measure scope 1-3 emissions, renewable usage, and water stewardship in one view.",
+                "metrics": [
+                  {
+                    "value": "-32%",
+                    "label": "Carbon intensity",
+                    "change": "vs. 2022",
+                    "positive": true
+                  },
+                  {
+                    "value": "68%",
+                    "label": "Renewable energy mix",
+                    "change": "+21 pts",
+                    "positive": true
+                  },
+                  {
+                    "value": "92",
+                    "label": "Supplier ESG score"
+                  }
+                ]
+              },
+              {
+                "badge": "Suppliers",
+                "title": "Supplier engagement",
+                "description": "Tier suppliers by ESG rating and improvement plans.",
+                "list": [
+                  "Onboard suppliers to code of conduct workflows.",
+                  "Track corrective actions and follow-up cadence."
+                ]
+              },
+              {
+                "badge": "Initiatives",
+                "title": "Impact initiatives",
+                "description": "Highlight regenerative agriculture, circular packaging, and community grants.",
+                "list": [
+                  "Each initiative linked to SDG goals.",
+                  "Budget utilisation visible to finance partners."
+                ]
+              },
+              {
+                "badge": "Reporting",
+                "title": "Reporting studio",
+                "description": "Automate GRI, CSRD, and SEC climate disclosures with annotated evidence.",
+                "list": [
+                  "Auditor view with traceable calculations.",
+                  "Narratives version-controlled for stakeholder reviews."
+                ]
+              },
+              {
+                "badge": "Offsets",
+                "title": "Offsets & removals",
+                "description": "Curate certified offset portfolios with live verification status.",
+                "list": [
+                  "Direct air capture, reforestation, and soil credits.",
+                  "Risk scoring ensures diversified coverage."
+                ]
+              },
+              {
+                "badge": "Story",
+                "title": "Impact storytelling",
+                "description": "Share progress with employees, investors, and customers.",
+                "list": [
+                  "Auto-generate quarterly impact newsletters.",
+                  "Embed interactive sustainability dashboards on your site."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "request-impact-review",
+        "kind": "link",
+        "config": {
+          "Label": "Request an impact review",
+          "Url": "/impact/review",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-impact-report",
+        "kind": "link",
+        "config": {
+          "Label": "Download 2024 impact report",
+          "Url": "/impact/report-2024.pdf",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-sustainability-loop.xml"
+}

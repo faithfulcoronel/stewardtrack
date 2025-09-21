@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/product-orbit"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-product-orbit">
+    <Title>UI Block: Product Orbit bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-product-orbit" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">product-orbit</Prop>
+            <Prop name="eyebrow" kind="static">Product operating system</Prop>
+            <Prop name="headline" kind="static">Keep every release, insight, and feedback loop in sync</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Ship momentum features with telemetry-backed context and a shared roadmap surface your teams can trust.</Prop>
+            <Prop name="items" kind="binding" source="productOrbitItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="book-workshop" />
+            <Prop name="secondaryCta" kind="action" actionId="view-roadmap" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="productOrbitItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "eyebrow": "Release 2025.3",
+                "title": "Orchestrate product signals in one command center",
+                "description": "Blend customer research, roadmap decisions, and usage telemetry. Every tile updates in real time as betas graduate and rollouts accelerate.",
+                "highlight": "Today: AI-assisted release briefs shipped to 640 product squads",
+                "metrics": [
+                  { "value": "3.2x", "label": "Faster release cycles", "change": "+18% YoY" },
+                  { "value": "92%", "label": "PM adoption", "change": "+9 pts", "positive": true },
+                  { "value": "14", "label": "Regions live", "change": "Global coverage" }
+                ],
+                "list": [
+                  "Adaptive roadmaps react to live telemetry gates.",
+                  "Feedback routing keeps customer voices prioritized.",
+                  "Launch briefs publish to every execution channel."
+                ]
+              },
+              {
+                "badge": "Integrations",
+                "title": "Bring in-flight work from Jira, Linear, or Azure Boards",
+                "description": "Two-way sync keeps capacity and dependencies current without leaving Flowspace.",
+                "list": [
+                  "Map initiatives to Epic hierarchies in minutes.",
+                  "Auto-close loops when downstream checks pass."
+                ]
+              },
+              {
+                "badge": "Workflow",
+                "title": "Spin up playbooks for cross-functional moments",
+                "description": "Route legal, support, and enablement tasks with a ready-made bento layout.",
+                "footnote": "Playbooks inherit segment-specific SLAs and reviewers automatically."
+              },
+              {
+                "badge": "Adoption",
+                "title": "Telemetry-backed launch tiers",
+                "description": "Progressively expose features as confidence scores climb.",
+                "stat": { "value": "68%", "label": "Customers live by week 2", "change": "+23 pts", "positive": true }
+              },
+              {
+                "badge": "Automation",
+                "title": "Safety nets on autopilot",
+                "description": "Spin down experiments or roll forward hotfixes with guardrails embedded in the grid.",
+                "list": [
+                  "Rollback guardrails with release-specific triggers.",
+                  "Slack and Teams digests summarize health daily."
+                ]
+              },
+              {
+                "badge": "Roadmap",
+                "title": "Narrate what ships next",
+                "description": "Curate upcoming stories, attach mockups, and spotlight the customers waiting for them.",
+                "list": [
+                  "Customer councils and beta cohorts linked inline.",
+                  "Stakeholder readouts export with one click."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-workshop" kind="link">
+        <Config>
+          <Label>Book a rollout workshop</Label>
+          <Url>/request/product-workshop</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-roadmap" kind="link">
+        <Config>
+          <Label>View public roadmap</Label>
+          <Url>/product/roadmap</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

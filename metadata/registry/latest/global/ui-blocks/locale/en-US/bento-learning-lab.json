@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/learning-lab::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3b38530f0a36200118a6675a074a2211cc7962fe6cb845a50a8a0f5bede03e99",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/learning-lab",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-learning-lab.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-learning-lab/1.0.0/1.0.0.json"
+}

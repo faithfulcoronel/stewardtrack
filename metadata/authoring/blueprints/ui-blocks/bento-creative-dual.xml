@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/creative-dual"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-creative-dual">
+    <Title>UI Block: Creative Dual bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-creative-dual" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">creative-dual</Prop>
+            <Prop name="eyebrow" kind="static">Brand studio</Prop>
+            <Prop name="headline" kind="static">Coordinate storytelling, visuals, and GTM rhythm in one grid</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Give creative, product marketing, and demand teams a shared canvas that keeps every campaign aligned.</Prop>
+            <Prop name="items" kind="binding" source="creativeDualItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="request-creative-sprint" />
+            <Prop name="secondaryCta" kind="action" actionId="download-brand-kit" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="creativeDualItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "icon": "🎨",
+                "title": "Narratives that translate across every medium",
+                "description": "Spin campaign pillars into landing pages, ads, and sales plays with creative guardrails baked in.",
+                "list": [
+                  "Strategic messaging pillars and proof points ready to drag into any deck.",
+                  "Audience moodboards curated from the latest research.",
+                  "Asset usage rights and expiry reminders auto-tracked."
+                ]
+              },
+              {
+                "badge": "Campaigns",
+                "title": "Campaign cadence with measurable outcomes",
+                "description": "Budget pacing, channel mix, and pipeline influence tracked inside the grid.",
+                "metrics": [
+                  { "value": "$2.8M", "label": "Pipeline influenced", "change": "+32% QoQ", "positive": true },
+                  { "value": "48 hrs", "label": "Creative SLA", "change": "Met 94%" }
+                ]
+              },
+              {
+                "badge": "Gallery",
+                "title": "Living gallery of approved assets",
+                "description": "Snapshots of the latest hero imagery, product UI renders, and customer stories.",
+                "list": [
+                  "Auto-syncs from Figma, Notion, and Drive collections.",
+                  "Labelled by campaign, region, and lifecycle stage."
+                ]
+              },
+              {
+                "badge": "Palette",
+                "title": "Palette and typography guardrails",
+                "description": "Design tokens and usage guidance keep every surface on-brand.",
+                "list": [
+                  "Theme switches for light, dark, and accessibility modes.",
+                  "Component usage examples for product and marketing teams."
+                ]
+              },
+              {
+                "badge": "Voice",
+                "title": "Tone of voice checkpoints",
+                "description": "AI-assisted copy reviews to ensure voice consistency across assets.",
+                "list": [
+                  "Pulls in real examples from top-performing campaigns.",
+                  "Suggests localization tweaks before publishing."
+                ]
+              },
+              {
+                "badge": "Feedback",
+                "title": "Feedback loops that close",
+                "description": "Capture stakeholder approvals, annotate frames, and archive decisions in context.",
+                "list": [
+                  "Heatmaps show where reviewers focus their comments.",
+                  "Approvals sync back to Jira or Asana automatically."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="request-creative-sprint" kind="link">
+        <Config>
+          <Label>Request a creative sprint</Label>
+          <Url>/brand/creative-sprint</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-brand-kit" kind="link">
+        <Config>
+          <Label>Download brand kit</Label>
+          <Url>/brand/asset-kit.zip</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

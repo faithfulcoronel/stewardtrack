@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/workflow-lattice"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-workflow-lattice">
+    <Title>UI Block: Workflow Lattice bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-workflow-lattice" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">workflow-lattice</Prop>
+            <Prop name="eyebrow" kind="static">Operations platform</Prop>
+            <Prop name="headline" kind="static">Design resilient processes with a living operations lattice</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Document, automate, and continuously improve multi-team workflows with checklists, retros, and guardrails.</Prop>
+            <Prop name="items" kind="binding" source="workflowLatticeItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="launch-playbook" />
+            <Prop name="secondaryCta" kind="action" actionId="explore-template-library" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="workflowLatticeItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Blueprint every operational hand-off",
+                "description": "Track SLAs, owners, and automation coverage in one lattice view. Teams adopt best practices instead of re-learning them.",
+                "list": [
+                  "Capture business context and go-live criteria in step one.",
+                  "Assign accountable reviewers with workload awareness.",
+                  "Trigger nudges automatically if waiting states linger."
+                ],
+                "footnote": "Playbooks stay versioned so you can demonstrate compliance on demand."
+              },
+              {
+                "badge": "Guardrails",
+                "title": "Policy guardrails with instant visibility",
+                "description": "Policy changes propagate to every dependent workflow, preventing drift.",
+                "list": [
+                  "SOC2 and ISO mappings documented inline.",
+                  "Approval chains tailored per geography."
+                ]
+              },
+              {
+                "badge": "Reviews",
+                "title": "Async reviews without the wait",
+                "description": "Assign weighted sign-off windows and log every decision in the audit log.",
+                "list": [
+                  "Pre-loaded review templates per function.",
+                  "Slack-first reviews with fallback email routing."
+                ]
+              },
+              {
+                "badge": "Automations",
+                "title": "Let ops bots handle the busywork",
+                "description": "Connect to billing, HRIS, and CRM systems to execute tasks when status changes.",
+                "list": [
+                  "Provision seats when hires clear background checks.",
+                  "Sync closed deals to onboarding boards within seconds."
+                ]
+              },
+              {
+                "badge": "Handoffs",
+                "title": "Zero-lag handoffs between teams",
+                "description": "Share playbooks externally without exposing internal systems.",
+                "list": [
+                  "Guest portals with granular access.",
+                  "Time-zone aware reminders for global coverage."
+                ]
+              },
+              {
+                "badge": "Retros",
+                "title": "Retrospectives feed continuous improvement",
+                "description": "Collect insights at each milestone and turn them into immediate backlog actions.",
+                "list": [
+                  "Retro templates for incident, launch, or campaign."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-playbook" kind="link">
+        <Config>
+          <Label>Launch a new playbook</Label>
+          <Url>/operations/playbooks/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="explore-template-library" kind="link">
+        <Config>
+          <Label>Explore template library</Label>
+          <Url>/operations/templates</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

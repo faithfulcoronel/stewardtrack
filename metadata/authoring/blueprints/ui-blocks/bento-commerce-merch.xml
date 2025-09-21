@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/commerce-merch"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-commerce-merch">
+    <Title>UI Block: Commerce Merch bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-commerce-merch" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">commerce-merch</Prop>
+            <Prop name="eyebrow" kind="static">Commerce engine</Prop>
+            <Prop name="headline" kind="static">Merchandise like a modern retail media network</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Spotlight flagship drops, conversion tactics, and fulfillment health with a single commerce grid.</Prop>
+            <Prop name="items" kind="binding" source="commerceMerchItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="build-merch-plan" />
+            <Prop name="secondaryCta" kind="action" actionId="view-digital-showroom" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="commerceMerchItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Flagship drop",
+                "title": "The Atlas Collection",
+                "description": "Modular apparel line built from recycled fibres with NFC-enabled stories.",
+                "metrics": [
+                  { "value": "$8.7M", "label": "Launch revenue", "change": "+54% YoY", "positive": true },
+                  { "value": "34%", "label": "Repeat purchase uplift", "change": "+9 pts", "positive": true },
+                  { "value": "4.6★", "label": "Average review score" }
+                ]
+              },
+              {
+                "badge": "Conversions",
+                "title": "Conversion playbook",
+                "description": "Dynamic bundles, timed drops, and loyalty pricing across channels.",
+                "list": [
+                  "Audience-specific bundles update daily.",
+                  "SMS drops tested alongside email and push."
+                ]
+              },
+              {
+                "badge": "Merchandising",
+                "title": "Visual merchandising",
+                "description": "Guided layouts for hero banners, PDP storytelling, and UGC walls.",
+                "list": [
+                  "3D viewers and try-on overlays.",
+                  "Localized content for 12 markets."
+                ]
+              },
+              {
+                "badge": "Loyalty",
+                "title": "Loyalty moments",
+                "description": "VIP drops, early access, and experiential rewards surfaced in one tile.",
+                "list": [
+                  "Tier movement alerts with next best action.",
+                  "Redeemable experiences linked to community hubs."
+                ]
+              },
+              {
+                "badge": "Fulfillment",
+                "title": "Fulfillment health",
+                "description": "Warehouse capacity, carrier SLAs, and sustainability metrics monitored daily.",
+                "list": [
+                  "Backorder automation triggers restock workflows.",
+                  "Carbon offsets paired with shipping options."
+                ]
+              },
+              {
+                "badge": "Insights",
+                "title": "Merch insights",
+                "description": "Storefront A/B tests, product affinities, and merch team shoutouts.",
+                "list": [
+                  "Heatmaps from onsite behaviour.",
+                  "Merchandising weekly win board."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="build-merch-plan" kind="link">
+        <Config>
+          <Label>Build a merch plan</Label>
+          <Url>/commerce/merch-planner</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-digital-showroom" kind="link">
+        <Config>
+          <Label>View digital showroom</Label>
+          <Url>/commerce/showroom</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

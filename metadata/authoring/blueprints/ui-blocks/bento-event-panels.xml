@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/event-panels"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-event-panels">
+    <Title>UI Block: Event Panels bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-event-panels" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">event-panels</Prop>
+            <Prop name="eyebrow" kind="static">Signature events</Prop>
+            <Prop name="headline" kind="static">Design your hybrid conference experience like a broadcast studio</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Spotlight headliners, curated sessions, lounges, and digital moments in a modular event grid.</Prop>
+            <Prop name="items" kind="binding" source="eventPanelsItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="reserve-pass" />
+            <Prop name="secondaryCta" kind="action" actionId="sponsor-kit" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="eventPanelsItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Keynote broadcast center",
+                "description": "Two stages, simultaneous translation, and broadcast-grade production in one glance.",
+                "list": [
+                  "Opening keynote with surprise customer reveal.",
+                  "Product roadmap premiere and live Q&A.",
+                  "Diversity in tech fireside, streamed globally."
+                ]
+              },
+              {
+                "badge": "Workshops",
+                "title": "Hands-on lab schedule",
+                "description": "Reserve seats for deep dives, certifications, and AI labs.",
+                "list": [
+                  "Product build-alongs with PMs and designers.",
+                  "Partner-led solution clinics with live sandboxes."
+                ]
+              },
+              {
+                "badge": "Lounges",
+                "title": "Immersive lounges",
+                "description": "Curated networking for operators, founders, and developers.",
+                "list": [
+                  "Operator lounge hosted by CXOs.",
+                  "Builders bar with code pairing sessions."
+                ]
+              },
+              {
+                "badge": "Stages",
+                "title": "Breakout stages",
+                "description": "Thematic tracks highlight AI, product craft, and customer stories.",
+                "list": [
+                  "AI adoption field guide.",
+                  "Scaling product ops playbooks.",
+                  "Customer storytelling lab."
+                ]
+              },
+              {
+                "badge": "Streams",
+                "title": "Digital streaming",
+                "description": "Remote attendees get curated mixes of live, on-demand, and backstage content.",
+                "list": [
+                  "Live chat with session hosts.",
+                  "Instant replay library for global timezones."
+                ]
+              },
+              {
+                "badge": "Network",
+                "title": "Connection concierge",
+                "description": "Automated matching for founders, customers, and investors.",
+                "list": [
+                  "AI matchmaking based on goals and industries.",
+                  "Pop-up meetups powered by attendee signals."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="reserve-pass" kind="link">
+        <Config>
+          <Label>Reserve your pass</Label>
+          <Url>/events/flow23/register</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="sponsor-kit" kind="link">
+        <Config>
+          <Label>Download sponsor kit</Label>
+          <Url>/events/flow23/sponsor-kit.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

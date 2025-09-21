@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/learning-lab"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-learning-lab">
+    <Title>UI Block: Learning Lab bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-learning-lab" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">learning-lab</Prop>
+            <Prop name="eyebrow" kind="static">Enablement hub</Prop>
+            <Prop name="headline" kind="static">Curate live, async, and cohort learning in one delightful lab</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Educators, enablement leads, and mentors curate personalised skill journeys with reusable blocks.</Prop>
+            <Prop name="items" kind="binding" source="learningLabItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="start-learning-plan" />
+            <Prop name="secondaryCta" kind="action" actionId="browse-course-catalog" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="learningLabItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Learning catalog",
+                "description": "Discover live cohorts, on-demand videos, and guided certifications.",
+                "list": [
+                  "Search by role, skill, and product area.",
+                  "Prerequisites and time commitment at a glance.",
+                  "Automated reminders keep learners on track."
+                ]
+              },
+              {
+                "badge": "Cohorts",
+                "title": "Cohort journeys",
+                "description": "Facilitated cohorts with milestone-based outcomes and peer accountability.",
+                "list": [
+                  "Capstone projects reviewed by instructors.",
+                  "Breakout rooms powered by timezone-friendly scheduling."
+                ]
+              },
+              {
+                "badge": "Mentors",
+                "title": "Mentor marketplace",
+                "description": "Match learners with certified mentors for office hours and coaching.",
+                "list": [
+                  "Mentor bios with specialties and availability.",
+                  "Session recordings saved to learner notebooks."
+                ]
+              },
+              {
+                "badge": "Projects",
+                "title": "Project library",
+                "description": "Hands-on briefs with scoring rubrics and solution walkthroughs.",
+                "list": [
+                  "Clone templates into your workspace.",
+                  "Publish showcases to share with hiring managers."
+                ]
+              },
+              {
+                "badge": "Library",
+                "title": "Resource library",
+                "description": "Articles, podcasts, and community threads curated around each skill.",
+                "list": [
+                  "Save favourites and build personal reading lists.",
+                  "Auto-recommend next steps based on skill gaps."
+                ]
+              },
+              {
+                "badge": "Badges",
+                "title": "Certification badges",
+                "description": "Celebrate mastery with shareable badges, transcripts, and endorsements.",
+                "list": [
+                  "Issue verifiable credentials with blockchain proofs.",
+                  "Sync achievements to Slack and LinkedIn automatically."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-learning-plan" kind="link">
+        <Config>
+          <Label>Start a learning plan</Label>
+          <Url>/learning/plans/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="browse-course-catalog" kind="link">
+        <Config>
+          <Label>Browse course catalog</Label>
+          <Url>/learning/catalog</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

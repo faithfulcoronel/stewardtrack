@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/product-orbit::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "51708df9c64362ec97c71af6a6d3240477fe1d20c3c847fb1cf82bdf8105e2b2",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/product-orbit",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-product-orbit.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-product-orbit/1.0.0/1.0.0.json"
+}

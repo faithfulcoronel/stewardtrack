@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "cb5e063b3324f13f6d8063d4244b31a0645c8e49e58e708f264371069aa853bc",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/ai-nebula",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-ai-nebula",
+    "title": "UI Block: AI Nebula bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-ai-nebula",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "ai-nebula"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Intelligence platform"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Launch an AI operations hub with trusted guardrails"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Coordinate copilots, orchestrations, evaluations, and governance inside one luminous grid."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "aiNebulaItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "book-ai-lab"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "explore-ai-gallery"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "aiNebulaItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Orchestrate every AI workflow",
+                "description": "Govern prompts, context stores, and output routing with the controls product teams expect.",
+                "metrics": [
+                  {
+                    "value": "7.4M",
+                    "label": "Calls orchestrated / day",
+                    "change": "+41% MoM",
+                    "positive": true
+                  },
+                  {
+                    "value": "98%",
+                    "label": "Latency SLA hit",
+                    "change": "+6 pts"
+                  },
+                  {
+                    "value": "36",
+                    "label": "Regions deployed",
+                    "change": "Edge + on-prem"
+                  }
+                ]
+              },
+              {
+                "badge": "Copilots",
+                "title": "Launch domain copilots",
+                "description": "Compose modular skills, guardrails, and escalation paths.",
+                "list": [
+                  "Fine-tune prompts with evaluation scorecards inline.",
+                  "Hand-off to humans with full conversation history."
+                ]
+              },
+              {
+                "badge": "Studio",
+                "title": "Prompt studio",
+                "description": "Version prompts, inject structured context, and A/B test output quality.",
+                "list": [
+                  "Prompt change requests route to reviewers.",
+                  "Diff view highlights semantic shifts."
+                ]
+              },
+              {
+                "badge": "Signals",
+                "title": "Observability signals",
+                "description": "Drift detection, toxicity scoring, and cost dashboards keep teams accountable.",
+                "list": [
+                  "Automated rollback to safe prompts if guardrails fire.",
+                  "Cost envelopes compare vendors side-by-side."
+                ]
+              },
+              {
+                "badge": "Benchmarks",
+                "title": "Benchmark playground",
+                "description": "Evaluate new models with curated datasets from product, support, and docs.",
+                "list": [
+                  "Multi-metric scoring (accuracy, tone, hallucination).",
+                  "Approval workflows before production promotion."
+                ]
+              },
+              {
+                "badge": "Ethics",
+                "title": "Responsible AI board",
+                "description": "Track model cards, data lineage, and legal reviews in one place.",
+                "list": [
+                  "Bias audits scheduled quarterly per region.",
+                  "Consent expirations surface ahead of renewals."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "book-ai-lab",
+        "kind": "link",
+        "config": {
+          "Label": "Book an AI adoption lab",
+          "Url": "/ai/nebula-lab",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "explore-ai-gallery",
+        "kind": "link",
+        "config": {
+          "Label": "Explore AI gallery",
+          "Url": "/ai/gallery",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ai-nebula.xml"
+}

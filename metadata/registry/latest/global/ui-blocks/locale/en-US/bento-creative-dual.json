@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/creative-dual::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b1e9d10717762c01befa5584ef0ecebb639879c0764ad490380fb9e0b0f13597",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/creative-dual",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-creative-dual.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-creative-dual/1.0.0/1.0.0.json"
+}

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/insight-pulse"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-insight-pulse">
+    <Title>UI Block: Insight Pulse bento</Title>
+    <Regions>
+      <Region id="feature-grid">
+        <Component id="bento-insight-pulse" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">insight-pulse</Prop>
+            <Prop name="eyebrow" kind="static">Growth telemetry</Prop>
+            <Prop name="headline" kind="static">Surface the product signals that matter this week</Prop>
+            <Prop
+              name="description"
+              kind="static"
+            >Merge adoption, retention, experimentation, and qualitative insight tiles into a single decision console.</Prop>
+            <Prop name="items" kind="binding" source="insightPulseItems" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="start-analytics-trial" />
+            <Prop name="secondaryCta" kind="action" actionId="download-report" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="insightPulseItems" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Signal fusion",
+                "title": "North-star metrics refreshed every six minutes",
+                "description": "Blend warehouse aggregates, session replays, and NPS verbatims. Each tile highlights the outliers demanding attention.",
+                "metrics": [
+                  { "value": "148%", "label": "Net revenue retention", "change": "+12 pts", "positive": true },
+                  { "value": "37", "label": "Experiments live", "change": "6 flagged" },
+                  { "value": "2.4M", "label": "Weekly active accounts", "change": "+7% WoW", "positive": true }
+                ],
+                "list": [
+                  "Impact tags applied automatically from looker explores.",
+                  "Confidence scoring weighs sample size and cohort drift.",
+                  "Alerts piped to the teams owning each KPI."
+                ]
+              },
+              {
+                "badge": "Experimentation",
+                "title": "Runtime experiment control",
+                "description": "Pause, ramp, or clone tests without leaving the pulse grid.",
+                "list": [
+                  "Halt failing variants with one click.",
+                  "Auto-promote winners when guardrails hold."
+                ]
+              },
+              {
+                "badge": "Retention",
+                "title": "Cohort health lens",
+                "description": "Spot where trial-to-paid conversions drop off and why.",
+                "stat": { "value": "81%", "label": "Activation in day 3", "change": "-4 pts", "positive": false }
+              },
+              {
+                "badge": "Spotlight",
+                "title": "Most mentioned friction themes",
+                "description": "Topic clustering highlights the conversations spiking this week across support, forums, and surveys.",
+                "list": [
+                  "Billing exports timing out on EU accounts.",
+                  "Workflow builder lacking branch previews."
+                ]
+              },
+              {
+                "badge": "Signal map",
+                "title": "Segment-specific shifts",
+                "description": "Track enterprise, mid-market, and self-serve baselines on one heatmap.",
+                "list": [
+                  "Self-serve retention stabilised after onboarding refresh.",
+                  "Enterprise adoption dipping in APAC due to SSO delays."
+                ]
+              },
+              {
+                "badge": "Automation",
+                "title": "Playbooks triggered on anomaly",
+                "description": "Route context-rich alerts to success, product, or revenue teams the moment a trend flips.",
+                "list": [
+                  "Success receives a red account list with suggested outreach.",
+                  "Product backlog stories created with impact annotations."
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-analytics-trial" kind="link">
+        <Config>
+          <Label>Start analytics trial</Label>
+          <Url>/analytics/trial</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-report" kind="link">
+        <Config>
+          <Label>Download executive report</Label>
+          <Url>/analytics/weekly-pulse.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

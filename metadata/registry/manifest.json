@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2025-09-21T10:04:58.763Z",
+  "generatedAt": "2025-09-21T10:42:43.114Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
       "kind": "overlay",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.1",
-      "checksum": "da7082182c4d1663bfe4a57b4bf829403fcffbaa4ab0425758a2c3fdddc28c41",
+      "checksum": "f21e36586a3ba2a1b7aa047c24dfa708a4ff54a58365a2cf083814d0023ba135",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -15,8 +15,8 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\overlays\\acme\\marketing\\home.xml",
-      "compiledPath": "metadata\\compiled\\acme\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.1.json",
+      "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml",
+      "compiledPath": "metadata/compiled/acme/marketing/locale/en-US/home/1.0.0/1.0.1.json",
       "dependsOn": [
         "global::marketing::home::-::-::en-US"
       ]
@@ -26,7 +26,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "9d6d6bf7a01a47846b2be4fc7925ee1553e627ec1b66b2806e1879021f7773c1",
+      "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -35,15 +35,219 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml",
-      "compiledPath": "metadata\\compiled\\global\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/marketing/home.xml",
+      "compiledPath": "metadata/compiled/global/marketing/locale/en-US/home/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/ai-nebula::-::-::en-US": {
+      "key": "global::ui-blocks::bento/ai-nebula::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "cb5e063b3324f13f6d8063d4244b31a0645c8e49e58e708f264371069aa853bc",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/ai-nebula",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ai-nebula.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-ai-nebula/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/commerce-merch::-::-::en-US": {
+      "key": "global::ui-blocks::bento/commerce-merch::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "ef3e09167c9e7198efe6b7ea2333895549c6b3c7f7d32415fdc414799fbebf18",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/commerce-merch",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-merch.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-commerce-merch/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/creative-dual::-::-::en-US": {
+      "key": "global::ui-blocks::bento/creative-dual::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b1e9d10717762c01befa5584ef0ecebb639879c0764ad490380fb9e0b0f13597",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/creative-dual",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-creative-dual.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-creative-dual/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/event-panels::-::-::en-US": {
+      "key": "global::ui-blocks::bento/event-panels::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "ff2e8bb061c4bd066c9f99673ffcf6c17147b7b3498ac4281134bd99f1c54e2c",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/event-panels",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-event-panels.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-event-panels/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/insight-pulse::-::-::en-US": {
+      "key": "global::ui-blocks::bento/insight-pulse::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "9f18858904fd1f8a19eab26976bf3da368574915e4171ac4a12a2b253e8650ec",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/insight-pulse",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-insight-pulse.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-insight-pulse/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/learning-lab::-::-::en-US": {
+      "key": "global::ui-blocks::bento/learning-lab::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "3b38530f0a36200118a6675a074a2211cc7962fe6cb845a50a8a0f5bede03e99",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/learning-lab",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-learning-lab.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-learning-lab/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/product-orbit::-::-::en-US": {
+      "key": "global::ui-blocks::bento/product-orbit::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "51708df9c64362ec97c71af6a6d3240477fe1d20c3c847fb1cf82bdf8105e2b2",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/product-orbit",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-product-orbit.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-product-orbit/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/security-grid::-::-::en-US": {
+      "key": "global::ui-blocks::bento/security-grid::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "09d6b6e82ea5a9fa667a9be749d900f037168528db6ca0526aedbd2405bacd7c",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/security-grid",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-security-grid.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-security-grid/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/success-journey::-::-::en-US": {
+      "key": "global::ui-blocks::bento/success-journey::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "3617046e553814268cd62084d95d40c759ae8d04567603bb57a30accb7d77dfc",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/success-journey",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-success-journey.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-success-journey/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/sustainability-loop::-::-::en-US": {
+      "key": "global::ui-blocks::bento/sustainability-loop::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "f0390dd8862d58e609d3a70b986105598dfa2268bd2533af2f153e256153e3ce",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/sustainability-loop",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-sustainability-loop.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-sustainability-loop/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/wellness-calm::-::-::en-US": {
+      "key": "global::ui-blocks::bento/wellness-calm::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d9cb6950a2da7b79020f231a8a05124e5e5bba69c7c043f49f03815f513ed180",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/wellness-calm",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-wellness-calm.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-wellness-calm/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::bento/workflow-lattice::-::-::en-US": {
+      "key": "global::ui-blocks::bento/workflow-lattice::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "491af546a6445718aefbe4167f0a2c7926e3eb946564775d346931f4bf1118ae",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "bento/workflow-lattice",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-workflow-lattice.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-workflow-lattice/1.0.0/1.0.0.json"
     },
     "global::ui-blocks::hero/activation::-::-::en-US": {
       "key": "global::ui-blocks::hero/activation::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "7e04af73cf58c0ce1970711dc848c2d847b69a4a3ad33dca9c2ff8672c8da732",
+      "checksum": "a4ce14be25853c74936fed78c751ecd181f48059a0e10d9d3381960af26a5f5c",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/activation",
@@ -52,15 +256,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-activation.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-activation\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-activation.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-activation/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/analytics::-::-::en-US": {
       "key": "global::ui-blocks::hero/analytics::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "0ec6bcd89bda099ff088bbd2c71cfe3bc4b78071d450df246875e992f56a685a",
+      "checksum": "890df92f3f073056f84ecafc4349827f8895f981a66ed99fef466702dbcd9ec8",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/analytics",
@@ -69,15 +273,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-analytics.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-analytics\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-analytics.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-analytics/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/community::-::-::en-US": {
       "key": "global::ui-blocks::hero/community::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "935674051ccca7cb0b244faa72d02655db25942551f65298785c96685142333a",
+      "checksum": "d81f2d9b897ea199294ea00eb07d699dc22c396426c42ff2713af017bdf4133b",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/community",
@@ -86,15 +290,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-community.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-community\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-community.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-community/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/conversion::-::-::en-US": {
       "key": "global::ui-blocks::hero/conversion::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "68ae50669297553300a165a76050a5654ed4fbcbb5736220f2f315f9012e6911",
+      "checksum": "5743e6b276b2616d91bc3bdc0c29cdfa4ac0290a49c7115065813532d084a2c5",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/conversion",
@@ -103,15 +307,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-conversion.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-conversion\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-conversion.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-conversion/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/enterprise::-::-::en-US": {
       "key": "global::ui-blocks::hero/enterprise::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "ec1581b30934de5189e0e028b2d62b3744fe8c4de9dac8a00db9053cb9f9112f",
+      "checksum": "2f11f7bed496e4eb84423ef333aa9dcc3ea9580caac819b7e810d0d7716bb366",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/enterprise",
@@ -120,15 +324,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-enterprise.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-enterprise\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-enterprise.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-enterprise/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/event::-::-::en-US": {
       "key": "global::ui-blocks::hero/event::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "4461cc181e898e641572238baee849367e72785dd8fae72776b19f2c0228db0b",
+      "checksum": "01c849a666312110216ba620c537d7d08a4df824970fa954188284c3c8eb24eb",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/event",
@@ -137,15 +341,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-event\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-event.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-event/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/minimal::-::-::en-US": {
       "key": "global::ui-blocks::hero/minimal::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "72b3ce062f5fd61887181a965e4a5df4b7bf65ae04d7f3b044bee6f3f56e70ed",
+      "checksum": "a3824843cdb27df3b3ba67fa0ac7b4d973f2fac112a4478d13506bfa93a0f2e0",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/minimal",
@@ -154,15 +358,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-minimal.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-minimal\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-minimal.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-minimal/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/newsletter::-::-::en-US": {
       "key": "global::ui-blocks::hero/newsletter::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "8f6b36acd48b31027864dc73403a52a3962966b54d217cc9ce848f43d8a01e5e",
+      "checksum": "ed0bcc533ad6d58730bc877ec4570154f5917e22872ad6d83b8bb08c37e06506",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/newsletter",
@@ -171,15 +375,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-newsletter.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-newsletter\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-newsletter.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-newsletter/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/platform::-::-::en-US": {
       "key": "global::ui-blocks::hero/platform::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "10ba972f95dbd1e0b8dbe3eefbe84366d764a0895f908c8f4d612b27fe6dbc39",
+      "checksum": "e647a76d529ccf2d8e7c50dd8db61e115ff294aa613dde5392b39138103c1b7d",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/platform",
@@ -188,15 +392,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-platform.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-platform\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-platform.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-platform/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/product-launch::-::-::en-US": {
       "key": "global::ui-blocks::hero/product-launch::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "19ce74908863890e3ed228b16d58809223aa9f0b6b7ce3affac1a2db05353ed6",
+      "checksum": "5d82aad938deb12779d7a3555a2ce707b42102bd9309732c8b97f9ebef31a682",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/product-launch",
@@ -205,15 +409,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-product-launch.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-product-launch\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-product-launch.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-product-launch/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/spotlight::-::-::en-US": {
       "key": "global::ui-blocks::hero/spotlight::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "c89196fccf8c1ea006b2897ef843648d97de996f3f168d4081dec954a4ecd4fb",
+      "checksum": "c29ae75b1b02a278c25dacc6fa85bf5f6566af991319ccfc4b139ca67a3c2486",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/spotlight",
@@ -222,15 +426,15 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-spotlight.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-spotlight\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-spotlight.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-spotlight/1.0.0/2.0.0.json"
     },
     "global::ui-blocks::hero/story::-::-::en-US": {
       "key": "global::ui-blocks::hero/story::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "0c898548bb2e3977142d0fdf23cefa658b3a0911d65e62994bf6453a5b2df138",
+      "checksum": "fe972adbf927908045a6a83b26455637ab30a56f647f497fb62da3755bdf5ed2",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/story",
@@ -239,8 +443,8 @@
         "variant": null,
         "locale": "en-US"
       },
-      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-story.xml",
-      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-story\\1.0.0\\2.0.0.json"
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-story.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-story/1.0.0/2.0.0.json"
     }
   }
 }

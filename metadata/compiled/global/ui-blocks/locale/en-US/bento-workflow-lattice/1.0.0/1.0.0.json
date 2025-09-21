@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "491af546a6445718aefbe4167f0a2c7926e3eb946564775d346931f4bf1118ae",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/workflow-lattice",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-workflow-lattice",
+    "title": "UI Block: Workflow Lattice bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-workflow-lattice",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "workflow-lattice"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Operations platform"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Design resilient processes with a living operations lattice"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Document, automate, and continuously improve multi-team workflows with checklists, retros, and guardrails."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "workflowLatticeItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "launch-playbook"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "explore-template-library"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "workflowLatticeItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Blueprint every operational hand-off",
+                "description": "Track SLAs, owners, and automation coverage in one lattice view. Teams adopt best practices instead of re-learning them.",
+                "list": [
+                  "Capture business context and go-live criteria in step one.",
+                  "Assign accountable reviewers with workload awareness.",
+                  "Trigger nudges automatically if waiting states linger."
+                ],
+                "footnote": "Playbooks stay versioned so you can demonstrate compliance on demand."
+              },
+              {
+                "badge": "Guardrails",
+                "title": "Policy guardrails with instant visibility",
+                "description": "Policy changes propagate to every dependent workflow, preventing drift.",
+                "list": [
+                  "SOC2 and ISO mappings documented inline.",
+                  "Approval chains tailored per geography."
+                ]
+              },
+              {
+                "badge": "Reviews",
+                "title": "Async reviews without the wait",
+                "description": "Assign weighted sign-off windows and log every decision in the audit log.",
+                "list": [
+                  "Pre-loaded review templates per function.",
+                  "Slack-first reviews with fallback email routing."
+                ]
+              },
+              {
+                "badge": "Automations",
+                "title": "Let ops bots handle the busywork",
+                "description": "Connect to billing, HRIS, and CRM systems to execute tasks when status changes.",
+                "list": [
+                  "Provision seats when hires clear background checks.",
+                  "Sync closed deals to onboarding boards within seconds."
+                ]
+              },
+              {
+                "badge": "Handoffs",
+                "title": "Zero-lag handoffs between teams",
+                "description": "Share playbooks externally without exposing internal systems.",
+                "list": [
+                  "Guest portals with granular access.",
+                  "Time-zone aware reminders for global coverage."
+                ]
+              },
+              {
+                "badge": "Retros",
+                "title": "Retrospectives feed continuous improvement",
+                "description": "Collect insights at each milestone and turn them into immediate backlog actions.",
+                "list": [
+                  "Retro templates for incident, launch, or campaign."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-playbook",
+        "kind": "link",
+        "config": {
+          "Label": "Launch a new playbook",
+          "Url": "/operations/playbooks/new",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "explore-template-library",
+        "kind": "link",
+        "config": {
+          "Label": "Explore template library",
+          "Url": "/operations/templates",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-workflow-lattice.xml"
+}

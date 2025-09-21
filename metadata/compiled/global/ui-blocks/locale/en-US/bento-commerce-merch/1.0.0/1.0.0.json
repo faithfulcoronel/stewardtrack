@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ef3e09167c9e7198efe6b7ea2333895549c6b3c7f7d32415fdc414799fbebf18",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/commerce-merch",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-commerce-merch",
+    "title": "UI Block: Commerce Merch bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-commerce-merch",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "commerce-merch"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Commerce engine"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Merchandise like a modern retail media network"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Spotlight flagship drops, conversion tactics, and fulfillment health with a single commerce grid."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "commerceMerchItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "build-merch-plan"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-digital-showroom"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "commerceMerchItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Flagship drop",
+                "title": "The Atlas Collection",
+                "description": "Modular apparel line built from recycled fibres with NFC-enabled stories.",
+                "metrics": [
+                  {
+                    "value": "$8.7M",
+                    "label": "Launch revenue",
+                    "change": "+54% YoY",
+                    "positive": true
+                  },
+                  {
+                    "value": "34%",
+                    "label": "Repeat purchase uplift",
+                    "change": "+9 pts",
+                    "positive": true
+                  },
+                  {
+                    "value": "4.6★",
+                    "label": "Average review score"
+                  }
+                ]
+              },
+              {
+                "badge": "Conversions",
+                "title": "Conversion playbook",
+                "description": "Dynamic bundles, timed drops, and loyalty pricing across channels.",
+                "list": [
+                  "Audience-specific bundles update daily.",
+                  "SMS drops tested alongside email and push."
+                ]
+              },
+              {
+                "badge": "Merchandising",
+                "title": "Visual merchandising",
+                "description": "Guided layouts for hero banners, PDP storytelling, and UGC walls.",
+                "list": [
+                  "3D viewers and try-on overlays.",
+                  "Localized content for 12 markets."
+                ]
+              },
+              {
+                "badge": "Loyalty",
+                "title": "Loyalty moments",
+                "description": "VIP drops, early access, and experiential rewards surfaced in one tile.",
+                "list": [
+                  "Tier movement alerts with next best action.",
+                  "Redeemable experiences linked to community hubs."
+                ]
+              },
+              {
+                "badge": "Fulfillment",
+                "title": "Fulfillment health",
+                "description": "Warehouse capacity, carrier SLAs, and sustainability metrics monitored daily.",
+                "list": [
+                  "Backorder automation triggers restock workflows.",
+                  "Carbon offsets paired with shipping options."
+                ]
+              },
+              {
+                "badge": "Insights",
+                "title": "Merch insights",
+                "description": "Storefront A/B tests, product affinities, and merch team shoutouts.",
+                "list": [
+                  "Heatmaps from onsite behaviour.",
+                  "Merchandising weekly win board."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "build-merch-plan",
+        "kind": "link",
+        "config": {
+          "Label": "Build a merch plan",
+          "Url": "/commerce/merch-planner",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-digital-showroom",
+        "kind": "link",
+        "config": {
+          "Label": "View digital showroom",
+          "Url": "/commerce/showroom",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-merch.xml"
+}

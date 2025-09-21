@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/commerce-merch::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ef3e09167c9e7198efe6b7ea2333895549c6b3c7f7d32415fdc414799fbebf18",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/commerce-merch",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-merch.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-commerce-merch/1.0.0/1.0.0.json"
+}

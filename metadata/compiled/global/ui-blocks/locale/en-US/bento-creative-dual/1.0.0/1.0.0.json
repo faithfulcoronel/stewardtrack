@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b1e9d10717762c01befa5584ef0ecebb639879c0764ad490380fb9e0b0f13597",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/creative-dual",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-creative-dual",
+    "title": "UI Block: Creative Dual bento",
+    "regions": [
+      {
+        "id": "feature-grid",
+        "components": [
+          {
+            "id": "bento-creative-dual",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "creative-dual"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Brand studio"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Coordinate storytelling, visuals, and GTM rhythm in one grid"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Give creative, product marketing, and demand teams a shared canvas that keeps every campaign aligned."
+              },
+              "items": {
+                "kind": "binding",
+                "source": "creativeDualItems",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "request-creative-sprint"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-brand-kit"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "creativeDualItems",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "icon": "🎨",
+                "title": "Narratives that translate across every medium",
+                "description": "Spin campaign pillars into landing pages, ads, and sales plays with creative guardrails baked in.",
+                "list": [
+                  "Strategic messaging pillars and proof points ready to drag into any deck.",
+                  "Audience moodboards curated from the latest research.",
+                  "Asset usage rights and expiry reminders auto-tracked."
+                ]
+              },
+              {
+                "badge": "Campaigns",
+                "title": "Campaign cadence with measurable outcomes",
+                "description": "Budget pacing, channel mix, and pipeline influence tracked inside the grid.",
+                "metrics": [
+                  {
+                    "value": "$2.8M",
+                    "label": "Pipeline influenced",
+                    "change": "+32% QoQ",
+                    "positive": true
+                  },
+                  {
+                    "value": "48 hrs",
+                    "label": "Creative SLA",
+                    "change": "Met 94%"
+                  }
+                ]
+              },
+              {
+                "badge": "Gallery",
+                "title": "Living gallery of approved assets",
+                "description": "Snapshots of the latest hero imagery, product UI renders, and customer stories.",
+                "list": [
+                  "Auto-syncs from Figma, Notion, and Drive collections.",
+                  "Labelled by campaign, region, and lifecycle stage."
+                ]
+              },
+              {
+                "badge": "Palette",
+                "title": "Palette and typography guardrails",
+                "description": "Design tokens and usage guidance keep every surface on-brand.",
+                "list": [
+                  "Theme switches for light, dark, and accessibility modes.",
+                  "Component usage examples for product and marketing teams."
+                ]
+              },
+              {
+                "badge": "Voice",
+                "title": "Tone of voice checkpoints",
+                "description": "AI-assisted copy reviews to ensure voice consistency across assets.",
+                "list": [
+                  "Pulls in real examples from top-performing campaigns.",
+                  "Suggests localization tweaks before publishing."
+                ]
+              },
+              {
+                "badge": "Feedback",
+                "title": "Feedback loops that close",
+                "description": "Capture stakeholder approvals, annotate frames, and archive decisions in context.",
+                "list": [
+                  "Heatmaps show where reviewers focus their comments.",
+                  "Approvals sync back to Jira or Asana automatically."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "request-creative-sprint",
+        "kind": "link",
+        "config": {
+          "Label": "Request a creative sprint",
+          "Url": "/brand/creative-sprint",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-brand-kit",
+        "kind": "link",
+        "config": {
+          "Label": "Download brand kit",
+          "Url": "/brand/asset-kit.zip",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-creative-dual.xml"
+}
