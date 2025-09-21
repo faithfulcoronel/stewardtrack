@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b7888c46bc0033c861aa91bd98dcf46390142f08cc4db3fed2a0f6a658f7607b",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/sustainability-lab",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-sustainability-lab",
+    "title": "UI Block: Sustainability lab bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-sustainability-lab",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "sustainability-lab"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Sustainability"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Operationalize sustainability pledges with measurable progress"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Bring emissions, supplier data, and initiatives into one transparency lab everyone can trust."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "sustainabilityLabCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "sustainabilityLabMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-impact-hub"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-reporting-kit"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "sustainabilityLabCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Carbon",
+                "title": "Real-time inventory",
+                "description": "Scope 1-3 data with ledger-backed calculations and supplier attestations.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Insights",
+                "title": "Supply chain lens",
+                "description": "Spot hotspots, offsets, and logistics routes to optimize footprint.",
+                "tone": "sand"
+              },
+              {
+                "badge": "Policy",
+                "title": "Regulation tracker",
+                "description": "Monitor CSRD, SEC climate, and region-specific disclosure timelines.",
+                "tone": "frost"
+              },
+              {
+                "eyebrow": "Innovation",
+                "title": "Initiative studio",
+                "description": "Plan pilots, allocate budgets, and assign owners with milestone reporting.",
+                "tone": "light"
+              },
+              {
+                "badge": "Transparency",
+                "title": "Stakeholder portal",
+                "description": "Publish dashboards, commitments, and audit-ready evidence to partners.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Engagement",
+                "title": "Employee challenges",
+                "description": "Launch sustainability sprints with leaderboards and reward automation.",
+                "tone": "brand"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "sustainabilityLabMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Carbon intensity",
+                "value": "38 kg/HC",
+                "change": "\u2193 14% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Renewables mix",
+                "value": "67%",
+                "change": "+8 pts quarter-over-quarter",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Supplier compliance",
+                "value": "84%",
+                "change": "Contracts with ESG clauses",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Active initiatives",
+                "value": "29",
+                "change": "Tracking across 11 regions",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-impact-hub",
+        "kind": "link",
+        "config": {
+          "Label": "View impact hub",
+          "Url": "/sustainability/impact-hub",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-reporting-kit",
+        "kind": "link",
+        "config": {
+          "Label": "Download reporting kit",
+          "Url": "/sustainability/reporting-kit",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-sustainability-lab.xml"
+}

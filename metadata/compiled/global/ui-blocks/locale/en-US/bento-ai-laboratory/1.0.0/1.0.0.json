@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "926a68ec660c5ffd08af2983a59aae25042198d07bdf9388dcc5ad47a5973c75",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/ai-laboratory",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-ai-laboratory",
+    "title": "UI Block: AI laboratory bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-ai-laboratory",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "ai-laboratory"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "AI research"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Prototype, evaluate, and deploy responsible AI faster"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Run guarded experiments, align stakeholders, and ship human-centered assistants with confidence."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "aiLaboratoryCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "aiLaboratoryMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "open-model-studio"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "review-ethics"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "aiLaboratoryCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Datasets",
+                "title": "Curated corpus vault",
+                "description": "Versioned prompt and response sets with lineage, consent, and regional handling tags.",
+                "tone": "violet"
+              },
+              {
+                "eyebrow": "Evaluation",
+                "title": "Safety matrix",
+                "description": "Pair human review queues with automated guardrails that score toxicity, bias, and hallucinations.",
+                "icon": "\ud83e\uddea",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Playground",
+                "title": "Conversation sandboxes",
+                "description": "Spin up role-based trials with scripted goals and instrumentation for live transcripts.",
+                "tone": "marine",
+                "footnote": "Captures voice, chat, and workflow context."
+              },
+              {
+                "badge": "Governance",
+                "title": "Policy checkpoints",
+                "description": "Enforce sign-offs, data retention limits, and explainability disclosures before launch.",
+                "tone": "frost"
+              },
+              {
+                "eyebrow": "Deployment",
+                "stat": "42 mins",
+                "title": "Release pipeline",
+                "description": "Blueprint inference routing with rollback toggles and live performance hooks.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Community",
+                "title": "Research notebook",
+                "description": "Share findings, prompts, and replayable sessions with the broader product team.",
+                "tone": "light"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "aiLaboratoryMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Evaluation coverage",
+                "value": "1,240 cases",
+                "change": "\u2191 32% vs last sprint",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Guardrail blocks",
+                "value": "74",
+                "change": "Prevented before production",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Bias delta",
+                "value": "-18%",
+                "change": "Weighted fairness score",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Latency budget",
+                "value": "<280 ms",
+                "change": "Across target personas",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-model-studio",
+        "kind": "link",
+        "config": {
+          "Label": "Open model studio",
+          "Url": "/ai/model-studio",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "review-ethics",
+        "kind": "link",
+        "config": {
+          "Label": "Review ethics checklist",
+          "Url": "/ai/ethics-checklist",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ai-laboratory.xml"
+}

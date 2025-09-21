@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/platform-compass"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-platform-compass">
+    <Title>UI Block: Platform compass bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-platform-compass" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">platform-compass</Prop>
+            <Prop name="eyebrow" kind="static">Platform connectivity</Prop>
+            <Prop name="headline" kind="static">Compose secure integrations without engineering bottlenecks</Prop>
+            <Prop name="description" kind="static">Blueprint connections, auth scopes, and lifecycle automation from a unified partner console.</Prop>
+            <Prop name="cards" kind="binding" source="platformCompassCards" path="items" />
+            <Prop name="logos" kind="binding" source="platformCompassLogos" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="browse-catalog" />
+            <Prop name="secondaryCta" kind="action" actionId="contact-platform" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="platformCompassCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Launchpad",
+                "title": "Connector blueprints",
+                "description": "Provision pre-vetted integration scaffolds with data contracts, retries, and observability baked in.",
+                "tone": "brand"
+              },
+              {
+                "eyebrow": "API",
+                "title": "Interactive explorer",
+                "description": "Test endpoints with environment switching, schema diffs, and consent-aware payloads.",
+                "tone": "frost",
+                "footnote": "Syncs with developer portal automatically."
+              },
+              {
+                "badge": "Automation",
+                "title": "Lifecycle orchestration",
+                "description": "Drive activation emails, webhook validation, and marketplace listings from one flow.",
+                "tone": "sand"
+              },
+              {
+                "eyebrow": "Security",
+                "title": "Scope governance",
+                "description": "Define OAuth recipes, least-privilege roles, and secrets rotation policies.",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Monitoring",
+                "title": "Runtime health",
+                "description": "Receive latency, error, and saturation alerts mapped to partner SLAs.",
+                "tone": "surface"
+              },
+              {
+                "badge": "Support",
+                "title": "Partner desk",
+                "description": "Surface changelog alerts, co-marketing assets, and sandbox resets for your ecosystem.",
+                "tone": "light"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="platformCompassLogos" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Salesforce",
+              "Workday",
+              "ServiceNow",
+              "NetSuite",
+              "Slack",
+              "Okta"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="browse-catalog" kind="link">
+        <Config>
+          <Label>Browse integration catalog</Label>
+          <Url>/platform/catalog</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="contact-platform" kind="link">
+        <Config>
+          <Label>Talk with platform team</Label>
+          <Url>/platform/contact</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

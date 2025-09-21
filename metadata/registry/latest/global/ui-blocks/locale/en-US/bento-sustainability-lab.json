@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/sustainability-lab::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b7888c46bc0033c861aa91bd98dcf46390142f08cc4db3fed2a0f6a658f7607b",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/sustainability-lab",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-sustainability-lab.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-sustainability-lab\\1.0.0\\1.0.0.json"
+}

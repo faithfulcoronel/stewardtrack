@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/analytics-pulse"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-analytics-pulse">
+    <Title>UI Block: Analytics pulse bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-analytics-pulse" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">analytics-pulse</Prop>
+            <Prop name="eyebrow" kind="static">Intelligence</Prop>
+            <Prop name="headline" kind="static">Instrument every decision with unified telemetry</Prop>
+            <Prop name="description" kind="static">Fuse product analytics, revenue indicators, and customer sentiment into one adaptive control room.</Prop>
+            <Prop name="cards" kind="binding" source="analyticsPulseCards" path="items" />
+            <Prop name="metrics" kind="binding" source="analyticsPulseMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="launch-workspace" />
+            <Prop name="secondaryCta" kind="action" actionId="download-benchmark" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="analyticsPulseCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Observability",
+                "stat": "12.4B",
+                "description": "Events streamed daily with schema evolution, anomaly detection, and lineage graphs.",
+                "footnote": "Cross-cloud replication keeps dashboards realtime.",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Signals",
+                "title": "Outcome radar",
+                "description": "Blend revenue, adoption, and churn propensity into pulse quadrants your GTM teams can own.",
+                "icon": "📡",
+                "tone": "cobalt"
+              },
+              {
+                "eyebrow": "Benchmarks",
+                "title": "Executive scorecards",
+                "description": "Narratives, variance callouts, and AI-authored summaries feed weekly leadership forums.",
+                "tone": "frost",
+                "footnote": "Exports to Slides and Notion in one click."
+              },
+              {
+                "badge": "Experiments",
+                "title": "Lift lab",
+                "description": "Run holdout analysis with automated guardrails and sequential testing governance.",
+                "bullets": [
+                  "Sequential testing guardrails",
+                  "Auto-notify experiment owners"
+                ],
+                "tone": "violet"
+              },
+              {
+                "eyebrow": "Quality",
+                "title": "Schema drift watch",
+                "description": "Receive prioritized fixes when sources go stale, complete with sample payloads.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Collaboration",
+                "title": "Notebook handoffs",
+                "description": "Transition SQL, Python, and narrative insights with approvals baked in.",
+                "tone": "marine",
+                "footnote": "Versioned in Git-backed analytics repo."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="analyticsPulseMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Query freshness",
+                "value": "98.7%",
+                "change": "↑ 4.1 pts week-over-week",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Insight adoption",
+                "value": "36 teams",
+                "change": "Live in decision rituals",
+                "sentiment": "neutral"
+              },
+              {
+                "label": "Anomaly resolution",
+                "value": "<4 hrs",
+                "change": "SLO met 11 weeks running",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Self-serve coverage",
+                "value": "82%",
+                "change": "Dashboards with certified data",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-workspace" kind="link">
+        <Config>
+          <Label>Launch analytics workspace</Label>
+          <Url>/analytics/workspace</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-benchmark" kind="link">
+        <Config>
+          <Label>Download benchmark pack</Label>
+          <Url>/analytics/benchmark-pack</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/ai-laboratory"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-ai-laboratory">
+    <Title>UI Block: AI laboratory bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-ai-laboratory" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">ai-laboratory</Prop>
+            <Prop name="eyebrow" kind="static">AI research</Prop>
+            <Prop name="headline" kind="static">Prototype, evaluate, and deploy responsible AI faster</Prop>
+            <Prop name="description" kind="static">Run guarded experiments, align stakeholders, and ship human-centered assistants with confidence.</Prop>
+            <Prop name="cards" kind="binding" source="aiLaboratoryCards" path="items" />
+            <Prop name="metrics" kind="binding" source="aiLaboratoryMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-model-studio" />
+            <Prop name="secondaryCta" kind="action" actionId="review-ethics" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="aiLaboratoryCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Datasets",
+                "title": "Curated corpus vault",
+                "description": "Versioned prompt and response sets with lineage, consent, and regional handling tags.",
+                "tone": "violet"
+              },
+              {
+                "eyebrow": "Evaluation",
+                "title": "Safety matrix",
+                "description": "Pair human review queues with automated guardrails that score toxicity, bias, and hallucinations.",
+                "icon": "🧪",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Playground",
+                "title": "Conversation sandboxes",
+                "description": "Spin up role-based trials with scripted goals and instrumentation for live transcripts.",
+                "tone": "marine",
+                "footnote": "Captures voice, chat, and workflow context."
+              },
+              {
+                "badge": "Governance",
+                "title": "Policy checkpoints",
+                "description": "Enforce sign-offs, data retention limits, and explainability disclosures before launch.",
+                "tone": "frost"
+              },
+              {
+                "eyebrow": "Deployment",
+                "stat": "42 mins",
+                "title": "Release pipeline",
+                "description": "Blueprint inference routing with rollback toggles and live performance hooks.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Community",
+                "title": "Research notebook",
+                "description": "Share findings, prompts, and replayable sessions with the broader product team.",
+                "tone": "light"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="aiLaboratoryMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Evaluation coverage",
+                "value": "1,240 cases",
+                "change": "↑ 32% vs last sprint",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Guardrail blocks",
+                "value": "74",
+                "change": "Prevented before production",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Bias delta",
+                "value": "-18%",
+                "change": "Weighted fairness score",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Latency budget",
+                "value": "<280 ms",
+                "change": "Across target personas",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-model-studio" kind="link">
+        <Config>
+          <Label>Open model studio</Label>
+          <Url>/ai/model-studio</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="review-ethics" kind="link">
+        <Config>
+          <Label>Review ethics checklist</Label>
+          <Url>/ai/ethics-checklist</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

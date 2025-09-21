@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="bento/healthcare-synthesis"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-bento-healthcare-synthesis">
+    <Title>UI Block: Healthcare synthesis bento grid</Title>
+    <Regions>
+      <Region id="grid">
+        <Component id="bento-healthcare-synthesis" type="BentoGrid">
+          <Props>
+            <Prop name="variant" kind="static">healthcare-synthesis</Prop>
+            <Prop name="eyebrow" kind="static">Healthcare innovation</Prop>
+            <Prop name="headline" kind="static">Coordinate care, compliance, and research in one trusted view</Prop>
+            <Prop name="description" kind="static">Blend pathways, quality measures, and precision medicine trials into a connected care workspace.</Prop>
+            <Prop name="cards" kind="binding" source="healthcareSynthesisCards" path="items" />
+            <Prop name="metrics" kind="binding" source="healthcareSynthesisMetrics" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="explore-care-hub" />
+            <Prop name="secondaryCta" kind="action" actionId="download-care-kit" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="healthcareSynthesisCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Pathways",
+                "title": "Care orchestration",
+                "description": "Synchronize multidisciplinary workflows with evidence-backed protocols.",
+                "tone": "frost"
+              },
+              {
+                "eyebrow": "Compliance",
+                "title": "Regulatory cockpit",
+                "description": "Monitor HIPAA, FDA, and regional privacy requirements with instant attestation exports.",
+                "tone": "dark"
+              },
+              {
+                "eyebrow": "Analytics",
+                "title": "Population lens",
+                "description": "Track cohort outcomes, social determinants, and payer mix with drill-downs.",
+                "tone": "surface"
+              },
+              {
+                "badge": "Research",
+                "title": "Clinical trial studio",
+                "description": "Coordinate enrollment, protocol deviations, and IRB submissions in one place.",
+                "tone": "light"
+              },
+              {
+                "eyebrow": "Experience",
+                "title": "Patient engagement",
+                "description": "Deliver personalized education, reminders, and symptom tracking across devices.",
+                "tone": "sand"
+              },
+              {
+                "badge": "Outcomes",
+                "stat": "-27%",
+                "title": "Readmission delta",
+                "description": "Predictive alerts ensure at-risk patients receive timely outreach.",
+                "tone": "forest"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="healthcareSynthesisMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Care adherence",
+                "value": "91%",
+                "change": "+11 pts across priority pathways",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Readmission reduction",
+                "value": "-9.4%",
+                "change": "90-day window",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Clinician satisfaction",
+                "value": "4.6/5",
+                "change": "↑ 0.8 vs baseline",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Model approvals",
+                "value": "18",
+                "change": "Validated by ethics board",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="explore-care-hub" kind="link">
+        <Config>
+          <Label>Explore care coordination hub</Label>
+          <Url>/healthcare/care-hub</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-care-kit" kind="link">
+        <Config>
+          <Label>Download care excellence kit</Label>
+          <Url>/healthcare/excellence-kit</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

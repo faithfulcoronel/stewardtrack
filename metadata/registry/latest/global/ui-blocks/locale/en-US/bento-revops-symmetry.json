@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/revops-symmetry::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "a07e9036b636c0180b879959b488a3ae8b4cb5d19a7a846a897b58c83af358f2",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/revops-symmetry",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-revops-symmetry.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-revops-symmetry\\1.0.0\\1.0.0.json"
+}

@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "373e6859c063d846dd255af5af0c9c296a54bd4de93e692d3c1ffee4ea6a8b09",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/support-lattice",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-support-lattice",
+    "title": "UI Block: Support lattice bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-support-lattice",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "support-lattice"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Customer support"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Resolve issues faster with context-rich assistance"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Blend intelligence, automation, and human empathy into a support lattice tuned for every channel."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "supportLatticeCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "supportLatticeMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "launch-support-center"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-playbooks"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "supportLatticeCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Routing",
+                "title": "Signal-aware triage",
+                "description": "Route cases by sentiment, tier, and predicted effort with live workload balancing.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Assist",
+                "title": "Copilot workspace",
+                "description": "Pull recent interactions, docs, and product telemetry into sidekick cards.",
+                "tone": "dark"
+              },
+              {
+                "badge": "Knowledge",
+                "title": "Content engine",
+                "description": "Author guides with approval flows, translation memory, and freshness alerts.",
+                "tone": "brand"
+              },
+              {
+                "eyebrow": "Automation",
+                "title": "Proactive heal",
+                "description": "Trigger config fixes and safe-mode restarts directly from incident insights.",
+                "tone": "forest"
+              },
+              {
+                "eyebrow": "Voice",
+                "title": "Quality studio",
+                "description": "Score calls, transcripts, and satisfaction signals with calibration loops.",
+                "tone": "sand"
+              },
+              {
+                "badge": "Insights",
+                "stat": "87",
+                "title": "CSAT index",
+                "description": "Blend survey, emoji, and adoption telemetry to monitor satisfaction.",
+                "tone": "frost"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "supportLatticeMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "First response",
+                "value": "3m 42s",
+                "change": "\u2193 29% after lattice rollout",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Resolution rate",
+                "value": "94%",
+                "change": "Within 24 hours",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Backlog",
+                "value": "62",
+                "change": "-41 cases week-over-week",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Escalations",
+                "value": "3.2%",
+                "change": "Stabilized below target",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch-support-center",
+        "kind": "link",
+        "config": {
+          "Label": "Launch support center",
+          "Url": "/support/center",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-playbooks",
+        "kind": "link",
+        "config": {
+          "Label": "View response playbooks",
+          "Url": "/support/playbooks",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-support-lattice.xml"
+}

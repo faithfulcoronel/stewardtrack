@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "dd1b043957c1076ee5f4cad47214f2f82bb4736ec91791b05eada128313df6bc",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/commerce-meridian",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-bento-commerce-meridian",
+    "title": "UI Block: Commerce meridian bento grid",
+    "regions": [
+      {
+        "id": "grid",
+        "components": [
+          {
+            "id": "bento-commerce-meridian",
+            "type": "BentoGrid",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "commerce-meridian"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Commerce acceleration"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Launch high-converting storefronts with operational clarity"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Coordinate merchandising, fulfillment, and lifecycle messaging with a bento built for omnichannel teams."
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "commerceMeridianCards",
+                "path": "items"
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "commerceMeridianMetrics",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-commerce-playbook"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "talk-retail-ops"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "commerceMeridianCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Merchandising",
+                "title": "Dynamic assortment studio",
+                "description": "Blend inventory health, demand signals, and creative to auto-build landing experiences.",
+                "tone": "amber"
+              },
+              {
+                "eyebrow": "Fulfillment",
+                "title": "Promise accuracy",
+                "description": "Surface ship-from-store, curbside, and parcel ETAs that react to capacity in real-time.",
+                "tone": "forest",
+                "footnote": "Connected to warehouse control plane."
+              },
+              {
+                "badge": "Engagement",
+                "title": "Lifecycle journeys",
+                "description": "Trigger SMS, email, and push campaigns tied to basket health and loyalty tiers.",
+                "tone": "blossom"
+              },
+              {
+                "eyebrow": "Insights",
+                "title": "Margin intelligence",
+                "description": "Track bundle mix, promo leakage, and vendor funding in one view.",
+                "tone": "surface"
+              },
+              {
+                "eyebrow": "Trust",
+                "title": "Returns concierge",
+                "description": "Automate policy-driven approvals, restocking, and exchange experiences.",
+                "tone": "frost"
+              },
+              {
+                "badge": "Performance",
+                "stat": "+38%",
+                "title": "Checkout uplift",
+                "description": "Personalized checkout modules with A/B governance built in.",
+                "tone": "dark"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "commerceMeridianMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Average order value",
+                "value": "$184",
+                "change": "\u2191 12% YoY",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Conversion uplift",
+                "value": "+3.8 pts",
+                "change": "Across priority segments",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Return automation",
+                "value": "76%",
+                "change": "Requests processed without agent",
+                "sentiment": "positive"
+              },
+              {
+                "label": "Campaign velocity",
+                "value": "5 launches/wk",
+                "change": "Coordinated across 12 locales",
+                "sentiment": "neutral"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-commerce-playbook",
+        "kind": "link",
+        "config": {
+          "Label": "View commerce playbook",
+          "Url": "/commerce/playbook",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "talk-retail-ops",
+        "kind": "link",
+        "config": {
+          "Label": "Talk with retail ops",
+          "Url": "/commerce/retail-ops",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml"
+}

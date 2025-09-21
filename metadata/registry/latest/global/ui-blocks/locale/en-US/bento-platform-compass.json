@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::bento/platform-compass::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d8ec1dd3e11f7fd1e4f1fe7ec08d3933d520a9c32ceb7e414147bbd1e70ea8ab",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "bento/platform-compass",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-platform-compass.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-platform-compass\\1.0.0\\1.0.0.json"
+}
