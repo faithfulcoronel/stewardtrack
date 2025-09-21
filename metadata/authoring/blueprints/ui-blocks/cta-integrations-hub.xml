@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/integrations-hub"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-integrations-hub">
+    <Title>UI Block: Integrations hub CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-integrations-hub" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">showcase</Prop>
+            <Prop name="eyebrow" kind="static">Integration ecosystem</Prop>
+            <Prop name="headline" kind="static">Connect Flowspace across your stack</Prop>
+            <Prop name="description" kind="static">Activate pre-built connectors for analytics, product, and GTM teams while keeping governance centralized.</Prop>
+            <Prop name="highlight" kind="static">Trusted by RevOps and Platform teams</Prop>
+            <Prop name="highlights" kind="binding" source="integrationHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="browse-integrations" />
+            <Prop name="secondaryCta" kind="action" actionId="talk-solutions" />
+            <Prop name="tertiaryCta" kind="action" actionId="see-roadmap" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="integrationHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "title": "Analytics acceleration", "description": "Sync Flowspace events to Snowflake, Looker, and Mode with governed schemas." },
+              { "title": "Lifecycle automation", "description": "Trigger lifecycle campaigns in HubSpot, Braze, and Customer.io from approval signals." },
+              { "title": "Product orchestration", "description": "Align backlog, documentation, and launch plans in Jira, Linear, and Notion." },
+              { "title": "Compliance workflows", "description": "Pipe release evidence into Vanta, Drata, and custom GRC tools." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="browse-integrations" kind="link">
+        <Config>
+          <Label>Browse integrations</Label>
+          <Url>/integrations</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="talk-solutions" kind="link">
+        <Config>
+          <Label>Talk with solutions team</Label>
+          <Url>/integrations/consult</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="see-roadmap" kind="link">
+        <Config>
+          <Label>See integration roadmap</Label>
+          <Url>/integrations/roadmap</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

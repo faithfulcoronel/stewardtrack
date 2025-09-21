@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/enterprise-audit::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f13171feea8d3dbb2dd960d0814c857a34cb06e4e26b5c5ef70a9d482c647ad6",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/enterprise-audit",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-enterprise-audit.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-enterprise-audit\\1.0.0\\1.0.0.json"
+}

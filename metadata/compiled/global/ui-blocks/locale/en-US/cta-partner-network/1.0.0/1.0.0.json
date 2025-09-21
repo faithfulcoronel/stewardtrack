@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "44513c64692f35e402fd53c27da31dff76bd24a59ab0a4f9e5341144a897e3c2",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/partner-network",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-partner-network",
+    "title": "UI Block: Partner network CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-partner-network",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "grid"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Partner ecosystem"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Collaborate with certified Flowspace partners"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Tap into specialized agencies for content operations, experimentation, and platform migrations."
+              },
+              "logos": {
+                "kind": "binding",
+                "source": "partnerLogos",
+                "path": "items"
+              },
+              "checklist": {
+                "kind": "binding",
+                "source": "partnerBenefits",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-partners"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "become-partner"
+              },
+              "tertiaryCta": {
+                "kind": "action",
+                "actionId": "download-brief"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "partnerLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Northwind Labs",
+              "Acme Advisory",
+              "Brightscale",
+              "Gridline Collective",
+              "Atlas Enablement",
+              "Pioneer RevOps",
+              "Sierra Studio",
+              "Beacon Partners"
+            ]
+          }
+        }
+      },
+      {
+        "id": "partnerBenefits",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Certified on schema governance and rollout planning.",
+              "Dedicated shared Slack channels for launch coordination.",
+              "Co-marketing opportunities and shared case studies.",
+              "Preferred access to beta modules and sandbox environments."
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-partners",
+        "kind": "link",
+        "config": {
+          "Label": "Browse partners",
+          "Url": "/partners",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "become-partner",
+        "kind": "link",
+        "config": {
+          "Label": "Apply to partner program",
+          "Url": "/partners/apply",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "download-brief",
+        "kind": "link",
+        "config": {
+          "Label": "Download partner brief",
+          "Url": "/partners/brief.pdf",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-partner-network.xml"
+}

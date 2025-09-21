@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ae4e5f29604e66013c87f21c0cffc2b03bf3cd9b5b34a49e76880c1e4485e2b9",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/integrations-hub",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-integrations-hub",
+    "title": "UI Block: Integrations hub CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-integrations-hub",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "showcase"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Integration ecosystem"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Connect Flowspace across your stack"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Activate pre-built connectors for analytics, product, and GTM teams while keeping governance centralized."
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Trusted by RevOps and Platform teams"
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "integrationHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "browse-integrations"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "talk-solutions"
+              },
+              "tertiaryCta": {
+                "kind": "action",
+                "actionId": "see-roadmap"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "integrationHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Analytics acceleration",
+                "description": "Sync Flowspace events to Snowflake, Looker, and Mode with governed schemas."
+              },
+              {
+                "title": "Lifecycle automation",
+                "description": "Trigger lifecycle campaigns in HubSpot, Braze, and Customer.io from approval signals."
+              },
+              {
+                "title": "Product orchestration",
+                "description": "Align backlog, documentation, and launch plans in Jira, Linear, and Notion."
+              },
+              {
+                "title": "Compliance workflows",
+                "description": "Pipe release evidence into Vanta, Drata, and custom GRC tools."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "browse-integrations",
+        "kind": "link",
+        "config": {
+          "Label": "Browse integrations",
+          "Url": "/integrations",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "talk-solutions",
+        "kind": "link",
+        "config": {
+          "Label": "Talk with solutions team",
+          "Url": "/integrations/consult",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "see-roadmap",
+        "kind": "link",
+        "config": {
+          "Label": "See integration roadmap",
+          "Url": "/integrations/roadmap",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-integrations-hub.xml"
+}

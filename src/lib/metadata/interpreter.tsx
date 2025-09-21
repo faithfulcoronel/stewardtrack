@@ -4,6 +4,7 @@ import type { ResolvedMetadata } from './resolver';
 import { FeatureGrid, type FeatureGridProps } from '@/components/dynamic/FeatureGrid';
 import { FeatureSection, type FeatureSectionProps } from '@/components/dynamic/FeatureSection';
 import { HeroSection, type HeroSectionProps } from '@/components/dynamic/HeroSection';
+import { CTASection, type CTASectionProps } from '@/components/dynamic/CTASection';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -12,6 +13,7 @@ type ComponentRenderer<Props extends Record<string, unknown>> = (
 
 const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown>>> = {
   HeroSection: (props, children) => <HeroSection {...(props as HeroSectionProps)}>{children}</HeroSection>,
+  CTASection: (props, children) => <CTASection {...(props as CTASectionProps)}>{children}</CTASection>,
   FeatureGrid: (props, children) => <FeatureGrid {...(props as FeatureGridProps)}>{children}</FeatureGrid>,
   FeatureSection: (props, children) => <FeatureSection {...(props as FeatureSectionProps)}>{children}</FeatureSection>,
 };

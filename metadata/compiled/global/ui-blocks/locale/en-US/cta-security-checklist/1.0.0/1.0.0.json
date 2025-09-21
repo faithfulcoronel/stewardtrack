@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "08dd99d1750e80b414414e62eab45c78eb13806ba6d331c18a1ddc31c9a71f63",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/security-checklist",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-security-checklist",
+    "title": "UI Block: Security checklist CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-security-checklist",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "stacked"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Security review"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Guide your security team through Flowspace"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Share pre-vetted artifacts, control scopes, and map compliance requirements without slowing down adoption."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "securityHighlights",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "download-pack"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "meet-security"
+              },
+              "tertiaryCta": {
+                "kind": "action",
+                "actionId": "view-compliance"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "securityHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "SOC 2 and ISO packets",
+                "description": "Share audit-ready control narratives and pen-test summaries."
+              },
+              {
+                "title": "Granular permissions",
+                "description": "Demonstrate field-level policies across authoring and runtime."
+              },
+              {
+                "title": "Data residency controls",
+                "description": "Review hosting options across regions and isolation tiers."
+              },
+              {
+                "title": "Change management logs",
+                "description": "Export approval trails aligned with your governance program."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "download-pack",
+        "kind": "link",
+        "config": {
+          "Label": "Download security pack",
+          "Url": "/resources/security-review.zip",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "meet-security",
+        "kind": "link",
+        "config": {
+          "Label": "Meet our security team",
+          "Url": "/security/office-hours",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "view-compliance",
+        "kind": "link",
+        "config": {
+          "Label": "View compliance matrix",
+          "Url": "/security/compliance",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-security-checklist.xml"
+}

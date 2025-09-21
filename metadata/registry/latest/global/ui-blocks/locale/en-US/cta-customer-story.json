@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/customer-story::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3fb8f098ed24646fc21c4d98f10ca6b3987f2de6348bc56d48d40cec52257b43",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/customer-story",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-customer-story.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-customer-story\\1.0.0\\1.0.0.json"
+}

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/partner-network"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-partner-network">
+    <Title>UI Block: Partner network CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-partner-network" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">grid</Prop>
+            <Prop name="eyebrow" kind="static">Partner ecosystem</Prop>
+            <Prop name="headline" kind="static">Collaborate with certified Flowspace partners</Prop>
+            <Prop name="description" kind="static">Tap into specialized agencies for content operations, experimentation, and platform migrations.</Prop>
+            <Prop name="logos" kind="binding" source="partnerLogos" path="items" />
+            <Prop name="checklist" kind="binding" source="partnerBenefits" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-partners" />
+            <Prop name="secondaryCta" kind="action" actionId="become-partner" />
+            <Prop name="tertiaryCta" kind="action" actionId="download-brief" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="partnerLogos" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Northwind Labs",
+              "Acme Advisory",
+              "Brightscale",
+              "Gridline Collective",
+              "Atlas Enablement",
+              "Pioneer RevOps",
+              "Sierra Studio",
+              "Beacon Partners"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="partnerBenefits" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Certified on schema governance and rollout planning.",
+              "Dedicated shared Slack channels for launch coordination.",
+              "Co-marketing opportunities and shared case studies.",
+              "Preferred access to beta modules and sandbox environments."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-partners" kind="link">
+        <Config>
+          <Label>Browse partners</Label>
+          <Url>/partners</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="become-partner" kind="link">
+        <Config>
+          <Label>Apply to partner program</Label>
+          <Url>/partners/apply</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-brief" kind="link">
+        <Config>
+          <Label>Download partner brief</Label>
+          <Url>/partners/brief.pdf</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

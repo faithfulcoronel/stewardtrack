@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/product-trial"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-product-trial">
+    <Title>UI Block: Product trial CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-product-trial" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="badge" kind="static">14-day access</Prop>
+            <Prop name="eyebrow" kind="static">Free trial</Prop>
+            <Prop name="headline" kind="static">Launch Flowspace experiments in days</Prop>
+            <Prop name="description" kind="static">Provision a workspace, connect sources, and validate new messaging without waiting on an engineering deploy.</Prop>
+            <Prop name="checklist" kind="binding" source="trialChecklist" path="items" />
+            <Prop name="image" kind="binding" source="trialMedia" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="start-trial" />
+            <Prop name="secondaryCta" kind="action" actionId="view-guide" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="trialChecklist" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Set up a workspace in under 15 minutes with guided defaults.",
+              "Sync product analytics, CRM context, and launch plans automatically.",
+              "Invite collaborators and assign review tasks across teams."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="trialMedia" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80",
+            "alt": "Product team collaborating during a trial onboarding"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="start-trial" kind="link">
+        <Config>
+          <Label>Start free trial</Label>
+          <Url>/signup/trial</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-guide" kind="link">
+        <Config>
+          <Label>See onboarding guide</Label>
+          <Url>/docs/onboarding</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/partner-network::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "44513c64692f35e402fd53c27da31dff76bd24a59ab0a4f9e5341144a897e3c2",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/partner-network",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-partner-network.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-partner-network\\1.0.0\\1.0.0.json"
+}

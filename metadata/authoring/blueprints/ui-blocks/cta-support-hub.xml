@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/support-hub"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-support-hub">
+    <Title>UI Block: Support hub CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-support-hub" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">contact</Prop>
+            <Prop name="eyebrow" kind="static">Support programs</Prop>
+            <Prop name="headline" kind="static">Reach the right Flowspace specialist</Prop>
+            <Prop name="description" kind="static">Choose the channel aligned with your question and connect with solution architects, enablement leads, or billing experts.</Prop>
+            <Prop name="contactMethods" kind="binding" source="supportContacts" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="open-ticket" />
+            <Prop name="secondaryCta" kind="action" actionId="join-office-hours" />
+            <Prop name="tertiaryCta" kind="action" actionId="chat-live" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="supportContacts" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Solution architecture",
+                "value": "Architecture@flowspace.com",
+                "description": "For integration design, data modeling, and governance questions.",
+                "url": "mailto:architecture@flowspace.com"
+              },
+              {
+                "label": "Enablement office hours",
+                "value": "Every Tuesday • 9:00 AM PT",
+                "description": "Live Q&amp;A with customer success and product specialists.",
+                "url": "/events/office-hours"
+              },
+              {
+                "label": "Billing support",
+                "value": "+1 (415) 555-2045",
+                "description": "Account changes, invoices, and procurement documentation.",
+                "url": "tel:+14155552045"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-ticket" kind="link">
+        <Config>
+          <Label>Open a ticket</Label>
+          <Url>/support/ticket</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="join-office-hours" kind="link">
+        <Config>
+          <Label>Join office hours</Label>
+          <Url>/events/office-hours/register</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="chat-live" kind="link">
+        <Config>
+          <Label>Chat live</Label>
+          <Url>/support/live-chat</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

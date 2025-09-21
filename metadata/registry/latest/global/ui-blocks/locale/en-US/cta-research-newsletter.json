@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/research-newsletter::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bafd0b524640ab5d5e31967ecda85a027452aa5dda7c09aaa5b905a318a2af8a",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/research-newsletter",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-research-newsletter.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-research-newsletter\\1.0.0\\1.0.0.json"
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/enterprise-audit"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-enterprise-audit">
+    <Title>UI Block: Enterprise audit CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-enterprise-audit" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">metrics</Prop>
+            <Prop name="eyebrow" kind="static">Enterprise workflow audit</Prop>
+            <Prop name="headline" kind="static">Uncover the roadmap impact of your content operations</Prop>
+            <Prop name="description" kind="static">Partner with our solutions team for a guided audit of your publishing models, tooling handoffs, and release cadences.</Prop>
+            <Prop name="highlight" kind="static">Limited to 10 teams per quarter</Prop>
+            <Prop name="stats" kind="binding" source="auditStats" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="book-audit" />
+            <Prop name="secondaryCta" kind="action" actionId="download-brief" />
+            <Prop name="tertiaryCta" kind="action" actionId="share-invite" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="auditStats" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Systems reviewed", "value": "12", "caption": "Average across product, marketing, and success." },
+              { "label": "Time-to-value", "value": "5 weeks", "caption": "From kickoff to operating model recommendation." },
+              { "label": "Stakeholder alignment", "value": "93%", "caption": "Post-audit agreement on governance changes." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="book-audit" kind="link">
+        <Config>
+          <Label>Book an audit</Label>
+          <Url>/enterprise/audit</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-brief" kind="link">
+        <Config>
+          <Label>Download scope brief</Label>
+          <Url>/resources/flowspace-enterprise-audit.pdf</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-invite" kind="link">
+        <Config>
+          <Label>Share with stakeholders</Label>
+          <Url>/enterprise/audit/share</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

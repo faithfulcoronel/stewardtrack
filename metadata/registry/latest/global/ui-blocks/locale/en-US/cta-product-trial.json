@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/product-trial::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c7968fe663b85e3f7c7dabb20c525d5a42c779b4348ba0f06c959a120378a26a",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/product-trial",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-product-trial.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-product-trial\\1.0.0\\1.0.0.json"
+}
