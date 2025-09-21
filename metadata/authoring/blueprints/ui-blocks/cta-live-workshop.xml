@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/live-workshop"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-live-workshop">
+    <Title>UI Block: Live workshop CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-live-workshop" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">event</Prop>
+            <Prop name="badge" kind="static">Live workshop</Prop>
+            <Prop name="headline" kind="static">Build a metadata playbook with our team</Prop>
+            <Prop name="description" kind="static">Join an interactive session to blueprint a launch workflow tailored to your product, marketing, and lifecycle squads.</Prop>
+            <Prop name="event" kind="binding" source="workshopDetails" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="reserve-seat" />
+            <Prop name="secondaryCta" kind="action" actionId="view-agenda" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="workshopDetails" kind="static">
+        <Json><![CDATA[
+          {
+            "date": "April 18, 2025",
+            "time": "10:00 AM",
+            "timezone": "PT",
+            "location": "Virtual via Zoom"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="reserve-seat" kind="link">
+        <Config>
+          <Label>Reserve your seat</Label>
+          <Url>/events/metadata-workshop</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-agenda" kind="link">
+        <Config>
+          <Label>View agenda</Label>
+          <Url>/events/metadata-workshop/agenda</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

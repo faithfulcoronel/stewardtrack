@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/customer-story"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-customer-story">
+    <Title>UI Block: Customer story CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-customer-story" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">testimonial</Prop>
+            <Prop name="badge" kind="static">Customer story</Prop>
+            <Prop name="headline" kind="static">See how RelayOps scaled releases with Flowspace</Prop>
+            <Prop name="description" kind="static">RelayOps replaced manual launch checklists with metadata-driven workflows and cut review cycles in half.</Prop>
+            <Prop name="testimonial" kind="binding" source="relayTestimonial" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="read-story" />
+            <Prop name="secondaryCta" kind="action" actionId="schedule-tour" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="relayTestimonial" kind="static">
+        <Json><![CDATA[
+          {
+            "quote": "Flowspace helped us orchestrate launches across product, marketing, and support without adding headcount.",
+            "author": "Mira Han",
+            "role": "Director of Product Marketing, RelayOps"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="read-story" kind="link">
+        <Config>
+          <Label>Read the full story</Label>
+          <Url>/customers/relayops</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="schedule-tour" kind="link">
+        <Config>
+          <Label>Schedule a tour</Label>
+          <Url>/demo</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -18,6 +18,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
   {
     label: "UI Blocks",
     items: [
+      { title: "CTA sections", href: "/admin/ui-blocks/cta-sections", icon: "uiBlocks" },
       { title: "Hero sections", href: "/admin/ui-blocks/hero-sections", icon: "uiBlocks" },
       { title: "Feature sections", href: "/admin/ui-blocks/feature-sections", icon: "uiBlocks" },
     ],

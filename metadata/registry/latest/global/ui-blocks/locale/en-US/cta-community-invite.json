@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/community-invite::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "04ad868d384b6d355e96ec2843dcc9272e358290658e3c68d6775b2b55fb173b",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/community-invite",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-community-invite.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-community-invite\\1.0.0\\1.0.0.json"
+}

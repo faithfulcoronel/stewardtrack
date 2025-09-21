@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "04ad868d384b6d355e96ec2843dcc9272e358290658e3c68d6775b2b55fb173b",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/community-invite",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-community-invite",
+    "title": "UI Block: Community invite CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-community-invite",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "minimal"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Community"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Join the metadata leadership circle"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A private space for product, lifecycle, and revenue leaders shipping metadata-driven experiences."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "request-invite"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-calendar"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [],
+    "actions": [
+      {
+        "id": "request-invite",
+        "kind": "link",
+        "config": {
+          "Label": "Request an invite",
+          "Url": "/community/request",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-calendar",
+        "kind": "link",
+        "config": {
+          "Label": "See community calendar",
+          "Url": "/community/calendar",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-community-invite.xml"
+}

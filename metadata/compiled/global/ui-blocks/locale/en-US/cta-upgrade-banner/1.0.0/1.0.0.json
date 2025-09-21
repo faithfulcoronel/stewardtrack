@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bc2309d1dab2dd19530200eaa54e91eb2aa6ff6348eb294bf0032779af62b32d",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/upgrade-banner",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-upgrade-banner",
+    "title": "UI Block: Upgrade banner CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-upgrade-banner",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "banner"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Upgrade bonus"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Upgrade to Flowspace Scale"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Unlock workspace hierarchy, granular RBAC, and lifecycle analytics designed for multi-product teams."
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Annual upgrade saves 18%"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "upgrade-now"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "compare-plans"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [],
+    "actions": [
+      {
+        "id": "upgrade-now",
+        "kind": "link",
+        "config": {
+          "Label": "Upgrade now",
+          "Url": "/pricing/upgrade",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "compare-plans",
+        "kind": "link",
+        "config": {
+          "Label": "Compare plans",
+          "Url": "/pricing#plans",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-upgrade-banner.xml"
+}

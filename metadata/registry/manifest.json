@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-21T10:40:02.739Z",
+  "generatedAt": "2025-09-21T11:37:28.802Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -445,6 +445,210 @@
       },
       "sourcePath": "metadata\\\\authoring\\\\blueprints\\\\ui-blocks\\\\feature-enablement-hub.xml",
       "compiledPath": "metadata\\\\compiled\\\\global\\\\ui-blocks\\\\locale\\\\en-US\\\\feature-enablement-hub\\\\1.0.0\\\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/product-trial::-::-::en-US": {
+      "key": "global::ui-blocks::cta/product-trial::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "c7968fe663b85e3f7c7dabb20c525d5a42c779b4348ba0f06c959a120378a26a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/product-trial",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-product-trial.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-product-trial\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/enterprise-audit::-::-::en-US": {
+      "key": "global::ui-blocks::cta/enterprise-audit::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "f13171feea8d3dbb2dd960d0814c857a34cb06e4e26b5c5ef70a9d482c647ad6",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/enterprise-audit",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-enterprise-audit.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-enterprise-audit\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/upgrade-banner::-::-::en-US": {
+      "key": "global::ui-blocks::cta/upgrade-banner::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "bc2309d1dab2dd19530200eaa54e91eb2aa6ff6348eb294bf0032779af62b32d",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/upgrade-banner",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-upgrade-banner.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-upgrade-banner\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/security-checklist::-::-::en-US": {
+      "key": "global::ui-blocks::cta/security-checklist::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "08dd99d1750e80b414414e62eab45c78eb13806ba6d331c18a1ddc31c9a71f63",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/security-checklist",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-security-checklist.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-security-checklist\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/integrations-hub::-::-::en-US": {
+      "key": "global::ui-blocks::cta/integrations-hub::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "ae4e5f29604e66013c87f21c0cffc2b03bf3cd9b5b34a49e76880c1e4485e2b9",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/integrations-hub",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-integrations-hub.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-integrations-hub\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/live-workshop::-::-::en-US": {
+      "key": "global::ui-blocks::cta/live-workshop::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "40e231e029955a61163c3dd8d3ef4885adf5fad6e4b5d84b3a3f939ed21f9c5a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/live-workshop",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-live-workshop.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-live-workshop\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/research-newsletter::-::-::en-US": {
+      "key": "global::ui-blocks::cta/research-newsletter::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "bafd0b524640ab5d5e31967ecda85a027452aa5dda7c09aaa5b905a318a2af8a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/research-newsletter",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-research-newsletter.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-research-newsletter\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/customer-story::-::-::en-US": {
+      "key": "global::ui-blocks::cta/customer-story::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "3fb8f098ed24646fc21c4d98f10ca6b3987f2de6348bc56d48d40cec52257b43",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/customer-story",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-customer-story.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-customer-story\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/download-guide::-::-::en-US": {
+      "key": "global::ui-blocks::cta/download-guide::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "949aa7878e0e841460d0860170f7ae15e506e12644713562d76b390b55176197",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/download-guide",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-download-guide.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-download-guide\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/support-hub::-::-::en-US": {
+      "key": "global::ui-blocks::cta/support-hub::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "dfb676089d7c8dfb61c0cc2e4baf98993fd949b9d9d3dbcab0457112ae5a6bde",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/support-hub",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-support-hub.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-support-hub\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/community-invite::-::-::en-US": {
+      "key": "global::ui-blocks::cta/community-invite::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "04ad868d384b6d355e96ec2843dcc9272e358290658e3c68d6775b2b55fb173b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/community-invite",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-community-invite.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-community-invite\\1.0.0\\1.0.0.json"
+    },
+    "global::ui-blocks::cta/partner-network::-::-::en-US": {
+      "key": "global::ui-blocks::cta/partner-network::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "44513c64692f35e402fd53c27da31dff76bd24a59ab0a4f9e5341144a897e3c2",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "cta/partner-network",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-partner-network.xml",
+      "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-partner-network\\1.0.0\\1.0.0.json"
     }
   }
 }

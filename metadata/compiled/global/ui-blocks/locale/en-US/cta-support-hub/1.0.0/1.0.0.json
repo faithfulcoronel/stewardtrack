@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "dfb676089d7c8dfb61c0cc2e4baf98993fd949b9d9d3dbcab0457112ae5a6bde",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/support-hub",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-support-hub",
+    "title": "UI Block: Support hub CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-support-hub",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "contact"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Support programs"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Reach the right Flowspace specialist"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Choose the channel aligned with your question and connect with solution architects, enablement leads, or billing experts."
+              },
+              "contactMethods": {
+                "kind": "binding",
+                "source": "supportContacts",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "open-ticket"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "join-office-hours"
+              },
+              "tertiaryCta": {
+                "kind": "action",
+                "actionId": "chat-live"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "supportContacts",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Solution architecture",
+                "value": "Architecture@flowspace.com",
+                "description": "For integration design, data modeling, and governance questions.",
+                "url": "mailto:architecture@flowspace.com"
+              },
+              {
+                "label": "Enablement office hours",
+                "value": "Every Tuesday • 9:00 AM PT",
+                "description": "Live Q&A with customer success and product specialists.",
+                "url": "/events/office-hours"
+              },
+              {
+                "label": "Billing support",
+                "value": "+1 (415) 555-2045",
+                "description": "Account changes, invoices, and procurement documentation.",
+                "url": "tel:+14155552045"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-ticket",
+        "kind": "link",
+        "config": {
+          "Label": "Open a ticket",
+          "Url": "/support/ticket",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "join-office-hours",
+        "kind": "link",
+        "config": {
+          "Label": "Join office hours",
+          "Url": "/events/office-hours/register",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "chat-live",
+        "kind": "link",
+        "config": {
+          "Label": "Chat live",
+          "Url": "/support/live-chat",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-support-hub.xml"
+}

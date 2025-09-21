@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "40e231e029955a61163c3dd8d3ef4885adf5fad6e4b5d84b3a3f939ed21f9c5a",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/live-workshop",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-live-workshop",
+    "title": "UI Block: Live workshop CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-live-workshop",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "event"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Live workshop"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Build a metadata playbook with our team"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Join an interactive session to blueprint a launch workflow tailored to your product, marketing, and lifecycle squads."
+              },
+              "event": {
+                "kind": "binding",
+                "source": "workshopDetails",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "reserve-seat"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-agenda"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "workshopDetails",
+        "kind": "static",
+        "config": {
+          "value": {
+            "date": "April 18, 2025",
+            "time": "10:00 AM",
+            "timezone": "PT",
+            "location": "Virtual via Zoom"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "reserve-seat",
+        "kind": "link",
+        "config": {
+          "Label": "Reserve your seat",
+          "Url": "/events/metadata-workshop",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-agenda",
+        "kind": "link",
+        "config": {
+          "Label": "View agenda",
+          "Url": "/events/metadata-workshop/agenda",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-live-workshop.xml"
+}

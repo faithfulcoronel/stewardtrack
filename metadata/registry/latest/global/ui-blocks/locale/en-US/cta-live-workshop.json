@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/live-workshop::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "40e231e029955a61163c3dd8d3ef4885adf5fad6e4b5d84b3a3f939ed21f9c5a",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/live-workshop",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-live-workshop.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-live-workshop\\1.0.0\\1.0.0.json"
+}

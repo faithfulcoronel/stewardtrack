@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/research-newsletter"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-research-newsletter">
+    <Title>UI Block: Research newsletter CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-research-newsletter" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">newsletter</Prop>
+            <Prop name="badge" kind="static">Weekly research</Prop>
+            <Prop name="headline" kind="static">Stay ahead with metadata research briefs</Prop>
+            <Prop name="description" kind="static">Subscribe for curated experiments, benchmarks, and implementation tactics from leading metadata teams.</Prop>
+            <Prop name="highlights" kind="binding" source="researchHighlights" path="items" />
+            <Prop name="form" kind="binding" source="researchForm" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="subscribe-research" />
+            <Prop name="secondaryCta" kind="action" actionId="view-archive" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="researchHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "title": "Experiment playbooks", "description": "See how product teams validate value props with metadata-driven launches." },
+              { "title": "Benchmarks", "description": "Compare activation and retention metrics across industries." },
+              { "title": "Operational tactics", "description": "Get guidance on governance, release rituals, and reporting." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="researchForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "product-ops@company.com",
+            "buttonLabel": "Subscribe",
+            "disclaimer": "One research briefing every Thursday.",
+            "url": "/newsletter/research/join"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="subscribe-research" kind="link">
+        <Config>
+          <Label>Subscribe now</Label>
+          <Url>/newsletter/research/subscribe</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-archive" kind="link">
+        <Config>
+          <Label>View archive</Label>
+          <Url>/newsletter/research/archive</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

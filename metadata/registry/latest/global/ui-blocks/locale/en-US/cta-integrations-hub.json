@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/integrations-hub::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "ae4e5f29604e66013c87f21c0cffc2b03bf3cd9b5b34a49e76880c1e4485e2b9",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/integrations-hub",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-integrations-hub.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-integrations-hub\\1.0.0\\1.0.0.json"
+}

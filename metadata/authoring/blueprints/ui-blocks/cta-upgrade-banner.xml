@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/upgrade-banner"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-upgrade-banner">
+    <Title>UI Block: Upgrade banner CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-upgrade-banner" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">banner</Prop>
+            <Prop name="badge" kind="static">Upgrade bonus</Prop>
+            <Prop name="headline" kind="static">Upgrade to Flowspace Scale</Prop>
+            <Prop name="description" kind="static">Unlock workspace hierarchy, granular RBAC, and lifecycle analytics designed for multi-product teams.</Prop>
+            <Prop name="highlight" kind="static">Annual upgrade saves 18%</Prop>
+            <Prop name="primaryCta" kind="action" actionId="upgrade-now" />
+            <Prop name="secondaryCta" kind="action" actionId="compare-plans" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <Actions>
+      <Action id="upgrade-now" kind="link">
+        <Config>
+          <Label>Upgrade now</Label>
+          <Url>/pricing/upgrade</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="compare-plans" kind="link">
+        <Config>
+          <Label>Compare plans</Label>
+          <Url>/pricing#plans</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

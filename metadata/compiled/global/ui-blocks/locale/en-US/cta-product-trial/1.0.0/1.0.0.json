@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "c7968fe663b85e3f7c7dabb20c525d5a42c779b4348ba0f06c959a120378a26a",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/product-trial",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-product-trial",
+    "title": "UI Block: Product trial CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-product-trial",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "split"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "14-day access"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Free trial"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Launch Flowspace experiments in days"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Provision a workspace, connect sources, and validate new messaging without waiting on an engineering deploy."
+              },
+              "checklist": {
+                "kind": "binding",
+                "source": "trialChecklist",
+                "path": "items"
+              },
+              "image": {
+                "kind": "binding",
+                "source": "trialMedia",
+                "path": "$"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "start-trial"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "view-guide"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "trialChecklist",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Set up a workspace in under 15 minutes with guided defaults.",
+              "Sync product analytics, CRM context, and launch plans automatically.",
+              "Invite collaborators and assign review tasks across teams."
+            ]
+          }
+        }
+      },
+      {
+        "id": "trialMedia",
+        "kind": "static",
+        "config": {
+          "value": {
+            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80",
+            "alt": "Product team collaborating during a trial onboarding"
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-trial",
+        "kind": "link",
+        "config": {
+          "Label": "Start free trial",
+          "Url": "/signup/trial",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "view-guide",
+        "kind": "link",
+        "config": {
+          "Label": "See onboarding guide",
+          "Url": "/docs/onboarding",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-product-trial.xml"
+}

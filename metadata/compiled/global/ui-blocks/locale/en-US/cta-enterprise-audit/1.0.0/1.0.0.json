@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f13171feea8d3dbb2dd960d0814c857a34cb06e4e26b5c5ef70a9d482c647ad6",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/enterprise-audit",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-cta-enterprise-audit",
+    "title": "UI Block: Enterprise audit CTA",
+    "regions": [
+      {
+        "id": "cta",
+        "components": [
+          {
+            "id": "cta-enterprise-audit",
+            "type": "CTASection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "metrics"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Enterprise workflow audit"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Uncover the roadmap impact of your content operations"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Partner with our solutions team for a guided audit of your publishing models, tooling handoffs, and release cadences."
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Limited to 10 teams per quarter"
+              },
+              "stats": {
+                "kind": "binding",
+                "source": "auditStats",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "book-audit"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "download-brief"
+              },
+              "tertiaryCta": {
+                "kind": "action",
+                "actionId": "share-invite"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "auditStats",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Systems reviewed",
+                "value": "12",
+                "caption": "Average across product, marketing, and success."
+              },
+              {
+                "label": "Time-to-value",
+                "value": "5 weeks",
+                "caption": "From kickoff to operating model recommendation."
+              },
+              {
+                "label": "Stakeholder alignment",
+                "value": "93%",
+                "caption": "Post-audit agreement on governance changes."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "book-audit",
+        "kind": "link",
+        "config": {
+          "Label": "Book an audit",
+          "Url": "/enterprise/audit",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "download-brief",
+        "kind": "link",
+        "config": {
+          "Label": "Download scope brief",
+          "Url": "/resources/flowspace-enterprise-audit.pdf",
+          "Variant": "secondary"
+        }
+      },
+      {
+        "id": "share-invite",
+        "kind": "link",
+        "config": {
+          "Label": "Share with stakeholders",
+          "Url": "/enterprise/audit/share",
+          "Variant": "ghost"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-enterprise-audit.xml"
+}

@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::cta/download-guide::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "949aa7878e0e841460d0860170f7ae15e506e12644713562d76b390b55176197",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "cta/download-guide",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-download-guide.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-download-guide\\1.0.0\\1.0.0.json"
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/security-checklist"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-security-checklist">
+    <Title>UI Block: Security checklist CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-security-checklist" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">stacked</Prop>
+            <Prop name="eyebrow" kind="static">Security review</Prop>
+            <Prop name="headline" kind="static">Guide your security team through Flowspace</Prop>
+            <Prop name="description" kind="static">Share pre-vetted artifacts, control scopes, and map compliance requirements without slowing down adoption.</Prop>
+            <Prop name="highlights" kind="binding" source="securityHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="download-pack" />
+            <Prop name="secondaryCta" kind="action" actionId="meet-security" />
+            <Prop name="tertiaryCta" kind="action" actionId="view-compliance" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="securityHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "title": "SOC 2 and ISO packets", "description": "Share audit-ready control narratives and pen-test summaries." },
+              { "title": "Granular permissions", "description": "Demonstrate field-level policies across authoring and runtime." },
+              { "title": "Data residency controls", "description": "Review hosting options across regions and isolation tiers." },
+              { "title": "Change management logs", "description": "Export approval trails aligned with your governance program." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="download-pack" kind="link">
+        <Config>
+          <Label>Download security pack</Label>
+          <Url>/resources/security-review.zip</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="meet-security" kind="link">
+        <Config>
+          <Label>Meet our security team</Label>
+          <Url>/security/office-hours</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-compliance" kind="link">
+        <Config>
+          <Label>View compliance matrix</Label>
+          <Url>/security/compliance</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

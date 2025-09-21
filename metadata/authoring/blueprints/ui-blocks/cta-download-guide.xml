@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="cta/download-guide"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-cta-download-guide">
+    <Title>UI Block: Download guide CTA</Title>
+    <Regions>
+      <Region id="cta">
+        <Component id="cta-download-guide" type="CTASection">
+          <Props>
+            <Prop name="variant" kind="static">resource</Prop>
+            <Prop name="eyebrow" kind="static">Implementation guide</Prop>
+            <Prop name="headline" kind="static">Download the schema operations playbook</Prop>
+            <Prop name="description" kind="static">A 34-page walkthrough covering governance models, release rituals, and KPI measurement frameworks for metadata programs.</Prop>
+            <Prop name="resource" kind="binding" source="playbookResource" path="$" />
+            <Prop name="steps" kind="binding" source="playbookSteps" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="download-guide" />
+            <Prop name="secondaryCta" kind="action" actionId="share-team" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="playbookResource" kind="static">
+        <Json><![CDATA[
+          {
+            "label": "Flowspace schema operations playbook.pdf",
+            "meta": "34 pages • Includes editable templates"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="playbookSteps" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "title": "Benchmark readiness", "description": "Assess current tooling, governance, and publisher roles." },
+              { "title": "Design your schema", "description": "Model hero, CTA, and feature primitives with extensibility." },
+              { "title": "Roll out in waves", "description": "Plan enablement, QA rituals, and feedback cadences." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="download-guide" kind="link">
+        <Config>
+          <Label>Download the guide</Label>
+          <Url>/resources/schema-operations-playbook.pdf</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-team" kind="link">
+        <Config>
+          <Label>Share with my team</Label>
+          <Url>/share/schema-playbook</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
