@@ -8,9 +8,6 @@ import { useTheme } from "@/components/theme/theme-provider"
 import { cn } from "@/lib/utils"
 import type { ThemeMode } from "@/lib/themes"
 
-import "ag-grid-community/styles/ag-grid.css"
-import "ag-grid-community/styles/ag-theme-quartz.css"
-
 const dataGridThemes = {
   quartz: "ag-theme-quartz",
   quartzDark: "ag-theme-quartz-dark",
