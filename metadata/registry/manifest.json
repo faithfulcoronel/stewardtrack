@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-22T03:15:14.184Z",
+  "generatedAt": "2025-09-22T03:40:04.196Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -1669,6 +1669,210 @@
       },
       "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-talent-engagement.xml",
       "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-talent-engagement/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/agency-collaboration::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/agency-collaboration::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "fdd877896037e152bbeb7131694630613a3fbd32295048f2b1764a08afe911a2",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/agency-collaboration",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-agency-collaboration.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-agency-collaboration/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/commerce-growth::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/commerce-growth::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "90c2314d07e26e99ad8264a9ef784e110678b859fbee592578b0da8b86deb6da",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/commerce-growth",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-commerce-growth.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-commerce-growth/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/creator-success::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/creator-success::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b3f7b77d573ca577fb9bb1edf4fec953ba23a0f3ce44d8b7f155729c570b7f98",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/creator-success",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-creator-success.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-creator-success/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/customer-delight::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/customer-delight::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "8e3f4ea63e50bb368bb4de4282780b57f205baf6640066c30a09fbaf36e7c432",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/customer-delight",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-customer-delight.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-customer-delight/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/education-transformation::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/education-transformation::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "bfa6022058911df0b51f33309a79c410923ad80e80463a6f2ca6c36ca78dc88f",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/education-transformation",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-education-transformation.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-education-transformation/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/enterprise-confidence::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/enterprise-confidence::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "5af178a3aa9aa60be10a9cf6b68a23b368c7c25eb33df2fe7525cfdf2bb0f08d",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/enterprise-confidence",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-enterprise-confidence.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-enterprise-confidence/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/healthcare-outcomes::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/healthcare-outcomes::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "59dfdfd605bef889abd7c1bb2d7e82068c71a77d241cae5ef8dd5e18461e0f2c",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/healthcare-outcomes",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-healthcare-outcomes.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-healthcare-outcomes/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/innovation-leaders::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/innovation-leaders::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "f28a68219dc0011869da0f2c5b7487e011888d743eda25fcb96670fa23ee77da",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/innovation-leaders",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-innovation-leaders.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-innovation-leaders/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/platform-trust::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/platform-trust::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "3cca3b8935d8bb528fc6f12a6a0610f338e260685453826456fe9d25150e34f9",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/platform-trust",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-platform-trust.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-platform-trust/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/product-adoption::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/product-adoption::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "0abe154a1cdb2778c5b7184b36ec51d482abd5da30e15a6c139e8631223b2b5a",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/product-adoption",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-product-adoption.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-product-adoption/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/service-impact::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/service-impact::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "85e1c577d9fc63cdf76f462a786aa0eb794f96aa940e7430443c8798a3597be1",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/service-impact",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-service-impact.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-service-impact/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::testimonials/sustainability-progress::-::-::en-US": {
+      "key": "global::ui-blocks::testimonials/sustainability-progress::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "c96337c6cbd38a519d61a598ebd49964edf52284767890a9f729069abdfc3342",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "testimonials/sustainability-progress",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-sustainability-progress.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-sustainability-progress/1.0.0/1.0.0.json"
     }
   }
 }

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="testimonials/platform-trust"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-testimonials-platform-trust">
+    <Title>UI Block: Testimonials - Platform trust</Title>
+    <Regions>
+      <Region id="testimonials">
+        <Component id="testimonials-platform-trust" type="TestimonialsSection">
+          <Props>
+            <Prop name="variant" kind="static">grid-mosaic</Prop>
+            <Prop name="eyebrow" kind="static">Platform trust</Prop>
+            <Prop name="headline" kind="static">Teams rely on Flowspace to launch confidently</Prop>
+            <Prop name="description" kind="static">A balanced grid for sharing multiple voices side by side. Perfect for product marketing pages or partner showcases.</Prop>
+            <Prop name="testimonials" kind="binding" source="platformTestimonials" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-security" />
+            <Prop name="secondaryCta" kind="action" actionId="audit-checklist" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="platformTestimonials" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "quote": "Flowspace gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
+                "author": "Jonah Park",
+                "role": "Chief Information Officer",
+                "company": "Helios Labs",
+                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "Enterprise engineers reviewing dashboards",
+                "rating": 4.9
+              },
+              {
+                "quote": "We orchestrated five regional launches with one blueprint. Localization and permissions just worked.",
+                "author": "Noor Al-Khaled",
+                "role": "Program Director",
+                "company": "Atlas Mobility",
+                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "City skyline with connected devices",
+                "rating": 4.8
+              },
+              {
+                "quote": "Compliance used to slow us down. With Flowspace, review cycles are embedded into every release plan.",
+                "author": "Heather Liu",
+                "role": "Head of Compliance",
+                "company": "Greenline",
+                "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1523958203904-cdcb402031fd?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "Compliance manager annotating documents",
+                "rating": 5
+              },
+              {
+                "quote": "Stakeholders trust our dashboards now that we stream Flowspace metrics into their daily workspace.",
+                "author": "Lucas Andrade",
+                "role": "Operations Lead",
+                "company": "Nimbus Retail",
+                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "Operations team collaborating around a large display",
+                "rating": 4.7
+              },
+              {
+                "quote": "Every release review now ships with customer quotes and success metrics baked in.",
+                "author": "Samira Ortiz",
+                "role": "Principal Product Manager",
+                "company": "BrightLoop",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "Product team mapping user journeys",
+                "rating": 4.9
+              },
+              {
+                "quote": "Partnerships finally see the same usage evidence we do. It transformed our quarterly business reviews.",
+                "author": "Marcus Reilly",
+                "role": "VP Partnerships",
+                "company": "Waypoint",
+                "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+                "imageAlt": "Team hosting a partner roundtable",
+                "rating": 4.8
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-security" kind="link">
+        <Config>
+          <Label>Explore security architecture</Label>
+          <Url>/platform/security</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="audit-checklist" kind="link">
+        <Config>
+          <Label>Download audit checklist</Label>
+          <Url>/resources/audit-checklist</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

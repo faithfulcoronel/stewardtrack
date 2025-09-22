@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::testimonials/education-transformation::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bfa6022058911df0b51f33309a79c410923ad80e80463a6f2ca6c36ca78dc88f",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "testimonials/education-transformation",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-education-transformation.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-education-transformation/1.0.0/1.0.0.json"
+}

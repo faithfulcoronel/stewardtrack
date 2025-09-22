@@ -21,6 +21,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { title: "CTA sections", href: "/admin/ui-blocks/cta-sections", icon: "uiBlocks" },
       { title: "Header sections", href: "/admin/ui-blocks/header-sections", icon: "uiBlocks" },
       { title: "Hero sections", href: "/admin/ui-blocks/hero-sections", icon: "uiBlocks" },
+      { title: "Testimonials sections", href: "/admin/ui-blocks/testimonials-sections", icon: "uiBlocks" },
       { title: "Stats sections", href: "/admin/ui-blocks/stats-sections", icon: "uiBlocks" },
       {
         title: "Newsletter sections",

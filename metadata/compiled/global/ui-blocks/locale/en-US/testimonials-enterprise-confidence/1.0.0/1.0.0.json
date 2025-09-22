@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "5af178a3aa9aa60be10a9cf6b68a23b368c7c25eb33df2fe7525cfdf2bb0f08d",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "testimonials/enterprise-confidence",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-testimonials-enterprise-confidence",
+    "title": "UI Block: Testimonials - Enterprise confidence",
+    "regions": [
+      {
+        "id": "testimonials",
+        "components": [
+          {
+            "id": "testimonials-enterprise-confidence",
+            "type": "TestimonialsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "offset-accent"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Enterprise confidence"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Enterprise leaders trust Flowspace with complex change"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Staggered cards create rhythm and motion. Use this layout for enterprise proof, board decks, or analyst spotlights."
+              },
+              "testimonials": {
+                "kind": "binding",
+                "source": "enterpriseTestimonials",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-reference"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "schedule-briefing"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "enterpriseTestimonials",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "quote": "We delivered a multi-brand replatforming without replacing our runbooks. Flowspace orchestrated each milestone.",
+                "author": "Allison Mercer",
+                "role": "SVP Digital Transformation",
+                "company": "Cobalt Group",
+                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Global rollout, 6 regions"
+              },
+              {
+                "quote": "Board updates now include live customer sentiment from Flowspace, which changed how we prioritize investment.",
+                "author": "Rafael D'Amico",
+                "role": "Chief Strategy Officer",
+                "company": "Vertex Financial",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Board-ready telemetry"
+              },
+              {
+                "quote": "Partner enablement used to take quarters. Sharing Flowspace experiences gives them a turnkey revenue playbook.",
+                "author": "Mei Tan",
+                "role": "VP Global Channels",
+                "company": "Orbit Systems",
+                "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Launch-ready partners"
+              },
+              {
+                "quote": "Flowspace is our connective tissue across GTM, product, and ops. Everyone acts on the same evidence.",
+                "author": "Henry Crawford",
+                "role": "Chief Operating Officer",
+                "company": "Ardent Cloud",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Shared command center"
+              },
+              {
+                "quote": "Audit prep is now ongoing, not last-minute. Flowspace ties policy evidence to every workflow.",
+                "author": "Sofia Idris",
+                "role": "Chief Risk Officer",
+                "company": "Meridian",
+                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Continuous compliance"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-reference",
+        "kind": "link",
+        "config": {
+          "Label": "Request reference call",
+          "Url": "/enterprise/reference",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "schedule-briefing",
+        "kind": "link",
+        "config": {
+          "Label": "Schedule executive briefing",
+          "Url": "/briefing",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-enterprise-confidence.xml"
+}
