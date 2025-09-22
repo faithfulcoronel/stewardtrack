@@ -1,11 +1,12 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import type { IAnnouncementRepository } from '../repositories/announcement.repository';
-import type { Announcement } from '../models/announcement.model';
-import { QueryOptions } from '../adapters/base.adapter';
-import { TYPES } from '../lib/types';
-import type { CrudService } from './CrudService';
-import { AnnouncementValidator } from '../validators/announcement.validator';
-import { validateOrThrow } from '../utils/validation';
+import type { IAnnouncementRepository } from '@/repositories/announcement.repository';
+import type { Announcement } from '@/models/announcement.model';
+import { QueryOptions } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
+import type { CrudService } from '@/services/CrudService';
+import { AnnouncementValidator } from '@/validators/announcement.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 export type AnnouncementService = CrudService<Announcement> & {
   getActiveAnnouncements(): Promise<Announcement[]>;

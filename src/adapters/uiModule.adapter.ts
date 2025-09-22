@@ -1,8 +1,9 @@
+import 'server-only';
 import "reflect-metadata";
-import { injectable, inject } from "inversify";
-import { SupabaseClient } from "@supabase/supabase-js";
-import type { ModuleMetadata } from "../modules/types/module";
-import { TYPES } from "../lib/types";
+import { injectable } from "inversify";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ModuleMetadata } from "@/modules/types/module";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface IUiModuleAdapter {
   getModuleMetadata(params: {
@@ -13,8 +14,14 @@ export interface IUiModuleAdapter {
 
 @injectable()
 export class UiModuleAdapter implements IUiModuleAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
   async getModuleMetadata({
     moduleGroupId,
     moduleId,
@@ -22,7 +29,8 @@ export class UiModuleAdapter implements IUiModuleAdapter {
     moduleGroupId: string;
     moduleId: string;
   }): Promise<ModuleMetadata> {
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from("ui_modules")
       .select("metadata")
       .eq("group_id", moduleGroupId)

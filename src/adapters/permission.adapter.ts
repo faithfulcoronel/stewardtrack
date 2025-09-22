@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { Permission } from '../models/permission.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { Permission } from '@/models/permission.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IPermissionAdapter = IBaseAdapter<Permission>;
 
@@ -31,7 +32,8 @@ export class PermissionAdapter
   `;
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('menu_permissions')
       .select('menu_item_id')
       .eq('permission_id', id)

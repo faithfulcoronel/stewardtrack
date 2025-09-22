@@ -1,13 +1,14 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import type { IChartOfAccountRepository } from '../repositories/chartOfAccount.repository';
-import type { ChartOfAccount } from '../models/chartOfAccount.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { TYPES } from '../lib/types';
-import type { CrudService } from './CrudService';
-import { ChartOfAccountValidator } from '../validators/chartOfAccount.validator';
-import { validateOrThrow } from '../utils/validation';
-import type { IFinancialTransactionRepository } from '../repositories/financialTransaction.repository';
-import { calculateAccountBalance } from '../utils/accounting';
+import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import type { ChartOfAccount } from '@/models/chartOfAccount.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
+import type { CrudService } from '@/services/CrudService';
+import { ChartOfAccountValidator } from '@/validators/chartOfAccount.validator';
+import { validateOrThrow } from '@/utils/validation';
+import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+import { calculateAccountBalance } from '@/utils/accounting';
 
 @injectable()
 export class ChartOfAccountService implements CrudService<ChartOfAccount> {

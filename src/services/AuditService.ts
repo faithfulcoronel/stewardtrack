@@ -1,5 +1,6 @@
+import 'server-only';
 import { injectable } from 'inversify';
-import { logAuditEvent } from '../utils/auditLogger';
+import { logAuditEvent } from '@/utils/auditLogger';
 
 export interface AuditService {
   logAuditEvent(

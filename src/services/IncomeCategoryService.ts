@@ -1,12 +1,13 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ICategoryRepository } from '../repositories/category.repository';
-import type { Category, CategoryType } from '../models/category.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { CrudService } from './CrudService';
-import { CategoryValidator } from '../validators/category.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { Category, CategoryType } from '@/models/category.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { CrudService } from '@/services/CrudService';
+import { CategoryValidator } from '@/validators/category.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 @injectable()
 export class IncomeCategoryService implements CrudService<Category> {

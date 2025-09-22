@@ -1,9 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { MenuItem } from '../models/menuItem.model';
-import type { IMenuItemAdapter } from '../adapters/menuItem.adapter';
-import { TYPES } from '../lib/types';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { MenuItem } from '@/models/menuItem.model';
+import { TYPES } from '@/lib/types';
 
 export type IMenuItemRepository = BaseRepository<MenuItem>;
 

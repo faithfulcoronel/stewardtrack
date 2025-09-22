@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { Tenant } from '../models/tenant.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { Tenant } from '@/models/tenant.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -56,13 +57,15 @@ export class TenantAdapter
   }
 
   async getCurrentTenant() {
-    const { data, error } = await this.supabase.rpc('get_current_tenant');
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_current_tenant');
     if (error) throw error;
     return (data?.[0] as Tenant) || null;
   }
 
   async updateSubscription(tier: string, cycle: 'monthly' | 'annual') {
-    const { data, error } = await this.supabase.rpc('update_tenant_subscription', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('update_tenant_subscription', {
       p_subscription_tier: tier.toLowerCase(),
       p_billing_cycle: cycle,
     });
@@ -71,7 +74,8 @@ export class TenantAdapter
   }
 
   async getTenantDataCounts(tenantId: string) {
-    const { data, error } = await this.supabase.rpc('get_tenant_data_counts', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_tenant_data_counts', {
       p_tenant_id: tenantId,
     });
     if (error) throw error;
@@ -79,19 +83,20 @@ export class TenantAdapter
   }
 
   async uploadLogo(tenantId: string, file: File) {
+    const supabase = await this.getSupabaseClient();
     const arrayBuffer = await file.arrayBuffer();
     const fileExt = file.name.split('.').pop();
     const path = `${tenantId}/logo.${fileExt}`;
-    const { error: uploadError } = await this.supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('tenant-logos')
       .upload(path, arrayBuffer, { upsert: true });
     if (uploadError) throw uploadError;
 
     const {
       data: { publicUrl },
-    } = this.supabase.storage.from('tenant-logos').getPublicUrl(path);
+    } = supabase.storage.from('tenant-logos').getPublicUrl(path);
 
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from('tenants')
       .update({ profile_picture_url: publicUrl })
       .eq('id', tenantId)
@@ -102,14 +107,16 @@ export class TenantAdapter
   }
 
   async resetTenantData(tenantId: string) {
-    const { error } = await this.supabase.rpc('reset_tenant_data', {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase.rpc('reset_tenant_data', {
       p_tenant_id: tenantId,
     });
     if (error) throw error;
   }
 
   async previewResetTenantData(tenantId: string) {
-    const { data, error } = await this.supabase.rpc(
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc(
       'preview_reset_tenant_data',
       { p_tenant_id: tenantId },
     );

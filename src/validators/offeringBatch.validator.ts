@@ -1,4 +1,4 @@
-import { OfferingBatch } from '../models/offeringBatch.model';
+import { OfferingBatch } from '@/models/offeringBatch.model';
 
 export class OfferingBatchValidator {
   static validate(data: Partial<OfferingBatch>): void {

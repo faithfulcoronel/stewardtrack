@@ -1,12 +1,13 @@
-import { injectable, inject } from "inversify";
-import type { IFinanceDashboardAdapter } from "../adapters/financeDashboard.adapter";
-import { TYPES } from "../lib/types";
-import {
+import 'server-only';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
+import type { IFinanceDashboardAdapter } from '@/adapters/financeDashboard.adapter';
+import type {
   MonthlyTrend,
   FinanceStats,
   FundBalance,
   SourceBalance,
-} from "../models/financeDashboard.model";
+} from '@/models/financeDashboard.model';
 
 export interface IFinanceDashboardRepository {
   getMonthlyTrends(startDate?: Date, endDate?: Date): Promise<MonthlyTrend[]>;

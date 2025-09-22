@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { FinancialTransaction } from '../models/financialTransaction.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { FinancialTransaction } from '@/models/financialTransaction.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IFinancialTransactionAdapter = IBaseAdapter<FinancialTransaction>;
 
@@ -78,8 +79,9 @@ export class FinancialTransactionAdapter
   protected override async onBeforeCreate(
     data: Partial<FinancialTransaction>
   ): Promise<Partial<FinancialTransaction>> {
+    const supabase = await this.getSupabaseClient();
     if (data.header_id) {
-      const { data: header, error } = await this.supabase
+      const { data: header, error } = await supabase
         .from('financial_transaction_headers')
         .select('status')
         .eq('id', data.header_id)
@@ -107,9 +109,10 @@ export class FinancialTransactionAdapter
     id: string,
     data: Partial<FinancialTransaction>
   ): Promise<Partial<FinancialTransaction>> {
+    const supabase = await this.getSupabaseClient();
     let headerId = data.header_id;
     if (!headerId) {
-      const { data: tx, error } = await this.supabase
+      const { data: tx, error } = await supabase
         .from(this.tableName)
         .select('header_id')
         .eq('id', id)
@@ -119,7 +122,7 @@ export class FinancialTransactionAdapter
     }
 
     if (headerId) {
-      const { data: header, error } = await this.supabase
+      const { data: header, error } = await supabase
         .from('financial_transaction_headers')
         .select('status')
         .eq('id', headerId)
@@ -146,14 +149,15 @@ export class FinancialTransactionAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data: tx, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: tx, error } = await supabase
       .from(this.tableName)
       .select('header_id')
       .eq('id', id)
       .single();
     if (error) throw error;
     if (tx?.header_id) {
-      const { data: header, error: headErr } = await this.supabase
+      const { data: header, error: headErr } = await supabase
         .from('financial_transaction_headers')
         .select('status')
         .eq('id', tx.header_id)

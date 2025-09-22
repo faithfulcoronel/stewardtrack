@@ -1,11 +1,11 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { FinancialSource } from '../models/financialSource.model';
-import type { IFinancialSourceAdapter } from '../adapters/financialSource.adapter';
-import type { IChartOfAccountRepository } from './chartOfAccount.repository';
-import { NotificationService } from '../services/NotificationService';
-import { FinancialSourceValidator } from '../validators/financialSource.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { FinancialSource } from '@/models/financialSource.model';
+import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import { NotificationService } from '@/services/NotificationService';
+import { FinancialSourceValidator } from '@/validators/financialSource.validator';
+import { TYPES } from '@/lib/types';
 
 export type IFinancialSourceRepository = BaseRepository<FinancialSource>;
 
@@ -15,8 +15,8 @@ export class FinancialSourceRepository
   implements IFinancialSourceRepository
 {
   constructor(
-    @inject('IFinancialSourceAdapter') adapter: BaseAdapter<FinancialSource>,
-    @inject('IChartOfAccountRepository')
+    @inject(TYPES.IFinancialSourceAdapter) adapter: BaseAdapter<FinancialSource>,
+    @inject(TYPES.IChartOfAccountRepository)
     private chartOfAccountRepository: IChartOfAccountRepository
   ) {
     super(adapter);
@@ -58,7 +58,7 @@ export class FinancialSourceRepository
     this.coaIdToDelete = source.coa_id || null;
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     try {
       if (this.coaIdToDelete) {
         await this.chartOfAccountRepository.delete(this.coaIdToDelete);

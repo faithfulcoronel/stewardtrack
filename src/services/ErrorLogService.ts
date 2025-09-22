@@ -1,6 +1,7 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IErrorLogRepository } from '../repositories/errorLog.repository';
+import { TYPES } from '@/lib/types';
+import type { IErrorLogRepository } from '@/repositories/errorLog.repository';
 
 export interface ErrorLogService {
   logError(message: string, stack?: string | null, context?: Record<string, any>): Promise<void>;

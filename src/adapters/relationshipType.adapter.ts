@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { RelationshipType } from '../models/relationshipType.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { RelationshipType } from '@/models/relationshipType.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IRelationshipTypeAdapter = IBaseAdapter<RelationshipType>;
 
@@ -60,7 +61,8 @@ export class RelationshipTypeAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data: relationships, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: relationships, error } = await supabase
       .from('family_relationships')
       .select('id')
       .eq('relationship_category_id', id)

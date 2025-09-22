@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, QueryOptions, type IBaseAdapter } from './base.adapter';
-import { IncomeExpenseTransaction } from '../models/incomeExpenseTransaction.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, QueryOptions, type IBaseAdapter } from '@/adapters/base.adapter';
+import { IncomeExpenseTransaction } from '@/models/incomeExpenseTransaction.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export interface IIncomeExpenseTransactionAdapter
   extends IBaseAdapter<IncomeExpenseTransaction> {

@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { Member } from '../models/member.model';
-import type { IMemberAdapter } from '../adapters/member.adapter';
-import { MemberValidator } from '../validators/member.validator';
-import { NotificationService } from '../services/NotificationService';
+import { BaseRepository } from '@/repositories/base.repository';
+import { Member } from '@/models/member.model';
+import { MemberValidator } from '@/validators/member.validator';
+import { NotificationService } from '@/services/NotificationService';
+import { TYPES } from '@/lib/types';
 
 export interface IMemberRepository extends BaseRepository<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
@@ -18,7 +18,7 @@ export class MemberRepository
 {
   private memberAdapter: IMemberAdapter;
 
-  constructor(@inject('IMemberAdapter') adapter: IMemberAdapter) {
+  constructor(@inject(TYPES.IMemberAdapter) adapter: IMemberAdapter) {
     // Cast to any to bypass TypeScript interface mismatch
     super(adapter as any);
     this.memberAdapter = adapter;

@@ -1,4 +1,4 @@
-import { Entity } from '../lib/repository/types';
+import { Entity } from '@/lib/repository/types';
 
 export interface BaseModel extends Entity {
   tenant_id?: string;

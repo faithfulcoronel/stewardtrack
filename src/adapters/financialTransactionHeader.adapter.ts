@@ -1,11 +1,12 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, QueryOptions } from './base.adapter';
-import { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
-import { tenantUtils } from '../utils/tenantUtils';
-import { format, parse } from 'date-fns';
+import { BaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
+import { tenantUtils } from '@/utils/tenantUtils';
+import { format } from 'date-fns';
 
 export interface IFinancialTransactionHeaderAdapter
   extends BaseAdapter<FinancialTransactionHeader> {
@@ -92,7 +93,8 @@ export class FinancialTransactionHeaderAdapter
 
   protected override async onBeforeUpdate(id: string, data: Partial<FinancialTransactionHeader>): Promise<Partial<FinancialTransactionHeader>> {
     // Get current header data
-    const { data: currentHeader, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: currentHeader, error } = await supabase
       .from(this.tableName)
       .select('status')
       .eq('id', id)
@@ -113,14 +115,14 @@ export class FinancialTransactionHeaderAdapter
       // If changing to posted, set posted_at and posted_by
       if (data.status === 'posted' && currentHeader.status !== 'posted') {
         data.posted_at = new Date().toISOString();
-        const { data: { user } } = await this.supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         data.posted_by = user?.id;
       }
-      
+
       // If changing to voided, set voided_at and voided_by
       if (data.status === 'voided' && currentHeader.status !== 'voided') {
         data.voided_at = new Date().toISOString();
-        const { data: { user } } = await this.supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         data.voided_by = user?.id;
         
         // Require void reason
@@ -140,7 +142,8 @@ export class FinancialTransactionHeaderAdapter
 
   protected override async onBeforeDelete(id: string): Promise<void> {
     // Check status of header before allowing delete
-    const { data: header, error: headerError } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: header, error: headerError } = await supabase
       .from(this.tableName)
       .select('status')
       .eq('id', id)
@@ -155,7 +158,7 @@ export class FinancialTransactionHeaderAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { error: deleteError } = await this.supabase
+    const { error: deleteError } = await supabase
       .from('financial_transactions')
       .delete()
       .eq('header_id', id)
@@ -171,6 +174,7 @@ export class FinancialTransactionHeaderAdapter
 
 
   private async generateTransactionNumber(date: string, status: string): Promise<string> {
+    const supabase = await this.getSupabaseClient();
     const prefixMap: Record<string, string> = {
       draft: 'DFT',
       submitted: 'SUB',
@@ -186,7 +190,7 @@ export class FinancialTransactionHeaderAdapter
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     
     // Get current sequence for this month
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from(this.tableName)
       .select('transaction_number')
       .ilike('transaction_number', `${prefix}-${year}${month}-%`)
@@ -206,36 +210,40 @@ export class FinancialTransactionHeaderAdapter
   }
 
   public async postTransaction(id: string): Promise<void> {
-    const { error } = await this.supabase.rpc('post_transaction', {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase.rpc('post_transaction', {
       p_header_id: id,
-      p_user_id: (await this.supabase.auth.getUser()).data.user?.id
+      p_user_id: (await supabase.auth.getUser()).data.user?.id
     });
 
     if (error) throw error;
   }
 
   public async submitTransaction(id: string): Promise<void> {
-    const { error } = await this.supabase.rpc('submit_transaction', {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase.rpc('submit_transaction', {
       p_header_id: id,
-      p_user_id: (await this.supabase.auth.getUser()).data.user?.id
+      p_user_id: (await supabase.auth.getUser()).data.user?.id
     });
 
     if (error) throw error;
   }
 
   public async approveTransaction(id: string): Promise<void> {
-    const { error } = await this.supabase.rpc('approve_transaction', {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase.rpc('approve_transaction', {
       p_header_id: id,
-      p_user_id: (await this.supabase.auth.getUser()).data.user?.id
+      p_user_id: (await supabase.auth.getUser()).data.user?.id
     });
 
     if (error) throw error;
   }
 
   public async voidTransaction(id: string, reason: string): Promise<void> {
-    const { error } = await this.supabase.rpc('void_transaction', {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase.rpc('void_transaction', {
       p_header_id: id,
-      p_user_id: (await this.supabase.auth.getUser()).data.user?.id,
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
       p_reason: reason
     });
     
@@ -246,7 +254,8 @@ export class FinancialTransactionHeaderAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('financial_transactions')
       .select(
         `
@@ -279,7 +288,8 @@ export class FinancialTransactionHeaderAdapter
   }
 
   public async isTransactionBalanced(headerId: string): Promise<boolean> {
-    const { data, error } = await this.supabase.rpc('is_transaction_balanced', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('is_transaction_balanced', {
       p_header_id: headerId
     });
 
@@ -313,7 +323,8 @@ export class FinancialTransactionHeaderAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
 
-    const { data, error } = await this.supabase.rpc('get_unmapped_headers', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_unmapped_headers', {
       p_tenant_id: tenantId,
     });
 
@@ -324,7 +335,8 @@ export class FinancialTransactionHeaderAdapter
   private async insertTransactions(headerId: string, entries: any[]): Promise<any[]> {
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
-    const userId = (await this.supabase.auth.getUser()).data.user?.id;
+    const supabase = await this.getSupabaseClient();
+    const userId = (await supabase.auth.getUser()).data.user?.id;
     const rows = entries.map((e) => ({
       ...e,
       header_id: headerId,
@@ -334,7 +346,7 @@ export class FinancialTransactionHeaderAdapter
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }));
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from('financial_transactions')
       .insert(rows)
       .select();
@@ -345,8 +357,9 @@ export class FinancialTransactionHeaderAdapter
   private async replaceTransactions(headerId: string, entries: any[]): Promise<any[]> {
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
-    const userId = (await this.supabase.auth.getUser()).data.user?.id;
-    await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    await supabase
       .from('financial_transactions')
       .delete()
       .eq('header_id', headerId)
@@ -362,7 +375,7 @@ export class FinancialTransactionHeaderAdapter
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }));
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('financial_transactions')
         .insert(rows)
         .select();

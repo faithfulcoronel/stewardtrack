@@ -1,6 +1,7 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IMembersDashboardRepository } from '../repositories/membersDashboard.repository';
+import { TYPES } from '@/lib/types';
+import type { IMembersDashboardRepository } from '@/repositories/membersDashboard.repository';
 
 @injectable()
 export class MembersDashboardService {

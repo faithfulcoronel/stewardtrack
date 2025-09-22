@@ -1,4 +1,4 @@
-import { Announcement } from '../models/announcement.model';
+import { Announcement } from '@/models/announcement.model';
 
 export class AnnouncementValidator {
   static validate(data: Partial<Announcement>): void {

@@ -1,4 +1,4 @@
-import { Tenant } from '../models/tenant.model';
+import { Tenant } from '@/models/tenant.model';
 
 export class TenantValidator {
   static validate(data: Partial<Tenant>): void {

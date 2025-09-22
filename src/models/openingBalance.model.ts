@@ -1,5 +1,5 @@
-import { BaseModel } from './base.model';
-import type { FinancialSource } from './financialSource.model';
+import { BaseModel } from '@/models/base.model';
+import type { FinancialSource } from '@/models/financialSource.model';
 
 export type OpeningBalanceStatus =
   | 'draft'

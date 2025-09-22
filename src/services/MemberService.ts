@@ -1,3 +1,4 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
 import {
   format,
@@ -14,15 +15,15 @@ import {
   subYears,
   subWeeks,
 } from 'date-fns';
-import { TYPES } from '../lib/types';
-import type { IMemberRepository } from '../repositories/member.repository';
-import type { IAccountRepository } from '../repositories/account.repository';
-import type { IFinancialTransactionRepository } from '../repositories/financialTransaction.repository';
-import type { Member } from '../models/member.model';
-import { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
-import { MemberValidator } from '../validators/member.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { IMemberRepository } from '@/repositories/member.repository';
+import type { IAccountRepository } from '@/repositories/account.repository';
+import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+import type { Member } from '@/models/member.model';
+import { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
+import { MemberValidator } from '@/validators/member.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 @injectable()
 export class MemberService implements CrudService<Member> {

@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Fund } from '../models/fund.model';
-import type { IFundAdapter } from '../adapters/fund.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { FundValidator } from '../validators/fund.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Fund } from '@/models/fund.model';
+import { NotificationService } from '@/services/NotificationService';
+import { FundValidator } from '@/validators/fund.validator';
+import { TYPES } from '@/lib/types';
 
 export type IFundRepository = BaseRepository<Fund>;
 
@@ -13,7 +13,7 @@ export class FundRepository
   extends BaseRepository<Fund>
   implements IFundRepository
 {
-  constructor(@inject('IFundAdapter') adapter: BaseAdapter<Fund>) {
+  constructor(@inject(TYPES.IFundAdapter) adapter: BaseAdapter<Fund>) {
     super(adapter);
   }
 

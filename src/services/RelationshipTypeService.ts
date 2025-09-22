@@ -1,10 +1,11 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IRelationshipTypeRepository } from '../repositories/relationshipType.repository';
-import type { RelationshipType } from '../models/relationshipType.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IRelationshipTypeRepository } from '@/repositories/relationshipType.repository';
+import type { RelationshipType } from '@/models/relationshipType.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { CrudService } from '@/services/CrudService';
 
 @injectable()
 export class RelationshipTypeService

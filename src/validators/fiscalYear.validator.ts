@@ -1,4 +1,4 @@
-import { FiscalYear } from '../models/fiscalYear.model';
+import { FiscalYear } from '@/models/fiscalYear.model';
 
 export class FiscalYearValidator {
   static validate(data: Partial<FiscalYear>): void {

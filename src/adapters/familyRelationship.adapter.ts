@@ -1,7 +1,8 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { FamilyRelationship } from '../models/familyRelationship.model';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { FamilyRelationship } from '@/models/familyRelationship.model';
 
 export type IFamilyRelationshipAdapter = IBaseAdapter<FamilyRelationship>;
 

@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { IncomeExpenseTransaction } from '../models/incomeExpenseTransaction.model';
-import type { IIncomeExpenseTransactionAdapter } from '../adapters/incomeExpenseTransaction.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { IncomeExpenseTransactionValidator } from '../validators/incomeExpenseTransaction.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { IncomeExpenseTransaction } from '@/models/incomeExpenseTransaction.model';
+import type { IIncomeExpenseTransactionAdapter } from '@/adapters/incomeExpenseTransaction.adapter';
+import { IncomeExpenseTransactionValidator } from '@/validators/incomeExpenseTransaction.validator';
+import { TYPES } from '@/lib/types';
 
 export interface IIncomeExpenseTransactionRepository extends BaseRepository<IncomeExpenseTransaction> {
   getByHeaderId(headerId: string): Promise<IncomeExpenseTransaction[]>;
@@ -16,7 +16,7 @@ export class IncomeExpenseTransactionRepository
   implements IIncomeExpenseTransactionRepository
 {
   constructor(
-    @inject('IIncomeExpenseTransactionAdapter') adapter: BaseAdapter<IncomeExpenseTransaction>
+    @inject(TYPES.IIncomeExpenseTransactionAdapter) adapter: BaseAdapter<IncomeExpenseTransaction>
   ) {
     super(adapter);
   }
@@ -28,23 +28,23 @@ export class IncomeExpenseTransactionRepository
     return this.formatData(data);
   }
 
-  protected override async afterCreate(data: IncomeExpenseTransaction): Promise<void> {
+  protected override async afterCreate(_data: IncomeExpenseTransaction): Promise<void> {
     // Notification handled at service level
   }
 
   protected override async beforeUpdate(
-    id: string,
+    _id: string,
     data: Partial<IncomeExpenseTransaction>
   ): Promise<Partial<IncomeExpenseTransaction>> {
     IncomeExpenseTransactionValidator.validate(data);
     return this.formatData(data);
   }
 
-  protected override async afterUpdate(data: IncomeExpenseTransaction): Promise<void> {
+  protected override async afterUpdate(_data: IncomeExpenseTransaction): Promise<void> {
     // Notification handled at service level
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Notification handled at service level
   }
 

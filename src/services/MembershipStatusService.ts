@@ -1,10 +1,11 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IMembershipStatusRepository } from '../repositories/membershipStatus.repository';
-import type { MembershipStatus } from '../models/membershipStatus.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IMembershipStatusRepository } from '@/repositories/membershipStatus.repository';
+import type { MembershipStatus } from '@/models/membershipStatus.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { CrudService } from '@/services/CrudService';
 
 @injectable()
 export class MembershipStatusService

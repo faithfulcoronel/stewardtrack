@@ -1,11 +1,12 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { RoleMenuItem } from '../models/roleMenuItem.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
-import { tenantUtils } from '../utils/tenantUtils';
-import { handleSupabaseError } from '../utils/supabaseErrorHandler';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { RoleMenuItem } from '@/models/roleMenuItem.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
+import { tenantUtils } from '@/utils/tenantUtils';
+import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
 
 export interface IRoleMenuItemAdapter extends IBaseAdapter<RoleMenuItem> {
   replaceRoleMenuItems(roleId: string, menuItemIds: string[]): Promise<void>;
@@ -54,7 +55,9 @@ export class RoleMenuItemAdapter
       throw new Error('No tenant context found');
     }
 
-    const { error: deleteError } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+
+    const { error: deleteError } = await supabase
       .from(this.tableName)
       .delete()
       .eq('role_id', roleId)
@@ -63,7 +66,7 @@ export class RoleMenuItemAdapter
     if (deleteError) handleSupabaseError(deleteError);
 
     if (menuItemIds.length) {
-      const userId = (await this.supabase.auth.getUser()).data.user?.id;
+      const userId = (await supabase.auth.getUser()).data.user?.id;
       const rows = menuItemIds.map(mid => ({
         role_id: roleId,
         menu_item_id: mid,
@@ -72,7 +75,7 @@ export class RoleMenuItemAdapter
         created_at: new Date().toISOString(),
       }));
 
-      const { error: insertError } = await this.supabase
+      const { error: insertError } = await supabase
         .from(this.tableName)
         .insert(rows);
 

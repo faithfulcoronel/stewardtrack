@@ -1,9 +1,10 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ITenantRepository } from '../repositories/tenant.repository';
-import type { Tenant } from '../models/tenant.model';
-import { TenantValidator } from '../validators/tenant.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { ITenantRepository } from '@/repositories/tenant.repository';
+import type { Tenant } from '@/models/tenant.model';
+import { TenantValidator } from '@/validators/tenant.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 @injectable()
 export class TenantService {

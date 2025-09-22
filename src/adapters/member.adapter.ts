@@ -1,10 +1,11 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { Member } from '../models/member.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
-import { tenantUtils } from '../utils/tenantUtils';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { Member } from '@/models/member.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 export interface IMemberAdapter extends IBaseAdapter<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
@@ -73,13 +74,15 @@ export class MemberAdapter
   ];
 
   async getCurrentMonthBirthdays(): Promise<Member[]> {
-    const { data, error } = await this.supabase.rpc('get_current_month_birthdays');
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_current_month_birthdays');
     if (error) throw error;
     return (data || []) as Member[];
   }
 
   async getBirthdaysByMonth(month: number): Promise<Member[]> {
-    const { data, error } = await this.supabase.rpc('get_birthdays_for_month', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_birthdays_for_month', {
       p_month: month,
     });
     if (error) throw error;
@@ -87,15 +90,16 @@ export class MemberAdapter
   }
 
   async getCurrentUserMember(): Promise<Member | null> {
+    const supabase = await this.getSupabaseClient();
     const {
       data: { user },
-    } = await this.supabase.auth.getUser();
+    } = await supabase.auth.getUser();
     if (!user) return null;
 
     const tenantId = await this.getTenantId();
     if (!tenantId) return null;
 
-    const { data: tenantUser } = await this.supabase
+    const { data: tenantUser } = await supabase
       .from('tenant_users')
       .select('member_id')
       .eq('user_id', user.id)
@@ -104,7 +108,7 @@ export class MemberAdapter
 
     if (!tenantUser?.member_id) return null;
 
-    const { data: member } = await this.supabase
+    const { data: member } = await supabase
       .from('members')
       .select('*')
       .eq('id', tenantUser.member_id)
@@ -115,8 +119,9 @@ export class MemberAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
     // Check for family relationships
-    const { data: familyRelationships, error: relationshipsError } = await this.supabase
+    const { data: familyRelationships, error: relationshipsError } = await supabase
       .from('family_relationships')
       .select('id')
       .or(`member_id.eq.${id},related_member_id.eq.${id}`)
@@ -128,7 +133,7 @@ export class MemberAdapter
     }
 
     // Check for financial transactions
-    const { data: transactions, error: transactionsError } = await this.supabase
+    const { data: transactions, error: transactionsError } = await supabase
       .from('financial_transactions')
       .select('id')
       .eq('member_id', id)

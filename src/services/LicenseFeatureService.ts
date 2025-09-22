@@ -1,7 +1,8 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ILicenseRepository } from '../repositories/license.repository';
-import type { ILicenseFeatureRepository } from '../repositories/licenseFeature.repository';
+import { TYPES } from '@/lib/types';
+import type { ILicenseRepository } from '@/repositories/license.repository';
+import type { ILicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
 
 @injectable()
 export class LicenseFeatureService {

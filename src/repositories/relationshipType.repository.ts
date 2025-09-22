@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { RelationshipType } from '../models/relationshipType.model';
-import type { IRelationshipTypeAdapter } from '../adapters/relationshipType.adapter';
-import { NotificationService } from '../services/NotificationService';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { RelationshipType } from '@/models/relationshipType.model';
+import { NotificationService } from '@/services/NotificationService';
+import { TYPES } from '@/lib/types';
 
 export type IRelationshipTypeRepository = BaseRepository<RelationshipType>;
 
@@ -12,7 +12,7 @@ export class RelationshipTypeRepository
   extends BaseRepository<RelationshipType>
   implements IRelationshipTypeRepository
 {
-  constructor(@inject('IRelationshipTypeAdapter') adapter: BaseAdapter<RelationshipType>) {
+  constructor(@inject(TYPES.IRelationshipTypeAdapter) adapter: BaseAdapter<RelationshipType>) {
     super(adapter);
   }
 

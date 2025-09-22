@@ -1,12 +1,13 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import type { IOpeningBalanceRepository } from '../repositories/openingBalance.repository';
-import type { IFinancialTransactionHeaderRepository } from '../repositories/financialTransactionHeader.repository';
-import type { IFinancialTransactionRepository } from '../repositories/financialTransaction.repository';
+import type { IOpeningBalanceRepository } from '@/repositories/openingBalance.repository';
+import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
+import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
 
-import type { IFundRepository } from '../repositories/fund.repository';
-import type { IFinancialSourceRepository } from '../repositories/financialSource.repository';
-import { TYPES } from '../lib/types';
-import type { OpeningBalance } from '../models/openingBalance.model';
+import type { IFundRepository } from '@/repositories/fund.repository';
+import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import { TYPES } from '@/lib/types';
+import type { OpeningBalance } from '@/models/openingBalance.model';
 
 export interface OpeningBalanceEntry {
   fund_id: string;

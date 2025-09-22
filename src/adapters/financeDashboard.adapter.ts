@@ -1,16 +1,17 @@
+import 'server-only';
 import "reflect-metadata";
-import { injectable, inject } from "inversify";
-import { SupabaseClient } from "@supabase/supabase-js";
-import { tenantUtils } from "../utils/tenantUtils";
+import { injectable } from "inversify";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { tenantUtils } from "@/utils/tenantUtils";
 import { format } from "date-fns";
-import { TYPES } from "../lib/types";
 import {
   MonthlyTrend,
   FinanceStatsRow,
   FundBalance,
   SourceBalance,
-} from "../models/financeDashboard.model";
-import type { RequestContext } from "../lib/server/context";
+} from "@/models/financeDashboard.model";
+import type { RequestContext } from "@/lib/server/context";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface IFinanceDashboardAdapter {
   fetchMonthlyTrends(
@@ -27,10 +28,15 @@ export interface IFinanceDashboardAdapter {
 
 @injectable()
 export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
-  @inject(TYPES.RequestContext)
-  private context!: RequestContext;
+  private supabase: SupabaseClient | null = null;
+  private context: RequestContext = {} as RequestContext;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
 
   private async getTenantId() {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
@@ -39,7 +45,8 @@ export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
     startDate?: Date,
     endDate?: Date,
   ): Promise<MonthlyTrend[]> {
-    let query = this.supabase.from("finance_monthly_trends").select("*");
+    const supabase = await this.getSupabaseClient();
+    let query = supabase.from("finance_monthly_trends").select("*");
 
     if (startDate) {
       query = query.gte("month", format(startDate, "yyyy-MM"));
@@ -61,7 +68,8 @@ export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
     const tenantId = await this.getTenantId();
     if (!tenantId) return null;
 
-    const { data, error } = await this.supabase.rpc("finance_monthly_stats", {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc("finance_monthly_stats", {
       p_tenant_id: tenantId,
       p_start_date: format(startDate, "yyyy-MM-dd"),
       p_end_date: format(endDate, "yyyy-MM-dd"),
@@ -74,7 +82,8 @@ export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from("fund_balances_view")
       .select("*")
       .eq("tenant_id", tenantId)
@@ -87,14 +96,15 @@ export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
 
-    const { data: sources, error: srcErr } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: sources, error: srcErr } = await supabase
       .from("financial_sources")
       .select("id, name, coa_id")
       .eq("tenant_id", tenantId)
       .order("name");
     if (srcErr) throw srcErr;
 
-    const { data: trial, error: trialErr } = await this.supabase.rpc(
+    const { data: trial, error: trialErr } = await supabase.rpc(
       "report_trial_balance",
       { p_tenant_id: tenantId, p_end_date: format(new Date(), "yyyy-MM-dd") },
     );

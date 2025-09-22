@@ -1,9 +1,10 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ICategoryRepository } from '../repositories/category.repository';
-import type { IFundRepository } from '../repositories/fund.repository';
-import { IncomeExpenseTransactionService, IncomeExpenseEntry } from './IncomeExpenseTransactionService';
-import type { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
+import { TYPES } from '@/lib/types';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { IFundRepository } from '@/repositories/fund.repository';
+import { IncomeExpenseTransactionService, IncomeExpenseEntry } from '@/services/IncomeExpenseTransactionService';
+import type { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 
 export interface DonationImportRow {
   tenant_id: string;

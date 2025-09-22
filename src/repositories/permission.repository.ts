@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Permission } from '../models/permission.model';
-import type { IPermissionAdapter } from '../adapters/permission.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { PermissionValidator } from '../validators/permission.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Permission } from '@/models/permission.model';
+import { NotificationService } from '@/services/NotificationService';
+import { PermissionValidator } from '@/validators/permission.validator';
+import { TYPES } from '@/lib/types';
 
 export type IPermissionRepository = BaseRepository<Permission>;
 
@@ -13,7 +13,7 @@ export class PermissionRepository
   extends BaseRepository<Permission>
   implements IPermissionRepository
 {
-  constructor(@inject('IPermissionAdapter') adapter: BaseAdapter<Permission>) {
+  constructor(@inject(TYPES.IPermissionAdapter) adapter: BaseAdapter<Permission>) {
     super(adapter);
   }
 

@@ -1,6 +1,6 @@
-import { BaseModel } from './base.model';
-import { ChartOfAccount } from './chartOfAccount.model';
-import { Fund } from './fund.model';
+import { BaseModel } from '@/models/base.model';
+import { ChartOfAccount } from '@/models/chartOfAccount.model';
+import { Fund } from '@/models/fund.model';
 
 export type CategoryType =
   | 'membership'

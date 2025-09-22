@@ -1,4 +1,4 @@
-import { Permission } from '../models/permission.model';
+import { Permission } from '@/models/permission.model';
 
 export class PermissionValidator {
   static validate(data: Partial<Permission>): void {

@@ -1,15 +1,16 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IFinancialTransactionRepository } from '../repositories/financialTransaction.repository';
-import type { IFinancialTransactionHeaderRepository } from '../repositories/financialTransactionHeader.repository';
-import type { IIncomeExpenseTransactionMappingRepository } from '../repositories/incomeExpenseTransactionMapping.repository';
-import type { IIncomeExpenseTransactionRepository } from '../repositories/incomeExpenseTransaction.repository';
+import { TYPES } from '@/lib/types';
+import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
+import type { IIncomeExpenseTransactionMappingRepository } from '@/repositories/incomeExpenseTransactionMapping.repository';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import type {
   FinancialTransaction,
   TransactionType,
-} from '../models/financialTransaction.model';
-import type { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
-import type { IncomeExpenseTransaction } from '../models/incomeExpenseTransaction.model';
+} from '@/models/financialTransaction.model';
+import type { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
+import type { IncomeExpenseTransaction } from '@/models/incomeExpenseTransaction.model';
 
 export interface UnmappedTransactionSet {
   header: FinancialTransactionHeader;

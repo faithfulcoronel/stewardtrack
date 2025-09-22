@@ -1,11 +1,12 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IAccountRepository } from '../repositories/account.repository';
-import type { Account } from '../models/account.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
-import { AccountValidator } from '../validators/account.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { IAccountRepository } from '@/repositories/account.repository';
+import type { Account } from '@/models/account.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
+import { AccountValidator } from '@/validators/account.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 export interface GenerateAccountNumberRequest {
   pageId: string;

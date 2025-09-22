@@ -1,9 +1,10 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IBudgetRepository } from '../repositories/budget.repository';
-import { Budget } from '../models/budget.model';
-import { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IBudgetRepository } from '@/repositories/budget.repository';
+import { Budget } from '@/models/budget.model';
+import { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
 
 export type BudgetService = CrudService<Budget>;
 

@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { UserRole } from '../models/userRole.model';
-import type { IUserRoleAdapter } from '../adapters/userRole.adapter';
-import { TYPES } from '../lib/types';
-import { handleError } from '../utils/errorHandler';
+import { BaseRepository } from '@/repositories/base.repository';
+import { UserRole } from '@/models/userRole.model';
+import type { IUserRoleAdapter } from '@/adapters/userRole.adapter';
+import { TYPES } from '@/lib/types';
+import { handleError } from '@/utils/errorHandler';
 
 export interface IUserRoleRepository extends BaseRepository<UserRole> {
   replaceUserRoles(

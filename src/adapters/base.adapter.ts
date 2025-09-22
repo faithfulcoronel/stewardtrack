@@ -1,16 +1,16 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '../../utils/supabase/client';
-import { createClient as createServerClient } from '../../utils/supabase/server';
-import { handleSupabaseError } from '../utils/supabaseErrorHandler';
-import { handleError, TenantContextError } from '../utils/errorHandler';
-import { BaseModel } from '../models/base.model';
-import { FilterOperator } from '../lib/repository/types';
-import type { RequestContext } from '../lib/server/context';
-import { TYPES } from '../lib/types';
-import { getUserDisplayNameMap } from '../lib/server/userDisplayName';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getUserDisplayNameMap } from '@/lib/server/userDisplayName';
+import { TYPES } from '@/lib/types';
+import { BaseModel } from '@/models/base.model';
+import { FilterOperator } from '@/lib/repository/types';
+import type { RequestContext } from '@/lib/server/context';
+import { handleError, TenantContextError } from '@/utils/errorHandler';
+import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
 
 export interface FilterCondition {
   operator: FilterOperator | string;
@@ -63,16 +63,13 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   @inject(TYPES.RequestContext)
   protected context: RequestContext = {} as RequestContext;
 
-  @inject(TYPES.SupabaseClient)
-  protected supabase: SupabaseClient = createClient();
+  protected supabase: SupabaseClient | null = null;
 
   protected async getSupabaseClient(): Promise<SupabaseClient> {
-    // Use client-side client for browser operations
-    if (typeof window !== 'undefined') {
-      return createClient();
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
     }
-    // Use server-side client for server operations
-    return await createServerClient();
+    return this.supabase;
   }
 
   protected async getUserId(): Promise<string | undefined> {

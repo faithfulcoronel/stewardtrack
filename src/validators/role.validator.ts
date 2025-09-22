@@ -1,6 +1,6 @@
-import { Role } from '../models/role.model';
-import type { IRoleRepository } from '../repositories/role.repository';
-import type { IPermissionRepository } from '../repositories/permission.repository';
+import { Role } from '@/models/role.model';
+import type { IRoleRepository } from '@/repositories/role.repository';
+import type { IPermissionRepository } from '@/repositories/permission.repository';
 
 export class RoleValidator {
   static async validate(

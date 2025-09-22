@@ -1,9 +1,9 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IMenuItemRepository } from '../repositories/menuItem.repository';
-import { LicenseFeatureService } from './LicenseFeatureService';
-import { TenantService } from './TenantService';
-import { navigation as staticNavigation, NavItem } from '../config/navigation';
+import { TYPES } from '@/lib/types';
+import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
+import { LicenseFeatureService } from '@/services/LicenseFeatureService';
+import { TenantService } from '@/services/TenantService';
 
 interface SidebarItem {
   name: string;
@@ -13,14 +13,7 @@ interface SidebarItem {
   submenu?: SidebarItem[];
 }
 
-const sectionMap = new Map<string, string>();
-function collectSections(items: NavItem[]) {
-  items.forEach(it => {
-    if (it.href) sectionMap.set(it.href, it.section ?? 'General');
-    if (it.submenu) collectSections(it.submenu);
-  });
-}
-collectSections(staticNavigation);
+const DEFAULT_SECTION = 'General';
 
 @injectable()
 export class SidebarService {
@@ -104,8 +97,7 @@ export class SidebarService {
     sortItems(roots);
 
     const convert = (item: any, parentSection?: string): SidebarItem => {
-      const section =
-        item.section ?? parentSection ?? sectionMap.get(item.path) ?? 'General';
+      const section = item.section ?? parentSection ?? DEFAULT_SECTION;
       return {
         name: item.label,
         href: item.path,
@@ -120,4 +112,3 @@ export class SidebarService {
 }
 
 export type { SidebarItem };
-

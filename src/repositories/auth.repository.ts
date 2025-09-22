@@ -1,7 +1,6 @@
 import { injectable, inject } from 'inversify';
 import type { AuthError, AuthResponse } from '@supabase/supabase-js';
-import type { IAuthAdapter } from '../adapters/auth.adapter';
-import { TYPES } from '../lib/types';
+import { TYPES } from '@/lib/types';
 
 export interface IAuthRepository {
   signIn(email: string, password: string): Promise<AuthResponse>;

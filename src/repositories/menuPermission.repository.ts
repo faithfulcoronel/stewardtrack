@@ -1,9 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { MenuPermission } from '../models/menuPermission.model';
-import type { IMenuPermissionAdapter } from '../adapters/menuPermission.adapter';
-import { TYPES } from '../lib/types';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { MenuPermission } from '@/models/menuPermission.model';
+import { TYPES } from '@/lib/types';
 
 export type IMenuPermissionRepository = BaseRepository<MenuPermission>;
 

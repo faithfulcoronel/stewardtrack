@@ -1,6 +1,6 @@
-import { BaseModel } from './base.model';
-import { Permission } from './permission.model';
-import { MenuItem } from './menuItem.model';
+import { BaseModel } from '@/models/base.model';
+import { Permission } from '@/models/permission.model';
+import { MenuItem } from '@/models/menuItem.model';
 
 export interface Role extends BaseModel {
   id: string;

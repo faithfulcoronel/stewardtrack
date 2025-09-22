@@ -1,10 +1,10 @@
-import { BaseModel } from './base.model';
-import { Member } from './member.model';
-import { Fund } from './fund.model';
-import { FinancialSource } from './financialSource.model';
-import { Account } from './account.model';
-import type { TransactionType } from './financialTransaction.model';
-import type { FinancialTransactionHeader } from './financialTransactionHeader.model';
+import { BaseModel } from '@/models/base.model';
+import { Member } from '@/models/member.model';
+import { Fund } from '@/models/fund.model';
+import { FinancialSource } from '@/models/financialSource.model';
+import { Account } from '@/models/account.model';
+import type { TransactionType } from '@/models/financialTransaction.model';
+import type { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 
 export interface IncomeExpenseTransaction extends BaseModel {
   id: string;

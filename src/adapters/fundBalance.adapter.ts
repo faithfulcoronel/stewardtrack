@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { tenantUtils } from '../utils/tenantUtils';
-import { TYPES } from '../lib/types';
-import type { RequestContext } from '../lib/server/context';
+import { injectable } from 'inversify';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { RequestContext } from '@/lib/server/context';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface IFundBalanceAdapter {
   fetchBalance(fundId: string): Promise<{ balance: number } | null>;
@@ -11,10 +12,15 @@ export interface IFundBalanceAdapter {
 
 @injectable()
 export class FundBalanceAdapter implements IFundBalanceAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
-  @inject(TYPES.RequestContext)
-  private context!: RequestContext;
+  private supabase: SupabaseClient | null = null;
+  private context: RequestContext = {} as RequestContext;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
 
   private async getTenantId() {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
@@ -25,7 +31,8 @@ export class FundBalanceAdapter implements IFundBalanceAdapter {
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('fund_balances_view')
       .select('balance')
       .eq('tenant_id', tenantId)

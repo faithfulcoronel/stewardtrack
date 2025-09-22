@@ -1,8 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { AuthError, AuthResponse } from '@supabase/supabase-js';
-import { createClient } from '../../utils/supabase/client';
-import { createClient as createServerClient } from '../../utils/supabase/server';
+import { AuthError, AuthResponse, SupabaseClient } from '@supabase/supabase-js';
+
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
@@ -22,11 +24,11 @@ interface IAuthAdapter {
 @injectable()
 export class AuthAdapter implements IAuthAdapter {
   // Reuse one browser client instance so auth state listeners observe sign-in events
-  private browserClient: ReturnType<typeof createClient> | null = null;
+  private browserClient: SupabaseClient | null = null;
 
   private getBrowserClient() {
     if (!this.browserClient) {
-      this.browserClient = createClient();
+      this.browserClient = createSupabaseBrowserClient();
     }
     return this.browserClient;
   }
@@ -37,7 +39,7 @@ export class AuthAdapter implements IAuthAdapter {
       return this.getBrowserClient();
     }
     // Use server-side client for server operations
-    return await createServerClient();
+    return await createSupabaseServerClient();
   }
 
   async signIn(email: string, password: string) {

@@ -1,15 +1,15 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IFundRepository } from '../repositories/fund.repository';
-import type { IFundBalanceRepository } from '../repositories/fundBalance.repository';
-import type { Fund } from '../models/fund.model';
-import type { ChartOfAccount } from '../models/chartOfAccount.model';
-import { ChartOfAccountService } from './ChartOfAccountService';
-import { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
-import { FundValidator } from '../validators/fund.validator';
-import { validateOrThrow } from '../utils/validation';
-import { tenantUtils } from '../utils/tenantUtils';
+import { TYPES } from '@/lib/types';
+import type { IFundRepository } from '@/repositories/fund.repository';
+import type { IFundBalanceRepository } from '@/repositories/fundBalance.repository';
+import type { Fund } from '@/models/fund.model';
+import type { ChartOfAccount } from '@/models/chartOfAccount.model';
+import { ChartOfAccountService } from '@/services/ChartOfAccountService';
+import { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
+import { FundValidator } from '@/validators/fund.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 export interface FundRelations {
   [key: string]: string[];

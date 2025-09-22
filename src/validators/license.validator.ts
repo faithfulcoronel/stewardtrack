@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { License } from '../models/license.model';
+import { License } from '@/models/license.model';
 
 const schema = z.object({
   plan_name: z.string().nonempty('Plan name is required'),

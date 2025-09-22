@@ -1,8 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { Notification } from '../models/notification.model';
-import type { INotificationAdapter } from '../adapters/notification.adapter';
-import { NotificationValidator } from '../validators/notification.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { Notification } from '@/models/notification.model';
+import { NotificationValidator } from '@/validators/notification.validator';
+import type { INotificationAdapter } from '@/adapters/notification.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface INotificationRepository
   extends BaseRepository<Notification>
@@ -17,7 +18,7 @@ export class NotificationRepository
   extends BaseRepository<Notification>
   implements INotificationRepository
 {
-  constructor(@inject('INotificationAdapter') adapter: INotificationAdapter) {
+  constructor(@inject(TYPES.INotificationAdapter) adapter: INotificationAdapter) {
     super(adapter as any);
   }
 

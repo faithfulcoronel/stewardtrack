@@ -1,9 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Message } from '../models/message.model';
-import type { IMessageAdapter } from '../adapters/message.adapter';
-import { TYPES } from '../lib/types';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Message } from '@/models/message.model';
+import { TYPES } from '@/lib/types';
 
 export type IMessageRepository = BaseRepository<Message>;
 

@@ -1,7 +1,8 @@
-import { BaseAdapter } from '../adapters/base.adapter';
-import { BaseModel } from '../models/base.model';
-import { QueryOptions } from '../adapters/base.adapter';
-import type { RequestContext } from '../lib/server/context';
+import 'server-only';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { BaseModel } from '@/models/base.model';
+import { QueryOptions } from '@/adapters/base.adapter';
+import type { RequestContext } from '@/lib/server/context';
 
 export abstract class BaseRepository<T extends BaseModel> {
   constructor(
@@ -63,23 +64,23 @@ export abstract class BaseRepository<T extends BaseModel> {
     return data;
   }
 
-  protected async afterCreate(data: T): Promise<void> {
+  protected async afterCreate(_data: T): Promise<void> {
     // Default implementation
   }
 
-  protected async beforeUpdate(id: string, data: Partial<T>): Promise<Partial<T>> {
+  protected async beforeUpdate(_id: string, data: Partial<T>): Promise<Partial<T>> {
     return data;
   }
 
-  protected async afterUpdate(data: T): Promise<void> {
+  protected async afterUpdate(_data: T): Promise<void> {
     // Default implementation
   }
 
-  protected async beforeDelete(id: string): Promise<void> {
+  protected async beforeDelete(_id: string): Promise<void> {
     // Default implementation
   }
 
-  protected async afterDelete(id: string): Promise<void> {
+  protected async afterDelete(_id: string): Promise<void> {
     // Default implementation
   }
 }

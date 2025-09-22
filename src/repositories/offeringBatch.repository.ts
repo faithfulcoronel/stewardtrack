@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { OfferingBatch } from '../models/offeringBatch.model';
-import type { IOfferingBatchAdapter } from '../adapters/offeringBatch.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { OfferingBatchValidator } from '../validators/offeringBatch.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { OfferingBatch } from '@/models/offeringBatch.model';
+import { NotificationService } from '@/services/NotificationService';
+import { OfferingBatchValidator } from '@/validators/offeringBatch.validator';
+import { TYPES } from '@/lib/types';
 
 export type IOfferingBatchRepository = BaseRepository<OfferingBatch>;
 
@@ -13,7 +13,7 @@ export class OfferingBatchRepository
   extends BaseRepository<OfferingBatch>
   implements IOfferingBatchRepository
 {
-  constructor(@inject('IOfferingBatchAdapter') adapter: BaseAdapter<OfferingBatch>) {
+  constructor(@inject(TYPES.IOfferingBatchAdapter) adapter: BaseAdapter<OfferingBatch>) {
     super(adapter);
   }
 
@@ -24,19 +24,19 @@ export class OfferingBatchRepository
     return data;
   }
 
-  protected override async afterCreate(data: OfferingBatch): Promise<void> {
+  protected override async afterCreate(_data: OfferingBatch): Promise<void> {
     NotificationService.showSuccess('Offering batch created successfully');
   }
 
   protected override async beforeUpdate(
-    id: string,
+    _id: string,
     data: Partial<OfferingBatch>
   ): Promise<Partial<OfferingBatch>> {
     OfferingBatchValidator.validate(data);
     return data;
   }
 
-  protected override async afterUpdate(data: OfferingBatch): Promise<void> {
+  protected override async afterUpdate(_data: OfferingBatch): Promise<void> {
     NotificationService.showSuccess('Offering batch updated successfully');
   }
 
@@ -47,7 +47,7 @@ export class OfferingBatchRepository
     }
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     NotificationService.showSuccess('Offering batch deleted successfully');
   }
 }

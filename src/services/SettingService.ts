@@ -1,11 +1,12 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ISettingRepository } from '../repositories/setting.repository';
-import type { Setting } from '../models/setting.model';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { AuthService } from './AuthService';
-import { SettingValidator } from '../validators/setting.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { ISettingRepository } from '@/repositories/setting.repository';
+import type { Setting } from '@/models/setting.model';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { AuthService } from '@/services/AuthService';
+import { SettingValidator } from '@/validators/setting.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 export interface SettingService {
   getSetting(key: string): Promise<Setting | null>;
