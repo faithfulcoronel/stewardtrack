@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "58ba2fba90c0b7ccd193e9df88504681f9b3d7bd1bf5b757ebdc55905a649b45",
+  "checksum": "f9fe3ef7987b3db8bf184a8bce5e7883a3c5839e149f2fa884c28fdb15a2deab",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/enterprise-layers",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-enterprise-layers.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-enterprise-layers\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-enterprise-layers.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-enterprise-layers/1.0.0/1.0.0.json"
 }

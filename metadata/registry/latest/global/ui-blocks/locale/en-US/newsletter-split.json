@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/split::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "824682ea19ecf51163b2346b6b9f47cd91333c4559b86ec60eb13db6f7db4f60",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/split",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-split.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-split/1.0.0/1.0.0.json"
+}

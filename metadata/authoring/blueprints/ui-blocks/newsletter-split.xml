@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/split"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-split">
+    <Title>UI Block: Newsletter split spotlight</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-split" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="badge" kind="static">Weekly strategy</Prop>
+            <Prop name="eyebrow" kind="static">Flowspace Revenue Review</Prop>
+            <Prop name="headline" kind="static">Grow faster with the Revenue Review</Prop>
+            <Prop name="description" kind="static">Every Tuesday we translate pipeline data into one-page growth plans. See what to automate, where to double down, and which motions to sunset.</Prop>
+            <Prop name="checklist" kind="binding" source="splitChecklist" path="items" />
+            <Prop name="logos" kind="binding" source="splitLogos" path="items" />
+            <Prop name="form" kind="binding" source="splitForm" path="$" />
+            <Prop name="highlight" kind="static">See exactly which experiments to run next.</Prop>
+            <Prop name="image" kind="binding" source="splitImage" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="view-archive" />
+            <Prop name="secondaryCta" kind="action" actionId="share-team" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="splitChecklist" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Revenue-qualified experiment plans tailored to your stage.",
+              "Signals from hundreds of B2B plays across the Flowspace network.",
+              "Templates for running impact reviews with your GTM pod."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="splitLogos" kind="static">
+        <Json><![CDATA[
+          {
+            "items": ["Atlas Labs", "Northwind", "Figma", "Metaplane"]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="splitForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "ops-lead@company.com",
+            "buttonLabel": "Join the briefing",
+            "disclaimer": "Arrives every Tuesday. No fluff, just experiments that worked.",
+            "url": "/newsletter/revenue-review/signup"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="splitImage" kind="static">
+        <Json><![CDATA[
+          {
+            "src": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80",
+            "alt": "Revenue dashboard preview"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-archive" kind="link">
+        <Config>
+          <Label>View past issues</Label>
+          <Url>/newsletter/revenue-review/archive</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-team" kind="link">
+        <Config>
+          <Label>Share with my team</Label>
+          <Url>/newsletter/revenue-review/share</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3f1f717ee665bd91384083029d2142329592d4f3680ec7af7b39f0a049ef60bd",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/magazine",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-newsletter-magazine",
+    "title": "UI Block: Newsletter magazine grid",
+    "regions": [
+      {
+        "id": "newsletter",
+        "components": [
+          {
+            "id": "newsletter-magazine",
+            "type": "NewsletterSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "magazine"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Inside the workspace"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Flowspace Journal"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Stories from teams building composable experiences with metadata — spanning design systems, docs, and revenue enablement."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "magazineHighlights",
+                "path": "items"
+              },
+              "cards": {
+                "kind": "binding",
+                "source": "magazineCards",
+                "path": "items"
+              },
+              "form": {
+                "kind": "binding",
+                "source": "magazineForm",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "magazineHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Curated by editors",
+                "description": "Each issue blends interviews, architecture diagrams, and playbooks."
+              },
+              {
+                "title": "Team-tested",
+                "description": "We only share tactics that shipped to production and delivered measurable lift."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "magazineCards",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "badge": "Playbook",
+                "title": "Metadata ops review template",
+                "description": "Run a 45-minute retro that keeps systems reliable while shipping faster."
+              },
+              {
+                "badge": "Case study",
+                "title": "How Atlas unified customer onboarding",
+                "description": "The frameworks that helped a 40-person team cut activation time by 32%."
+              },
+              {
+                "badge": "Interview",
+                "title": "Making docs part of the product",
+                "description": "Why the Northwind docs team ships schema updates in lockstep with releases."
+              },
+              {
+                "badge": "Toolbox",
+                "title": "Automation stack of the week",
+                "description": "APIs, queries, and triggers we used to move data between marketing and product."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "magazineForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "editor@company.com",
+            "buttonLabel": "Send me the journal",
+            "disclaimer": "New issues every first Friday of the month.",
+            "url": "/newsletter/flowspace-journal/subscribe"
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-magazine.xml"
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/community"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-community">
+    <Title>UI Block: Newsletter community hub</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-community" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">community</Prop>
+            <Prop name="badge" kind="static">Community wire</Prop>
+            <Prop name="headline" kind="static">Stay close to the builders</Prop>
+            <Prop name="description" kind="static">A weekly recap from 5,000+ metadata practitioners sharing what worked, what broke, and how they fixed it.</Prop>
+            <Prop name="highlights" kind="binding" source="communityHighlights" path="items" />
+            <Prop name="gallery" kind="binding" source="communityGallery" path="items" />
+            <Prop name="testimonials" kind="binding" source="communityTestimonial" path="items" />
+            <Prop name="form" kind="binding" source="communityForm" path="$" />
+            <Prop name="highlight" kind="static">Trade playbooks with peers shipping metadata in production.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="communityHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Live feedback threads",
+                "description": "Jump into the weekly discussion with product, revenue, and ops leads."
+              },
+              {
+                "title": "Templates on demand",
+                "description": "Request workflows and data models — other members share what shipped."
+              },
+              {
+                "title": "Small group meetups",
+                "description": "Join pods by industry to compare metadata maturity and dashboards."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="communityGallery" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {"src": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80", "alt": "Team member"},
+              {"src": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80", "alt": "Builder"},
+              {"src": "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=200&q=80", "alt": "Strategist"},
+              {"src": "https://images.unsplash.com/photo-1544723795-3fb6a70c0c16?auto=format&fit=crop&w=200&q=80", "alt": "Leader"},
+              {"src": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80", "alt": "Community"},
+              {"src": "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=200&q=80", "alt": "Engineer"},
+              {"src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=200&q=80", "alt": "Operator"},
+              {"src": "https://images.unsplash.com/photo-1544723795-4325372e953f?auto=format&fit=crop&w=200&q=80", "alt": "Partner"}
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="communityTestimonial" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "quote": "The community wire captures the nuance you never get from product launch notes.",
+                "author": "Akiko Tan", 
+                "role": "Head of Enablement, Stripe Atlas"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="communityForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "community@company.com",
+            "buttonLabel": "Join the wire",
+            "disclaimer": "Delivered Thursdays. Includes invites to live sessions.",
+            "url": "/newsletter/community-wire/signup"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

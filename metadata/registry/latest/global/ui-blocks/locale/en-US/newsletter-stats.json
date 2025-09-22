@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/stats::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "41740e4457a4a6f5608dda306e537b143b9df1858f300098a7bb1a4da31ce0ef",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/stats",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-stats.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-stats/1.0.0/1.0.0.json"
+}

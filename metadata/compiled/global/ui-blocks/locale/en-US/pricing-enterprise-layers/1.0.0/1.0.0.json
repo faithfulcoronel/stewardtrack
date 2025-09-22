@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "58ba2fba90c0b7ccd193e9df88504681f9b3d7bd1bf5b757ebdc55905a649b45",
+  "checksum": "f9fe3ef7987b3db8bf184a8bce5e7883a3c5839e149f2fa884c28fdb15a2deab",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -189,5 +189,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-enterprise-layers.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-enterprise-layers.xml"
 }

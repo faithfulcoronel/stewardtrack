@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/product::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "fbf283f27de9cd4684b46fb5733d1713d1f1189dc5944938a6eec6322dff70f8",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/product",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-product.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-product/1.0.0/1.0.0.json"
+}

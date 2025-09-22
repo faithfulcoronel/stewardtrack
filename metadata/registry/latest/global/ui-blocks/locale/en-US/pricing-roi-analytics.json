@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "9a40b0c2b74b6fbc251b7f1441b5f55887731adf9bb2fb31b95528a36cad3a03",
+  "checksum": "423a3fee596363bd5851e5a25b4d95c2690906639ad0ead432317c610de522d0",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/roi-analytics",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-roi-analytics.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-roi-analytics\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-roi-analytics.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-roi-analytics/1.0.0/1.0.0.json"
 }

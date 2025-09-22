@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/stacked::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "772cc2cf229c8b4272cbbd175cfeeaa6371d036730bf60dcdef01917f298b6c9",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/stacked",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-stacked.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-stacked/1.0.0/1.0.0.json"
+}

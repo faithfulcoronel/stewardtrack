@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "772cc2cf229c8b4272cbbd175cfeeaa6371d036730bf60dcdef01917f298b6c9",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/stacked",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-newsletter-stacked",
+    "title": "UI Block: Newsletter stacked glow",
+    "regions": [
+      {
+        "id": "newsletter",
+        "components": [
+          {
+            "id": "newsletter-stacked",
+            "type": "NewsletterSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "stacked"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Flowspace Plus"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "The Metadata Playbook"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A Saturday deep dive on everything metadata-driven: system design, orchestration tips, and the experiments that moved the needle."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "stackedHighlights",
+                "path": "items"
+              },
+              "form": {
+                "kind": "binding",
+                "source": "stackedForm",
+                "path": "$"
+              },
+              "logos": {
+                "kind": "binding",
+                "source": "stackedLogos",
+                "path": "items"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "stackedHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Blueprint teardowns",
+                "description": "We inspect how category leaders structure metadata-first launches."
+              },
+              {
+                "title": "Experiment vault",
+                "description": "Access frameworks for testing onboarding, docs, and lifecycle flows."
+              },
+              {
+                "title": "Office hours",
+                "description": "Subscribers submit metadata puzzles for live architecture reviews."
+              },
+              {
+                "title": "Partner picks",
+                "description": "A curated list of APIs, automations, and schema updates worth trying."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stackedForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "strategist@company.com",
+            "buttonLabel": "Get the playbook",
+            "disclaimer": "Delivered every Saturday at 9am ET.",
+            "url": "/newsletter/metadata-playbook/subscribe"
+          }
+        }
+      },
+      {
+        "id": "stackedLogos",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "Linear",
+              "Descript",
+              "Snowflake",
+              "Sprig"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-stacked.xml"
+}

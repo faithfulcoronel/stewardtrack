@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/gallery"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-gallery">
+    <Title>UI Block: Newsletter gallery showcase</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-gallery" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">gallery</Prop>
+            <Prop name="eyebrow" kind="static">Sneak peek</Prop>
+            <Prop name="headline" kind="static">See blueprints before they ship</Prop>
+            <Prop name="description" kind="static">We capture metadata experiments in progress — prototypes, dashboards, and patterns headed to production.</Prop>
+            <Prop name="highlights" kind="binding" source="galleryHighlights" path="items" />
+            <Prop name="gallery" kind="binding" source="galleryImages" path="items" />
+            <Prop name="form" kind="binding" source="galleryForm" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="galleryHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Design snapshots",
+                "description": "Peek at real Figma frames and experiment dashboards each week."
+              },
+              {
+                "title": "Behind the scenes",
+                "description": "Understand how teams wired metadata to power their latest launch."
+              },
+              {
+                "title": "Field notes",
+                "description": "Learn which instrumentation choices paid off (and which didn't)."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="galleryImages" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {"src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=500&q=80", "alt": "Workspace"},
+              {"src": "https://images.unsplash.com/photo-1522199994201-9e76f9a62d83?auto=format&fit=crop&w=500&q=80", "alt": "Dashboard"},
+              {"src": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=500&q=80", "alt": "Automation"},
+              {"src": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=500&q=80", "alt": "Workflow"}
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="galleryForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "designer@company.com",
+            "buttonLabel": "Send the preview",
+            "disclaimer": "Every Thursday. Includes annotated prototypes and notes.",
+            "url": "/newsletter/gallery-preview/subscribe"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

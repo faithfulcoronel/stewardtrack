@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/digest"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-digest">
+    <Title>UI Block: Newsletter digest timeline</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-digest" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">digest</Prop>
+            <Prop name="badge" kind="static">Monday prep</Prop>
+            <Prop name="headline" kind="static">Ops cadence in your inbox</Prop>
+            <Prop name="description" kind="static">Kick off the week with the three metadata moves that keep your GTM pipeline humming.</Prop>
+            <Prop name="steps" kind="binding" source="digestSteps" path="items" />
+            <Prop name="stats" kind="binding" source="digestStats" path="items" />
+            <Prop name="form" kind="binding" source="digestForm" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="digestSteps" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Plan",
+                "description": "Roll out a shared scorecard that highlights metadata debt."
+              },
+              {
+                "title": "Ship",
+                "description": "Cut redundant automation and focus on the two experiments with signal."
+              },
+              {
+                "title": "Report",
+                "description": "Translate results into metrics leadership cares about."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="digestStats" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Read time",
+                "value": "3 min",
+                "caption": "One card for each Monday stand-up."
+              },
+              {
+                "label": "Programs monitored",
+                "value": "15",
+                "caption": "From lifecycle to revenue ops."
+              },
+              {
+                "label": "Signals",
+                "value": "24k",
+                "caption": "Daily jobs processed in the Flowspace network."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="digestForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "ops.team@company.com",
+            "buttonLabel": "Send Monday plan",
+            "disclaimer": "Arrives Mondays at 7am in your local timezone.",
+            "url": "/newsletter/ops-cadence/subscribe"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

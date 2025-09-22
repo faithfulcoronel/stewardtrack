@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/stacked"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-stacked">
+    <Title>UI Block: Newsletter stacked glow</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-stacked" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">stacked</Prop>
+            <Prop name="badge" kind="static">Flowspace Plus</Prop>
+            <Prop name="headline" kind="static">The Metadata Playbook</Prop>
+            <Prop name="description" kind="static">A Saturday deep dive on everything metadata-driven: system design, orchestration tips, and the experiments that moved the needle.</Prop>
+            <Prop name="highlights" kind="binding" source="stackedHighlights" path="items" />
+            <Prop name="form" kind="binding" source="stackedForm" path="$" />
+            <Prop name="logos" kind="binding" source="stackedLogos" path="items" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="stackedHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Blueprint teardowns",
+                "description": "We inspect how category leaders structure metadata-first launches."
+              },
+              {
+                "title": "Experiment vault",
+                "description": "Access frameworks for testing onboarding, docs, and lifecycle flows."
+              },
+              {
+                "title": "Office hours",
+                "description": "Subscribers submit metadata puzzles for live architecture reviews."
+              },
+              {
+                "title": "Partner picks",
+                "description": "A curated list of APIs, automations, and schema updates worth trying."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="stackedForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "strategist@company.com",
+            "buttonLabel": "Get the playbook",
+            "disclaimer": "Delivered every Saturday at 9am ET.",
+            "url": "/newsletter/metadata-playbook/subscribe"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="stackedLogos" kind="static">
+        <Json><![CDATA[
+          {
+            "items": ["Linear", "Descript", "Snowflake", "Sprig"]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>
