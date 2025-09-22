@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "59dfdfd605bef889abd7c1bb2d7e82068c71a77d241cae5ef8dd5e18461e0f2c",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "testimonials/healthcare-outcomes",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-testimonials-healthcare-outcomes",
+    "title": "UI Block: Testimonials - Healthcare outcomes",
+    "regions": [
+      {
+        "id": "testimonials",
+        "components": [
+          {
+            "id": "testimonials-healthcare-outcomes",
+            "type": "TestimonialsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "timeline-reel"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Care transformation"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Hospitals guide teams through transformation milestones"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A vertical timeline for programs with sequenced wins—perfect for healthcare, education, or enterprise change management."
+              },
+              "testimonials": {
+                "kind": "binding",
+                "source": "healthcareTestimonials",
+                "path": "items"
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "explore-outcomes"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "book-briefing"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "healthcareTestimonials",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "quote": "Nurses completed new workflow training 3 weeks faster because Flowspace delivered micro-lessons by shift.",
+                "author": "Angela Brooks",
+                "role": "Chief Nursing Officer",
+                "company": "Riverbend Health",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "location": "Phase 1 · Clinician onboarding"
+              },
+              {
+                "quote": "We aligned care teams and revenue cycle leaders on a single playbook—no more conflicting spreadsheets.",
+                "author": "Dr. Evan Soto",
+                "role": "Chief Medical Information Officer",
+                "company": "MetroCare",
+                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80",
+                "location": "Phase 2 · Service line alignment"
+              },
+              {
+                "quote": "Patient experience improved because volunteers, clinicians, and IT teams finally share the same context.",
+                "author": "Priyanka Desai",
+                "role": "VP Patient Experience",
+                "company": "Unity Medical",
+                "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=240&h=240&q=80",
+                "location": "Phase 3 · Experience redesign"
+              },
+              {
+                "quote": "Accreditation prep is always ready; Flowspace maps each policy to the evidence reviewers need.",
+                "author": "Greg Lemaire",
+                "role": "Director of Quality",
+                "company": "Summit Health",
+                "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=240&h=240&q=80",
+                "location": "Phase 4 · Continuous compliance"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "explore-outcomes",
+        "kind": "link",
+        "config": {
+          "Label": "Explore outcomes dashboard",
+          "Url": "/industries/healthcare",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "book-briefing",
+        "kind": "link",
+        "config": {
+          "Label": "Book transformation briefing",
+          "Url": "/industries/healthcare/briefing",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-healthcare-outcomes.xml"
+}

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f28a68219dc0011869da0f2c5b7487e011888d743eda25fcb96670fa23ee77da",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "testimonials/innovation-leaders",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-testimonials-innovation-leaders",
+    "title": "UI Block: Testimonials - Innovation leaders",
+    "regions": [
+      {
+        "id": "testimonials",
+        "components": [
+          {
+            "id": "testimonials-innovation-leaders",
+            "type": "TestimonialsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "stat-highlight"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Innovation leaders"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Innovation teams scale discovery with measurable outcomes"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Quantify results alongside customer quotes. Use this layout for ROI landing pages, analyst recaps, or board updates."
+              },
+              "testimonials": {
+                "kind": "binding",
+                "source": "innovationTestimonials",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Metrics reflect reported customer outcomes aggregated across Flowspace programs."
+              },
+              "primaryCta": {
+                "kind": "action",
+                "actionId": "view-roi"
+              },
+              "secondaryCta": {
+                "kind": "action",
+                "actionId": "calculate-benefits"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "innovationTestimonials",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "quote": "We cut experiment lead time by half while doubling validated insights each quarter.",
+                "author": "Noelle Park",
+                "role": "Director of Product Discovery",
+                "company": "Fathom Labs",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Experiment velocity",
+                "metricValue": "2.1x"
+              },
+              {
+                "quote": "Our innovation guild shares reusable playbooks so satellite teams move just as fast as HQ.",
+                "author": "Lionel Harper",
+                "role": "VP Strategy",
+                "company": "Helix Aero",
+                "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Launch cadence",
+                "metricValue": "+38%"
+              },
+              {
+                "quote": "Legal and security approve emerging pilots in days because context lives in one Flowspace record.",
+                "author": "Anita Sethi",
+                "role": "Chief Innovation Counsel",
+                "company": "Blue River",
+                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Review cycle",
+                "metricValue": "-61%"
+              },
+              {
+                "quote": "We connect qualitative insights directly to the KPIs execs care about, which secured next year's budget.",
+                "author": "Ruth Delgado",
+                "role": "Innovation Portfolio Lead",
+                "company": "Vertex Dynamics",
+                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Budget expansion",
+                "metricValue": "+24%"
+              },
+              {
+                "quote": "Customer advisory boards contribute directly to opportunity sizing because their inputs live in Flowspace.",
+                "author": "Stephen Osei",
+                "role": "Head of Corporate Ventures",
+                "company": "NovaWorks",
+                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Qual insights reused",
+                "metricValue": "3.4x"
+              },
+              {
+                "quote": "We productized internal experiments into offerings 6 months faster thanks to Flowspace automation.",
+                "author": "Emily Cho",
+                "role": "GM New Ventures",
+                "company": "Summit Works",
+                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80",
+                "metricLabel": "Time to market",
+                "metricValue": "-27%"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "view-roi",
+        "kind": "link",
+        "config": {
+          "Label": "View ROI benchmarks",
+          "Url": "/roi",
+          "Variant": "primary"
+        }
+      },
+      {
+        "id": "calculate-benefits",
+        "kind": "link",
+        "config": {
+          "Label": "Calculate your benefits",
+          "Url": "/roi/calculator",
+          "Variant": "secondary"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-innovation-leaders.xml"
+}
