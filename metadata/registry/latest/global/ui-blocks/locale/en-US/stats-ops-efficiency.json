@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::stats/ops-efficiency::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bf58c4598378f9018c492b98e99b720c4e7808fd8bfc2ced88b0e2e810ad9994",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/ops-efficiency",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ops-efficiency.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-ops-efficiency/1.0.0/1.0.0.json"
+}

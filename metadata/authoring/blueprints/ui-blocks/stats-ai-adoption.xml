@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/ai-adoption"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-ai-adoption">
+    <Title>UI Block: Stats - AI adoption</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-ai-adoption" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">momentum-stream</Prop>
+            <Prop name="eyebrow" kind="static">AI adoption</Prop>
+            <Prop name="headline" kind="static">Operationalize AI responsibly and at scale</Prop>
+            <Prop name="description" kind="static">Tell the story of how automation, governance, and performance come together across your AI portfolio.</Prop>
+            <Prop name="metrics" kind="binding" source="aiMetrics" path="items" />
+            <Prop name="badges" kind="binding" source="aiBadges" path="items" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="aiMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Automations shipped",
+                "value": "1,240",
+                "change": "+34%",
+                "changeLabel": "QoQ",
+                "description": "Production AI workflows executed monthly."
+              },
+              {
+                "label": "Inference latency",
+                "value": "48 ms",
+                "change": "-12 ms",
+                "changeLabel": "YoY",
+                "description": "Median response time across customer endpoints."
+              },
+              {
+                "label": "Model accuracy",
+                "value": "93.4%",
+                "change": "+2.8 pts",
+                "changeLabel": "Benchmark",
+                "description": "Composite accuracy across 12 public datasets."
+              },
+              {
+                "label": "Cost per task",
+                "value": "$0.004",
+                "change": "-18%",
+                "changeLabel": "YoY",
+                "description": "Average compute cost per task across tenants."
+              },
+              {
+                "label": "Feature adoption",
+                "value": "72%",
+                "change": "+9 pts",
+                "changeLabel": "Active users",
+                "description": "Weekly active accounts using AI copilots."
+              },
+              {
+                "label": "Governed prompts",
+                "value": "18.6K",
+                "change": "+41%",
+                "changeLabel": "QoQ",
+                "description": "Prompts reviewed and approved by compliance."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="aiBadges" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Responsible AI scorecard",
+              "SOC 2 automation controls"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

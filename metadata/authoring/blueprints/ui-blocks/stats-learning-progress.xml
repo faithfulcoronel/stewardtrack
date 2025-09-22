@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/learning-progress"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-learning-progress">
+    <Title>UI Block: Stats - Learning progress</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-learning-progress" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">impact-cards</Prop>
+            <Prop name="eyebrow" kind="static">Learning impact</Prop>
+            <Prop name="headline" kind="static">Show measurable enablement outcomes</Prop>
+            <Prop name="description" kind="static">Help learning leaders highlight progress from onboarding through advanced skill certification.</Prop>
+            <Prop name="metrics" kind="binding" source="learningMetrics" path="items" />
+            <Prop name="footnote" kind="static">Signals combined from LMS analytics and enablement surveys.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="learningMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Courses published",
+                "value": "420",
+                "change": "+58",
+                "changeLabel": "YoY",
+                "description": "Expert-led sessions launched in the last 12 months."
+              },
+              {
+                "label": "Completion rate",
+                "value": "87%",
+                "change": "+11 pts",
+                "changeLabel": "YoY",
+                "description": "Learners finishing assigned curricula."
+              },
+              {
+                "label": "Skills certified",
+                "value": "32K",
+                "change": "+9.4K",
+                "changeLabel": "YoY",
+                "description": "Unique credentials issued across pathways."
+              },
+              {
+                "label": "Time to productivity",
+                "value": "21 days",
+                "change": "-9 days",
+                "changeLabel": "New hires",
+                "description": "Median onboarding time for new team members."
+              },
+              {
+                "label": "Active communities",
+                "value": "68",
+                "change": "+24",
+                "changeLabel": "YoY",
+                "description": "Peer groups hosting monthly learning circles."
+              },
+              {
+                "label": "Live attendance",
+                "value": "92%",
+                "change": "+6 pts",
+                "changeLabel": "QoQ",
+                "description": "Registrants who attend interactive workshops."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

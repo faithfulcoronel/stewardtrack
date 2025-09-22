@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "bf58c4598378f9018c492b98e99b720c4e7808fd8bfc2ced88b0e2e810ad9994",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/ops-efficiency",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-stats-ops-efficiency",
+    "title": "UI Block: Stats - Operational efficiency",
+    "regions": [
+      {
+        "id": "stats",
+        "components": [
+          {
+            "id": "stats-ops-efficiency",
+            "type": "StatsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "gradient-cascade"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Operational excellence"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Automation, reliability, and throughput at a glance"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Highlight the control room metrics that prove your operating model scales without sacrificing quality."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "opsMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Metrics refresh every 15 minutes from the operations command center."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "opsMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Automation coverage",
+                "value": "82%",
+                "change": "+11 pts",
+                "changeLabel": "YoY",
+                "description": "Core workflows executed without manual intervention."
+              },
+              {
+                "label": "Mean resolution time",
+                "value": "2.4 hrs",
+                "change": "-38%",
+                "changeLabel": "YoY",
+                "description": "Average time to resolve priority incidents across global regions."
+              },
+              {
+                "label": "Release frequency",
+                "value": "148 / month",
+                "change": "+21%",
+                "changeLabel": "YoY",
+                "description": "Production deployments with automated verification."
+              },
+              {
+                "label": "Change failure rate",
+                "value": "1.8%",
+                "change": "-0.6 pts",
+                "changeLabel": "YoY",
+                "description": "Deployments requiring rollback or emergency remediation."
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ops-efficiency.xml"
+}

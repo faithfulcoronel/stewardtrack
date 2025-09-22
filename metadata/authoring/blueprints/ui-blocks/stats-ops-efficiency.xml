@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/ops-efficiency"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-ops-efficiency">
+    <Title>UI Block: Stats - Operational efficiency</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-ops-efficiency" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">gradient-cascade</Prop>
+            <Prop name="eyebrow" kind="static">Operational excellence</Prop>
+            <Prop name="headline" kind="static">Automation, reliability, and throughput at a glance</Prop>
+            <Prop name="description" kind="static">Highlight the control room metrics that prove your operating model scales without sacrificing quality.</Prop>
+            <Prop name="metrics" kind="binding" source="opsMetrics" path="items" />
+            <Prop name="footnote" kind="static">Metrics refresh every 15 minutes from the operations command center.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="opsMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Automation coverage",
+                "value": "82%",
+                "change": "+11 pts",
+                "changeLabel": "YoY",
+                "description": "Core workflows executed without manual intervention."
+              },
+              {
+                "label": "Mean resolution time",
+                "value": "2.4 hrs",
+                "change": "-38%",
+                "changeLabel": "YoY",
+                "description": "Average time to resolve priority incidents across global regions."
+              },
+              {
+                "label": "Release frequency",
+                "value": "148 / month",
+                "change": "+21%",
+                "changeLabel": "YoY",
+                "description": "Production deployments with automated verification."
+              },
+              {
+                "label": "Change failure rate",
+                "value": "1.8%",
+                "change": "-0.6 pts",
+                "changeLabel": "YoY",
+                "description": "Deployments requiring rollback or emergency remediation."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

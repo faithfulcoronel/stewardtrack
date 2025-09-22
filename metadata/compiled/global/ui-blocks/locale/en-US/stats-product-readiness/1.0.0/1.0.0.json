@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b2f3c48dc53f82dd4887468ecf6745ab1fe44fd3b0652063c1a52a60f155ed7d",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/product-readiness",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-stats-product-readiness",
+    "title": "UI Block: Stats - Product readiness",
+    "regions": [
+      {
+        "id": "stats",
+        "components": [
+          {
+            "id": "stats-product-readiness",
+            "type": "StatsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "milestone-timeline"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Release readiness"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Ship releases with measurable confidence"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Coordinate product, engineering, and go-to-market milestones from discovery through launch on a single readiness rail."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "readinessMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Status refreshed 3 hours ago from the launch readiness dashboard."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "readinessMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Discovery sign-off",
+                "value": "Day 10",
+                "description": "Cross-functional charter approved with funded scope."
+              },
+              {
+                "label": "Beta cohort engaged",
+                "value": "36 teams",
+                "change": "+12",
+                "changeLabel": "vs last launch",
+                "description": "Design partners validating production build in live environments."
+              },
+              {
+                "label": "Readiness score",
+                "value": "92%",
+                "change": "+8 pts",
+                "changeLabel": "QA index",
+                "description": "Automated regression suites and manual validation coverage."
+              },
+              {
+                "label": "Launch communications",
+                "value": "28 assets",
+                "description": "Localized release notes, webinars, and enablement ready to ship."
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-product-readiness.xml"
+}

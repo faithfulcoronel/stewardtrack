@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/revenue-momentum"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-revenue-momentum">
+    <Title>UI Block: Stats - Revenue momentum</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-revenue-momentum" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">velocity-panel</Prop>
+            <Prop name="eyebrow" kind="static">Growth velocity</Prop>
+            <Prop name="headline" kind="static">Momentum across every GTM motion</Prop>
+            <Prop name="description" kind="static">Demonstrate disciplined revenue execution with the KPIs investors and revenue leaders follow every week.</Prop>
+            <Prop name="metrics" kind="binding" source="revenueMetrics" path="items" />
+            <Prop name="highlights" kind="binding" source="revenueHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-forecast" />
+            <Prop name="secondaryCta" kind="action" actionId="share-update" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="revenueMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Annual recurring revenue",
+                "value": "$48M",
+                "change": "+18%",
+                "changeLabel": "QoQ",
+                "description": "Driven by net-new platform subscriptions across enterprise and scale segments."
+              },
+              {
+                "label": "Pipeline coverage",
+                "value": "4.3x",
+                "change": "+0.8x",
+                "changeLabel": "vs target",
+                "description": "Weighted pipeline coverage for the next two quarters."
+              },
+              {
+                "label": "Expansion ARR",
+                "value": "134%",
+                "change": "+12 pts",
+                "changeLabel": "NRR",
+                "description": "Net revenue retention from existing customers."
+              },
+              {
+                "label": "Enterprise win rate",
+                "value": "46%",
+                "change": "+5 pts",
+                "changeLabel": "QoQ",
+                "description": "Strategic deals over $100K closed with cross-functional pods."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="revenueHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Forecast accuracy locked at 96%",
+              "Average sales cycle shortened to 42 days",
+              "Partner-sourced revenue up 31%"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-forecast" kind="link">
+        <Config>
+          <Label>Review forecast</Label>
+          <Url>/revenue/forecast</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="share-update" kind="link">
+        <Config>
+          <Label>Share investor update</Label>
+          <Url>/revenue/investor-brief</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

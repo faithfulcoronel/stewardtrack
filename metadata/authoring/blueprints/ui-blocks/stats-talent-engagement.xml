@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/talent-engagement"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-talent-engagement">
+    <Title>UI Block: Stats - Talent engagement</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-talent-engagement" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">radial-progress</Prop>
+            <Prop name="eyebrow" kind="static">People analytics</Prop>
+            <Prop name="headline" kind="static">Keep top talent energized and growing</Prop>
+            <Prop name="description" kind="static">Combine engagement, mobility, and diversity indicators to tell a compelling people story to your board.</Prop>
+            <Prop name="metrics" kind="binding" source="talentMetrics" path="items" />
+            <Prop name="footnote" kind="static">Aggregated from HRIS and engagement platforms each quarter.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="talentMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Engagement score",
+                "value": "91",
+                "change": "+7 pts",
+                "changeLabel": "YoY",
+                "description": "Weighted by quarterly pulse across all regions."
+              },
+              {
+                "label": "Average tenure",
+                "value": "4.2 yrs",
+                "change": "+0.6 yrs",
+                "changeLabel": "YoY",
+                "description": "Across product and engineering teams."
+              },
+              {
+                "label": "Leadership diversity",
+                "value": "58%",
+                "change": "+9 pts",
+                "changeLabel": "YoY",
+                "description": "Women and non-binary leaders across director level and above."
+              },
+              {
+                "label": "Internal mobility",
+                "value": "32%",
+                "change": "+5 pts",
+                "changeLabel": "YoY",
+                "description": "Roles filled by existing employees year to date."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>
