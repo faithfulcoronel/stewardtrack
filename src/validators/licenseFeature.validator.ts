@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LicenseFeature } from '../models/licenseFeature.model';
+import { LicenseFeature } from '@/models/licenseFeature.model';
 
 const schema = z.object({
   license_id: z.string().uuid({ message: 'License ID is required' }),

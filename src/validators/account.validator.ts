@@ -1,4 +1,4 @@
-import { Account } from '../models/account.model';
+import { Account } from '@/models/account.model';
 
 export class AccountValidator {
   static validate(data: Partial<Account>): void {

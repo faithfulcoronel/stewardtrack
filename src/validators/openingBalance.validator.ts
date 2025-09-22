@@ -1,4 +1,4 @@
-import { OpeningBalance } from '../models/openingBalance.model';
+import { OpeningBalance } from '@/models/openingBalance.model';
 
 export class OpeningBalanceValidator {
   static validate(data: Partial<OpeningBalance>): void {

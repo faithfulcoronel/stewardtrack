@@ -1,4 +1,4 @@
-import { Category } from '../models/category.model';
+import { Category } from '@/models/category.model';
 
 export class CategoryValidator {
   static validate(data: Partial<Category>): void {

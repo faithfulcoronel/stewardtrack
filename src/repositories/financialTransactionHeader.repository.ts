@@ -1,10 +1,11 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
-import type { IFinancialTransactionHeaderAdapter } from '../adapters/financialTransactionHeader.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { FinancialTransactionHeaderValidator } from '../validators/financialTransactionHeader.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
+import type { IFinancialTransactionHeaderAdapter } from '@/adapters/financialTransactionHeader.adapter';
+import { NotificationService } from '@/services/NotificationService';
+import { FinancialTransactionHeaderValidator } from '@/validators/financialTransactionHeader.validator';
+import { TYPES } from '@/lib/types';
 
 export interface IFinancialTransactionHeaderRepository
   extends BaseRepository<FinancialTransactionHeader> {
@@ -32,7 +33,7 @@ export class FinancialTransactionHeaderRepository
   implements IFinancialTransactionHeaderRepository
 {
   constructor(
-    @inject('IFinancialTransactionHeaderAdapter')
+    @inject(TYPES.IFinancialTransactionHeaderAdapter)
     adapter: BaseAdapter<FinancialTransactionHeader>
   ) {
     super(adapter);
@@ -46,11 +47,11 @@ export class FinancialTransactionHeaderRepository
     return this.formatHeaderData(data);
   }
 
-  protected override async afterCreate(data: FinancialTransactionHeader): Promise<void> {
+  protected override async afterCreate(_data: FinancialTransactionHeader): Promise<void> {
     // Notification handled at service level
   }
 
-  protected override async beforeUpdate(id: string, data: Partial<FinancialTransactionHeader>): Promise<Partial<FinancialTransactionHeader>> {
+  protected override async beforeUpdate(_id: string, data: Partial<FinancialTransactionHeader>): Promise<Partial<FinancialTransactionHeader>> {
     // Validate header data
     FinancialTransactionHeaderValidator.validate(data);
     
@@ -58,7 +59,7 @@ export class FinancialTransactionHeaderRepository
     return this.formatHeaderData(data);
   }
 
-  protected override async afterUpdate(data: FinancialTransactionHeader): Promise<void> {
+  protected override async afterUpdate(_data: FinancialTransactionHeader): Promise<void> {
     // Notification handled at service level
   }
 
@@ -74,7 +75,7 @@ export class FinancialTransactionHeaderRepository
     }
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Notification handled at service level
   }
 

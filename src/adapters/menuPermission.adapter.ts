@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { MenuPermission } from '../models/menuPermission.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { MenuPermission } from '@/models/menuPermission.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IMenuPermissionAdapter = IBaseAdapter<MenuPermission>;
 

@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
+import { TYPES } from '@/lib/types';
 import type {
   IMembersDashboardAdapter,
   MemberMetrics,
-} from '../adapters/membersDashboard.adapter';
+} from '@/adapters/membersDashboard.adapter';
 
 export interface RecentMember {
   first_name: string;

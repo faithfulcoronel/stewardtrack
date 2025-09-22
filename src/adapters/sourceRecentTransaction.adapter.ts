@@ -1,11 +1,12 @@
+import 'server-only';
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { tenantUtils } from '../utils/tenantUtils';
+import { injectable } from 'inversify';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { tenantUtils } from '@/utils/tenantUtils';
 import { format } from 'date-fns';
-import { TYPES } from '../lib/types';
-import { SourceRecentTransaction } from '../models/sourceRecentTransaction.model';
-import type { RequestContext } from '../lib/server/context';
+import { SourceRecentTransaction } from '@/models/sourceRecentTransaction.model';
+import type { RequestContext } from '@/lib/server/context';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface ISourceRecentTransactionAdapter {
   fetchRecent(
@@ -24,10 +25,15 @@ export interface ISourceRecentTransactionAdapter {
 export class SourceRecentTransactionAdapter
   implements ISourceRecentTransactionAdapter
 {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
-  @inject(TYPES.RequestContext)
-  private context!: RequestContext;
+  private supabase: SupabaseClient | null = null;
+  private context: RequestContext = {} as RequestContext;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
 
   private async getTenantId() {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
@@ -39,7 +45,8 @@ export class SourceRecentTransactionAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('source_recent_transactions_view')
       .select(
         `
@@ -69,7 +76,8 @@ export class SourceRecentTransactionAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('source_recent_transactions_view')
       .select(
         `
@@ -96,7 +104,8 @@ export class SourceRecentTransactionAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { data, error } = await this.supabase.rpc('report_trial_balance', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('report_trial_balance', {
       p_tenant_id: tenantId,
       p_end_date: format(new Date(), 'yyyy-MM-dd'),
     });
@@ -111,7 +120,8 @@ export class SourceRecentTransactionAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) throw new Error('No tenant context found');
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('source_recent_transactions_view')
       .select('amount')
       .eq('fund_id', fundId)

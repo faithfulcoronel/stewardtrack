@@ -1,4 +1,4 @@
-import { BaseModel } from './base.model';
+import { BaseModel } from '@/models/base.model';
 
 export interface LicenseFeature extends BaseModel {
   id: string;

@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { License } from '../models/license.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { License } from '@/models/license.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type ILicenseAdapter = IBaseAdapter<License>;
 
@@ -43,7 +44,8 @@ export class LicenseAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data: rows, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: rows, error } = await supabase
       .from('license_features')
       .select('id')
       .eq('license_id', id)

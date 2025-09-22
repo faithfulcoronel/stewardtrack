@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { IncomeExpenseTransactionMapping } from '../models/incomeExpenseTransactionMapping.model';
-import type { IIncomeExpenseTransactionMappingAdapter } from '../adapters/incomeExpenseTransactionMapping.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { IncomeExpenseTransactionMappingValidator } from '../validators/incomeExpenseTransactionMapping.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { IncomeExpenseTransactionMapping } from '@/models/incomeExpenseTransactionMapping.model';
+import { IncomeExpenseTransactionMappingValidator } from '@/validators/incomeExpenseTransactionMapping.validator';
+import type { IIncomeExpenseTransactionMappingAdapter } from '@/adapters/incomeExpenseTransactionMapping.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface IIncomeExpenseTransactionMappingRepository extends BaseRepository<IncomeExpenseTransactionMapping> {
   getByTransactionId(id: string): Promise<IncomeExpenseTransactionMapping[]>;
@@ -16,7 +16,7 @@ export class IncomeExpenseTransactionMappingRepository
   extends BaseRepository<IncomeExpenseTransactionMapping>
   implements IIncomeExpenseTransactionMappingRepository {
   constructor(
-    @inject('IIncomeExpenseTransactionMappingAdapter')
+    @inject(TYPES.IIncomeExpenseTransactionMappingAdapter)
     adapter: BaseAdapter<IncomeExpenseTransactionMapping>
   ) {
     super(adapter);
@@ -30,13 +30,13 @@ export class IncomeExpenseTransactionMappingRepository
   }
 
   protected override async afterCreate(
-    data: IncomeExpenseTransactionMapping
+    _data: IncomeExpenseTransactionMapping
   ): Promise<void> {
     // Notification handled at service level
   }
 
   protected override async beforeUpdate(
-    id: string,
+    _id: string,
     data: Partial<IncomeExpenseTransactionMapping>
   ): Promise<Partial<IncomeExpenseTransactionMapping>> {
     IncomeExpenseTransactionMappingValidator.validate(data);
@@ -44,12 +44,12 @@ export class IncomeExpenseTransactionMappingRepository
   }
 
   protected override async afterUpdate(
-    data: IncomeExpenseTransactionMapping
+    _data: IncomeExpenseTransactionMapping
   ): Promise<void> {
     // Notification handled at service level
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Notification handled at service level
   }
 

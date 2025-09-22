@@ -1,5 +1,5 @@
-import { BaseModel } from './base.model';
-import { Member } from './member.model';
+import { BaseModel } from '@/models/base.model';
+import { Member } from '@/models/member.model';
 
 export type AccountType = 'organization' | 'person';
 

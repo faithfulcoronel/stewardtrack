@@ -1,5 +1,5 @@
-import { BaseModel } from './base.model';
-import type { FiscalYear } from './fiscalYear.model';
+import { BaseModel } from '@/models/base.model';
+import type { FiscalYear } from '@/models/fiscalYear.model';
 
 export type FiscalPeriodStatus = 'open' | 'closed';
 

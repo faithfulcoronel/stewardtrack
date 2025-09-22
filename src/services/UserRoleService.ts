@@ -1,8 +1,9 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IUserRoleRepository } from '../repositories/userRole.repository';
-import type { IRoleRepository } from '../repositories/role.repository';
-import { tenantUtils } from '../utils/tenantUtils';
+import { TYPES } from '@/lib/types';
+import type { IUserRoleRepository } from '@/repositories/userRole.repository';
+import type { IRoleRepository } from '@/repositories/role.repository';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 @injectable()
 export class UserRoleService {

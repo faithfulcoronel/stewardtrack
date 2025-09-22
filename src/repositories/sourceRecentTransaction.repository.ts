@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { SourceRecentTransaction } from '../models/sourceRecentTransaction.model';
-import type { ISourceRecentTransactionAdapter } from '../adapters/sourceRecentTransaction.adapter';
+import { TYPES } from '@/lib/types';
+import type { SourceRecentTransaction } from '@/models/sourceRecentTransaction.model';
+import type { ISourceRecentTransactionAdapter } from '@/adapters/sourceRecentTransaction.adapter';
 
 export interface ISourceRecentTransactionRepository {
   getRecentTransactions(accountId: string, limit?: number): Promise<SourceRecentTransaction[]>;

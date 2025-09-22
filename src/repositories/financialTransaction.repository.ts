@@ -1,10 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { FinancialTransaction } from '../models/financialTransaction.model';
-import type { IFinancialTransactionAdapter } from '../adapters/financialTransaction.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { FinancialTransactionValidator } from '../validators/financialTransaction.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { FinancialTransaction } from '@/models/financialTransaction.model';
+import { FinancialTransactionValidator } from '@/validators/financialTransaction.validator';
+import { TYPES } from '@/lib/types';
 
 export type IFinancialTransactionRepository = BaseRepository<FinancialTransaction>;
 
@@ -14,7 +13,7 @@ export class FinancialTransactionRepository
   implements IFinancialTransactionRepository
 {
   constructor(
-    @inject('IFinancialTransactionAdapter') adapter: BaseAdapter<FinancialTransaction>
+    @inject(TYPES.IFinancialTransactionAdapter) adapter: BaseAdapter<FinancialTransaction>
   ) {
     super(adapter);
   }
@@ -27,13 +26,13 @@ export class FinancialTransactionRepository
   }
 
   protected override async afterCreate(
-    data: FinancialTransaction
+    _data: FinancialTransaction
   ): Promise<void> {
     // Notification handled at service level
   }
 
   protected override async beforeUpdate(
-    id: string,
+    _id: string,
     data: Partial<FinancialTransaction>
   ): Promise<Partial<FinancialTransaction>> {
     FinancialTransactionValidator.validate(data);
@@ -41,12 +40,12 @@ export class FinancialTransactionRepository
   }
 
   protected override async afterUpdate(
-    data: FinancialTransaction
+    _data: FinancialTransaction
   ): Promise<void> {
     // Notification handled at service level
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Notification handled at service level
   }
 

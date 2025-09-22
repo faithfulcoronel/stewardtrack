@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { FinancialSource } from '../models/financialSource.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { FinancialSource } from '@/models/financialSource.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IFinancialSourceAdapter = IBaseAdapter<FinancialSource>;
 
@@ -65,7 +66,8 @@ export class FinancialSourceAdapter
 
   protected override async onBeforeDelete(id: string): Promise<void> {
     // Check for financial transactions
-    const { data: transactions, error: transactionsError } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: transactions, error: transactionsError } = await supabase
       .from('financial_transactions')
       .select('id')
       .eq('source_id', id)

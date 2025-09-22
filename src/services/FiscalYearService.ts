@@ -1,9 +1,10 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IFiscalYearRepository } from '../repositories/fiscalYear.repository';
-import type { FiscalYear } from '../models/fiscalYear.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IFiscalYearRepository } from '@/repositories/fiscalYear.repository';
+import type { FiscalYear } from '@/models/fiscalYear.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
 
 @injectable()
 export class FiscalYearService implements CrudService<FiscalYear> {

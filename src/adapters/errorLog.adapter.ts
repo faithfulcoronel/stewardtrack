@@ -1,7 +1,8 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { ErrorLog } from '../models/errorLog.model';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { ErrorLog } from '@/models/errorLog.model';
 
 export type IErrorLogAdapter = IBaseAdapter<ErrorLog>;
 

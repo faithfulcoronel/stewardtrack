@@ -1,6 +1,6 @@
-import { injectable, inject } from "inversify";
-import type { ModuleMetadata } from "../modules/types/module";
-import type { IUiModuleAdapter } from "../adapters/uiModule.adapter";
+import { injectable, inject } from 'inversify';
+import type { ModuleMetadata } from '@/modules/types/module';
+import type { IUiModuleAdapter } from '@/adapters/uiModule.adapter';
 
 export interface IUiModuleRepository {
   getModuleMetadata(params: {

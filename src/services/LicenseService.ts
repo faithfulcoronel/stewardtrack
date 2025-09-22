@@ -1,5 +1,6 @@
+import 'server-only';
 import { injectable } from 'inversify';
-import type { License } from '../models/license.model';
+import type { License } from '@/models/license.model';
 
 export type LicenseOverrides = Partial<License>;
 

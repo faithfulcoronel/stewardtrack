@@ -1,4 +1,4 @@
-import { BaseModel } from './base.model';
+import { BaseModel } from '@/models/base.model';
 
 export interface RelationshipType extends BaseModel {
   id: string;

@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { LicenseFeature } from '../models/licenseFeature.model';
-import type { ILicenseFeatureAdapter } from '../adapters/licenseFeature.adapter';
-import { LicenseFeatureValidator } from '../validators/licenseFeature.validator';
-import { NotificationService } from '../services/NotificationService';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { LicenseFeature } from '@/models/licenseFeature.model';
+import { LicenseFeatureValidator } from '@/validators/licenseFeature.validator';
+import { NotificationService } from '@/services/NotificationService';
+import { TYPES } from '@/lib/types';
 
 export type ILicenseFeatureRepository = BaseRepository<LicenseFeature>;
 
@@ -13,7 +13,7 @@ export class LicenseFeatureRepository
   extends BaseRepository<LicenseFeature>
   implements ILicenseFeatureRepository
 {
-  constructor(@inject('ILicenseFeatureAdapter') adapter: BaseAdapter<LicenseFeature>) {
+  constructor(@inject(TYPES.ILicenseFeatureAdapter) adapter: BaseAdapter<LicenseFeature>) {
     super(adapter);
   }
 
@@ -27,11 +27,11 @@ export class LicenseFeatureRepository
     return data;
   }
 
-  protected override async afterCreate(data: LicenseFeature): Promise<void> {
+  protected override async afterCreate(_data: LicenseFeature): Promise<void> {
     NotificationService.showSuccess('License feature created successfully');
   }
 
-  protected override async afterUpdate(data: LicenseFeature): Promise<void> {
+  protected override async afterUpdate(_data: LicenseFeature): Promise<void> {
     NotificationService.showSuccess('License feature updated successfully');
   }
 }

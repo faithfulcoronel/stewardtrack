@@ -1,10 +1,11 @@
+import 'server-only';
 import "reflect-metadata";
-import { injectable, inject } from "inversify";
-import { SupabaseClient } from "@supabase/supabase-js";
-import { tenantUtils } from "../utils/tenantUtils";
+import { injectable } from "inversify";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { tenantUtils } from "@/utils/tenantUtils";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
-import { TYPES } from "../lib/types";
-import type { RequestContext } from "../lib/server/context";
+import type { RequestContext } from "@/lib/server/context";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface IncomeMetrics {
   thisMonthTotal: number;
@@ -23,10 +24,15 @@ export interface IIncomeDashboardAdapter {
 
 @injectable()
 export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
-  @inject(TYPES.RequestContext)
-  private context!: RequestContext;
+  private supabase: SupabaseClient | null = null;
+  private context: RequestContext = {} as RequestContext;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
 
   private async getTenantId() {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
@@ -68,7 +74,8 @@ export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
   private async fetchSummary(start: Date, end: Date) {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
-    const { data, error } = await this.supabase.rpc("report_category_financial", {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc("report_category_financial", {
       p_tenant_id: tenantId,
       p_start_date: format(start, "yyyy-MM-dd"),
       p_end_date: format(end, "yyyy-MM-dd"),
@@ -81,7 +88,8 @@ export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
   private async fetchDonationCount(start: Date, end: Date) {
     const tenantId = await this.getTenantId();
     if (!tenantId) return 0;
-    const { count, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { count, error } = await supabase
       .from("income_expense_transactions")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
@@ -95,7 +103,8 @@ export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
   private async fetchDonorIds(start: Date, end: Date) {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from("income_expense_transactions")
       .select("member_id")
       .eq("tenant_id", tenantId)
@@ -110,7 +119,8 @@ export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
   async fetchRecentDonations(limit: number): Promise<any[]> {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from("income_expense_transactions")
       .select(
         `transaction_date, amount, account:accounts(name)`
@@ -126,7 +136,8 @@ export class IncomeDashboardAdapter implements IIncomeDashboardAdapter {
   async fetchDonationHistory(limit: number): Promise<any[]> {
     const tenantId = await this.getTenantId();
     if (!tenantId) return [];
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from("income_expense_transactions")
       .select(
         `transaction_date, amount, account:accounts(name), header:financial_transaction_headers(status)`

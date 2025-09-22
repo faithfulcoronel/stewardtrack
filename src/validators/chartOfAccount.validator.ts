@@ -1,4 +1,4 @@
-import { ChartOfAccount } from '../models/chartOfAccount.model';
+import { ChartOfAccount } from '@/models/chartOfAccount.model';
 
 export class ChartOfAccountValidator {
   static validate(data: Partial<ChartOfAccount>): void {

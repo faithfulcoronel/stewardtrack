@@ -1,15 +1,14 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Role } from '../models/role.model';
-import type { IRoleAdapter } from '../adapters/role.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { RoleValidator } from '../validators/role.validator';
-import { handleError } from '../utils/errorHandler';
-import type { IMenuPermissionRepository } from './menuPermission.repository';
-import type { IRoleMenuItemRepository } from './roleMenuItem.repository';
-import type { IPermissionRepository } from './permission.repository';
-import { TYPES } from '../lib/types';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Role } from '@/models/role.model';
+import { NotificationService } from '@/services/NotificationService';
+import { RoleValidator } from '@/validators/role.validator';
+import { handleError } from '@/utils/errorHandler';
+import type { IMenuPermissionRepository } from '@/repositories/menuPermission.repository';
+import type { IRoleMenuItemRepository } from '@/repositories/roleMenuItem.repository';
+import type { IPermissionRepository } from '@/repositories/permission.repository';
+import { TYPES } from '@/lib/types';
 
 export interface IRoleRepository extends BaseRepository<Role> {
   updateRolePermissions(id: string, permissionIds: string[]): Promise<void>;
@@ -21,7 +20,7 @@ export class RoleRepository
   implements IRoleRepository
 {
   constructor(
-    @inject('IRoleAdapter') adapter: BaseAdapter<Role>,
+    @inject(TYPES.IRoleAdapter) adapter: BaseAdapter<Role>,
     @inject(TYPES.IPermissionRepository)
     private permissionRepository: IPermissionRepository,
     @inject(TYPES.IMenuPermissionRepository)

@@ -1,9 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { ErrorLog } from '../models/errorLog.model';
-import { TYPES } from '../lib/types';
-import type { IErrorLogAdapter } from '../adapters/errorLog.adapter';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { ErrorLog } from '@/models/errorLog.model';
+import { TYPES } from '@/lib/types';
 
 export type IErrorLogRepository = BaseRepository<ErrorLog>;
 

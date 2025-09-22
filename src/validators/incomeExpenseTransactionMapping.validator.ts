@@ -1,4 +1,4 @@
-import { IncomeExpenseTransactionMapping } from '../models/incomeExpenseTransactionMapping.model';
+import { IncomeExpenseTransactionMapping } from '@/models/incomeExpenseTransactionMapping.model';
 
 export class IncomeExpenseTransactionMappingValidator {
   static validate(data: Partial<IncomeExpenseTransactionMapping>): void {

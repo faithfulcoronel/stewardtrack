@@ -1,11 +1,12 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { ChartOfAccount } from '../models/chartOfAccount.model';
-import type { IChartOfAccountAdapter } from '../adapters/chartOfAccount.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { ChartOfAccountValidator } from '../validators/chartOfAccount.validator';
-import type { QueryOptions } from '../adapters/base.adapter';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { ChartOfAccount } from '@/models/chartOfAccount.model';
+import type { IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
+import { NotificationService } from '@/services/NotificationService';
+import { ChartOfAccountValidator } from '@/validators/chartOfAccount.validator';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface IChartOfAccountRepository extends BaseRepository<ChartOfAccount> {
   findByCode(code: string, options?: Omit<QueryOptions, 'pagination'>): Promise<ChartOfAccount | null>;
@@ -18,7 +19,7 @@ export class ChartOfAccountRepository
   implements IChartOfAccountRepository
 {
   constructor(
-    @inject('IChartOfAccountAdapter') adapter: BaseAdapter<ChartOfAccount>
+    @inject(TYPES.IChartOfAccountAdapter) adapter: BaseAdapter<ChartOfAccount>
   ) {
     super(adapter);
   }
@@ -57,7 +58,7 @@ export class ChartOfAccountRepository
     }
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Additional repository-level cleanup after delete
     NotificationService.showSuccess('Account deleted successfully');
   }

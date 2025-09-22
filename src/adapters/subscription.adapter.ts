@@ -1,7 +1,8 @@
+import 'server-only';
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { TYPES } from '../lib/types';
+import { injectable } from 'inversify';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface SubscriptionUsage {
   tenant: any;
@@ -15,15 +16,22 @@ export interface ISubscriptionAdapter {
 
 @injectable()
 export class SubscriptionAdapter implements ISubscriptionAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
   async getCurrentUsage(): Promise<SubscriptionUsage> {
-    const { data: tenantData, error: tenantError } = await this.supabase.rpc('get_current_tenant');
+    const supabase = await this.getSupabaseClient();
+    const { data: tenantData, error: tenantError } = await supabase.rpc('get_current_tenant');
     if (tenantError) throw tenantError;
     const tenant = tenantData?.[0];
     if (!tenant) throw new Error('No tenant found');
 
-    const { count: memberCount } = await this.supabase
+    const { count: memberCount } = await supabase
       .from('members')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenant.id)
@@ -33,7 +41,7 @@ export class SubscriptionAdapter implements ISubscriptionAdapter {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const { count: transactionCount } = await this.supabase
+    const { count: transactionCount } = await supabase
       .from('financial_transactions')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenant.id)

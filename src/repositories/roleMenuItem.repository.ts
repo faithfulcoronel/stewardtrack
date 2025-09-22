@@ -1,9 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { RoleMenuItem } from '../models/roleMenuItem.model';
-import type { IRoleMenuItemAdapter } from '../adapters/roleMenuItem.adapter';
-import { TYPES } from '../lib/types';
-import { handleError } from '../utils/errorHandler';
+import { BaseRepository } from '@/repositories/base.repository';
+import { RoleMenuItem } from '@/models/roleMenuItem.model';
+import { TYPES } from '@/lib/types';
+import { handleError } from '@/utils/errorHandler';
 
 export interface IRoleMenuItemRepository extends BaseRepository<RoleMenuItem> {
   replaceRoleMenuItems(roleId: string, menuItemIds: string[]): Promise<void>;

@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
-import type { ISubscriptionAdapter, SubscriptionUsage } from '../adapters/subscription.adapter';
+import type { ISubscriptionAdapter, SubscriptionUsage } from '@/adapters/subscription.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface ISubscriptionRepository {
   getCurrentUsage(): Promise<SubscriptionUsage>;
@@ -8,7 +9,7 @@ export interface ISubscriptionRepository {
 @injectable()
 export class SubscriptionRepository implements ISubscriptionRepository {
   constructor(
-    @inject('ISubscriptionAdapter') private adapter: ISubscriptionAdapter,
+    @inject(TYPES.ISubscriptionAdapter) private adapter: ISubscriptionAdapter,
   ) {}
 
   getCurrentUsage(): Promise<SubscriptionUsage> {

@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { ChartOfAccount } from '../models/chartOfAccount.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { ChartOfAccount } from '@/models/chartOfAccount.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export interface IChartOfAccountAdapter extends IBaseAdapter<ChartOfAccount> {
   getHierarchy(): Promise<ChartOfAccount[]>;
@@ -68,7 +69,8 @@ export class ChartOfAccountAdapter
 
   protected override async onBeforeDelete(id: string): Promise<void> {
     // Check for financial transactions
-    const { data: transactions, error: transactionsError } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: transactions, error: transactionsError } = await supabase
       .from('financial_transactions')
       .select('id')
       .eq('account_id', id)
@@ -78,9 +80,9 @@ export class ChartOfAccountAdapter
     if (transactions?.length) {
       throw new Error('Cannot delete account with existing financial transactions');
     }
-    
+
     // Check for child accounts
-    const { data: children, error: childrenError } = await this.supabase
+    const { data: children, error: childrenError } = await supabase
       .from('chart_of_accounts')
       .select('id')
       .eq('parent_id', id)
@@ -99,8 +101,9 @@ export class ChartOfAccountAdapter
 
 
   public async getHierarchy(): Promise<ChartOfAccount[]> {
-    const { data, error } = await this.supabase.rpc('get_chart_of_accounts_hierarchy');
-    
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_chart_of_accounts_hierarchy');
+
     if (error) throw error;
     return data || [];
   }

@@ -1,7 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { Announcement } from '../models/announcement.model';
-import { BaseAdapter } from '../adapters/base.adapter';
+import { BaseRepository } from '@/repositories/base.repository';
+import { Announcement } from '@/models/announcement.model';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface IAnnouncementRepository extends BaseRepository<Announcement> {
   // Add any announcement-specific repository methods here
@@ -9,7 +10,7 @@ export interface IAnnouncementRepository extends BaseRepository<Announcement> {
 
 @injectable()
 export class AnnouncementRepository extends BaseRepository<Announcement> implements IAnnouncementRepository {
-  constructor(@inject('IAnnouncementAdapter') adapter: BaseAdapter<Announcement>) {
+  constructor(@inject(TYPES.IAnnouncementAdapter) adapter: BaseAdapter<Announcement>) {
     super(adapter);
   }
 
@@ -18,7 +19,7 @@ export class AnnouncementRepository extends BaseRepository<Announcement> impleme
     return data;
   }
 
-  protected override async afterCreate(announcement: Announcement): Promise<void> {
+  protected override async afterCreate(_announcement: Announcement): Promise<void> {
     // Add any post-creation logic here (e.g., logging, notifications)
   }
 
@@ -27,15 +28,15 @@ export class AnnouncementRepository extends BaseRepository<Announcement> impleme
     return data;
   }
 
-  protected override async afterUpdate(announcement: Announcement): Promise<void> {
+  protected override async afterUpdate(_announcement: Announcement): Promise<void> {
     // Add any post-update logic here
   }
 
-  protected override async beforeDelete(id: string): Promise<void> {
+  protected override async beforeDelete(_id: string): Promise<void> {
     // Add any pre-deletion logic here (e.g., checking dependencies)
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Add any post-deletion logic here
   }
 }

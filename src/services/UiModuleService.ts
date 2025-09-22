@@ -1,7 +1,8 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { ModuleMetadata } from '../modules/types/module';
-import type { IUiModuleRepository } from '../repositories/uiModule.repository';
+import { TYPES } from '@/lib/types';
+import type { ModuleMetadata } from '@/modules/types/module';
+import type { IUiModuleRepository } from '@/repositories/uiModule.repository';
 
 @injectable()
 export class UiModuleService {

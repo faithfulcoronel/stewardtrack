@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Budget } from '../models/budget.model';
-import type { IBudgetAdapter } from '../adapters/budget.adapter';
-import { NotificationService } from '../services/NotificationService';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Budget } from '@/models/budget.model';
+import { NotificationService } from '@/services/NotificationService';
+import { TYPES } from '@/lib/types';
 
 export type IBudgetRepository = BaseRepository<Budget>;
 
@@ -12,7 +12,7 @@ export class BudgetRepository
   extends BaseRepository<Budget>
   implements IBudgetRepository
 {
-  constructor(@inject('IBudgetAdapter') adapter: BaseAdapter<Budget>) {
+  constructor(@inject(TYPES.IBudgetAdapter) adapter: BaseAdapter<Budget>) {
     super(adapter);
   }
 

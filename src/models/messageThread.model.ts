@@ -1,5 +1,5 @@
-import { BaseModel } from './base.model';
-import type { Message } from './message.model';
+import { BaseModel } from '@/models/base.model';
+import type { Message } from '@/models/message.model';
 
 export type MessageThreadStatus = 'pending' | 'resolved' | 'in_progress';
 

@@ -1,4 +1,4 @@
-import { BaseModel } from './base.model';
+import { BaseModel } from '@/models/base.model';
 
 export interface Member extends BaseModel {
   first_name: string;

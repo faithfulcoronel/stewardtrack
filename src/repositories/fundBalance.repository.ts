@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
-import type { IFundBalanceAdapter } from '../adapters/fundBalance.adapter';
-import { TYPES } from '../lib/types';
+import { TYPES } from '@/lib/types';
+import type { IFundBalanceAdapter } from '@/adapters/fundBalance.adapter';
 
 export interface IFundBalanceRepository {
   getBalance(fundId: string): Promise<number>;

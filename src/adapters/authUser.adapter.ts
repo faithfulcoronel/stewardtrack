@@ -1,12 +1,13 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { tenantUtils } from '../utils/tenantUtils';
-import { handleSupabaseError } from '../utils/supabaseErrorHandler';
-import { handleError } from '../utils/errorHandler';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { TYPES } from '../lib/types';
-import type { AuditService } from '../services/AuditService';
-import { User } from '../models/user.model';
+import { tenantUtils } from '@/utils/tenantUtils';
+import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
+import { handleError } from '@/utils/errorHandler';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
+import type { AuditService } from '@/services/AuditService';
+import { User } from '@/models/user.model';
 
 export type IAuthUserAdapter = IBaseAdapter<User>;
 

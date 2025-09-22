@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Category } from '../models/category.model';
-import type { ICategoryAdapter } from '../adapters/category.adapter';
-import { NotificationService } from '../services/NotificationService';
-import { CategoryValidator } from '../validators/category.validator';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Category } from '@/models/category.model';
+import { NotificationService } from '@/services/NotificationService';
+import { CategoryValidator } from '@/validators/category.validator';
+import { TYPES } from '@/lib/types';
 
 export type ICategoryRepository = BaseRepository<Category>;
 
@@ -13,7 +13,7 @@ export class CategoryRepository
   extends BaseRepository<Category>
   implements ICategoryRepository
 {
-  constructor(@inject('ICategoryAdapter') adapter: BaseAdapter<Category>) {
+  constructor(@inject(TYPES.ICategoryAdapter) adapter: BaseAdapter<Category>) {
     super(adapter);
   }
 

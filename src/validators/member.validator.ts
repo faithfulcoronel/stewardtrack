@@ -1,4 +1,4 @@
-import { Member } from '../models/member.model';
+import { Member } from '@/models/member.model';
 
 export class MemberValidator {
   static validate(data: Partial<Member>): void {

@@ -1,15 +1,16 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import type { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
-import type { TransactionType } from '../models/financialTransaction.model';
-import type { IFinancialTransactionHeaderRepository } from '../repositories/financialTransactionHeader.repository';
-import type { IIncomeExpenseTransactionRepository } from '../repositories/incomeExpenseTransaction.repository';
-import type { IIncomeExpenseTransactionMappingRepository } from '../repositories/incomeExpenseTransactionMapping.repository';
-import type { IFinancialTransactionRepository } from '../repositories/financialTransaction.repository';
-import type { ICategoryRepository } from '../repositories/category.repository';
-import type { IFinancialSourceRepository } from '../repositories/financialSource.repository';
-import type { Category } from '../models/category.model';
-import type { FinancialSource } from '../models/financialSource.model';
-import { TYPES } from '../lib/types';
+import type { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
+import type { TransactionType } from '@/models/financialTransaction.model';
+import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
+import type { IIncomeExpenseTransactionMappingRepository } from '@/repositories/incomeExpenseTransactionMapping.repository';
+import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import type { Category } from '@/models/category.model';
+import type { FinancialSource } from '@/models/financialSource.model';
+import { TYPES } from '@/lib/types';
 
 export interface IncomeExpenseEntry {
   id?: string;

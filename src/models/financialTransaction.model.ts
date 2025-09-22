@@ -1,7 +1,7 @@
-import { BaseModel } from './base.model';
-import { Member } from './member.model';
-import { ChartOfAccount } from './chartOfAccount.model';
-import { FinancialTransactionHeader } from './financialTransactionHeader.model';
+import { BaseModel } from '@/models/base.model';
+import { Member } from '@/models/member.model';
+import { ChartOfAccount } from '@/models/chartOfAccount.model';
+import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 
 export type TransactionType =
   | 'income'

@@ -1,9 +1,10 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { BaseAdapter } from '../adapters/base.adapter';
-import { Tenant } from '../models/tenant.model';
-import type { ITenantAdapter } from '../adapters/tenant.adapter';
-import { NotificationService } from '../services/NotificationService';
+import { BaseRepository } from '@/repositories/base.repository';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { Tenant } from '@/models/tenant.model';
+import type { ITenantAdapter } from '@/adapters/tenant.adapter';
+import { NotificationService } from '@/services/NotificationService';
+import { TYPES } from '@/lib/types';
 
 export interface ITenantRepository extends BaseRepository<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -19,7 +20,7 @@ export class TenantRepository
   extends BaseRepository<Tenant>
   implements ITenantRepository
 {
-  constructor(@inject('ITenantAdapter') adapter: BaseAdapter<Tenant>) {
+  constructor(@inject(TYPES.ITenantAdapter) adapter: BaseAdapter<Tenant>) {
     super(adapter);
   }
 

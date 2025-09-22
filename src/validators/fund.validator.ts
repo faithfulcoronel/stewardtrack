@@ -1,4 +1,4 @@
-import { Fund } from '../models/fund.model';
+import { Fund } from '@/models/fund.model';
 
 export class FundValidator {
   static validate(data: Partial<Fund>): void {

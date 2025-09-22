@@ -1,4 +1,4 @@
-import { FinancialTransactionHeader } from '../models/financialTransactionHeader.model';
+import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 
 export class FinancialTransactionHeaderValidator {
   static validate(data: Partial<FinancialTransactionHeader>): void {

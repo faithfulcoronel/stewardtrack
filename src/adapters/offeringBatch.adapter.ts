@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { OfferingBatch } from '../models/offeringBatch.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { OfferingBatch } from '@/models/offeringBatch.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IOfferingBatchAdapter = IBaseAdapter<OfferingBatch>;
 
@@ -48,7 +49,8 @@ export class OfferingBatchAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data: tx, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: tx, error } = await supabase
       .from('financial_transactions')
       .select('id')
       .eq('batch_id', id)

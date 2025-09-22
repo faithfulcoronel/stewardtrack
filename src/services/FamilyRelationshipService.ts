@@ -1,9 +1,10 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IFamilyRelationshipRepository } from '../repositories/familyRelationship.repository';
-import type { FamilyRelationship } from '../models/familyRelationship.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IFamilyRelationshipRepository } from '@/repositories/familyRelationship.repository';
+import type { FamilyRelationship } from '@/models/familyRelationship.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import type { CrudService } from '@/services/CrudService';
 
 @injectable()
 export class FamilyRelationshipService

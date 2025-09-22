@@ -1,5 +1,5 @@
-import { BaseModel } from './base.model';
-import type { ChartOfAccount } from './chartOfAccount.model';
+import { BaseModel } from '@/models/base.model';
+import type { ChartOfAccount } from '@/models/chartOfAccount.model';
 
 export type FundType = 'restricted' | 'unrestricted';
 

@@ -1,8 +1,9 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { Notification } from '../models/notification.model';
-import { supabaseWrapper } from '../lib/supabase';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { Notification } from '@/models/notification.model';
+import { supabaseWrapper } from '@/lib/supabase/wrapper';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface INotificationAdapter extends IBaseAdapter<Notification> {
@@ -12,7 +13,7 @@ export interface INotificationAdapter extends IBaseAdapter<Notification> {
   subscribeToUserNotifications(
     userId: string,
     onInsert: () => void
-  ): RealtimeChannel;
+  ): Promise<RealtimeChannel>;
 }
 
 @injectable()
@@ -36,7 +37,8 @@ export class NotificationAdapter
   `;
 
   public async markAsRead(id: string): Promise<void> {
-    const { error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase
       .from(this.tableName)
       .update({ is_read: true })
       .eq('id', id);
@@ -45,7 +47,8 @@ export class NotificationAdapter
   }
 
   public async markAllAsRead(userId: string): Promise<void> {
-    const { error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase
       .from(this.tableName)
       .update({ is_read: true })
       .eq('user_id', userId)
@@ -55,7 +58,8 @@ export class NotificationAdapter
   }
 
   public async deleteExpired(): Promise<void> {
-    const { error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase
       .from(this.tableName)
       .delete()
       .lt('expires_at', new Date().toISOString());
@@ -68,7 +72,8 @@ export class NotificationAdapter
     
     // Add user_id filter if not already present
     if (!options.filters?.user_id) {
-      const { data: { user } } = await this.supabase.auth.getUser();
+      const supabase = await this.getSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         query.eq('user_id', user.id);
       }
@@ -77,11 +82,12 @@ export class NotificationAdapter
     return { query };
   }
 
-  public subscribeToUserNotifications(
+  public async subscribeToUserNotifications(
     userId: string,
     onInsert: () => void
-  ): RealtimeChannel {
-    const channel = this.supabase
+  ): Promise<RealtimeChannel> {
+    const supabase = await this.getSupabaseClient();
+    const channel = supabase
       .channel('notification-listener')
       .on(
         'postgres_changes' as const,

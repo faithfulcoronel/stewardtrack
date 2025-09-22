@@ -1,6 +1,7 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IIncomeDashboardRepository } from '../repositories/incomeDashboard.repository';
+import { TYPES } from '@/lib/types';
+import type { IIncomeDashboardRepository } from '@/repositories/incomeDashboard.repository';
 
 @injectable()
 export class IncomeDashboardService {

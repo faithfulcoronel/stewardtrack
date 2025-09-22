@@ -1,6 +1,6 @@
-import { BaseModel } from './base.model';
-import { FinancialSource } from './financialSource.model';
-import { FinancialTransaction } from './financialTransaction.model';
+import { BaseModel } from '@/models/base.model';
+import { FinancialSource } from '@/models/financialSource.model';
+import { FinancialTransaction } from '@/models/financialTransaction.model';
 
 export type TransactionStatus =
   | 'draft'

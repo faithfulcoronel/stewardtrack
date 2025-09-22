@@ -1,7 +1,8 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { ActivityLog } from '../models/activityLog.model';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { ActivityLog } from '@/models/activityLog.model';
 
 export type IActivityLogAdapter = IBaseAdapter<ActivityLog>;
 

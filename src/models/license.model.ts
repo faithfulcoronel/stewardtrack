@@ -1,4 +1,4 @@
-import { BaseModel } from './base.model';
+import { BaseModel } from '@/models/base.model';
 
 export interface License extends BaseModel {
   id: string;

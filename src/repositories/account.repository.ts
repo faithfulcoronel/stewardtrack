@@ -1,7 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { BaseRepository } from './base.repository';
-import { Account } from '../models/account.model';
-import { BaseAdapter } from '../adapters/base.adapter';
+import { BaseRepository } from '@/repositories/base.repository';
+import { Account } from '@/models/account.model';
+import { BaseAdapter } from '@/adapters/base.adapter';
+import { TYPES } from '@/lib/types';
 
 export interface IAccountRepository extends BaseRepository<Account> {
   // Add any account-specific repository methods here
@@ -9,7 +10,7 @@ export interface IAccountRepository extends BaseRepository<Account> {
 
 @injectable()
 export class AccountRepository extends BaseRepository<Account> implements IAccountRepository {
-  constructor(@inject('IAccountAdapter') adapter: BaseAdapter<Account>) {
+  constructor(@inject(TYPES.IAccountAdapter) adapter: BaseAdapter<Account>) {
     super(adapter);
   }
 
@@ -18,7 +19,7 @@ export class AccountRepository extends BaseRepository<Account> implements IAccou
     return data;
   }
 
-  protected override async afterCreate(account: Account): Promise<void> {
+  protected override async afterCreate(_account: Account): Promise<void> {
     // Add any post-creation logic here (e.g., logging, notifications)
   }
 
@@ -27,15 +28,15 @@ export class AccountRepository extends BaseRepository<Account> implements IAccou
     return data;
   }
 
-  protected override async afterUpdate(account: Account): Promise<void> {
+  protected override async afterUpdate(_account: Account): Promise<void> {
     // Add any post-update logic here
   }
 
-  protected override async beforeDelete(id: string): Promise<void> {
+  protected override async beforeDelete(_id: string): Promise<void> {
     // Add any pre-deletion logic here (e.g., checking dependencies)
   }
 
-  protected override async afterDelete(id: string): Promise<void> {
+  protected override async afterDelete(_id: string): Promise<void> {
     // Add any post-deletion logic here
   }
 }

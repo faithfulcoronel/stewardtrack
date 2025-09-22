@@ -1,10 +1,11 @@
+import 'server-only';
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { injectable } from 'inversify';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { startOfMonth, format } from 'date-fns';
-import { TYPES } from '../lib/types';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { RequestContext } from '../lib/server/context';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { RequestContext } from '@/lib/server/context';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export interface MemberMetrics {
   totalMembers: number;
@@ -24,10 +25,15 @@ export interface IMembersDashboardAdapter {
 
 @injectable()
 export class MembersDashboardAdapter implements IMembersDashboardAdapter {
-  @inject(TYPES.SupabaseClient)
-  private supabase!: SupabaseClient;
-  @inject(TYPES.RequestContext)
-  private context!: RequestContext;
+  private supabase: SupabaseClient | null = null;
+  private context: RequestContext = {} as RequestContext;
+
+  private async getSupabaseClient(): Promise<SupabaseClient> {
+    if (!this.supabase) {
+      this.supabase = await createSupabaseServerClient();
+    }
+    return this.supabase;
+  }
 
   private async getTenantId() {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
@@ -37,18 +43,19 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     const tenantId = await this.getTenantId();
     const today = new Date();
     const monthStart = startOfMonth(today);
+    const supabase = await this.getSupabaseClient();
     const tenantFilter = (query: any) =>
       tenantId ? query.eq('tenant_id', tenantId) : query;
 
     const totalPromise = tenantFilter(
-      this.supabase
+      supabase
         .from('members')
         .select('id', { count: 'exact', head: true })
         .is('deleted_at', null),
     );
 
     const newPromise = tenantFilter(
-      this.supabase
+      supabase
         .from('members')
         .select('id', { count: 'exact', head: true })
         .is('deleted_at', null)
@@ -56,7 +63,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     );
 
     const visitorStatusPromise = tenantFilter(
-      this.supabase
+      supabase
         .from('membership_status')
         .select('id')
         .eq('code', 'visitor')
@@ -64,7 +71,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     );
 
     const familyPromise = tenantFilter(
-      this.supabase
+      supabase
         .from('family_relationships')
         .select('id', { count: 'exact', head: true }),
     );
@@ -80,7 +87,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     let visitorCount = 0;
     if (visitorStatusId) {
       const visitorRes = await tenantFilter(
-        this.supabase
+        supabase
           .from('members')
           .select('id', { count: 'exact', head: true })
           .is('deleted_at', null)
@@ -99,7 +106,8 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
 
   async fetchRecentMembers(limit: number): Promise<any[]> {
     const tenantId = await this.getTenantId();
-    const query = this.supabase
+    const supabase = await this.getSupabaseClient();
+    const query = supabase
       .from('members')
       .select(
         `id, first_name, last_name, email, profile_picture_url, created_at, membership_status:membership_status_id(name, code)`
@@ -115,7 +123,8 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
 
   async fetchMemberDirectory(search: string | undefined, limit: number): Promise<any[]> {
     const tenantId = await this.getTenantId();
-    let query = this.supabase
+    const supabase = await this.getSupabaseClient();
+    let query = supabase
       .from('members')
       .select(
         `id, first_name, last_name, email, contact_number, profile_picture_url, membership_status:membership_status_id(name, code)`
@@ -145,13 +154,15 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
   }
 
   async fetchBirthdaysThisMonth(): Promise<any[]> {
-    const { data, error } = await this.supabase.rpc('get_current_month_birthdays');
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_current_month_birthdays');
     if (error) throw error;
     return data || [];
   }
 
   async fetchBirthdaysByMonth(month: number): Promise<any[]> {
-    const { data, error } = await this.supabase.rpc('get_birthdays_for_month', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_birthdays_for_month', {
       p_month: month,
     });
     if (error) throw error;

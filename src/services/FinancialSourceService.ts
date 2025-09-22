@@ -1,14 +1,15 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IFinancialSourceRepository } from '../repositories/financialSource.repository';
-import type { FinancialSource } from '../models/financialSource.model';
-import type { ChartOfAccount } from '../models/chartOfAccount.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { ChartOfAccountService } from './ChartOfAccountService';
-import { uniqueID } from '../lib/helpers';
-import type { CrudService } from './CrudService';
-import { FinancialSourceValidator } from '../validators/financialSource.validator';
-import { validateOrThrow } from '../utils/validation';
+import { TYPES } from '@/lib/types';
+import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import type { FinancialSource } from '@/models/financialSource.model';
+import type { ChartOfAccount } from '@/models/chartOfAccount.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { ChartOfAccountService } from '@/services/ChartOfAccountService';
+import { uniqueID } from '@/lib/helpers';
+import type { CrudService } from '@/services/CrudService';
+import { FinancialSourceValidator } from '@/validators/financialSource.validator';
+import { validateOrThrow } from '@/utils/validation';
 
 @injectable()
 export class FinancialSourceService
@@ -109,7 +110,7 @@ export class FinancialSourceService
     }
 
     if (rest.coa_id === undefined) {
-      const { coa_id, ...remaining } = rest as any;
+      const { coa_id: _coaId, ...remaining } = rest as any;
       return this.update(id, remaining, relations, fieldsToRemove);
     }
 

@@ -1,10 +1,11 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IMembershipTypeRepository } from '../repositories/membershipType.repository';
-import type { MembershipType } from '../models/membershipType.model';
-import type { QueryOptions } from '../adapters/base.adapter';
-import { tenantUtils } from '../utils/tenantUtils';
-import type { CrudService } from './CrudService';
+import { TYPES } from '@/lib/types';
+import type { IMembershipTypeRepository } from '@/repositories/membershipType.repository';
+import type { MembershipType } from '@/models/membershipType.model';
+import type { QueryOptions } from '@/adapters/base.adapter';
+import { tenantUtils } from '@/utils/tenantUtils';
+import type { CrudService } from '@/services/CrudService';
 
 @injectable()
 export class MembershipTypeService

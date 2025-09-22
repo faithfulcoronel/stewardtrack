@@ -1,4 +1,4 @@
-import { IncomeExpenseTransaction } from '../models/incomeExpenseTransaction.model';
+import { IncomeExpenseTransaction } from '@/models/incomeExpenseTransaction.model';
 
 export class IncomeExpenseTransactionValidator {
   static validate(data: Partial<IncomeExpenseTransaction>): void {

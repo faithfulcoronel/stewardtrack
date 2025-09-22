@@ -1,4 +1,5 @@
-import type { QueryOptions } from '../adapters/base.adapter';
+import 'server-only';
+import type { QueryOptions } from '@/adapters/base.adapter';
 
 /**
  * Generic CRUD service interface implemented by data services.

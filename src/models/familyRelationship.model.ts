@@ -1,4 +1,4 @@
-import { BaseModel } from './base.model';
+import { BaseModel } from '@/models/base.model';
 
 export interface FamilyRelationship extends BaseModel {
   member_id: string;

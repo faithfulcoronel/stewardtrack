@@ -1,4 +1,4 @@
-import { Notification } from '../models/notification.model';
+import { Notification } from '@/models/notification.model';
 
 export class NotificationValidator {
   static validate(data: Partial<Notification>): void {

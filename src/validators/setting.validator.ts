@@ -1,4 +1,4 @@
-import { Setting } from '../models/setting.model';
+import { Setting } from '@/models/setting.model';
 
 export class SettingValidator {
   static validate(data: Partial<Setting>): void {

@@ -1,4 +1,4 @@
-import { FinancialSource } from '../models/financialSource.model';
+import { FinancialSource } from '@/models/financialSource.model';
 
 export class FinancialSourceValidator {
   static validate(data: Partial<FinancialSource>): void {

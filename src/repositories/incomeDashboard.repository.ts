@@ -1,9 +1,10 @@
-import { injectable, inject } from "inversify";
-import { TYPES } from "../lib/types";
+import 'server-only';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
 import type {
   IIncomeDashboardAdapter,
   IncomeMetrics,
-} from "../adapters/incomeDashboard.adapter";
+} from '@/adapters/incomeDashboard.adapter';
 
 export interface RecentDonation {
   date: string;

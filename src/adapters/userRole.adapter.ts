@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter } from './base.adapter';
-import { UserRole } from '../models/userRole.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
+import { UserRole } from '@/models/userRole.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export interface IUserRoleAdapter extends IBaseAdapter<UserRole> {
   getRoleDetailsByUser(
@@ -60,7 +61,8 @@ export class UserRoleAdapter
       throw new Error('Invalid userId provided to getRoleDetailsByUser');
     }
 
-    const { data, error } = await this.supabase.rpc('get_user_roles', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_roles', {
       user_id: userId,
     });
     if (error) throw error;
@@ -79,7 +81,8 @@ export class UserRoleAdapter
       throw new Error('Invalid tenantId provided to getAdminRole');
     }
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('tenant_users')
       .select('admin_role')
       .eq('user_id', userId)
@@ -95,7 +98,8 @@ export class UserRoleAdapter
       throw new Error('Invalid userId provided to getRolesWithPermissions');
     }
 
-    const { data, error } = await this.supabase.rpc(
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc(
       'get_user_roles_with_permissions',
       { target_user_id: userId }
     );
@@ -104,7 +108,8 @@ export class UserRoleAdapter
   }
 
   public async isSuperAdmin(): Promise<boolean> {
-    const { data } = await this.supabase.rpc('is_super_admin');
+    const supabase = await this.getSupabaseClient();
+    const { data } = await supabase.rpc('is_super_admin');
     return data === true;
   }
 
@@ -114,7 +119,8 @@ export class UserRoleAdapter
       throw new Error('Invalid userId provided to isAdmin');
     }
 
-    const { data, error } = await this.supabase.rpc('is_admin', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('is_admin', {
       user_id: userId,
     });
     if (error) throw error;
@@ -122,7 +128,8 @@ export class UserRoleAdapter
   }
 
   public async canUser(permission: string): Promise<boolean> {
-    const { data, error } = await this.supabase.rpc('can_user', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user', {
       required_permission: permission,
     });
     if (error) throw error;
@@ -142,7 +149,8 @@ export class UserRoleAdapter
       throw new Error('Invalid tenantId provided to replaceUserRoles');
     }
 
-    const { error: deleteError } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { error: deleteError } = await supabase
       .from('user_roles')
       .delete()
       .eq('user_id', userId)
@@ -150,7 +158,7 @@ export class UserRoleAdapter
     if (deleteError) throw deleteError;
 
     if (roleIds.length) {
-      const currentUser = (await this.supabase.auth.getUser()).data.user?.id;
+      const currentUser = (await supabase.auth.getUser()).data.user?.id;
       const rows = roleIds.map((rid) => ({
         user_id: userId,
         role_id: rid,
@@ -158,7 +166,7 @@ export class UserRoleAdapter
         created_by: currentUser,
         created_at: new Date().toISOString(),
       }));
-      const { error: insertError } = await this.supabase
+      const { error: insertError } = await supabase
         .from('user_roles')
         .insert(rows);
       if (insertError) throw insertError;
@@ -171,7 +179,8 @@ export class UserRoleAdapter
       throw new Error('Invalid userId provided to getRolesByUser');
     }
 
-    const { data, error } = await this.supabase.rpc('get_user_roles', {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_roles', {
       user_id: userId,
     });
     if (error) throw error;
@@ -184,7 +193,8 @@ export class UserRoleAdapter
       throw new Error('Invalid roleId provided to getUsersByRole');
     }
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from(this.tableName)
       .select(this.defaultSelect)
       .eq('role_id', roleId);

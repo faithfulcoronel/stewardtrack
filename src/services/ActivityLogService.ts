@@ -1,8 +1,9 @@
+import 'server-only';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../lib/types';
-import type { IActivityLogRepository } from '../repositories/activityLog.repository';
-import type { ActivityLog } from '../models/activityLog.model';
-import { QueryOptions } from '../adapters/base.adapter';
+import { TYPES } from '@/lib/types';
+import type { IActivityLogRepository } from '@/repositories/activityLog.repository';
+import type { ActivityLog } from '@/models/activityLog.model';
+import { QueryOptions } from '@/adapters/base.adapter';
 
 export interface ActivityLogService {
   find(options?: QueryOptions): ReturnType<IActivityLogRepository['find']>;

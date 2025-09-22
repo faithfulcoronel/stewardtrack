@@ -1,9 +1,10 @@
+import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from './base.adapter';
-import { Fund } from '../models/fund.model';
-import type { AuditService } from '../services/AuditService';
-import { TYPES } from '../lib/types';
+import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { Fund } from '@/models/fund.model';
+import type { AuditService } from '@/services/AuditService';
+import { TYPES } from '@/lib/types';
 
 export type IFundAdapter = IBaseAdapter<Fund>;
 
@@ -47,7 +48,8 @@ export class FundAdapter
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
-    const { data: tx, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data: tx, error } = await supabase
       .from('financial_transactions')
       .select('id')
       .eq('fund_id', id)
@@ -59,7 +61,8 @@ export class FundAdapter
   }
 
   protected override async onAfterDelete(id: string): Promise<void> {
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
       .from('funds')
       .select('coa_id')
       .eq('id', id)
@@ -67,7 +70,7 @@ export class FundAdapter
     if (error) throw error;
     const coaId = data?.coa_id;
     if (coaId) {
-      const { error: delErr } = await this.supabase
+      const { error: delErr } = await supabase
         .from('chart_of_accounts')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', coaId);
