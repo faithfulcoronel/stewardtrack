@@ -806,7 +806,7 @@ function MomentumStreamStats(props: NormalizedStatsProps) {
           )}
         </header>
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2">
+          <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 transparent-scrollbar">
             {props.metrics.map((metric) => (
               <div
                 key={metric.label}
