@@ -75,6 +75,7 @@ const DataGridRender = <TData,>(
           gridClassName
         )}
         containerStyle={gridStyle}
+        theme="legacy"
         {...props}
       />
     </div>
