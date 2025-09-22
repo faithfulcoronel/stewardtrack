@@ -293,7 +293,7 @@ function PatternHero(props: NormalizedHeroProps) {
         </div>
         <div className="w-full rounded-3xl border border-border/60 bg-muted/40 p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            Why teams choose Flowspace
+            Why teams choose StewardTrack
           </p>
           <ul className="mt-6 grid gap-4 text-sm text-muted-foreground">
             {props.highlights.slice(0, 4).map((item) => (
@@ -481,7 +481,7 @@ function TestimonialHero(props: NormalizedHeroProps) {
         <div className="relative rounded-3xl border border-white/15 bg-white/5 p-8 shadow-2xl">
           <span className="text-6xl leading-none text-white/20">&quot;</span>
           <p className="mt-6 text-lg text-white">
-            {props.testimonial?.quote ?? "Flowspace lets lifecycle teams craft journeys without waiting on deploys."}
+            {props.testimonial?.quote ?? "StewardTrack lets lifecycle teams craft journeys without waiting on deploys."}
           </p>
           <div className="mt-6 space-y-1 text-sm">
             <p className="font-semibold text-white">{props.testimonial?.author ?? "Jordan Winters"}</p>

@@ -23,7 +23,7 @@
           },
           "description": {
             "kind": "static",
-            "value": "Acme teams use Flowspace metadata to turn XML into high-converting journeys in days."
+            "value": "Acme teams use StewardTrack metadata to turn XML into high-converting journeys in days."
           }
         }
       }
@@ -36,7 +36,7 @@
         "config": {
           "value": {
             "headline": "Acme accelerates every steward",
-            "description": "Acme teams use Flowspace metadata to turn XML into high-converting journeys in days."
+            "description": "Acme teams use StewardTrack metadata to turn XML into high-converting journeys in days."
           }
         }
       }

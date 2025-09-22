@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">spotlight</Prop>
             <Prop name="badge" kind="static">Blueprint release</Prop>
-            <Prop name="headline" kind="static">Launch products faster with Flowspace blocks</Prop>
+            <Prop name="headline" kind="static">Launch products faster with StewardTrack blocks</Prop>
             <Prop name="description" kind="static">Pick a curated hero blueprint, orchestrate overlays, and ship a marketing launch page without waiting on deploys.</Prop>
             <Prop name="highlights" kind="binding" source="spotlightHighlights" path="items" />
             <Prop name="metrics" kind="binding" source="spotlightMetrics" path="items" />

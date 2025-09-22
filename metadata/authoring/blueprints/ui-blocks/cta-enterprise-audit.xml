@@ -50,7 +50,7 @@
       <Action id="download-brief" kind="link">
         <Config>
           <Label>Download scope brief</Label>
-          <Url>/resources/flowspace-enterprise-audit.pdf</Url>
+          <Url>/resources/StewardTrack-enterprise-audit.pdf</Url>
           <Variant>secondary</Variant>
         </Config>
       </Action>

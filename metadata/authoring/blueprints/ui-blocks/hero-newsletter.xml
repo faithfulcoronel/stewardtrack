@@ -40,7 +40,7 @@
       <DataSource id="newsletterForm" kind="static">
         <Json><![CDATA[
           {
-            "placeholder": "flowspace-fan@company.com",
+            "placeholder": "StewardTrack-fan@company.com",
             "buttonLabel": "Subscribe",
             "disclaimer": "We send one curated update each week.",
             "url": "/newsletter/join"

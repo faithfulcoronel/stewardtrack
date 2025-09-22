@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Admin | Flowspace",
+  title: "Admin | StewardTrack",
 };
 
 export default async function AdminPage() {

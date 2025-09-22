@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">video</Prop>
             <Prop name="badge" kind="static">Live summit</Prop>
-            <Prop name="headline" kind="static">Flowspace Blueprint Summit 2025</Prop>
+            <Prop name="headline" kind="static">StewardTrack Blueprint Summit 2025</Prop>
             <Prop name="description" kind="static">Invite your audience with a hero anchored by a video teaser and clear calls to register or explore the agenda.</Prop>
             <Prop name="video" kind="binding" source="eventVideo" path="$" />
             <Prop name="image" kind="binding" source="eventThumbnail" path="$" />

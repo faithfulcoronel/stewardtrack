@@ -1,4 +1,4 @@
-# Flowspace Starter
+# StewardTrack Starter
 
 A Next.js 15 starter that pairs a polished marketing page with Supabase-powered authentication and an admin dashboard. It uses the `@supabase/ssr` helpers to keep sessions in sync between server components, server actions, and browser interactions.
 

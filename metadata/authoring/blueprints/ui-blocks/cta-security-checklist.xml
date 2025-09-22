@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">stacked</Prop>
             <Prop name="eyebrow" kind="static">Security review</Prop>
-            <Prop name="headline" kind="static">Guide your security team through Flowspace</Prop>
+            <Prop name="headline" kind="static">Guide your security team through StewardTrack</Prop>
             <Prop name="description" kind="static">Share pre-vetted artifacts, control scopes, and map compliance requirements without slowing down adoption.</Prop>
             <Prop name="highlights" kind="binding" source="securityHighlights" path="items" />
             <Prop name="primaryCta" kind="action" actionId="download-pack" />

@@ -29,7 +29,7 @@
       <DataSource id="playbookResource" kind="static">
         <Json><![CDATA[
           {
-            "label": "Flowspace schema operations playbook.pdf",
+            "label": "StewardTrack schema operations playbook.pdf",
             "meta": "34 pages • Includes editable templates"
           }
         ]]></Json>

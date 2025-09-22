@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Bento grids | Flowspace",
+  title: "Bento grids | StewardTrack",
 };
 
 const ROOT = process.cwd();

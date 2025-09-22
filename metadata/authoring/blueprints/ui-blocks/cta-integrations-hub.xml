@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">showcase</Prop>
             <Prop name="eyebrow" kind="static">Integration ecosystem</Prop>
-            <Prop name="headline" kind="static">Connect Flowspace across your stack</Prop>
+            <Prop name="headline" kind="static">Connect StewardTrack across your stack</Prop>
             <Prop name="description" kind="static">Activate pre-built connectors for analytics, product, and GTM teams while keeping governance centralized.</Prop>
             <Prop name="highlight" kind="static">Trusted by RevOps and Platform teams</Prop>
             <Prop name="highlights" kind="binding" source="integrationHighlights" path="items" />
@@ -31,7 +31,7 @@
         <Json><![CDATA[
           {
             "items": [
-              { "title": "Analytics acceleration", "description": "Sync Flowspace events to Snowflake, Looker, and Mode with governed schemas." },
+              { "title": "Analytics acceleration", "description": "Sync StewardTrack events to Snowflake, Looker, and Mode with governed schemas." },
               { "title": "Lifecycle automation", "description": "Trigger lifecycle campaigns in HubSpot, Braze, and Customer.io from approval signals." },
               { "title": "Product orchestration", "description": "Align backlog, documentation, and launch plans in Jira, Linear, and Notion." },
               { "title": "Compliance workflows", "description": "Pipe release evidence into Vanta, Drata, and custom GRC tools." }

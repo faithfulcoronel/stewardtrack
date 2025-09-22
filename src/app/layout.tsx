@@ -6,7 +6,7 @@ import { ThemeFloater } from "@/components/theme/theme-floater";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
 
 export const metadata: Metadata = {
-  title: "Flowspace",
+  title: "StewardTrack",
   description: "Launch a Supabase-powered SaaS landing and admin experience in minutes.",
 };
 

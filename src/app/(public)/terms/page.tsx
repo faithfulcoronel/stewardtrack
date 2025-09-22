@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms | Flowspace",
+  title: "Terms | StewardTrack",
 };
 
 export default function TermsPage() {
@@ -13,7 +13,7 @@ export default function TermsPage() {
         Replace this placeholder copy with your product terms before inviting customers.
       </p>
       <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-        <li>- Flowspace is provided as-is for demonstration purposes.</li>
+        <li>- StewardTrack is provided as-is for demonstration purposes.</li>
         <li>- Authentication and data storage are handled by your Supabase project.</li>
         <li>- Update this content with real policies for production launches.</li>
       </ul>

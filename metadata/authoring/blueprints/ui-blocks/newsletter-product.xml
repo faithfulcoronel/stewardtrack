@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">product</Prop>
             <Prop name="eyebrow" kind="static">Release radar</Prop>
-            <Prop name="headline" kind="static">Flowspace change log</Prop>
+            <Prop name="headline" kind="static">StewardTrack change log</Prop>
             <Prop name="description" kind="static">The weekly bulletin covering every metadata update, experiment, and roadmap insight across the platform.</Prop>
             <Prop name="cards" kind="binding" source="productCards" path="items" />
             <Prop name="stats" kind="binding" source="productStats" path="items" />
@@ -57,7 +57,7 @@
               {
                 "badge": "Community",
                 "title": "Contributor spotlights",
-                "description": "See how customers extend Flowspace with custom renderers and data sources."
+                "description": "See how customers extend StewardTrack with custom renderers and data sources."
               }
             ]
           }

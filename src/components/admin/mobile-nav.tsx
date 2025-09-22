@@ -68,7 +68,7 @@ export function AdminMobileNav({ sections }: { sections: AdminNavSection[] }) {
             FS
           </Link>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Flowspace Admin</p>
+            <p className="text-sm font-semibold">StewardTrack Admin</p>
             <p className="text-xs/5" style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 70%, transparent)" }}>
               Control center
             </p>

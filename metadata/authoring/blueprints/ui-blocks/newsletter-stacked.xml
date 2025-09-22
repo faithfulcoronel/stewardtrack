@@ -14,7 +14,7 @@
         <Component id="newsletter-stacked" type="NewsletterSection">
           <Props>
             <Prop name="variant" kind="static">stacked</Prop>
-            <Prop name="badge" kind="static">Flowspace Plus</Prop>
+            <Prop name="badge" kind="static">StewardTrack Plus</Prop>
             <Prop name="headline" kind="static">The Metadata Playbook</Prop>
             <Prop name="description" kind="static">A Saturday deep dive on everything metadata-driven: system design, orchestration tips, and the experiments that moved the needle.</Prop>
             <Prop name="highlights" kind="binding" source="stackedHighlights" path="items" />

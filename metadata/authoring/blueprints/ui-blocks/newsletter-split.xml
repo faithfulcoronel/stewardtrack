@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">split</Prop>
             <Prop name="badge" kind="static">Weekly strategy</Prop>
-            <Prop name="eyebrow" kind="static">Flowspace Revenue Review</Prop>
+            <Prop name="eyebrow" kind="static">StewardTrack Revenue Review</Prop>
             <Prop name="headline" kind="static">Grow faster with the Revenue Review</Prop>
             <Prop name="description" kind="static">Every Tuesday we translate pipeline data into one-page growth plans. See what to automate, where to double down, and which motions to sunset.</Prop>
             <Prop name="checklist" kind="binding" source="splitChecklist" path="items" />
@@ -35,7 +35,7 @@
           {
             "items": [
               "Revenue-qualified experiment plans tailored to your stage.",
-              "Signals from hundreds of B2B plays across the Flowspace network.",
+              "Signals from hundreds of B2B plays across the StewardTrack network.",
               "Templates for running impact reviews with your GTM pod."
             ]
           }

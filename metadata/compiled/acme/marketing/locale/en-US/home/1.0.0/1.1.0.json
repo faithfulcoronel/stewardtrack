@@ -107,7 +107,7 @@
               },
               "badge": {
                 "kind": "static",
-                "value": "Acme × Flowspace"
+                "value": "Acme × StewardTrack"
               },
               "eyebrow": {
                 "kind": "static",
@@ -198,7 +198,7 @@
           },
           "eyebrow": {
             "kind": "static",
-            "value": "Flowspace metadata"
+            "value": "StewardTrack metadata"
           },
           "headline": {
             "kind": "binding",

@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">minimal</Prop>
             <Prop name="eyebrow" kind="static">Get the digest</Prop>
-            <Prop name="headline" kind="static">Flowspace Field Notes</Prop>
+            <Prop name="headline" kind="static">StewardTrack Field Notes</Prop>
             <Prop name="description" kind="static">A five-minute read that helps product and ops teams adopt metadata patterns without slowing delivery.</Prop>
             <Prop name="checklist" kind="binding" source="minimalChecklist" path="items" />
             <Prop name="form" kind="binding" source="minimalForm" path="$" />

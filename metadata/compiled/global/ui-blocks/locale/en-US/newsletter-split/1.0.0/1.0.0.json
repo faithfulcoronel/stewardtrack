@@ -32,7 +32,7 @@
               },
               "eyebrow": {
                 "kind": "static",
-                "value": "Flowspace Revenue Review"
+                "value": "StewardTrack Revenue Review"
               },
               "headline": {
                 "kind": "static",
@@ -87,7 +87,7 @@
           "value": {
             "items": [
               "Revenue-qualified experiment plans tailored to your stage.",
-              "Signals from hundreds of B2B plays across the Flowspace network.",
+              "Signals from hundreds of B2B plays across the StewardTrack network.",
               "Templates for running impact reviews with your GTM pod."
             ]
           }

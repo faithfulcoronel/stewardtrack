@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">grid-mosaic</Prop>
             <Prop name="eyebrow" kind="static">Platform trust</Prop>
-            <Prop name="headline" kind="static">Teams rely on Flowspace to launch confidently</Prop>
+            <Prop name="headline" kind="static">Teams rely on StewardTrack to launch confidently</Prop>
             <Prop name="description" kind="static">A balanced grid for sharing multiple voices side by side. Perfect for product marketing pages or partner showcases.</Prop>
             <Prop name="testimonials" kind="binding" source="platformTestimonials" path="items" />
             <Prop name="primaryCta" kind="action" actionId="view-security" />
@@ -30,7 +30,7 @@
           {
             "items": [
               {
-                "quote": "Flowspace gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
+                "quote": "StewardTrack gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
                 "author": "Jonah Park",
                 "role": "Chief Information Officer",
                 "company": "Helios Labs",
@@ -50,7 +50,7 @@
                 "rating": 4.8
               },
               {
-                "quote": "Compliance used to slow us down. With Flowspace, review cycles are embedded into every release plan.",
+                "quote": "Compliance used to slow us down. With StewardTrack, review cycles are embedded into every release plan.",
                 "author": "Heather Liu",
                 "role": "Head of Compliance",
                 "company": "Greenline",
@@ -60,7 +60,7 @@
                 "rating": 5
               },
               {
-                "quote": "Stakeholders trust our dashboards now that we stream Flowspace metrics into their daily workspace.",
+                "quote": "Stakeholders trust our dashboards now that we stream StewardTrack metrics into their daily workspace.",
                 "author": "Lucas Andrade",
                 "role": "Operations Lead",
                 "company": "Nimbus Retail",

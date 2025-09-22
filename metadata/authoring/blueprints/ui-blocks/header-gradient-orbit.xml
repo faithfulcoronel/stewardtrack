@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">gradient-orbit</Prop>
             <Prop name="badge" kind="static">New release</Prop>
-            <Prop name="eyebrow" kind="static">Flowspace updates</Prop>
+            <Prop name="eyebrow" kind="static">StewardTrack updates</Prop>
             <Prop name="headline" kind="static">Blueprint Orbit is live</Prop>
             <Prop name="highlight" kind="static">Product launch</Prop>
             <Prop name="description" kind="static">Bring attention to a flagship release with a cinematic gradient header that cues the story and invites deeper exploration.</Prop>
