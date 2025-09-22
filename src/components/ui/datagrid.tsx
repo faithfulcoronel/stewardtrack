@@ -1,12 +1,15 @@
 "use client"
 
 import * as React from "react"
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community"
 import type { AgGridReactProps } from "ag-grid-react"
 import { AgGridReact } from "ag-grid-react"
 import { useTheme } from "@/components/theme/theme-provider"
 
 import { cn } from "@/lib/utils"
 import type { ThemeMode } from "@/lib/themes"
+
+ModuleRegistry.registerModules([AllCommunityModule])
 
 const dataGridThemes = {
   quartz: "ag-theme-quartz",
