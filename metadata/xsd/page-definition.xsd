@@ -35,6 +35,7 @@
       <xs:enumeration value="static" />
       <xs:enumeration value="supabase" />
       <xs:enumeration value="http" />
+      <xs:enumeration value="service" />
     </xs:restriction>
   </xs:simpleType>
 

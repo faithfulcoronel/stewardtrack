@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import type { CanonicalAction, CanonicalComponent, CanonicalDataSource, PropValue } from './generated/canonical';
 import type { ResolvedMetadata } from './resolver';
+import { resolveServiceDataSourceHandler } from './services';
 import { FeatureGrid, type FeatureGridProps } from '@/components/dynamic/FeatureGrid';
 import { FeatureSection, type FeatureSectionProps } from '@/components/dynamic/FeatureSection';
 import { HeroSection, type HeroSectionProps } from '@/components/dynamic/HeroSection';
@@ -189,6 +190,38 @@ async function evaluateDataSources(
     }
     if (source.kind === 'supabase') {
       console.warn(`Supabase data source ${source.id} not evaluated in this environment.`);
+      continue;
+    }
+    if (source.kind === 'service') {
+      const handlerId = typeof source.config?.handler === 'string' ? source.config.handler : '';
+      if (!handlerId) {
+        console.warn(`Service data source ${source.id} is missing a handler identifier.`);
+        if (source.config?.value !== undefined) {
+          results[source.id] = source.config.value;
+        }
+        continue;
+      }
+      const handler = resolveServiceDataSourceHandler(handlerId);
+      if (!handler) {
+        console.warn(`No handler registered for service data source ${source.id} (${handlerId}).`);
+        if (source.config?.value !== undefined) {
+          results[source.id] = source.config.value;
+        }
+        continue;
+      }
+      try {
+        const resolved = await handler({ id: source.id, role, config: source.config ?? {} });
+        if (resolved !== undefined) {
+          results[source.id] = resolved;
+        } else if (source.config?.value !== undefined) {
+          results[source.id] = source.config.value;
+        }
+      } catch (error) {
+        console.error(`Failed to evaluate service data source ${source.id}`, toError(error));
+        if (source.config?.value !== undefined) {
+          results[source.id] = source.config.value;
+        }
+      }
       continue;
     }
   }

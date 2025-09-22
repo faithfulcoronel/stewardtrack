@@ -52,7 +52,7 @@ interface CanonicalRegion {
 
 interface CanonicalDataSource {
   id: string;
-  kind: 'static' | 'supabase' | 'http';
+  kind: 'static' | 'supabase' | 'http' | 'service';
   operation?: Operation;
   config?: Record<string, unknown>;
   rbac?: CanonicalRBAC;

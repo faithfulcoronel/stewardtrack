@@ -2,8 +2,8 @@
   "key": "global::admin-community::members/list::-::-::en-US",
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
-  "contentVersion": "1.0.0",
-  "checksum": "ee71250082455040dc80e96da3f69f07320f2174c3182034caf26bb96c08aca0",
+  "contentVersion": "1.1.0",
+  "checksum": "ab7d64fbd14a97669002f85e108e2eab9594719167270988bf028c9d355bbaca",
   "layer": {
     "module": "admin-community",
     "route": "members/list",
@@ -13,5 +13,5 @@
     "locale": "en-US"
   },
   "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml",
-  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-list/1.0.0/1.0.0.json"
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-list/1.0.0/1.1.0.json"
 }

@@ -151,7 +151,7 @@
       "required": ["id", "kind"],
       "properties": {
         "id": { "type": "string" },
-        "kind": { "type": "string", "enum": ["static", "supabase", "http"] },
+        "kind": { "type": "string", "enum": ["static", "supabase", "http", "service"] },
         "operation": { "type": "string", "enum": ["merge", "replace", "remove"] },
         "config": { "type": "object" },
         "rbac": { "$ref": "#/definitions/rbac" }
