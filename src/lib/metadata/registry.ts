@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import Ajv from 'ajv';
+import Ajv, { type ValidateFunction } from 'ajv';
 import { cache } from 'react';
 import type { CanonicalPageDefinition, CanonicalLayer } from './generated/canonical';
 import { migrateToLatest } from './migrations';
@@ -47,7 +47,7 @@ const readJsonFile = cache(async (absolutePath: string) => {
 });
 
 const ajv = new Ajv({ allErrors: true, strict: false });
-let validateSchema: Ajv.ValidateFunction<unknown> | null = null;
+let validateSchema: ValidateFunction<unknown> | null = null;
 
 async function getValidator() {
   if (!validateSchema) {

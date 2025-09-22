@@ -9,7 +9,7 @@ export function calculateAccountBalance(
   accountType: string | null | undefined,
   transactions: TransactionLike[] = []
 ): number {
-  const totals = transactions.reduce(
+  const totals = transactions.reduce<{ debit: number; credit: number }>(
     (acc, tx) => {
       acc.debit += Number(tx.debit ?? 0);
       acc.credit += Number(tx.credit ?? 0);

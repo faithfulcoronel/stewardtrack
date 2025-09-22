@@ -100,8 +100,11 @@ interface BentoCardInput {
   bullets?: string[] | { items?: string[] } | null;
 }
 
-interface BentoCard extends Omit<BentoCardInput, "bullets"> {
+interface BentoCard
+  extends Omit<BentoCardInput, "bullets" | "tone" | "alignment"> {
   bullets: string[];
+  tone: BentoTone;
+  alignment: Alignment;
 }
 
 export interface BentoGridProps {

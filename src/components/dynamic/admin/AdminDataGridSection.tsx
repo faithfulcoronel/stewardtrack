@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import React from "react";
-import type { ColDef } from "ag-grid-community";
+import type {
+  ColDef,
+  GetRowIdParams,
+  ICellRendererParams,
+  ValueFormatterParams,
+  ValueGetterParams,
+} from "ag-grid-community";
 
 import { DataGrid } from "@/components/ui/datagrid";
 import { Input } from "@/components/ui/input";
@@ -162,14 +168,14 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     });
   }, [filters, tableRows, filterState]);
 
-  const columnDefs = React.useMemo<ColDef[]>(() => {
-    return columns.map((column): ColDef => {
+  const columnDefs = React.useMemo<ColDef<GridValue>[]>(() => {
+    return columns.map((column): ColDef<GridValue> => {
       if (column.type === "actions") {
         const actions = normalizeList<GridActionConfig>(column.actions);
         return {
           headerName: column.headerName ?? "Actions",
           field: column.field || "actions",
-          cellRenderer: (params) => (
+          cellRenderer: (params: ICellRendererParams<GridValue>) => (
             <RowActions
               actions={actions}
               row={params.data ?? {}}
@@ -213,7 +219,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
 
       switch (column.type) {
         case "badge":
-          base.cellRenderer = (params) => {
+          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
             const value = params.value;
             if (!value) {
               return null;
@@ -231,7 +237,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           };
           break;
         case "currency":
-          base.valueFormatter = (params) => {
+          base.valueFormatter = (params: ValueFormatterParams<GridValue>) => {
             const amount = Number(params.value ?? 0);
             if (Number.isNaN(amount)) {
               return "";
@@ -247,7 +253,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           };
           break;
         case "date":
-          base.valueFormatter = (params) => {
+          base.valueFormatter = (params: ValueFormatterParams<GridValue>) => {
             if (!params.value) {
               return "";
             }
@@ -263,7 +269,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           };
           break;
         case "chip-list":
-          base.cellRenderer = (params) => {
+          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
             const items = Array.isArray(params.value) ? params.value : [];
             if (items.length === 0) {
               return null;
@@ -280,10 +286,13 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           };
           break;
         case "link":
-          base.cellRenderer = (params) => {
+          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
             const value = params.value ?? "";
             const subtitleField = column.subtitleField;
-            const subtitle = subtitleField ? resolveValue(params.data ?? {}, subtitleField) : null;
+            const subtitleRaw = subtitleField
+              ? resolveValue(params.data ?? {}, subtitleField)
+              : null;
+            const subtitle = subtitleRaw == null ? null : String(subtitleRaw);
             const href = column.hrefTemplate
               ? applyTemplate(column.hrefTemplate, params.data ?? {})
               : String(params.value ?? "#");
@@ -292,13 +301,14 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
                 <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
                   {String(value)}
                 </Link>
-                {subtitle && <span className="text-xs text-muted-foreground">{String(subtitle)}</span>}
+                {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
               </div>
             );
           };
           break;
         default:
-          base.valueGetter = (params) => resolveValue(params.data ?? {}, column.field);
+          base.valueGetter = (params: ValueGetterParams<GridValue>) =>
+            resolveValue(params.data ?? {}, column.field);
           break;
       }
 
@@ -365,7 +375,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
             }}
             suppressCellFocus
             rowSelection="single"
-            getRowId={(params) => String(params.data?.id ?? params.data?.ID ?? params.data?.uuid ?? params.node?.id ?? "")}
+            getRowId={(params: GetRowIdParams<GridValue>) =>
+              String(params.data?.id ?? params.data?.ID ?? params.data?.uuid ?? "")}
           />
         </div>
 

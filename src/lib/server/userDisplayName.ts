@@ -19,9 +19,10 @@ export async function getUserDisplayNameMap(
 
   try {
     const { data, error } = await supabase
-      .from<ProfileRow>('profiles')
+      .from('profiles')
       .select('id, full_name, first_name, last_name, email')
-      .in('id', userIds);
+      .in('id', userIds)
+      .returns<ProfileRow[]>();
 
     if (error) {
       throw error;
