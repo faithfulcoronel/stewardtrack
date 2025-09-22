@@ -14,6 +14,34 @@ import {
   TestimonialsSection,
   type TestimonialsSectionProps,
 } from '@/components/dynamic/TestimonialsSection';
+import {
+  AdminMetricCards,
+  type AdminMetricCardsProps,
+} from '@/components/dynamic/admin/AdminMetricCards';
+import {
+  AdminQuickLinks,
+  type AdminQuickLinksProps,
+} from '@/components/dynamic/admin/AdminQuickLinks';
+import {
+  AdminActivityTimeline,
+  type AdminActivityTimelineProps,
+} from '@/components/dynamic/admin/AdminActivityTimeline';
+import {
+  AdminDataGridSection,
+  type AdminDataGridSectionProps,
+} from '@/components/dynamic/admin/AdminDataGridSection';
+import {
+  AdminDetailPanels,
+  type AdminDetailPanelsProps,
+} from '@/components/dynamic/admin/AdminDetailPanels';
+import {
+  AdminFormSection,
+  type AdminFormSectionProps,
+} from '@/components/dynamic/admin/AdminFormSection';
+import {
+  AdminGivingChart,
+  type AdminGivingChartProps,
+} from '@/components/dynamic/admin/AdminGivingChart';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -37,6 +65,13 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
   TestimonialsSection: (props, children) => (
     <TestimonialsSection {...(props as TestimonialsSectionProps)}>{children}</TestimonialsSection>
   ),
+  AdminMetricCards: (props) => <AdminMetricCards {...(props as AdminMetricCardsProps)} />, 
+  AdminQuickLinks: (props) => <AdminQuickLinks {...(props as AdminQuickLinksProps)} />, 
+  AdminActivityTimeline: (props) => <AdminActivityTimeline {...(props as AdminActivityTimelineProps)} />, 
+  AdminDataGridSection: (props) => <AdminDataGridSection {...(props as AdminDataGridSectionProps)} />, 
+  AdminDetailPanels: (props) => <AdminDetailPanels {...(props as AdminDetailPanelsProps)} />, 
+  AdminFormSection: (props) => <AdminFormSection {...(props as AdminFormSectionProps)} />, 
+  AdminGivingChart: (props) => <AdminGivingChart {...(props as AdminGivingChartProps)} />, 
 };
 
 export interface InterpreterContext {

@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="members/profile"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="admin-community-membership-profile">
+    <Title>Membership profile</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                return `${record.status ?? "Active"} · ${record.campus ?? "Campus"}`;
+              })()
+            ]]></Prop>
+            <Prop name="headline" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                return `${record.fullName ?? "Member"} household profile`;
+              })()
+            ]]></Prop>
+            <Prop name="description" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const campus = record.campus ?? "primary campus";
+                const serving = record.serving?.team ? `${record.serving.team} team` : "serving opportunities";
+                const coach = record.serving?.coach ? `Coached by ${record.serving.coach}.` : "";
+                return `${record.preferredName ?? record.fullName ?? "This member"} worships at the ${campus} and is engaged with the ${serving}. ${coach}`.trim();
+              })()
+            ]]></Prop>
+            <Prop name="metrics" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount ?? 0);
+                return [
+                  { label: 'YTD giving', value: formatCurrency(record.giving?.ytd ?? 0), caption: `Pledge ${formatCurrency(record.giving?.pledge ?? 0)}` },
+                  { label: 'Serving rhythm', value: record.serving?.schedule ?? 'Every other week', caption: record.serving?.team ?? 'Serving team' },
+                  { label: 'Care status', value: record.carePlan?.status ?? 'Resolved', caption: record.carePlan?.details ?? 'No active plan' }
+                ];
+              })()
+            ]]></Prop>
+            <Prop name="primaryCta" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const targetId = record.id ?? params.memberId ?? '';
+                return {
+                  id: 'edit-member-cta',
+                  config: {
+                    label: 'Edit member',
+                    url: `/admin/members/manage?memberId=${targetId}`,
+                    variant: 'primary'
+                  }
+                };
+              })()
+            ]]></Prop>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list" />
+          </Props>
+        </Component>
+        <Component id="profile-metrics" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Discipleship pulse</Prop>
+            <Prop name="metrics" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);
+                return [
+                  {
+                    id: 'metric-recurring',
+                    label: 'Recurring giving',
+                    value: formatCurrency(record.giving?.recurring?.amount ?? 0),
+                    change: record.giving?.recurring?.frequency ?? 'Monthly',
+                    trend: 'up',
+                    tone: 'informative',
+                    description: `Method: ${record.giving?.recurring?.method ?? 'Card'} · Last gift ${formatCurrency(record.giving?.lastGift?.amount ?? 0)} on ${record.giving?.lastGift?.date ?? ''}`
+                  },
+                  {
+                    id: 'metric-groups',
+                    label: 'Group participation',
+                    value: record.discipleship?.smallGroup ?? 'Not enrolled',
+                    change: record.discipleship?.mentor ? `Mentor: ${record.discipleship.mentor}` : 'Mentor not assigned',
+                    trend: 'flat',
+                    tone: 'neutral',
+                    description: record.discipleship?.nextStep ?? 'Set next discipleship step.'
+                  },
+                  {
+                    id: 'metric-milestones',
+                    label: 'Milestones completed',
+                    value: String(record.discipleship?.milestones?.length ?? 0),
+                    change: record.discipleship?.milestones?.slice(-1)[0] ?? 'No recent milestone',
+                    trend: 'up',
+                    tone: 'positive',
+                    description: 'Celebrate wins during next pastoral huddle.'
+                  }
+                ];
+              })()
+            ]]></Prop>
+          </Props>
+        </Component>
+        <Component id="profile-panels" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const address = record.household?.address;
+                return [
+                  {
+                    id: 'contact',
+                    title: 'Contact & household',
+                    description: record.household?.name ?? '',
+                    items: [
+                      { label: 'Email', type: 'link', href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? '—' },
+                      { label: 'Mobile', value: record.contact?.phone ?? '—' },
+                      { label: 'Preferred contact', value: record.contact?.preferred ?? 'Email' },
+                      { label: 'Household members', type: 'chips', items: record.household?.members ?? [] },
+                      { label: 'Address', type: 'multiline', value: address ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : 'No address on file' }
+                    ]
+                  },
+                  {
+                    id: 'giving',
+                    title: 'Giving & pledges',
+                    badge: 'Finance',
+                    items: [
+                      { label: 'Year-to-date', type: 'currency', value: record.giving?.ytd ?? 0 },
+                      { label: 'Pledge commitment', type: 'currency', value: record.giving?.pledge ?? 0, description: record.giving?.campaign ?? 'Legacy Vision 2025' },
+                      { label: 'Recurring schedule', value: record.giving?.recurring ? `${record.giving.recurring.frequency} · ${record.giving.recurring.method}` : 'Not enrolled' },
+                      { label: 'Last gift', value: record.giving?.lastGift ? `${record.giving.lastGift.date} · ${record.giving.lastGift.fund}` : '—', description: record.giving?.lastGift ? `$${record.giving.lastGift.amount}` : '' }
+                    ]
+                  },
+                  {
+                    id: 'serving',
+                    title: 'Serving & leadership',
+                    badge: 'Teams',
+                    items: [
+                      { label: 'Team', value: record.serving?.team ?? 'Not serving' },
+                      { label: 'Role', value: record.serving?.role ?? '—' },
+                      { label: 'Schedule', value: record.serving?.schedule ?? 'Flexible' },
+                      { label: 'Coach', value: record.serving?.coach ?? 'Not assigned' }
+                    ]
+                  },
+                  {
+                    id: 'care',
+                    title: 'Care plan',
+                    badge: 'Shepherding',
+                    items: [
+                      { label: 'Status', type: 'badge', value: record.carePlan?.status ?? 'Resolved', variant: record.carePlan?.statusVariant ?? 'neutral' },
+                      { label: 'Assigned pastor', value: record.carePlan?.assignedTo ?? '—' },
+                      { label: 'Plan details', type: 'multiline', value: record.carePlan?.details ?? 'No active care tasks.' }
+                    ]
+                  }
+                ];
+              })()
+            ]]></Prop>
+            <Prop name="columns" kind="static">2</Prop>
+          </Props>
+        </Component>
+        <Component id="profile-timeline" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent milestones</Prop>
+            <Prop name="events" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                return record.timeline ?? [];
+              })()
+            ]]></Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="memberDirectory" kind="static">
+        <Json><![CDATA[
+          {
+            "records": [
+              {
+                "id": "mem_001",
+                "fullName": "Avery Johnson",
+                "preferredName": "Avery",
+                "status": "Active member",
+                "statusVariant": "success",
+                "campus": "Downtown Campus",
+                "serving": {
+                  "team": "Hospitality",
+                  "role": "Usher Captain",
+                  "schedule": "2nd & 4th Sundays · 8:30a",
+                  "coach": "Rachel Kim"
+                },
+                "household": {
+                  "name": "Johnson Family",
+                  "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
+                  "address": {
+                    "street": "412 Hope Ave",
+                    "city": "Springfield",
+                    "state": "IL",
+                    "postalCode": "62704"
+                  }
+                },
+                "contact": {
+                  "email": "avery.johnson@example.org",
+                  "phone": "(555) 204-1188",
+                  "preferred": "Text"
+                },
+                "giving": {
+                  "ytd": 18450,
+                  "pledge": 22000,
+                  "campaign": "Legacy Vision 2025",
+                  "recurring": { "amount": 900, "frequency": "Monthly", "method": "ACH" },
+                  "lastGift": { "amount": 450, "date": "2024-10-06", "fund": "General Tithe" }
+                },
+                "discipleship": {
+                  "smallGroup": "Downtown Leadership Cohort",
+                  "mentor": "Carlos Vega",
+                  "milestones": ["Baptized 2014", "Child dedication 2017", "Leadership Cohort 2022"],
+                  "nextStep": "Mentor two new ushers before Advent."
+                },
+                "carePlan": {
+                  "status": "Active",
+                  "statusVariant": "info",
+                  "details": "Leadership coaching check-in scheduled October 28.",
+                  "assignedTo": "Pastor Lauren Patel"
+                },
+                "timeline": [
+                  {
+                    "id": "t1",
+                    "title": "Hosted hospitality huddle",
+                    "date": "Oct 13",
+                    "timeAgo": "3 days ago",
+                    "description": "Led new volunteer orientation for the downtown campus.",
+                    "category": "Serving",
+                    "status": "completed",
+                    "icon": "🙌"
+                  },
+                  {
+                    "id": "t2",
+                    "title": "Mentor meeting",
+                    "date": "Oct 21",
+                    "timeAgo": "In 5 days",
+                    "description": "Coaching session with new volunteer captain.",
+                    "category": "Leadership",
+                    "status": "scheduled",
+                    "icon": "🗓️"
+                  }
+                ]
+              },
+              {
+                "id": "mem_002",
+                "fullName": "Elena Ruiz",
+                "preferredName": "Elena",
+                "status": "New here",
+                "statusVariant": "info",
+                "campus": "Northside Campus",
+                "serving": {
+                  "team": "Exploring",
+                  "role": "Foundations participant",
+                  "schedule": "Sundays · 9:30a"
+                },
+                "household": {
+                  "name": "Ruiz Household",
+                  "members": ["Elena Ruiz"],
+                  "address": {
+                    "street": "88 River Crossing",
+                    "city": "Franklin",
+                    "state": "TN",
+                    "postalCode": "37067"
+                  }
+                },
+                "contact": {
+                  "email": "elena.ruiz@example.org",
+                  "phone": "(555) 407-9931",
+                  "preferred": "Phone"
+                },
+                "giving": {
+                  "ytd": 420,
+                  "pledge": 0,
+                  "recurring": null,
+                  "lastGift": { "amount": 70, "date": "2024-10-05", "fund": "Guest Offering" }
+                },
+                "discipleship": {
+                  "smallGroup": "Foundations Track",
+                  "mentor": "Jamie Brooks",
+                  "milestones": ["Guest dinner 2024-09-22"],
+                  "nextStep": "Complete covenant class interview."
+                },
+                "carePlan": {
+                  "status": "Observation",
+                  "statusVariant": "neutral",
+                  "details": "Following up after recent relocation.",
+                  "assignedTo": "Campus Connections Team"
+                },
+                "timeline": [
+                  {
+                    "id": "r1",
+                    "title": "Foundations session two",
+                    "date": "Oct 10",
+                    "timeAgo": "6 days ago",
+                    "description": "Completed teaching on church values.",
+                    "category": "Assimilation",
+                    "status": "completed",
+                    "icon": "📘"
+                  },
+                  {
+                    "id": "r2",
+                    "title": "Covenant interview scheduled",
+                    "date": "Oct 24",
+                    "timeAgo": "In 8 days",
+                    "description": "Meeting with elder team to finalize membership.",
+                    "category": "Next step",
+                    "status": "scheduled",
+                    "icon": "🤝"
+                  }
+                ]
+              },
+              {
+                "id": "mem_003",
+                "fullName": "Samuel and Dana Lee",
+                "preferredName": "Lee Family",
+                "status": "Active member",
+                "statusVariant": "success",
+                "campus": "Southridge Campus",
+                "serving": {
+                  "team": "Groups",
+                  "role": "Marriage mentors",
+                  "schedule": "1st & 3rd Wednesdays"
+                },
+                "household": {
+                  "name": "Lee Household",
+                  "members": ["Samuel Lee", "Dana Lee", "Elliot (12)"],
+                  "address": {
+                    "street": "215 Grace Circle",
+                    "city": "Nashville",
+                    "state": "TN",
+                    "postalCode": "37211"
+                  }
+                },
+                "contact": {
+                  "email": "samuel.dana.lee@example.org",
+                  "phone": "(555) 782-4410",
+                  "preferred": "Email"
+                },
+                "giving": {
+                  "ytd": 23780,
+                  "pledge": 30000,
+                  "campaign": "Southridge Expansion",
+                  "recurring": { "amount": 2000, "frequency": "Monthly", "method": "Card" },
+                  "lastGift": { "amount": 2500, "date": "2024-09-30", "fund": "Expansion" }
+                },
+                "discipleship": {
+                  "smallGroup": "Southridge Marriage Mentors",
+                  "mentor": "Elder Hannah Cruz",
+                  "milestones": ["Baptized 2009", "Marriage mentors certified 2018"],
+                  "nextStep": "Launch two new marriage groups in Q1."
+                },
+                "carePlan": {
+                  "status": "Resolved",
+                  "statusVariant": "neutral",
+                  "details": "No active pastoral needs.",
+                  "assignedTo": ""
+                },
+                "timeline": [
+                  {
+                    "id": "l1",
+                    "title": "Led marriage intensive",
+                    "date": "Oct 05",
+                    "timeAgo": "11 days ago",
+                    "description": "Hosted eight couples for weekend retreat.",
+                    "category": "Ministry",
+                    "status": "completed",
+                    "icon": "💍"
+                  }
+                ]
+              },
+              {
+                "id": "mem_004",
+                "fullName": "Jordan Miles",
+                "preferredName": "Jordan",
+                "status": "Shepherding",
+                "statusVariant": "warning",
+                "campus": "Downtown Campus",
+                "serving": {
+                  "team": "Tech",
+                  "role": "Audio volunteer",
+                  "schedule": "Paused"
+                },
+                "household": {
+                  "name": "Miles Household",
+                  "members": ["Jordan Miles", "Taylor Miles"],
+                  "address": {
+                    "street": "18 Lantern Way",
+                    "city": "Springfield",
+                    "state": "IL",
+                    "postalCode": "62703"
+                  }
+                },
+                "contact": {
+                  "email": "jordan.miles@example.org",
+                  "phone": "(555) 338-6611",
+                  "preferred": "Text"
+                },
+                "giving": {
+                  "ytd": 2600,
+                  "pledge": 3000,
+                  "recurring": null,
+                  "lastGift": { "amount": 200, "date": "2024-08-18", "fund": "General Tithe" }
+                },
+                "discipleship": {
+                  "smallGroup": "Young Professionals",
+                  "mentor": "Pastor Lauren Patel",
+                  "milestones": ["Baptized 2016"],
+                  "nextStep": "Resume serve team rotation after care plan concludes."
+                },
+                "carePlan": {
+                  "status": "Active",
+                  "statusVariant": "warning",
+                  "details": "Meeting with counselor weekly for grief support.",
+                  "assignedTo": "Care Pastor Ben Adams"
+                },
+                "timeline": [
+                  {
+                    "id": "m1",
+                    "title": "Counseling session",
+                    "date": "Oct 11",
+                    "timeAgo": "5 days ago",
+                    "description": "Third session in current care plan.",
+                    "category": "Care",
+                    "status": "completed",
+                    "icon": "🕊️"
+                  },
+                  {
+                    "id": "m2",
+                    "title": "Care team check-in",
+                    "date": "Oct 17",
+                    "timeAgo": "Tomorrow",
+                    "description": "Home visit with meal train delivery.",
+                    "category": "Shepherding",
+                    "status": "scheduled",
+                    "icon": "🍲"
+                  }
+                ]
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to list</Label>
+          <Url>/admin/members/list</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-22T03:42:09.052Z",
+  "generatedAt": "2025-09-22T15:53:35.341Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -1873,6 +1873,74 @@
       },
       "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-sustainability-progress.xml",
       "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-sustainability-progress/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/dashboard::-::-::en-US": {
+      "key": "global::admin-community::members/dashboard::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a8bebdfcf4208ba22cb0ced20a4dff60861661f72d54e60272cef70b8383edd2",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/dashboard",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-dashboard.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-dashboard/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/list::-::-::en-US": {
+      "key": "global::admin-community::members/list::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "ee71250082455040dc80e96da3f69f07320f2174c3182034caf26bb96c08aca0",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/list",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-list/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/manage::-::-::en-US": {
+      "key": "global::admin-community::members/manage::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a40b197c533c9720fe95fb182f6f0a3c21579f9a013da82fc3ba05889026b528",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/manage",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/profile::-::-::en-US": {
+      "key": "global::admin-community::members/profile::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a26be5074f84d3f38ec904641bb1464edc79ce1b3098f548e61fe3e111bdff69",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/profile",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-profile/1.0.0/1.0.0.json"
     }
   }
 }
