@@ -1,4 +1,6 @@
 import { injectable, inject } from 'inversify';
+
+import type { IRoleMenuItemAdapter } from '@/adapters/roleMenuItem.adapter';
 import { BaseRepository } from '@/repositories/base.repository';
 import { RoleMenuItem } from '@/models/roleMenuItem.model';
 import { TYPES } from '@/lib/types';

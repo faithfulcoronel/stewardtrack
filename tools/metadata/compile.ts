@@ -21,6 +21,9 @@ interface CanonicalLayer {
   locale: string | null;
 }
 
+const OPERATION_VALUES = ['merge', 'replace', 'remove'] as const;
+type Operation = (typeof OPERATION_VALUES)[number];
+
 type PropValue =
   | { kind: 'static'; value: unknown }
   | { kind: 'binding'; source: string; path?: string | null; fallback?: unknown }
@@ -35,7 +38,7 @@ interface CanonicalRBAC {
 interface CanonicalComponent {
   id: string;
   type?: string;
-  operation?: 'merge' | 'replace' | 'remove';
+  operation?: Operation;
   props?: Record<string, PropValue>;
   children?: CanonicalComponent[];
   rbac?: CanonicalRBAC;
@@ -43,14 +46,14 @@ interface CanonicalComponent {
 
 interface CanonicalRegion {
   id: string;
-  operation?: 'merge' | 'replace' | 'remove';
+  operation?: Operation;
   components?: CanonicalComponent[];
 }
 
 interface CanonicalDataSource {
   id: string;
   kind: 'static' | 'supabase' | 'http';
-  operation?: 'merge' | 'replace' | 'remove';
+  operation?: Operation;
   config?: Record<string, unknown>;
   rbac?: CanonicalRBAC;
 }
@@ -58,7 +61,7 @@ interface CanonicalDataSource {
 interface CanonicalAction {
   id: string;
   kind: string;
-  operation?: 'merge' | 'replace' | 'remove';
+  operation?: Operation;
   config?: Record<string, unknown>;
   rbac?: CanonicalRBAC;
 }
@@ -103,6 +106,14 @@ type XmlElement = Record<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function isOperation(value: unknown): value is Operation {
+  return typeof value === 'string' && (OPERATION_VALUES as readonly string[]).includes(value);
+}
+
+function parseOperation(value: unknown): Operation | undefined {
+  return isOperation(value) ? value : undefined;
 }
 
 const parser = new XMLParser({
@@ -248,7 +259,7 @@ function transformToCanonical(parsed: unknown, filePath: string): CanonicalDefin
 function normalizeRegion(region: XmlElement): CanonicalRegion {
   const regionNode: CanonicalRegion = {
     id: String(region['@_id'] ?? ''),
-    operation: region['@_operation'] ?? undefined
+    operation: parseOperation(region['@_operation'])
   };
   const components = ensureArray(region.Component as XmlElement | XmlElement[] | undefined);
   if (components.length > 0) {
@@ -261,7 +272,7 @@ function normalizeComponent(component: XmlElement): CanonicalComponent {
   const node: CanonicalComponent = {
     id: String(component['@_id'] ?? ''),
     type: component['@_type'] ? String(component['@_type']) : undefined,
-    operation: component['@_operation'] ?? undefined
+    operation: parseOperation(component['@_operation'])
   };
 
   if (isRecord(component.RBAC)) {
@@ -293,6 +304,7 @@ function normalizeComponent(component: XmlElement): CanonicalComponent {
 
 function normalizeProp(prop: XmlElement): PropValue {
   const kind = prop['@_kind'];
+  const formatAttr = typeof prop['@_format'] === 'string' ? prop['@_format'] : undefined;
   switch (kind) {
     case 'binding': {
       const source = String(prop['@_source'] ?? '');
@@ -302,7 +314,7 @@ function normalizeProp(prop: XmlElement): PropValue {
         path: prop['@_path'] ? String(prop['@_path']) : null
       };
       if (prop['@_fallback']) {
-        binding.fallback = parseScalar(String(prop['@_fallback']), prop['@_format']);
+        binding.fallback = parseScalar(String(prop['@_fallback']), formatAttr);
       }
       return binding;
     }
@@ -315,7 +327,7 @@ function normalizeProp(prop: XmlElement): PropValue {
     case 'static':
     default: {
       const value = extractNodeValue(prop);
-      return { kind: 'static', value: parseScalar(value ?? '', prop['@_format']) };
+      return { kind: 'static', value: parseScalar(value ?? '', formatAttr) };
     }
   }
 }
@@ -344,7 +356,7 @@ function normalizeDataSource(source: XmlElement): CanonicalDataSource {
   const node: CanonicalDataSource = {
     id: String(source['@_id'] ?? ''),
     kind: (source['@_kind'] ?? 'static') as CanonicalDataSource['kind'],
-    operation: source['@_operation'] ?? undefined
+    operation: parseOperation(source['@_operation'])
   };
   if (isRecord(source.RBAC)) {
     node.rbac = normalizeRBAC(source.RBAC as XmlElement);
@@ -371,7 +383,7 @@ function normalizeAction(action: XmlElement): CanonicalAction {
   const node: CanonicalAction = {
     id: String(action['@_id'] ?? ''),
     kind: String(action['@_kind'] ?? ''),
-    operation: action['@_operation'] ?? undefined
+    operation: parseOperation(action['@_operation'])
   };
   if (isRecord(action.RBAC)) {
     node.rbac = normalizeRBAC(action.RBAC as XmlElement);
@@ -417,9 +429,10 @@ function normalizeConfigValue(value: unknown): unknown {
     return value.map((item) => normalizeConfigValue(item));
   }
   if (value && typeof value === 'object') {
-    const nested = normalizeConfig(value as XmlElement);
-    if (Object.keys(nested).length === 0 && typeof (value as XmlElement)['#text'] === 'string') {
-      return (value as XmlElement)['#text'].trim();
+    const element = value as XmlElement;
+    const nested = normalizeConfig(element);
+    if (Object.keys(nested).length === 0 && typeof element['#text'] === 'string') {
+      return element['#text'].trim();
     }
     return nested;
   }

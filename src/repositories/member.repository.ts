@@ -1,4 +1,6 @@
 import { injectable, inject } from 'inversify';
+
+import type { IMemberAdapter } from '@/adapters/member.adapter';
 import { BaseRepository } from '@/repositories/base.repository';
 import { Member } from '@/models/member.model';
 import { MemberValidator } from '@/validators/member.validator';

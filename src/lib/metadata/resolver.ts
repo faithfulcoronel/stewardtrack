@@ -231,7 +231,8 @@ function mergeAction(base: CanonicalAction, overlay: CanonicalAction): Canonical
   return next;
 }
 
-type Mergeable = Record<string, unknown>;
+type MergeableObject = Record<string, unknown>;
+type Mergeable = MergeableObject | unknown[];
 
 function mergeById<T extends { id: string; operation?: string }>(
   base: T[],
@@ -273,19 +274,36 @@ function mergeById<T extends { id: string; operation?: string }>(
 }
 
 function deepMerge<T extends Mergeable>(target: T, source: Mergeable): T {
-  const next: Mergeable = Array.isArray(target) ? [...(target as unknown[])] : { ...target };
+  const next = Array.isArray(target)
+    ? [...target]
+    : { ...(target as MergeableObject) };
+
   for (const [key, value] of Object.entries(source)) {
-    const current = (next as Mergeable)[key];
-    if (isPlainObject(current) && isPlainObject(value)) {
-      (next as Mergeable)[key] = deepMerge(current as Mergeable, value as Mergeable);
+    if (Array.isArray(next)) {
+      const index = Number(key);
+      if (Number.isNaN(index)) {
+        continue;
+      }
+      const current = next[index];
+      if (isPlainObject(current) && isPlainObject(value)) {
+        next[index] = deepMerge(current as Mergeable, value as Mergeable);
+      } else {
+        next[index] = structuredClone(value);
+      }
     } else {
-      (next as Mergeable)[key] = structuredClone(value);
+      const current = next[key];
+      if (isPlainObject(current) && isPlainObject(value)) {
+        next[key] = deepMerge(current as Mergeable, value as Mergeable);
+      } else {
+        next[key] = structuredClone(value);
+      }
     }
   }
+
   return next as T;
 }
 
-function isPlainObject(value: unknown): value is Mergeable {
+function isPlainObject(value: unknown): value is MergeableObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 

@@ -10,7 +10,6 @@ import type { ThemeMode } from "@/lib/themes"
 
 import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-quartz.css"
-import "ag-grid-community/styles/ag-theme-quartz-dark.css"
 
 const dataGridThemes = {
   quartz: "ag-theme-quartz",
@@ -25,7 +24,7 @@ type DataGridContainerProps = Omit<
 >
 
 export interface DataGridProps<TData = any>
-  extends Omit<AgGridReactProps<TData>, "className" | "containerStyle"> {
+  extends Omit<AgGridReactProps<TData>, "className" | "containerStyle" | "theme"> {
   theme?: DataGridTheme
   className?: string
   style?: React.CSSProperties
