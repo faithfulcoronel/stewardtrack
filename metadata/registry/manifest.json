@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-21T14:25:53.832Z",
+  "generatedAt": "2025-09-22T03:15:14.184Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -1465,6 +1465,210 @@
       },
       "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-usage-insights.xml",
       "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-usage-insights/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/ai-adoption::-::-::en-US": {
+      "key": "global::ui-blocks::stats/ai-adoption::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "d7e028b1513fab625fcd4c34875d419425391ec44d3e58f628e907910995037f",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/ai-adoption",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ai-adoption.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-ai-adoption/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/customer-trust::-::-::en-US": {
+      "key": "global::ui-blocks::stats/customer-trust::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "cb6dfab82bf87356fa6d25b44c1d4ef938bef40d15d6a38d3877a355a2c1c9c8",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/customer-trust",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-customer-trust.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-customer-trust/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/global-reach::-::-::en-US": {
+      "key": "global::ui-blocks::stats/global-reach::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "e104ba54b73f5a335428e712fa62682857c3df8f55de49d5172f4ff03c572852",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/global-reach",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-global-reach.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-global-reach/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/learning-progress::-::-::en-US": {
+      "key": "global::ui-blocks::stats/learning-progress::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "aeaabaaf9ebfc1190d695d9be9239e818f6ad49b426b46f69335e1c8b2c6e2a5",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/learning-progress",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-learning-progress.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-learning-progress/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/marketplace-insights::-::-::en-US": {
+      "key": "global::ui-blocks::stats/marketplace-insights::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "dc1fb145b24e7323ac060ae7c2b368aee2805e993b500da2dfc7a4fb039bb168",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/marketplace-insights",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-marketplace-insights.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-marketplace-insights/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/ops-efficiency::-::-::en-US": {
+      "key": "global::ui-blocks::stats/ops-efficiency::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "bf58c4598378f9018c492b98e99b720c4e7808fd8bfc2ced88b0e2e810ad9994",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/ops-efficiency",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ops-efficiency.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-ops-efficiency/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/product-readiness::-::-::en-US": {
+      "key": "global::ui-blocks::stats/product-readiness::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "b2f3c48dc53f82dd4887468ecf6745ab1fe44fd3b0652063c1a52a60f155ed7d",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/product-readiness",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-product-readiness.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-product-readiness/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/revenue-momentum::-::-::en-US": {
+      "key": "global::ui-blocks::stats/revenue-momentum::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "59d7f9d829f9546943cd4eab736e5b806c5c82b84ecddff301eeefe427bb124b",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/revenue-momentum",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-revenue-momentum.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-revenue-momentum/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/security-posture::-::-::en-US": {
+      "key": "global::ui-blocks::stats/security-posture::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "deafce41735ed3922dc6ed9a2f2458dfbe29e6a212c35e9e50ed13df162739fd",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/security-posture",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-security-posture.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-security-posture/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/support-health::-::-::en-US": {
+      "key": "global::ui-blocks::stats/support-health::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "93354e0fb816ad9c2d8d06977b42b0204b375337c8945033f805a66a2849c6c0",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/support-health",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-support-health.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-support-health/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/sustainability-impact::-::-::en-US": {
+      "key": "global::ui-blocks::stats/sustainability-impact::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "2abaf89d8650705fc6c5d4c7ac523ae4c3fbec010d789c73b0ced32f97daac78",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/sustainability-impact",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-sustainability-impact.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-sustainability-impact/1.0.0/1.0.0.json"
+    },
+    "global::ui-blocks::stats/talent-engagement::-::-::en-US": {
+      "key": "global::ui-blocks::stats/talent-engagement::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "45e44822c6d8573de61ff38e297209eba03fe57eb1cc397b312c6db4757d3520",
+      "layer": {
+        "module": "ui-blocks",
+        "route": "stats/talent-engagement",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-talent-engagement.xml",
+      "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-talent-engagement/1.0.0/1.0.0.json"
     }
   }
 }

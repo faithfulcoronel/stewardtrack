@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::stats/sustainability-impact::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "2abaf89d8650705fc6c5d4c7ac523ae4c3fbec010d789c73b0ced32f97daac78",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/sustainability-impact",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-sustainability-impact.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-sustainability-impact/1.0.0/1.0.0.json"
+}

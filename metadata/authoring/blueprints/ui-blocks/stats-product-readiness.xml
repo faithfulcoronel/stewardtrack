@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/product-readiness"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-product-readiness">
+    <Title>UI Block: Stats - Product readiness</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-product-readiness" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">milestone-timeline</Prop>
+            <Prop name="eyebrow" kind="static">Release readiness</Prop>
+            <Prop name="headline" kind="static">Ship releases with measurable confidence</Prop>
+            <Prop name="description" kind="static">Coordinate product, engineering, and go-to-market milestones from discovery through launch on a single readiness rail.</Prop>
+            <Prop name="metrics" kind="binding" source="readinessMetrics" path="items" />
+            <Prop name="footnote" kind="static">Status refreshed 3 hours ago from the launch readiness dashboard.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="readinessMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Discovery sign-off",
+                "value": "Day 10",
+                "description": "Cross-functional charter approved with funded scope."
+              },
+              {
+                "label": "Beta cohort engaged",
+                "value": "36 teams",
+                "change": "+12",
+                "changeLabel": "vs last launch",
+                "description": "Design partners validating production build in live environments."
+              },
+              {
+                "label": "Readiness score",
+                "value": "92%",
+                "change": "+8 pts",
+                "changeLabel": "QA index",
+                "description": "Automated regression suites and manual validation coverage."
+              },
+              {
+                "label": "Launch communications",
+                "value": "28 assets",
+                "description": "Localized release notes, webinars, and enablement ready to ship."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::stats/ai-adoption::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d7e028b1513fab625fcd4c34875d419425391ec44d3e58f628e907910995037f",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/ai-adoption",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ai-adoption.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-ai-adoption/1.0.0/1.0.0.json"
+}

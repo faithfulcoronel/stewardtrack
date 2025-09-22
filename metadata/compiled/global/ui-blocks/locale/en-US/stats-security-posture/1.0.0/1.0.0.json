@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "deafce41735ed3922dc6ed9a2f2458dfbe29e6a212c35e9e50ed13df162739fd",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/security-posture",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-stats-security-posture",
+    "title": "UI Block: Stats - Security posture",
+    "regions": [
+      {
+        "id": "stats",
+        "components": [
+          {
+            "id": "stats-security-posture",
+            "type": "StatsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "insight-clusters"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Security posture"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Continuous controls that keep your auditors smiling"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Prove that your risk program runs on automation, not slide decks, with real-time security operations data."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "securityMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Security posture validated quarterly by independent assessors."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "securityMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Preventive controls automated",
+                "value": "87%",
+                "change": "+9 pts",
+                "changeLabel": "YoY",
+                "description": "Security policies enforced through code and workflows."
+              },
+              {
+                "label": "Third-party risk resolved",
+                "value": "96%",
+                "change": "+4 pts",
+                "changeLabel": "Quarter",
+                "description": "Vendors with mitigation plans accepted and tracked."
+              },
+              {
+                "label": "Critical findings",
+                "value": "0",
+                "change": "36 months",
+                "changeLabel": "Running",
+                "description": "Consecutive months without a critical vulnerability."
+              },
+              {
+                "label": "Security training completion",
+                "value": "99.2%",
+                "change": "+2 pts",
+                "changeLabel": "YoY",
+                "description": "Employees completing quarterly phishing simulations."
+              },
+              {
+                "label": "Penetration test cadence",
+                "value": "4x / year",
+                "description": "Independent red-team exercises executed annually."
+              },
+              {
+                "label": "Encryption coverage",
+                "value": "100%",
+                "description": "Data encrypted in transit and at rest across services."
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-security-posture.xml"
+}

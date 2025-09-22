@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/support-health"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-support-health">
+    <Title>UI Block: Stats - Support health</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-support-health" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">compact-badges</Prop>
+            <Prop name="eyebrow" kind="static">Support health</Prop>
+            <Prop name="headline" kind="static">Service signals customers notice immediately</Prop>
+            <Prop name="description" kind="static">Share the real-time experience metrics that show how your support team anticipates and resolves customer needs.</Prop>
+            <Prop name="metrics" kind="binding" source="supportMetrics" path="items" />
+            <Prop name="footnote" kind="static">Signals tracked across chat, email, and proactive status automation.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="supportMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "CSAT", "value": "4.82 / 5", "change": "+0.3", "changeLabel": "YoY" },
+              { "label": "First response", "value": "12 min", "change": "-4 min", "changeLabel": "Avg" },
+              { "label": "Resolution SLA", "value": "96%", "change": "+5 pts", "changeLabel": "Within target" },
+              { "label": "Self-serve deflection", "value": "41%", "change": "+8 pts", "changeLabel": "QoQ" },
+              { "label": "Proactive alerts", "value": "320", "change": "+47", "changeLabel": "MoM" },
+              { "label": "Escalations", "value": "1.2%", "change": "-0.5 pts", "changeLabel": "QoQ" }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

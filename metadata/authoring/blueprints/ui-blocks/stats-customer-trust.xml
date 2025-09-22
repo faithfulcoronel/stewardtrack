@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/customer-trust"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-customer-trust">
+    <Title>UI Block: Stats - Customer trust</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-customer-trust" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">glow-grid</Prop>
+            <Prop name="eyebrow" kind="static">Customer trust</Prop>
+            <Prop name="headline" kind="static">Confidence metrics your buyers ask for</Prop>
+            <Prop name="description" kind="static">Answer diligence questionnaires in a single glance with audited platform metrics and independent attestations.</Prop>
+            <Prop name="metrics" kind="binding" source="trustMetrics" path="items" />
+            <Prop name="badges" kind="binding" source="trustBadges" path="items" />
+            <Prop name="footnote" kind="static">Independent audit window: FY2024</Prop>
+            <Prop name="primaryCta" kind="action" actionId="view-trust" />
+            <Prop name="secondaryCta" kind="action" actionId="download-kit" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="trustMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              { "label": "Platform uptime", "value": "99.995%", "description": "Across all global regions during the last 12 months." },
+              { "label": "Incident resolution", "value": "94% &lt;1h", "description": "Priority incidents resolved within the first hour." },
+              { "label": "Customer retention", "value": "98%", "change": "+3 pts", "changeLabel": "YoY", "description": "Enterprise segment retention rate." },
+              { "label": "Security reviews", "value": "28", "description": "Independent compliance assessments completed." },
+              { "label": "Customer satisfaction", "value": "4.92 / 5", "description": "Average CSAT across 18k survey responses." },
+              { "label": "Global coverage", "value": "14 regions", "description": "Active data residency zones maintained." }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="trustBadges" kind="static">
+        <Json><![CDATA[
+          {
+            "items": ["SOC 2 Type II", "ISO 27001", "GDPR ready"]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-trust" kind="link">
+        <Config>
+          <Label>View trust portal</Label>
+          <Url>/trust-center</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-kit" kind="link">
+        <Config>
+          <Label>Download compliance kit</Label>
+          <Url>/trust-center/resources</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

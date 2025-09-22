@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "45e44822c6d8573de61ff38e297209eba03fe57eb1cc397b312c6db4757d3520",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/talent-engagement",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-stats-talent-engagement",
+    "title": "UI Block: Stats - Talent engagement",
+    "regions": [
+      {
+        "id": "stats",
+        "components": [
+          {
+            "id": "stats-talent-engagement",
+            "type": "StatsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "radial-progress"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "People analytics"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Keep top talent energized and growing"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Combine engagement, mobility, and diversity indicators to tell a compelling people story to your board."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "talentMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Aggregated from HRIS and engagement platforms each quarter."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "talentMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Engagement score",
+                "value": "91",
+                "change": "+7 pts",
+                "changeLabel": "YoY",
+                "description": "Weighted by quarterly pulse across all regions."
+              },
+              {
+                "label": "Average tenure",
+                "value": "4.2 yrs",
+                "change": "+0.6 yrs",
+                "changeLabel": "YoY",
+                "description": "Across product and engineering teams."
+              },
+              {
+                "label": "Leadership diversity",
+                "value": "58%",
+                "change": "+9 pts",
+                "changeLabel": "YoY",
+                "description": "Women and non-binary leaders across director level and above."
+              },
+              {
+                "label": "Internal mobility",
+                "value": "32%",
+                "change": "+5 pts",
+                "changeLabel": "YoY",
+                "description": "Roles filled by existing employees year to date."
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-talent-engagement.xml"
+}

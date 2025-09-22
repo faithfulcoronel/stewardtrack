@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::stats/product-readiness::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "b2f3c48dc53f82dd4887468ecf6745ab1fe44fd3b0652063c1a52a60f155ed7d",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/product-readiness",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-product-readiness.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-product-readiness/1.0.0/1.0.0.json"
+}

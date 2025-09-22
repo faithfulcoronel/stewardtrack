@@ -9,6 +9,7 @@ import { CTASection, type CTASectionProps } from '@/components/dynamic/CTASectio
 import { BentoGrid, type BentoGridProps } from '@/components/dynamic/BentoGrid';
 import { PricingSection, type PricingSectionProps } from '@/components/dynamic/PricingSection';
 import { NewsletterSection, type NewsletterSectionProps } from '@/components/dynamic/NewsletterSection';
+import { StatsSection, type StatsSectionProps } from '@/components/dynamic/StatsSection';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -28,6 +29,7 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
   NewsletterSection: (props, children) => (
     <NewsletterSection {...(props as NewsletterSectionProps)}>{children}</NewsletterSection>
   ),
+  StatsSection: (props, children) => <StatsSection {...(props as StatsSectionProps)}>{children}</StatsSection>,
 };
 
 export interface InterpreterContext {

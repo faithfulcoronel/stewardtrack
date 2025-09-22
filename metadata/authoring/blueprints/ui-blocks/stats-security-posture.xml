@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="stats/security-posture"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-stats-security-posture">
+    <Title>UI Block: Stats - Security posture</Title>
+    <Regions>
+      <Region id="stats">
+        <Component id="stats-security-posture" type="StatsSection">
+          <Props>
+            <Prop name="variant" kind="static">insight-clusters</Prop>
+            <Prop name="eyebrow" kind="static">Security posture</Prop>
+            <Prop name="headline" kind="static">Continuous controls that keep your auditors smiling</Prop>
+            <Prop name="description" kind="static">Prove that your risk program runs on automation, not slide decks, with real-time security operations data.</Prop>
+            <Prop name="metrics" kind="binding" source="securityMetrics" path="items" />
+            <Prop name="footnote" kind="static">Security posture validated quarterly by independent assessors.</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="securityMetrics" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "label": "Preventive controls automated",
+                "value": "87%",
+                "change": "+9 pts",
+                "changeLabel": "YoY",
+                "description": "Security policies enforced through code and workflows."
+              },
+              {
+                "label": "Third-party risk resolved",
+                "value": "96%",
+                "change": "+4 pts",
+                "changeLabel": "Quarter",
+                "description": "Vendors with mitigation plans accepted and tracked."
+              },
+              {
+                "label": "Critical findings",
+                "value": "0",
+                "change": "36 months",
+                "changeLabel": "Running",
+                "description": "Consecutive months without a critical vulnerability."
+              },
+              {
+                "label": "Security training completion",
+                "value": "99.2%",
+                "change": "+2 pts",
+                "changeLabel": "YoY",
+                "description": "Employees completing quarterly phishing simulations."
+              },
+              {
+                "label": "Penetration test cadence",
+                "value": "4x / year",
+                "description": "Independent red-team exercises executed annually."
+              },
+              {
+                "label": "Encryption coverage",
+                "value": "100%",
+                "description": "Data encrypted in transit and at rest across services."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

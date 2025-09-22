@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "93354e0fb816ad9c2d8d06977b42b0204b375337c8945033f805a66a2849c6c0",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "stats/support-health",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-stats-support-health",
+    "title": "UI Block: Stats - Support health",
+    "regions": [
+      {
+        "id": "stats",
+        "components": [
+          {
+            "id": "stats-support-health",
+            "type": "StatsSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "compact-badges"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Support health"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Service signals customers notice immediately"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Share the real-time experience metrics that show how your support team anticipates and resolves customer needs."
+              },
+              "metrics": {
+                "kind": "binding",
+                "source": "supportMetrics",
+                "path": "items"
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Signals tracked across chat, email, and proactive status automation."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "supportMetrics",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "CSAT",
+                "value": "4.82 / 5",
+                "change": "+0.3",
+                "changeLabel": "YoY"
+              },
+              {
+                "label": "First response",
+                "value": "12 min",
+                "change": "-4 min",
+                "changeLabel": "Avg"
+              },
+              {
+                "label": "Resolution SLA",
+                "value": "96%",
+                "change": "+5 pts",
+                "changeLabel": "Within target"
+              },
+              {
+                "label": "Self-serve deflection",
+                "value": "41%",
+                "change": "+8 pts",
+                "changeLabel": "QoQ"
+              },
+              {
+                "label": "Proactive alerts",
+                "value": "320",
+                "change": "+47",
+                "changeLabel": "MoM"
+              },
+              {
+                "label": "Escalations",
+                "value": "1.2%",
+                "change": "-0.5 pts",
+                "changeLabel": "QoQ"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-support-health.xml"
+}
