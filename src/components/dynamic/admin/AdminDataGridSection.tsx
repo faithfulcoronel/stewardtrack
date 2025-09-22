@@ -2,18 +2,11 @@
 
 import Link from "next/link";
 import React from "react";
-import type {
-  ColDef,
-  GetRowIdParams,
-  ICellRendererParams,
-  ValueFormatterParams,
-  ValueGetterParams,
-} from "ag-grid-community";
 
-import { DataGrid } from "@/components/ui/datagrid";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/datatable";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -168,64 +161,61 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     });
   }, [filters, tableRows, filterState]);
 
-  const columnDefs = React.useMemo<ColDef<GridValue>[]>(() => {
-    return columns.map((column): ColDef<GridValue> => {
+  const handleDelete = React.useCallback((rowId: string) => {
+    setTableRows((previous) => previous.filter((item) => getRowIdentifier(item) !== rowId));
+  }, []);
+
+  const tableColumns = React.useMemo<DataTableColumn<GridValue>[]>(() => {
+    return columns.map((column) => {
+      const style: React.CSSProperties = {};
+      if (typeof column.width === "number") {
+        style.width = `${column.width}px`;
+      }
+      if (typeof column.minWidth === "number") {
+        style.minWidth = `${column.minWidth}px`;
+      }
+      const hiddenClass = column.hideOnMobile ? "hidden md:table-cell" : undefined;
+
       if (column.type === "actions") {
         const actions = normalizeList<GridActionConfig>(column.actions);
+        const align = column.align ?? "right";
         return {
-          headerName: column.headerName ?? "Actions",
-          field: column.field || "actions",
-          cellRenderer: (params: ICellRendererParams<GridValue>) => (
-            <RowActions
-              actions={actions}
-              row={params.data ?? {}}
-              onDelete={(rowId) => {
-                setTableRows((previous) => previous.filter((item) => item.id !== rowId));
-              }}
-            />
-          ),
+          id: column.field || "actions",
+          header: column.headerName ?? "Actions",
+          align,
           sortable: false,
-          filter: false,
-          suppressMovable: true,
-          minWidth: column.minWidth ?? 180,
-          flex: column.flex ?? 0.6,
-          resizable: false,
-          pinned: "right",
-        };
+          renderCell: (row: GridValue) => (
+            <RowActions actions={actions} row={row} onDelete={handleDelete} />
+          ),
+          headerClassName: hiddenClass,
+          cellClassName: cn("whitespace-nowrap", hiddenClass),
+          style,
+        } satisfies DataTableColumn<GridValue>;
       }
-
-      const base: ColDef = {
-        headerName: column.headerName ?? startCase(column.field),
-        field: column.field,
-        sortable: true,
-        resizable: true,
-        flex: column.flex ?? 1,
-        minWidth: column.minWidth ?? 160,
-        wrapText: true,
-        autoHeight: true,
-      };
 
       const align = column.align ?? "left";
-      const alignmentClass =
-        align === "center"
-          ? "ag-center-cols-container"
-          : align === "right"
-            ? "ag-right-aligned"
-            : undefined;
 
-      if (alignmentClass) {
-        base.cellClass = alignmentClass;
-      }
+      const tableColumn: DataTableColumn<GridValue> = {
+        id: column.field,
+        header: column.headerName ?? startCase(column.field),
+        align,
+        sortable: true,
+        renderCell: (row: GridValue) => renderDefaultCell(resolveValue(row, column.field)),
+        getSortValue: (row: GridValue) => getComparableValue(resolveValue(row, column.field)),
+        headerClassName: hiddenClass,
+        cellClassName: hiddenClass,
+        style,
+      };
 
       switch (column.type) {
         case "badge":
-          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
-            const value = params.value;
+          tableColumn.renderCell = (row: GridValue) => {
+            const value = resolveValue(row, column.field);
             if (!value) {
-              return null;
+              return <span className="text-muted-foreground">—</span>;
             }
             const variantField = column.badgeVariantField ?? `${column.field}Variant`;
-            const variant = String(resolveValue(params.data ?? {}, variantField) ?? "neutral");
+            const variant = String(resolveValue(row, variantField) ?? "neutral");
             const badgeLabel =
               column.badgeMap?.[String(value)] ??
               (typeof value === "string" ? value : String(value));
@@ -235,12 +225,17 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               </Badge>
             );
           };
+          tableColumn.getSortValue = (row: GridValue) => {
+            const value = resolveValue(row, column.field);
+            return value == null ? null : String(value).toLowerCase();
+          };
           break;
         case "currency":
-          base.valueFormatter = (params: ValueFormatterParams<GridValue>) => {
-            const amount = Number(params.value ?? 0);
+          tableColumn.renderCell = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            const amount = Number(raw);
             if (Number.isNaN(amount)) {
-              return "";
+              return <span className="text-muted-foreground">—</span>;
             }
             const currency = column.currency?.currency ?? "USD";
             const notation = column.currency?.notation ?? "standard";
@@ -251,15 +246,21 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               maximumFractionDigits: notation === "compact" ? 1 : 0,
             }).format(amount);
           };
+          tableColumn.getSortValue = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            const amount = Number(raw);
+            return Number.isNaN(amount) ? null : amount;
+          };
           break;
         case "date":
-          base.valueFormatter = (params: ValueFormatterParams<GridValue>) => {
-            if (!params.value) {
-              return "";
+          tableColumn.renderCell = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            if (!raw) {
+              return <span className="text-muted-foreground">—</span>;
             }
-            const date = new Date(String(params.value));
+            const date = new Date(String(raw));
             if (Number.isNaN(date.getTime())) {
-              return String(params.value);
+              return String(raw);
             }
             return new Intl.DateTimeFormat("en-US", column.dateFormat ?? {
               month: "short",
@@ -267,16 +268,25 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               year: "numeric",
             }).format(date);
           };
+          tableColumn.getSortValue = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            if (!raw) {
+              return null;
+            }
+            const date = new Date(String(raw));
+            return Number.isNaN(date.getTime()) ? null : date.getTime();
+          };
           break;
         case "chip-list":
-          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
-            const items = Array.isArray(params.value) ? params.value : [];
-            if (items.length === 0) {
-              return null;
+          tableColumn.renderCell = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            const list = Array.isArray(raw) ? raw : [];
+            if (list.length === 0) {
+              return <span className="text-muted-foreground">—</span>;
             }
             return (
               <div className="flex flex-wrap gap-2">
-                {items.map((item: unknown, index: number) => (
+                {list.map((item: unknown, index: number) => (
                   <Badge key={`${String(item)}-${index}`} variant="outline" className="border-border/60 text-xs">
                     {String(item)}
                   </Badge>
@@ -284,37 +294,44 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               </div>
             );
           };
+          tableColumn.getSortValue = (row: GridValue) => {
+            const raw = resolveValue(row, column.field);
+            return Array.isArray(raw) ? raw.join(", ").toLowerCase() : "";
+          };
           break;
         case "link":
-          base.cellRenderer = (params: ICellRendererParams<GridValue>) => {
-            const value = params.value ?? "";
+          tableColumn.renderCell = (row: GridValue) => {
+            const value = resolveValue(row, column.field);
             const subtitleField = column.subtitleField;
-            const subtitleRaw = subtitleField
-              ? resolveValue(params.data ?? {}, subtitleField)
-              : null;
+            const subtitleRaw = subtitleField ? resolveValue(row, subtitleField) : null;
             const subtitle = subtitleRaw == null ? null : String(subtitleRaw);
             const href = column.hrefTemplate
-              ? applyTemplate(column.hrefTemplate, params.data ?? {})
-              : String(params.value ?? "#");
+              ? applyTemplate(column.hrefTemplate, row)
+              : value
+                ? String(value)
+                : "#";
             return (
               <div className="flex flex-col">
                 <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
-                  {String(value)}
+                  {value == null ? "—" : String(value)}
                 </Link>
                 {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
               </div>
             );
           };
+          tableColumn.getSortValue = (row: GridValue) => {
+            const value = resolveValue(row, column.field);
+            return value == null ? null : String(value).toLowerCase();
+          };
           break;
         default:
-          base.valueGetter = (params: ValueGetterParams<GridValue>) =>
-            resolveValue(params.data ?? {}, column.field);
+          // already configured
           break;
       }
 
-      return base;
+      return tableColumn;
     });
-  }, [columns, setTableRows]);
+  }, [columns, handleDelete]);
 
   return (
     <section className="space-y-6">
@@ -361,24 +378,14 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           </div>
         )}
 
-        <div className="w-full overflow-hidden rounded-2xl border border-border/60">
-          <DataGrid
-            rowData={filteredRows}
-            columnDefs={columnDefs}
-            domLayout="autoHeight"
-            className="bg-background"
-            gridStyle={{ minHeight: Math.min(Math.max(filteredRows.length * 72, 320), 720) }}
-            defaultColDef={{
-              sortable: true,
-              resizable: true,
-              suppressHeaderMenuButton: true,
-            }}
-            suppressCellFocus
-            rowSelection="single"
-            getRowId={(params: GetRowIdParams<GridValue>) =>
-              String(params.data?.id ?? params.data?.ID ?? params.data?.uuid ?? "")}
-          />
-        </div>
+        <DataTable
+          data={filteredRows}
+          columns={tableColumns}
+          getRowId={(row, index) => {
+            const id = getRowIdentifier(row);
+            return id || `row-${index}`;
+          }}
+        />
 
         {filteredRows.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-8 text-center">
@@ -450,7 +457,7 @@ function RowActions({
   if (!actions.length) {
     return null;
   }
-  const rowId = String(row.id ?? row.ID ?? "");
+  const rowId = getRowIdentifier(row);
   return (
     <div className="flex flex-wrap gap-2">
       {actions.map((action) => {
@@ -528,4 +535,34 @@ function applyTemplate(template: string, context: GridValue): string {
     const value = resolveValue(context, key);
     return value === undefined || value === null ? "" : String(value);
   });
+}
+
+function renderDefaultCell(value: unknown) {
+  if (value === null || value === undefined) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  if (Array.isArray(value)) {
+    return value.length ? value.join(", ") : <span className="text-muted-foreground">—</span>;
+  }
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function getComparableValue(value: unknown): string | number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+  return String(value).toLowerCase();
+}
+
+function getRowIdentifier(row: GridValue): string {
+  return String(row.id ?? row.ID ?? row.uuid ?? "");
 }
