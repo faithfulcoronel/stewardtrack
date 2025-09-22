@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/minimal"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-minimal">
+    <Title>UI Block: Newsletter minimal inline</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-minimal" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="static">Get the digest</Prop>
+            <Prop name="headline" kind="static">Flowspace Field Notes</Prop>
+            <Prop name="description" kind="static">A five-minute read that helps product and ops teams adopt metadata patterns without slowing delivery.</Prop>
+            <Prop name="checklist" kind="binding" source="minimalChecklist" path="items" />
+            <Prop name="form" kind="binding" source="minimalForm" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="minimalChecklist" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "On-call stories from teams automating governance.",
+              "Experiment templates for onboarding and lifecycle.",
+              "A playbook to ship metadata safely at scale."
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="minimalForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "product.lead@company.com",
+            "buttonLabel": "Email me updates",
+            "disclaimer": "Sent every other Wednesday at 8am local time.",
+            "url": "/newsletter/field-notes/subscribe"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

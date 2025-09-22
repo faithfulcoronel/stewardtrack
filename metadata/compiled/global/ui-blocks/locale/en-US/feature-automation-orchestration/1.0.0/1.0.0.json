@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2543ef9dce9140d5b20ae8e80129d12ab4aa4fa32e7c58b2b9557b94fd63ec34",
+  "checksum": "f4f94ddc3ff6003a972ea467b96591e8ba806b1f7e011647b97d4fbfad19d2e5",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -125,5 +125,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-automation-orchestration.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-automation-orchestration.xml"
 }

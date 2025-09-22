@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "881fa3ad242429218d226ceea190316d4a439d5db2228d93d87c20488ba4e0c5",
+  "checksum": "d02780f13c35a5a68ef98b3f07de4916a057cee4839683530d718303f67ba278",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/regional-presence",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-regional-presence.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-regional-presence\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-regional-presence.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-regional-presence/1.0.0/1.0.0.json"
 }

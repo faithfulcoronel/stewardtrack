@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d29f2f2c01acbbed43639af0c20c159e66a424eea0c6763d03dd588346bb5e17",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/community",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-newsletter-community",
+    "title": "UI Block: Newsletter community hub",
+    "regions": [
+      {
+        "id": "newsletter",
+        "components": [
+          {
+            "id": "newsletter-community",
+            "type": "NewsletterSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "community"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Community wire"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Stay close to the builders"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A weekly recap from 5,000+ metadata practitioners sharing what worked, what broke, and how they fixed it."
+              },
+              "highlights": {
+                "kind": "binding",
+                "source": "communityHighlights",
+                "path": "items"
+              },
+              "gallery": {
+                "kind": "binding",
+                "source": "communityGallery",
+                "path": "items"
+              },
+              "testimonials": {
+                "kind": "binding",
+                "source": "communityTestimonial",
+                "path": "items"
+              },
+              "form": {
+                "kind": "binding",
+                "source": "communityForm",
+                "path": "$"
+              },
+              "highlight": {
+                "kind": "static",
+                "value": "Trade playbooks with peers shipping metadata in production."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "communityHighlights",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Live feedback threads",
+                "description": "Jump into the weekly discussion with product, revenue, and ops leads."
+              },
+              {
+                "title": "Templates on demand",
+                "description": "Request workflows and data models — other members share what shipped."
+              },
+              {
+                "title": "Small group meetups",
+                "description": "Join pods by industry to compare metadata maturity and dashboards."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "communityGallery",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "src": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80",
+                "alt": "Team member"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80",
+                "alt": "Builder"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=200&q=80",
+                "alt": "Strategist"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1544723795-3fb6a70c0c16?auto=format&fit=crop&w=200&q=80",
+                "alt": "Leader"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                "alt": "Community"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=200&q=80",
+                "alt": "Engineer"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=200&q=80",
+                "alt": "Operator"
+              },
+              {
+                "src": "https://images.unsplash.com/photo-1544723795-4325372e953f?auto=format&fit=crop&w=200&q=80",
+                "alt": "Partner"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "communityTestimonial",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "quote": "The community wire captures the nuance you never get from product launch notes.",
+                "author": "Akiko Tan",
+                "role": "Head of Enablement, Stripe Atlas"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "communityForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "community@company.com",
+            "buttonLabel": "Join the wire",
+            "disclaimer": "Delivered Thursdays. Includes invites to live sessions.",
+            "url": "/newsletter/community-wire/signup"
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-community.xml"
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "b13ac839b08d7e69b5003b06ade6ed82a99781b8b8853667bf6388515f0f2b2f",
+  "checksum": "d104cf5ce69fa288c8bf1a96363eaa2354e56328d479876e8fd0bb8ccbaa9e3b",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -90,5 +90,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-customer-story.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-customer-story.xml"
 }

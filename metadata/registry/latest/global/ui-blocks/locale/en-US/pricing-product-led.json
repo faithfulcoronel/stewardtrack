@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "90a1bf42adf8782cef8d6eacb41d33e8a12707cabc3de3e23217fb55c0ac0382",
+  "checksum": "0dc090651da6b117adfab6dc0982c4f2367639a14984550606a33bea1597475a",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/product-led",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-product-led.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-product-led\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-product-led.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-product-led/1.0.0/1.0.0.json"
 }

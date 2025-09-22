@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/digest::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f6b5e05c2387b8b8baec398613aa67bc696596ea265a73f656a908c423f9f964",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/digest",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-digest.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-digest/1.0.0/1.0.0.json"
+}

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "f6b5e05c2387b8b8baec398613aa67bc696596ea265a73f656a908c423f9f964",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/digest",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-newsletter-digest",
+    "title": "UI Block: Newsletter digest timeline",
+    "regions": [
+      {
+        "id": "newsletter",
+        "components": [
+          {
+            "id": "newsletter-digest",
+            "type": "NewsletterSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "digest"
+              },
+              "badge": {
+                "kind": "static",
+                "value": "Monday prep"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Ops cadence in your inbox"
+              },
+              "description": {
+                "kind": "static",
+                "value": "Kick off the week with the three metadata moves that keep your GTM pipeline humming."
+              },
+              "steps": {
+                "kind": "binding",
+                "source": "digestSteps",
+                "path": "items"
+              },
+              "stats": {
+                "kind": "binding",
+                "source": "digestStats",
+                "path": "items"
+              },
+              "form": {
+                "kind": "binding",
+                "source": "digestForm",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "digestSteps",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "title": "Plan",
+                "description": "Roll out a shared scorecard that highlights metadata debt."
+              },
+              {
+                "title": "Ship",
+                "description": "Cut redundant automation and focus on the two experiments with signal."
+              },
+              {
+                "title": "Report",
+                "description": "Translate results into metrics leadership cares about."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "digestStats",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              {
+                "label": "Read time",
+                "value": "3 min",
+                "caption": "One card for each Monday stand-up."
+              },
+              {
+                "label": "Programs monitored",
+                "value": "15",
+                "caption": "From lifecycle to revenue ops."
+              },
+              {
+                "label": "Signals",
+                "value": "24k",
+                "caption": "Daily jobs processed in the Flowspace network."
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "digestForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "ops.team@company.com",
+            "buttonLabel": "Send Monday plan",
+            "disclaimer": "Arrives Mondays at 7am in your local timezone.",
+            "url": "/newsletter/ops-cadence/subscribe"
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-digest.xml"
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d3484bcd3cba8fe817db38b12fba7e79e43317ff9b2d34b6f24b0773aa50cb83",
+  "checksum": "55f481a36a06fd39e533556edb1ec7e6d3efac023e8a85a035012c29a239b312",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -91,5 +91,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-card-beam.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-card-beam.xml"
 }

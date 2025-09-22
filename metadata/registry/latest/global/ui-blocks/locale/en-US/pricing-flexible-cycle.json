@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "9f027d79bcb017513f49f3fc1abdb67f2d02e49b5f579b9832ec4d36998139f5",
+  "checksum": "261c7ef7da20d75768b3b44f859301d8f71828b21f0b06b71b9541a00fb9c1dc",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/flexible-cycle",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-flexible-cycle.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-flexible-cycle\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-flexible-cycle.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-flexible-cycle/1.0.0/1.0.0.json"
 }

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "0a164e9cd3bd297bf6d02503a6b55a2c774d680b1bcc443714b3ece107ac43f1",
+  "kind": "blueprint",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/minimal",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "ui-blocks-newsletter-minimal",
+    "title": "UI Block: Newsletter minimal inline",
+    "regions": [
+      {
+        "id": "newsletter",
+        "components": [
+          {
+            "id": "newsletter-minimal",
+            "type": "NewsletterSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "minimal"
+              },
+              "eyebrow": {
+                "kind": "static",
+                "value": "Get the digest"
+              },
+              "headline": {
+                "kind": "static",
+                "value": "Flowspace Field Notes"
+              },
+              "description": {
+                "kind": "static",
+                "value": "A five-minute read that helps product and ops teams adopt metadata patterns without slowing delivery."
+              },
+              "checklist": {
+                "kind": "binding",
+                "source": "minimalChecklist",
+                "path": "items"
+              },
+              "form": {
+                "kind": "binding",
+                "source": "minimalForm",
+                "path": "$"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "minimalChecklist",
+        "kind": "static",
+        "config": {
+          "value": {
+            "items": [
+              "On-call stories from teams automating governance.",
+              "Experiment templates for onboarding and lifecycle.",
+              "A playbook to ship metadata safely at scale."
+            ]
+          }
+        }
+      },
+      {
+        "id": "minimalForm",
+        "kind": "static",
+        "config": {
+          "value": {
+            "placeholder": "product.lead@company.com",
+            "buttonLabel": "Email me updates",
+            "disclaimer": "Sent every other Wednesday at 8am local time.",
+            "url": "/newsletter/field-notes/subscribe"
+          }
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-minimal.xml"
+}

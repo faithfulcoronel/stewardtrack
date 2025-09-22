@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/spotlight::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "3c55376cc92983c45bf5c1071e49a3e3d9c59853d2ee031b8243adafcfeed8f0",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/spotlight",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-spotlight.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-spotlight/1.0.0/1.0.0.json"
+}

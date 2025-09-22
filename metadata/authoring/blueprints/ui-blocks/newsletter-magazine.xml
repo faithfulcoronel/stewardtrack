@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/magazine"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-magazine">
+    <Title>UI Block: Newsletter magazine grid</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-magazine" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">magazine</Prop>
+            <Prop name="eyebrow" kind="static">Inside the workspace</Prop>
+            <Prop name="headline" kind="static">Flowspace Journal</Prop>
+            <Prop name="description" kind="static">Stories from teams building composable experiences with metadata — spanning design systems, docs, and revenue enablement.</Prop>
+            <Prop name="highlights" kind="binding" source="magazineHighlights" path="items" />
+            <Prop name="cards" kind="binding" source="magazineCards" path="items" />
+            <Prop name="form" kind="binding" source="magazineForm" path="$" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="magazineHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Curated by editors",
+                "description": "Each issue blends interviews, architecture diagrams, and playbooks."
+              },
+              {
+                "title": "Team-tested",
+                "description": "We only share tactics that shipped to production and delivered measurable lift."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="magazineCards" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "badge": "Playbook",
+                "title": "Metadata ops review template",
+                "description": "Run a 45-minute retro that keeps systems reliable while shipping faster."
+              },
+              {
+                "badge": "Case study",
+                "title": "How Atlas unified customer onboarding",
+                "description": "The frameworks that helped a 40-person team cut activation time by 32%."
+              },
+              {
+                "badge": "Interview",
+                "title": "Making docs part of the product",
+                "description": "Why the Northwind docs team ships schema updates in lockstep with releases."
+              },
+              {
+                "badge": "Toolbox",
+                "title": "Automation stack of the week",
+                "description": "APIs, queries, and triggers we used to move data between marketing and product."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="magazineForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "editor@company.com",
+            "buttonLabel": "Send me the journal",
+            "disclaimer": "New issues every first Friday of the month.",
+            "url": "/newsletter/flowspace-journal/subscribe"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

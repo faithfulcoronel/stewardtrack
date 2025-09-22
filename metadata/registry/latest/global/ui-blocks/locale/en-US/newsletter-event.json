@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::newsletter/event::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "d0771bb632b6eb97a8bfaf9f22b49e9c476f5e521f4bf3cba4fe9919d9ef28c2",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "newsletter/event",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-event.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-event/1.0.0/1.0.0.json"
+}

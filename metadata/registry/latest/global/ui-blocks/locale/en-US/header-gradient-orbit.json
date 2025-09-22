@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "f07bcf42d7cd3eb2397a8e2bdc3737b850c7044750322e4a14b6032f8470160a",
+  "checksum": "de9cf9ae435a52ec0e7ca228cd6939d79006a7d97da50cf92799cf9472b1f94f",
   "layer": {
     "module": "ui-blocks",
     "route": "header/gradient-orbit",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-gradient-orbit.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-gradient-orbit\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-gradient-orbit.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-gradient-orbit/1.0.0/1.0.0.json"
 }

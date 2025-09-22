@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "53c45a185dbc5b62cc267bd043d97ce26a053c9a59819c68bcec25ef2a849a42",
+  "checksum": "e762814dcc2d3bad1b9403f336e16fd657d153d2d055398d3df684761698ac43",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -91,5 +91,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-live-workshop.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-live-workshop.xml"
 }

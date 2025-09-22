@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "40ae1919fe9ead25257b04a38e73a80833f81cae6e0574854b2d81330d61e082",
+  "checksum": "373e6859c063d846dd255af5af0c9c296a54bd4de93e692d3c1ffee4ea6a8b09",
   "layer": {
     "module": "ui-blocks",
     "route": "bento/support-lattice",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-support-lattice.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-support-lattice\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-support-lattice.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-support-lattice/1.0.0/1.0.0.json"
 }

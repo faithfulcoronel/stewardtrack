@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="newsletter/event"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-newsletter-event">
+    <Title>UI Block: Newsletter event concierge</Title>
+    <Regions>
+      <Region id="newsletter">
+        <Component id="newsletter-event" type="NewsletterSection">
+          <Props>
+            <Prop name="variant" kind="static">event</Prop>
+            <Prop name="badge" kind="static">Live workshop</Prop>
+            <Prop name="headline" kind="static">Metadata Launch Lab</Prop>
+            <Prop name="description" kind="static">A monthly live session where we deconstruct a shipping workflow and rebuild it using composable metadata.</Prop>
+            <Prop name="event" kind="binding" source="eventDetails" path="$" />
+            <Prop name="steps" kind="binding" source="eventAgenda" path="items" />
+            <Prop name="form" kind="binding" source="eventForm" path="$" />
+            <Prop name="primaryCta" kind="action" actionId="add-calendar" />
+            <Prop name="secondaryCta" kind="action" actionId="watch-trailer" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="eventDetails" kind="static">
+        <Json><![CDATA[
+          {
+            "date": "March 27, 2025",
+            "time": "12:00 PM",
+            "timezone": "ET",
+            "location": "Virtual (Zoom)"
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="eventAgenda" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "title": "Introductions",
+                "description": "Meet the product, revenue, and ops leads joining the session."
+              },
+              {
+                "title": "Playbook walkthrough",
+                "description": "We rebuild a launch workflow using metadata overlays and automation."
+              },
+              {
+                "title": "Office hours",
+                "description": "Bring your architecture questions for live debugging."
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="eventForm" kind="static">
+        <Json><![CDATA[
+          {
+            "placeholder": "creator@company.com",
+            "buttonLabel": "Reserve my spot",
+            "disclaimer": "Subscribers receive recording, templates, and reminders.",
+            "url": "/newsletter/launch-lab/rsvp"
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-calendar" kind="link">
+        <Config>
+          <Label>Add to calendar</Label>
+          <Url>https://calendar.google.com/event?action=TEMPLATE&amp;text=Metadata+Launch+Lab</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="watch-trailer" kind="link">
+        <Config>
+          <Label>Watch trailer</Label>
+          <Url>/videos/launch-lab-trailer</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
