@@ -14,5 +14,5 @@ export type ThemeMode = "light" | "dark";
 
 export const DEFAULT_THEME_ID: ThemeId = "emerald";
 
-export const THEME_PALETTE_STORAGE_KEY = "flowspace.theme";
-export const THEME_MODE_STORAGE_KEY = "flowspace.mode";
+export const THEME_PALETTE_STORAGE_KEY = "StewardTrack.theme";
+export const THEME_MODE_STORAGE_KEY = "StewardTrack.mode";

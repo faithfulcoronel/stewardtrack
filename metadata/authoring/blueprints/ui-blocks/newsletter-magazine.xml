@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">magazine</Prop>
             <Prop name="eyebrow" kind="static">Inside the workspace</Prop>
-            <Prop name="headline" kind="static">Flowspace Journal</Prop>
+            <Prop name="headline" kind="static">StewardTrack Journal</Prop>
             <Prop name="description" kind="static">Stories from teams building composable experiences with metadata — spanning design systems, docs, and revenue enablement.</Prop>
             <Prop name="highlights" kind="binding" source="magazineHighlights" path="items" />
             <Prop name="cards" kind="binding" source="magazineCards" path="items" />
@@ -75,7 +75,7 @@
             "placeholder": "editor@company.com",
             "buttonLabel": "Send me the journal",
             "disclaimer": "New issues every first Friday of the month.",
-            "url": "/newsletter/flowspace-journal/subscribe"
+            "url": "/newsletter/StewardTrack-journal/subscribe"
           }
         ]]></Json>
       </DataSource>

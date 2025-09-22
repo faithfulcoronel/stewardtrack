@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Stats sections | Flowspace",
+  title: "Stats sections | StewardTrack",
 };
 
 const ROOT = process.cwd();

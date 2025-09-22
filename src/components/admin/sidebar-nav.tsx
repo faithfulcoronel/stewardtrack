@@ -77,7 +77,7 @@ export function AdminSidebar({
         {showLabels && (
           <div className="leading-tight">
             <p className="text-sm font-semibold" style={{ color: "var(--sidebar-foreground)" }}>
-              Flowspace Admin
+              StewardTrack Admin
             </p>
             <p className="text-xs/5" style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 60%, transparent)" }}>
               Control center
@@ -134,7 +134,7 @@ export function AdminSidebar({
         className="border-t border-white/20 px-4 py-4 text-xs"
         style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 70%, transparent)" }}
       >
-        Copyright {new Date().getFullYear()} Flowspace
+        Copyright {new Date().getFullYear()} StewardTrack
       </div>
     </aside>
   );

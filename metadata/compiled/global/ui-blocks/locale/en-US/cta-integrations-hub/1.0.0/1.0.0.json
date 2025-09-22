@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "Connect Flowspace across your stack"
+                "value": "Connect StewardTrack across your stack"
               },
               "description": {
                 "kind": "static",
@@ -73,7 +73,7 @@
             "items": [
               {
                 "title": "Analytics acceleration",
-                "description": "Sync Flowspace events to Snowflake, Looker, and Mode with governed schemas."
+                "description": "Sync StewardTrack events to Snowflake, Looker, and Mode with governed schemas."
               },
               {
                 "title": "Lifecycle automation",

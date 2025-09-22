@@ -15,7 +15,7 @@ export default function Home() {
             Launch your next product with authentication baked in.
           </h1>
           <p className="text-lg text-muted-foreground">
-            Flowspace pairs a polished marketing site with Supabase-powered user auth and an admin view. Ship your MVP,
+            StewardTrack pairs a polished marketing site with Supabase-powered user auth and an admin view. Ship your MVP,
             invite your first users, and manage access in hours-not weeks.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -61,7 +61,7 @@ export default function Home() {
 
       <section id="features" className="space-y-12">
         <div className="space-y-3 text-center">
-          <h2 className="text-3xl font-semibold">Why teams choose Flowspace</h2>
+          <h2 className="text-3xl font-semibold">Why teams choose StewardTrack</h2>
           <p className="text-muted-foreground">
             Get the critical foundations in place on day one.
           </p>

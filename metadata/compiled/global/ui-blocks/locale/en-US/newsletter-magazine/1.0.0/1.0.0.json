@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "Flowspace Journal"
+                "value": "StewardTrack Journal"
               },
               "description": {
                 "kind": "static",
@@ -115,7 +115,7 @@
             "placeholder": "editor@company.com",
             "buttonLabel": "Send me the journal",
             "disclaimer": "New issues every first Friday of the month.",
-            "url": "/newsletter/flowspace-journal/subscribe"
+            "url": "/newsletter/StewardTrack-journal/subscribe"
           }
         }
       }

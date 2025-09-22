@@ -14,7 +14,7 @@
         <Component id="newsletter-stats" type="NewsletterSection">
           <Props>
             <Prop name="variant" kind="static">stats</Prop>
-            <Prop name="eyebrow" kind="static">Flowspace Signals</Prop>
+            <Prop name="eyebrow" kind="static">StewardTrack Signals</Prop>
             <Prop name="headline" kind="static">Understand the health of your metadata pipeline</Prop>
             <Prop name="description" kind="static">A mid-week pulse on ingestion uptime, experiment velocity, and the automations teams are adopting right now.</Prop>
             <Prop name="stats" kind="binding" source="statsMetrics" path="items" />
@@ -55,7 +55,7 @@
             "placeholder": "data.ops@company.com",
             "buttonLabel": "Monitor my pipeline",
             "disclaimer": "Sent every Wednesday with fresh telemetry.",
-            "url": "/newsletter/flowspace-signals/subscribe"
+            "url": "/newsletter/StewardTrack-signals/subscribe"
           }
         ]]></Json>
       </DataSource>
@@ -71,7 +71,7 @@
       <Action id="download-sample" kind="link">
         <Config>
           <Label>Download sample report</Label>
-          <Url>/newsletter/flowspace-signals/sample.pdf</Url>
+          <Url>/newsletter/StewardTrack-signals/sample.pdf</Url>
           <Variant>ghost</Variant>
         </Config>
       </Action>

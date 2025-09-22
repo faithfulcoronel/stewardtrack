@@ -8,13 +8,13 @@
   locale="en-US"
 >
   <Page id="marketing-home">
-    <Title>Flowspace marketing home</Title>
+    <Title>StewardTrack marketing home</Title>
     <Regions>
       <Region id="hero">
         <Component id="hero-section" type="HeroSection">
           <RBAC allow="guest,member" />
           <Props>
-            <Prop name="eyebrow" kind="static">Flowspace platform</Prop>
+            <Prop name="eyebrow" kind="static">StewardTrack platform</Prop>
             <Prop name="headline" kind="binding" source="heroCopy" path="headline" />
             <Prop name="description" kind="binding" source="heroCopy" path="description" />
             <Prop name="metrics" kind="binding" source="heroMetrics" path="items" />
@@ -26,7 +26,7 @@
       <Region id="feature-grid">
         <Component id="feature-grid-section" type="FeatureGrid">
           <Props>
-            <Prop name="title" kind="static">Why teams choose Flowspace</Prop>
+            <Prop name="title" kind="static">Why teams choose StewardTrack</Prop>
             <Prop name="features" kind="binding" source="featureCopy" path="$" />
           </Props>
         </Component>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {
-  title: "Sign in | Flowspace",
+  title: "Sign in | StewardTrack",
 };
 
 export default function LoginPage() {

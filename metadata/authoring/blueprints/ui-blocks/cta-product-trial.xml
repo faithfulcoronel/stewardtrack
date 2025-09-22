@@ -16,7 +16,7 @@
             <Prop name="variant" kind="static">split</Prop>
             <Prop name="badge" kind="static">14-day access</Prop>
             <Prop name="eyebrow" kind="static">Free trial</Prop>
-            <Prop name="headline" kind="static">Launch Flowspace experiments in days</Prop>
+            <Prop name="headline" kind="static">Launch StewardTrack experiments in days</Prop>
             <Prop name="description" kind="static">Provision a workspace, connect sources, and validate new messaging without waiting on an engineering deploy.</Prop>
             <Prop name="checklist" kind="binding" source="trialChecklist" path="items" />
             <Prop name="image" kind="binding" source="trialMedia" path="$" />

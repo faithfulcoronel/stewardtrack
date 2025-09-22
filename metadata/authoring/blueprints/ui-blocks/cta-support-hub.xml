@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">contact</Prop>
             <Prop name="eyebrow" kind="static">Support programs</Prop>
-            <Prop name="headline" kind="static">Reach the right Flowspace specialist</Prop>
+            <Prop name="headline" kind="static">Reach the right StewardTrack specialist</Prop>
             <Prop name="description" kind="static">Choose the channel aligned with your question and connect with solution architects, enablement leads, or billing experts.</Prop>
             <Prop name="contactMethods" kind="binding" source="supportContacts" path="items" />
             <Prop name="primaryCta" kind="action" actionId="open-ticket" />
@@ -32,9 +32,9 @@
             "items": [
               {
                 "label": "Solution architecture",
-                "value": "Architecture@flowspace.com",
+                "value": "Architecture@StewardTrack.com",
                 "description": "For integration design, data modeling, and governance questions.",
-                "url": "mailto:architecture@flowspace.com"
+                "url": "mailto:architecture@StewardTrack.com"
               },
               {
                 "label": "Enablement office hours",

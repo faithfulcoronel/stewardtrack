@@ -19,7 +19,7 @@ export default async function PublicLayout({
       <header className="border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="flex w-full items-center justify-between px-6 py-4 sm:px-10 sm:py-5">
           <Link href="/" className="text-lg font-semibold text-foreground">
-            Flowspace
+            StewardTrack
           </Link>
           <nav className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
             <Link className="transition hover:text-foreground" href="/#features">
@@ -56,7 +56,7 @@ export default async function PublicLayout({
       <main className="flex-1">{children}</main>
       <footer className="border-t border-border/60 bg-background py-8">
         <div className="flex w-full flex-col items-center gap-2 px-6 text-sm text-muted-foreground sm:flex-row sm:justify-between sm:px-10">
-          <p>Copyright {year} Flowspace. All rights reserved.</p>
+          <p>Copyright {year} StewardTrack. All rights reserved.</p>
           <p className="flex gap-3">
             <Link className="transition hover:text-foreground" href="/privacy">
               Privacy

@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "See how RelayOps scaled releases with Flowspace"
+                "value": "See how RelayOps scaled releases with StewardTrack"
               },
               "description": {
                 "kind": "static",
@@ -62,7 +62,7 @@
         "kind": "static",
         "config": {
           "value": {
-            "quote": "Flowspace helped us orchestrate launches across product, marketing, and support without adding headcount.",
+            "quote": "StewardTrack helped us orchestrate launches across product, marketing, and support without adding headcount.",
             "author": "Mira Han",
             "role": "Director of Product Marketing, RelayOps"
           }

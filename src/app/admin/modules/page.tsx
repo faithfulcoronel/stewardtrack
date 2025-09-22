@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Modules | Flowspace",
+  title: "Modules | StewardTrack",
 };
 
 type ManifestGroup = {

@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "Reach the right Flowspace specialist"
+                "value": "Reach the right StewardTrack specialist"
               },
               "description": {
                 "kind": "static",
@@ -69,9 +69,9 @@
             "items": [
               {
                 "label": "Solution architecture",
-                "value": "Architecture@flowspace.com",
+                "value": "Architecture@StewardTrack.com",
                 "description": "For integration design, data modeling, and governance questions.",
-                "url": "mailto:architecture@flowspace.com"
+                "url": "mailto:architecture@StewardTrack.com"
               },
               {
                 "label": "Enablement office hours",

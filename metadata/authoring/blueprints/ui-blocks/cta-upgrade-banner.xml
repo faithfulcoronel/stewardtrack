@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">banner</Prop>
             <Prop name="badge" kind="static">Upgrade bonus</Prop>
-            <Prop name="headline" kind="static">Upgrade to Flowspace Scale</Prop>
+            <Prop name="headline" kind="static">Upgrade to StewardTrack Scale</Prop>
             <Prop name="description" kind="static">Unlock workspace hierarchy, granular RBAC, and lifecycle analytics designed for multi-product teams.</Prop>
             <Prop name="highlight" kind="static">Annual upgrade saves 18%</Prop>
             <Prop name="primaryCta" kind="action" actionId="upgrade-now" />

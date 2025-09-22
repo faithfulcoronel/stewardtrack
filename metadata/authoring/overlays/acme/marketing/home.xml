@@ -37,7 +37,7 @@
         <Component id="activation-cta" type="CTASection">
           <Props>
             <Prop name="variant" kind="static">split</Prop>
-            <Prop name="badge" kind="static">Acme × Flowspace</Prop>
+            <Prop name="badge" kind="static">Acme × StewardTrack</Prop>
             <Prop name="eyebrow" kind="static">Blueprint activation</Prop>
             <Prop name="headline" kind="binding" source="ctaCopy" path="headline" />
             <Prop name="description" kind="binding" source="ctaCopy" path="description" />
@@ -65,7 +65,7 @@
         <Props>
           <Prop name="variant" kind="static">split</Prop>
           <Prop name="badge" kind="static">Acme launchpad</Prop>
-          <Prop name="eyebrow" kind="static">Flowspace metadata</Prop>
+          <Prop name="eyebrow" kind="static">StewardTrack metadata</Prop>
           <Prop name="headline" kind="binding" source="heroCopy" path="headline" />
           <Prop name="description" kind="binding" source="heroCopy" path="description" />
           <Prop name="highlights" kind="binding" source="heroCopy" path="highlights" />

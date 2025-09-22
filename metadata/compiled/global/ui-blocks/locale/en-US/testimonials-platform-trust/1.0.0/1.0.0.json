@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "Teams rely on Flowspace to launch confidently"
+                "value": "Teams rely on StewardTrack to launch confidently"
               },
               "description": {
                 "kind": "static",
@@ -64,7 +64,7 @@
           "value": {
             "items": [
               {
-                "quote": "Flowspace gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
+                "quote": "StewardTrack gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
                 "author": "Jonah Park",
                 "role": "Chief Information Officer",
                 "company": "Helios Labs",
@@ -84,7 +84,7 @@
                 "rating": 4.8
               },
               {
-                "quote": "Compliance used to slow us down. With Flowspace, review cycles are embedded into every release plan.",
+                "quote": "Compliance used to slow us down. With StewardTrack, review cycles are embedded into every release plan.",
                 "author": "Heather Liu",
                 "role": "Head of Compliance",
                 "company": "Greenline",
@@ -94,7 +94,7 @@
                 "rating": 5
               },
               {
-                "quote": "Stakeholders trust our dashboards now that we stream Flowspace metrics into their daily workspace.",
+                "quote": "Stakeholders trust our dashboards now that we stream StewardTrack metrics into their daily workspace.",
                 "author": "Lucas Andrade",
                 "role": "Operations Lead",
                 "company": "Nimbus Retail",

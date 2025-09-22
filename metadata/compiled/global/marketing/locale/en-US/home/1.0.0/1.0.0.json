@@ -13,7 +13,7 @@
   },
   "page": {
     "id": "marketing-home",
-    "title": "Flowspace marketing home",
+    "title": "StewardTrack marketing home",
     "regions": [
       {
         "id": "hero",
@@ -30,7 +30,7 @@
             "props": {
               "eyebrow": {
                 "kind": "static",
-                "value": "Flowspace platform"
+                "value": "StewardTrack platform"
               },
               "headline": {
                 "kind": "binding",
@@ -68,7 +68,7 @@
             "props": {
               "title": {
                 "kind": "static",
-                "value": "Why teams choose Flowspace"
+                "value": "Why teams choose StewardTrack"
               },
               "features": {
                 "kind": "binding",

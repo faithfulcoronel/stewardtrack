@@ -32,7 +32,7 @@
               },
               "headline": {
                 "kind": "static",
-                "value": "Flowspace change log"
+                "value": "StewardTrack change log"
               },
               "description": {
                 "kind": "static",
@@ -93,7 +93,7 @@
               {
                 "badge": "Community",
                 "title": "Contributor spotlights",
-                "description": "See how customers extend Flowspace with custom renderers and data sources."
+                "description": "See how customers extend StewardTrack with custom renderers and data sources."
               }
             ]
           }

@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">grid</Prop>
             <Prop name="eyebrow" kind="static">Partner ecosystem</Prop>
-            <Prop name="headline" kind="static">Collaborate with certified Flowspace partners</Prop>
+            <Prop name="headline" kind="static">Collaborate with certified StewardTrack partners</Prop>
             <Prop name="description" kind="static">Tap into specialized agencies for content operations, experimentation, and platform migrations.</Prop>
             <Prop name="logos" kind="binding" source="partnerLogos" path="items" />
             <Prop name="checklist" kind="binding" source="partnerBenefits" path="items" />

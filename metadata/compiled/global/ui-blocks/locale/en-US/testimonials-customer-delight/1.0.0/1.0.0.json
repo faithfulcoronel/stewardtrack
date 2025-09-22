@@ -74,7 +74,7 @@
           "value": {
             "items": [
               {
-                "quote": "Flowspace let us configure onboarding journeys in half the time, and new workspaces activate themselves.",
+                "quote": "StewardTrack let us configure onboarding journeys in half the time, and new workspaces activate themselves.",
                 "author": "Mira Collins",
                 "role": "VP Product",
                 "company": "Northwind Systems",
@@ -85,7 +85,7 @@
                 "highlight": "120% activation lift"
               },
               {
-                "quote": "We pair Flowspace with our in-app tours, and our customers now reach time-to-value without human handoffs.",
+                "quote": "We pair StewardTrack with our in-app tours, and our customers now reach time-to-value without human handoffs.",
                 "author": "Elliot Grant",
                 "role": "Director of CX",
                 "company": "Globex Platform",
@@ -105,7 +105,7 @@
                 "rating": 5
               },
               {
-                "quote": "With Flowspace actions tied to milestones, our onboarding managers focus on coaching instead of chasing data.",
+                "quote": "With StewardTrack actions tied to milestones, our onboarding managers focus on coaching instead of chasing data.",
                 "author": "Gabriela Ortiz",
                 "role": "Customer Success Manager",
                 "company": "Velocia",
@@ -139,7 +139,7 @@
           "value": {
             "items": [
               "Guided tours adapt automatically to role and locale",
-              "Lifecycle emails sync to Flowspace activation markers"
+              "Lifecycle emails sync to StewardTrack activation markers"
             ]
           }
         }

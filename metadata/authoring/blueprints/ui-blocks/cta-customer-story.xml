@@ -15,7 +15,7 @@
           <Props>
             <Prop name="variant" kind="static">testimonial</Prop>
             <Prop name="badge" kind="static">Customer story</Prop>
-            <Prop name="headline" kind="static">See how RelayOps scaled releases with Flowspace</Prop>
+            <Prop name="headline" kind="static">See how RelayOps scaled releases with StewardTrack</Prop>
             <Prop name="description" kind="static">RelayOps replaced manual launch checklists with metadata-driven workflows and cut review cycles in half.</Prop>
             <Prop name="testimonial" kind="binding" source="relayTestimonial" path="$" />
             <Prop name="primaryCta" kind="action" actionId="read-story" />
@@ -28,7 +28,7 @@
       <DataSource id="relayTestimonial" kind="static">
         <Json><![CDATA[
           {
-            "quote": "Flowspace helped us orchestrate launches across product, marketing, and support without adding headcount.",
+            "quote": "StewardTrack helped us orchestrate launches across product, marketing, and support without adding headcount.",
             "author": "Mira Han",
             "role": "Director of Product Marketing, RelayOps"
           }

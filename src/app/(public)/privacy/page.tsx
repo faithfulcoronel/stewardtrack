@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy | Flowspace",
+  title: "Privacy | StewardTrack",
 };
 
 export default function PrivacyPage() {
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         This is a placeholder policy. Replace it with your actual privacy details before launching.
       </p>
       <p className="mt-6 text-sm text-muted-foreground">
-        Flowspace does not store personal data beyond what Supabase manages for authentication. Consult your legal
+        StewardTrack does not store personal data beyond what Supabase manages for authentication. Consult your legal
         counsel when adapting this template.
       </p>
       <p className="mt-8 text-sm">
