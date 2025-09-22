@@ -4,7 +4,7 @@
   module="admin-community"
   route="members/list"
   schemaVersion="1.0.0"
-  contentVersion="1.0.0"
+  contentVersion="1.1.0"
   locale="en-US"
 >
   <Page id="admin-community-membership-list">
@@ -86,7 +86,7 @@
           }
         ]]></Json>
       </DataSource>
-      <DataSource id="membersTable" kind="static">
+      <DataSource id="membersTable" kind="service">
         <Json><![CDATA[
           {
             "filters": [
@@ -206,107 +206,13 @@
                   }
                 ]
               }
-            ],
-            "rows": [
-              {
-                "id": "mem_001",
-                "name": "Avery Johnson",
-                "membershipLabel": "Active · Hospitality Captain",
-                "status": "Active member",
-                "statusKey": "active",
-                "statusVariant": "success",
-                "campus": "Downtown",
-                "campusKey": "downtown",
-                "household": "Johnson Family",
-                "lastEngagement": "2024-10-13",
-                "givingThisYear": 18450,
-                "tags": ["Hospitality Team", "Leadership Cohort"],
-                "phone": "(555) 204-1188",
-                "email": "avery.johnson@example.org"
-              },
-              {
-                "id": "mem_002",
-                "name": "Elena Ruiz",
-                "membershipLabel": "New here · Foundations class",
-                "status": "New here",
-                "statusKey": "new",
-                "statusVariant": "info",
-                "campus": "Northside",
-                "campusKey": "northside",
-                "household": "Ruiz Household",
-                "lastEngagement": "2024-10-14",
-                "givingThisYear": 420,
-                "tags": ["Alpha Course", "Guest Dinner"],
-                "phone": "(555) 407-9931",
-                "email": "elena.ruiz@example.org"
-              },
-              {
-                "id": "mem_003",
-                "name": "Samuel and Dana Lee",
-                "membershipLabel": "Active · Small group coaches",
-                "status": "Active member",
-                "statusKey": "active",
-                "statusVariant": "success",
-                "campus": "Southridge",
-                "campusKey": "southridge",
-                "household": "Lee Household",
-                "lastEngagement": "2024-10-12",
-                "givingThisYear": 23780,
-                "tags": ["Small Group", "Marriage Mentors"],
-                "phone": "(555) 782-4410",
-                "email": "samuel.dana.lee@example.org"
-              },
-              {
-                "id": "mem_004",
-                "name": "Jordan Miles",
-                "membershipLabel": "Shepherding · Pastoral care",
-                "status": "Shepherding",
-                "statusKey": "care",
-                "statusVariant": "warning",
-                "campus": "Downtown",
-                "campusKey": "downtown",
-                "household": "Miles Household",
-                "lastEngagement": "2024-10-09",
-                "givingThisYear": 2600,
-                "tags": ["Care Plan", "Benevolence"],
-                "phone": "(555) 338-6611",
-                "email": "jordan.miles@example.org"
-              },
-              {
-                "id": "mem_005",
-                "name": "Priya Desai",
-                "membershipLabel": "Active · Worship Leader",
-                "status": "Active member",
-                "statusKey": "active",
-                "statusVariant": "success",
-                "campus": "Online",
-                "campusKey": "online",
-                "household": "Desai Household",
-                "lastEngagement": "2024-10-15",
-                "givingThisYear": 8600,
-                "tags": ["Online Campus", "Worship"],
-                "phone": "(555) 991-4472",
-                "email": "priya.desai@example.org"
-              },
-              {
-                "id": "mem_006",
-                "name": "The Carter Family",
-                "membershipLabel": "Inactive · Relocated",
-                "status": "Inactive",
-                "statusKey": "inactive",
-                "statusVariant": "critical",
-                "campus": "Northside",
-                "campusKey": "northside",
-                "household": "Carter Household",
-                "lastEngagement": "2024-07-21",
-                "givingThisYear": 540,
-                "tags": ["Former Volunteers", "Moved Cities"],
-                "phone": "(555) 623-1199",
-                "email": "carter.family@example.org"
-              }
             ]
           }
         ]]></Json>
+        <Config>
+          <handler>admin-community.members.list.membersTable</handler>
+          <limit>100</limit>
+        </Config>
       </DataSource>
     </DataSources>
     <Actions>

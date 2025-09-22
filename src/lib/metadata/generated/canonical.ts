@@ -72,7 +72,7 @@ export interface Rbac {
 }
 export interface DataSource {
   id: string;
-  kind: "static" | "supabase" | "http";
+  kind: "static" | "supabase" | "http" | "service";
   operation?: "merge" | "replace" | "remove";
   config?: {
     [k: string]: unknown;

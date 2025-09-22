@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2025-09-22T15:53:35.341Z",
+  "generatedAt": "2025-09-22T20:17:32.424Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
       "kind": "overlay",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.1.0",
-      "checksum": "ea8a6af6576fd43ed52d659bd81b3866ab2dd9626261c390f1ef0867dda0d729",
+      "checksum": "34b10a9be2c03746d3147d603ee9d2ea435f633e9c6e16e4cd7a1daaf82aecc8",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -21,12 +21,80 @@
         "global::marketing::home::-::-::en-US"
       ]
     },
+    "global::admin-community::members/dashboard::-::-::en-US": {
+      "key": "global::admin-community::members/dashboard::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a8bebdfcf4208ba22cb0ced20a4dff60861661f72d54e60272cef70b8383edd2",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/dashboard",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-dashboard.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-dashboard/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/list::-::-::en-US": {
+      "key": "global::admin-community::members/list::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.1.0",
+      "checksum": "ab7d64fbd14a97669002f85e108e2eab9594719167270988bf028c9d355bbaca",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/list",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-list/1.0.0/1.1.0.json"
+    },
+    "global::admin-community::members/manage::-::-::en-US": {
+      "key": "global::admin-community::members/manage::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a40b197c533c9720fe95fb182f6f0a3c21579f9a013da82fc3ba05889026b528",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/manage",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.0.0.json"
+    },
+    "global::admin-community::members/profile::-::-::en-US": {
+      "key": "global::admin-community::members/profile::-::-::en-US",
+      "kind": "blueprint",
+      "schemaVersion": "1.0.0",
+      "contentVersion": "1.0.0",
+      "checksum": "a26be5074f84d3f38ec904641bb1464edc79ce1b3098f548e61fe3e111bdff69",
+      "layer": {
+        "module": "admin-community",
+        "route": "members/profile",
+        "tenant": null,
+        "role": null,
+        "variant": null,
+        "locale": "en-US"
+      },
+      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml",
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-profile/1.0.0/1.0.0.json"
+    },
     "global::marketing::home::-::-::en-US": {
       "key": "global::marketing::home::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+      "checksum": "5741e8e119fd0a93ee60262bdbe0fd5a707473a5923636aaa42ab00fb3096167",
       "layer": {
         "module": "marketing",
         "route": "home",
@@ -264,7 +332,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "d104cf5ce69fa288c8bf1a96363eaa2354e56328d479876e8fd0bb8ccbaa9e3b",
+      "checksum": "d883b7d4f8f0f386452d33036c002a49c7963ac34fab70181e6a5640f935a37a",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/customer-story",
@@ -281,7 +349,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "2e03068d60eeb1b903b63a478720d89222372d04f97eec3089c7d2ec2a313a47",
+      "checksum": "4c06166c8f9a2ec818b037e5c497f4cff958535b700129080727ab30d6d25c24",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/download-guide",
@@ -298,7 +366,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "574640c7abd5451945202145ccb05f3e02bb18c359f71a8d2cb26eb1f55ace83",
+      "checksum": "337e10d735a9998fda63baf53fb20d9bb98b7de9b1f1f78084faa7d2b44da516",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/enterprise-audit",
@@ -315,7 +383,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "d093147a83f85e4d4238e077cdb7f361d66fbe5163043b27099af2328681abfe",
+      "checksum": "600f3890ddb7711113a55c2e38cfd16a7133f48110e7df6e39bb0a267cf0fc18",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/integrations-hub",
@@ -349,7 +417,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "deeafe115cb2bf2d1beab74896939e83989563bddb819bc53ac150e536a1b885",
+      "checksum": "5f7c428ff3036be229e589538ca6b52eebe35418be702741502d2454517ee9b2",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/partner-network",
@@ -366,7 +434,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "e4d22fc2a51bc12f8ffded1ac39258f2a87d9160bdacdde7c812152627fa35e1",
+      "checksum": "174e7e139f3319d20e8213121927988667f30109f0a80fa1568b76fec0776936",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/product-trial",
@@ -400,7 +468,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "00b40c19ad57bc47e062dcb2cbf97a12c609eec5a724a672e8b57699862f1f2f",
+      "checksum": "43850bd25cb1845409d8f5607bcfbb46f240daeeb274e03f0ef52f33bced1027",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/security-checklist",
@@ -417,7 +485,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "92eac0e599e05e96e31f35fef16dcbd83a0c015c4134828d8895b174bd3154ef",
+      "checksum": "38f5c46ad1ceaabe1698cb8add7dedd5ec220cc0d7d3ac618481dd2182fa69c9",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/support-hub",
@@ -434,7 +502,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "2dac0639cc9813fc9c08d3f448b58e1dab9aaaa420fec28c2ff99829d2ccc705",
+      "checksum": "cda4f809bdecd24293d6dd34f42463a5169b163937a7976ef258b67255f65eca",
       "layer": {
         "module": "ui-blocks",
         "route": "cta/upgrade-banner",
@@ -723,7 +791,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "de9cf9ae435a52ec0e7ca228cd6939d79006a7d97da50cf92799cf9472b1f94f",
+      "checksum": "7b16338498a3f54feaf0aa316f9a4f59bd8957f17205f029453e2df6dfcfc8c3",
       "layer": {
         "module": "ui-blocks",
         "route": "header/gradient-orbit",
@@ -944,7 +1012,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "01c849a666312110216ba620c537d7d08a4df824970fa954188284c3c8eb24eb",
+      "checksum": "f6ee3ad0218b559766fe3167afbaca78554ec770794fd0a27d43fb88dd1bd1d4",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/event",
@@ -978,7 +1046,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "ed0bcc533ad6d58730bc877ec4570154f5917e22872ad6d83b8bb08c37e06506",
+      "checksum": "d4b0a6f67a7e15825772bd57b843b71092f630e4d3973e5228302924be9a6891",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/newsletter",
@@ -1029,7 +1097,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "c29ae75b1b02a278c25dacc6fa85bf5f6566af991319ccfc4b139ca67a3c2486",
+      "checksum": "99680c540cfc5ca006d5bd7fd9ccb0693d3859a7d14d282ad496b95c91678516",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/spotlight",
@@ -1046,7 +1114,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "2.0.0",
-      "checksum": "fe972adbf927908045a6a83b26455637ab30a56f647f497fb62da3755bdf5ed2",
+      "checksum": "6aa9ed7745caa7cc91a9330477b8094d6d997a3ff6c19e6c1b59b36bc997f89a",
       "layer": {
         "module": "ui-blocks",
         "route": "hero/story",
@@ -1080,7 +1148,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "f6b5e05c2387b8b8baec398613aa67bc696596ea265a73f656a908c423f9f964",
+      "checksum": "b39979fc3aa6d421a6b296bd86a3297ad8667c3a66b97ecbd0bea5f187a16989",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/digest",
@@ -1131,7 +1199,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "3f1f717ee665bd91384083029d2142329592d4f3680ec7af7b39f0a049ef60bd",
+      "checksum": "67b909ccd5eed4928908f659b51fa241909c4056804609f0641cbe1eb31bc31d",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/magazine",
@@ -1148,7 +1216,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "0a164e9cd3bd297bf6d02503a6b55a2c774d680b1bcc443714b3ece107ac43f1",
+      "checksum": "cb762f944d5c4fad1d13600c2ba802bd98b6602b58fb26641f23eeaa43fbf589",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/minimal",
@@ -1165,7 +1233,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "fbf283f27de9cd4684b46fb5733d1713d1f1189dc5944938a6eec6322dff70f8",
+      "checksum": "1e1d565bbc9c8df1d4ea6561f204339aec06f2f7bf82b80dbaff6e08cd837d00",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/product",
@@ -1199,7 +1267,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "824682ea19ecf51163b2346b6b9f47cd91333c4559b86ec60eb13db6f7db4f60",
+      "checksum": "092c2e094c63e89b02cfe565ee8d6fb81afaf0aa27f76f04ebd550aac239c725",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/split",
@@ -1233,7 +1301,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "772cc2cf229c8b4272cbbd175cfeeaa6371d036730bf60dcdef01917f298b6c9",
+      "checksum": "426f6732a325f5ff19a315836af9c2f10eaf838a651f514fac4c37044e7598c2",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/stacked",
@@ -1250,7 +1318,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "41740e4457a4a6f5608dda306e537b143b9df1858f300098a7bb1a4da31ce0ef",
+      "checksum": "594bf47b63c88186de3e78e2f7afe091cb644f227f2c513c1b6845af768e7b2d",
       "layer": {
         "module": "ui-blocks",
         "route": "newsletter/stats",
@@ -1675,7 +1743,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "fdd877896037e152bbeb7131694630613a3fbd32295048f2b1764a08afe911a2",
+      "checksum": "1d9b143870eaa45408f4aba33a804c9049f07a6f152d625fc67ac77d8cb73cd3",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/agency-collaboration",
@@ -1692,7 +1760,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "90c2314d07e26e99ad8264a9ef784e110678b859fbee592578b0da8b86deb6da",
+      "checksum": "7aa29e8ace4908f76dee7869bbed136b654654decabd6ddbdf6cb8786570ccd9",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/commerce-growth",
@@ -1709,7 +1777,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "b3f7b77d573ca577fb9bb1edf4fec953ba23a0f3ce44d8b7f155729c570b7f98",
+      "checksum": "4ba7aa88638b9b64c5252ae6652a303f223ab0457dd23e3f579f63752125e787",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/creator-success",
@@ -1726,7 +1794,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "8e3f4ea63e50bb368bb4de4282780b57f205baf6640066c30a09fbaf36e7c432",
+      "checksum": "9f1a5efef8621bf70ea1c3442ade16b785d5ed0d57b30d41c966e751da567c20",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/customer-delight",
@@ -1743,7 +1811,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "bfa6022058911df0b51f33309a79c410923ad80e80463a6f2ca6c36ca78dc88f",
+      "checksum": "e8d069dcd0f2ae0be3f7b35e5acbcd7a9f76a9e8674efc80a7b38dee1ced18a8",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/education-transformation",
@@ -1760,7 +1828,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "5af178a3aa9aa60be10a9cf6b68a23b368c7c25eb33df2fe7525cfdf2bb0f08d",
+      "checksum": "9b3a35e74b32dc132fe72df5e3afd2e5e7ad179b76fc86947b906c54008ef2aa",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/enterprise-confidence",
@@ -1777,7 +1845,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "59dfdfd605bef889abd7c1bb2d7e82068c71a77d241cae5ef8dd5e18461e0f2c",
+      "checksum": "b2dff2f5bada1e2a806628758718094ef10e61a50fdb6675ae9fb348f2c1216c",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/healthcare-outcomes",
@@ -1794,7 +1862,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "f28a68219dc0011869da0f2c5b7487e011888d743eda25fcb96670fa23ee77da",
+      "checksum": "d5fc31f1ac7eae9eca7c7a155ab75c2a67fc628644fc117aeec468c8a12ca194",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/innovation-leaders",
@@ -1811,7 +1879,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "3cca3b8935d8bb528fc6f12a6a0610f338e260685453826456fe9d25150e34f9",
+      "checksum": "8d1c3df43ff654504b4ef3b2ad4f770e782580285df83501433b5403027c439f",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/platform-trust",
@@ -1828,7 +1896,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "0abe154a1cdb2778c5b7184b36ec51d482abd5da30e15a6c139e8631223b2b5a",
+      "checksum": "a48b9014767a353fbd0434e47f38b022a2b184639b184ab8cefef8526180e41f",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/product-adoption",
@@ -1845,7 +1913,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "85e1c577d9fc63cdf76f462a786aa0eb794f96aa940e7430443c8798a3597be1",
+      "checksum": "e7d18768f8c8da0eed9baae9a0987eb1024ac5f12afe62a01c14665c345554fa",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/service-impact",
@@ -1862,7 +1930,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "c96337c6cbd38a519d61a598ebd49964edf52284767890a9f729069abdfc3342",
+      "checksum": "fccc63ed5c69647f7b17a96ea8fe61ede2a772ef92224888cd5f6ecff158c7c0",
       "layer": {
         "module": "ui-blocks",
         "route": "testimonials/sustainability-progress",
@@ -1873,74 +1941,6 @@
       },
       "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-sustainability-progress.xml",
       "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-sustainability-progress/1.0.0/1.0.0.json"
-    },
-    "global::admin-community::members/dashboard::-::-::en-US": {
-      "key": "global::admin-community::members/dashboard::-::-::en-US",
-      "kind": "blueprint",
-      "schemaVersion": "1.0.0",
-      "contentVersion": "1.0.0",
-      "checksum": "a8bebdfcf4208ba22cb0ced20a4dff60861661f72d54e60272cef70b8383edd2",
-      "layer": {
-        "module": "admin-community",
-        "route": "members/dashboard",
-        "tenant": null,
-        "role": null,
-        "variant": null,
-        "locale": "en-US"
-      },
-      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-dashboard.xml",
-      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-dashboard/1.0.0/1.0.0.json"
-    },
-    "global::admin-community::members/list::-::-::en-US": {
-      "key": "global::admin-community::members/list::-::-::en-US",
-      "kind": "blueprint",
-      "schemaVersion": "1.0.0",
-      "contentVersion": "1.0.0",
-      "checksum": "ee71250082455040dc80e96da3f69f07320f2174c3182034caf26bb96c08aca0",
-      "layer": {
-        "module": "admin-community",
-        "route": "members/list",
-        "tenant": null,
-        "role": null,
-        "variant": null,
-        "locale": "en-US"
-      },
-      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml",
-      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-list/1.0.0/1.0.0.json"
-    },
-    "global::admin-community::members/manage::-::-::en-US": {
-      "key": "global::admin-community::members/manage::-::-::en-US",
-      "kind": "blueprint",
-      "schemaVersion": "1.0.0",
-      "contentVersion": "1.0.0",
-      "checksum": "a40b197c533c9720fe95fb182f6f0a3c21579f9a013da82fc3ba05889026b528",
-      "layer": {
-        "module": "admin-community",
-        "route": "members/manage",
-        "tenant": null,
-        "role": null,
-        "variant": null,
-        "locale": "en-US"
-      },
-      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml",
-      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.0.0.json"
-    },
-    "global::admin-community::members/profile::-::-::en-US": {
-      "key": "global::admin-community::members/profile::-::-::en-US",
-      "kind": "blueprint",
-      "schemaVersion": "1.0.0",
-      "contentVersion": "1.0.0",
-      "checksum": "a26be5074f84d3f38ec904641bb1464edc79ce1b3098f548e61fe3e111bdff69",
-      "layer": {
-        "module": "admin-community",
-        "route": "members/profile",
-        "tenant": null,
-        "role": null,
-        "variant": null,
-        "locale": "en-US"
-      },
-      "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml",
-      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-profile/1.0.0/1.0.0.json"
     }
   }
 }
