@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 const getEnv = () => {
@@ -16,21 +16,27 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
   const { url, anonKey } = getEnv();
 
+  const canSetCookies = typeof (cookieStore as any).set === "function";
+
   return createServerClient(url, anonKey, {
     cookies: {
-      get: async (name: string) => cookieStore.get(name)?.value,
-      set: async (name: string, value: string, options: CookieOptions) => {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch {
-          // noop when invoked outside a mutable cookies context
+      getAll: async () =>
+        cookieStore.getAll().map(({ name, value }) => ({ name, value })),
+      setAll: async (cookiesToSet) => {
+        if (!canSetCookies) {
+          return;
         }
-      },
-      remove: async (name: string, options: CookieOptions) => {
-        try {
-          cookieStore.delete({ name, ...options });
-        } catch {
-          // noop when invoked outside a mutable cookies context
+
+        for (const { name, value, options } of cookiesToSet) {
+          try {
+            await (cookieStore as any).set({
+              name,
+              value: value ?? "",
+              ...(options ?? {}),
+            });
+          } catch {
+            // noop when invoked outside a mutable cookies context
+          }
         }
       },
     },
