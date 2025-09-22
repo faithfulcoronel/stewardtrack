@@ -1,0 +1,17 @@
+{
+  "key": "global::admin-community::members/manage::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "a40b197c533c9720fe95fb182f6f0a3c21579f9a013da82fc3ba05889026b528",
+  "layer": {
+    "module": "admin-community",
+    "route": "members/manage",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml",
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.0.0.json"
+}
