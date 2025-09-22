@@ -10,6 +10,10 @@ import { BentoGrid, type BentoGridProps } from '@/components/dynamic/BentoGrid';
 import { PricingSection, type PricingSectionProps } from '@/components/dynamic/PricingSection';
 import { NewsletterSection, type NewsletterSectionProps } from '@/components/dynamic/NewsletterSection';
 import { StatsSection, type StatsSectionProps } from '@/components/dynamic/StatsSection';
+import {
+  TestimonialsSection,
+  type TestimonialsSectionProps,
+} from '@/components/dynamic/TestimonialsSection';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -30,6 +34,9 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
     <NewsletterSection {...(props as NewsletterSectionProps)}>{children}</NewsletterSection>
   ),
   StatsSection: (props, children) => <StatsSection {...(props as StatsSectionProps)}>{children}</StatsSection>,
+  TestimonialsSection: (props, children) => (
+    <TestimonialsSection {...(props as TestimonialsSectionProps)}>{children}</TestimonialsSection>
+  ),
 };
 
 export interface InterpreterContext {

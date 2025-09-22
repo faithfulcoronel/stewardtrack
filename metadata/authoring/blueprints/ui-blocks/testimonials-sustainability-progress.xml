@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="testimonials/sustainability-progress"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-testimonials-sustainability-progress">
+    <Title>UI Block: Testimonials - Sustainability progress</Title>
+    <Regions>
+      <Region id="testimonials">
+        <Component id="testimonials-sustainability-progress" type="TestimonialsSection">
+          <Props>
+            <Prop name="variant" kind="static">magazine-layout</Prop>
+            <Prop name="eyebrow" kind="static">Sustainability progress</Prop>
+            <Prop name="headline" kind="static">Operators share the measurable impact of sustainability programs</Prop>
+            <Prop name="description" kind="static">Magazine-inspired storytelling that pairs a feature story with supporting quotes and metrics—ideal for ESG and impact reports.</Prop>
+            <Prop name="testimonials" kind="binding" source="sustainabilityTestimonials" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="download-report" />
+            <Prop name="secondaryCta" kind="action" actionId="view-framework" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="sustainabilityTestimonials" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "quote": "Our sustainability council tracks every initiative, evidence, and board update in Flowspace.",
+                "author": "Camila Duarte",
+                "role": "Chief Sustainability Officer",
+                "company": "TerraNova",
+                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
+                "imageAlt": "Wind turbines at sunset",
+                "metricLabel": "Emissions reduced",
+                "metricValue": "-32% YoY"
+              },
+              {
+                "quote": "We accelerated supplier onboarding by sharing interactive scorecards instead of static docs.",
+                "author": "Jonas Matthews",
+                "role": "Director of Supply Chain",
+                "company": "EverGreen Logistics",
+                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80"
+              },
+              {
+                "quote": "The ESG team and finance finally work from the same numbers thanks to Flowspace data connectors.",
+                "author": "Hannah Kwan",
+                "role": "VP Corporate Finance",
+                "company": "Luminor",
+                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80"
+              },
+              {
+                "quote": "Regional site leaders contribute stories and evidence without chasing spreadsheets.",
+                "author": "Aiden Ross",
+                "role": "Head of Operations",
+                "company": "Northstar Manufacturing",
+                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="download-report" kind="link">
+        <Config>
+          <Label>Download ESG report</Label>
+          <Url>/impact/report</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-framework" kind="link">
+        <Config>
+          <Label>View governance framework</Label>
+          <Url>/impact/framework</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

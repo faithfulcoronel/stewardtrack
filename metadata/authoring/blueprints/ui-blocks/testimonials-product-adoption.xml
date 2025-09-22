@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="testimonials/product-adoption"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-testimonials-product-adoption">
+    <Title>UI Block: Testimonials - Product adoption</Title>
+    <Regions>
+      <Region id="testimonials">
+        <Component id="testimonials-product-adoption" type="TestimonialsSection">
+          <Props>
+            <Prop name="variant" kind="static">split-story</Prop>
+            <Prop name="eyebrow" kind="static">Adoption playbook</Prop>
+            <Prop name="headline" kind="static">Adoption accelerators customers feel in weeks</Prop>
+            <Prop name="description" kind="static">Blend a hero story with supporting proof points. Ideal for feature launches that demand narrative plus data.</Prop>
+            <Prop name="testimonials" kind="binding" source="adoptionTestimonials" path="items" />
+            <Prop name="highlights" kind="binding" source="adoptionHighlights" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="watch-demo" />
+            <Prop name="secondaryCta" kind="action" actionId="download-guide" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="adoptionTestimonials" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "quote": "Feature launches now roll out with playbooks, video chapters, and experiments already wired to metrics.",
+                "author": "Isabella Chen",
+                "role": "Head of Product Enablement",
+                "company": "Verse Analytics",
+                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+                "imageAlt": "Product enablement leader recording a session",
+                "rating": 4.9
+              },
+              {
+                "quote": "Account teams reference Flowspace journeys to personalize every executive briefing.",
+                "author": "Felix Romero",
+                "role": "Enterprise Strategist",
+                "company": "Signal North",
+                "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1519241047957-be31d7379a5d?auto=format&fit=crop&w=900&q=80",
+                "imageAlt": "Executive briefing with digital whiteboard",
+                "rating": 4.8
+              },
+              {
+                "quote": "Customer marketing pulls quotes straight from Flowspace, so every nurture stream feels timely and specific.",
+                "author": "Marley Watkins",
+                "role": "Lifecycle Marketing Lead",
+                "company": "Brightline",
+                "avatarUrl": "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=facearea&w=240&h=240&q=80",
+                "imageUrl": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=900&q=80",
+                "imageAlt": "Marketing strategist planning lifecycle campaigns",
+                "rating": 4.7
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+      <DataSource id="adoptionHighlights" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              "Dynamic video chapters based on role",
+              "Usage telemetry piping directly into productboard",
+              "Confidence score surfaced before rollout reviews"
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="watch-demo" kind="link">
+        <Config>
+          <Label>Watch guided demo</Label>
+          <Url>/demo/adoption</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="download-guide" kind="link">
+        <Config>
+          <Label>Download launch guide</Label>
+          <Url>/resources/launch-guide</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

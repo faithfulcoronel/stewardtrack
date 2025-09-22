@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="ui-blocks"
+  route="testimonials/enterprise-confidence"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  locale="en-US"
+>
+  <Page id="ui-blocks-testimonials-enterprise-confidence">
+    <Title>UI Block: Testimonials - Enterprise confidence</Title>
+    <Regions>
+      <Region id="testimonials">
+        <Component id="testimonials-enterprise-confidence" type="TestimonialsSection">
+          <Props>
+            <Prop name="variant" kind="static">offset-accent</Prop>
+            <Prop name="eyebrow" kind="static">Enterprise confidence</Prop>
+            <Prop name="headline" kind="static">Enterprise leaders trust Flowspace with complex change</Prop>
+            <Prop name="description" kind="static">Staggered cards create rhythm and motion. Use this layout for enterprise proof, board decks, or analyst spotlights.</Prop>
+            <Prop name="testimonials" kind="binding" source="enterpriseTestimonials" path="items" />
+            <Prop name="primaryCta" kind="action" actionId="view-reference" />
+            <Prop name="secondaryCta" kind="action" actionId="schedule-briefing" />
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="enterpriseTestimonials" kind="static">
+        <Json><![CDATA[
+          {
+            "items": [
+              {
+                "quote": "We delivered a multi-brand replatforming without replacing our runbooks. Flowspace orchestrated each milestone.",
+                "author": "Allison Mercer",
+                "role": "SVP Digital Transformation",
+                "company": "Cobalt Group",
+                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Global rollout, 6 regions"
+              },
+              {
+                "quote": "Board updates now include live customer sentiment from Flowspace, which changed how we prioritize investment.",
+                "author": "Rafael D'Amico",
+                "role": "Chief Strategy Officer",
+                "company": "Vertex Financial",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Board-ready telemetry"
+              },
+              {
+                "quote": "Partner enablement used to take quarters. Sharing Flowspace experiences gives them a turnkey revenue playbook.",
+                "author": "Mei Tan",
+                "role": "VP Global Channels",
+                "company": "Orbit Systems",
+                "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Launch-ready partners"
+              },
+              {
+                "quote": "Flowspace is our connective tissue across GTM, product, and ops. Everyone acts on the same evidence.",
+                "author": "Henry Crawford",
+                "role": "Chief Operating Officer",
+                "company": "Ardent Cloud",
+                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Shared command center"
+              },
+              {
+                "quote": "Audit prep is now ongoing, not last-minute. Flowspace ties policy evidence to every workflow.",
+                "author": "Sofia Idris",
+                "role": "Chief Risk Officer",
+                "company": "Meridian",
+                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
+                "highlight": "Continuous compliance"
+              }
+            ]
+          }
+        ]]></Json>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-reference" kind="link">
+        <Config>
+          <Label>Request reference call</Label>
+          <Url>/enterprise/reference</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="schedule-briefing" kind="link">
+        <Config>
+          <Label>Schedule executive briefing</Label>
+          <Url>/briefing</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

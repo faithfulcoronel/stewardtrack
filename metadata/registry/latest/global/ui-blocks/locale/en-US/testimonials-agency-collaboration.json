@@ -1,0 +1,17 @@
+{
+  "key": "global::ui-blocks::testimonials/agency-collaboration::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "fdd877896037e152bbeb7131694630613a3fbd32295048f2b1764a08afe911a2",
+  "layer": {
+    "module": "ui-blocks",
+    "route": "testimonials/agency-collaboration",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-agency-collaboration.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-agency-collaboration/1.0.0/1.0.0.json"
+}
