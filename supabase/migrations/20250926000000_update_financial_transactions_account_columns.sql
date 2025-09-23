@@ -1,27 +1,13 @@
--- Update financial_transactions account references and remove legacy member link
 -- NOTE: This migration is irreversible because dropping member_id removes existing data.
 
--- Ensure transaction headers keep track of the member reference moving forward
-ALTER TABLE financial_transaction_headers
-  ADD COLUMN IF NOT EXISTS member_id uuid REFERENCES members(id);
-
-CREATE INDEX IF NOT EXISTS financial_transaction_headers_member_id_idx
-  ON financial_transaction_headers(member_id);
-
-COMMENT ON COLUMN financial_transaction_headers.member_id IS 'Member associated with this transaction header';
-
--- Backfill header member references from existing transaction rows
-WITH header_members AS (
-  SELECT header_id, MAX(member_id) AS member_id
-  FROM financial_transactions
-  WHERE member_id IS NOT NULL
-  GROUP BY header_id
-)
-UPDATE financial_transaction_headers h
-SET member_id = hm.member_id
-FROM header_members hm
-WHERE h.id = hm.header_id
-  AND (h.member_id IS DISTINCT FROM hm.member_id);
+-- Ensure account links exist on financial transactions before removing member references
+UPDATE financial_transactions ft
+SET accounts_account_id = a.id
+FROM accounts a
+WHERE ft.accounts_account_id IS NULL
+  AND ft.member_id = a.member_id
+  AND ft.tenant_id = a.tenant_id
+  AND a.deleted_at IS NULL;
 
 -- Drop dependent functions so they can be recreated without financial_transactions.member_id
 DROP FUNCTION IF EXISTS refresh_member_giving_profile(uuid, uuid, date, uuid);
@@ -165,11 +151,14 @@ BEGIN
   INTO v_ytd_amount
   FROM financial_transactions ft
   JOIN financial_transaction_headers h ON h.id = ft.header_id
-  WHERE h.member_id = p_member_id
+  JOIN accounts a ON a.id = ft.account_id
+  WHERE a.member_id = p_member_id
     AND ft.tenant_id = p_tenant_id
     AND h.tenant_id = p_tenant_id
+    AND a.tenant_id = p_tenant_id
     AND ft.deleted_at IS NULL
     AND h.deleted_at IS NULL
+    AND a.deleted_at IS NULL
     AND h.status <> 'voided'
     AND ft.credit > 0
     AND date_part('year', ft.date) = v_year;
@@ -185,13 +174,16 @@ BEGIN
        v_last_source
   FROM financial_transactions ft
   JOIN financial_transaction_headers h ON h.id = ft.header_id
+  JOIN accounts a ON a.id = ft.account_id
   LEFT JOIN funds f ON f.id = ft.fund_id
   LEFT JOIN financial_sources s ON s.id = ft.source_id
-  WHERE h.member_id = p_member_id
+  WHERE a.member_id = p_member_id
     AND ft.tenant_id = p_tenant_id
     AND h.tenant_id = p_tenant_id
+    AND a.tenant_id = p_tenant_id
     AND ft.deleted_at IS NULL
     AND h.deleted_at IS NULL
+    AND a.deleted_at IS NULL
     AND h.status <> 'voided'
     AND ft.credit > 0
   ORDER BY ft.date DESC, ft.created_at DESC
@@ -256,7 +248,7 @@ COMMENT ON FUNCTION refresh_member_giving_profile(uuid, uuid, date, uuid) IS 'Re
 
 GRANT EXECUTE ON FUNCTION refresh_member_giving_profile(uuid, uuid, date, uuid) TO authenticated;
 
--- Recreate process_member_giving_transaction to use header member references and new column names
+-- Recreate process_member_giving_transaction to use account-based member references and new column names
 CREATE OR REPLACE FUNCTION process_member_giving_transaction(
   p_operation text,
   p_transaction jsonb,
@@ -288,6 +280,8 @@ DECLARE
   v_member_label text;
   v_existing_header financial_transaction_headers%ROWTYPE;
   v_existing_member_id uuid;
+  v_existing_member_account_id uuid;
+  v_member_account_id uuid;
   v_credit_row financial_transactions%ROWTYPE;
   v_debit_row financial_transactions%ROWTYPE;
   v_profile_row member_giving_profiles%ROWTYPE;
@@ -335,7 +329,18 @@ BEGIN
     END IF;
 
     v_tenant_id := v_existing_header.tenant_id;
-    v_existing_member_id := v_existing_header.member_id;
+
+    SELECT a.member_id, ft.account_id
+    INTO v_existing_member_id, v_existing_member_account_id
+    FROM financial_transactions ft
+    JOIN accounts a ON a.id = ft.account_id
+    WHERE ft.header_id = v_header_id
+      AND ft.credit > 0
+      AND ft.deleted_at IS NULL
+      AND a.deleted_at IS NULL
+    ORDER BY ft.date DESC, ft.created_at DESC
+    LIMIT 1;
+
     v_member_id := COALESCE((p_transaction->>'member_id')::uuid, v_existing_member_id);
 
     IF v_member_id IS NULL THEN
@@ -402,6 +407,10 @@ BEGIN
     ORDER BY created_at
     LIMIT 1;
 
+    IF v_existing_member_account_id IS NULL THEN
+      v_existing_member_account_id := v_credit_row.account_id;
+    END IF;
+
     IF v_credit_row.id IS NULL OR v_debit_row.id IS NULL THEN
       RAISE EXCEPTION 'Ledger entries for header % are incomplete', v_header_id;
     END IF;
@@ -437,6 +446,28 @@ BEGIN
     END IF;
   END IF;
 
+  IF v_operation <> 'delete' THEN
+    SELECT id
+    INTO v_member_account_id
+    FROM accounts
+    WHERE member_id = v_member_id
+      AND tenant_id = v_tenant_id
+      AND deleted_at IS NULL
+    ORDER BY created_at
+    LIMIT 1;
+
+    IF v_member_account_id IS NULL THEN
+      IF v_existing_member_account_id IS NOT NULL
+         AND v_member_id IS NOT DISTINCT FROM v_existing_member_id THEN
+        v_member_account_id := v_existing_member_account_id;
+      END IF;
+    END IF;
+
+    IF v_member_account_id IS NULL THEN
+      RAISE EXCEPTION 'Account not found for member % in tenant %', v_member_id, v_tenant_id;
+    END IF;
+  END IF;
+
   IF v_operation = 'create' THEN
     v_transaction_number := generate_transaction_number(v_tenant_id, v_transaction_date, 'income', v_member_id);
 
@@ -453,8 +484,7 @@ BEGIN
       created_at,
       updated_at,
       posted_at,
-      posted_by,
-      member_id
+      posted_by
     ) VALUES (
       v_transaction_number,
       v_transaction_date,
@@ -468,8 +498,7 @@ BEGIN
       v_now,
       v_now,
       v_now,
-      v_user_id,
-      v_member_id
+      v_user_id
     )
     RETURNING * INTO v_existing_header;
 
@@ -487,6 +516,7 @@ BEGIN
       created_by,
       updated_by,
       header_id,
+      account_id,
       coa_id,
       debit,
       credit,
@@ -503,6 +533,7 @@ BEGIN
       v_user_id,
       v_user_id,
       v_header_id,
+      v_member_account_id,
       v_cash_account_id,
       v_amount,
       0,
@@ -522,6 +553,7 @@ BEGIN
       created_by,
       updated_by,
       header_id,
+      account_id,
       coa_id,
       debit,
       credit,
@@ -538,6 +570,7 @@ BEGIN
       v_user_id,
       v_user_id,
       v_header_id,
+      v_member_account_id,
       v_income_account_id,
       0,
       v_amount,
@@ -550,7 +583,6 @@ BEGIN
         description = v_description,
         reference = v_reference,
         source_id = v_source_id,
-        member_id = v_member_id,
         updated_at = v_now,
         updated_by = v_user_id
     WHERE id = v_header_id;
@@ -568,6 +600,7 @@ BEGIN
         date = v_transaction_date,
         category_id = v_category_id,
         fund_id = v_fund_id,
+        account_id = v_member_account_id,
         coa_id = v_income_account_id,
         debit = 0,
         credit = v_amount,
@@ -581,6 +614,7 @@ BEGIN
         date = v_transaction_date,
         category_id = v_category_id,
         fund_id = v_fund_id,
+        account_id = v_member_account_id,
         coa_id = v_cash_account_id,
         debit = v_amount,
         credit = 0,
