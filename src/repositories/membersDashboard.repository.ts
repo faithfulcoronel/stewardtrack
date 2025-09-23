@@ -10,7 +10,8 @@ export interface RecentMember {
   last_name: string;
   email: string | null;
   profile_picture_url: string | null;
-  membership_status?: { name: string; code: string } | null;
+  membership_stage?: { name: string; code: string } | null;
+  membership_center?: { name: string; code: string } | null;
   created_at?: string | null;
 }
 

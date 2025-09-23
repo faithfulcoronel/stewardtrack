@@ -109,7 +109,7 @@
               },
               "emptyState": {
                 "kind": "static",
-                "value": "{\"title\": \"No members match your filters\", \"description\": \"Try expanding your filters to include additional campuses or membership stages.\"}"
+                "value": "{\"title\": \"No members match your filters\", \"description\": \"Try expanding your filters to include additional centers or membership stages.\"}"
               }
             }
           }
@@ -124,7 +124,7 @@
           "value": {
             "eyebrow": "Membership operations",
             "headline": "A unified directory for discipleship, finances, and care",
-            "description": "Filter members by campus, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
+            "description": "Filter members by center, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
             "metrics": [
               {
                 "label": "Households",
@@ -169,7 +169,7 @@
                 "changeLabel": "capacity filled",
                 "trend": "up",
                 "tone": "informative",
-                "description": "Next covenant class launches November 3rd across two campuses."
+                "description": "Next covenant class launches November 3rd across two centers."
               },
               {
                 "id": "segment-care",
@@ -203,12 +203,12 @@
                 ]
               },
               {
-                "id": "status",
+                "id": "stage",
                 "type": "select",
                 "label": "Membership stage",
                 "placeholder": "All stages",
                 "defaultValue": "all",
-                "field": "statusKey",
+                "field": "stageKey",
                 "options": [
                   {
                     "label": "All stages",
@@ -233,15 +233,15 @@
                 ]
               },
               {
-                "id": "campus",
+                "id": "center",
                 "type": "select",
-                "label": "Campus",
-                "placeholder": "All campuses",
+                "label": "Center",
+                "placeholder": "All centers",
                 "defaultValue": "all",
-                "field": "campusKey",
+                "field": "centerKey",
                 "options": [
                   {
-                    "label": "All campuses",
+                    "label": "All centers",
                     "value": "all"
                   },
                   {
@@ -284,8 +284,8 @@
                 "flex": 1.2
               },
               {
-                "field": "campus",
-                "headerName": "Campus",
+                "field": "center",
+                "headerName": "Center",
                 "flex": 0.9
               },
               {
@@ -294,10 +294,10 @@
                 "flex": 1
               },
               {
-                "field": "status",
-                "headerName": "Status",
+                "field": "stage",
+                "headerName": "Stage",
                 "type": "badge",
-                "badgeVariantField": "statusVariant",
+                "badgeVariantField": "stageVariant",
                 "flex": 0.7
               },
               {
