@@ -40,7 +40,7 @@
               },
               "metrics": {
                 "kind": "expression",
-                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return [\n                    { label: 'Mode', value: 'Create new record', caption: 'Member ID assigned after approval' },\n                    { label: 'Campus', value: 'Assign campus', caption: 'Choose from the form below' },\n                    { label: 'Recurring giving', value: '$0', caption: 'Not enrolled' }\n                  ];\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);\n                return [\n                  { label: 'Mode', value: 'Edit existing record', caption: `Member ID ${record.id}` },\n                  { label: 'Campus', value: record.campus ?? 'Downtown Campus', caption: 'Can be changed below' },\n                  { label: 'Recurring giving', value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? 'Not enrolled' }\n                ];\n              })()\n            "
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return [\n                    { label: 'Mode', value: 'Create new record', caption: 'Member ID assigned after approval' },\n                    { label: 'Center', value: 'Assign center', caption: 'Choose from the form below' },\n                    { label: 'Recurring giving', value: '$0', caption: 'Not enrolled' }\n                  ];\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);\n                return [\n                  { label: 'Mode', value: 'Edit existing record', caption: `Member ID ${record.id}` },\n                  { label: 'Center', value: record.center ?? 'Downtown Center', caption: 'Can be changed below' },\n                  { label: 'Recurring giving', value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? 'Not enrolled' }\n                ];\n              })()\n            "
               },
               "secondaryCta": {
                 "kind": "expression",
@@ -63,7 +63,7 @@
               },
               "initialValues": {
                 "kind": "expression",
-                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    status: 'new',\n                    membershipType: 'Covenant member',\n                    campus: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  status: profile.statusKey ?? record.statusKey ?? 'new',\n                  membershipType: profile.membershipType ?? 'Covenant member',\n                  campus: profile.campusKey ?? record.campusKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    status: 'new',\n                    membershipType: 'Covenant member',\n                    center: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  status: profile.stageKey ?? record.stageKey ?? 'new',\n                  membershipType: profile.membershipType ?? 'Covenant member',\n                  center: profile.centerKey ?? record.centerKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
               },
               "mode": {
                 "kind": "expression",
@@ -96,9 +96,9 @@
               {
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
-                "statusKey": "active",
-                "campus": "Downtown Campus",
-                "campusKey": "downtown",
+                "stageKey": "active",
+                "center": "Downtown Center",
+                "centerKey": "downtown",
                 "tags": [
                   "Hospitality Team",
                   "Leadership Cohort"
@@ -125,8 +125,8 @@
                   "nextStep": "Mentor two new ushers before Advent."
                 },
                 "carePlan": {
-                  "status": "Active",
-                  "statusKey": "active",
+                  "stage": "Active",
+                  "stageKey": "active",
                   "assignedTo": "Pastor Lauren Patel"
                 },
                 "profile": {
@@ -153,9 +153,9 @@
               {
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
-                "statusKey": "new",
-                "campus": "Northside Campus",
-                "campusKey": "northside",
+                "stageKey": "new",
+                "center": "Northside Center",
+                "centerKey": "northside",
                 "tags": [
                   "Foundations Track"
                 ],
@@ -177,8 +177,8 @@
                   "nextStep": "Complete covenant interview."
                 },
                 "carePlan": {
-                  "status": "Observation",
-                  "statusKey": "observation",
+                  "stage": "Observation",
+                  "stageKey": "observation",
                   "assignedTo": "Connections Team"
                 },
                 "profile": {
@@ -204,9 +204,9 @@
               {
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
-                "statusKey": "active",
-                "campus": "Southridge Campus",
-                "campusKey": "southridge",
+                "stageKey": "active",
+                "center": "Southridge Center",
+                "centerKey": "southridge",
                 "tags": [
                   "Marriage Mentors"
                 ],
@@ -232,8 +232,8 @@
                   "nextStep": "Launch two new marriage groups in Q1."
                 },
                 "carePlan": {
-                  "status": "Resolved",
-                  "statusKey": "resolved",
+                  "stage": "Resolved",
+                  "stageKey": "resolved",
                   "assignedTo": ""
                 },
                 "profile": {
@@ -296,7 +296,7 @@
                 "placeholder": "(000) 000-0000"
               },
               {
-                "name": "status",
+                "name": "stage",
                 "label": "Membership stage",
                 "type": "select",
                 "colSpan": "half",
@@ -340,8 +340,8 @@
                 ]
               },
               {
-                "name": "campus",
-                "label": "Campus",
+                "name": "center",
+                "label": "Center",
                 "type": "select",
                 "colSpan": "half",
                 "options": [

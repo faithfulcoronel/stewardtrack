@@ -37,7 +37,7 @@
             <Prop name="columns" kind="binding" source="membersTable" path="columns" />
             <Prop name="filters" kind="binding" source="membersTable" path="filters" />
             <Prop name="actions" kind="binding" source="membersTable" path="actions" />
-            <Prop name="emptyState" kind="static">{"title": "No members match your filters", "description": "Try expanding your filters to include additional campuses or membership stages."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No members match your filters", "description": "Try expanding your filters to include additional centers or membership stages."}</Prop>
           </Props>
         </Component>
       </Region>
@@ -48,7 +48,7 @@
           {
             "eyebrow": "Membership operations",
             "headline": "A unified directory for discipleship, finances, and care",
-            "description": "Filter members by campus, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
+            "description": "Filter members by center, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
             "metrics": [
               { "label": "Households", "value": "1,284", "caption": "Directory synced nightly from Planning Center." },
               { "label": "New this month", "value": "58", "caption": "Guests currently in assimilation pipeline." },
@@ -73,7 +73,7 @@
                 "label": "Membership class seats",
                 "value": "120",
                 "change": "82%", "changeLabel": "capacity filled", "trend": "up", "tone": "informative",
-                "description": "Next covenant class launches November 3rd across two campuses."
+                "description": "Next covenant class launches November 3rd across two centers."
               },
               {
                 "id": "segment-care",
@@ -97,12 +97,12 @@
                 "fields": ["name", "household", "email", "phone"]
               },
               {
-                "id": "status",
+                "id": "stage",
                 "type": "select",
                 "label": "Membership stage",
                 "placeholder": "All stages",
                 "defaultValue": "all",
-                "field": "statusKey",
+                "field": "stageKey",
                 "options": [
                   { "label": "All stages", "value": "all" },
                   { "label": "Active", "value": "active" },
@@ -112,14 +112,14 @@
                 ]
               },
               {
-                "id": "campus",
+                "id": "center",
                 "type": "select",
-                "label": "Campus",
-                "placeholder": "All campuses",
+                "label": "Center",
+                "placeholder": "All centers",
                 "defaultValue": "all",
-                "field": "campusKey",
+                "field": "centerKey",
                 "options": [
-                  { "label": "All campuses", "value": "all" },
+                  { "label": "All centers", "value": "all" },
                   { "label": "Downtown", "value": "downtown" },
                   { "label": "Northside", "value": "northside" },
                   { "label": "Southridge", "value": "southridge" },
@@ -144,8 +144,8 @@
                 "flex": 1.2
               },
               {
-                "field": "campus",
-                "headerName": "Campus",
+                "field": "center",
+                "headerName": "Center",
                 "flex": 0.9
               },
               {
@@ -154,10 +154,10 @@
                 "flex": 1
               },
               {
-                "field": "status",
-                "headerName": "Status",
+                "field": "stage",
+                "headerName": "Stage",
                 "type": "badge",
-                "badgeVariantField": "statusVariant",
+                "badgeVariantField": "stageVariant",
                 "flex": 0.7
               },
               {
