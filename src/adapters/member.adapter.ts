@@ -26,7 +26,7 @@ export class MemberAdapter
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
   }
   protected tableName = 'members';
-
+  
   protected defaultSelect = `
     id,
     first_name,
@@ -54,31 +54,10 @@ export class MemberAdapter
     last_attendance_date,
     pastoral_notes,
     prayer_requests,
-    preferred_contact_method,
-    care_status_code,
-    care_pastor,
-    care_follow_up_at,
-    serving_team,
-    serving_role,
-    serving_schedule,
-    serving_coach,
-    discipleship_next_step,
-    discipleship_mentor,
-    discipleship_group,
-    giving_recurring_amount,
-    giving_recurring_frequency,
-    giving_recurring_method,
-    giving_pledge_amount,
-    giving_pledge_campaign,
-    giving_last_gift_amount,
-    giving_last_gift_at,
-    giving_last_gift_fund,
-    tags,
     created_at,
     updated_at,
     membership_type_id,
-    membership_status_id,
-    membership_center_id
+    membership_status_id
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [
@@ -88,14 +67,9 @@ export class MemberAdapter
       select: ['id', 'name', 'code']
     },
     {
-      table: 'membership_stage',
+      table: 'membership_status',
       foreignKey: 'membership_status_id',
       select: ['id', 'name', 'code']
-    },
-    {
-      table: 'membership_center',
-      foreignKey: 'membership_center_id',
-      select: ['id', 'name', 'code', 'is_primary']
     }
   ];
 

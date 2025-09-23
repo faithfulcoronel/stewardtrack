@@ -2,22 +2,22 @@ import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
-import { MembershipStage } from '@/models/membershipStage.model';
+import { MembershipStatus } from '@/models/membershipStatus.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
 
-export type IMembershipStageAdapter = IBaseAdapter<MembershipStage>;
+export type IMembershipStatusAdapter = IBaseAdapter<MembershipStatus>;
 
 @injectable()
-export class MembershipStageAdapter
-  extends BaseAdapter<MembershipStage>
-  implements IMembershipStageAdapter
+export class MembershipStatusAdapter
+  extends BaseAdapter<MembershipStatus>
+  implements IMembershipStatusAdapter
 {
   constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
     super();
   }
 
-  protected tableName = 'membership_stage';
+  protected tableName = 'membership_status';
 
   protected defaultSelect = `
     id,
@@ -36,20 +36,20 @@ export class MembershipStageAdapter
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
   protected override async onBeforeCreate(
-    data: Partial<MembershipStage>
-  ): Promise<Partial<MembershipStage>> {
+    data: Partial<MembershipStatus>
+  ): Promise<Partial<MembershipStatus>> {
     if (data.is_active === undefined) {
       data.is_active = true;
     }
     return data;
   }
 
-  protected override async onAfterCreate(data: MembershipStage): Promise<void> {
-    await this.auditService.logAuditEvent('create', 'membership_stage', data.id, data);
+  protected override async onAfterCreate(data: MembershipStatus): Promise<void> {
+    await this.auditService.logAuditEvent('create', 'membership_status', data.id, data);
   }
 
-  protected override async onAfterUpdate(data: MembershipStage): Promise<void> {
-    await this.auditService.logAuditEvent('update', 'membership_stage', data.id, data);
+  protected override async onAfterUpdate(data: MembershipStatus): Promise<void> {
+    await this.auditService.logAuditEvent('update', 'membership_status', data.id, data);
   }
 
   protected override async onBeforeDelete(id: string): Promise<void> {
@@ -61,11 +61,11 @@ export class MembershipStageAdapter
       .limit(1);
     if (error) throw error;
     if (members?.length) {
-      throw new Error('Cannot delete membership stage with existing members');
+      throw new Error('Cannot delete membership status with existing members');
     }
   }
 
   protected override async onAfterDelete(id: string): Promise<void> {
-    await this.auditService.logAuditEvent('delete', 'membership_stage', id, { id });
+    await this.auditService.logAuditEvent('delete', 'membership_status', id, { id });
   }
 }

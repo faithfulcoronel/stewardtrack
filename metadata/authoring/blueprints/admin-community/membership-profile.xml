@@ -19,7 +19,7 @@
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                return `${record.stage ?? "Active"} · ${record.center ?? "Center"}`;
+                return `${record.status ?? "Active"} · ${record.campus ?? "Campus"}`;
               })()
             ]]></Prop>
             <Prop name="headline" kind="expression"><![CDATA[
@@ -35,10 +35,10 @@
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const center = record.center ?? "primary center";
+                const campus = record.campus ?? "primary campus";
                 const serving = record.serving?.team ? `${record.serving.team} team` : "serving opportunities";
                 const coach = record.serving?.coach ? `Coached by ${record.serving.coach}.` : "";
-                return `${record.preferredName ?? record.fullName ?? "This member"} worships at the ${center} and is engaged with the ${serving}. ${coach}`.trim();
+                return `${record.preferredName ?? record.fullName ?? "This member"} worships at the ${campus} and is engaged with the ${serving}. ${coach}`.trim();
               })()
             ]]></Prop>
             <Prop name="metrics" kind="expression"><![CDATA[
@@ -163,7 +163,7 @@
                     title: 'Care plan',
                     badge: 'Shepherding',
                     items: [
-                      { label: 'Stage', type: 'badge', value: record.carePlan?.status ?? 'Resolved', variant: record.carePlan?.statusVariant ?? 'neutral' },
+                      { label: 'Status', type: 'badge', value: record.carePlan?.status ?? 'Resolved', variant: record.carePlan?.statusVariant ?? 'neutral' },
                       { label: 'Assigned pastor', value: record.carePlan?.assignedTo ?? '—' },
                       { label: 'Plan details', type: 'multiline', value: record.carePlan?.details ?? 'No active care tasks.' }
                     ]
@@ -198,9 +198,9 @@
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
                 "preferredName": "Avery",
-                "stage": "Active member",
+                "status": "Active member",
                 "statusVariant": "success",
-                "center": "Downtown Center",
+                "campus": "Downtown Campus",
                 "serving": {
                   "team": "Hospitality",
                   "role": "Usher Captain",
@@ -236,7 +236,7 @@
                   "nextStep": "Mentor two new ushers before Advent."
                 },
                 "carePlan": {
-                  "stage": "Active",
+                  "status": "Active",
                   "statusVariant": "info",
                   "details": "Leadership coaching check-in scheduled October 28.",
                   "assignedTo": "Pastor Lauren Patel"
@@ -247,9 +247,9 @@
                     "title": "Hosted hospitality huddle",
                     "date": "Oct 13",
                     "timeAgo": "3 days ago",
-                    "description": "Led new volunteer orientation for the downtown center.",
+                    "description": "Led new volunteer orientation for the downtown campus.",
                     "category": "Serving",
-                    "stage": "completed",
+                    "status": "completed",
                     "icon": "🙌"
                   },
                   {
@@ -259,7 +259,7 @@
                     "timeAgo": "In 5 days",
                     "description": "Coaching session with new volunteer captain.",
                     "category": "Leadership",
-                    "stage": "scheduled",
+                    "status": "scheduled",
                     "icon": "🗓️"
                   }
                 ]
@@ -268,9 +268,9 @@
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
                 "preferredName": "Elena",
-                "stage": "New here",
+                "status": "New here",
                 "statusVariant": "info",
-                "center": "Northside Center",
+                "campus": "Northside Campus",
                 "serving": {
                   "team": "Exploring",
                   "role": "Foundations participant",
@@ -304,10 +304,10 @@
                   "nextStep": "Complete covenant class interview."
                 },
                 "carePlan": {
-                  "stage": "Observation",
+                  "status": "Observation",
                   "statusVariant": "neutral",
                   "details": "Following up after recent relocation.",
-                  "assignedTo": "Center Connections Team"
+                  "assignedTo": "Campus Connections Team"
                 },
                 "timeline": [
                   {
@@ -317,7 +317,7 @@
                     "timeAgo": "6 days ago",
                     "description": "Completed teaching on church values.",
                     "category": "Assimilation",
-                    "stage": "completed",
+                    "status": "completed",
                     "icon": "📘"
                   },
                   {
@@ -327,7 +327,7 @@
                     "timeAgo": "In 8 days",
                     "description": "Meeting with elder team to finalize membership.",
                     "category": "Next step",
-                    "stage": "scheduled",
+                    "status": "scheduled",
                     "icon": "🤝"
                   }
                 ]
@@ -336,9 +336,9 @@
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
                 "preferredName": "Lee Family",
-                "stage": "Active member",
+                "status": "Active member",
                 "statusVariant": "success",
-                "center": "Southridge Center",
+                "campus": "Southridge Campus",
                 "serving": {
                   "team": "Groups",
                   "role": "Marriage mentors",
@@ -373,7 +373,7 @@
                   "nextStep": "Launch two new marriage groups in Q1."
                 },
                 "carePlan": {
-                  "stage": "Resolved",
+                  "status": "Resolved",
                   "statusVariant": "neutral",
                   "details": "No active pastoral needs.",
                   "assignedTo": ""
@@ -386,7 +386,7 @@
                     "timeAgo": "11 days ago",
                     "description": "Hosted eight couples for weekend retreat.",
                     "category": "Ministry",
-                    "stage": "completed",
+                    "status": "completed",
                     "icon": "💍"
                   }
                 ]
@@ -395,9 +395,9 @@
                 "id": "mem_004",
                 "fullName": "Jordan Miles",
                 "preferredName": "Jordan",
-                "stage": "Shepherding",
+                "status": "Shepherding",
                 "statusVariant": "warning",
-                "center": "Downtown Center",
+                "campus": "Downtown Campus",
                 "serving": {
                   "team": "Tech",
                   "role": "Audio volunteer",
@@ -431,7 +431,7 @@
                   "nextStep": "Resume serve team rotation after care plan concludes."
                 },
                 "carePlan": {
-                  "stage": "Active",
+                  "status": "Active",
                   "statusVariant": "warning",
                   "details": "Meeting with counselor weekly for grief support.",
                   "assignedTo": "Care Pastor Ben Adams"
@@ -444,7 +444,7 @@
                     "timeAgo": "5 days ago",
                     "description": "Third session in current care plan.",
                     "category": "Care",
-                    "stage": "completed",
+                    "status": "completed",
                     "icon": "🕊️"
                   },
                   {
@@ -454,7 +454,7 @@
                     "timeAgo": "Tomorrow",
                     "description": "Home visit with meal train delivery.",
                     "category": "Shepherding",
-                    "stage": "scheduled",
+                    "status": "scheduled",
                     "icon": "🍲"
                   }
                 ]

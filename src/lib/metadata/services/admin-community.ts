@@ -60,7 +60,7 @@ function cloneBaseConfig(value: unknown): MembersTableStaticConfig {
   }
 }
 
-function formatStageLabel(code: string | undefined | null): string {
+function formatStatusLabel(code: string | undefined | null): string {
   if (!code) {
     return 'Member';
   }
@@ -71,7 +71,7 @@ function formatStageLabel(code: string | undefined | null): string {
     .join(' ');
 }
 
-function mapStageVariant(code: string | undefined | null): string {
+function mapStatusVariant(code: string | undefined | null): string {
   const normalized = (code ?? '').toLowerCase();
   switch (normalized) {
     case 'active':
@@ -91,10 +91,8 @@ function mapStageVariant(code: string | undefined | null): string {
 
 function toMembersTableRow(member: MemberDirectoryRecord) {
   const fullName = [member.first_name, member.last_name].filter(Boolean).join(' ').trim();
-  const stageCode = member.membership_stage?.code ?? null;
-  const stageLabel = member.membership_stage?.name ?? formatStageLabel(stageCode);
-  const centerCode = member.membership_center?.code ?? null;
-  const centerLabel = member.membership_center?.name ?? '—';
+  const statusCode = member.membership_status?.code ?? null;
+  const statusLabel = member.membership_status?.name ?? formatStatusLabel(statusCode);
   const lastInteraction = member.updated_at ?? member.created_at ?? member.membership_date ?? null;
 
   return {
@@ -102,12 +100,12 @@ function toMembersTableRow(member: MemberDirectoryRecord) {
       member.id ??
       (member.email ? `member-${member.email}` : `member-${fullName.replace(/\s+/g, '-').toLowerCase()}`),
     name: fullName || member.email || 'Unknown member',
-    membershipLabel: stageLabel,
-    stage: stageLabel,
-    stageKey: stageCode ?? 'unknown',
-    stageVariant: mapStageVariant(stageCode),
-    center: centerLabel,
-    centerKey: centerCode ?? 'unknown',
+    membershipLabel: statusLabel,
+    status: statusLabel,
+    statusKey: statusCode ?? 'unknown',
+    statusVariant: mapStatusVariant(statusCode),
+    campus: '—',
+    campusKey: 'unknown',
     household: '—',
     lastEngagement: lastInteraction,
     givingThisYear: 0,

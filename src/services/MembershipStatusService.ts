@@ -1,18 +1,18 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import type { IMembershipStageRepository } from '@/repositories/membershipStage.repository';
-import type { MembershipStage } from '@/models/membershipStage.model';
+import type { IMembershipStatusRepository } from '@/repositories/membershipStatus.repository';
+import type { MembershipStatus } from '@/models/membershipStatus.model';
 import type { QueryOptions } from '@/adapters/base.adapter';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type { CrudService } from '@/services/CrudService';
 
 @injectable()
-export class MembershipStageService
-  implements CrudService<MembershipStage> {
+export class MembershipStatusService
+  implements CrudService<MembershipStatus> {
   constructor(
-    @inject(TYPES.IMembershipStageRepository)
-    private repo: IMembershipStageRepository,
+    @inject(TYPES.IMembershipStatusRepository)
+    private repo: IMembershipStatusRepository,
   ) {}
 
   find(options: QueryOptions = {}) {
@@ -28,7 +28,7 @@ export class MembershipStageService
   }
 
   create(
-    data: Partial<MembershipStage>,
+    data: Partial<MembershipStatus>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
@@ -37,7 +37,7 @@ export class MembershipStageService
 
   update(
     id: string,
-    data: Partial<MembershipStage>,
+    data: Partial<MembershipStatus>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
@@ -48,7 +48,7 @@ export class MembershipStageService
     return this.repo.delete(id);
   }
 
-  async getActive(): Promise<MembershipStage[]> {
+  async getActive(): Promise<MembershipStatus[]> {
     const tenantId = await tenantUtils.getTenantId();
 
     const options: Omit<QueryOptions, 'pagination'> = {

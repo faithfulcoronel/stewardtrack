@@ -109,7 +109,7 @@
               },
               "emptyState": {
                 "kind": "static",
-                "value": "{\"title\": \"No members match your filters\", \"description\": \"Try expanding your filters to include additional centers or membership stages.\"}"
+                "value": "{\"title\": \"No members match your filters\", \"description\": \"Try expanding your filters to include additional campuses or membership stages.\"}"
               }
             }
           }
@@ -124,7 +124,7 @@
           "value": {
             "eyebrow": "Membership operations",
             "headline": "A unified directory for discipleship, finances, and care",
-            "description": "Filter members by center, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
+            "description": "Filter members by campus, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.",
             "metrics": [
               {
                 "label": "Households",
@@ -169,7 +169,7 @@
                 "changeLabel": "capacity filled",
                 "trend": "up",
                 "tone": "informative",
-                "description": "Next covenant class launches November 3rd across two centers."
+                "description": "Next covenant class launches November 3rd across two campuses."
               },
               {
                 "id": "segment-care",
@@ -203,12 +203,12 @@
                 ]
               },
               {
-                "id": "stage",
+                "id": "status",
                 "type": "select",
                 "label": "Membership stage",
                 "placeholder": "All stages",
                 "defaultValue": "all",
-                "field": "stageKey",
+                "field": "statusKey",
                 "options": [
                   {
                     "label": "All stages",
@@ -233,15 +233,15 @@
                 ]
               },
               {
-                "id": "center",
+                "id": "campus",
                 "type": "select",
-                "label": "Center",
-                "placeholder": "All centers",
+                "label": "Campus",
+                "placeholder": "All campuses",
                 "defaultValue": "all",
-                "field": "centerKey",
+                "field": "campusKey",
                 "options": [
                   {
-                    "label": "All centers",
+                    "label": "All campuses",
                     "value": "all"
                   },
                   {
@@ -284,8 +284,8 @@
                 "flex": 1.2
               },
               {
-                "field": "center",
-                "headerName": "Center",
+                "field": "campus",
+                "headerName": "Campus",
                 "flex": 0.9
               },
               {
@@ -294,10 +294,10 @@
                 "flex": 1
               },
               {
-                "field": "stage",
-                "headerName": "Stage",
+                "field": "status",
+                "headerName": "Status",
                 "type": "badge",
-                "badgeVariantField": "stageVariant",
+                "badgeVariantField": "statusVariant",
                 "flex": 0.7
               },
               {
@@ -355,11 +355,11 @@
                 "id": "mem_001",
                 "name": "Avery Johnson",
                 "membershipLabel": "Active · Hospitality Captain",
-                "stage": "Active member",
-                "stageKey": "active",
-                "stageVariant": "success",
-                "center": "Downtown",
-                "centerKey": "downtown",
+                "status": "Active member",
+                "statusKey": "active",
+                "statusVariant": "success",
+                "campus": "Downtown",
+                "campusKey": "downtown",
                 "household": "Johnson Family",
                 "lastEngagement": "2024-10-13",
                 "givingThisYear": 18450,
@@ -374,11 +374,11 @@
                 "id": "mem_002",
                 "name": "Elena Ruiz",
                 "membershipLabel": "New here · Foundations class",
-                "stage": "New here",
-                "stageKey": "new",
-                "stageVariant": "info",
-                "center": "Northside",
-                "centerKey": "northside",
+                "status": "New here",
+                "statusKey": "new",
+                "statusVariant": "info",
+                "campus": "Northside",
+                "campusKey": "northside",
                 "household": "Ruiz Household",
                 "lastEngagement": "2024-10-14",
                 "givingThisYear": 420,
@@ -393,11 +393,11 @@
                 "id": "mem_003",
                 "name": "Samuel and Dana Lee",
                 "membershipLabel": "Active · Small group coaches",
-                "stage": "Active member",
-                "stageKey": "active",
-                "stageVariant": "success",
-                "center": "Southridge",
-                "centerKey": "southridge",
+                "status": "Active member",
+                "statusKey": "active",
+                "statusVariant": "success",
+                "campus": "Southridge",
+                "campusKey": "southridge",
                 "household": "Lee Household",
                 "lastEngagement": "2024-10-12",
                 "givingThisYear": 23780,
@@ -412,11 +412,11 @@
                 "id": "mem_004",
                 "name": "Jordan Miles",
                 "membershipLabel": "Shepherding · Pastoral care",
-                "stage": "Shepherding",
-                "stageKey": "care",
-                "stageVariant": "warning",
-                "center": "Downtown",
-                "centerKey": "downtown",
+                "status": "Shepherding",
+                "statusKey": "care",
+                "statusVariant": "warning",
+                "campus": "Downtown",
+                "campusKey": "downtown",
                 "household": "Miles Household",
                 "lastEngagement": "2024-10-09",
                 "givingThisYear": 2600,
@@ -431,16 +431,16 @@
                 "id": "mem_005",
                 "name": "Priya Desai",
                 "membershipLabel": "Active · Worship Leader",
-                "stage": "Active member",
-                "stageKey": "active",
-                "stageVariant": "success",
-                "center": "Online",
-                "centerKey": "online",
+                "status": "Active member",
+                "statusKey": "active",
+                "statusVariant": "success",
+                "campus": "Online",
+                "campusKey": "online",
                 "household": "Desai Household",
                 "lastEngagement": "2024-10-15",
                 "givingThisYear": 8600,
                 "tags": [
-                  "Online Center",
+                  "Online Campus",
                   "Worship"
                 ],
                 "phone": "(555) 991-4472",
@@ -450,11 +450,11 @@
                 "id": "mem_006",
                 "name": "The Carter Family",
                 "membershipLabel": "Inactive · Relocated",
-                "stage": "Inactive",
-                "stageKey": "inactive",
-                "stageVariant": "critical",
-                "center": "Northside",
-                "centerKey": "northside",
+                "status": "Inactive",
+                "statusKey": "inactive",
+                "statusVariant": "critical",
+                "campus": "Northside",
+                "campusKey": "northside",
                 "household": "Carter Household",
                 "lastEngagement": "2024-07-21",
                 "givingThisYear": 540,

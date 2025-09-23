@@ -28,7 +28,7 @@
             <Prop name="title" kind="static">Ministry KPIs at a glance</Prop>
             <Prop name="description" kind="static">Measure the spiritual and financial health of your congregation in real time.</Prop>
             <Prop name="metrics" kind="binding" source="membershipMetrics" path="items" />
-            <Prop name="footnote" kind="static">Benchmarks compare against the previous four-week cycle across all centers.</Prop>
+            <Prop name="footnote" kind="static">Benchmarks compare against the previous four-week cycle across all campuses.</Prop>
           </Props>
         </Component>
         <Component id="dashboard-quick-links" type="AdminQuickLinks">
@@ -64,10 +64,10 @@
           {
             "eyebrow": "Community health pulse",
             "headline": "Shepherd every household with real-time ministry insight",
-            "description": "Monitor membership vitality, giving momentum, and care commitments across all centers in one workspace.",
+            "description": "Monitor membership vitality, giving momentum, and care commitments across all campuses in one workspace.",
             "highlights": [
               "Map the journey from first-time guests to covenant members with automated stage tracking.",
-              "Surface households at financial risk before pledges lapse and route them to center pastors.",
+              "Surface households at financial risk before pledges lapse and route them to campus pastors.",
               "Keep every ministry aligned with dashboards tailored for elders, finance teams, and care leads."
             ],
             "metrics": [
@@ -149,7 +149,7 @@
               {
                 "id": "link-care",
                 "title": "Care follow-ups",
-                "description": "Prioritize counseling, hospital visits, and benevolence requests across centers.",
+                "description": "Prioritize counseling, hospital visits, and benevolence requests across campuses.",
                 "href": "/admin/members/list?tab=care",
                 "badge": "Shepherding",
                 "stat": "186 active care plans"
@@ -222,7 +222,7 @@
                 "title": "Seven baptisms celebrated",
                 "date": "Oct 13",
                 "timeAgo": "3 days ago",
-                "description": "Downtown center welcomed seven new believers during the 11am gathering.",
+                "description": "Downtown campus welcomed seven new believers during the 11am gathering.",
                 "category": "Milestone",
                 "status": "completed",
                 "icon": "💧"

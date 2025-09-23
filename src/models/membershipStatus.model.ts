@@ -1,6 +1,6 @@
 import { BaseModel } from '@/models/base.model';
 
-export interface MembershipStage extends BaseModel {
+export interface MembershipStatus extends BaseModel {
   id: string;
   code: string;
   name: string;
