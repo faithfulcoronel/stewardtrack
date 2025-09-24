@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "e2dcedde2df0b051e57e8e7f851f03f5a4f4d89efa73abfd7e6f604e6dcb6dac",
+  "checksum": "de46f9da9e93a1f152adbd11bdbeef11335e03ebcb3c99a49c43ede9abd88325",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -37,6 +37,10 @@
               "description": {
                 "kind": "static",
                 "value": "Align membership data with pastoral care, serving teams, and financial commitments from one form."
+              },
+              "image": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                if (!params.memberId) {\n                  return null;\n                }\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const photoUrl = record.profile?.photoUrl ?? '';\n                if (!photoUrl) {\n                  return null;\n                }\n                const fullName = record.profile?.fullName ?? record.fullName ?? 'Member';\n                return {\n                  src: photoUrl,\n                  alt: `${fullName}'s profile photo`\n                };\n              })()\n            "
               },
               "metrics": {
                 "kind": "expression",
@@ -149,6 +153,7 @@
                   "servingSchedule": "2nd & 4th Sundays · 8:30a",
                   "discipleshipNextStep": "Mentor two new ushers before Advent.",
                   "notes": "Leading hospitality leadership cohort.",
+                  "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                   "tags": [
                     "Hospitality Team",
                     "Leadership Cohort"
@@ -203,6 +208,7 @@
                   "servingSchedule": "Sundays · 9:30a",
                   "discipleshipNextStep": "Complete covenant interview.",
                   "notes": "Recently relocated from Denver.",
+                  "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                   "tags": [
                     "Foundations Track"
                   ]
@@ -260,6 +266,7 @@
                   "servingSchedule": "1st & 3rd Wednesdays",
                   "discipleshipNextStep": "Launch two new marriage groups in Q1.",
                   "notes": "Trusted mentors for pre-marriage program.",
+                  "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
                   "tags": [
                     "Marriage Mentors",
                     "Retreat Leaders"
@@ -533,5 +540,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-manage.xml"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml"
 }

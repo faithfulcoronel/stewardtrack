@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "8d34a47ffbf9d0b93a67bf20be63302af2162873950243ce34ef5ab68fb63e94",
+  "checksum": "2d24795c598b6e9129926967610f3be742740429d909522b11184fd2955de6c7",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -37,6 +37,10 @@
               "description": {
                 "kind": "expression",
                 "expression": "\n              (() => {\n                const records = data.memberDirectory?.records ?? [];\n                const fallback = records[0] ?? {};\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const center = record.center ?? \"primary center\";\n                const serving = record.serving?.team ? `${record.serving.team} team` : \"serving opportunities\";\n                const coach = record.serving?.coach ? `Coached by ${record.serving.coach}.` : \"\";\n                return `${record.preferredName ?? record.fullName ?? \"This member\"} worships at the ${center} and is engaged with the ${serving}. ${coach}`.trim();\n              })()\n            "
+              },
+              "image": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const records = data.memberDirectory?.records ?? [];\n                const fallback = records[0] ?? {};\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const fullName = record.fullName ?? 'Member';\n                const photoUrl = record.photoUrl ?? '';\n                const fallbackUrl = 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=facearea&w=600&h=600&q=80';\n                return {\n                  src: photoUrl || fallbackUrl,\n                  alt: `${fullName}'s profile photo`\n                };\n              })()\n            "
               },
               "metrics": {
                 "kind": "expression",
@@ -108,6 +112,7 @@
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
                 "preferredName": "Avery",
+                "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Active member",
                 "statusVariant": "success",
                 "center": "Downtown Center",
@@ -195,6 +200,7 @@
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
                 "preferredName": "Elena",
+                "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "New here",
                 "statusVariant": "info",
                 "center": "Northside Center",
@@ -271,6 +277,7 @@
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
                 "preferredName": "Lee Family",
+                "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Active member",
                 "statusVariant": "success",
                 "center": "Southridge Center",
@@ -345,6 +352,7 @@
                 "id": "mem_004",
                 "fullName": "Jordan Miles",
                 "preferredName": "Jordan",
+                "photoUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Shepherding",
                 "statusVariant": "warning",
                 "center": "Downtown Center",
@@ -436,5 +444,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-profile.xml"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml"
 }

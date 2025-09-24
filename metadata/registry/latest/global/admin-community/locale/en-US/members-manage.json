@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "e2dcedde2df0b051e57e8e7f851f03f5a4f4d89efa73abfd7e6f604e6dcb6dac",
+  "checksum": "de46f9da9e93a1f152adbd11bdbeef11335e03ebcb3c99a49c43ede9abd88325",
   "layer": {
     "module": "admin-community",
     "route": "members/manage",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-manage.xml",
-  "compiledPath": "metadata\\compiled\\global\\admin-community\\locale\\en-US\\members-manage\\1.0.0\\1.1.0.json"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml",
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.1.0.json"
 }

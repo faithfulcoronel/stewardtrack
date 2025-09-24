@@ -41,6 +41,20 @@
                 return `${record.preferredName ?? record.fullName ?? "This member"} worships at the ${center} and is engaged with the ${serving}. ${coach}`.trim();
               })()
             ]]></Prop>
+            <Prop name="image" kind="expression"><![CDATA[
+              (() => {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const fullName = record.fullName ?? 'Member';
+                const photoUrl = record.photoUrl ?? '';
+                const fallbackUrl = 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=facearea&w=600&h=600&q=80';
+                return {
+                  src: photoUrl || fallbackUrl,
+                  alt: `${fullName}'s profile photo`
+                };
+              })()
+            ]]></Prop>
             <Prop name="metrics" kind="expression"><![CDATA[
               (() => {
                 const records = data.memberDirectory?.records ?? [];
@@ -198,6 +212,7 @@
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
                 "preferredName": "Avery",
+                "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Active member",
                 "statusVariant": "success",
                 "center": "Downtown Center",
@@ -268,6 +283,7 @@
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
                 "preferredName": "Elena",
+                "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "New here",
                 "statusVariant": "info",
                 "center": "Northside Center",
@@ -336,6 +352,7 @@
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
                 "preferredName": "Lee Family",
+                "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Active member",
                 "statusVariant": "success",
                 "center": "Southridge Center",
@@ -395,6 +412,7 @@
                 "id": "mem_004",
                 "fullName": "Jordan Miles",
                 "preferredName": "Jordan",
+                "photoUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Shepherding",
                 "statusVariant": "warning",
                 "center": "Downtown Center",

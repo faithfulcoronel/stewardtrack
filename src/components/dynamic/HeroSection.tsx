@@ -438,20 +438,38 @@ function StatsPanelHero(props: NormalizedHeroProps) {
 }
 
 function MinimalHero(props: NormalizedHeroProps) {
+  const hasImage = Boolean(props.image?.src);
+
   return (
     <FullWidthSection className="bg-background py-18 sm:py-20">
       <div className="mx-auto w-full max-w-4xl space-y-6 px-4 sm:px-6">
-        {props.eyebrow && (
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">{props.eyebrow}</p>
-        )}
-        {props.headline && (
-          <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">
-            {props.headline}
-          </h1>
-        )}
-        {props.description && (
-          <p className="text-base text-muted-foreground sm:text-lg">{props.description}</p>
-        )}
+        <div
+          className={cn(
+            "flex flex-col gap-4 sm:gap-6",
+            hasImage ? "sm:flex-row sm:items-start sm:justify-between" : ""
+          )}
+        >
+          <div className="space-y-4 sm:space-y-6">
+            {props.eyebrow && (
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">{props.eyebrow}</p>
+            )}
+            {props.headline && (
+              <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">
+                {props.headline}
+              </h1>
+            )}
+            {props.description && (
+              <p className="text-base text-muted-foreground sm:text-lg">{props.description}</p>
+            )}
+          </div>
+          {hasImage && (
+            <HeroImage
+              className="size-20 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted shadow-sm sm:self-start"
+              image={props.image}
+              aspect="aspect-square"
+            />
+          )}
+        </div>
         <ActionsRow primary={props.primaryCta} secondary={props.secondaryCta} />
       </div>
     </FullWidthSection>
