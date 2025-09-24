@@ -3,19 +3,12 @@ import { z } from "zod";
 import type { MetadataActionExecution, MetadataActionResult } from "../../types";
 import { tenantUtils } from "@/utils/tenantUtils";
 import { SupabaseAuditService } from "@/services/AuditService";
-import { MembershipStageAdapter } from "@/adapters/membershipStage.adapter";
-import { MembershipStageRepository } from "@/repositories/membershipStage.repository";
-import { MembershipStageService } from "@/services/MembershipStageService";
-import { MembershipTypeAdapter } from "@/adapters/membershipType.adapter";
-import { MembershipTypeRepository } from "@/repositories/membershipType.repository";
-import { MembershipTypeService } from "@/services/MembershipTypeService";
-import { MembershipCenterAdapter } from "@/adapters/membershipCenter.adapter";
-import { MembershipCenterRepository } from "@/repositories/membershipCenter.repository";
-import { MembershipCenterService } from "@/services/MembershipCenterService";
-import type { BaseAdapter } from "@/adapters/base.adapter";
 import type { RequestContext } from "@/lib/server/context";
-import { formatLabel } from "@/lib/metadata/services/admin-community/membershipLookups";
-import type { FormFieldOption } from "@/components/dynamic/admin/types";
+import {
+  createMembershipLookupRequestContext,
+  mapMembershipLookupOption,
+  resolveMembershipLookupDefinition,
+} from "@/lib/metadata/services/admin-community/membershipLookups";
 
 const inputSchema = z.object({
   lookupId: z.string().min(1, "Lookup context is required."),
@@ -23,13 +16,11 @@ const inputSchema = z.object({
   code: z.string().min(1, "Code is required."),
 });
 
-type LookupService = {
-  create: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
-};
-
 type LookupContext = {
-  service: LookupService;
-  mapOption: (record: Record<string, unknown>) => FormFieldOption | null;
+  service: {
+    create: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  };
+  fallbackLabel: string;
 };
 
 export async function handleMembershipLookupQuickCreate(
@@ -68,7 +59,7 @@ export async function handleMembershipLookupQuickCreate(
       } satisfies MetadataActionResult;
     }
 
-    const context = createRequestContext(tenantId, execution.context.role ?? null);
+    const context = createMembershipLookupRequestContext(tenantId, execution.context.role ?? null);
     const auditService = new SupabaseAuditService();
     const lookupContext = createLookupContext(lookupId, context, auditService);
 
@@ -81,7 +72,7 @@ export async function handleMembershipLookupQuickCreate(
     }
 
     const record = await lookupContext.service.create({ name, code });
-    const option = lookupContext.mapOption(record) ?? {
+    const option = mapMembershipLookupOption(record, lookupContext.fallbackLabel) ?? {
       label: name,
       value: code,
     };
@@ -121,93 +112,16 @@ function createLookupContext(
   context: RequestContext,
   auditService: SupabaseAuditService,
 ): LookupContext | null {
-  switch (lookupId) {
-    case "membership.stage": {
-      const service = createMembershipStageService(context, auditService);
-      return {
-        service,
-        mapOption: (record) => mapOption(record, "Member stage"),
-      };
-    }
-    case "membership.type": {
-      const service = createMembershipTypeService(context, auditService);
-      return {
-        service,
-        mapOption: (record) => mapOption(record, "Membership type"),
-      };
-    }
-    case "membership.center": {
-      const service = createMembershipCenterService(context, auditService);
-      return {
-        service,
-        mapOption: (record) => mapOption(record, "Center"),
-      };
-    }
-    default:
-      return null;
-  }
-}
-
-function mapOption(record: Record<string, unknown>, fallback: string): FormFieldOption | null {
-  const id = typeof record.id === "string" ? record.id.trim() : null;
-  const name = typeof record.name === "string" ? record.name.trim() : "";
-  const code = typeof record.code === "string" ? record.code.trim() : "";
-
-  if (!id && !code) {
+  const definition = resolveMembershipLookupDefinition(lookupId);
+  if (!definition) {
     return null;
   }
 
-  const value = id ?? code;
+  const service = definition.createService(context, auditService);
   return {
-    value,
-    label: name || formatLabel(code || value, fallback),
-  };
-}
-
-function createRequestContext(tenantId: string, role: string | null): RequestContext {
-  const context: RequestContext = {
-    tenantId,
-  };
-
-  if (role) {
-    context.roles = [role];
-  }
-
-  return context;
-}
-
-function applyRequestContext(adapter: BaseAdapter<any>, context: RequestContext) {
-  (adapter as unknown as { context: RequestContext }).context = context;
-}
-
-function createMembershipStageService(
-  context: RequestContext,
-  auditService: SupabaseAuditService,
-): LookupService {
-  const adapter = new MembershipStageAdapter(auditService);
-  applyRequestContext(adapter, context);
-  const repository = new MembershipStageRepository(adapter);
-  return new MembershipStageService(repository);
-}
-
-function createMembershipTypeService(
-  context: RequestContext,
-  auditService: SupabaseAuditService,
-): LookupService {
-  const adapter = new MembershipTypeAdapter(auditService);
-  applyRequestContext(adapter, context);
-  const repository = new MembershipTypeRepository(adapter);
-  return new MembershipTypeService(repository);
-}
-
-function createMembershipCenterService(
-  context: RequestContext,
-  auditService: SupabaseAuditService,
-): LookupService {
-  const adapter = new MembershipCenterAdapter(auditService);
-  applyRequestContext(adapter, context);
-  const repository = new MembershipCenterRepository(adapter);
-  return new MembershipCenterService(repository);
+    service,
+    fallbackLabel: definition.fallbackLabel,
+  } satisfies LookupContext;
 }
 
 function handleKnownLookupErrors(
