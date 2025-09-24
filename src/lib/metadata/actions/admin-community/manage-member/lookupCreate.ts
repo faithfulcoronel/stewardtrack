@@ -102,6 +102,11 @@ export async function handleMembershipLookupQuickCreate(
       },
     } satisfies MetadataActionResult;
   } catch (error) {
+    const handled = handleKnownLookupErrors(error, lookupId);
+    if (handled) {
+      return handled;
+    }
+
     console.error("Failed to create lookup option", error);
     return {
       success: false,
@@ -203,4 +208,69 @@ function createMembershipCenterService(
   applyRequestContext(adapter, context);
   const repository = new MembershipCenterRepository(adapter);
   return new MembershipCenterService(repository);
+}
+
+function handleKnownLookupErrors(
+  error: unknown,
+  lookupId: string,
+): MetadataActionResult | null {
+  const message = extractErrorMessage(error);
+
+  if (!message) {
+    return null;
+  }
+
+  if (isUniqueConstraintError(message)) {
+    return {
+      success: false,
+      status: 409,
+      message: getUniqueConstraintMessage(message, lookupId),
+    } satisfies MetadataActionResult;
+  }
+
+  return null;
+}
+
+function extractErrorMessage(error: unknown): string | null {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error && typeof error === "object" && "message" in error && typeof (error as any).message === "string") {
+    return (error as any).message;
+  }
+
+  return null;
+}
+
+function isUniqueConstraintError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes("duplicate key value") && normalized.includes("unique constraint");
+}
+
+function getUniqueConstraintMessage(message: string, lookupId: string): string {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("membership_center")) {
+    return "A center with this code already exists. Try a different code.";
+  }
+
+  if (normalized.includes("membership_stage")) {
+    return "A membership stage with this code already exists.";
+  }
+
+  if (normalized.includes("membership_type")) {
+    return "A membership type with this code already exists.";
+  }
+
+  switch (lookupId) {
+    case "membership.center":
+      return "This center code is already in use.";
+    case "membership.stage":
+      return "This membership stage code is already in use.";
+    case "membership.type":
+      return "This membership type code is already in use.";
+    default:
+      return "An item with this code already exists.";
+  }
 }
