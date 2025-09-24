@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "aaaf4f7cff2da5372c0258f37fc33b2fc57a0f1375f1221710bb631aff8de052",
+  "checksum": "07b49be857531687d4ba30b4fd4e81ab605b6ffb854d7bd9dd37767950f49de1",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -57,13 +57,12 @@
                 "value": "Membership details"
               },
               "fields": {
-                "kind": "binding",
-                "source": "formBlueprint",
-                "path": "fields"
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const blueprintFields = data.formBlueprint?.fields ?? [];\n                const lookupGroups = data.membershipLookups?.lookups ?? {};\n                return blueprintFields.map((field) => {\n                  const { lookupId, ...config } = field ?? {};\n                  if (!lookupId) {\n                    return config;\n                  }\n                  const lookupItems = lookupGroups[lookupId] ?? [];\n                  return {\n                    ...config,\n                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),\n                  };\n                });\n              })()\n            "
               },
               "initialValues": {
                 "kind": "expression",
-                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    stage: 'new',\n                    membershipType: 'Covenant member',\n                    center: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  stage: profile.stageKey ?? record.stageKey ?? 'new',\n                  membershipType: profile.membershipType ?? 'Covenant member',\n                  center: profile.centerKey ?? record.centerKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    stage: 'new',\n                    membershipType: 'covenant-member',\n                    center: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  stage: profile.stageKey ?? record.stageKey ?? 'new',\n                  membershipType: profile.membershipTypeKey ?? record.membershipTypeKey ?? 'covenant-member',\n                  center: profile.centerKey ?? record.centerKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
               },
               "mode": {
                 "kind": "expression",
@@ -101,6 +100,7 @@
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
                 "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
                 "center": "Downtown Center",
                 "centerKey": "downtown",
                 "tags": [
@@ -138,6 +138,7 @@
                   "firstName": "Avery",
                   "lastName": "Johnson",
                   "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
                   "joinDate": "2016-03-14",
                   "preferredContact": "Text",
                   "careStatus": "active",
@@ -158,6 +159,7 @@
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
                 "stageKey": "new",
+                "membershipTypeKey": "attender",
                 "center": "Northside Center",
                 "centerKey": "northside",
                 "tags": [
@@ -190,6 +192,7 @@
                   "firstName": "Elena",
                   "lastName": "Ruiz",
                   "membershipType": "Attender",
+                  "membershipTypeKey": "attender",
                   "joinDate": "",
                   "preferredContact": "Phone",
                   "careStatus": "observation",
@@ -209,6 +212,7 @@
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
                 "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
                 "center": "Southridge Center",
                 "centerKey": "southridge",
                 "tags": [
@@ -245,6 +249,7 @@
                   "firstName": "Samuel",
                   "lastName": "Lee",
                   "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
                   "joinDate": "2009-05-18",
                   "preferredContact": "Email",
                   "careStatus": "resolved",
@@ -265,6 +270,67 @@
           },
           "handler": "admin-community.members.manage.membershipRecords",
           "limit": 5
+        }
+      },
+      {
+        "id": "membershipLookups",
+        "kind": "service",
+        "config": {
+          "value": {
+            "lookups": {
+              "membership.stage": [
+                {
+                  "id": "active",
+                  "value": "Active member"
+                },
+                {
+                  "id": "new",
+                  "value": "New here"
+                },
+                {
+                  "id": "care",
+                  "value": "Shepherding"
+                },
+                {
+                  "id": "inactive",
+                  "value": "Inactive"
+                }
+              ],
+              "membership.type": [
+                {
+                  "id": "covenant-member",
+                  "value": "Covenant member"
+                },
+                {
+                  "id": "attender",
+                  "value": "Attender"
+                },
+                {
+                  "id": "partner-process",
+                  "value": "Partner in process"
+                }
+              ],
+              "membership.center": [
+                {
+                  "id": "downtown",
+                  "value": "Downtown"
+                },
+                {
+                  "id": "northside",
+                  "value": "Northside"
+                },
+                {
+                  "id": "southridge",
+                  "value": "Southridge"
+                },
+                {
+                  "id": "online",
+                  "value": "Online"
+                }
+              ]
+            }
+          },
+          "handler": "admin-community.members.manage.lookups"
         }
       },
       {
@@ -306,68 +372,21 @@
                 "label": "Membership stage",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  {
-                    "label": "Active member",
-                    "value": "active"
-                  },
-                  {
-                    "label": "New here",
-                    "value": "new"
-                  },
-                  {
-                    "label": "Shepherding",
-                    "value": "care"
-                  },
-                  {
-                    "label": "Inactive",
-                    "value": "inactive"
-                  }
-                ]
+                "lookupId": "membership.stage"
               },
               {
                 "name": "membershipType",
                 "label": "Membership type",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  {
-                    "label": "Covenant member",
-                    "value": "Covenant member"
-                  },
-                  {
-                    "label": "Attender",
-                    "value": "Attender"
-                  },
-                  {
-                    "label": "Partner in process",
-                    "value": "Partner in process"
-                  }
-                ]
+                "lookupId": "membership.type"
               },
               {
                 "name": "center",
                 "label": "Center",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  {
-                    "label": "Downtown",
-                    "value": "downtown"
-                  },
-                  {
-                    "label": "Northside",
-                    "value": "northside"
-                  },
-                  {
-                    "label": "Southridge",
-                    "value": "southridge"
-                  },
-                  {
-                    "label": "Online",
-                    "value": "online"
-                  }
-                ]
+                "lookupId": "membership.center"
               },
               {
                 "name": "joinDate",
