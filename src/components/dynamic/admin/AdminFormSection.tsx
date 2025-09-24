@@ -167,12 +167,15 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                     {field.label && <FormLabel className="text-sm font-semibold text-foreground">{field.label}</FormLabel>}
                     <FormControl>
                       {field.type === "select" && field.quickCreate ? (
-                        <div className="flex items-center gap-2">
-                          <div className="grow">{renderFieldInput(field, controller as ControllerRender)}</div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex-none">
+                            {renderFieldInput(field, controller as ControllerRender)}
+                          </div>
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
+                            className="shrink-0"
                             aria-label={field.quickCreate.label ?? `Add new ${field.label ?? "option"}`}
                             onClick={() => handleQuickCreate(field)}
                           >
