@@ -28,6 +28,7 @@ export interface MemberRow {
   discipleship_mentor?: string | null;
   discipleship_group?: string | null;
   small_groups?: string[] | null;
+  tags?: string[] | null;
   giving_recurring_amount?: number | null;
   giving_recurring_frequency?: string | null;
   giving_recurring_method?: string | null;
@@ -39,6 +40,7 @@ export interface MemberRow {
   care_status_code?: string | null;
   care_pastor?: string | null;
   care_follow_up_at?: string | null;
+  pastoral_notes?: string | null;
 }
 
 export interface MemberGivingProfileRow {
@@ -167,6 +169,7 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           discipleship_mentor,
           discipleship_group,
           small_groups,
+          tags,
           giving_recurring_amount,
           giving_recurring_frequency,
           giving_recurring_method,
@@ -177,7 +180,8 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           giving_last_gift_fund,
           care_status_code,
           care_pastor,
-          care_follow_up_at
+          care_follow_up_at,
+          pastoral_notes
         `
       )
       .is('deleted_at', null)
