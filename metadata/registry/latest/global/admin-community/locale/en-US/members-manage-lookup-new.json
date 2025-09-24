@@ -1,0 +1,17 @@
+{
+  "key": "global::admin-community::members/manage/lookup-new::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "9ae0f66edc49e49b3d588ffa5826159443aee7986b05df4c19d73c995dd43fec",
+  "layer": {
+    "module": "admin-community",
+    "route": "members/manage/lookup-new",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-lookup-create.xml",
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage-lookup-new/1.0.0/1.0.0.json"
+}

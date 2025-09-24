@@ -43,6 +43,10 @@ import {
   AdminGivingChart,
   type AdminGivingChartProps,
 } from '@/components/dynamic/admin/AdminGivingChart';
+import {
+  AdminLookupQuickCreate,
+  type AdminLookupQuickCreateProps,
+} from '@/components/dynamic/admin/AdminLookupQuickCreate';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -70,9 +74,10 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
   AdminQuickLinks: (props) => <AdminQuickLinks {...(props as AdminQuickLinksProps)} />, 
   AdminActivityTimeline: (props) => <AdminActivityTimeline {...(props as AdminActivityTimelineProps)} />, 
   AdminDataGridSection: (props) => <AdminDataGridSection {...(props as AdminDataGridSectionProps)} />, 
-  AdminDetailPanels: (props) => <AdminDetailPanels {...(props as AdminDetailPanelsProps)} />, 
-  AdminFormSection: (props) => <AdminFormSection {...(props as AdminFormSectionProps)} />, 
-  AdminGivingChart: (props) => <AdminGivingChart {...(props as AdminGivingChartProps)} />, 
+  AdminDetailPanels: (props) => <AdminDetailPanels {...(props as AdminDetailPanelsProps)} />,
+  AdminFormSection: (props) => <AdminFormSection {...(props as AdminFormSectionProps)} />,
+  AdminGivingChart: (props) => <AdminGivingChart {...(props as AdminGivingChartProps)} />,
+  AdminLookupQuickCreate: (props) => <AdminLookupQuickCreate {...(props as AdminLookupQuickCreateProps)} />,
 };
 
 export interface InterpreterContext {
