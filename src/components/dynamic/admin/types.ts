@@ -9,10 +9,10 @@ export interface FormFieldOption {
 
 export interface FormFieldQuickCreateConfig {
   label?: string | null;
-  popupUrl?: string | null;
-  width?: number | null;
-  height?: number | null;
+  description?: string | null;
+  submitLabel?: string | null;
   successMessage?: string | null;
+  action?: ActionConfig | null;
 }
 
 export interface FormFieldConfig {

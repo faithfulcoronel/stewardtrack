@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "58da3fbe9b06f63a636d477afeecd434998d47a0c4485793445d58c095e11809",
+  "checksum": "9af271edec16ead95cb1c11dc6e43350a908cc1273503b67a558bb518f14d3dc",
   "layer": {
     "module": "admin-community",
     "route": "members/manage",

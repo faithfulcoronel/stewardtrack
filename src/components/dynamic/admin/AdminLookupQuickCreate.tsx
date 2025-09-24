@@ -6,9 +6,13 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+import type { ActionConfig } from "../shared";
+import type { FormFieldOption } from "./types";
+import { executeMetadataAction } from "@/lib/metadata/actions/client";
 
 export interface AdminLookupQuickCreateProps {
   lookupId?: string | null;
@@ -16,7 +20,10 @@ export interface AdminLookupQuickCreateProps {
   description?: string | null;
   submitLabel?: string | null;
   successMessage?: string | null;
+  action?: ActionConfig | null;
   className?: string;
+  onCancel?: () => void;
+  onSuccess?: (option: FormFieldOption) => void;
 }
 
 interface FormValues {
@@ -28,6 +35,7 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
   const lookupLabel = props.lookupLabel?.trim() || "Lookup option";
   const submitLabel = props.submitLabel?.trim() || "Save";
   const successMessage = props.successMessage?.trim() || `${lookupLabel} saved`;
+  const lookupId = props.lookupId?.trim() ?? "";
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -37,6 +45,7 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
   });
 
   const [codeEdited, setCodeEdited] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const nameValue = form.watch("name");
 
   React.useEffect(() => {
@@ -59,81 +68,100 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
       return;
     }
 
-    const payload = {
-      lookupId: props.lookupId ?? "",
-      option: {
-        id: trimmedCode,
-        value: trimmedName,
-      },
-    };
-
-    const hasOpener = typeof window !== "undefined" && window.opener;
-
-    if (hasOpener) {
-      window.opener?.postMessage({ type: "lookup:create", payload }, window.location.origin);
-      toast.success(successMessage);
-      window.close();
+    if (!lookupId) {
+      toast.error("Lookup context was not provided.");
       return;
     }
 
-    toast.success(`${successMessage}. Keep this tab open to copy the new code.`);
+    if (!props.action) {
+      toast.error("The quick add action is not configured.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const result = await executeMetadataAction(props.action, {
+        input: {
+          lookupId,
+          name: trimmedName,
+          code: trimmedCode,
+        },
+      });
+
+      const option = extractOption(result?.data) ?? {
+        label: trimmedName,
+        value: trimmedCode,
+      };
+
+      toast.success(successMessage);
+      props.onSuccess?.(option);
+      form.reset();
+      setCodeEdited(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save the lookup option.";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   });
 
   return (
-    <Card className={cn("mx-auto w-full max-w-xl rounded-3xl border border-border/50 bg-background/95 shadow-lg", props.className)}>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-lg font-semibold text-foreground">{lookupLabel}</CardTitle>
-        {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}
-      </CardHeader>
+    <div className={cn("space-y-6", props.className)}>
+      <DialogHeader className="space-y-2 text-left">
+        <DialogTitle className="text-xl font-semibold text-foreground">Add {lookupLabel.toLowerCase()}</DialogTitle>
+        {props.description && <DialogDescription>{props.description}</DialogDescription>}
+      </DialogHeader>
       <Form {...form}>
-        <form className="space-y-0" onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              rules={{ required: "Name is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder={`e.g. New ${lookupLabel.toLowerCase()}`} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <FormField
+            control={form.control}
+            name="name"
+            rules={{ required: "Name is required" }}
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder={`e.g. New ${lookupLabel.toLowerCase()}`} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="code"
-              rules={{ required: "Code is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      onChange={(event) => {
-                        setCodeEdited(true);
-                        field.onChange(event.target.value);
-                      }}
-                      placeholder="auto-generated"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-xs text-muted-foreground">Auto-generated from the name. Adjust if needed before saving.</p>
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button type="submit" className="px-5">
-              {submitLabel}
+          <FormField
+            control={form.control}
+            name="code"
+            rules={{ required: "Code is required" }}
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel>Code</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    onChange={(event) => {
+                      setCodeEdited(true);
+                      field.onChange(event.target.value);
+                    }}
+                    placeholder="auto-generated"
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="text-xs text-muted-foreground">Auto-generated from the name. Adjust if needed before saving.</p>
+              </FormItem>
+            )}
+          />
+
+          <DialogFooter className="sm:justify-between">
+            <Button type="button" variant="ghost" onClick={props.onCancel} disabled={isSubmitting}>
+              Cancel
             </Button>
-          </CardFooter>
+            <Button type="submit" className="px-5" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : submitLabel}
+            </Button>
+          </DialogFooter>
         </form>
       </Form>
-    </Card>
+    </div>
   );
 }
 
@@ -143,4 +171,27 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+}
+
+function extractOption(data: unknown): FormFieldOption | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const option = (data as { option?: unknown }).option;
+  if (!option || typeof option !== "object") {
+    return null;
+  }
+
+  const value = (option as { id?: unknown }).id;
+  const label = (option as { value?: unknown }).value;
+
+  if (typeof value !== "string" || !value) {
+    return null;
+  }
+
+  return {
+    value,
+    label: typeof label === "string" && label.trim() ? label : value,
+  } satisfies FormFieldOption;
 }

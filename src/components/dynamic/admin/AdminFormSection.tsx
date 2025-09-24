@@ -10,6 +10,8 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { renderAction } from "../shared";
+import { AdminLookupQuickCreate } from "./AdminLookupQuickCreate";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { useAdminFormController } from "./useAdminFormController";
 import { renderFieldInput, type ControllerRender } from "./fieldRenderers";
@@ -24,6 +26,7 @@ export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./
 export function AdminFormSection(props: AdminFormSectionProps) {
   const { fields, form, handleSubmit } = useAdminFormController(props);
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
+  const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
 
   const augmentedFields = React.useMemo(() => {
     return fields.map((field) => {
@@ -45,93 +48,47 @@ export function AdminFormSection(props: AdminFormSectionProps) {
     });
   }, [fields, quickCreateOptions]);
 
-  React.useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const handleLookupCreated = (event: MessageEvent) => {
-      const allowedOrigins = new Set([window.location.origin, "null"]);
-      if (!allowedOrigins.has(event.origin)) {
-        return;
-      }
-      const data = event.data;
-      if (!data || typeof data !== "object" || data.type !== "lookup:create") {
-        return;
-      }
-      const payload = (data as { payload?: unknown }).payload;
-      if (!payload || typeof payload !== "object") {
-        return;
-      }
-      const lookupId = (payload as { lookupId?: unknown }).lookupId;
-      const option = (payload as { option?: unknown }).option;
-      if (typeof lookupId !== "string" || !lookupId) {
-        return;
-      }
-      if (!option || typeof option !== "object") {
-        return;
-      }
-      const optionId = (option as { id?: unknown }).id;
-      const optionValue = (option as { value?: unknown }).value;
-      if (typeof optionId !== "string" || typeof optionValue !== "string") {
+  const handleQuickCreate = React.useCallback(
+    (field: FormFieldConfig) => {
+      const lookupId = field.lookupId?.trim();
+      if (!lookupId) {
+        toast.error("Unable to determine the lookup context.");
         return;
       }
 
-      const targetField = fields.find((field) => field.lookupId === lookupId);
-      if (!targetField) {
+      if (!field.quickCreate?.action) {
+        toast.error("Quick add is not available for this field.");
         return;
       }
 
+      setActiveQuickCreateField(field);
+    },
+    []
+  );
+
+  const handleQuickCreateSuccess = React.useCallback(
+    (field: FormFieldConfig, option: FormFieldOption) => {
       setQuickCreateOptions((previous) => {
-        const existingForField = previous[targetField.name] ?? [];
-        const baseOptions = normalizeList<FormFieldOption>(targetField.options);
+        const existingForField = previous[field.name] ?? [];
+        const baseOptions = normalizeList<FormFieldOption>(field.options);
         const exists =
-          baseOptions.some((item) => item.value === optionId) ||
-          existingForField.some((item) => item.value === optionId);
+          baseOptions.some((item) => item.value === option.value) ||
+          existingForField.some((item) => item.value === option.value);
         if (exists) {
           return previous;
         }
         return {
           ...previous,
-          [targetField.name]: [...existingForField, { label: optionValue, value: optionId }],
+          [field.name]: [...existingForField, option],
         } satisfies Record<string, FormFieldOption[]>;
       });
 
-      form.setValue(targetField.name as never, optionId, {
+      form.setValue(field.name as never, option.value, {
         shouldDirty: true,
         shouldValidate: true,
       });
-
-      const successMessage = targetField.quickCreate?.successMessage;
-      toast.success(successMessage ?? `${optionValue} added`);
-    };
-
-    window.addEventListener("message", handleLookupCreated);
-    return () => window.removeEventListener("message", handleLookupCreated);
-  }, [fields, form]);
-
-  const handleQuickCreate = React.useCallback(
-    (field: FormFieldConfig) => {
-      if (typeof window === "undefined") {
-        return;
-      }
-      const config = field.quickCreate;
-      const popupUrl = config?.popupUrl;
-      if (!popupUrl) {
-        toast.error("Unable to open quick add window.");
-        return;
-      }
-      const width = Math.max(Number(config?.width ?? 480), 320);
-      const height = Math.max(Number(config?.height ?? 520), 360);
-      const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
-      const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
-      window.open(
-        popupUrl,
-        `lookup-create-${field.lookupId ?? field.name}`,
-        `width=${Math.round(width)},height=${Math.round(height)},left=${Math.round(left)},top=${Math.round(top)},resizable=yes`
-      );
     },
-    []
+    [form]
   );
 
   return (
@@ -202,6 +159,34 @@ export function AdminFormSection(props: AdminFormSectionProps) {
       </Form>
 
       {props.footnote && <p className="text-xs text-muted-foreground/80">{props.footnote}</p>}
+
+      <Dialog
+        open={Boolean(activeQuickCreateField)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveQuickCreateField(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          {activeQuickCreateField && (
+            <AdminLookupQuickCreate
+              key={activeQuickCreateField.name}
+              lookupId={activeQuickCreateField.lookupId}
+              lookupLabel={activeQuickCreateField.label}
+              description={activeQuickCreateField.quickCreate?.description ?? undefined}
+              submitLabel={activeQuickCreateField.quickCreate?.submitLabel ?? undefined}
+              successMessage={activeQuickCreateField.quickCreate?.successMessage ?? undefined}
+              action={activeQuickCreateField.quickCreate?.action ?? null}
+              onCancel={() => setActiveQuickCreateField(null)}
+              onSuccess={(option) => {
+                handleQuickCreateSuccess(activeQuickCreateField, option);
+                setActiveQuickCreateField(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

@@ -77,12 +77,19 @@
                   const quickCreateConfig = quickCreate
                     ? {
                         label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,
-                        popupUrl:
-                          quickCreate.popupUrl ??
-                          `/admin/members/manage/lookup-new?lookupId=${encodeURIComponent(lookupId)}&label=${encodeURIComponent(labelText)}`,
-                        width: quickCreate.width ?? 520,
-                        height: quickCreate.height ?? 640,
+                        description:
+                          quickCreate.description ??
+                          `Create a new ${labelText.toLowerCase()} without leaving the form.`,
+                        submitLabel: quickCreate.submitLabel ?? 'Save option',
                         successMessage: quickCreate.successMessage ?? `${labelText} added`,
+                        action: {
+                          id: `quick-create-${lookupId}`,
+                          kind: 'metadata.service',
+                          config: {
+                            handler: 'admin-community.members.manage.lookup.create',
+                            lookupId,
+                          },
+                        },
                       }
                     : null;
                   return {
@@ -322,6 +329,8 @@
                 "lookupId": "membership.stage",
                 "quickCreate": {
                   "label": "Add stage",
+                  "description": "Name the stage and the code will be generated automatically.",
+                  "submitLabel": "Save stage",
                   "successMessage": "Membership stage saved"
                 }
               },
@@ -333,6 +342,8 @@
                 "lookupId": "membership.type",
                 "quickCreate": {
                   "label": "Add membership type",
+                  "description": "Name the membership type and the code will be generated automatically.",
+                  "submitLabel": "Save type",
                   "successMessage": "Membership type saved"
                 }
               },
@@ -344,6 +355,8 @@
                 "lookupId": "membership.center",
                 "quickCreate": {
                   "label": "Add center",
+                  "description": "Name the campus or center and the code will be generated automatically.",
+                  "submitLabel": "Save center",
                   "successMessage": "Center saved"
                 }
               },

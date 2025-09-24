@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "58da3fbe9b06f63a636d477afeecd434998d47a0c4485793445d58c095e11809",
+  "checksum": "9af271edec16ead95cb1c11dc6e43350a908cc1273503b67a558bb518f14d3dc",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -58,7 +58,7 @@
               },
               "fields": {
                 "kind": "expression",
-                "expression": "\n              (() => {\n                const blueprintFields = data.formBlueprint?.fields ?? [];\n                const lookupGroups = data.membershipLookups?.lookups ?? {};\n                return blueprintFields.map((field) => {\n                  const { lookupId, quickCreate, ...config } = field ?? {};\n                  const labelText = String(field?.label ?? 'Option');\n                  if (!lookupId) {\n                    return {\n                      ...config,\n                      ...(quickCreate ? { quickCreate } : {}),\n                    };\n                  }\n                  const lookupItems = lookupGroups[lookupId] ?? [];\n                  const quickCreateConfig = quickCreate\n                    ? {\n                        label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,\n                        popupUrl:\n                          quickCreate.popupUrl ??\n                          `/admin/members/manage/lookup-new?lookupId=${encodeURIComponent(lookupId)}&label=${encodeURIComponent(labelText)}`,\n                        width: quickCreate.width ?? 520,\n                        height: quickCreate.height ?? 640,\n                        successMessage: quickCreate.successMessage ?? `${labelText} added`,\n                      }\n                    : null;\n                  return {\n                    ...config,\n                    lookupId,\n                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),\n                    ...(quickCreateConfig ? { quickCreate: quickCreateConfig } : {}),\n                  };\n                });\n              })()\n            "
+                "expression": "\n              (() => {\n                const blueprintFields = data.formBlueprint?.fields ?? [];\n                const lookupGroups = data.membershipLookups?.lookups ?? {};\n                return blueprintFields.map((field) => {\n                  const { lookupId, quickCreate, ...config } = field ?? {};\n                  const labelText = String(field?.label ?? 'Option');\n                  if (!lookupId) {\n                    return {\n                      ...config,\n                      ...(quickCreate ? { quickCreate } : {}),\n                    };\n                  }\n                  const lookupItems = lookupGroups[lookupId] ?? [];\n                  const quickCreateConfig = quickCreate\n                    ? {\n                        label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,\n                        description:\n                          quickCreate.description ??\n                          `Create a new ${labelText.toLowerCase()} without leaving the form.`,\n                        submitLabel: quickCreate.submitLabel ?? 'Save option',\n                        successMessage: quickCreate.successMessage ?? `${labelText} added`,\n                        action: {\n                          id: `quick-create-${lookupId}`,\n                          kind: 'metadata.service',\n                          config: {\n                            handler: 'admin-community.members.manage.lookup.create',\n                            lookupId,\n                          },\n                        },\n                      }\n                    : null;\n                  return {\n                    ...config,\n                    lookupId,\n                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),\n                    ...(quickCreateConfig ? { quickCreate: quickCreateConfig } : {}),\n                  };\n                });\n              })()\n            "
               },
               "initialValues": {
                 "kind": "expression",
@@ -375,6 +375,8 @@
                 "lookupId": "membership.stage",
                 "quickCreate": {
                   "label": "Add stage",
+                  "description": "Name the stage and the code will be generated automatically.",
+                  "submitLabel": "Save stage",
                   "successMessage": "Membership stage saved"
                 }
               },
@@ -386,6 +388,8 @@
                 "lookupId": "membership.type",
                 "quickCreate": {
                   "label": "Add membership type",
+                  "description": "Name the membership type and the code will be generated automatically.",
+                  "submitLabel": "Save type",
                   "successMessage": "Membership type saved"
                 }
               },
@@ -397,6 +401,8 @@
                 "lookupId": "membership.center",
                 "quickCreate": {
                   "label": "Add center",
+                  "description": "Name the campus or center and the code will be generated automatically.",
+                  "submitLabel": "Save center",
                   "successMessage": "Center saved"
                 }
               },
