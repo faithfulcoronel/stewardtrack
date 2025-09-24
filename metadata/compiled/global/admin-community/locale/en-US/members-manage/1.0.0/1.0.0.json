@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "ceeea22ba95829c21ad144b1f7434b166c4e669bd94ecae9227a71a66969a95a",
+  "checksum": "324c5a4198a725aa63dd76c4f3d594a40ced4bd0426eebdd6059c9bc14fe3053",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -89,7 +89,7 @@
     "dataSources": [
       {
         "id": "membershipRecords",
-        "kind": "static",
+        "kind": "service",
         "config": {
           "value": {
             "records": [
@@ -126,7 +126,7 @@
                 },
                 "carePlan": {
                   "status": "Active",
-                  "stageKey": "active",
+                  "statusKey": "active",
                   "assignedTo": "Pastor Lauren Patel"
                 },
                 "profile": {
@@ -178,7 +178,7 @@
                 },
                 "carePlan": {
                   "status": "Observation",
-                  "stageKey": "observation",
+                  "statusKey": "observation",
                   "assignedTo": "Connections Team"
                 },
                 "profile": {
@@ -233,7 +233,7 @@
                 },
                 "carePlan": {
                   "status": "Resolved",
-                  "stageKey": "resolved",
+                  "statusKey": "resolved",
                   "assignedTo": ""
                 },
                 "profile": {
@@ -258,7 +258,9 @@
                 }
               }
             ]
-          }
+          },
+          "handler": "admin-community.members.manage.membershipRecords",
+          "limit": 5
         }
       },
       {

@@ -132,7 +132,7 @@
       </Region>
     </Regions>
     <DataSources>
-      <DataSource id="membershipRecords" kind="static">
+      <DataSource id="membershipRecords" kind="service">
         <Json><![CDATA[
           {
             "records": [
@@ -147,7 +147,7 @@
                 "giving": { "recurring": { "amount": 900, "frequency": "Monthly", "method": "ACH" }, "pledge": 22000 },
                 "serving": { "team": "Hospitality", "role": "Usher Captain", "schedule": "2nd & 4th Sundays · 8:30a" },
                 "discipleship": { "nextStep": "Mentor two new ushers before Advent." },
-                "carePlan": { "status": "Active", "stageKey": "active", "assignedTo": "Pastor Lauren Patel" },
+                "carePlan": { "status": "Active", "statusKey": "active", "assignedTo": "Pastor Lauren Patel" },
                 "profile": {
                   "fullName": "Avery Johnson",
                   "firstName": "Avery",
@@ -177,7 +177,7 @@
                 "giving": { "recurring": null, "pledge": 0 },
                 "serving": { "team": "Foundations", "role": "Participant", "schedule": "Sundays · 9:30a" },
                 "discipleship": { "nextStep": "Complete covenant interview." },
-                "carePlan": { "status": "Observation", "stageKey": "observation", "assignedTo": "Connections Team" },
+                "carePlan": { "status": "Observation", "statusKey": "observation", "assignedTo": "Connections Team" },
                 "profile": {
                   "fullName": "Elena Ruiz",
                   "firstName": "Elena",
@@ -207,7 +207,7 @@
                 "giving": { "recurring": { "amount": 2000, "frequency": "Monthly", "method": "Card" }, "pledge": 30000 },
                 "serving": { "team": "Groups", "role": "Marriage mentors", "schedule": "1st & 3rd Wednesdays" },
                 "discipleship": { "nextStep": "Launch two new marriage groups in Q1." },
-                "carePlan": { "status": "Resolved", "stageKey": "resolved", "assignedTo": "" },
+                "carePlan": { "status": "Resolved", "statusKey": "resolved", "assignedTo": "" },
                 "profile": {
                   "fullName": "Samuel and Dana Lee",
                   "firstName": "Samuel",
@@ -229,6 +229,10 @@
             ]
           }
         ]]></Json>
+        <Config>
+          <handler>admin-community.members.manage.membershipRecords</handler>
+          <limit>5</limit>
+        </Config>
       </DataSource>
       <DataSource id="formBlueprint" kind="static">
         <Json><![CDATA[

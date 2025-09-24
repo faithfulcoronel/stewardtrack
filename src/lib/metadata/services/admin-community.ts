@@ -30,6 +30,63 @@ type MemberDirectoryRecord = DirectoryMember & {
   updated_at?: string | null;
 };
 
+type MemberManageRecord = {
+  id?: string;
+  fullName?: string;
+  stageKey?: string | null;
+  center?: string | null;
+  centerKey?: string | null;
+  tags?: string[];
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+    preferred?: string | null;
+  };
+  giving?: {
+    recurring?: {
+      amount?: number | null;
+      frequency?: string | null;
+      method?: string | null;
+    } | null;
+    pledge?: number | null;
+  };
+  serving?: {
+    team?: string | null;
+    role?: string | null;
+    schedule?: string | null;
+  };
+  discipleship?: {
+    nextStep?: string | null;
+  };
+  carePlan?: {
+    status?: string | null;
+    statusKey?: string | null;
+    assignedTo?: string | null;
+  };
+  profile?: {
+    fullName?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    membershipType?: string | null;
+    stageKey?: string | null;
+    centerKey?: string | null;
+    joinDate?: string | null;
+    preferredContact?: string | null;
+    careStatus?: string | null;
+    carePastor?: string | null;
+    followUpDate?: string | null;
+    servingTeam?: string | null;
+    servingRole?: string | null;
+    servingSchedule?: string | null;
+    discipleshipNextStep?: string | null;
+    notes?: string | null;
+    tags?: string[] | null;
+  };
+};
+
+type FormMembershipStageKey = 'active' | 'new' | 'care' | 'inactive';
+type CareStatusFormKey = 'active' | 'observation' | 'resolved';
+
 type MembersTableStaticConfig = {
   filters?: unknown;
   actions?: unknown;
@@ -110,6 +167,7 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
 
 const MEMBERS_TABLE_HANDLER_ID = 'admin-community.members.list.membersTable';
 const MEMBERS_PROFILE_HANDLER_ID = 'admin-community.members.profile.memberDirectory';
+const MEMBERS_MANAGE_HANDLER_ID = 'admin-community.members.manage.membershipRecords';
 
 function createMembersDashboardService(): MembersDashboardService {
   const adapter = new MembersDashboardAdapter();
@@ -180,6 +238,141 @@ function mapStageVariant(code: string | undefined | null): string {
   }
 }
 
+function mapMembershipType(code: string | undefined | null): string {
+  const normalized = (code ?? '').toLowerCase();
+  switch (normalized) {
+    case 'new':
+    case 'visitor':
+    case 'guest':
+    case 'prospect':
+    case 'inactive':
+      return 'Attender';
+    case 'care':
+    case 'shepherding':
+    case 'partner_in_process':
+    case 'assimilation':
+    case 'engaged':
+      return 'Partner in process';
+    case 'member':
+    case 'covenant':
+    case 'covenant_member':
+    case 'regular_attender':
+    case 'active':
+    default:
+      return 'Covenant member';
+  }
+}
+
+function normalizeCode(value: string | undefined | null): string {
+  return (value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const STAGE_KEY_MAPPINGS: Array<{ target: FormMembershipStageKey; patterns: RegExp[] }> = [
+  {
+    target: 'inactive',
+    patterns: [/inactive/, /withdrawn/, /removed/, /suspend/, /former/, /lapsed/],
+  },
+  {
+    target: 'care',
+    patterns: [/care/, /shepherd/, /pastoral/, /follow\s*up/, /support/, /process/, /assimilation/, /engaged/],
+  },
+  {
+    target: 'active',
+    patterns: [/active/, /member/, /covenant/, /regular/, /partner/, /connected/, /core/],
+  },
+  {
+    target: 'new',
+    patterns: [/new/, /visitor/, /guest/, /prospect/, /attender/, /first/],
+  },
+];
+
+function mapStageKeyForForm(code: string | undefined | null): FormMembershipStageKey {
+  const normalized = normalizeCode(code);
+  if (!normalized) {
+    return 'new';
+  }
+  for (const mapping of STAGE_KEY_MAPPINGS) {
+    if (mapping.patterns.some((pattern) => pattern.test(normalized))) {
+      return mapping.target;
+    }
+  }
+  return 'new';
+}
+
+const CENTER_TOKEN_SYNONYMS: Record<string, string[]> = {
+  downtown: ['downtown', 'dt', 'central', 'city'],
+  northside: ['northside', 'north', 'uptown'],
+  southridge: ['southridge', 'south', 'ridge'],
+  online: ['online', 'digital', 'broadcast', 'virtual'],
+};
+
+function normalizeCenterTokens(value: string | undefined | null): string[] {
+  if (!value) {
+    return [];
+  }
+  const normalized = value
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/(center|campus|location|site|venue|gathering|service)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!normalized) {
+    return [];
+  }
+  return normalized.split(' ').filter(Boolean);
+}
+
+function mapCenterKeyForForm(
+  code: string | undefined | null,
+  name: string | undefined | null
+): string | null {
+  const candidates: Array<string | undefined | null> = [code, name];
+  for (const candidate of candidates) {
+    const tokens = normalizeCenterTokens(candidate);
+    if (!tokens.length) {
+      continue;
+    }
+    for (const [key, synonyms] of Object.entries(CENTER_TOKEN_SYNONYMS)) {
+      if (tokens.some((token) => synonyms.includes(token))) {
+        return key;
+      }
+    }
+  }
+  return null;
+}
+
+const CARE_STATUS_MAPPINGS: Array<{ target: CareStatusFormKey; patterns: RegExp[] }> = [
+  {
+    target: 'resolved',
+    patterns: [/resolved/, /closed/, /completed/, /inactive/, /released/, /graduated/],
+  },
+  {
+    target: 'active',
+    patterns: [/active/, /urgent/, /crisis/, /escalated/, /support/, /care/, /open/],
+  },
+  {
+    target: 'observation',
+    patterns: [/observation/, /monitor/, /follow\s*up/, /watch/, /pending/, /review/],
+  },
+];
+
+function mapCareStatusKey(code: string | undefined | null): CareStatusFormKey {
+  const normalized = normalizeCode(code);
+  if (!normalized) {
+    return 'observation';
+  }
+  for (const mapping of CARE_STATUS_MAPPINGS) {
+    if (mapping.patterns.some((pattern) => pattern.test(normalized))) {
+      return mapping.target;
+    }
+  }
+  return 'observation';
+}
+
 function cloneMemberRecords(value: unknown): MemberProfileRecord[] {
   if (!isRecord(value)) {
     return [];
@@ -192,6 +385,21 @@ function cloneMemberRecords(value: unknown): MemberProfileRecord[] {
     return structuredClone(records) as MemberProfileRecord[];
   } catch {
     return [...records] as MemberProfileRecord[];
+  }
+}
+
+function cloneManageRecords(value: unknown): MemberManageRecord[] {
+  if (!isRecord(value)) {
+    return [];
+  }
+  const records = (value as { records?: unknown }).records;
+  if (!Array.isArray(records)) {
+    return [];
+  }
+  try {
+    return structuredClone(records) as MemberManageRecord[];
+  } catch {
+    return [...records] as MemberManageRecord[];
   }
 }
 
@@ -397,6 +605,104 @@ function mapMilestones(rows: MemberMilestoneRow[]): string[] {
       return year ? `${label} ${year}` : label;
     })
     .filter((value): value is string => Boolean(value));
+}
+
+function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
+  const stageCode = member.membership_stage?.code ?? null;
+  const stageKey = mapStageKeyForForm(stageCode);
+  const membershipType = mapMembershipType(stageCode ?? stageKey);
+  const centerLabel = member.membership_center?.name ?? null;
+  const centerKey = mapCenterKeyForForm(member.membership_center?.code, member.membership_center?.name);
+  const fullName = formatFullName(member.first_name ?? null, member.last_name ?? null);
+  const preferredName = (member.preferred_name ?? '').trim();
+  const recordName = fullName || preferredName || member.email || 'Member';
+  const preferredContact = mapPreferredContactMethod(member.preferred_contact_method ?? null);
+  const groupTags = Array.isArray(member.small_groups)
+    ? member.small_groups
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value): value is string => Boolean(value))
+    : [];
+  const memberTags = Array.isArray(member.tags)
+    ? member.tags
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value): value is string => Boolean(value))
+    : [];
+  const discipleshipGroup = (member.discipleship_group ?? '').trim();
+  const tags = ensureUnique([
+    ...memberTags,
+    ...groupTags,
+    ...(discipleshipGroup ? [discipleshipGroup] : []),
+  ]);
+  const rawCareStatus = (member.care_status_code ?? '').trim();
+  const careStatusKey = mapCareStatusKey(rawCareStatus);
+  const careStatusLabel = formatLabel(rawCareStatus || careStatusKey, 'Observation');
+  const followUpDate = formatIsoDate(member.care_follow_up_at ?? null) ?? '';
+  const joinDate = formatIsoDate(member.membership_date ?? null) ?? '';
+  const hasRecurringGiving =
+    member.giving_recurring_amount !== null && member.giving_recurring_amount !== undefined
+      ? true
+      : Boolean(
+          (member.giving_recurring_frequency ?? '').trim() ||
+            (member.giving_recurring_method ?? '').trim()
+        );
+  const carePastor = (member.care_pastor ?? '').trim();
+  const notes = (member.pastoral_notes ?? '').trim();
+
+  return {
+    id: member.id,
+    fullName: recordName,
+    stageKey,
+    center: centerLabel,
+    centerKey,
+    tags,
+    contact: {
+      email: member.email ?? null,
+      phone: member.contact_number ?? null,
+      preferred: preferredContact,
+    },
+    giving: {
+      recurring: hasRecurringGiving
+        ? {
+            amount: member.giving_recurring_amount ?? null,
+            frequency: member.giving_recurring_frequency ?? null,
+            method: member.giving_recurring_method ?? null,
+          }
+        : null,
+      pledge: member.giving_pledge_amount ?? null,
+    },
+    serving: {
+      team: member.serving_team ?? null,
+      role: member.serving_role ?? null,
+      schedule: member.serving_schedule ?? null,
+    },
+    discipleship: {
+      nextStep: member.discipleship_next_step ?? null,
+    },
+    carePlan: {
+      status: careStatusLabel,
+      statusKey: careStatusKey,
+      assignedTo: carePastor || null,
+    },
+    profile: {
+      fullName: recordName,
+      firstName: member.first_name ?? '',
+      lastName: member.last_name ?? '',
+      membershipType,
+      stageKey,
+      centerKey: centerKey ?? null,
+      joinDate,
+      preferredContact,
+      careStatus: careStatusKey,
+      carePastor,
+      followUpDate,
+      servingTeam: member.serving_team ?? '',
+      servingRole: member.serving_role ?? '',
+      servingSchedule: member.serving_schedule ?? '',
+      discipleshipNextStep: member.discipleship_next_step ?? '',
+      notes,
+      tags,
+    },
+  } satisfies MemberManageRecord;
 }
 
 function formatFullDate(value: string | null | undefined): string | null {
@@ -642,7 +948,32 @@ async function resolveMemberProfile(
   }
 }
 
+async function resolveMembershipManage(
+  request: ServiceDataSourceRequest
+): Promise<{ records: MemberManageRecord[] }> {
+  const fallback = cloneManageRecords(request.config.value);
+  try {
+    const memberId = firstParam(request.params.memberId);
+    const limit = toNumber(request.config.limit, memberId ? 1 : 5);
+    const service = createMemberProfileService();
+    const members = await service.getMembers({ memberId, limit });
+    if (!members.length) {
+      return { records: fallback };
+    }
+
+    const records = members.map((member) => toMembershipManageRecord(member));
+    return { records };
+  } catch (error) {
+    console.error('Failed to resolve membership manage data source', error);
+    if (fallback.length) {
+      return { records: fallback };
+    }
+    return { records: [] };
+  }
+}
+
 export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = {
   [MEMBERS_TABLE_HANDLER_ID]: resolveMembersTable,
   [MEMBERS_PROFILE_HANDLER_ID]: resolveMemberProfile,
+  [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,
 };
