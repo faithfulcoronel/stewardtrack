@@ -5,13 +5,13 @@ import type { ActionConfig } from '@/components/dynamic/shared';
 import { resolveMetadataActionHandler } from '.';
 import type { MetadataActionExecution, MetadataActionResult } from './types';
 
-interface ExecuteMetadataActionOptions {
+type ExecuteMetadataActionOptions = {
   input?: unknown;
   context?: {
     params?: Record<string, string | string[] | undefined>;
     role?: string | null;
   };
-}
+};
 
 const SERVICE_KIND = 'metadata.service';
 
