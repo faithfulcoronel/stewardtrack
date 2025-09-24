@@ -17,6 +17,12 @@ import {
   type MemberRow,
   type MemberTimelineEventRow,
 } from '@/services/MemberProfileService';
+import {
+  fetchMembershipLookupGroups,
+  formatLabel,
+  type LookupGroups,
+  type LookupItem,
+} from './admin-community/membershipLookups';
 
 import type {
   ServiceDataSourceHandler,
@@ -33,8 +39,13 @@ type MemberDirectoryRecord = DirectoryMember & {
 type MemberManageRecord = {
   id?: string;
   fullName?: string;
+  stageId?: string | null;
   stageKey?: string | null;
+  membershipTypeId?: string | null;
+  membershipTypeKey?: string | null;
+  membershipTypeLabel?: string | null;
   center?: string | null;
+  centerId?: string | null;
   centerKey?: string | null;
   tags?: string[];
   contact?: {
@@ -68,7 +79,11 @@ type MemberManageRecord = {
     firstName?: string | null;
     lastName?: string | null;
     membershipType?: string | null;
+    membershipTypeId?: string | null;
+    membershipTypeKey?: string | null;
+    stageId?: string | null;
     stageKey?: string | null;
+    centerId?: string | null;
     centerKey?: string | null;
     joinDate?: string | null;
     preferredContact?: string | null;
@@ -168,6 +183,7 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
 const MEMBERS_TABLE_HANDLER_ID = 'admin-community.members.list.membersTable';
 const MEMBERS_PROFILE_HANDLER_ID = 'admin-community.members.profile.memberDirectory';
 const MEMBERS_MANAGE_HANDLER_ID = 'admin-community.members.manage.membershipRecords';
+const MEMBERS_LOOKUPS_HANDLER_ID = 'admin-community.members.manage.lookups';
 
 function createMembersDashboardService(): MembersDashboardService {
   const adapter = new MembersDashboardAdapter();
@@ -403,6 +419,45 @@ function cloneManageRecords(value: unknown): MemberManageRecord[] {
   }
 }
 
+function cloneLookupGroups(value: unknown): LookupGroups {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const groups = (value as { lookups?: unknown }).lookups;
+  if (!isRecord(groups)) {
+    return {};
+  }
+  const result: LookupGroups = {};
+  for (const [key, raw] of Object.entries(groups)) {
+    if (!Array.isArray(raw)) {
+      continue;
+    }
+    const items: LookupItem[] = [];
+    for (const entry of raw) {
+      if (!isRecord(entry)) {
+        continue;
+      }
+      const idValue = entry.id;
+      const labelValue = entry.value;
+      const id = typeof idValue === 'number' ? String(idValue) : typeof idValue === 'string' ? idValue.trim() : '';
+      const label =
+        typeof labelValue === 'number'
+          ? String(labelValue)
+          : typeof labelValue === 'string'
+            ? labelValue.trim()
+            : '';
+      if (!id || !label) {
+        continue;
+      }
+      items.push({ id, value: label });
+    }
+    if (items.length) {
+      result[key] = items;
+    }
+  }
+  return result;
+}
+
 function firstParam(value: unknown): string | null {
   if (typeof value === 'string') {
     return value;
@@ -422,18 +477,6 @@ function filterNonEmpty(values: Array<string | null | undefined>): string[] {
 
 function formatFullName(first?: string | null, last?: string | null): string {
   return filterNonEmpty([first, last]).join(' ');
-}
-
-function formatLabel(value: string | undefined | null, fallback: string): string {
-  const raw = (value ?? '').trim();
-  if (!raw) {
-    return fallback;
-  }
-  return raw
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 }
 
 function mapPreferredContactMethod(method: string | undefined | null): string {
@@ -608,9 +651,14 @@ function mapMilestones(rows: MemberMilestoneRow[]): string[] {
 }
 
 function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
+  const stageId = member.membership_stage?.id ?? null;
   const stageCode = member.membership_stage?.code ?? null;
   const stageKey = mapStageKeyForForm(stageCode);
-  const membershipType = mapMembershipType(stageCode ?? stageKey);
+  const membershipTypeId = member.membership_type?.id ?? null;
+  const membershipTypeCode = member.membership_type?.code ?? null;
+  const membershipTypeLabel = (member.membership_type?.name ?? '').trim() ||
+    mapMembershipType(membershipTypeCode ?? stageCode ?? stageKey);
+  const centerId = member.membership_center?.id ?? null;
   const centerLabel = member.membership_center?.name ?? null;
   const centerKey = mapCenterKeyForForm(member.membership_center?.code, member.membership_center?.name);
   const fullName = formatFullName(member.first_name ?? null, member.last_name ?? null);
@@ -651,8 +699,13 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   return {
     id: member.id,
     fullName: recordName,
+    stageId,
     stageKey,
+    membershipTypeId,
+    membershipTypeKey: membershipTypeCode ?? null,
+    membershipTypeLabel,
     center: centerLabel,
+    centerId,
     centerKey,
     tags,
     contact: {
@@ -687,8 +740,12 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       fullName: recordName,
       firstName: member.first_name ?? '',
       lastName: member.last_name ?? '',
-      membershipType,
+      membershipType: membershipTypeLabel,
+      membershipTypeId,
+      membershipTypeKey: membershipTypeCode ?? null,
+      stageId,
       stageKey,
+      centerId,
       centerKey: centerKey ?? null,
       joinDate,
       preferredContact,
@@ -948,6 +1005,28 @@ async function resolveMemberProfile(
   }
 }
 
+async function resolveMembershipLookups(
+  request: ServiceDataSourceRequest
+): Promise<{ lookups: LookupGroups }> {
+  const fallback = cloneLookupGroups(request.config.value);
+  try {
+    const lookups = await fetchMembershipLookupGroups(request);
+    if (Object.keys(lookups).length > 0) {
+      return { lookups };
+    }
+    if (Object.keys(fallback).length > 0) {
+      return { lookups: fallback };
+    }
+    return { lookups: {} };
+  } catch (error) {
+    console.error('Failed to resolve membership lookup data source', error);
+    if (Object.keys(fallback).length) {
+      return { lookups: fallback };
+    }
+    return { lookups: {} };
+  }
+}
+
 async function resolveMembershipManage(
   request: ServiceDataSourceRequest
 ): Promise<{ records: MemberManageRecord[] }> {
@@ -975,5 +1054,6 @@ async function resolveMembershipManage(
 export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = {
   [MEMBERS_TABLE_HANDLER_ID]: resolveMembersTable,
   [MEMBERS_PROFILE_HANDLER_ID]: resolveMemberProfile,
+  [MEMBERS_LOOKUPS_HANDLER_ID]: resolveMembershipLookups,
   [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,
 };

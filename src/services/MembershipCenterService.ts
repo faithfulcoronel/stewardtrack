@@ -1,18 +1,20 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
+
 import { TYPES } from '@/lib/types';
-import type { IMembershipStageRepository } from '@/repositories/membershipStage.repository';
-import type { MembershipStage } from '@/models/membershipStage.model';
 import type { QueryOptions } from '@/adapters/base.adapter';
-import { tenantUtils } from '@/utils/tenantUtils';
 import type { CrudService } from '@/services/CrudService';
+import type { IMembershipCenterRepository } from '@/repositories/membershipCenter.repository';
+import type { MembershipCenter } from '@/models/membershipCenter.model';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 @injectable()
-export class MembershipStageService
-  implements CrudService<MembershipStage> {
+export class MembershipCenterService
+  implements CrudService<MembershipCenter>
+{
   constructor(
-    @inject(TYPES.IMembershipStageRepository)
-    private repo: IMembershipStageRepository,
+    @inject(TYPES.IMembershipCenterRepository)
+    private readonly repo: IMembershipCenterRepository,
   ) {}
 
   find(options: QueryOptions = {}) {
@@ -28,7 +30,7 @@ export class MembershipStageService
   }
 
   create(
-    data: Partial<MembershipStage>,
+    data: Partial<MembershipCenter>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
@@ -37,7 +39,7 @@ export class MembershipStageService
 
   update(
     id: string,
-    data: Partial<MembershipStage>,
+    data: Partial<MembershipCenter>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
@@ -48,30 +50,24 @@ export class MembershipStageService
     return this.repo.delete(id);
   }
 
-  async getActive(): Promise<MembershipStage[]> {
+  async getActive(): Promise<MembershipCenter[]> {
     const tenantId = await tenantUtils.getTenantId();
 
     const options: Omit<QueryOptions, 'pagination'> = {
-      select: 'id,code,name,sort_order',
+      select: 'id,code,name,is_primary,sort_order',
       filters: {
         is_active: { operator: 'eq', value: true },
       },
       order: { column: 'sort_order', ascending: true },
     };
 
-    if (!tenantId) return [];
+    if (!tenantId) {
+      return [];
+    }
 
     options.filters!.tenant_id = { operator: 'eq', value: tenantId };
+
     const { data } = await this.repo.findAll(options);
-    return (data ?? []).slice().sort((a, b) => {
-      const orderA = typeof a.sort_order === 'number' ? a.sort_order : Number.MAX_SAFE_INTEGER;
-      const orderB = typeof b.sort_order === 'number' ? b.sort_order : Number.MAX_SAFE_INTEGER;
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-      const nameA = (a.name ?? '').toLocaleLowerCase();
-      const nameB = (b.name ?? '').toLocaleLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    return data ?? [];
   }
 }

@@ -60,20 +60,40 @@
         <Component id="manage-form" type="AdminFormSection">
           <Props>
             <Prop name="title" kind="static">Membership details</Prop>
-            <Prop name="fields" kind="binding" source="formBlueprint" path="fields" />
+            <Prop name="fields" kind="expression"><![CDATA[
+              (() => {
+                const blueprintFields = data.formBlueprint?.fields ?? [];
+                const lookupGroups = data.membershipLookups?.lookups ?? {};
+                return blueprintFields.map((field) => {
+                  const { lookupId, ...config } = field ?? {};
+                  if (!lookupId) {
+                    return config;
+                  }
+                  const lookupItems = lookupGroups[lookupId] ?? [];
+                  return {
+                    ...config,
+                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),
+                  };
+                });
+              })()
+            ]]></Prop>
             <Prop name="initialValues" kind="expression"><![CDATA[
               (() => {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
+                const lookupGroups = data.membershipLookups?.lookups ?? {};
+                const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';
+                const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';
+                const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
                 if (!params.memberId) {
                   return {
                     firstName: '',
                     lastName: '',
                     email: '',
                     phone: '',
-                    stage: 'new',
-                    membershipType: 'Covenant member',
-                    center: 'downtown',
+                    stage: defaultStageId,
+                    membershipType: defaultTypeId,
+                    center: defaultCenterId,
                     joinDate: '',
                     preferredContact: 'Email',
                     recurringGiving: '',
@@ -97,9 +117,9 @@
                   lastName: profile.lastName ?? '',
                   email: record.contact?.email ?? '',
                   phone: record.contact?.phone ?? '',
-                  stage: profile.stageKey ?? record.stageKey ?? 'new',
-                  membershipType: profile.membershipType ?? 'Covenant member',
-                  center: profile.centerKey ?? record.centerKey ?? 'downtown',
+                  stage: profile.stageId ?? record.stageId ?? defaultStageId,
+                  membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
+                  center: profile.centerId ?? record.centerId ?? defaultCenterId,
                   joinDate: profile.joinDate ?? '',
                   preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',
                   recurringGiving: record.giving?.recurring?.amount ?? '',
@@ -141,6 +161,7 @@
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
                 "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
                 "center": "Downtown Center",
                 "centerKey": "downtown",
                 "tags": ["Hospitality Team", "Leadership Cohort"],
@@ -154,6 +175,7 @@
                   "firstName": "Avery",
                   "lastName": "Johnson",
                   "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
                   "joinDate": "2016-03-14",
                   "preferredContact": "Text",
                   "careStatus": "active",
@@ -171,6 +193,7 @@
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
                 "stageKey": "new",
+                "membershipTypeKey": "attender",
                 "center": "Northside Center",
                 "centerKey": "northside",
                 "tags": ["Foundations Track"],
@@ -184,6 +207,7 @@
                   "firstName": "Elena",
                   "lastName": "Ruiz",
                   "membershipType": "Attender",
+                  "membershipTypeKey": "attender",
                   "joinDate": "",
                   "preferredContact": "Phone",
                   "careStatus": "observation",
@@ -201,6 +225,7 @@
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
                 "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
                 "center": "Southridge Center",
                 "centerKey": "southridge",
                 "tags": ["Marriage Mentors"],
@@ -214,6 +239,7 @@
                   "firstName": "Samuel",
                   "lastName": "Lee",
                   "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
                   "joinDate": "2009-05-18",
                   "preferredContact": "Email",
                   "careStatus": "resolved",
@@ -235,6 +261,34 @@
           <limit>5</limit>
         </Config>
       </DataSource>
+      <DataSource id="membershipLookups" kind="service">
+        <Json><![CDATA[
+          {
+            "lookups": {
+              "membership.stage": [
+                { "id": "active", "value": "Active member" },
+                { "id": "new", "value": "New here" },
+                { "id": "care", "value": "Shepherding" },
+                { "id": "inactive", "value": "Inactive" }
+              ],
+              "membership.type": [
+                { "id": "covenant-member", "value": "Covenant member" },
+                { "id": "attender", "value": "Attender" },
+                { "id": "partner-process", "value": "Partner in process" }
+              ],
+              "membership.center": [
+                { "id": "downtown", "value": "Downtown" },
+                { "id": "northside", "value": "Northside" },
+                { "id": "southridge", "value": "Southridge" },
+                { "id": "online", "value": "Online" }
+              ]
+            }
+          }
+        ]]></Json>
+        <Config>
+          <handler>admin-community.members.manage.lookups</handler>
+        </Config>
+      </DataSource>
       <DataSource id="formBlueprint" kind="static">
         <Json><![CDATA[
           {
@@ -248,35 +302,21 @@
                 "label": "Membership stage",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  { "label": "Active member", "value": "active" },
-                  { "label": "New here", "value": "new" },
-                  { "label": "Shepherding", "value": "care" },
-                  { "label": "Inactive", "value": "inactive" }
-                ]
+                "lookupId": "membership.stage"
               },
               {
                 "name": "membershipType",
                 "label": "Membership type",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  { "label": "Covenant member", "value": "Covenant member" },
-                  { "label": "Attender", "value": "Attender" },
-                  { "label": "Partner in process", "value": "Partner in process" }
-                ]
+                "lookupId": "membership.type"
               },
               {
                 "name": "center",
                 "label": "Center",
                 "type": "select",
                 "colSpan": "half",
-                "options": [
-                  { "label": "Downtown", "value": "downtown" },
-                  { "label": "Northside", "value": "northside" },
-                  { "label": "Southridge", "value": "southridge" },
-                  { "label": "Online", "value": "online" }
-                ]
+                "lookupId": "membership.center"
               },
               { "name": "joinDate", "label": "Join date", "type": "date", "colSpan": "half" },
               {

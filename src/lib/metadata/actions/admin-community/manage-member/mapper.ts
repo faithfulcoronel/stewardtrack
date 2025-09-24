@@ -81,9 +81,9 @@ export class MemberFormMapper {
     }
 
     const phone = this.cleanString(values.phone);
-    const stageKey = this.toStageKey(values.stage);
-    const membershipType = this.cleanString(values.membershipType)?.toLowerCase() ?? null;
-    const centerKey = this.cleanString(values.center)?.toLowerCase() ?? null;
+    const stageValue = this.cleanString(values.stage);
+    const membershipTypeValue = this.cleanString(values.membershipType);
+    const centerValue = this.cleanString(values.center);
     const joinDate = this.toDateString(values.joinDate);
     const preferredContact = this.toPreferredContact(values.preferredContact);
     const recurringGiving = this.toNumeric(values.recurringGiving);
@@ -98,9 +98,9 @@ export class MemberFormMapper {
     const notes = this.cleanString(values.notes);
     const tags = this.toTags(values.tags);
 
-    const stageId = this.findStageId(resources.stages, stageKey);
-    const typeId = this.findTypeId(resources.types, membershipType);
-    const centerId = centerKey === null ? null : this.findCenterId(resources.centers, centerKey);
+    const stageId = this.findStageId(resources.stages, stageValue);
+    const typeId = this.findTypeId(resources.types, membershipTypeValue);
+    const centerId = centerValue === null ? null : this.findCenterId(resources.centers, centerValue);
 
     const payload: Partial<Member> = {
       first_name: firstName,
@@ -133,7 +133,7 @@ export class MemberFormMapper {
       payload.membership_type_id = typeId;
     }
 
-    if (centerKey === null) {
+    if (centerValue === null) {
       payload.membership_center_id = null;
     } else if (centerId) {
       payload.membership_center_id = centerId;
@@ -226,11 +226,41 @@ export class MemberFormMapper {
       .filter((item) => item.length > 0);
   }
 
-  private findStageId(stages: MemberManageResources["stages"], stageKey: FormStageKey | null): string | null {
-    if (!stageKey || !stages.length) {
+  private findStageId(stages: MemberManageResources["stages"], stageValue: string | null): string | null {
+    if (!stages.length || !stageValue) {
       return null;
     }
 
+    const trimmed = stageValue.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const directId = stages.find((stage) => stage.id === trimmed);
+    if (directId) {
+      return directId.id;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const directMatch = stages.find(
+      (stage) => stage.code?.toLowerCase() === normalized || stage.name?.toLowerCase() === normalized,
+    );
+    if (directMatch) {
+      return directMatch.id;
+    }
+
+    const stageKey = this.toStageKey(trimmed);
+    if (!stageKey) {
+      return null;
+    }
+
+    return this.findStageIdByKey(stages, stageKey);
+  }
+
+  private findStageIdByKey(
+    stages: MemberManageResources["stages"],
+    stageKey: FormStageKey,
+  ): string | null {
     const normalizedKey = stageKey.toLowerCase();
     const direct = stages.find(
       (stage) => stage.code?.toLowerCase() === normalizedKey || stage.name?.toLowerCase() === normalizedKey,
@@ -260,11 +290,21 @@ export class MemberFormMapper {
   }
 
   private findTypeId(types: MemberManageResources["types"], membershipType: string | null): string | null {
-    if (!membershipType || !types.length) {
+    if (!types.length || !membershipType) {
       return null;
     }
 
-    const normalized = membershipType.toLowerCase();
+    const trimmed = membershipType.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const directId = types.find((type) => type.id === trimmed);
+    if (directId) {
+      return directId.id;
+    }
+
+    const normalized = trimmed.toLowerCase();
     const direct = types.find(
       (type) => type.code?.toLowerCase() === normalized || type.name?.toLowerCase() === normalized,
     );
@@ -294,12 +334,22 @@ export class MemberFormMapper {
     return types[0]?.id ?? null;
   }
 
-  private findCenterId(centers: MemberManageResources["centers"], centerKey: string | null): string | null {
-    if (!centerKey || !centers.length) {
+  private findCenterId(centers: MemberManageResources["centers"], centerValue: string | null): string | null {
+    if (!centers.length || !centerValue) {
       return null;
     }
 
-    const normalized = centerKey.toLowerCase();
+    const trimmed = centerValue.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const directId = centers.find((center) => center.id === trimmed);
+    if (directId) {
+      return directId.id;
+    }
+
+    const normalized = trimmed.toLowerCase();
     const direct = centers.find(
       (center) => center.code?.toLowerCase() === normalized || center.name?.toLowerCase() === normalized,
     );
