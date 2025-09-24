@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-24T19:31:39.644Z",
+  "generatedAt": "2025-09-24T22:39:09.676Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -77,7 +77,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.1.0",
-      "checksum": "e2dcedde2df0b051e57e8e7f851f03f5a4f4d89efa73abfd7e6f604e6dcb6dac",
+      "checksum": "de46f9da9e93a1f152adbd11bdbeef11335e03ebcb3c99a49c43ede9abd88325",
       "layer": {
         "module": "admin-community",
         "route": "members/manage",
@@ -87,14 +87,14 @@
         "locale": "en-US"
       },
       "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-manage.xml",
-      "compiledPath": "metadata\\compiled\\global\\admin-community\\locale\\en-US\\members-manage\\1.0.0\\1.1.0.json"
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage/1.0.0/1.1.0.json"
     },
     "global::admin-community::members/profile::-::-::en-US": {
       "key": "global::admin-community::members/profile::-::-::en-US",
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "8d34a47ffbf9d0b93a67bf20be63302af2162873950243ce34ef5ab68fb63e94",
+      "checksum": "2d24795c598b6e9129926967610f3be742740429d909522b11184fd2955de6c7",
       "layer": {
         "module": "admin-community",
         "route": "members/profile",
@@ -104,7 +104,7 @@
         "locale": "en-US"
       },
       "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-profile.xml",
-      "compiledPath": "metadata\\compiled\\global\\admin-community\\locale\\en-US\\members-profile\\1.0.0\\1.0.0.json"
+      "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-profile/1.0.0/1.0.0.json"
     },
     "global::marketing::home::-::-::en-US": {
       "key": "global::marketing::home::-::-::en-US",
