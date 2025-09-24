@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "6f80cde873b73f441a9f5f0d7566b19412f245096243723380bf251c59af7e87",
+  "checksum": "e9e814214409353679961c6d29a7f43b354df4c478b1fe421c9df08916a0b745",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -215,5 +215,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-services-guild.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-services-guild.xml"
 }

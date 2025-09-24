@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "92eac0e599e05e96e31f35fef16dcbd83a0c015c4134828d8895b174bd3154ef",
+  "checksum": "79545534c0f1dd112b4fdca48aeaa44e768ac9bf647354cf43f5b9599b1d68a9",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/support-hub",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-support-hub.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-support-hub/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-support-hub.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-support-hub\\1.0.0\\1.0.0.json"
 }

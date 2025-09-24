@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "037288956d2cf9b197778672f0fa40317fdc621392838d5287b0e0a06f13e937",
+  "checksum": "880b2c60e6c7ba516401a1db65b461489d2c131c42a06f2950d43ee5354ea486",
   "layer": {
     "module": "marketing",
     "route": "home",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/marketing/home.xml",
-  "compiledPath": "metadata/compiled/global/marketing/locale/en-US/home/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml",
+  "compiledPath": "metadata\\compiled\\global\\marketing\\locale\\en-US\\home\\1.0.0\\1.0.0.json"
 }

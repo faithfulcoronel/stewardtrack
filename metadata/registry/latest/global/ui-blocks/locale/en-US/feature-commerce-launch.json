@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "cc178c5f9bff60ccada81fd381b4b6501169b2a461bd317cbef1045d587a2df7",
+  "checksum": "c897f573c7b2fe42f1607b191ee62e243b091d2dd2776005c11e2a3ace1fe470",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/commerce-launch",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-commerce-launch.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-commerce-launch/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-commerce-launch.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-commerce-launch\\1.0.0\\1.0.0.json"
 }

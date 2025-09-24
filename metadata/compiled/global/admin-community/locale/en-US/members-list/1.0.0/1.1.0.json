@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "ab7d64fbd14a97669002f85e108e2eab9594719167270988bf028c9d355bbaca",
+  "checksum": "09fcf4d46e50cdc9285746a40414d374dffe838efb0d10a64f1ed9c9b401a8b1",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -194,6 +194,7 @@
               {
                 "id": "query",
                 "type": "search",
+                "label": "Search members",
                 "placeholder": "Search name, household, or email",
                 "fields": [
                   "name",
@@ -377,5 +378,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-list.xml"
 }

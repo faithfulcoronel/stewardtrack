@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "b689cae47c4487aaf27fb6af03738cee743f476900d21ac6b107ef4e695c50d2",
+  "checksum": "f40941edc0820dcc2f0160937b82a0ee1a758d05a2bb4deaa8330b3a996add29",
   "layer": {
     "module": "ui-blocks",
     "route": "bento/analytics-pulse",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-analytics-pulse.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-analytics-pulse/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-analytics-pulse.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-analytics-pulse\\1.0.0\\1.0.0.json"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "00b40c19ad57bc47e062dcb2cbf97a12c609eec5a724a672e8b57699862f1f2f",
+  "checksum": "eef0b502bfff61e8f7810f4253231984b4edf8a917c4ac99da934f54aaa45286",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -118,5 +118,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-security-checklist.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-security-checklist.xml"
 }

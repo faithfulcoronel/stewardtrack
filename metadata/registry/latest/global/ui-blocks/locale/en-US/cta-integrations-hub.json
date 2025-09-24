@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d093147a83f85e4d4238e077cdb7f361d66fbe5163043b27099af2328681abfe",
+  "checksum": "bf6616ec38a782983fbbeebe400ceca0272e4f87498a96be225642d94b061650",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/integrations-hub",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-integrations-hub.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-integrations-hub/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-integrations-hub.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-integrations-hub\\1.0.0\\1.0.0.json"
 }

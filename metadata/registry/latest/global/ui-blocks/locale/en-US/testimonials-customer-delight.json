@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "8e3f4ea63e50bb368bb4de4282780b57f205baf6640066c30a09fbaf36e7c432",
+  "checksum": "c1a73db3b7f371ce969ac34a264935eb712e6d2bc16fc0526a49da6844e47b63",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/customer-delight",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-customer-delight.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-customer-delight/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-customer-delight.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-customer-delight\\1.0.0\\1.0.0.json"
 }

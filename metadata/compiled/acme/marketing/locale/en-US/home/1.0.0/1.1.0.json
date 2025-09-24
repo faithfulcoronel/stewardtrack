@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "ea8a6af6576fd43ed52d659bd81b3866ab2dd9626261c390f1ef0867dda0d729",
+  "checksum": "0682f60c7d823ed70041826d80c998b04fe1a7953e4508b1a9178ef78369aa35",
   "kind": "overlay",
   "layer": {
     "module": "marketing",
@@ -423,5 +423,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/overlays/acme/marketing/home.xml"
+  "sourcePath": "metadata\\authoring\\overlays\\acme\\marketing\\home.xml"
 }

@@ -93,6 +93,7 @@
               {
                 "id": "query",
                 "type": "search",
+                "label": "Search members",
                 "placeholder": "Search name, household, or email",
                 "fields": ["name", "household", "email", "phone"]
               },

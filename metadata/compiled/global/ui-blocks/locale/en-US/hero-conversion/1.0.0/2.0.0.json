@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "5743e6b276b2616d91bc3bdc0c29cdfa4ac0290a49c7115065813532d084a2c5",
+  "checksum": "68ae50669297553300a165a76050a5654ed4fbcbb5736220f2f315f9012e6911",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -106,5 +106,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-conversion.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-conversion.xml"
 }

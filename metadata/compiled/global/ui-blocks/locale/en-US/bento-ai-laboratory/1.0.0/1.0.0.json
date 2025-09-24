@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "926a68ec660c5ffd08af2983a59aae25042198d07bdf9388dcc5ad47a5973c75",
+  "checksum": "1a07e96711021cacd07fd50707f540664975fbe8c09a0c0472b7057c6cc2f0ea",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -167,5 +167,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-ai-laboratory.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-ai-laboratory.xml"
 }

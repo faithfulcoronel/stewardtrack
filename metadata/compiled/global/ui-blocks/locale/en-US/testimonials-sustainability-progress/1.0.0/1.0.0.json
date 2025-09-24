@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "c96337c6cbd38a519d61a598ebd49964edf52284767890a9f729069abdfc3342",
+  "checksum": "b50403eada4a17649305e976f7ebbe6a77d52fffa3ba8b748c3c91a7b90f7b5a",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -121,5 +121,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-sustainability-progress.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-sustainability-progress.xml"
 }

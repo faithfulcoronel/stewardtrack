@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "0a164e9cd3bd297bf6d02503a6b55a2c774d680b1bcc443714b3ece107ac43f1",
+  "checksum": "fa48e0a140995d4537a98be3b621ffc0602f1e27d3cd89503470d5910720c9cf",
   "layer": {
     "module": "ui-blocks",
     "route": "newsletter/minimal",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-minimal.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-minimal/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-minimal.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\newsletter-minimal\\1.0.0\\1.0.0.json"
 }

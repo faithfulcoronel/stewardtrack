@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "3bc1680a7513fa97ee0fc7ea25185221b8fc1a0071a39419d39224035c130591",
+  "checksum": "1adf39e9e7fe0d31c477fcc44a41e0757e21c6c906aaf513e5347ac1b5be5790",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -87,5 +87,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-announcement-bar.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-announcement-bar.xml"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "59dfdfd605bef889abd7c1bb2d7e82068c71a77d241cae5ef8dd5e18461e0f2c",
+  "checksum": "467f9eb14654f6ee3b74bae4e051447a77e7742128737f4a8c6efb59d5d5b2d9",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -121,5 +121,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-healthcare-outcomes.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-healthcare-outcomes.xml"
 }

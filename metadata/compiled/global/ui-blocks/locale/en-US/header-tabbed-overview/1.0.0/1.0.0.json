@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "ef9a5a442e1a06cc94f7de799c285fdf51c695e2b7612453485d87f45cc466e1",
+  "checksum": "1eb8f8e8823382f5f857fe614c4a6f1056603fec47dd65b47bcecbc81e396459",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -99,5 +99,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-tabbed-overview.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-tabbed-overview.xml"
 }

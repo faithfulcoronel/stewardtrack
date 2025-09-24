@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "5af178a3aa9aa60be10a9cf6b68a23b368c7c25eb33df2fe7525cfdf2bb0f08d",
+  "checksum": "26d303f345c688e2ff997a561d72823acd63eb3eb07151fdd5715495529de81a",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/enterprise-confidence",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-enterprise-confidence.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-enterprise-confidence/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-enterprise-confidence.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-enterprise-confidence\\1.0.0\\1.0.0.json"
 }

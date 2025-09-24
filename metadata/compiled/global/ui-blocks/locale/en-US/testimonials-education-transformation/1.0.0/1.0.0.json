@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "bfa6022058911df0b51f33309a79c410923ad80e80463a6f2ca6c36ca78dc88f",
+  "checksum": "709e6a059d56dda8beccc109db83503e9474a1feda54a02e1780cb7c6e2a2392",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -117,5 +117,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-education-transformation.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-education-transformation.xml"
 }

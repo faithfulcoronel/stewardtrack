@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d0771bb632b6eb97a8bfaf9f22b49e9c476f5e521f4bf3cba4fe9919d9ef28c2",
+  "checksum": "d01f07f58be43e9a34fdef01d92788e05e9b06a023b83e50735bc147c72e899a",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -135,5 +135,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-event.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-event.xml"
 }

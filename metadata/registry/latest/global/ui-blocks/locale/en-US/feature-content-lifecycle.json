@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "5d57d0073f568d9a80c741479eb5ff2ff5c8b304428cbaa56c2f600211bb2c7d",
+  "checksum": "97b21677d29ecbfb3cc2ec6eca42a3f9651fe01f1078931570572b8d47ab09d1",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/content-lifecycle",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-content-lifecycle.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-content-lifecycle/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-content-lifecycle.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-content-lifecycle\\1.0.0\\1.0.0.json"
 }

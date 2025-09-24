@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "de9cf9ae435a52ec0e7ca228cd6939d79006a7d97da50cf92799cf9472b1f94f",
+  "checksum": "812f63d923abd30ab785c6acf44c986e149c088e3f43c90f68718c68cc797d4f",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -99,5 +99,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-gradient-orbit.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-gradient-orbit.xml"
 }

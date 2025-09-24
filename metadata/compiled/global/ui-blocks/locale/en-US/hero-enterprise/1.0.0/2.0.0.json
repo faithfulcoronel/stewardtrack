@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "2f11f7bed496e4eb84423ef333aa9dcc3ea9580caac819b7e810d0d7716bb366",
+  "checksum": "ec1581b30934de5189e0e028b2d62b3744fe8c4de9dac8a00db9053cb9f9112f",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -107,5 +107,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-enterprise.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-enterprise.xml"
 }

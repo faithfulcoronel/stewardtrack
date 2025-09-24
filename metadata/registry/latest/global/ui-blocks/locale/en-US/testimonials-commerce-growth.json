@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "90c2314d07e26e99ad8264a9ef784e110678b859fbee592578b0da8b86deb6da",
+  "checksum": "e703e7c6cf1eb5fd2757285cf41e3a851f12c1efda2671428056b65fa09a3eeb",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/commerce-growth",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-commerce-growth.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-commerce-growth/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-commerce-growth.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-commerce-growth\\1.0.0\\1.0.0.json"
 }

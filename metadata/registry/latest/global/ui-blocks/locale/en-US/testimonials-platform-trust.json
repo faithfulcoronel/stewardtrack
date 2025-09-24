@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "3cca3b8935d8bb528fc6f12a6a0610f338e260685453826456fe9d25150e34f9",
+  "checksum": "dca15350bccf987f813916b18ce643d4d77cdec3a4483befd10f1d2310a07f05",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/platform-trust",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-platform-trust.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-platform-trust/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-platform-trust.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-platform-trust\\1.0.0\\1.0.0.json"
 }

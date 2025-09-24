@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "a40b197c533c9720fe95fb182f6f0a3c21579f9a013da82fc3ba05889026b528",
+  "checksum": "10b68a1d662d021c905acbfb26a2c4eddfd3f8c97fd4f1d5452cbc513e7c3356",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -63,7 +63,7 @@
               },
               "initialValues": {
                 "kind": "expression",
-                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    status: 'new',\n                    membershipType: 'Covenant member',\n                    center: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  status: profile.stageKey ?? record.stageKey ?? 'new',\n                  membershipType: profile.membershipType ?? 'Covenant member',\n                  center: profile.centerKey ?? record.centerKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    stage: 'new',\n                    membershipType: 'Covenant member',\n                    center: 'downtown',\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  stage: profile.stageKey ?? record.stageKey ?? 'new',\n                  membershipType: profile.membershipType ?? 'Covenant member',\n                  center: profile.centerKey ?? record.centerKey ?? 'downtown',\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
               },
               "mode": {
                 "kind": "expression",
@@ -125,7 +125,7 @@
                   "nextStep": "Mentor two new ushers before Advent."
                 },
                 "carePlan": {
-                  "stage": "Active",
+                  "status": "Active",
                   "stageKey": "active",
                   "assignedTo": "Pastor Lauren Patel"
                 },
@@ -177,7 +177,7 @@
                   "nextStep": "Complete covenant interview."
                 },
                 "carePlan": {
-                  "stage": "Observation",
+                  "status": "Observation",
                   "stageKey": "observation",
                   "assignedTo": "Connections Team"
                 },
@@ -232,7 +232,7 @@
                   "nextStep": "Launch two new marriage groups in Q1."
                 },
                 "carePlan": {
-                  "stage": "Resolved",
+                  "status": "Resolved",
                   "stageKey": "resolved",
                   "assignedTo": ""
                 },
@@ -478,5 +478,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-manage.xml"
 }
