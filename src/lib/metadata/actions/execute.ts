@@ -5,7 +5,7 @@ import type { ActionConfig } from '@/components/dynamic/shared';
 import { resolveMetadataActionHandler } from '.';
 import type { MetadataActionExecution, MetadataActionResult } from './types';
 
-type ExecuteMetadataActionOptions = {
+export type ExecuteMetadataActionOptions = {
   input?: unknown;
   context?: {
     params?: Record<string, string | string[] | undefined>;
@@ -71,4 +71,3 @@ export async function executeMetadataAction(
   return result;
 }
 
-export type { ExecuteMetadataActionOptions };
