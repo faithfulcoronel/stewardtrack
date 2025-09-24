@@ -6,6 +6,7 @@ import { Member } from '@/models/member.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { FieldValidationError } from '@/utils/errorHandler';
 
 export interface IMemberAdapter extends IBaseAdapter<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
@@ -191,7 +192,7 @@ export class MemberAdapter
       });
 
       if (existingMember?.length) {
-        throw new Error('A member with this email already exists');
+        throw new FieldValidationError('email', 'A member with this email already exists');
       }
     }
 
@@ -207,7 +208,7 @@ export class MemberAdapter
     // Validate email if being updated
     if (data.email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-        throw new Error('Invalid email format');
+        throw new FieldValidationError('email', 'Invalid email format');
       }
 
       // Check for duplicate email
@@ -225,7 +226,7 @@ export class MemberAdapter
       });
 
       if (existingMember?.length) {
-        throw new Error('A member with this email already exists');
+        throw new FieldValidationError('email', 'A member with this email already exists');
       }
     }
 

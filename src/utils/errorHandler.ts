@@ -10,6 +10,20 @@ export class TenantContextError extends Error {
   }
 }
 
+export class FieldValidationError extends Error {
+  readonly field: string;
+
+  readonly messages: string[];
+
+  constructor(field: string, messages: string | string[]) {
+    const list = Array.isArray(messages) ? messages : [messages];
+    super(list[0] ?? 'This value is invalid');
+    this.name = 'FieldValidationError';
+    this.field = field;
+    this.messages = list;
+  }
+}
+
 export function handleError(error: unknown, ctx?: ErrorContext): Error {
   const baseError =
     error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Unknown error');
