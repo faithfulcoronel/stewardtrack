@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { renderAction } from "../shared";
+import type { ActionConfig } from "../shared";
 import { AdminLookupQuickCreate } from "./AdminLookupQuickCreate";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -19,6 +20,7 @@ import type {
   AdminFormSectionProps,
   FormFieldConfig,
   FormFieldOption,
+  FormFieldQuickCreateConfig,
 } from "./types";
 
 export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./types";
@@ -30,19 +32,35 @@ export function AdminFormSection(props: AdminFormSectionProps) {
 
   const augmentedFields = React.useMemo(() => {
     return fields.map((field) => {
-      const additional = quickCreateOptions[field.name] ?? [];
-      if (!additional.length || field.type !== "select") {
-        return field;
+      const quickCreate = ensureQuickCreateAction(field);
+      let resultField: FormFieldConfig = field;
+
+      if (quickCreate && quickCreate !== field.quickCreate) {
+        resultField = {
+          ...resultField,
+          quickCreate,
+        } satisfies FormFieldConfig;
       }
-      const baseOptions = normalizeList<FormFieldOption>(field.options);
+
+      if (field.type !== "select") {
+        return resultField;
+      }
+
+      const additional = quickCreateOptions[field.name] ?? [];
+      if (!additional.length) {
+        return resultField;
+      }
+
+      const baseOptions = normalizeList<FormFieldOption>(resultField.options);
       const merged = [...baseOptions];
       for (const option of additional) {
         if (!merged.some((item) => item.value === option.value)) {
           merged.push(option);
         }
       }
+
       return {
-        ...field,
+        ...resultField,
         options: merged,
       } satisfies FormFieldConfig;
     });
@@ -61,7 +79,11 @@ export function AdminFormSection(props: AdminFormSectionProps) {
         return;
       }
 
-      setActiveQuickCreateField(field);
+      const quickCreate = ensureQuickCreateAction(field);
+      setActiveQuickCreateField({
+        ...field,
+        ...(quickCreate ? { quickCreate } : {}),
+      });
     },
     []
   );
@@ -189,4 +211,34 @@ export function AdminFormSection(props: AdminFormSectionProps) {
       </Dialog>
     </section>
   );
+}
+
+function ensureQuickCreateAction(field: FormFieldConfig): FormFieldQuickCreateConfig | null {
+  const quickCreate = field.quickCreate ?? null;
+  if (!quickCreate) {
+    return null;
+  }
+
+  if (quickCreate.action) {
+    return quickCreate;
+  }
+
+  const lookupId = field.lookupId?.trim();
+  if (!lookupId) {
+    return quickCreate;
+  }
+
+  const action: ActionConfig = {
+    id: `quick-create-${lookupId}`,
+    kind: "metadata.service",
+    config: {
+      handler: "admin-community.members.manage.lookup.create",
+      lookupId,
+    },
+  };
+
+  return {
+    ...quickCreate,
+    action,
+  } satisfies FormFieldQuickCreateConfig;
 }
