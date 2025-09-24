@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeFloater } from "@/components/theme/theme-floater";
+import { Toaster } from "@/components/ui/sonner";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ThemeFloater />
           {children}
+          <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
       </body>
     </html>

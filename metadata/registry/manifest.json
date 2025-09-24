@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-24T12:26:01.850Z",
+  "generatedAt": "2025-09-24T13:47:40.037Z",
   "entries": {
     "acme::marketing::home::-::-::en-US": {
       "key": "acme::marketing::home::-::-::en-US",
@@ -60,7 +60,7 @@
       "kind": "blueprint",
       "schemaVersion": "1.0.0",
       "contentVersion": "1.0.0",
-      "checksum": "1dd5665616cf67e62f99e325204310e9b0969263f1997f20ad4a496492fa6702",
+      "checksum": "aaaf4f7cff2da5372c0258f37fc33b2fc57a0f1375f1221710bb631aff8de052",
       "layer": {
         "module": "admin-community",
         "route": "members/manage",
