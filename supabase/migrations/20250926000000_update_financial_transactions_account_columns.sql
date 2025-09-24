@@ -807,7 +807,10 @@ BEGIN
     ft.description,
     ft.debit,
     ft.credit,
-    SUM(ft.debit - ft.credit) OVER (ORDER BY ft.date, ft.id) AS running_balance
+    SUM(ft.debit - ft.credit) OVER (
+      PARTITION BY ft.coa_id
+      ORDER BY ft.date, ft.id
+    ) AS running_balance
   FROM financial_transactions ft
   JOIN chart_of_accounts coa ON ft.coa_id = coa.id
   WHERE ft.tenant_id = p_tenant_id
@@ -1408,7 +1411,7 @@ BEGIN
     LEFT JOIN categories c ON ft.category_id = c.id
     LEFT JOIN funds f ON ft.fund_id = f.id
     LEFT JOIN financial_sources fs ON ft.source_id = fs.id
-    LEFT JOIN membership_status ms ON m.membership_status_id = ms.id
+    LEFT JOIN membership_stage ms ON m.membership_status_id = ms.id
     LEFT JOIN membership_type mt ON m.membership_type_id = mt.id
     LEFT JOIN chart_of_accounts coa ON ft.coa_id = coa.id
     WHERE m.tenant_id = get_user_tenant_id()
