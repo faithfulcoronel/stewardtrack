@@ -26,8 +26,12 @@ export function useAdminFormController(props: AdminFormSectionProps) {
     mode: "onBlur",
   });
 
+  const [formErrors, setFormErrors] = React.useState<string[]>([]);
+
   React.useEffect(() => {
     form.reset(defaultValues);
+    form.clearErrors();
+    setFormErrors([]);
   }, [form, defaultValues]);
 
   const router = useRouter();
@@ -54,6 +58,7 @@ export function useAdminFormController(props: AdminFormSectionProps) {
   const submitHandler = React.useMemo(
     () =>
       new AdminFormSubmitHandler({
+        form,
         action: props.submitAction ?? null,
         mode: props.mode ?? null,
         metadataExecutor,
@@ -61,8 +66,10 @@ export function useAdminFormController(props: AdminFormSectionProps) {
         navigator,
         contextParams,
         role: metadataContext.role ?? null,
+        onFormErrors: setFormErrors,
       }),
     [
+      form,
       props.submitAction,
       props.mode,
       metadataExecutor,
@@ -85,6 +92,7 @@ export function useAdminFormController(props: AdminFormSectionProps) {
     fields,
     form,
     handleSubmit,
+    formErrors,
   };
 }
 

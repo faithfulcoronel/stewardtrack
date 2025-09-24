@@ -1,5 +1,8 @@
+import type { UseFormReturn } from "react-hook-form";
+
 import type { ActionConfig } from "../../shared";
 import type { MetadataActionResult } from "@/lib/metadata/actions";
+import type { MetadataActionErrorBag } from "@/lib/metadata/actions/types";
 
 import type { AdminFormMode } from "../types";
 
@@ -45,6 +48,7 @@ interface SubmitSuccessContext {
 }
 
 interface AdminFormSubmitHandlerOptions {
+  form: UseFormReturn<Record<string, unknown>>;
   action: ActionConfig | null | undefined;
   mode: AdminFormMode | null;
   metadataExecutor: MetadataActionExecutor;
@@ -52,9 +56,12 @@ interface AdminFormSubmitHandlerOptions {
   navigator: NavigationService;
   contextParams: Record<string, string | string[]>;
   role: string | null;
+  onFormErrors?: (errors: string[]) => void;
 }
 
 export class AdminFormSubmitHandler {
+  private readonly form: UseFormReturn<Record<string, unknown>>;
+
   private readonly action: ActionConfig | null | undefined;
 
   private readonly mode: AdminFormMode | null;
@@ -71,7 +78,10 @@ export class AdminFormSubmitHandler {
 
   private readonly contextRole: string | null;
 
+  private readonly handleFormErrors: ((errors: string[]) => void) | null;
+
   constructor(options: AdminFormSubmitHandlerOptions) {
+    this.form = options.form;
     this.action = options.action;
     this.mode = options.mode ?? null;
     this.metadataExecutor = options.metadataExecutor;
@@ -80,9 +90,12 @@ export class AdminFormSubmitHandler {
     this.contextParams = options.contextParams;
     this.settings = this.resolveSubmitActionSettings(options.action);
     this.contextRole = options.role ?? null;
+    this.handleFormErrors = options.onFormErrors ?? null;
   }
 
   async handleSubmit(values: Record<string, unknown>): Promise<void> {
+    this.clearServerErrors();
+
     const payload = this.buildActionPayload(values);
     const contextIdentifier = this.resolveIdentifier(this.contextParams);
     const defaultSuccessMessage = this.resolveSuccessMessage();
@@ -117,15 +130,21 @@ export class AdminFormSubmitHandler {
       });
     } catch (error) {
       console.error("Failed to submit admin form", error);
+      if (this.tryApplyMetadataErrors(error)) {
+        return;
+      }
+
       const message =
         error instanceof Error && error.message
           ? error.message
           : this.settings.errorMessage ?? "Saving changes failed. Please try again in a moment.";
-      this.notifier.error(message);
+      this.applyFormErrors([message]);
     }
   }
 
   private handleSuccess(context: SubmitSuccessContext) {
+    this.notifyFormErrors([]);
+
     const toastMessage = context.message ?? context.defaultMessage;
     if (toastMessage) {
       this.notifier.success(toastMessage);
@@ -396,5 +415,84 @@ export class AdminFormSubmitHandler {
 
   private isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  private clearServerErrors(): void {
+    this.form.clearErrors();
+    this.notifyFormErrors([]);
+  }
+
+  private notifyFormErrors(errors: string[]): void {
+    this.handleFormErrors?.(errors);
+  }
+
+  private tryApplyMetadataErrors(error: unknown): boolean {
+    const result = this.extractMetadataResult(error);
+    if (!result) {
+      return false;
+    }
+
+    const errorBag: MetadataActionErrorBag | null | undefined = result.errors;
+    const fieldErrors = this.applyFieldErrors(errorBag?.fieldErrors);
+    const formErrors = this.applyFormErrors(
+      errorBag?.formErrors && errorBag.formErrors.length
+        ? errorBag.formErrors
+        : result.message
+          ? [result.message]
+          : [],
+    );
+
+    if (!fieldErrors && !formErrors) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private extractMetadataResult(error: unknown): MetadataActionResult | null {
+    if (!error || typeof error !== "object") {
+      return null;
+    }
+
+    const result = (error as { result?: MetadataActionResult | null | undefined }).result;
+    if (!result || typeof result !== "object") {
+      return null;
+    }
+
+    return result;
+  }
+
+  private applyFieldErrors(
+    errors: MetadataActionErrorBag["fieldErrors"] | null | undefined,
+  ): boolean {
+    if (!errors) {
+      return false;
+    }
+
+    let hasApplied = false;
+    let shouldFocus = true;
+    for (const [field, messages] of Object.entries(errors)) {
+      if (!messages?.length) {
+        continue;
+      }
+
+      hasApplied = true;
+      this.form.setError(field as never, { type: "server", message: messages.join(" ") }, { shouldFocus });
+      if (shouldFocus) {
+        shouldFocus = false;
+      }
+    }
+
+    return hasApplied;
+  }
+
+  private applyFormErrors(messages: string[] | null | undefined): boolean {
+    const normalized = messages?.filter((message) => message.trim().length > 0) ?? [];
+    if (!normalized.length) {
+      return false;
+    }
+
+    this.notifyFormErrors(normalized);
+    return true;
   }
 }

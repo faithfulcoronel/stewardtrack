@@ -2,7 +2,15 @@
 
 import * as React from "react";
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { normalizeList } from "../shared";
@@ -13,6 +21,7 @@ import { renderAction } from "../shared";
 import type { ActionConfig } from "../shared";
 import { AdminLookupQuickCreate } from "./AdminLookupQuickCreate";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { useAdminFormController } from "./useAdminFormController";
 import { renderFieldInput, type ControllerRender } from "./fieldRenderers";
@@ -26,7 +35,7 @@ import type {
 export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./types";
 
 export function AdminFormSection(props: AdminFormSectionProps) {
-  const { fields, form, handleSubmit } = useAdminFormController(props);
+  const { fields, form, handleSubmit, formErrors } = useAdminFormController(props);
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
   const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
 
@@ -127,6 +136,20 @@ export function AdminFormSection(props: AdminFormSectionProps) {
           onSubmit={handleSubmit}
           className="space-y-8 rounded-3xl border border-border/60 bg-background p-6 shadow-sm"
         >
+          {formErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertTitle>We couldn&apos;t save your changes</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc space-y-1 pl-4">
+                  {formErrors.map((error, index) => (
+                    <li key={index} className="text-sm">
+                      {error}
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="grid gap-6 sm:grid-cols-2">
             {augmentedFields.map((field) => (
               <FormField

@@ -21,6 +21,11 @@ export interface MetadataActionContext {
   role: string;
 }
 
+export interface MetadataActionErrorBag {
+  fieldErrors?: Record<string, string[]>;
+  formErrors?: string[];
+}
+
 export interface MetadataActionResult {
   success: boolean;
   message?: string | null;
@@ -32,6 +37,7 @@ export interface MetadataActionResult {
   data?: Record<string, unknown> | null;
   /** HTTP status that best represents the result. */
   status?: number;
+  errors?: MetadataActionErrorBag | null;
 }
 
 export type MetadataActionHandler = (

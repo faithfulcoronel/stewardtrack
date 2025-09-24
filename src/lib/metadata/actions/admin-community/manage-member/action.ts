@@ -7,6 +7,7 @@ import { ManageMemberRequestParser } from "./request";
 import { MemberManageResourceFactory } from "./resourceFactory";
 import { MemberFormMapper } from "./mapper";
 import { ManageMemberResultBuilder } from "./result";
+import { FieldValidationError, handleError } from "@/utils/errorHandler";
 
 export class ManageMemberAction {
   constructor(
@@ -62,11 +63,35 @@ export class ManageMemberAction {
         },
       } satisfies MetadataActionResult;
     } catch (error) {
-      console.error("Failed to persist membership changes", error);
+      const baseError = handleError(error, {
+        context: "manage-member.persist",
+        memberId: request.memberId ?? null,
+        mode: request.mode ?? null,
+      });
+
+      if (baseError instanceof FieldValidationError) {
+        return {
+          success: false,
+          status: 400,
+          message: baseError.message,
+          errors: {
+            fieldErrors: {
+              [baseError.field]: baseError.messages,
+            },
+          },
+        } satisfies MetadataActionResult;
+      }
+
+      const fallbackMessage = "Something went wrong while saving the member. Please try again.";
+      const formMessage = baseError.message?.trim() || fallbackMessage;
+
       return {
         success: false,
         status: 500,
-        message: "Something went wrong while saving the member. Please try again.",
+        message: fallbackMessage,
+        errors: {
+          formErrors: [formMessage],
+        },
       } satisfies MetadataActionResult;
     }
   }
