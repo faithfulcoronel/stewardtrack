@@ -12,6 +12,26 @@ import { toast } from "sonner";
 import type { AdminFormSectionProps, FormFieldConfig } from "./types";
 import { AdminFormSubmitHandler, type MetadataActionExecutor, type NavigationService, type NotificationService } from "./submit/AdminFormSubmitHandler";
 
+function isTagsField(field: FormFieldConfig): boolean {
+  return field.type === "tags" || field.name === "tags";
+}
+
+function normalizeTags(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item : String(item ?? "")))
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+  if (value === null || value === undefined) {
+    return [];
+  }
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
 export function useAdminFormController(props: AdminFormSectionProps) {
   const fields = React.useMemo(() => normalizeList<FormFieldConfig>(props.fields), [props.fields]);
   const defaultValues = React.useMemo(
@@ -105,11 +125,15 @@ function buildDefaultValues(
   for (const field of fields) {
     const incoming = initialValues[field.name];
     if (incoming !== undefined) {
-      values[field.name] = incoming;
+      values[field.name] = isTagsField(field) ? normalizeTags(incoming) : incoming;
       continue;
     }
     if (field.defaultValue !== undefined) {
-      values[field.name] = field.defaultValue;
+      values[field.name] = isTagsField(field) ? normalizeTags(field.defaultValue) : field.defaultValue;
+      continue;
+    }
+    if (isTagsField(field)) {
+      values[field.name] = [];
       continue;
     }
     values[field.name] = field.type === "toggle" ? false : "";
