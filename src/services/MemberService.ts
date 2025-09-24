@@ -20,7 +20,7 @@ import type { IMemberRepository } from '@/repositories/member.repository';
 import type { IAccountRepository } from '@/repositories/account.repository';
 import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
 import type { Member } from '@/models/member.model';
-import { QueryOptions } from '@/adapters/base.adapter';
+import { QueryOptions, FilterCondition } from '@/adapters/base.adapter';
 import type { CrudService } from '@/services/CrudService';
 import { MemberValidator } from '@/validators/member.validator';
 import { validateOrThrow } from '@/utils/validation';
@@ -99,7 +99,7 @@ export class MemberService implements CrudService<Member> {
     return this.repo.getCurrentUserMember();
   }
 
-  private async getAccountId(memberId: string): Promise<string | null> {
+  private async getMemberAccountIds(memberId: string): Promise<string[]> {
     const { data } = await this.accountRepo.findAll({
       select: 'id',
       filters: {
@@ -107,12 +107,20 @@ export class MemberService implements CrudService<Member> {
         member_id: { operator: 'eq', value: memberId },
       },
     });
-    return data?.[0]?.id ?? null;
+    return (data || []).map(account => account.id);
+  }
+
+  private buildAccountFilter(accountIds: string[]): FilterCondition | null {
+    if (!accountIds.length) return null;
+    if (accountIds.length === 1) {
+      return { operator: 'eq', value: accountIds[0] };
+    }
+    return { operator: 'isAnyOf', value: accountIds };
   }
 
   async getFinancialTotals(memberId: string) {
-    const accountId = await this.getAccountId(memberId);
-    if (!accountId)
+    const accountIds = await this.getMemberAccountIds(memberId);
+    if (!accountIds.length)
       return {
         year: 0,
         month: 0,
@@ -122,6 +130,22 @@ export class MemberService implements CrudService<Member> {
         weekChange: 0,
       };
 
+    const accountFilter = this.buildAccountFilter(accountIds);
+    if (!accountFilter)
+      return {
+        year: 0,
+        month: 0,
+        week: 0,
+        yearChange: 0,
+        monthChange: 0,
+        weekChange: 0,
+      };
+
+    const memberAccountFilter: FilterCondition = {
+      operator: 'eq',
+      value: memberId,
+    };
+
     const today = new Date();
     const fetchRange = (start: Date, end: Date) =>
       this.ftRepo
@@ -129,7 +153,8 @@ export class MemberService implements CrudService<Member> {
           select: 'credit',
           filters: {
             deleted_at: { operator: 'isEmpty', value: true },
-            account_id: { operator: 'eq', value: accountId },
+            account_id: accountFilter,
+            'accounts.member_id': memberAccountFilter,
             'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
             type: { operator: 'eq', value: 'income' },
             credit: { operator: 'gt', value: 0 },
@@ -194,8 +219,18 @@ export class MemberService implements CrudService<Member> {
     memberId: string,
     range: 'current' | 'thisYear' | 'lastYear' = 'current',
   ) {
-    const accountId = await this.getAccountId(memberId);
-    if (!accountId) return [] as { month: string; contributions: number }[];
+    const accountIds = await this.getMemberAccountIds(memberId);
+    if (!accountIds.length)
+      return [] as { month: string; contributions: number }[];
+
+    const accountFilter = this.buildAccountFilter(accountIds);
+    if (!accountFilter)
+      return [] as { month: string; contributions: number }[];
+
+    const memberAccountFilter: FilterCondition = {
+      operator: 'eq',
+      value: memberId,
+    };
 
     const today = new Date();
     let months: { start: Date; end: Date; label: string }[] = [];
@@ -239,7 +274,8 @@ export class MemberService implements CrudService<Member> {
             select: 'credit',
             filters: {
               deleted_at: { operator: 'isEmpty', value: true },
-              account_id: { operator: 'eq', value: accountId },
+              account_id: accountFilter,
+              'accounts.member_id': memberAccountFilter,
               'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
               type: { operator: 'eq', value: 'income' },
               credit: { operator: 'gt', value: 0 },
@@ -264,14 +300,23 @@ export class MemberService implements CrudService<Member> {
   }
 
   async getRecentTransactions(memberId: string, limit = 10) {
-    const accountId = await this.getAccountId(memberId);
-    if (!accountId) return [];
+    const accountIds = await this.getMemberAccountIds(memberId);
+    if (!accountIds.length) return [];
+
+    const accountFilter = this.buildAccountFilter(accountIds);
+    if (!accountFilter) return [];
+
+    const memberAccountFilter: FilterCondition = {
+      operator: 'eq',
+      value: memberId,
+    };
     const { data } = await this.ftRepo.find({
       select:
         'id, date, description, credit, header_id, category:category_id(name), fund:fund_id(name, code)',
       filters: {
         deleted_at: { operator: 'isEmpty', value: true },
-        account_id: { operator: 'eq', value: accountId },
+        account_id: accountFilter,
+        'accounts.member_id': memberAccountFilter,
         'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
         type: { operator: 'eq', value: 'income' },
         credit: { operator: 'gt', value: 0 },
@@ -284,23 +329,32 @@ export class MemberService implements CrudService<Member> {
   }
 
   async getTransactionsInRange(memberId: string, from: Date, to: Date) {
-    const accountId = await this.getAccountId(memberId);
-    if (!accountId) return [];
+    const accountIds = await this.getMemberAccountIds(memberId);
+    if (!accountIds.length) return [];
+
+    const accountFilter = this.buildAccountFilter(accountIds);
+    if (!accountFilter) return [];
+
+    const memberAccountFilter: FilterCondition = {
+      operator: 'eq',
+      value: memberId,
+    };
 
     const { data } = await this.ftRepo.find({
       select:
         'id, date, description, credit, header_id, category:category_id(name), fund:fund_id(name, code)',
-        filters: {
-          deleted_at: { operator: 'isEmpty', value: true },
-          account_id: { operator: 'eq', value: accountId },
-          'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
-          type: { operator: 'eq', value: 'income' },
-          credit: { operator: 'gt', value: 0 },
-          date: {
-            operator: 'between',
-            value: format(startOfDay(from), 'yyyy-MM-dd'),
-            valueTo: format(endOfDay(to), 'yyyy-MM-dd'),
-          },
+      filters: {
+        deleted_at: { operator: 'isEmpty', value: true },
+        account_id: accountFilter,
+        'accounts.member_id': memberAccountFilter,
+        'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
+        type: { operator: 'eq', value: 'income' },
+        credit: { operator: 'gt', value: 0 },
+        date: {
+          operator: 'between',
+          value: format(startOfDay(from), 'yyyy-MM-dd'),
+          valueTo: format(endOfDay(to), 'yyyy-MM-dd'),
+        },
       },
       order: { column: 'date', ascending: false },
     });

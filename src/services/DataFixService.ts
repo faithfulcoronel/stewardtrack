@@ -142,6 +142,12 @@ export class DataFixService {
             value: ie.account_id,
           };
         }
+        if (ie.member_id) {
+          filters['accounts.member_id'] = {
+            operator: 'eq',
+            value: ie.member_id,
+          };
+        }
         if (ie.fund_id) {
           filters.fund_id = { operator: 'eq', value: ie.fund_id };
         }

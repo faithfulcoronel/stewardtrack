@@ -78,8 +78,8 @@ export class DonationImportService {
           category_id: category.id,
           source_id: null,
           amount,
-          source_account_id: null,
-          category_account_id: category.chart_of_account_id ?? null,
+          source_coa_id: null,
+          category_coa_id: category.chart_of_account_id ?? null,
         };
 
         await this.ieService.create(header, [entry]);
