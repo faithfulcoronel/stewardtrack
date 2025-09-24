@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "324c5a4198a725aa63dd76c4f3d594a40ced4bd0426eebdd6059c9bc14fe3053",
+  "checksum": "aaaf4f7cff2da5372c0258f37fc33b2fc57a0f1375f1221710bb631aff8de052",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -72,6 +72,10 @@
               "submitLabel": {
                 "kind": "expression",
                 "expression": "params.memberId ? 'Save changes' : 'Create member'"
+              },
+              "submitAction": {
+                "kind": "action",
+                "actionId": "save-member"
               },
               "cancelAction": {
                 "kind": "expression",
@@ -476,6 +480,18 @@
               }
             ]
           }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "save-member",
+        "kind": "metadata.service",
+        "config": {
+          "Handler": "admin-community.members.manage.saveMember",
+          "CreateMessage": "New member record drafted.",
+          "UpdateMessage": "Member record updated.",
+          "RedirectTemplate": "/admin/members/{{ memberId }}"
         }
       }
     ]

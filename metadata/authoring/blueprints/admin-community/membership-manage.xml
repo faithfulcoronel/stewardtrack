@@ -118,6 +118,7 @@
             ]]></Prop>
             <Prop name="mode" kind="expression"><![CDATA[params.memberId ? 'edit' : 'create']]></Prop>
             <Prop name="submitLabel" kind="expression"><![CDATA[params.memberId ? 'Save changes' : 'Create member']]></Prop>
+            <Prop name="submitAction" kind="action" actionId="save-member" />
             <Prop name="cancelAction" kind="expression"><![CDATA[
               (() => {
                 if (params.memberId) {
@@ -315,5 +316,15 @@
         ]]></Json>
       </DataSource>
     </DataSources>
+    <Actions>
+      <Action id="save-member" kind="metadata.service">
+        <Config>
+          <Handler>admin-community.members.manage.saveMember</Handler>
+          <CreateMessage>New member record drafted.</CreateMessage>
+          <UpdateMessage>Member record updated.</UpdateMessage>
+          <RedirectTemplate>/admin/members/{{ memberId }}</RedirectTemplate>
+        </Config>
+      </Action>
+    </Actions>
   </Page>
 </PageDefinition>
