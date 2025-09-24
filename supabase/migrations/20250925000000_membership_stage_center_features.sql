@@ -642,18 +642,9 @@ BEGIN
       RAISE EXCEPTION 'header_id is required for % operations', v_operation;
     END IF;
 
-    SELECT h.*, credit_row.member_id
-    INTO v_existing_header, v_existing_member_id
+    SELECT h.*
+    INTO v_existing_header
     FROM financial_transaction_headers h
-    LEFT JOIN LATERAL (
-      SELECT ft.member_id
-      FROM financial_transactions ft
-      WHERE ft.header_id = h.id
-        AND ft.credit > 0
-        AND ft.deleted_at IS NULL
-      ORDER BY ft.date DESC, ft.created_at DESC
-      LIMIT 1
-    ) credit_row ON TRUE
     WHERE h.id = v_header_id
       AND h.deleted_at IS NULL
     FOR UPDATE;
@@ -667,6 +658,16 @@ BEGIN
     END IF;
 
     v_tenant_id := v_existing_header.tenant_id;
+
+    SELECT ft.member_id
+    INTO v_existing_member_id
+    FROM financial_transactions ft
+    WHERE ft.header_id = v_header_id
+      AND ft.credit > 0
+      AND ft.deleted_at IS NULL
+    ORDER BY ft.date DESC, ft.created_at DESC
+    LIMIT 1;
+
     v_member_id := COALESCE((p_transaction->>'member_id')::uuid, v_existing_member_id);
 
     IF v_member_id IS NULL THEN
