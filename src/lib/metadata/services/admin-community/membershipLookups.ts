@@ -15,13 +15,33 @@ import { tenantUtils } from '@/utils/tenantUtils';
 import type { MembershipStage } from '@/models/membershipStage.model';
 import type { MembershipType } from '@/models/membershipType.model';
 import type { MembershipCenter } from '@/models/membershipCenter.model';
+import type { FormFieldOption } from '@/components/dynamic/admin/types';
 
 export type LookupItem = { id: string; value: string };
 export type LookupGroups = Record<string, LookupItem[]>;
 
+type LookupRecord = { id?: string | null; name?: string | null; code?: string | null } & Record<string, unknown>;
+
 type StageRecord = Pick<MembershipStage, 'id' | 'name' | 'code' | 'sort_order'>;
 type TypeRecord = Pick<MembershipType, 'id' | 'name' | 'code' | 'sort_order'>;
 type CenterRecord = Pick<MembershipCenter, 'id' | 'name' | 'code' | 'sort_order' | 'is_primary'>;
+
+export interface LookupServiceInstance<TRecord extends LookupRecord = LookupRecord> {
+  getActive: () => Promise<TRecord[]>;
+  create: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
+}
+
+type LookupServiceFactory<TRecord extends LookupRecord = LookupRecord> = (
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+) => LookupServiceInstance<TRecord>;
+
+interface MembershipLookupDefinition<TRecord extends LookupRecord = LookupRecord> {
+  id: string;
+  fallbackLabel: string;
+  createService: LookupServiceFactory<TRecord>;
+  sortRecords?: (records: TRecord[]) => TRecord[];
+}
 
 export function formatLabel(value: string | undefined | null, fallback: string): string {
   const raw = (value ?? '').trim();
@@ -35,10 +55,7 @@ export function formatLabel(value: string | undefined | null, fallback: string):
     .join(' ');
 }
 
-function mapLookupRows<T extends { id?: string | null; name?: string | null; code?: string | null }>(
-  rows: T[],
-  fallback: string
-): LookupItem[] {
+function mapLookupRows<T extends LookupRecord>(rows: T[], fallback: string): LookupItem[] {
   const seen = new Set<string>();
   const items: LookupItem[] = [];
 
@@ -63,7 +80,7 @@ function applyRequestContext(adapter: BaseAdapter<any>, context: RequestContext)
   (adapter as unknown as { context: RequestContext }).context = context;
 }
 
-function createRequestContext(tenantId: string, role: string | null): RequestContext {
+export function createMembershipLookupRequestContext(tenantId: string, role: string | null): RequestContext {
   const context: RequestContext = {
     tenantId,
   };
@@ -75,21 +92,30 @@ function createRequestContext(tenantId: string, role: string | null): RequestCon
   return context;
 }
 
-function createMembershipStageService(context: RequestContext, auditService: SupabaseAuditService) {
+export function createMembershipStageService(
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+): LookupServiceInstance<StageRecord> {
   const adapter = new MembershipStageAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipStageRepository(adapter);
   return new MembershipStageService(repository);
 }
 
-function createMembershipTypeService(context: RequestContext, auditService: SupabaseAuditService) {
+export function createMembershipTypeService(
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+): LookupServiceInstance<TypeRecord> {
   const adapter = new MembershipTypeAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipTypeRepository(adapter);
   return new MembershipTypeService(repository);
 }
 
-function createMembershipCenterService(context: RequestContext, auditService: SupabaseAuditService) {
+export function createMembershipCenterService(
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+): LookupServiceInstance<CenterRecord> {
   const adapter = new MembershipCenterAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipCenterRepository(adapter);
@@ -116,6 +142,50 @@ function sortCenters(records: CenterRecord[]): CenterRecord[] {
   });
 }
 
+const membershipLookupDefinitions: Record<string, MembershipLookupDefinition> = {
+  'membership.stage': {
+    id: 'membership.stage',
+    fallbackLabel: 'Member stage',
+    createService: createMembershipStageService,
+  },
+  'membership.type': {
+    id: 'membership.type',
+    fallbackLabel: 'Membership type',
+    createService: createMembershipTypeService,
+  },
+  'membership.center': {
+    id: 'membership.center',
+    fallbackLabel: 'Center',
+    createService: createMembershipCenterService,
+    sortRecords: sortCenters,
+  },
+};
+
+export function resolveMembershipLookupDefinition(
+  lookupId: string,
+): MembershipLookupDefinition | null {
+  return membershipLookupDefinitions[lookupId] ?? null;
+}
+
+export function mapMembershipLookupOption(
+  record: Record<string, unknown>,
+  fallback: string,
+): FormFieldOption | null {
+  const id = typeof record.id === 'string' ? record.id.trim() : null;
+  const name = typeof record.name === 'string' ? record.name.trim() : '';
+  const code = typeof record.code === 'string' ? record.code.trim() : '';
+
+  if (!id && !code) {
+    return null;
+  }
+
+  const value = id ?? code;
+  return {
+    value,
+    label: name || formatLabel(code || value, fallback),
+  };
+}
+
 export async function fetchMembershipLookupGroups(
   request: ServiceDataSourceRequest
 ): Promise<LookupGroups> {
@@ -125,24 +195,19 @@ export async function fetchMembershipLookupGroups(
   }
 
   const role = (request.role ?? '').trim() || null;
-  const context = createRequestContext(tenantId, role);
+  const context = createMembershipLookupRequestContext(tenantId, role);
   const auditService = new SupabaseAuditService();
+  const entries = Object.values(membershipLookupDefinitions);
+  const results: LookupGroups = {};
 
-  const stageService = createMembershipStageService(context, auditService);
-  const typeService = createMembershipTypeService(context, auditService);
-  const centerService = createMembershipCenterService(context, auditService);
+  await Promise.all(
+    entries.map(async (definition) => {
+      const service = definition.createService(context, auditService);
+      const records = (await service.getActive()) as LookupRecord[];
+      const sorted = definition.sortRecords ? definition.sortRecords(records as any) : records;
+      results[definition.id] = mapLookupRows(sorted, definition.fallbackLabel);
+    }),
+  );
 
-  const [stageRecords, typeRecords, centerRecords] = await Promise.all([
-    stageService.getActive() as Promise<StageRecord[]>,
-    typeService.getActive() as Promise<TypeRecord[]>,
-    centerService.getActive() as Promise<CenterRecord[]>,
-  ]);
-
-  const centers = sortCenters(centerRecords);
-
-  return {
-    'membership.stage': mapLookupRows(stageRecords, 'Member stage'),
-    'membership.type': mapLookupRows(typeRecords, 'Membership type'),
-    'membership.center': mapLookupRows(centers, 'Center'),
-  };
+  return results;
 }

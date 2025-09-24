@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
 
 import { normalizeList } from "../shared";
-import { executeMetadataAction } from "@/lib/metadata/actions/client";
+import { executeMetadataAction } from "@/lib/metadata/actions/execute";
 import { useMetadataClientContext } from "@/lib/metadata/context";
 import { toast } from "sonner";
 

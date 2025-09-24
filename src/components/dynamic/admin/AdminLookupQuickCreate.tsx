@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 import type { ActionConfig } from "../shared";
 import type { FormFieldOption } from "./types";
-import { executeMetadataAction } from "@/lib/metadata/actions/client";
+import { executeMetadataAction } from "@/lib/metadata/actions/execute";
 import { useMetadataClientContext } from "@/lib/metadata/context";
 
 export interface AdminLookupQuickCreateProps {
