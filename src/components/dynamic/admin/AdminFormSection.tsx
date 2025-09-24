@@ -5,17 +5,91 @@ import * as React from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { normalizeList } from "../shared";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { renderAction } from "../shared";
+import { AdminLookupQuickCreate } from "./AdminLookupQuickCreate";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { useAdminFormController } from "./useAdminFormController";
 import { renderFieldInput, type ControllerRender } from "./fieldRenderers";
-import type { AdminFormSectionProps } from "./types";
+import type {
+  AdminFormSectionProps,
+  FormFieldConfig,
+  FormFieldOption,
+} from "./types";
 
 export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./types";
 
 export function AdminFormSection(props: AdminFormSectionProps) {
   const { fields, form, handleSubmit } = useAdminFormController(props);
+  const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
+  const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
+
+  const augmentedFields = React.useMemo(() => {
+    return fields.map((field) => {
+      const additional = quickCreateOptions[field.name] ?? [];
+      if (!additional.length || field.type !== "select") {
+        return field;
+      }
+      const baseOptions = normalizeList<FormFieldOption>(field.options);
+      const merged = [...baseOptions];
+      for (const option of additional) {
+        if (!merged.some((item) => item.value === option.value)) {
+          merged.push(option);
+        }
+      }
+      return {
+        ...field,
+        options: merged,
+      } satisfies FormFieldConfig;
+    });
+  }, [fields, quickCreateOptions]);
+
+  const handleQuickCreate = React.useCallback(
+    (field: FormFieldConfig) => {
+      const lookupId = field.lookupId?.trim();
+      if (!lookupId) {
+        toast.error("Unable to determine the lookup context.");
+        return;
+      }
+
+      if (!field.quickCreate?.action) {
+        toast.error("Quick add is not available for this field.");
+        return;
+      }
+
+      setActiveQuickCreateField(field);
+    },
+    []
+  );
+
+  const handleQuickCreateSuccess = React.useCallback(
+    (field: FormFieldConfig, option: FormFieldOption) => {
+      setQuickCreateOptions((previous) => {
+        const existingForField = previous[field.name] ?? [];
+        const baseOptions = normalizeList<FormFieldOption>(field.options);
+        const exists =
+          baseOptions.some((item) => item.value === option.value) ||
+          existingForField.some((item) => item.value === option.value);
+        if (exists) {
+          return previous;
+        }
+        return {
+          ...previous,
+          [field.name]: [...existingForField, option],
+        } satisfies Record<string, FormFieldOption[]>;
+      });
+
+      form.setValue(field.name as never, option.value, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [form]
+  );
 
   return (
     <section className="space-y-6">
@@ -32,7 +106,7 @@ export function AdminFormSection(props: AdminFormSectionProps) {
           className="space-y-8 rounded-3xl border border-border/60 bg-background p-6 shadow-sm"
         >
           <div className="grid gap-6 sm:grid-cols-2">
-            {fields.map((field) => (
+            {augmentedFields.map((field) => (
               <FormField
                 key={field.name}
                 control={form.control}
@@ -46,7 +120,25 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                     )}
                   >
                     {field.label && <FormLabel className="text-sm font-semibold text-foreground">{field.label}</FormLabel>}
-                    <FormControl>{renderFieldInput(field, controller as ControllerRender)}</FormControl>
+                    <FormControl>
+                      {field.type === "select" && field.quickCreate ? (
+                        <div className="flex items-center gap-2">
+                          <div className="grow">{renderFieldInput(field, controller as ControllerRender)}</div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            aria-label={field.quickCreate.label ?? `Add new ${field.label ?? "option"}`}
+                            onClick={() => handleQuickCreate(field)}
+                          >
+                            <Plus className="size-4" aria-hidden="true" />
+                            <span className="sr-only">{field.quickCreate.label ?? "Add"}</span>
+                          </Button>
+                        </div>
+                      ) : (
+                        renderFieldInput(field, controller as ControllerRender)
+                      )}
+                    </FormControl>
                     {field.helperText && <FormDescription>{field.helperText}</FormDescription>}
                     <FormMessage />
                   </FormItem>
@@ -67,6 +159,34 @@ export function AdminFormSection(props: AdminFormSectionProps) {
       </Form>
 
       {props.footnote && <p className="text-xs text-muted-foreground/80">{props.footnote}</p>}
+
+      <Dialog
+        open={Boolean(activeQuickCreateField)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveQuickCreateField(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          {activeQuickCreateField && (
+            <AdminLookupQuickCreate
+              key={activeQuickCreateField.name}
+              lookupId={activeQuickCreateField.lookupId}
+              lookupLabel={activeQuickCreateField.label}
+              description={activeQuickCreateField.quickCreate?.description ?? undefined}
+              submitLabel={activeQuickCreateField.quickCreate?.submitLabel ?? undefined}
+              successMessage={activeQuickCreateField.quickCreate?.successMessage ?? undefined}
+              action={activeQuickCreateField.quickCreate?.action ?? null}
+              onCancel={() => setActiveQuickCreateField(null)}
+              onSuccess={(option) => {
+                handleQuickCreateSuccess(activeQuickCreateField, option);
+                setActiveQuickCreateField(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

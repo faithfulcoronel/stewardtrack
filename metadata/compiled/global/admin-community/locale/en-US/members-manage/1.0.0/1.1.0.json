@@ -1,0 +1,537 @@
+{
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.1.0",
+  "checksum": "9af271edec16ead95cb1c11dc6e43350a908cc1273503b67a558bb518f14d3dc",
+  "kind": "blueprint",
+  "layer": {
+    "module": "admin-community",
+    "route": "members/manage",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "page": {
+    "id": "admin-community-membership-manage",
+    "title": "Manage membership record",
+    "regions": [
+      {
+        "id": "main",
+        "components": [
+          {
+            "id": "manage-hero",
+            "type": "HeroSection",
+            "props": {
+              "variant": {
+                "kind": "static",
+                "value": "minimal"
+              },
+              "eyebrow": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const mode = params.memberId ? 'Edit member' : 'Add new member';\n                return `${mode} · Community module`;\n              })()\n            "
+              },
+              "headline": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? 'member'}'s profile` : 'Create a new household profile';\n              })()\n            "
+              },
+              "description": {
+                "kind": "static",
+                "value": "Align membership data with pastoral care, serving teams, and financial commitments from one form."
+              },
+              "metrics": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                if (!params.memberId) {\n                  return [\n                    { label: 'Mode', value: 'Create new record', caption: 'Member ID assigned after approval' },\n                    { label: 'Center', value: 'Assign center', caption: 'Choose from the form below' },\n                    { label: 'Recurring giving', value: '$0', caption: 'Not enrolled' }\n                  ];\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);\n                return [\n                  { label: 'Mode', value: 'Edit existing record', caption: `Member ID ${record.id}` },\n                  { label: 'Center', value: record.center ?? 'Downtown Center', caption: 'Can be changed below' },\n                  { label: 'Recurring giving', value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? 'Not enrolled' }\n                ];\n              })()\n            "
+              },
+              "secondaryCta": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const target = params.memberId ? `/admin/members/${params.memberId}` : '/admin/members/list';\n                return { id: 'cancel-cta', config: { label: 'Cancel', url: target, variant: 'secondary' } };\n              })()\n            "
+              }
+            }
+          },
+          {
+            "id": "manage-form",
+            "type": "AdminFormSection",
+            "props": {
+              "title": {
+                "kind": "static",
+                "value": "Membership details"
+              },
+              "fields": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const blueprintFields = data.formBlueprint?.fields ?? [];\n                const lookupGroups = data.membershipLookups?.lookups ?? {};\n                return blueprintFields.map((field) => {\n                  const { lookupId, quickCreate, ...config } = field ?? {};\n                  const labelText = String(field?.label ?? 'Option');\n                  if (!lookupId) {\n                    return {\n                      ...config,\n                      ...(quickCreate ? { quickCreate } : {}),\n                    };\n                  }\n                  const lookupItems = lookupGroups[lookupId] ?? [];\n                  const quickCreateConfig = quickCreate\n                    ? {\n                        label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,\n                        description:\n                          quickCreate.description ??\n                          `Create a new ${labelText.toLowerCase()} without leaving the form.`,\n                        submitLabel: quickCreate.submitLabel ?? 'Save option',\n                        successMessage: quickCreate.successMessage ?? `${labelText} added`,\n                        action: {\n                          id: `quick-create-${lookupId}`,\n                          kind: 'metadata.service',\n                          config: {\n                            handler: 'admin-community.members.manage.lookup.create',\n                            lookupId,\n                          },\n                        },\n                      }\n                    : null;\n                  return {\n                    ...config,\n                    lookupId,\n                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),\n                    ...(quickCreateConfig ? { quickCreate: quickCreateConfig } : {}),\n                  };\n                });\n              })()\n            "
+              },
+              "initialValues": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                const records = data.membershipRecords?.records ?? [];\n                const fallback = records[0] ?? {};\n                const lookupGroups = data.membershipLookups?.lookups ?? {};\n                const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';\n                const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';\n                const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';\n                if (!params.memberId) {\n                  return {\n                    firstName: '',\n                    lastName: '',\n                    email: '',\n                    phone: '',\n                    stage: defaultStageId,\n                    membershipType: defaultTypeId,\n                    center: defaultCenterId,\n                    joinDate: '',\n                    preferredContact: 'Email',\n                    recurringGiving: '',\n                    pledgeAmount: '',\n                    careStatus: 'observation',\n                    carePastor: '',\n                    followUpDate: '',\n                    servingTeam: '',\n                    servingRole: '',\n                    servingSchedule: '',\n                    discipleshipNextStep: '',\n                    notes: '',\n                    tags: ''\n                  };\n                }\n                const record = records.find((item) => item.id === params.memberId) ?? fallback;\n                const profile = record.profile ?? {};\n                const tags = profile.tags ?? record.tags ?? [];\n                return {\n                  firstName: profile.firstName ?? '',\n                  lastName: profile.lastName ?? '',\n                  email: record.contact?.email ?? '',\n                  phone: record.contact?.phone ?? '',\n                  stage: profile.stageId ?? record.stageId ?? defaultStageId,\n                  membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,\n                  center: profile.centerId ?? record.centerId ?? defaultCenterId,\n                  joinDate: profile.joinDate ?? '',\n                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',\n                  recurringGiving: record.giving?.recurring?.amount ?? '',\n                  pledgeAmount: record.giving?.pledge ?? '',\n                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',\n                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',\n                  followUpDate: profile.followUpDate ?? '',\n                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',\n                  servingRole: profile.servingRole ?? record.serving?.role ?? '',\n                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',\n                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',\n                  notes: profile.notes ?? '',\n                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),\n                };\n              })()\n            "
+              },
+              "mode": {
+                "kind": "expression",
+                "expression": "params.memberId ? 'edit' : 'create'"
+              },
+              "submitLabel": {
+                "kind": "expression",
+                "expression": "params.memberId ? 'Save changes' : 'Create member'"
+              },
+              "submitAction": {
+                "kind": "action",
+                "actionId": "save-member"
+              },
+              "cancelAction": {
+                "kind": "expression",
+                "expression": "\n              (() => {\n                if (params.memberId) {\n                  return { id: 'cancel-edit', config: { label: 'Back to profile', url: `/admin/members/${params.memberId}`, variant: 'ghost' } };\n                }\n                return { id: 'cancel-create', config: { label: 'Back to list', url: '/admin/members/list', variant: 'ghost' } };\n              })()\n            "
+              },
+              "footnote": {
+                "kind": "static",
+                "value": "Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates."
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "dataSources": [
+      {
+        "id": "membershipRecords",
+        "kind": "service",
+        "config": {
+          "value": {
+            "records": [
+              {
+                "id": "mem_001",
+                "fullName": "Avery Johnson",
+                "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
+                "center": "Downtown Center",
+                "centerKey": "downtown",
+                "tags": [
+                  "Hospitality Team",
+                  "Leadership Cohort"
+                ],
+                "contact": {
+                  "email": "avery.johnson@example.org",
+                  "phone": "(555) 204-1188",
+                  "preferred": "Text"
+                },
+                "giving": {
+                  "recurring": {
+                    "amount": 900,
+                    "frequency": "Monthly",
+                    "method": "ACH"
+                  },
+                  "pledge": 22000
+                },
+                "serving": {
+                  "team": "Hospitality",
+                  "role": "Usher Captain",
+                  "schedule": "2nd & 4th Sundays · 8:30a"
+                },
+                "discipleship": {
+                  "nextStep": "Mentor two new ushers before Advent."
+                },
+                "carePlan": {
+                  "status": "Active",
+                  "statusKey": "active",
+                  "assignedTo": "Pastor Lauren Patel"
+                },
+                "profile": {
+                  "fullName": "Avery Johnson",
+                  "firstName": "Avery",
+                  "lastName": "Johnson",
+                  "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
+                  "joinDate": "2016-03-14",
+                  "preferredContact": "Text",
+                  "careStatus": "active",
+                  "carePastor": "Pastor Lauren Patel",
+                  "followUpDate": "2024-10-28",
+                  "servingTeam": "Hospitality",
+                  "servingRole": "Usher Captain",
+                  "servingSchedule": "2nd & 4th Sundays · 8:30a",
+                  "discipleshipNextStep": "Mentor two new ushers before Advent.",
+                  "notes": "Leading hospitality leadership cohort.",
+                  "tags": [
+                    "Hospitality Team",
+                    "Leadership Cohort"
+                  ]
+                }
+              },
+              {
+                "id": "mem_002",
+                "fullName": "Elena Ruiz",
+                "stageKey": "new",
+                "membershipTypeKey": "attender",
+                "center": "Northside Center",
+                "centerKey": "northside",
+                "tags": [
+                  "Foundations Track"
+                ],
+                "contact": {
+                  "email": "elena.ruiz@example.org",
+                  "phone": "(555) 407-9931",
+                  "preferred": "Phone"
+                },
+                "giving": {
+                  "recurring": null,
+                  "pledge": 0
+                },
+                "serving": {
+                  "team": "Foundations",
+                  "role": "Participant",
+                  "schedule": "Sundays · 9:30a"
+                },
+                "discipleship": {
+                  "nextStep": "Complete covenant interview."
+                },
+                "carePlan": {
+                  "status": "Observation",
+                  "statusKey": "observation",
+                  "assignedTo": "Connections Team"
+                },
+                "profile": {
+                  "fullName": "Elena Ruiz",
+                  "firstName": "Elena",
+                  "lastName": "Ruiz",
+                  "membershipType": "Attender",
+                  "membershipTypeKey": "attender",
+                  "joinDate": "",
+                  "preferredContact": "Phone",
+                  "careStatus": "observation",
+                  "carePastor": "Connections Team",
+                  "followUpDate": "2024-10-24",
+                  "servingTeam": "Foundations",
+                  "servingRole": "Participant",
+                  "servingSchedule": "Sundays · 9:30a",
+                  "discipleshipNextStep": "Complete covenant interview.",
+                  "notes": "Recently relocated from Denver.",
+                  "tags": [
+                    "Foundations Track"
+                  ]
+                }
+              },
+              {
+                "id": "mem_003",
+                "fullName": "Samuel and Dana Lee",
+                "stageKey": "active",
+                "membershipTypeKey": "covenant-member",
+                "center": "Southridge Center",
+                "centerKey": "southridge",
+                "tags": [
+                  "Marriage Mentors"
+                ],
+                "contact": {
+                  "email": "samuel.dana.lee@example.org",
+                  "phone": "(555) 782-4410",
+                  "preferred": "Email"
+                },
+                "giving": {
+                  "recurring": {
+                    "amount": 2000,
+                    "frequency": "Monthly",
+                    "method": "Card"
+                  },
+                  "pledge": 30000
+                },
+                "serving": {
+                  "team": "Groups",
+                  "role": "Marriage mentors",
+                  "schedule": "1st & 3rd Wednesdays"
+                },
+                "discipleship": {
+                  "nextStep": "Launch two new marriage groups in Q1."
+                },
+                "carePlan": {
+                  "status": "Resolved",
+                  "statusKey": "resolved",
+                  "assignedTo": ""
+                },
+                "profile": {
+                  "fullName": "Samuel and Dana Lee",
+                  "firstName": "Samuel",
+                  "lastName": "Lee",
+                  "membershipType": "Covenant member",
+                  "membershipTypeKey": "covenant-member",
+                  "joinDate": "2009-05-18",
+                  "preferredContact": "Email",
+                  "careStatus": "resolved",
+                  "carePastor": "",
+                  "followUpDate": "",
+                  "servingTeam": "Groups",
+                  "servingRole": "Marriage mentors",
+                  "servingSchedule": "1st & 3rd Wednesdays",
+                  "discipleshipNextStep": "Launch two new marriage groups in Q1.",
+                  "notes": "Trusted mentors for pre-marriage program.",
+                  "tags": [
+                    "Marriage Mentors",
+                    "Retreat Leaders"
+                  ]
+                }
+              }
+            ]
+          },
+          "handler": "admin-community.members.manage.membershipRecords",
+          "limit": 5
+        }
+      },
+      {
+        "id": "membershipLookups",
+        "kind": "service",
+        "config": {
+          "value": {
+            "lookups": {
+              "membership.stage": [
+                {
+                  "id": "active",
+                  "value": "Active member"
+                },
+                {
+                  "id": "new",
+                  "value": "New here"
+                },
+                {
+                  "id": "care",
+                  "value": "Shepherding"
+                },
+                {
+                  "id": "inactive",
+                  "value": "Inactive"
+                }
+              ],
+              "membership.type": [
+                {
+                  "id": "covenant-member",
+                  "value": "Covenant member"
+                },
+                {
+                  "id": "attender",
+                  "value": "Attender"
+                },
+                {
+                  "id": "partner-process",
+                  "value": "Partner in process"
+                }
+              ],
+              "membership.center": [
+                {
+                  "id": "downtown",
+                  "value": "Downtown"
+                },
+                {
+                  "id": "northside",
+                  "value": "Northside"
+                },
+                {
+                  "id": "southridge",
+                  "value": "Southridge"
+                },
+                {
+                  "id": "online",
+                  "value": "Online"
+                }
+              ]
+            }
+          },
+          "handler": "admin-community.members.manage.lookups"
+        }
+      },
+      {
+        "id": "formBlueprint",
+        "kind": "static",
+        "config": {
+          "value": {
+            "fields": [
+              {
+                "name": "firstName",
+                "label": "First name",
+                "type": "text",
+                "colSpan": "half",
+                "required": true
+              },
+              {
+                "name": "lastName",
+                "label": "Last name",
+                "type": "text",
+                "colSpan": "half",
+                "required": true
+              },
+              {
+                "name": "email",
+                "label": "Email",
+                "type": "email",
+                "colSpan": "half",
+                "required": true
+              },
+              {
+                "name": "phone",
+                "label": "Mobile",
+                "type": "tel",
+                "colSpan": "half",
+                "placeholder": "(000) 000-0000"
+              },
+              {
+                "name": "stage",
+                "label": "Membership stage",
+                "type": "select",
+                "colSpan": "half",
+                "lookupId": "membership.stage",
+                "quickCreate": {
+                  "label": "Add stage",
+                  "description": "Name the stage and the code will be generated automatically.",
+                  "submitLabel": "Save stage",
+                  "successMessage": "Membership stage saved"
+                }
+              },
+              {
+                "name": "membershipType",
+                "label": "Membership type",
+                "type": "select",
+                "colSpan": "half",
+                "lookupId": "membership.type",
+                "quickCreate": {
+                  "label": "Add membership type",
+                  "description": "Name the membership type and the code will be generated automatically.",
+                  "submitLabel": "Save type",
+                  "successMessage": "Membership type saved"
+                }
+              },
+              {
+                "name": "center",
+                "label": "Center",
+                "type": "select",
+                "colSpan": "half",
+                "lookupId": "membership.center",
+                "quickCreate": {
+                  "label": "Add center",
+                  "description": "Name the campus or center and the code will be generated automatically.",
+                  "submitLabel": "Save center",
+                  "successMessage": "Center saved"
+                }
+              },
+              {
+                "name": "joinDate",
+                "label": "Join date",
+                "type": "date",
+                "colSpan": "half"
+              },
+              {
+                "name": "preferredContact",
+                "label": "Preferred contact",
+                "type": "select",
+                "colSpan": "half",
+                "options": [
+                  {
+                    "label": "Email",
+                    "value": "Email"
+                  },
+                  {
+                    "label": "Phone",
+                    "value": "Phone"
+                  },
+                  {
+                    "label": "Text",
+                    "value": "Text"
+                  }
+                ]
+              },
+              {
+                "name": "recurringGiving",
+                "label": "Recurring giving",
+                "type": "currency",
+                "colSpan": "half",
+                "placeholder": "0.00"
+              },
+              {
+                "name": "pledgeAmount",
+                "label": "Pledge amount",
+                "type": "currency",
+                "colSpan": "half",
+                "placeholder": "0.00"
+              },
+              {
+                "name": "careStatus",
+                "label": "Care status",
+                "type": "select",
+                "colSpan": "half",
+                "options": [
+                  {
+                    "label": "Active",
+                    "value": "active"
+                  },
+                  {
+                    "label": "Observation",
+                    "value": "observation"
+                  },
+                  {
+                    "label": "Resolved",
+                    "value": "resolved"
+                  }
+                ]
+              },
+              {
+                "name": "carePastor",
+                "label": "Assigned pastor",
+                "type": "text",
+                "colSpan": "half"
+              },
+              {
+                "name": "followUpDate",
+                "label": "Follow-up date",
+                "type": "date",
+                "colSpan": "half"
+              },
+              {
+                "name": "servingTeam",
+                "label": "Serving team",
+                "type": "text",
+                "colSpan": "half"
+              },
+              {
+                "name": "servingRole",
+                "label": "Serving role",
+                "type": "text",
+                "colSpan": "half"
+              },
+              {
+                "name": "servingSchedule",
+                "label": "Serving schedule",
+                "type": "text",
+                "colSpan": "half"
+              },
+              {
+                "name": "discipleshipNextStep",
+                "label": "Next discipleship step",
+                "type": "textarea",
+                "colSpan": "full"
+              },
+              {
+                "name": "notes",
+                "label": "Pastoral notes",
+                "type": "textarea",
+                "colSpan": "full"
+              },
+              {
+                "name": "tags",
+                "label": "Tags",
+                "type": "text",
+                "colSpan": "full",
+                "helperText": "Comma separated labels to power filtered lists."
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "save-member",
+        "kind": "metadata.service",
+        "config": {
+          "Handler": "admin-community.members.manage.saveMember",
+          "CreateMessage": "New member record drafted.",
+          "UpdateMessage": "Member record updated.",
+          "RedirectTemplate": "/admin/members/{{ memberId }}"
+        }
+      }
+    ]
+  },
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-manage.xml"
+}

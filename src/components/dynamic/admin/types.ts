@@ -7,6 +7,14 @@ export interface FormFieldOption {
   value: string;
 }
 
+export interface FormFieldQuickCreateConfig {
+  label?: string | null;
+  description?: string | null;
+  submitLabel?: string | null;
+  successMessage?: string | null;
+  action?: ActionConfig | null;
+}
+
 export interface FormFieldConfig {
   name: string;
   label?: string | null;
@@ -28,6 +36,8 @@ export interface FormFieldConfig {
   required?: boolean | null;
   colSpan?: "full" | "half" | "third" | null;
   defaultValue?: unknown;
+  lookupId?: string | null;
+  quickCreate?: FormFieldQuickCreateConfig | null;
 }
 
 export interface AdminFormSectionProps {

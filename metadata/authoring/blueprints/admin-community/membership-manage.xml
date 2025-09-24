@@ -4,7 +4,7 @@
   module="admin-community"
   route="members/manage"
   schemaVersion="1.0.0"
-  contentVersion="1.0.0"
+  contentVersion="1.1.0"
   locale="en-US"
 >
   <Page id="admin-community-membership-manage">
@@ -65,14 +65,38 @@
                 const blueprintFields = data.formBlueprint?.fields ?? [];
                 const lookupGroups = data.membershipLookups?.lookups ?? {};
                 return blueprintFields.map((field) => {
-                  const { lookupId, ...config } = field ?? {};
+                  const { lookupId, quickCreate, ...config } = field ?? {};
+                  const labelText = String(field?.label ?? 'Option');
                   if (!lookupId) {
-                    return config;
+                    return {
+                      ...config,
+                      ...(quickCreate ? { quickCreate } : {}),
+                    };
                   }
                   const lookupItems = lookupGroups[lookupId] ?? [];
+                  const quickCreateConfig = quickCreate
+                    ? {
+                        label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,
+                        description:
+                          quickCreate.description ??
+                          `Create a new ${labelText.toLowerCase()} without leaving the form.`,
+                        submitLabel: quickCreate.submitLabel ?? 'Save option',
+                        successMessage: quickCreate.successMessage ?? `${labelText} added`,
+                        action: {
+                          id: `quick-create-${lookupId}`,
+                          kind: 'metadata.service',
+                          config: {
+                            handler: 'admin-community.members.manage.lookup.create',
+                            lookupId,
+                          },
+                        },
+                      }
+                    : null;
                   return {
                     ...config,
+                    lookupId,
                     options: lookupItems.map((item) => ({ label: item.value, value: item.id })),
+                    ...(quickCreateConfig ? { quickCreate: quickCreateConfig } : {}),
                   };
                 });
               })()
@@ -302,21 +326,39 @@
                 "label": "Membership stage",
                 "type": "select",
                 "colSpan": "half",
-                "lookupId": "membership.stage"
+                "lookupId": "membership.stage",
+                "quickCreate": {
+                  "label": "Add stage",
+                  "description": "Name the stage and the code will be generated automatically.",
+                  "submitLabel": "Save stage",
+                  "successMessage": "Membership stage saved"
+                }
               },
               {
                 "name": "membershipType",
                 "label": "Membership type",
                 "type": "select",
                 "colSpan": "half",
-                "lookupId": "membership.type"
+                "lookupId": "membership.type",
+                "quickCreate": {
+                  "label": "Add membership type",
+                  "description": "Name the membership type and the code will be generated automatically.",
+                  "submitLabel": "Save type",
+                  "successMessage": "Membership type saved"
+                }
               },
               {
                 "name": "center",
                 "label": "Center",
                 "type": "select",
                 "colSpan": "half",
-                "lookupId": "membership.center"
+                "lookupId": "membership.center",
+                "quickCreate": {
+                  "label": "Add center",
+                  "description": "Name the campus or center and the code will be generated automatically.",
+                  "submitLabel": "Save center",
+                  "successMessage": "Center saved"
+                }
               },
               { "name": "joinDate", "label": "Join date", "type": "date", "colSpan": "half" },
               {
