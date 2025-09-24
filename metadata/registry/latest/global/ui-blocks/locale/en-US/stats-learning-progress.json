@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "aeaabaaf9ebfc1190d695d9be9239e818f6ad49b426b46f69335e1c8b2c6e2a5",
+  "checksum": "a482c68ab4b5f96f3092641b45c815af57809c6ddcb71987d1a94c81ae50a3e9",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/learning-progress",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-learning-progress.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-learning-progress/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-learning-progress.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-learning-progress\\1.0.0\\1.0.0.json"
 }

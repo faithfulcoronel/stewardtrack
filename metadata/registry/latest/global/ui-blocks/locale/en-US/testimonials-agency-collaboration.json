@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "1d9b143870eaa45408f4aba33a804c9049f07a6f152d625fc67ac77d8cb73cd3",
+  "checksum": "db26f5c224adf91387d0fbff68e95721f3c934b0c0e40f8f9a24f19339f7e781",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/agency-collaboration",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-agency-collaboration.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-agency-collaboration/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-agency-collaboration.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-agency-collaboration\\1.0.0\\1.0.0.json"
 }

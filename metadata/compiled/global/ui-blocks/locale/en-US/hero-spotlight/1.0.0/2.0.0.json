@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "99680c540cfc5ca006d5bd7fd9ccb0693d3859a7d14d282ad496b95c91678516",
+  "checksum": "f863c2b8d4cf9e592a445cd0c7eaf80ac9828017091c5e0fc8dee8f9bed0ab6a",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -141,5 +141,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-spotlight.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-spotlight.xml"
 }

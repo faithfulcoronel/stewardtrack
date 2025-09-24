@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "9f1a5efef8621bf70ea1c3442ade16b785d5ed0d57b30d41c966e751da567c20",
+  "checksum": "c1a73db3b7f371ce969ac34a264935eb712e6d2bc16fc0526a49da6844e47b63",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -166,5 +166,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-customer-delight.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-customer-delight.xml"
 }

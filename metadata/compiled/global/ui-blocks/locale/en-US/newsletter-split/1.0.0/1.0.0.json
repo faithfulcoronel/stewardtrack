@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "092c2e094c63e89b02cfe565ee8d6fb81afaf0aa27f76f04ebd550aac239c725",
+  "checksum": "d906e4d4c41093308e00e77a33e0e271f05037b1953627e9bb1ae56bf4999ea7",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -151,5 +151,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-split.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-split.xml"
 }

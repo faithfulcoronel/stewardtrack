@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "e8cf8a3fab0b937d62e3e5239d025544cd664fdeb4661abec680905aa13f29e6",
+  "checksum": "0c1e2abf0765e611f9db9b99b65dc27d994dbb79035b59be8729c70ea9f7a4ec",
   "layer": {
     "module": "ui-blocks",
     "route": "header/search-hub",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-search-hub.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-search-hub/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-search-hub.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-search-hub\\1.0.0\\1.0.0.json"
 }

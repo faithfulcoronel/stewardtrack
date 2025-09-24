@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d7e028b1513fab625fcd4c34875d419425391ec44d3e58f628e907910995037f",
+  "checksum": "48e25937b76cf7bf11496f5621a4b0e4edec747b6dd484a50e5920bfdf9e72b9",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/ai-adoption",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ai-adoption.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-ai-adoption/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-ai-adoption.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-ai-adoption\\1.0.0\\1.0.0.json"
 }

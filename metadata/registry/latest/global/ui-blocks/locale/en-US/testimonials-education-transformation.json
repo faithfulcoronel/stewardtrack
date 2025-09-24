@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "e8d069dcd0f2ae0be3f7b35e5acbcd7a9f76a9e8674efc80a7b38dee1ced18a8",
+  "checksum": "709e6a059d56dda8beccc109db83503e9474a1feda54a02e1780cb7c6e2a2392",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/education-transformation",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-education-transformation.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-education-transformation/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-education-transformation.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-education-transformation\\1.0.0\\1.0.0.json"
 }

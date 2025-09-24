@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "a664d800bb051ec28e66575057ea7a47cb2b75104980e221b9b709f20b8149df",
+  "checksum": "8d34a47ffbf9d0b93a67bf20be63302af2162873950243ce34ef5ab68fb63e94",
   "layer": {
     "module": "admin-community",
     "route": "members/profile",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml",
-  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-profile/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-profile.xml",
+  "compiledPath": "metadata\\compiled\\global\\admin-community\\locale\\en-US\\members-profile\\1.0.0\\1.0.0.json"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "cda4f809bdecd24293d6dd34f42463a5169b163937a7976ef258b67255f65eca",
+  "checksum": "1d95788fe04f2f3fbc67b09599ef90b1ac7b44e5d5c40a6f1d6ca05111135ffd",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -76,5 +76,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-upgrade-banner.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-upgrade-banner.xml"
 }

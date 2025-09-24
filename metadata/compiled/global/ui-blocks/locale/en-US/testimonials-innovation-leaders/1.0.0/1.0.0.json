@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d5fc31f1ac7eae9eca7c7a155ab75c2a67fc628644fc117aeec468c8a12ca194",
+  "checksum": "aa2607a4b814113e373b449b9cd69798dba147dcd733492738ee5acb718f7975",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -147,5 +147,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-innovation-leaders.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-innovation-leaders.xml"
 }

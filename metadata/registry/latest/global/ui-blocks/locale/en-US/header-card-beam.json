@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "55f481a36a06fd39e533556edb1ec7e6d3efac023e8a85a035012c29a239b312",
+  "checksum": "d3484bcd3cba8fe817db38b12fba7e79e43317ff9b2d34b6f24b0773aa50cb83",
   "layer": {
     "module": "ui-blocks",
     "route": "header/card-beam",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-card-beam.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-card-beam/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-card-beam.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-card-beam\\1.0.0\\1.0.0.json"
 }

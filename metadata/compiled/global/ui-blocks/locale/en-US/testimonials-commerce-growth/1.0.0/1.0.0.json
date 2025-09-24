@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "7aa29e8ace4908f76dee7869bbed136b654654decabd6ddbdf6cb8786570ccd9",
+  "checksum": "e703e7c6cf1eb5fd2757285cf41e3a851f12c1efda2671428056b65fa09a3eeb",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -125,5 +125,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-commerce-growth.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-commerce-growth.xml"
 }

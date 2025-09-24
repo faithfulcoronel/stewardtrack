@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "deafce41735ed3922dc6ed9a2f2458dfbe29e6a212c35e9e50ed13df162739fd",
+  "checksum": "635be1b3be0f3929e0f41f84a76a58b2ef9092ae05af8ff3d8f254b4d612004d",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/security-posture",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-security-posture.xml",
-  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-security-posture/1.0.0/1.0.0.json"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-security-posture.xml",
+  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-security-posture\\1.0.0\\1.0.0.json"
 }

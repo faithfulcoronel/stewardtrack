@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "5f7c428ff3036be229e589538ca6b52eebe35418be702741502d2454517ee9b2",
+  "checksum": "c901f8b69fe954d6fda35a9c8376a8b7e69a3c91da50d390da660872a3fabebf",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -129,5 +129,5 @@
       }
     ]
   },
-  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-partner-network.xml"
+  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-partner-network.xml"
 }
