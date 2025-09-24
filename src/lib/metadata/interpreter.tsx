@@ -107,7 +107,10 @@ export async function renderResolvedPage(
   context: InterpreterContext
 ): Promise<React.ReactNode> {
   const role = context.role ?? 'guest';
-  const dataScope = await evaluateDataSources(resolved.definition.page.dataSources ?? [], role);
+  const dataScope = await evaluateDataSources(
+    resolved.definition.page.dataSources ?? [],
+    context
+  );
   const actions = evaluateActions(resolved.definition.page.actions ?? [], role);
   const regions = resolved.definition.page.regions ?? [];
 
@@ -162,8 +165,10 @@ function renderComponent(
 
 async function evaluateDataSources(
   sources: CanonicalDataSource[],
-  role: string
+  context: InterpreterContext
 ): Promise<DataScope> {
+  const role = context.role ?? 'guest';
+  const params = context.searchParams ?? {};
   const results: DataScope = {};
   for (const source of sources) {
     if (!isPermitted(source.rbac, role)) {
@@ -210,7 +215,12 @@ async function evaluateDataSources(
         continue;
       }
       try {
-        const resolved = await handler({ id: source.id, role, config: source.config ?? {} });
+        const resolved = await handler({
+          id: source.id,
+          role,
+          config: source.config ?? {},
+          params,
+        });
         if (resolved !== undefined) {
           results[source.id] = resolved;
         } else if (source.config?.value !== undefined) {

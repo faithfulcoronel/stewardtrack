@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "7840a618c282256f4ba444584cddcdc09d34c28e95b69f983367912706ab0d83",
+  "checksum": "bf58c4598378f9018c492b98e99b720c4e7808fd8bfc2ced88b0e2e810ad9994",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -93,5 +93,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-ops-efficiency.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-ops-efficiency.xml"
 }

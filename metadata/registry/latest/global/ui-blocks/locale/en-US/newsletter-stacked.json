@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2eea1fb306af1c236ad7fbf4e0124079ba96e9e5a7f0557bbe53c722ffdcbc83",
+  "checksum": "426f6732a325f5ff19a315836af9c2f10eaf838a651f514fac4c37044e7598c2",
   "layer": {
     "module": "ui-blocks",
     "route": "newsletter/stacked",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-stacked.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\newsletter-stacked\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-stacked.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-stacked/1.0.0/1.0.0.json"
 }

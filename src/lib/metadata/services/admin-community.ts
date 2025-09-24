@@ -1,9 +1,22 @@
+import { format, formatDistanceToNow } from 'date-fns';
+
 import { MembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import {
   MembersDashboardRepository,
   type DirectoryMember,
 } from '@/repositories/membersDashboard.repository';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
+import { MemberProfileAdapter } from '@/adapters/memberProfile.adapter';
+import { MemberProfileRepository } from '@/repositories/memberProfile.repository';
+import {
+  MemberProfileService,
+  type HouseholdRelationshipRow,
+  type MemberCarePlanRow,
+  type MemberGivingProfileRow,
+  type MemberMilestoneRow,
+  type MemberRow,
+  type MemberTimelineEventRow,
+} from '@/services/MemberProfileService';
 
 import type {
   ServiceDataSourceHandler,
@@ -24,12 +37,90 @@ type MembersTableStaticConfig = {
   emptyState?: unknown;
 };
 
+type HouseholdAddress = {
+  street?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+};
+
+interface MemberProfileRecord extends MemberDirectoryRecord {
+  fullName?: string;
+  preferredName?: string | null;
+  stage?: string | null;
+  statusVariant?: string | null;
+  center?: string | null;
+  membershipLabel?: string | null;
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+    preferred?: string | null;
+  };
+  household?: {
+    name?: string | null;
+    members?: string[];
+    address?: HouseholdAddress | null;
+  };
+  serving?: {
+    team?: string | null;
+    role?: string | null;
+    schedule?: string | null;
+    coach?: string | null;
+  };
+  giving?: {
+    ytd: number;
+    pledge: number;
+    campaign?: string | null;
+    recurring?: {
+      amount?: number | null;
+      frequency?: string | null;
+      method?: string | null;
+      status?: string | null;
+    };
+    lastGift?: {
+      amount?: number | null;
+      date?: string | null;
+      fund?: string | null;
+      source?: string | null;
+    };
+  };
+  discipleship?: {
+    smallGroup?: string | null;
+    mentor?: string | null;
+    milestones?: string[];
+    nextStep?: string | null;
+  };
+  carePlan?: {
+    status?: string | null;
+    statusVariant?: string | null;
+    assignedTo?: string | null;
+    details?: string | null;
+  };
+  timeline?: Array<{
+    id: string;
+    title: string;
+    date: string;
+    timeAgo: string;
+    description?: string | null;
+    category?: string | null;
+    stage?: string | null;
+    icon?: string | null;
+  }>;
+}
+
 const MEMBERS_TABLE_HANDLER_ID = 'admin-community.members.list.membersTable';
+const MEMBERS_PROFILE_HANDLER_ID = 'admin-community.members.profile.memberDirectory';
 
 function createMembersDashboardService(): MembersDashboardService {
   const adapter = new MembersDashboardAdapter();
   const repository = new MembersDashboardRepository(adapter);
   return new MembersDashboardService(repository);
+}
+
+function createMemberProfileService(): MemberProfileService {
+  const adapter = new MemberProfileAdapter();
+  const repository = new MemberProfileRepository(adapter);
+  return new MemberProfileService(repository);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -89,6 +180,236 @@ function mapStageVariant(code: string | undefined | null): string {
   }
 }
 
+function cloneMemberRecords(value: unknown): MemberProfileRecord[] {
+  if (!isRecord(value)) {
+    return [];
+  }
+  const records = (value as { records?: unknown }).records;
+  if (!Array.isArray(records)) {
+    return [];
+  }
+  try {
+    return structuredClone(records) as MemberProfileRecord[];
+  } catch {
+    return [...records] as MemberProfileRecord[];
+  }
+}
+
+function firstParam(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    const [first] = value;
+    return typeof first === 'string' ? first : null;
+  }
+  return null;
+}
+
+function filterNonEmpty(values: Array<string | null | undefined>): string[] {
+  return values
+    .map((value) => (value ?? '').trim())
+    .filter((value): value is string => Boolean(value));
+}
+
+function formatFullName(first?: string | null, last?: string | null): string {
+  return filterNonEmpty([first, last]).join(' ');
+}
+
+function formatLabel(value: string | undefined | null, fallback: string): string {
+  const raw = (value ?? '').trim();
+  if (!raw) {
+    return fallback;
+  }
+  return raw
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function mapPreferredContactMethod(method: string | undefined | null): string {
+  switch ((method ?? '').toLowerCase()) {
+    case 'phone':
+      return 'Phone';
+    case 'text':
+      return 'Text';
+    case 'mail':
+      return 'Mail';
+    case 'email':
+    default:
+      return 'Email';
+  }
+}
+
+function mapCareStatusVariant(code: string | undefined | null): string {
+  const normalized = (code ?? '').toLowerCase();
+  switch (normalized) {
+    case 'urgent':
+    case 'crisis':
+    case 'escalated':
+      return 'critical';
+    case 'monitoring':
+    case 'follow_up':
+    case 'followup':
+      return 'warning';
+    case 'active':
+    case 'support':
+    case 'shepherding':
+      return 'info';
+    case 'resolved':
+    case 'closed':
+      return 'success';
+    default:
+      return 'neutral';
+  }
+}
+
+function formatHouseholdName(member: MemberRow): string {
+  const base = filterNonEmpty([member.last_name, member.preferred_name, member.first_name])[0];
+  if (!base) {
+    return 'Household';
+  }
+  const cleaned = base.replace(/\s+family$/i, '').trim();
+  return `${cleaned || base} Family`;
+}
+
+function parseAddress(value: unknown): HouseholdAddress | null {
+  if (!value) {
+    return null;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    const street = (record.street ?? record.line1 ?? record.address1 ?? record.address ?? null) as
+      | string
+      | null;
+    const city = (record.city ?? null) as string | null;
+    const state = (record.state ?? record.province ?? record.region ?? null) as string | null;
+    const postalCode = (record.postalCode ?? record.postal_code ?? record.zip ?? record.zipCode ?? null) as
+      | string
+      | null;
+    if (street || city || state || postalCode) {
+      return {
+        street: street ?? null,
+        city: city ?? null,
+        state: state ?? null,
+        postalCode: postalCode ?? null,
+      };
+    }
+  }
+  if (typeof value === 'string') {
+    const raw = value.trim();
+    if (!raw) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return parseAddress(parsed);
+      }
+    } catch {
+      // value is not JSON encoded
+    }
+    const lines = raw.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    const streetLine = lines[0] ?? raw;
+    const cityStateLine = lines[1] ?? '';
+    let city: string | null = null;
+    let state: string | null = null;
+    let postalCode: string | null = null;
+    if (cityStateLine) {
+      const [cityPart, statePostalPart] = cityStateLine.split(',').map((part) => part.trim());
+      city = cityPart || null;
+      const tokens = (statePostalPart ?? '')
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+      if (tokens.length > 0) {
+        state = tokens.shift() ?? null;
+        postalCode = tokens.length > 0 ? tokens.join(' ') : null;
+      }
+    }
+    return {
+      street: streetLine || null,
+      city,
+      state,
+      postalCode,
+    };
+  }
+  return null;
+}
+
+function ensureUnique(values: string[]): string[] {
+  return Array.from(new Set(values));
+}
+
+function formatIsoDate(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return format(new Date(value), 'yyyy-MM-dd');
+  } catch {
+    return value;
+  }
+}
+
+function formatMonthDay(value: string | null | undefined): string {
+  if (!value) {
+    return '';
+  }
+  try {
+    return format(new Date(value), 'MMM d');
+  } catch {
+    return '';
+  }
+}
+
+function formatRelative(value: string | null | undefined): string {
+  if (!value) {
+    return '';
+  }
+  try {
+    return formatDistanceToNow(new Date(value), { addSuffix: true });
+  } catch {
+    return '';
+  }
+}
+
+function formatYearLabel(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return format(new Date(value), 'yyyy');
+  } catch {
+    return null;
+  }
+}
+
+function mapMilestones(rows: MemberMilestoneRow[]): string[] {
+  return rows
+    .map((item) => {
+      const label = (item.name ?? '').trim();
+      if (!label) {
+        return null;
+      }
+      const year = formatYearLabel(item.milestone_date ?? null);
+      return year ? `${label} ${year}` : label;
+    })
+    .filter((value): value is string => Boolean(value));
+}
+
+function formatFullDate(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return format(new Date(value), 'MMMM d, yyyy');
+  } catch {
+    return null;
+  }
+}
+
 function toMembersTableRow(member: MemberDirectoryRecord) {
   const fullName = [member.first_name, member.last_name].filter(Boolean).join(' ').trim();
   const stageCode = member.membership_stage?.code ?? null;
@@ -131,6 +452,197 @@ async function resolveMembersTable(
   };
 }
 
+async function fetchHouseholdMembers(
+  service: MemberProfileService,
+  member: MemberRow
+): Promise<string[]> {
+  const relationships: HouseholdRelationshipRow[] = await service.getHouseholdRelationships(member.id);
+  const names = new Set<string>();
+  const primary =
+    formatFullName(member.first_name ?? null, member.last_name ?? null) ||
+    (member.preferred_name ?? '').trim();
+  if (primary) {
+    names.add(primary);
+  }
+
+  for (const relation of relationships) {
+    const counterpart = relation.member_id === member.id ? relation.related_member : relation.member;
+    if (counterpart) {
+      const counterpartName =
+        formatFullName(counterpart.first_name ?? null, counterpart.last_name ?? null) ||
+        (counterpart.preferred_name ?? '').trim();
+      if (counterpartName) {
+        names.add(counterpartName);
+      }
+    }
+  }
+
+  return Array.from(names);
+}
+
+async function fetchGivingProfile(
+  service: MemberProfileService,
+  memberId: string
+): Promise<MemberGivingProfileRow | null> {
+  return service.getGivingProfile(memberId);
+}
+
+async function fetchCarePlan(
+  service: MemberProfileService,
+  memberId: string
+): Promise<MemberCarePlanRow | null> {
+  return service.getCarePlan(memberId);
+}
+
+async function fetchTimelineEvents(
+  service: MemberProfileService,
+  memberId: string,
+  limit = 10
+): Promise<MemberTimelineEventRow[]> {
+  return service.getTimelineEvents(memberId, limit);
+}
+
+async function fetchMilestones(
+  service: MemberProfileService,
+  memberId: string
+): Promise<MemberMilestoneRow[]> {
+  return service.getMilestones(memberId);
+}
+
+function buildGiving(profile: MemberGivingProfileRow | null, member: MemberRow) {
+  return {
+    ytd: profile?.ytd_amount ?? 0,
+    pledge: profile?.pledge_amount ?? member.giving_pledge_amount ?? 0,
+    campaign: profile?.pledge_campaign ?? member.giving_pledge_campaign ?? null,
+    recurring: {
+      amount: profile?.recurring_amount ?? member.giving_recurring_amount ?? null,
+      frequency: profile?.recurring_frequency ?? member.giving_recurring_frequency ?? null,
+      method: profile?.recurring_method ?? member.giving_recurring_method ?? null,
+      status: profile?.recurring_status ?? null,
+    },
+    lastGift: {
+      amount: profile?.last_gift_amount ?? member.giving_last_gift_amount ?? null,
+      date: formatIsoDate(profile?.last_gift_at ?? member.giving_last_gift_at ?? null),
+      fund: profile?.last_gift_fund ?? member.giving_last_gift_fund ?? null,
+      source: profile?.last_gift_source ?? null,
+    },
+  } satisfies MemberProfileRecord['giving'];
+}
+
+function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
+  const statusCode = carePlan?.status_code ?? member.care_status_code ?? null;
+  const statusLabel = carePlan?.status_label ?? formatLabel(statusCode, 'Healthy');
+  const followUp = carePlan?.follow_up_at ?? member.care_follow_up_at ?? null;
+  const followUpText = formatFullDate(followUp);
+  const details = (carePlan?.details ?? '').trim();
+  const appended = followUpText
+    ? `${details ? `${details} ` : ''}Next follow-up ${followUpText}`.trim()
+    : details;
+  return {
+    status: statusLabel,
+    statusVariant: mapCareStatusVariant(statusCode),
+    assignedTo: carePlan?.assigned_to ?? member.care_pastor ?? null,
+    details: appended || 'No active care tasks.',
+  } satisfies MemberProfileRecord['carePlan'];
+}
+
+async function buildMemberProfileRecord(
+  service: MemberProfileService,
+  member: MemberRow,
+  options: { timelineLimit: number }
+): Promise<MemberProfileRecord> {
+  const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows] = await Promise.all([
+    fetchHouseholdMembers(service, member),
+    fetchGivingProfile(service, member.id),
+    fetchCarePlan(service, member.id),
+    fetchTimelineEvents(service, member.id, options.timelineLimit),
+    fetchMilestones(service, member.id),
+  ]);
+
+  const fullName = formatFullName(member.first_name ?? null, member.last_name ?? null);
+  const preferredName = (member.preferred_name ?? '').trim() || null;
+  const stageCode = member.membership_stage?.code ?? null;
+  const stageLabel = member.membership_stage?.name ?? formatStageLabel(stageCode);
+  const centerLabel = member.membership_center?.name ?? null;
+
+  const householdList = ensureUnique(
+    householdMembers.length ? householdMembers : filterNonEmpty([fullName, preferredName])
+  );
+
+  return {
+    id: member.id,
+    fullName: fullName || preferredName || member.email || 'Member',
+    preferredName,
+    stage: stageLabel,
+    statusVariant: mapStageVariant(stageCode),
+    center: centerLabel,
+    membershipLabel: stageLabel,
+    serving: {
+      team: member.serving_team ?? null,
+      role: member.serving_role ?? null,
+      schedule: member.serving_schedule ?? null,
+      coach: member.serving_coach ?? null,
+    },
+    household: {
+      name: formatHouseholdName(member),
+      members: householdList,
+      address: parseAddress(member.address ?? null),
+    },
+    contact: {
+      email: member.email ?? null,
+      phone: member.contact_number ?? null,
+      preferred: mapPreferredContactMethod(member.preferred_contact_method ?? null),
+    },
+    giving: buildGiving(givingProfile, member),
+    discipleship: {
+      smallGroup: member.discipleship_group ?? member.small_groups?.[0] ?? null,
+      mentor: member.discipleship_mentor ?? null,
+      milestones: mapMilestones(milestoneRows),
+      nextStep: member.discipleship_next_step ?? null,
+    },
+    carePlan: buildCarePlan(carePlan, member),
+    timeline: timelineEvents.map((event) => ({
+      id: event.id,
+      title: event.title,
+      date: formatMonthDay(event.occurred_at ?? null),
+      timeAgo: formatRelative(event.occurred_at ?? null),
+      description: event.description ?? null,
+      category: event.event_category ?? null,
+      stage: event.status ?? null,
+      icon: event.icon ?? null,
+    })),
+  } satisfies MemberProfileRecord;
+}
+
+async function resolveMemberProfile(
+  request: ServiceDataSourceRequest
+): Promise<{ records: MemberProfileRecord[] }> {
+  const fallback = cloneMemberRecords(request.config.value);
+  try {
+    const memberId = firstParam(request.params.memberId);
+    const limit = toNumber(request.config.limit, memberId ? 1 : 5);
+    const timelineLimit = toNumber((request.config as { timelineLimit?: unknown }).timelineLimit, 10);
+    const service = createMemberProfileService();
+    const members = await service.getMembers({ memberId, limit });
+    if (!members.length) {
+      return { records: fallback };
+    }
+
+    const records = await Promise.all(
+      members.map((member) => buildMemberProfileRecord(service, member, { timelineLimit }))
+    );
+
+    return { records };
+  } catch (error) {
+    console.error('Failed to resolve member profile data source', error);
+    if (fallback.length) {
+      return { records: fallback };
+    }
+    return { records: [] };
+  }
+}
+
 export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = {
   [MEMBERS_TABLE_HANDLER_ID]: resolveMembersTable,
+  [MEMBERS_PROFILE_HANDLER_ID]: resolveMemberProfile,
 };

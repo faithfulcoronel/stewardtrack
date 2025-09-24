@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d01f07f58be43e9a34fdef01d92788e05e9b06a023b83e50735bc147c72e899a",
+  "checksum": "d0771bb632b6eb97a8bfaf9f22b49e9c476f5e521f4bf3cba4fe9919d9ef28c2",
   "layer": {
     "module": "ui-blocks",
     "route": "newsletter/event",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-event.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\newsletter-event\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-event.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-event/1.0.0/1.0.0.json"
 }

@@ -67,6 +67,8 @@ export const TYPES = {
   IMemberDiscipleshipMilestoneRepository: Symbol.for('IMemberDiscipleshipMilestoneRepository'),
   IMemberGivingProfileAdapter: Symbol.for('IMemberGivingProfileAdapter'),
   IMemberGivingProfileRepository: Symbol.for('IMemberGivingProfileRepository'),
+  IMemberProfileAdapter: Symbol.for('IMemberProfileAdapter'),
+  IMemberProfileRepository: Symbol.for('IMemberProfileRepository'),
   IMemberTagAdapter: Symbol.for('IMemberTagAdapter'),
   IMemberTagRepository: Symbol.for('IMemberTagRepository'),
   IMemberTimelineEventAdapter: Symbol.for('IMemberTimelineEventAdapter'),
@@ -103,6 +105,7 @@ export const TYPES = {
   IUserRoleRepository: Symbol.for('IUserRoleRepository'),
   IncomeExpenseTransactionService: Symbol.for('IncomeExpenseTransactionService'),
   LicenseFeatureService: Symbol.for('LicenseFeatureService'),
+  MemberProfileService: Symbol.for('MemberProfileService'),
   RequestContext: Symbol.for('RequestContext'),
   TenantService: Symbol.for('TenantService'),
 } as const;

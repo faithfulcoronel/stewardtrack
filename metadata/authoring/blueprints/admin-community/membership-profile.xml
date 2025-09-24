@@ -190,7 +190,7 @@
       </Region>
     </Regions>
     <DataSources>
-      <DataSource id="memberDirectory" kind="static">
+      <DataSource id="memberDirectory" kind="service">
         <Json><![CDATA[
           {
             "records": [
@@ -462,6 +462,9 @@
             ]
           }
         ]]></Json>
+        <Config>
+          <handler>admin-community.members.profile.memberDirectory</handler>
+        </Config>
       </DataSource>
     </DataSources>
     <Actions>
