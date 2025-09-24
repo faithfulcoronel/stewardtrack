@@ -29,7 +29,6 @@ export class IncomeExpenseTransactionAdapter
     amount,
     description,
     reference,
-    member_id,
     category_id,
     fund_id,
     source_id,
@@ -42,7 +41,6 @@ export class IncomeExpenseTransactionAdapter
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [
-    { table: 'members', foreignKey: 'member_id', select: ['id','first_name','last_name','email'] },
     { table: 'categories', foreignKey: 'category_id', select: ['id','code','name'] },
     { table: 'funds', foreignKey: 'fund_id', select: ['id','code','name','type'] },
     {

@@ -107,10 +107,6 @@ export class DataFixService {
             amount: Math.abs(debit.debit || credit.credit || 0),
             description,
             reference: header.reference ?? null,
-            member_id:
-              debit.account_holder?.member_id ??
-              credit.account_holder?.member_id ??
-              null,
             category_id: debit.category_id ?? credit.category_id ?? null,
             fund_id: debit.fund_id ?? credit.fund_id ?? null,
             source_id: debit.source_id ?? credit.source_id ?? null,
@@ -140,12 +136,6 @@ export class DataFixService {
           filters.account_id = {
             operator: 'eq',
             value: ie.account_id,
-          };
-        }
-        if (ie.member_id) {
-          filters['accounts.member_id'] = {
-            operator: 'eq',
-            value: ie.member_id,
           };
         }
         if (ie.fund_id) {
@@ -228,11 +218,6 @@ export class DataFixService {
       amount: overrides?.amount ?? Math.abs(debit.debit || credit.credit || 0),
       description,
       reference: header.reference ?? null,
-      member_id:
-        overrides?.member_id ??
-        debit.account_holder?.member_id ??
-        credit.account_holder?.member_id ??
-        null,
       category_id:
         overrides?.category_id ??
         debit.category_id ??

@@ -24,7 +24,6 @@ export interface IncomeExpenseEntry {
   source_coa_id: string | null;
   category_coa_id: string | null;
   batch_id?: string | null;
-  member_id?: string | null;
   line?: number | null;
   isDirty?: boolean;
   isDeleted?: boolean;
@@ -160,7 +159,6 @@ export class IncomeExpenseTransactionService {
       amount: line.amount,
       description: detailDescription ?? header.description ?? '',
       reference: (header as any).reference ?? null,
-      member_id: line.member_id ?? null,
       category_id: line.category_id,
       fund_id: line.fund_id,
       source_id: line.source_id,

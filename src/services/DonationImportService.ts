@@ -8,7 +8,7 @@ import type { FinancialTransactionHeader } from '@/models/financialTransactionHe
 
 export interface DonationImportRow {
   tenant_id: string;
-  member_id: string | null;
+  account_id: string | null;
   giving_date: string;
   categories: Record<string, number>;
 }
@@ -72,8 +72,7 @@ export class DonationImportService {
 
         const entry: IncomeExpenseEntry = {
           transaction_type: 'income',
-          member_id: row.member_id ?? null,
-          account_id: null,
+          account_id: row.account_id ?? null,
           fund_id: fund?.id ?? null,
           category_id: category.id,
           source_id: null,
