@@ -21,8 +21,8 @@ export interface IncomeExpenseEntry {
   source_id: string | null;
   description?: string;
   amount: number;
-  source_account_id: string | null;
-  category_account_id: string | null;
+  source_coa_id: string | null;
+  category_coa_id: string | null;
   batch_id?: string | null;
   member_id?: string | null;
   line?: number | null;
@@ -61,7 +61,7 @@ export class IncomeExpenseTransactionService {
     const categoryMap = new Map(
       categories
         .filter((c): c is Category => !!c)
-        .map(c => [c.id, c.chart_of_account_id || null]),
+        .map(c => [c.id, c.chart_of_account_id ?? null]),
     );
 
     const sources = await Promise.all(sourceIds.map(id => this.sourceRepo.findById(id)));
@@ -72,10 +72,10 @@ export class IncomeExpenseTransactionService {
     );
 
     for (const line of lines) {
-      line.category_account_id = line.category_id
+      line.category_coa_id = line.category_id
         ? categoryMap.get(line.category_id) ?? null
         : null;
-      line.source_account_id = line.source_id
+      line.source_coa_id = line.source_id
         ? sourceMap.get(line.source_id) ?? null
         : null;
     }
@@ -107,13 +107,13 @@ export class IncomeExpenseTransactionService {
       return [
         {
           ...base,
-          coa_id: line.source_account_id,
+          coa_id: line.source_coa_id,
           debit: line.amount,
           credit: 0,
         },
         {
           ...base,
-          coa_id: line.category_account_id,
+          coa_id: line.category_coa_id,
           debit: 0,
           credit: line.amount,
         },
@@ -123,13 +123,13 @@ export class IncomeExpenseTransactionService {
     return [
       {
         ...base,
-        coa_id: line.category_account_id,
+        coa_id: line.category_coa_id,
         debit: line.amount,
         credit: 0,
       },
       {
         ...base,
-        coa_id: line.source_account_id,
+        coa_id: line.source_coa_id,
         debit: 0,
         credit: line.amount,
       },
