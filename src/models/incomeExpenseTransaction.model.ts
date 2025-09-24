@@ -1,5 +1,4 @@
 import { BaseModel } from '@/models/base.model';
-import { Member } from '@/models/member.model';
 import { Fund } from '@/models/fund.model';
 import { FinancialSource } from '@/models/financialSource.model';
 import { Account } from '@/models/account.model';
@@ -13,8 +12,6 @@ export interface IncomeExpenseTransaction extends BaseModel {
   amount: number;
   description: string;
   reference: string | null;
-  member_id: string | null;
-  member?: Member;
   category_id: string | null;
   category?: {
     id: string;
