@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "59507e8b556bce0ed7e5a172c8b2c74f67ae2079aac22a252050b77757ea60dd",
+  "checksum": "f6ee3ad0218b559766fe3167afbaca78554ec770794fd0a27d43fb88dd1bd1d4",
   "layer": {
     "module": "ui-blocks",
     "route": "hero/event",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-event.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\hero-event\\1.0.0\\2.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-event.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/hero-event/1.0.0/2.0.0.json"
 }

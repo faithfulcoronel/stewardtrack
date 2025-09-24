@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "0bb673fc7d3bfd058abe777ffe87520b79827bed6edf460496e007ca841aa76e",
+  "checksum": "67b909ccd5eed4928908f659b51fa241909c4056804609f0641cbe1eb31bc31d",
   "layer": {
     "module": "ui-blocks",
     "route": "newsletter/magazine",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-magazine.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\newsletter-magazine\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-magazine.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-magazine/1.0.0/1.0.0.json"
 }

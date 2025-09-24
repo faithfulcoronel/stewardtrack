@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "cca036d2c2df25a3db8dca62fe767072ca485a86bf4dfa21d322745fce63551f",
+  "checksum": "20a9bc6c8d268b03e388fac22b090d2d2265ddfffa7ab9aef4dd9e8ad305f971",
   "layer": {
     "module": "ui-blocks",
     "route": "header/logo-array",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-logo-array.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\header-logo-array\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-logo-array.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/header-logo-array/1.0.0/1.0.0.json"
 }

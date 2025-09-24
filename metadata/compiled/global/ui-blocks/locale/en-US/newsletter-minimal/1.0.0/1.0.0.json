@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "fa48e0a140995d4537a98be3b621ffc0602f1e27d3cd89503470d5910720c9cf",
+  "checksum": "cb762f944d5c4fad1d13600c2ba802bd98b6602b58fb26641f23eeaa43fbf589",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -81,5 +81,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-minimal.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-minimal.xml"
 }

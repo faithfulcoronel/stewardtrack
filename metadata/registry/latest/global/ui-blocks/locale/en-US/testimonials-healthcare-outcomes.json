@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "467f9eb14654f6ee3b74bae4e051447a77e7742128737f4a8c6efb59d5d5b2d9",
+  "checksum": "b2dff2f5bada1e2a806628758718094ef10e61a50fdb6675ae9fb348f2c1216c",
   "layer": {
     "module": "ui-blocks",
     "route": "testimonials/healthcare-outcomes",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\testimonials-healthcare-outcomes.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\testimonials-healthcare-outcomes\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/testimonials-healthcare-outcomes.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/testimonials-healthcare-outcomes/1.0.0/1.0.0.json"
 }

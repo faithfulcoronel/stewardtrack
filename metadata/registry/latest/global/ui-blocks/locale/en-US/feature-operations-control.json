@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d84360a31cd9a4777ffb3cb2e8c2d25ae081356abf86c85c4738281db1690856",
+  "checksum": "c759a8716953a3d15ac30f147ec3357e327fac7ffe64f74cf2be3d8d51e7e367",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/operations-control",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-operations-control.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-operations-control\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-operations-control.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-operations-control/1.0.0/1.0.0.json"
 }

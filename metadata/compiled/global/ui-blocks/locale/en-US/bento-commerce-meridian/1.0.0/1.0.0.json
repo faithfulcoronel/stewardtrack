@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2c3186932989826042805c5f6d8cd888a9b01dbeda923080812a264f25b3e246",
+  "checksum": "dd1b043957c1076ee5f4cad47214f2f82bb4736ec91791b05eada128313df6bc",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -166,5 +166,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-meridian.xml"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "6fd2e889d8f78fa81e0e153f30f5e649985b54b7c0256e828d768b2854e1c29b",
+  "checksum": "a664d800bb051ec28e66575057ea7a47cb2b75104980e221b9b709f20b8149df",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -100,7 +100,7 @@
     "dataSources": [
       {
         "id": "memberDirectory",
-        "kind": "static",
+        "kind": "service",
         "config": {
           "value": {
             "records": [
@@ -419,7 +419,8 @@
                 ]
               }
             ]
-          }
+          },
+          "handler": "admin-community.members.profile.memberDirectory"
         }
       }
     ],
@@ -435,5 +436,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-profile.xml"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-profile.xml"
 }

@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d97e08f967d504e6dd2f321206292e8b1f2122ff5d8ae06fbf2d7bc69d6f1926",
+  "checksum": "cb6dfab82bf87356fa6d25b44c1d4ef938bef40d15d6a38d3877a355a2c1c9c8",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/customer-trust",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-customer-trust.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-customer-trust\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-customer-trust.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-customer-trust/1.0.0/1.0.0.json"
 }

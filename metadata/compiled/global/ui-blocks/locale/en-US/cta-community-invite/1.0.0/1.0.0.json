@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "554d9e93285783e7e879d63916281f714d4f52e10f7af2ef642abb7c9e053488",
+  "checksum": "1ded41a48098aa7bf2c25ab78c022ddd523e1812e4c0ae89964076406b9c2156",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -72,5 +72,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-community-invite.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-community-invite.xml"
 }

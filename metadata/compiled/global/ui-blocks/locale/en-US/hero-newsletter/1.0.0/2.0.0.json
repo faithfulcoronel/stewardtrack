@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "2.0.0",
-  "checksum": "c27ac2823c2b2f064eb9c6854947d9d2cc321ffc536c6f85ed15579463b384d5",
+  "checksum": "d4b0a6f67a7e15825772bd57b843b71092f630e4d3973e5228302924be9a6891",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -109,5 +109,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\hero-newsletter.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/hero-newsletter.xml"
 }

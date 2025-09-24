@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "ec06df415a0c10fdff107188466cb0bb7f645cee601cfee07fdf084cc5c54271",
+  "checksum": "0af662922c2a2017b7e759621b98993f12565edf41987e18fdff1feb8c87cf4e",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/research-newsletter",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-research-newsletter.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-research-newsletter\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-research-newsletter.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-research-newsletter/1.0.0/1.0.0.json"
 }

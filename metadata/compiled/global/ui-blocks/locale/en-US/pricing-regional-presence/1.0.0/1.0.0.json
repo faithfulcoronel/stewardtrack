@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "881fa3ad242429218d226ceea190316d4a439d5db2228d93d87c20488ba4e0c5",
+  "checksum": "d02780f13c35a5a68ef98b3f07de4916a057cee4839683530d718303f67ba278",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -200,5 +200,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-regional-presence.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-regional-presence.xml"
 }

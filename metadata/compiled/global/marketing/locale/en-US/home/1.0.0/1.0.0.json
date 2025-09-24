@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "880b2c60e6c7ba516401a1db65b461489d2c131c42a06f2950d43ee5354ea486",
+  "checksum": "5741e8e119fd0a93ee60262bdbe0fd5a707473a5923636aaa42ab00fb3096167",
   "kind": "blueprint",
   "layer": {
     "module": "marketing",
@@ -155,5 +155,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\marketing\\home.xml"
+  "sourcePath": "metadata/authoring/blueprints/marketing/home.xml"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2a32d6477ed5024e9a711d828e1c60b04cb1a2ed5c80151cf062239ea964b613",
+  "checksum": "cb8877fb704e54360bc84db8ccde17631c4259ffefab299252a5fd01b189b051",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -147,5 +147,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-community-constellation.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-community-constellation.xml"
 }

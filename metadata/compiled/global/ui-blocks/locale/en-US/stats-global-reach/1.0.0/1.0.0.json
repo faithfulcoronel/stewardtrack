@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "521a6f9f0d1dce244cdef37f0265e425d686ac3c4bafb594ff39b4b5fa0b3ef5",
+  "checksum": "e104ba54b73f5a335428e712fa62682857c3df8f55de49d5172f4ff03c572852",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -133,5 +133,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-global-reach.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-global-reach.xml"
 }
