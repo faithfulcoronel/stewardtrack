@@ -70,14 +70,20 @@ export function AdminSidebar({
       <div className="flex items-center gap-3 px-5 py-6">
         <Link
           href="/"
-          className="flex size-11 items-center justify-center rounded-2xl bg-[color:var(--sidebar-foreground)] text-base font-semibold text-[color:var(--sidebar-primary-foreground)] shadow-lg shadow-black/10"
+          className="flex size-11 items-center justify-center text-base font-semibold text-[color:var(--sidebar-primary-foreground)] shadow-lg shadow-black/10"
         >
-          FS
+          <div className="flex items-center">
+            <img
+              src="/logo_square.svg"
+              alt="StewardTrack Logo"
+              className="h-8 sm:h-10 w-auto"
+            />
+          </div>
         </Link>
         {showLabels && (
           <div className="leading-tight">
-            <p className="text-sm font-semibold" style={{ color: "var(--sidebar-foreground)" }}>
-              StewardTrack Admin
+            <p className="text-lg font-semibold" style={{ color: "var(--sidebar-foreground)" }}>
+              StewardTrack
             </p>
             <p className="text-xs/5" style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 60%, transparent)" }}>
               Control center
