@@ -13,6 +13,27 @@ import {
 } from "@/components/ui/select";
 
 import type { FormFieldConfig, FormFieldOption } from "./types";
+import { TagsInput } from "@/components/ui/tags-input";
+
+function isTagsField(field: FormFieldConfig): boolean {
+  return field.type === "tags" || field.name === "tags";
+}
+
+function toTagArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item : String(item ?? "")))
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+  if (value === null || value === undefined) {
+    return [];
+  }
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
 
 export type ControllerRender = {
   value: unknown;
@@ -21,6 +42,17 @@ export type ControllerRender = {
 
 export function renderFieldInput(field: FormFieldConfig, controller: ControllerRender) {
   const basePlaceholder = field.placeholder ?? "";
+
+  if (isTagsField(field)) {
+    const value = toTagArray(controller.value);
+    return (
+      <TagsInput
+        value={value}
+        onChange={(next) => controller.onChange(next)}
+        placeholder={basePlaceholder || "Add a tag"}
+      />
+    );
+  }
 
   switch (field.type) {
     case "textarea":
