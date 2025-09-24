@@ -1,5 +1,4 @@
 import { BaseModel } from '@/models/base.model';
-import { Member } from '@/models/member.model';
 import { ChartOfAccount } from '@/models/chartOfAccount.model';
 import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 
@@ -22,8 +21,6 @@ export interface FinancialTransaction extends BaseModel {
   description: string;
   date: string;
   budget_id: string | null;
-  member_id: string | null;
-  member?: Member;
   category_id: string | null;
   category?: {
     id: string;
@@ -43,9 +40,9 @@ export interface FinancialTransaction extends BaseModel {
     batch_date: string;
     total_amount: number;
   };
+  coa_id: string | null;
   account_id: string | null;
-  accounts_account_id: string | null;
-  account_holder?: { id: string; name: string };
+  account_holder?: { id: string; name: string; member_id: string | null };
   account?: ChartOfAccount;
   header_id: string | null;
   header?: FinancialTransactionHeader;

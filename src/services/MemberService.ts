@@ -129,7 +129,7 @@ export class MemberService implements CrudService<Member> {
           select: 'credit',
           filters: {
             deleted_at: { operator: 'isEmpty', value: true },
-            accounts_account_id: { operator: 'eq', value: accountId },
+            account_id: { operator: 'eq', value: accountId },
             'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
             type: { operator: 'eq', value: 'income' },
             credit: { operator: 'gt', value: 0 },
@@ -239,7 +239,7 @@ export class MemberService implements CrudService<Member> {
             select: 'credit',
             filters: {
               deleted_at: { operator: 'isEmpty', value: true },
-              accounts_account_id: { operator: 'eq', value: accountId },
+              account_id: { operator: 'eq', value: accountId },
               'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
               type: { operator: 'eq', value: 'income' },
               credit: { operator: 'gt', value: 0 },
@@ -271,7 +271,7 @@ export class MemberService implements CrudService<Member> {
         'id, date, description, credit, header_id, category:category_id(name), fund:fund_id(name, code)',
       filters: {
         deleted_at: { operator: 'isEmpty', value: true },
-        accounts_account_id: { operator: 'eq', value: accountId },
+        account_id: { operator: 'eq', value: accountId },
         'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
         type: { operator: 'eq', value: 'income' },
         credit: { operator: 'gt', value: 0 },
@@ -292,7 +292,7 @@ export class MemberService implements CrudService<Member> {
         'id, date, description, credit, header_id, category:category_id(name), fund:fund_id(name, code)',
         filters: {
           deleted_at: { operator: 'isEmpty', value: true },
-          accounts_account_id: { operator: 'eq', value: accountId },
+          account_id: { operator: 'eq', value: accountId },
           'chart_of_accounts.account_type': { operator: 'eq', value: 'revenue' },
           type: { operator: 'eq', value: 'income' },
           credit: { operator: 'gt', value: 0 },

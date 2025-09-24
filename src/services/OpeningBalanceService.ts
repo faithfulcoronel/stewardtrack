@@ -91,7 +91,7 @@ export class OpeningBalanceService {
 
     await this.ftRepo.create({
       header_id: header.id,
-      account_id: source.coa_id,
+      coa_id: source.coa_id,
       fund_id: balance.fund_id,
       type: 'opening_balance',
       date: header.transaction_date,
@@ -101,7 +101,7 @@ export class OpeningBalanceService {
     });
     await this.ftRepo.create({
       header_id: header.id,
-      account_id: fund.coa_id,
+      coa_id: fund.coa_id,
       fund_id: balance.fund_id,
       type: 'opening_balance',
       date: header.transaction_date,

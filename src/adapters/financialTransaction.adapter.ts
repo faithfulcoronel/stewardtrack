@@ -24,12 +24,11 @@ export class FinancialTransactionAdapter
     description,
     date,
     budget_id,
-    member_id,
     category_id,
     fund_id,
     batch_id,
+    coa_id,
     account_id,
-    accounts_account_id,
     header_id,
     debit,
     credit,
@@ -45,13 +44,8 @@ export class FinancialTransactionAdapter
 
   protected defaultRelationships: QueryOptions['relationships'] = [
     {
-      table: 'members',
-      foreignKey: 'member_id',
-      select: ['id', 'first_name', 'last_name', 'email']
-    },
-    {
       table: 'chart_of_accounts',
-      foreignKey: 'account_id',
+      foreignKey: 'coa_id',
       select: ['id', 'code', 'name', 'account_type']
     },
     {
@@ -66,8 +60,8 @@ export class FinancialTransactionAdapter
     },
     {
       table: 'accounts',
-      foreignKey: 'accounts_account_id',
-      select: ['id', 'name']
+      foreignKey: 'account_id',
+      select: ['id', 'name', 'member_id']
     },
     {
       table: 'financial_sources',

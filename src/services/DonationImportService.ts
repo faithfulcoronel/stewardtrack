@@ -73,7 +73,7 @@ export class DonationImportService {
         const entry: IncomeExpenseEntry = {
           transaction_type: 'income',
           member_id: row.member_id ?? null,
-          accounts_account_id: null,
+          account_id: null,
           fund_id: fund?.id ?? null,
           category_id: category.id,
           source_id: null,
