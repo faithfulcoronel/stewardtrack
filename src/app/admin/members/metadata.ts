@@ -1,5 +1,8 @@
+import React from "react";
+
 import { resolvePageMetadata } from "@/lib/metadata/resolver";
 import { renderResolvedPage } from "@/lib/metadata/interpreter";
+import { MetadataClientProvider } from "@/lib/metadata/context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type PageSearchParams = Record<string, string | string[] | undefined>;
@@ -46,5 +49,18 @@ export async function renderMembershipPage(route: string, searchParams: PageSear
     searchParams,
   });
 
-  return { content };
+  return {
+    content: React.createElement(
+      MetadataClientProvider,
+      {
+        value: {
+          role: context.role,
+          tenant: context.tenant,
+          locale: context.locale,
+          featureFlags: context.featureFlags,
+        },
+      },
+      content,
+    ),
+  };
 }

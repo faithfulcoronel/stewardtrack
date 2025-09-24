@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { ActionConfig } from "../shared";
 import type { FormFieldOption } from "./types";
 import { executeMetadataAction } from "@/lib/metadata/actions/client";
+import { useMetadataClientContext } from "@/lib/metadata/context";
 
 export interface AdminLookupQuickCreateProps {
   lookupId?: string | null;
@@ -36,6 +37,7 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
   const submitLabel = props.submitLabel?.trim() || "Save";
   const successMessage = props.successMessage?.trim() || `${lookupLabel} saved`;
   const lookupId = props.lookupId?.trim() ?? "";
+  const { role } = useMetadataClientContext();
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -85,6 +87,9 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
           lookupId,
           name: trimmedName,
           code: trimmedCode,
+        },
+        context: {
+          role,
         },
       });
 
