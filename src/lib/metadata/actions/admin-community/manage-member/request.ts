@@ -7,7 +7,6 @@ const requestSchema = z.object({
   mode: z.enum(["create", "edit"]).optional().nullable(),
   values: z
     .record(z.string(), z.unknown())
-    .catchall(z.unknown())
     .optional()
     .default({}),
 });
