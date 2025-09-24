@@ -51,6 +51,7 @@ interface AdminFormSubmitHandlerOptions {
   notifier: NotificationService;
   navigator: NavigationService;
   contextParams: Record<string, string | string[]>;
+  role: string | null;
 }
 
 export class AdminFormSubmitHandler {
@@ -68,6 +69,8 @@ export class AdminFormSubmitHandler {
 
   private readonly settings: SubmitActionSettings;
 
+  private readonly contextRole: string | null;
+
   constructor(options: AdminFormSubmitHandlerOptions) {
     this.action = options.action;
     this.mode = options.mode ?? null;
@@ -76,6 +79,7 @@ export class AdminFormSubmitHandler {
     this.navigator = options.navigator;
     this.contextParams = options.contextParams;
     this.settings = this.resolveSubmitActionSettings(options.action);
+    this.contextRole = options.role ?? null;
   }
 
   async handleSubmit(values: Record<string, unknown>): Promise<void> {
@@ -93,6 +97,7 @@ export class AdminFormSubmitHandler {
         input: payload,
         context: {
           params: this.contextParams,
+          role: this.contextRole,
         },
       });
 

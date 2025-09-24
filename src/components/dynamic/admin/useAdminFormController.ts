@@ -6,6 +6,7 @@ import { useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/n
 
 import { normalizeList } from "../shared";
 import { executeMetadataAction } from "@/lib/metadata/actions/client";
+import { useMetadataClientContext } from "@/lib/metadata/context";
 import { toast } from "sonner";
 
 import type { AdminFormSectionProps, FormFieldConfig } from "./types";
@@ -17,6 +18,8 @@ export function useAdminFormController(props: AdminFormSectionProps) {
     () => buildDefaultValues(fields, props.initialValues ?? {}),
     [fields, props.initialValues],
   );
+
+  const metadataContext = useMetadataClientContext();
 
   const form = useForm<Record<string, unknown>>({
     defaultValues,
@@ -57,8 +60,17 @@ export function useAdminFormController(props: AdminFormSectionProps) {
         notifier,
         navigator,
         contextParams,
+        role: metadataContext.role ?? null,
       }),
-    [props.submitAction, props.mode, metadataExecutor, notifier, navigator, contextParams],
+    [
+      props.submitAction,
+      props.mode,
+      metadataExecutor,
+      notifier,
+      navigator,
+      contextParams,
+      metadataContext.role,
+    ],
   );
 
   const handleSubmit = React.useMemo(
