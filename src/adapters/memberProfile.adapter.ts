@@ -17,8 +17,9 @@ export interface MemberRow {
   contact_number?: string | null;
   address?: unknown;
   membership_date?: string | null;
-  membership_stage?: { name?: string | null; code?: string | null } | null;
-  membership_center?: { name?: string | null; code?: string | null } | null;
+  membership_stage?: { id?: string | null; name?: string | null; code?: string | null } | null;
+  membership_type?: { id?: string | null; name?: string | null; code?: string | null } | null;
+  membership_center?: { id?: string | null; name?: string | null; code?: string | null } | null;
   preferred_contact_method?: string | null;
   serving_team?: string | null;
   serving_role?: string | null;
@@ -158,8 +159,9 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           contact_number,
           address,
           membership_date,
-          membership_stage:membership_status_id(name, code),
-          membership_center:membership_center_id(name, code),
+          membership_stage:membership_status_id(id, name, code),
+          membership_type:membership_type_id(id, name, code),
+          membership_center:membership_center_id(id, name, code),
           preferred_contact_method,
           serving_team,
           serving_role,

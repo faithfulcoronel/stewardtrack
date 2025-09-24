@@ -52,7 +52,7 @@ export class MembershipTypeService
     const tenantId = await tenantUtils.getTenantId();
 
     const options: Omit<QueryOptions, 'pagination'> = {
-      select: 'id,name',
+      select: 'id,code,name,sort_order',
       filters: {
         is_active: { operator: 'eq', value: true },
       },
@@ -65,6 +65,15 @@ export class MembershipTypeService
     // Otherwise, query through the repository which scopes results to the tenant
     options.filters!.tenant_id = { operator: 'eq', value: tenantId };
     const { data } = await this.repo.findAll(options);
-    return data;
+    return (data ?? []).slice().sort((a, b) => {
+      const orderA = typeof a.sort_order === 'number' ? a.sort_order : Number.MAX_SAFE_INTEGER;
+      const orderB = typeof b.sort_order === 'number' ? b.sort_order : Number.MAX_SAFE_INTEGER;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      const nameA = (a.name ?? '').toLocaleLowerCase();
+      const nameB = (b.name ?? '').toLocaleLowerCase();
+      return nameA.localeCompare(nameB);
+    });
   }
 }

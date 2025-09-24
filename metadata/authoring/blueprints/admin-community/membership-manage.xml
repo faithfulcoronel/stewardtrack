@@ -81,15 +81,19 @@
               (() => {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
+                const lookupGroups = data.membershipLookups?.lookups ?? {};
+                const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';
+                const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';
+                const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
                 if (!params.memberId) {
                   return {
                     firstName: '',
                     lastName: '',
                     email: '',
                     phone: '',
-                    stage: 'new',
-                    membershipType: 'covenant-member',
-                    center: 'downtown',
+                    stage: defaultStageId,
+                    membershipType: defaultTypeId,
+                    center: defaultCenterId,
                     joinDate: '',
                     preferredContact: 'Email',
                     recurringGiving: '',
@@ -113,9 +117,9 @@
                   lastName: profile.lastName ?? '',
                   email: record.contact?.email ?? '',
                   phone: record.contact?.phone ?? '',
-                  stage: profile.stageKey ?? record.stageKey ?? 'new',
-                  membershipType: profile.membershipTypeKey ?? record.membershipTypeKey ?? 'covenant-member',
-                  center: profile.centerKey ?? record.centerKey ?? 'downtown',
+                  stage: profile.stageId ?? record.stageId ?? defaultStageId,
+                  membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
+                  center: profile.centerId ?? record.centerId ?? defaultCenterId,
                   joinDate: profile.joinDate ?? '',
                   preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',
                   recurringGiving: record.giving?.recurring?.amount ?? '',
