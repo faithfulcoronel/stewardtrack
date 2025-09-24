@@ -269,10 +269,10 @@ export class FinancialTransactionHeaderAdapter
         fund:fund_id(id, name, type),
         category_id,
         category:category_id(id, name, code),
+        coa_id,
         account_id,
-        accounts_account_id,
         account:chart_of_accounts(id, code, name, account_type),
-        account_holder:accounts(id, name),
+        account_holder:accounts(id, name, member_id),
         source_id,
         source:source_id(id, name, source_type),
         header:financial_transaction_headers(id, deleted_at)

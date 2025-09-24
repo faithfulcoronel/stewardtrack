@@ -15,7 +15,7 @@ import { TYPES } from '@/lib/types';
 export interface IncomeExpenseEntry {
   id?: string;
   transaction_type: TransactionType;
-  accounts_account_id: string | null;
+  account_id: string | null;
   fund_id: string | null;
   category_id: string | null;
   source_id: string | null;
@@ -93,7 +93,7 @@ export class IncomeExpenseTransactionService {
 
     const base = {
       type: line.transaction_type,
-      accounts_account_id: line.accounts_account_id,
+      account_id: line.account_id,
       fund_id: line.fund_id,
       source_id: line.source_id,
       category_id: line.category_id,
@@ -107,13 +107,13 @@ export class IncomeExpenseTransactionService {
       return [
         {
           ...base,
-          account_id: line.source_account_id,
+          coa_id: line.source_account_id,
           debit: line.amount,
           credit: 0,
         },
         {
           ...base,
-          account_id: line.category_account_id,
+          coa_id: line.category_account_id,
           debit: 0,
           credit: line.amount,
         },
@@ -123,13 +123,13 @@ export class IncomeExpenseTransactionService {
     return [
       {
         ...base,
-        account_id: line.category_account_id,
+        coa_id: line.category_account_id,
         debit: line.amount,
         credit: 0,
       },
       {
         ...base,
-        account_id: line.source_account_id,
+        coa_id: line.source_account_id,
         debit: 0,
         credit: line.amount,
       },
@@ -164,7 +164,7 @@ export class IncomeExpenseTransactionService {
       category_id: line.category_id,
       fund_id: line.fund_id,
       source_id: line.source_id,
-      account_id: line.accounts_account_id,
+      account_id: line.account_id,
       header_id: headerId,
       line: line.line ?? undefined,
     };

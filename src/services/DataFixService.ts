@@ -107,12 +107,14 @@ export class DataFixService {
             amount: Math.abs(debit.debit || credit.credit || 0),
             description,
             reference: header.reference ?? null,
-            member_id: debit.member_id ?? credit.member_id ?? null,
+            member_id:
+              debit.account_holder?.member_id ??
+              credit.account_holder?.member_id ??
+              null,
             category_id: debit.category_id ?? credit.category_id ?? null,
             fund_id: debit.fund_id ?? credit.fund_id ?? null,
             source_id: debit.source_id ?? credit.source_id ?? null,
-            account_id:
-              debit.accounts_account_id ?? credit.accounts_account_id ?? null,
+            account_id: debit.account_id ?? credit.account_id ?? null,
             header_id: header.id,
             line: i + 1,
           });
@@ -135,7 +137,7 @@ export class DataFixService {
           header_id: { operator: 'eq', value: header.id },
         };
         if (ie.account_id) {
-          filters.accounts_account_id = {
+          filters.account_id = {
             operator: 'eq',
             value: ie.account_id,
           };
@@ -200,9 +202,9 @@ export class DataFixService {
     overrides?: Partial<IncomeExpenseTransaction>,
   ): Promise<void> {
     const existing = await this.mappingRepo.getByHeaderId(header.id);
-   const description =
-    overrides?.description ??
-    (debit.description || credit.description || header.description || '');
+    const description =
+      overrides?.description ??
+      (debit.description || credit.description || header.description || '');
 
     const txType: TransactionType =
       debit.source_id && credit.category_id
@@ -220,7 +222,11 @@ export class DataFixService {
       amount: overrides?.amount ?? Math.abs(debit.debit || credit.credit || 0),
       description,
       reference: header.reference ?? null,
-      member_id: debit.member_id ?? credit.member_id ?? null,
+      member_id:
+        overrides?.member_id ??
+        debit.account_holder?.member_id ??
+        credit.account_holder?.member_id ??
+        null,
       category_id:
         overrides?.category_id ??
         debit.category_id ??
@@ -232,8 +238,8 @@ export class DataFixService {
         overrides?.source_id ?? debit.source_id ?? credit.source_id ?? null,
       account_id:
         overrides?.account_id ??
-        debit.accounts_account_id ??
-        credit.accounts_account_id ??
+        debit.account_id ??
+        credit.account_id ??
         null,
       header_id: header.id,
       line: existing.length + 1,
