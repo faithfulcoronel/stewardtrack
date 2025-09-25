@@ -4,7 +4,7 @@ import { resolvePageMetadata } from "@/lib/metadata/resolver";
 import { renderResolvedPage } from "@/lib/metadata/interpreter";
 import { MetadataClientProvider } from "@/lib/metadata/context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { readTenantSession } from "@/lib/tenant/session-cache";
+import { readTenantSession, writeTenantSession } from "@/lib/tenant/session-cache";
 
 export type PageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -35,6 +35,28 @@ async function getMembershipContext(): Promise<MembershipContext> {
 
   if (!tenant && cachedTenant.sessionId && cachedTenant.sessionId === currentSessionId) {
     tenant = cachedTenant.tenant;
+  }
+
+  if (!tenant) {
+    try {
+      const { data: tenantData, error: tenantError } = await supabase.rpc("get_current_tenant");
+
+      if (tenantError) {
+        throw tenantError;
+      }
+
+      const tenantRecord = Array.isArray(tenantData) ? tenantData[0] : tenantData;
+      const resolvedTenant = (tenantRecord as { id?: string } | null)?.id ?? null;
+      tenant = typeof resolvedTenant === "string" ? resolvedTenant.trim() : null;
+
+      if (tenant && currentSessionId) {
+        await writeTenantSession(tenant, currentSessionId);
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV !== "test") {
+        console.error("Failed to resolve tenant for membership metadata context", error);
+      }
+    }
   }
 
   if (!tenant) {
