@@ -511,6 +511,44 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
   const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
 
+  const setHouseholdMembers = React.useCallback(
+    (members: string[], options?: { dirty?: boolean }) => {
+      const currentValue = controller.getValues("householdMembers");
+      const normalizedCurrent = Array.isArray(currentValue)
+        ? currentValue.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)
+        : [];
+      const normalizedNext = members
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter((value) => value.length > 0);
+
+      if (areArraysEqual(normalizedCurrent, normalizedNext)) {
+        return;
+      }
+
+      controller.setValue("householdMembers", normalizedNext, {
+        shouldDirty: options?.dirty ?? false,
+        shouldValidate: true,
+      });
+    },
+    [controller],
+  );
+
+  const ensureMemberNameIncluded = React.useCallback(
+    (members: string[]): string[] => {
+      const fullName = formatFullName(controller.getValues("firstName"), controller.getValues("lastName"));
+      if (!fullName) {
+        return members;
+      }
+      const normalizedMembers = members.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean);
+      const exists = normalizedMembers.some((value) => value.localeCompare(fullName, undefined, { sensitivity: "accent" }) === 0);
+      if (exists) {
+        return normalizedMembers;
+      }
+      return [...normalizedMembers, fullName];
+    },
+    [controller],
+  );
+
   React.useEffect(() => {
     controller.register("householdId");
   }, [controller]);
@@ -682,44 +720,6 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
       };
     });
   }, [tabs]);
-
-  const setHouseholdMembers = React.useCallback(
-    (members: string[], options?: { dirty?: boolean }) => {
-      const currentValue = controller.getValues("householdMembers");
-      const normalizedCurrent = Array.isArray(currentValue)
-        ? currentValue.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)
-        : [];
-      const normalizedNext = members
-        .map((value) => (typeof value === "string" ? value.trim() : ""))
-        .filter((value) => value.length > 0);
-
-      if (areArraysEqual(normalizedCurrent, normalizedNext)) {
-        return;
-      }
-
-      controller.setValue("householdMembers", normalizedNext, {
-        shouldDirty: options?.dirty ?? false,
-        shouldValidate: true,
-      });
-    },
-    [controller],
-  );
-
-  const ensureMemberNameIncluded = React.useCallback(
-    (members: string[]): string[] => {
-      const fullName = formatFullName(controller.getValues("firstName"), controller.getValues("lastName"));
-      if (!fullName) {
-        return members;
-      }
-      const normalizedMembers = members.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean);
-      const exists = normalizedMembers.some((value) => value.localeCompare(fullName, undefined, { sensitivity: "accent" }) === 0);
-      if (exists) {
-        return normalizedMembers;
-      }
-      return [...normalizedMembers, fullName];
-    },
-    [controller],
-  );
 
   const handleHouseholdSelect = React.useCallback(
     (option: HouseholdOption) => {
