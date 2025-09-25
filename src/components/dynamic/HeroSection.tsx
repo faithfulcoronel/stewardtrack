@@ -439,6 +439,18 @@ function StatsPanelHero(props: NormalizedHeroProps) {
 
 function MinimalHero(props: NormalizedHeroProps) {
   const hasImage = Boolean(props.image?.src);
+  const altText = props.image?.alt?.trim() ?? "";
+  const profileName = React.useMemo(() => {
+    if (!altText) {
+      return null;
+    }
+
+    if (/^.+?'s profile photo$/i.test(altText)) {
+      return altText.replace(/'s profile photo$/i, "").trim();
+    }
+
+    return altText;
+  }, [altText]);
 
   return (
     <FullWidthSection className="bg-background py-18 sm:py-20">
@@ -463,11 +475,18 @@ function MinimalHero(props: NormalizedHeroProps) {
             )}
           </div>
           {hasImage && (
-            <HeroImage
-              className="size-20 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted shadow-sm sm:self-start"
-              image={props.image}
-              aspect="aspect-square"
-            />
+            <div className="flex w-full max-w-xs items-center gap-4 rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm backdrop-blur-sm sm:max-w-none sm:self-start">
+              <HeroImage
+                className="size-16 shrink-0 overflow-hidden rounded-full border border-border/40 bg-background shadow-sm ring-2 ring-background sm:size-20"
+                image={props.image}
+                aspect="aspect-square"
+              />
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Profile photo</p>
+                {profileName && <p className="text-sm font-semibold text-foreground">{profileName}</p>}
+                <p className="text-xs text-muted-foreground">Displayed across membership records</p>
+              </div>
+            </div>
           )}
         </div>
         <ActionsRow primary={props.primaryCta} secondary={props.secondaryCta} />
