@@ -97,6 +97,7 @@ export class MemberFormMapper {
     const discipleshipNextStep = this.cleanString(values.discipleshipNextStep);
     const notes = this.cleanString(values.notes);
     const tags = this.toTags(values.tags);
+    const profilePhotoUrl = this.toProfilePhoto(values.profilePhoto);
 
     const stageId = this.findStageId(resources.stages, stageValue);
     const typeId = this.findTypeId(resources.types, membershipTypeValue);
@@ -120,6 +121,10 @@ export class MemberFormMapper {
       pastoral_notes: notes ?? null,
       tags,
     };
+
+    if (profilePhotoUrl !== undefined) {
+      payload.profile_picture_url = profilePhotoUrl;
+    }
 
     if (phone) {
       payload.contact_number = phone;
@@ -169,6 +174,28 @@ export class MemberFormMapper {
     return normalized ? normalized : null;
   }
 
+  private toProfilePhoto(value: unknown): string | null | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value === null) {
+      return null;
+    }
+    if (typeof value === "string") {
+      const normalized = value.trim();
+      return normalized || null;
+    }
+    if (typeof value === "object") {
+      const candidate = this.cleanString((value as { url?: unknown }).url);
+      const remove = this.toBoolean((value as { remove?: unknown }).remove);
+      if (remove) {
+        return null;
+      }
+      return candidate ?? null;
+    }
+    return null;
+  }
+
   private toStageKey(value: unknown): FormStageKey | null {
     const normalized = this.cleanString(value)?.toLowerCase() as FormStageKey | null;
     if (!normalized) {
@@ -190,6 +217,20 @@ export class MemberFormMapper {
       default:
         return "email";
     }
+  }
+
+  private toBoolean(value: unknown): boolean {
+    if (typeof value === "boolean") {
+      return value;
+    }
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      return normalized === "true" || normalized === "1" || normalized === "yes";
+    }
+    if (typeof value === "number") {
+      return value !== 0;
+    }
+    return false;
   }
 
   private toNumeric(value: unknown): number | null {
