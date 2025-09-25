@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "78f37f2c09da3862d90aa63a4e2cdadaf68104200f023d247b2542b096459617",
+  "checksum": "b7888c46bc0033c861aa91bd98dcf46390142f08cc4db3fed2a0f6a658f7607b",
   "layer": {
     "module": "ui-blocks",
     "route": "bento/sustainability-lab",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-sustainability-lab.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-sustainability-lab\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-sustainability-lab.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-sustainability-lab/1.0.0/1.0.0.json"
 }

@@ -76,124 +76,191 @@
             ]]></Prop>
           </Props>
         </Component>
-        <Component id="manage-form" type="AdminFormSection">
+        <Component id="manage-workspace" type="AdminMemberWorkspace">
           <Props>
-            <Prop name="title" kind="static">Membership details</Prop>
-            <Prop name="fields" kind="expression"><![CDATA[
-              (() => {
-                const blueprintFields = data.formBlueprint?.fields ?? [];
-                const lookupGroups = data.membershipLookups?.lookups ?? {};
-                return blueprintFields.map((field) => {
-                  const { lookupId, quickCreate, ...config } = field ?? {};
-                  const labelText = String(field?.label ?? 'Option');
-                  if (!lookupId) {
-                    return {
-                      ...config,
-                      ...(quickCreate ? { quickCreate } : {}),
-                    };
-                  }
-                  const lookupItems = lookupGroups[lookupId] ?? [];
-                  const quickCreateConfig = quickCreate
-                    ? {
-                        label: quickCreate.label ?? `Add ${labelText.toLowerCase()}`,
-                        description:
-                          quickCreate.description ??
-                          `Create a new ${labelText.toLowerCase()} without leaving the form.`,
-                        submitLabel: quickCreate.submitLabel ?? 'Save option',
-                        successMessage: quickCreate.successMessage ?? `${labelText} added`,
-                        action: {
-                          id: `quick-create-${lookupId}`,
-                          kind: 'metadata.service',
-                          config: {
-                            handler: 'admin-community.members.manage.lookup.create',
-                            lookupId,
-                          },
-                        },
-                      }
-                    : null;
-                  return {
-                    ...config,
-                    lookupId,
-                    options: lookupItems.map((item) => ({ label: item.value, value: item.id })),
-                    ...(quickCreateConfig ? { quickCreate: quickCreateConfig } : {}),
-                  };
-                });
-              })()
-            ]]></Prop>
-            <Prop name="initialValues" kind="expression"><![CDATA[
+            <Prop name="variant" kind="static">manage</Prop>
+            <Prop name="tabs" kind="binding" source="formBlueprint" path="$.tabs" />
+            <Prop name="form" kind="expression"><![CDATA[
               (() => {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
+                const isCreate = !params.memberId;
                 const lookupGroups = data.membershipLookups?.lookups ?? {};
                 const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';
                 const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';
                 const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
-                if (!params.memberId) {
-                  return {
-                    profilePhoto: '',
-                    firstName: '',
-                    lastName: '',
-                    email: '',
-                    phone: '',
-                    stage: defaultStageId,
-                    membershipType: defaultTypeId,
-                    center: defaultCenterId,
-                    joinDate: '',
-                    preferredContact: 'Email',
-                    recurringGiving: '',
-                    pledgeAmount: '',
-                    careStatus: 'observation',
-                    carePastor: '',
-                    followUpDate: '',
-                    servingTeam: '',
-                    servingRole: '',
-                    servingSchedule: '',
-                    discipleshipNextStep: '',
-                    notes: '',
-                    tags: ''
-                  };
-                }
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const record = isCreate
+                  ? {}
+                  : records.find((item) => item.id === params.memberId) ?? fallback;
                 const profile = record.profile ?? {};
+                const demographics = profile.demographics ?? record.demographics ?? {};
+                const household = record.household ?? {};
+                const contact = record.contact ?? {};
+                const emergency = record.emergency ?? {};
+                const engagement = record.engagement ?? {};
+                const attendance = record.attendance ?? {};
+                const discipleship = record.discipleship ?? {};
+                const carePlan = record.carePlan ?? {};
+                const serving = record.serving ?? {};
+                const leadership = record.leadership ?? {};
+                const giving = record.giving ?? {};
+                const finance = record.finance ?? {};
+                const admin = record.admin ?? {};
                 const profilePhoto = record.photoUrl ?? profile.photoUrl ?? '';
                 const tags = profile.tags ?? record.tags ?? [];
-                return {
+                const members = household.members ?? profile.householdMembers ?? [];
+                const groups = engagement.groups ?? profile.additionalGroups ?? [];
+                const pathways = engagement.pathways ?? profile.pathways ?? [];
+                const gifts = engagement.spiritualGifts ?? profile.spiritualGifts ?? [];
+                const interests = engagement.interests ?? profile.ministryInterests ?? [];
+                const careTeam = carePlan.team ?? profile.careTeam ?? [];
+                const leadershipRoles = leadership.roles ?? profile.leadershipRoles ?? [];
+
+                const initialValues = {
                   profilePhoto,
-                  firstName: profile.firstName ?? '',
-                  lastName: profile.lastName ?? '',
-                  email: record.contact?.email ?? '',
-                  phone: record.contact?.phone ?? '',
+                  memberId: record.id ?? '',
+                  firstName: profile.firstName ?? record.fullName?.split(' ')[0] ?? '',
+                  preferredName: profile.preferredName ?? record.preferredName ?? '',
+                  lastName: profile.lastName ?? record.fullName?.split(' ').slice(-1)[0] ?? '',
+                  birthdate: profile.birthdate ?? demographics.birthdate ?? '',
+                  maritalStatus: profile.maritalStatus ?? demographics.maritalStatus ?? 'single',
+                  anniversary: profile.anniversary ?? demographics.anniversary ?? '',
+                  occupation: profile.occupation ?? demographics.occupation ?? '',
+                  householdName: profile.householdName ?? household.name ?? '',
+                  envelopeNumber: profile.envelopeNumber ?? household.envelopeNumber ?? '',
+                  addressStreet: profile.addressStreet ?? household.address?.street ?? '',
+                  addressCity: profile.addressCity ?? household.address?.city ?? '',
+                  addressState: profile.addressState ?? household.address?.state ?? '',
+                  addressPostal: profile.addressPostal ?? household.address?.postalCode ?? '',
+                  householdMembers: Array.isArray(members) ? members : [],
+                  email: profile.email ?? contact.email ?? '',
+                  phone: profile.phone ?? contact.phone ?? '',
+                  preferredContact: profile.preferredContact ?? contact.preferred ?? 'Email',
+                  smallGroup: discipleship.smallGroup ?? profile.smallGroup ?? '',
+                  additionalGroups: Array.isArray(groups) ? groups : [],
+                  pathways: Array.isArray(pathways) ? pathways : [],
+                  mentor: discipleship.mentor ?? profile.mentor ?? '',
+                  attendanceRate: profile.attendanceRate ?? attendance.twelveWeekAttendance ?? '',
+                  lastAttendance: profile.lastAttendance ?? attendance.lastAttendance ?? '',
+                  spiritualGifts: Array.isArray(gifts) ? gifts : [],
+                  ministryInterests: Array.isArray(interests) ? interests : [],
+                  discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? '',
+                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? '',
+                  careStatus: profile.careStatus ?? carePlan.statusKey ?? 'observation',
+                  carePastor: profile.carePastor ?? carePlan.assignedTo ?? '',
+                  followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? '',
+                  careTeam: Array.isArray(careTeam) ? careTeam : [],
+                  pastoralNotes: profile.pastoralNotes ?? carePlan.pastoralNotes ?? '',
+                  prayerRequests: profile.prayerRequests ?? carePlan.prayerRequests ?? '',
+                  emergencyContact: profile.emergencyContact ?? emergency.contact ?? '',
+                  emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? '',
+                  emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? '',
+                  physician: profile.physician ?? emergency.physician ?? '',
+                  servingTeam: profile.servingTeam ?? serving.team ?? '',
+                  servingRole: profile.servingRole ?? serving.role ?? '',
+                  servingSchedule: profile.servingSchedule ?? serving.schedule ?? '',
+                  servingCoach: profile.servingCoach ?? serving.coach ?? '',
+                  nextServeDate: profile.nextServeDate ?? serving.nextServeDate ?? '',
+                  leadershipRoles: Array.isArray(leadershipRoles) ? leadershipRoles : [],
+                  teamFocus: profile.teamFocus ?? leadership.teamFocus ?? '',
+                  reportsTo: profile.reportsTo ?? leadership.reportsTo ?? serving.coach ?? '',
+                  lastHuddle: profile.lastHuddle ?? leadership.lastHuddle ?? '',
+                  recurringGiving: profile.recurringGiving ?? giving.recurring?.amount ?? '',
+                  recurringFrequency: profile.recurringFrequency ?? giving.recurring?.frequencyKey ?? giving.recurring?.frequency ?? 'monthly',
+                  recurringMethod: profile.recurringMethod ?? giving.recurring?.method ?? 'ach',
+                  pledgeAmount: profile.pledgeAmount ?? giving.pledge ?? '',
+                  pledgeCampaign: profile.pledgeCampaign ?? giving.campaign ?? '',
+                  primaryFund: profile.primaryFund ?? giving.primaryFund ?? '',
+                  statementPreference: profile.statementPreference ?? finance.statementPreference ?? 'email',
+                  capacityTier: profile.capacityTier ?? finance.capacityTier ?? 'mid',
+                  financeNotes: profile.financeNotes ?? finance.notes ?? '',
                   stage: profile.stageId ?? record.stageId ?? defaultStageId,
                   membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
                   center: profile.centerId ?? record.centerId ?? defaultCenterId,
-                  joinDate: profile.joinDate ?? '',
-                  preferredContact: profile.preferredContact ?? record.contact?.preferred ?? 'Email',
-                  recurringGiving: record.giving?.recurring?.amount ?? '',
-                  pledgeAmount: record.giving?.pledge ?? '',
-                  careStatus: profile.careStatus ?? record.carePlan?.statusKey ?? 'observation',
-                  carePastor: profile.carePastor ?? record.carePlan?.assignedTo ?? '',
-                  followUpDate: profile.followUpDate ?? '',
-                  servingTeam: profile.servingTeam ?? record.serving?.team ?? '',
-                  servingRole: profile.servingRole ?? record.serving?.role ?? '',
-                  servingSchedule: profile.servingSchedule ?? record.serving?.schedule ?? '',
-                  discipleshipNextStep: profile.discipleshipNextStep ?? record.discipleship?.nextStep ?? '',
-                  notes: profile.notes ?? '',
-                  tags: Array.isArray(tags) ? tags.join(', ') : String(tags ?? ''),
+                  joinDate: profile.joinDate ?? record.joinDate ?? '',
+                  tags: Array.isArray(tags) ? tags : [],
+                  dataSteward: profile.dataSteward ?? admin.steward ?? '',
+                  lastReview: profile.lastReview ?? admin.lastReview ?? ''
+                };
+
+                if (isCreate) {
+                  initialValues.memberId = '';
+                  initialValues.firstName = '';
+                  initialValues.preferredName = '';
+                  initialValues.lastName = '';
+                  initialValues.birthdate = '';
+                  initialValues.maritalStatus = 'single';
+                  initialValues.anniversary = '';
+                  initialValues.occupation = '';
+                  initialValues.householdName = '';
+                  initialValues.envelopeNumber = '';
+                  initialValues.householdMembers = [];
+                  initialValues.addressStreet = '';
+                  initialValues.addressCity = '';
+                  initialValues.addressState = '';
+                  initialValues.addressPostal = '';
+                  initialValues.email = '';
+                  initialValues.phone = '';
+                  initialValues.preferredContact = 'Email';
+                  initialValues.smallGroup = '';
+                  initialValues.additionalGroups = [];
+                  initialValues.pathways = [];
+                  initialValues.mentor = '';
+                  initialValues.attendanceRate = '';
+                  initialValues.lastAttendance = '';
+                  initialValues.spiritualGifts = [];
+                  initialValues.ministryInterests = [];
+                  initialValues.discipleshipNextStep = '';
+                  initialValues.prayerFocus = '';
+                  initialValues.careStatus = 'observation';
+                  initialValues.carePastor = '';
+                  initialValues.followUpDate = '';
+                  initialValues.careTeam = [];
+                  initialValues.pastoralNotes = '';
+                  initialValues.prayerRequests = '';
+                  initialValues.emergencyContact = '';
+                  initialValues.emergencyRelationship = '';
+                  initialValues.emergencyPhone = '';
+                  initialValues.physician = '';
+                  initialValues.servingTeam = '';
+                  initialValues.servingRole = '';
+                  initialValues.servingSchedule = '';
+                  initialValues.servingCoach = '';
+                  initialValues.nextServeDate = '';
+                  initialValues.leadershipRoles = [];
+                  initialValues.teamFocus = '';
+                  initialValues.reportsTo = '';
+                  initialValues.lastHuddle = '';
+                  initialValues.recurringGiving = '';
+                  initialValues.recurringFrequency = 'monthly';
+                  initialValues.recurringMethod = 'ach';
+                  initialValues.pledgeAmount = '';
+                  initialValues.pledgeCampaign = '';
+                  initialValues.primaryFund = '';
+                  initialValues.statementPreference = 'email';
+                  initialValues.capacityTier = 'mid';
+                  initialValues.financeNotes = '';
+                  initialValues.stage = defaultStageId;
+                  initialValues.membershipType = defaultTypeId;
+                  initialValues.center = defaultCenterId;
+                  initialValues.joinDate = '';
+                  initialValues.tags = [];
+                  initialValues.dataSteward = '';
+                  initialValues.lastReview = '';
+                }
+
+                return {
+                  initialValues,
+                  submitLabel: isCreate ? 'Create member' : 'Save changes',
+                  mode: isCreate ? 'create' : 'edit',
+                  submitAction: actions['save-member'] ?? null,
+                  cancelAction: params.memberId
+                    ? { id: 'cancel-edit', config: { label: 'Back to profile', url: `/admin/members/${params.memberId}`, variant: 'ghost' } }
+                    : { id: 'cancel-create', config: { label: 'Back to list', url: '/admin/members/list', variant: 'ghost' } },
+                  footnote: 'Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates.'
                 };
               })()
             ]]></Prop>
-            <Prop name="mode" kind="expression"><![CDATA[params.memberId ? 'edit' : 'create']]></Prop>
-            <Prop name="submitLabel" kind="expression"><![CDATA[params.memberId ? 'Save changes' : 'Create member']]></Prop>
-            <Prop name="submitAction" kind="action" actionId="save-member" />
-            <Prop name="cancelAction" kind="expression"><![CDATA[
-              (() => {
-                if (params.memberId) {
-                  return { id: 'cancel-edit', config: { label: 'Back to profile', url: `/admin/members/${params.memberId}`, variant: 'ghost' } };
-                }
-                return { id: 'cancel-create', config: { label: 'Back to list', url: '/admin/members/list', variant: 'ghost' } };
-              })()
-            ]]></Prop>
-            <Prop name="footnote" kind="static">Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates.</Prop>
           </Props>
         </Component>
       </Region>
@@ -206,103 +273,331 @@
               {
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
+                "preferredName": "Avery",
                 "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "active",
                 "membershipTypeKey": "covenant-member",
                 "center": "Downtown Center",
                 "centerKey": "downtown",
                 "tags": ["Hospitality Team", "Leadership Cohort"],
+                "demographics": {
+                  "birthdate": "1986-05-12",
+                  "maritalStatus": "married",
+                  "anniversary": "2012-06-18",
+                  "occupation": "Operations director"
+                },
+                "household": {
+                  "name": "Johnson Family",
+                  "envelopeNumber": "2041",
+                  "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
+                  "address": {
+                    "street": "412 Hope Ave",
+                    "city": "Springfield",
+                    "state": "IL",
+                    "postalCode": "62704"
+                  }
+                },
                 "contact": { "email": "avery.johnson@example.org", "phone": "(555) 204-1188", "preferred": "Text" },
-                "giving": { "recurring": { "amount": 900, "frequency": "Monthly", "method": "ACH" }, "pledge": 22000 },
-                "serving": { "team": "Hospitality", "role": "Usher Captain", "schedule": "2nd & 4th Sundays · 8:30a" },
-                "discipleship": { "nextStep": "Mentor two new ushers before Advent." },
-                "carePlan": { "status": "Active", "statusKey": "active", "assignedTo": "Pastor Lauren Patel" },
+                "emergency": { "contact": "Jordan Johnson", "relationship": "Spouse", "phone": "(555) 204-1189", "physician": "Dr. Mae Chen" },
+                "attendance": { "twelveWeekAttendance": 92, "lastAttendance": "2024-10-13" },
+                "engagement": {
+                  "groups": ["Leadership Cohort", "Hospitality Huddle"],
+                  "pathways": ["Mentor track", "Hospitality residency"],
+                  "spiritualGifts": ["Leadership", "Hospitality"],
+                  "interests": ["First impressions", "Mentoring"]
+                },
+                "giving": {
+                  "recurring": { "amount": 900, "frequency": "Monthly", "frequencyKey": "monthly", "method": "ach" },
+                  "pledge": 22000,
+                  "campaign": "Legacy Vision 2025",
+                  "primaryFund": "General Tithe"
+                },
+                "finance": {
+                  "statementPreference": "email",
+                  "capacityTier": "legacy",
+                  "notes": "Prefers quarterly impact briefs with hospitality volunteer stats."
+                },
+                "serving": {
+                  "team": "Hospitality",
+                  "role": "Usher Captain",
+                  "schedule": "2nd & 4th Sundays · 8:30a",
+                  "coach": "Rachel Kim",
+                  "nextServeDate": "2024-10-27"
+                },
+                "leadership": {
+                  "roles": ["Hospitality captain", "Leadership mentor"],
+                  "reportsTo": "Rachel Kim",
+                  "teamFocus": "First impressions",
+                  "lastHuddle": "2024-10-05"
+                },
+                "discipleship": {
+                  "smallGroup": "Downtown Leadership Cohort",
+                  "mentor": "Carlos Vega",
+                  "milestones": ["Baptized 2014", "Child dedication 2017", "Leadership Cohort 2022"],
+                  "nextStep": "Mentor two new ushers before Advent."
+                },
+                "carePlan": {
+                  "status": "Coaching",
+                  "statusKey": "active",
+                  "assignedTo": "Pastor Lauren Patel",
+                  "followUpDate": "2024-10-28",
+                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
+                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
+                  "team": ["Pastor Lauren Patel", "Rachel Kim"],
+                  "prayerFocus": "Hospitality growth"
+                },
+                "admin": {
+                  "steward": "Finance desk",
+                  "lastReview": "2024-09-12"
+                },
                 "profile": {
                   "fullName": "Avery Johnson",
                   "firstName": "Avery",
+                  "preferredName": "Avery",
                   "lastName": "Johnson",
+                  "birthdate": "1986-05-12",
+                  "maritalStatus": "married",
+                  "anniversary": "2012-06-18",
+                  "occupation": "Operations director",
+                  "householdName": "Johnson Family",
+                  "envelopeNumber": "2041",
+                  "householdMembers": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
+                  "addressStreet": "412 Hope Ave",
+                  "addressCity": "Springfield",
+                  "addressState": "IL",
+                  "addressPostal": "62704",
+                  "email": "avery.johnson@example.org",
+                  "phone": "(555) 204-1188",
+                  "preferredContact": "Text",
                   "membershipType": "Covenant member",
                   "membershipTypeKey": "covenant-member",
+                  "stageId": "active",
+                  "membershipTypeId": "covenant-member",
+                  "centerId": "downtown",
                   "joinDate": "2016-03-14",
-                  "preferredContact": "Text",
+                  "smallGroup": "Downtown Leadership Cohort",
+                  "additionalGroups": ["Leadership Cohort", "Hospitality Huddle"],
+                  "pathways": ["Mentor track", "Hospitality residency"],
+                  "mentor": "Carlos Vega",
+                  "attendanceRate": 92,
+                  "lastAttendance": "2024-10-13",
+                  "spiritualGifts": ["Leadership", "Hospitality"],
+                  "ministryInterests": ["First impressions", "Mentoring"],
+                  "discipleshipNextStep": "Mentor two new ushers before Advent.",
+                  "prayerFocus": "Hospitality growth",
                   "careStatus": "active",
                   "carePastor": "Pastor Lauren Patel",
                   "followUpDate": "2024-10-28",
+                  "careTeam": ["Pastor Lauren Patel", "Rachel Kim"],
+                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
+                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
+                  "emergencyContact": "Jordan Johnson",
+                  "emergencyRelationship": "Spouse",
+                  "emergencyPhone": "(555) 204-1189",
+                  "physician": "Dr. Mae Chen",
                   "servingTeam": "Hospitality",
                   "servingRole": "Usher Captain",
                   "servingSchedule": "2nd & 4th Sundays · 8:30a",
-                  "discipleshipNextStep": "Mentor two new ushers before Advent.",
+                  "servingCoach": "Rachel Kim",
+                  "nextServeDate": "2024-10-27",
+                  "leadershipRoles": ["Hospitality captain", "Leadership mentor"],
+                  "teamFocus": "First impressions",
+                  "reportsTo": "Rachel Kim",
+                  "lastHuddle": "2024-10-05",
+                  "recurringGiving": 900,
+                  "recurringFrequency": "monthly",
+                  "recurringMethod": "ach",
+                  "pledgeAmount": 22000,
+                  "pledgeCampaign": "Legacy Vision 2025",
+                  "primaryFund": "General Tithe",
+                  "statementPreference": "email",
+                  "capacityTier": "legacy",
+                  "financeNotes": "Prefers quarterly impact briefs with hospitality volunteer stats.",
                   "notes": "Leading hospitality leadership cohort.",
                   "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "tags": ["Hospitality Team", "Leadership Cohort"]
+                  "tags": ["Hospitality Team", "Leadership Cohort"],
+                  "dataSteward": "Finance desk",
+                  "lastReview": "2024-09-12"
                 }
               },
               {
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
+                "preferredName": "Elena",
                 "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "new",
                 "membershipTypeKey": "attender",
                 "center": "Northside Center",
                 "centerKey": "northside",
                 "tags": ["Foundations Track"],
+                "demographics": { "birthdate": "1993-11-02", "maritalStatus": "single", "occupation": "UX researcher" },
+                "household": {
+                  "name": "Ruiz Household",
+                  "envelopeNumber": "Pending",
+                  "members": ["Elena Ruiz"],
+                  "address": { "street": "88 River Crossing", "city": "Franklin", "state": "TN", "postalCode": "37067" }
+                },
                 "contact": { "email": "elena.ruiz@example.org", "phone": "(555) 407-9931", "preferred": "Phone" },
-                "giving": { "recurring": null, "pledge": 0 },
-                "serving": { "team": "Foundations", "role": "Participant", "schedule": "Sundays · 9:30a" },
-                "discipleship": { "nextStep": "Complete covenant interview." },
-                "carePlan": { "status": "Observation", "statusKey": "observation", "assignedTo": "Connections Team" },
+                "emergency": { "contact": "Jamie Brooks", "relationship": "Small group mentor", "phone": "(555) 320-4411" },
+                "attendance": { "twelveWeekAttendance": 64, "lastAttendance": "2024-10-06" },
+                "engagement": { "groups": ["Foundations Track"], "pathways": ["Discover class"], "interests": ["Hospitality", "Community"] },
+                "giving": { "recurring": null, "pledge": 0, "primaryFund": "Guest Offering" },
+                "finance": { "statementPreference": "paper", "capacityTier": "emerging" },
+                "serving": { "team": "Foundations", "role": "Participant", "schedule": "Sundays · 9:30a", "nextServeDate": "2024-10-20" },
+                "leadership": { "roles": [], "reportsTo": "Jamie Brooks", "teamFocus": "Assimilation", "lastHuddle": "" },
+                "discipleship": { "smallGroup": "Foundations Track", "mentor": "Jamie Brooks", "nextStep": "Complete covenant interview." },
+                "carePlan": {
+                  "status": "Observation",
+                  "statusKey": "observation",
+                  "assignedTo": "Connections Team",
+                  "followUpDate": "2024-10-24",
+                  "prayerRequests": "Discernment about joining a small group.",
+                  "team": ["Connections Team"]
+                },
+                "admin": { "steward": "Connections desk", "lastReview": "2024-10-01" },
                 "profile": {
                   "fullName": "Elena Ruiz",
                   "firstName": "Elena",
+                  "preferredName": "Elena",
                   "lastName": "Ruiz",
+                  "birthdate": "1993-11-02",
+                  "maritalStatus": "single",
+                  "householdName": "Ruiz Household",
+                  "envelopeNumber": "Pending",
+                  "householdMembers": ["Elena Ruiz"],
+                  "addressStreet": "88 River Crossing",
+                  "addressCity": "Franklin",
+                  "addressState": "TN",
+                  "addressPostal": "37067",
+                  "email": "elena.ruiz@example.org",
+                  "phone": "(555) 407-9931",
+                  "preferredContact": "Phone",
                   "membershipType": "Attender",
                   "membershipTypeKey": "attender",
+                  "stageId": "new",
+                  "membershipTypeId": "attender",
+                  "centerId": "northside",
                   "joinDate": "",
-                  "preferredContact": "Phone",
+                  "smallGroup": "Foundations Track",
+                  "additionalGroups": ["Foundations Track"],
+                  "pathways": ["Discover class"],
+                  "mentor": "Jamie Brooks",
+                  "attendanceRate": 64,
+                  "lastAttendance": "2024-10-06",
+                  "spiritualGifts": [],
+                  "ministryInterests": ["Hospitality", "Community"],
+                  "discipleshipNextStep": "Complete covenant interview.",
                   "careStatus": "observation",
                   "carePastor": "Connections Team",
                   "followUpDate": "2024-10-24",
+                  "careTeam": ["Connections Team"],
+                  "pastoralNotes": "Recently relocated from Denver.",
+                  "prayerRequests": "Discernment about joining a small group.",
+                  "emergencyContact": "Jamie Brooks",
+                  "emergencyRelationship": "Small group mentor",
+                  "emergencyPhone": "(555) 320-4411",
                   "servingTeam": "Foundations",
                   "servingRole": "Participant",
                   "servingSchedule": "Sundays · 9:30a",
-                  "discipleshipNextStep": "Complete covenant interview.",
-                  "notes": "Recently relocated from Denver.",
+                  "nextServeDate": "2024-10-20",
+                  "leadershipRoles": [],
+                  "reportsTo": "Jamie Brooks",
+                  "recurringGiving": "",
+                  "recurringFrequency": "monthly",
+                  "recurringMethod": "ach",
+                  "pledgeAmount": 0,
+                  "primaryFund": "Guest Offering",
+                  "statementPreference": "paper",
+                  "capacityTier": "emerging",
+                  "financeNotes": "Interested in learning about generosity pathways.",
+                  "tags": ["Foundations Track"],
                   "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "tags": ["Foundations Track"]
+                  "dataSteward": "Connections desk",
+                  "lastReview": "2024-10-01"
                 }
               },
               {
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
+                "preferredName": "Sam & Dana",
                 "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "active",
                 "membershipTypeKey": "covenant-member",
                 "center": "Southridge Center",
                 "centerKey": "southridge",
                 "tags": ["Marriage Mentors"],
+                "demographics": { "maritalStatus": "married", "anniversary": "2008-05-18" },
+                "household": {
+                  "name": "Lee Household",
+                  "envelopeNumber": "1088",
+                  "members": ["Samuel Lee", "Dana Lee"],
+                  "address": { "street": "19 Orchard View", "city": "Nashville", "state": "TN", "postalCode": "37206" }
+                },
                 "contact": { "email": "samuel.dana.lee@example.org", "phone": "(555) 782-4410", "preferred": "Email" },
-                "giving": { "recurring": { "amount": 2000, "frequency": "Monthly", "method": "Card" }, "pledge": 30000 },
-                "serving": { "team": "Groups", "role": "Marriage mentors", "schedule": "1st & 3rd Wednesdays" },
-                "discipleship": { "nextStep": "Launch two new marriage groups in Q1." },
-                "carePlan": { "status": "Resolved", "statusKey": "resolved", "assignedTo": "" },
+                "emergency": { "contact": "Dana Lee", "relationship": "Spouse", "phone": "(555) 782-4410" },
+                "attendance": { "twelveWeekAttendance": 88, "lastAttendance": "2024-10-12" },
+                "engagement": { "groups": ["Marriage mentors"], "pathways": ["Marriage enrichment"], "spiritualGifts": ["Wisdom", "Hospitality"] },
+                "giving": { "recurring": { "amount": 2000, "frequency": "Monthly", "frequencyKey": "monthly", "method": "card" }, "pledge": 30000, "campaign": "Retreat Renewal", "primaryFund": "Marriage Ministry" },
+                "finance": { "statementPreference": "both", "capacityTier": "legacy", "notes": "Provide retreat outcome metrics quarterly." },
+                "serving": { "team": "Groups", "role": "Marriage mentors", "schedule": "1st & 3rd Wednesdays", "nextServeDate": "2024-10-30", "coach": "Pastor Lauren Patel" },
+                "leadership": { "roles": ["Retreat leaders"], "reportsTo": "Pastor Lauren Patel", "teamFocus": "Marriage mentors", "lastHuddle": "2024-09-29" },
+                "discipleship": { "smallGroup": "Marriage mentors", "mentor": "", "nextStep": "Launch two new marriage groups in Q1." },
+                "carePlan": { "status": "Resolved", "statusKey": "resolved", "assignedTo": "", "team": ["Pastoral Care"] },
+                "admin": { "steward": "Groups desk", "lastReview": "2024-08-18" },
                 "profile": {
                   "fullName": "Samuel and Dana Lee",
                   "firstName": "Samuel",
+                  "preferredName": "Sam & Dana",
                   "lastName": "Lee",
+                  "householdName": "Lee Household",
+                  "envelopeNumber": "1088",
+                  "householdMembers": ["Samuel Lee", "Dana Lee"],
+                  "addressStreet": "19 Orchard View",
+                  "addressCity": "Nashville",
+                  "addressState": "TN",
+                  "addressPostal": "37206",
+                  "email": "samuel.dana.lee@example.org",
+                  "phone": "(555) 782-4410",
+                  "preferredContact": "Email",
                   "membershipType": "Covenant member",
                   "membershipTypeKey": "covenant-member",
+                  "stageId": "active",
+                  "membershipTypeId": "covenant-member",
+                  "centerId": "southridge",
                   "joinDate": "2009-05-18",
-                  "preferredContact": "Email",
+                  "smallGroup": "Marriage mentors",
+                  "additionalGroups": ["Marriage mentors"],
+                  "pathways": ["Marriage enrichment"],
+                  "attendanceRate": 88,
+                  "lastAttendance": "2024-10-12",
+                  "spiritualGifts": ["Wisdom", "Hospitality"],
+                  "ministryInterests": ["Marriage ministry", "Retreats"],
+                  "discipleshipNextStep": "Launch two new marriage groups in Q1.",
                   "careStatus": "resolved",
                   "carePastor": "",
-                  "followUpDate": "",
+                  "careTeam": ["Pastoral Care"],
                   "servingTeam": "Groups",
                   "servingRole": "Marriage mentors",
                   "servingSchedule": "1st & 3rd Wednesdays",
-                  "discipleshipNextStep": "Launch two new marriage groups in Q1.",
-                  "notes": "Trusted mentors for pre-marriage program.",
+                  "servingCoach": "Pastor Lauren Patel",
+                  "nextServeDate": "2024-10-30",
+                  "leadershipRoles": ["Retreat leaders"],
+                  "teamFocus": "Marriage mentors",
+                  "reportsTo": "Pastor Lauren Patel",
+                  "lastHuddle": "2024-09-29",
+                  "recurringGiving": 2000,
+                  "recurringFrequency": "monthly",
+                  "recurringMethod": "card",
+                  "pledgeAmount": 30000,
+                  "pledgeCampaign": "Retreat Renewal",
+                  "primaryFund": "Marriage Ministry",
+                  "statementPreference": "both",
+                  "capacityTier": "legacy",
+                  "financeNotes": "Provide retreat outcome metrics quarterly.",
+                  "tags": ["Marriage Mentors", "Retreat Leaders"],
                   "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "tags": ["Marriage Mentors", "Retreat Leaders"]
+                  "dataSteward": "Groups desk",
+                  "lastReview": "2024-08-18"
                 }
               }
             ]
@@ -344,90 +639,326 @@
       <DataSource id="formBlueprint" kind="static">
         <Json><![CDATA[
           {
-            "fields": [
+            "tabs": [
               {
-                "name": "profilePhoto",
-                "label": "Profile photo",
-                "type": "image",
-                "colSpan": "full",
-                "helperText": "Upload or remove the member's profile picture."
-              },
-              { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
-              { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
-              { "name": "email", "label": "Email", "type": "email", "colSpan": "half", "required": true },
-              { "name": "phone", "label": "Mobile", "type": "tel", "colSpan": "half", "placeholder": "(000) 000-0000" },
-              {
-                "name": "stage",
-                "label": "Membership stage",
-                "type": "select",
-                "colSpan": "half",
-                "lookupId": "membership.stage",
-                "quickCreate": {
-                  "label": "Add stage",
-                  "description": "Name the stage and the code will be generated automatically.",
-                  "submitLabel": "Save stage",
-                  "successMessage": "Membership stage saved"
-                }
-              },
-              {
-                "name": "membershipType",
-                "label": "Membership type",
-                "type": "select",
-                "colSpan": "half",
-                "lookupId": "membership.type",
-                "quickCreate": {
-                  "label": "Add membership type",
-                  "description": "Name the membership type and the code will be generated automatically.",
-                  "submitLabel": "Save type",
-                  "successMessage": "Membership type saved"
-                }
-              },
-              {
-                "name": "center",
-                "label": "Center",
-                "type": "select",
-                "colSpan": "half",
-                "lookupId": "membership.center",
-                "quickCreate": {
-                  "label": "Add center",
-                  "description": "Name the campus or center and the code will be generated automatically.",
-                  "submitLabel": "Save center",
-                  "successMessage": "Center saved"
-                }
-              },
-              { "name": "joinDate", "label": "Join date", "type": "date", "colSpan": "half" },
-              {
-                "name": "preferredContact",
-                "label": "Preferred contact",
-                "type": "select",
-                "colSpan": "half",
-                "options": [
-                  { "label": "Email", "value": "Email" },
-                  { "label": "Phone", "value": "Phone" },
-                  { "label": "Text", "value": "Text" }
+                "id": "profile",
+                "label": "Profile basics",
+                "description": "Identity, household, and preferred communication details.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "identity",
+                    "title": "Identity & profile",
+                    "helperText": "Capture household names and demographics to power personal touches and statements.",
+                    "fields": [
+                      {
+                        "name": "profilePhoto",
+                        "label": "Profile photo",
+                        "type": "image",
+                        "colSpan": "full",
+                        "helperText": "Upload or remove the member's profile picture."
+                      },
+                      { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
+                      { "name": "preferredName", "label": "Preferred name", "type": "text", "colSpan": "half" },
+                      { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
+                      { "name": "birthdate", "label": "Birthdate", "type": "date", "colSpan": "half" },
+                      {
+                        "name": "maritalStatus",
+                        "label": "Marital status",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Single", "value": "single" },
+                          { "label": "Married", "value": "married" },
+                          { "label": "Engaged", "value": "engaged" },
+                          { "label": "Widowed", "value": "widowed" }
+                        ]
+                      },
+                      { "name": "anniversary", "label": "Anniversary", "type": "date", "colSpan": "half" },
+                      { "name": "occupation", "label": "Occupation", "type": "text", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "household",
+                    "title": "Household",
+                    "fields": [
+                      { "name": "householdName", "label": "Household name", "type": "text", "colSpan": "half" },
+                      { "name": "envelopeNumber", "label": "Envelope number", "type": "text", "colSpan": "half" },
+                      { "name": "householdMembers", "label": "Household members", "type": "tags", "colSpan": "full", "helperText": "Use nicknames and ages to personalize care." },
+                      { "name": "addressStreet", "label": "Street address", "type": "text", "colSpan": "full" },
+                      { "name": "addressCity", "label": "City", "type": "text", "colSpan": "half" },
+                      { "name": "addressState", "label": "State", "type": "text", "colSpan": "half" },
+                      { "name": "addressPostal", "label": "Postal code", "type": "text", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "contact",
+                    "title": "Contact preferences",
+                    "fields": [
+                      { "name": "email", "label": "Email", "type": "email", "colSpan": "half", "required": true },
+                      { "name": "phone", "label": "Mobile", "type": "tel", "colSpan": "half", "placeholder": "(000) 000-0000" },
+                      {
+                        "name": "preferredContact",
+                        "label": "Preferred contact",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Email", "value": "Email" },
+                          { "label": "Phone", "value": "Phone" },
+                          { "label": "Text", "value": "Text" }
+                        ]
+                      }
+                    ]
+                  }
                 ]
               },
-              { "name": "recurringGiving", "label": "Recurring giving", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
-              { "name": "pledgeAmount", "label": "Pledge amount", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
               {
-                "name": "careStatus",
-                "label": "Care status",
-                "type": "select",
-                "colSpan": "half",
-                "options": [
-                  { "label": "Active", "value": "active" },
-                  { "label": "Observation", "value": "observation" },
-                  { "label": "Resolved", "value": "resolved" }
+                "id": "engagement",
+                "label": "Engagement",
+                "description": "Group participation, attendance, and discipleship pathways.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "groups",
+                    "title": "Communities & pathways",
+                    "fields": [
+                      { "name": "smallGroup", "label": "Primary group", "type": "text", "colSpan": "half" },
+                      { "name": "additionalGroups", "label": "Additional groups", "type": "tags", "colSpan": "full" },
+                      { "name": "pathways", "label": "Growth pathways", "type": "tags", "colSpan": "full" },
+                      { "name": "mentor", "label": "Mentor", "type": "text", "colSpan": "half" },
+                      { "name": "attendanceRate", "label": "Attendance (last 12 weeks)", "type": "number", "colSpan": "half", "helperText": "Enter as a percentage." },
+                      { "name": "lastAttendance", "label": "Last attended", "type": "date", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "gifts",
+                    "title": "Gifts & interests",
+                    "fields": [
+                      { "name": "spiritualGifts", "label": "Spiritual gifts", "type": "tags", "colSpan": "full", "helperText": "Reference standardized gift assessments when possible." },
+                      { "name": "ministryInterests", "label": "Ministry interests", "type": "tags", "colSpan": "full" },
+                      { "name": "discipleshipNextStep", "label": "Next discipleship step", "type": "textarea", "colSpan": "full" },
+                      { "name": "prayerFocus", "label": "Prayer focus", "type": "text", "colSpan": "half" }
+                    ]
+                  }
                 ]
               },
-              { "name": "carePastor", "label": "Assigned pastor", "type": "text", "colSpan": "half" },
-              { "name": "followUpDate", "label": "Follow-up date", "type": "date", "colSpan": "half" },
-              { "name": "servingTeam", "label": "Serving team", "type": "text", "colSpan": "half" },
-              { "name": "servingRole", "label": "Serving role", "type": "text", "colSpan": "half" },
-              { "name": "servingSchedule", "label": "Serving schedule", "type": "text", "colSpan": "half" },
-              { "name": "discipleshipNextStep", "label": "Next discipleship step", "type": "textarea", "colSpan": "full" },
-              { "name": "notes", "label": "Pastoral notes", "type": "textarea", "colSpan": "full" },
-              { "name": "tags", "label": "Tags", "type": "text", "colSpan": "full", "helperText": "Comma separated labels to power filtered lists." }
+              {
+                "id": "care",
+                "label": "Care",
+                "description": "Emergency contacts, care status, and pastoral notes.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "care-plan",
+                    "title": "Care plan",
+                    "fields": [
+                      {
+                        "name": "careStatus",
+                        "label": "Care status",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Active", "value": "active" },
+                          { "label": "Observation", "value": "observation" },
+                          { "label": "Resolved", "value": "resolved" }
+                        ]
+                      },
+                      { "name": "carePastor", "label": "Assigned pastor", "type": "text", "colSpan": "half" },
+                      { "name": "followUpDate", "label": "Follow-up date", "type": "date", "colSpan": "half" },
+                      { "name": "careTeam", "label": "Care team", "type": "tags", "colSpan": "full" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "care-notes",
+                    "title": "Pastoral notes",
+                    "fields": [
+                      { "name": "pastoralNotes", "label": "Confidential notes", "type": "textarea", "colSpan": "full" },
+                      { "name": "prayerRequests", "label": "Prayer requests", "type": "textarea", "colSpan": "full" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "emergency",
+                    "title": "Emergency contact",
+                    "fields": [
+                      { "name": "emergencyContact", "label": "Contact name", "type": "text", "colSpan": "half" },
+                      { "name": "emergencyRelationship", "label": "Relationship", "type": "text", "colSpan": "half" },
+                      { "name": "emergencyPhone", "label": "Contact phone", "type": "tel", "colSpan": "half" },
+                      { "name": "physician", "label": "Physician", "type": "text", "colSpan": "half" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "serving",
+                "label": "Serving",
+                "description": "Serving assignments and leadership development notes.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "serving-assignment",
+                    "title": "Serving assignment",
+                    "fields": [
+                      { "name": "servingTeam", "label": "Serving team", "type": "text", "colSpan": "half" },
+                      { "name": "servingRole", "label": "Serving role", "type": "text", "colSpan": "half" },
+                      { "name": "servingSchedule", "label": "Serving schedule", "type": "text", "colSpan": "half" },
+                      { "name": "servingCoach", "label": "Coach", "type": "text", "colSpan": "half" },
+                      { "name": "nextServeDate", "label": "Next serve date", "type": "date", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "leadership",
+                    "title": "Leadership scope",
+                    "fields": [
+                      { "name": "leadershipRoles", "label": "Leadership roles", "type": "tags", "colSpan": "full" },
+                      { "name": "teamFocus", "label": "Team focus", "type": "text", "colSpan": "half" },
+                      { "name": "reportsTo", "label": "Reports to", "type": "text", "colSpan": "half" },
+                      { "name": "lastHuddle", "label": "Last huddle", "type": "date", "colSpan": "half" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "finance",
+                "label": "Finance",
+                "description": "Giving commitments and finance admin preferences.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "finance-snapshot",
+                    "title": "Giving",
+                    "fields": [
+                      { "name": "recurringGiving", "label": "Recurring amount", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
+                      {
+                        "name": "recurringFrequency",
+                        "label": "Recurring frequency",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Weekly", "value": "weekly" },
+                          { "label": "Biweekly", "value": "biweekly" },
+                          { "label": "Monthly", "value": "monthly" },
+                          { "label": "Quarterly", "value": "quarterly" }
+                        ]
+                      },
+                      {
+                        "name": "recurringMethod",
+                        "label": "Recurring method",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "ACH", "value": "ach" },
+                          { "label": "Card", "value": "card" },
+                          { "label": "Cash/Check", "value": "cash" }
+                        ]
+                      },
+                      { "name": "pledgeAmount", "label": "Pledge amount", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
+                      { "name": "pledgeCampaign", "label": "Campaign", "type": "text", "colSpan": "half" },
+                      { "name": "primaryFund", "label": "Preferred fund", "type": "text", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "finance-admin",
+                    "title": "Finance admin",
+                    "fields": [
+                      {
+                        "name": "statementPreference",
+                        "label": "Statement delivery",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Email", "value": "email" },
+                          { "label": "Paper", "value": "paper" },
+                          { "label": "Email + Paper", "value": "both" }
+                        ]
+                      },
+                      {
+                        "name": "capacityTier",
+                        "label": "Capacity tier",
+                        "type": "select",
+                        "colSpan": "half",
+                        "options": [
+                          { "label": "Legacy champion", "value": "legacy" },
+                          { "label": "Mid-tier", "value": "mid" },
+                          { "label": "Emerging giver", "value": "emerging" }
+                        ]
+                      },
+                      { "name": "financeNotes", "label": "Finance notes", "type": "textarea", "colSpan": "full" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "admin",
+                "label": "Admin",
+                "description": "Membership status, centers, and segmentation tags.",
+                "sections": [
+                  {
+                    "kind": "form",
+                    "id": "membership",
+                    "title": "Membership & centers",
+                    "fields": [
+                      { "name": "memberId", "label": "Member ID", "type": "text", "colSpan": "half", "helperText": "Auto-generated after approval." },
+                      {
+                        "name": "stage",
+                        "label": "Membership stage",
+                        "type": "select",
+                        "colSpan": "half",
+                        "lookupId": "membership.stage",
+                        "quickCreate": {
+                          "label": "Add stage",
+                          "description": "Name the stage and the code will be generated automatically.",
+                          "submitLabel": "Save stage",
+                          "successMessage": "Membership stage saved"
+                        }
+                      },
+                      {
+                        "name": "membershipType",
+                        "label": "Membership type",
+                        "type": "select",
+                        "colSpan": "half",
+                        "lookupId": "membership.type",
+                        "quickCreate": {
+                          "label": "Add membership type",
+                          "description": "Name the membership type and the code will be generated automatically.",
+                          "submitLabel": "Save type",
+                          "successMessage": "Membership type saved"
+                        }
+                      },
+                      {
+                        "name": "center",
+                        "label": "Center",
+                        "type": "select",
+                        "colSpan": "half",
+                        "lookupId": "membership.center",
+                        "quickCreate": {
+                          "label": "Add center",
+                          "description": "Name the campus or center and the code will be generated automatically.",
+                          "submitLabel": "Save center",
+                          "successMessage": "Center saved"
+                        }
+                      },
+                      { "name": "joinDate", "label": "Join date", "type": "date", "colSpan": "half" }
+                    ]
+                  },
+                  {
+                    "kind": "form",
+                    "id": "segmentation",
+                    "title": "Segmentation",
+                    "fields": [
+                      { "name": "tags", "label": "Tags", "type": "tags", "colSpan": "full", "helperText": "Tags power list filters and automations." },
+                      { "name": "dataSteward", "label": "Data steward", "type": "text", "colSpan": "half" },
+                      { "name": "lastReview", "label": "Last review", "type": "date", "colSpan": "half" }
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]]></Json>

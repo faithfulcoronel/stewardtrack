@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "92090826562a923ca8818326efe1cb0597ee861cb7182266f6e851081a6d0a31",
+  "checksum": "b70018a1ab687587969b7f1dbfadad9137c32edcf5fc45448c47dd6cda0400c8",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/compliance-readiness",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-compliance-readiness.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-compliance-readiness\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-compliance-readiness.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-compliance-readiness/1.0.0/1.0.0.json"
 }

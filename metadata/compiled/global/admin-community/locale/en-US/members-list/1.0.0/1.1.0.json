@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.1.0",
-  "checksum": "09fcf4d46e50cdc9285746a40414d374dffe838efb0d10a64f1ed9c9b401a8b1",
+  "checksum": "77f014df6c0b60c50fd294260d27a30e1c119cfbe94a62d1c3d1fdaf338eb390",
   "kind": "blueprint",
   "layer": {
     "module": "admin-community",
@@ -378,5 +378,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-list.xml"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-list.xml"
 }

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import { normalizeList } from "../shared";
+import { renderAction, type ActionConfig } from "../shared";
 
 export interface DetailItem {
   label: string;
@@ -25,6 +26,7 @@ export interface DetailPanel {
   items?: DetailItem[] | { items?: DetailItem[] } | null;
   badge?: string | null;
   columns?: number | null;
+  action?: ActionConfig | null;
 }
 
 export interface AdminDetailPanelsProps {
@@ -57,15 +59,26 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
         {panels.map((panel) => (
           <Card key={panel.id ?? panel.title} className="border-border/60">
             <CardHeader className="space-y-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold text-foreground">{panel.title}</CardTitle>
-                {panel.badge && (
-                  <Badge variant="outline" className="border-border/60 text-xs uppercase tracking-widest text-muted-foreground">
-                    {panel.badge}
-                  </Badge>
-                )}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base font-semibold text-foreground">{panel.title}</CardTitle>
+                  {panel.description && (
+                    <p className="mt-1 text-sm text-muted-foreground">{panel.description}</p>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {panel.badge && (
+                    <Badge
+                      variant="outline"
+                      className="border-border/60 text-xs uppercase tracking-widest text-muted-foreground"
+                    >
+                      {panel.badge}
+                    </Badge>
+                  )}
+                  {panel.action && <div className="hidden sm:block">{renderAction(panel.action, "ghost")}</div>}
+                </div>
               </div>
-              {panel.description && <p className="text-sm text-muted-foreground">{panel.description}</p>}
+              {panel.action && <div className="sm:hidden">{renderAction(panel.action, "ghost")}</div>}
             </CardHeader>
             <CardContent>
               <dl className="grid gap-4 text-sm">

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "635be1b3be0f3929e0f41f84a76a58b2ef9092ae05af8ff3d8f254b4d612004d",
+  "checksum": "deafce41735ed3922dc6ed9a2f2458dfbe29e6a212c35e9e50ed13df162739fd",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -103,5 +103,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-security-posture.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-security-posture.xml"
 }

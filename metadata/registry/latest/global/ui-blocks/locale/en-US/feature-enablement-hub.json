@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "09e62cdc337eaab75c59c89cb6eed774d9d616d49160c03e810e0e194ccc4070",
+  "checksum": "ca30ea33050d5fcb17ec6f819e085707585d69d7b5e2e274fa340398c940ed19",
   "layer": {
     "module": "ui-blocks",
     "route": "feature/enablement-hub",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-enablement-hub.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\feature-enablement-hub\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-enablement-hub.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/feature-enablement-hub/1.0.0/1.0.0.json"
 }

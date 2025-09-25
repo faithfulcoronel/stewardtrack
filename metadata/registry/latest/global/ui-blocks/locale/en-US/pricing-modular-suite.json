@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d943584787fd5f14cfb87e2de215bb122471ed8392ea4a7ca122060499b2fc50",
+  "checksum": "c33aba7a15b59c05eeda8c8a659a9bdefe10422c7b16e981c9498dee12fac6b6",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/modular-suite",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-modular-suite.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-modular-suite\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-modular-suite.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-modular-suite/1.0.0/1.0.0.json"
 }

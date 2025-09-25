@@ -107,85 +107,322 @@
                     description: `Method: ${record.giving?.recurring?.method ?? 'Card'} · Last gift ${formatCurrency(record.giving?.lastGift?.amount ?? 0)} on ${record.giving?.lastGift?.date ?? ''}`
                   },
                   {
-                    id: 'metric-groups',
-                    label: 'Group participation',
-                    value: record.discipleship?.smallGroup ?? 'Not enrolled',
-                    change: record.discipleship?.mentor ? `Mentor: ${record.discipleship.mentor}` : 'Mentor not assigned',
-                    trend: 'flat',
-                    tone: 'neutral',
-                    description: record.discipleship?.nextStep ?? 'Set next discipleship step.'
-                  },
-                  {
-                    id: 'metric-milestones',
-                    label: 'Milestones completed',
-                    value: String(record.discipleship?.milestones?.length ?? 0),
-                    change: record.discipleship?.milestones?.slice(-1)[0] ?? 'No recent milestone',
+                    id: 'metric-attendance',
+                    label: 'Attendance pulse',
+                    value: `${record.attendance?.twelveWeekAttendance ?? 0}% engaged`,
+                    change: record.attendance?.lastAttendance ? `Last attended ${record.attendance.lastAttendance}` : 'Attendance unknown',
                     trend: 'up',
                     tone: 'positive',
-                    description: 'Celebrate wins during next pastoral huddle.'
+                    description: record.discipleship?.nextStep ?? 'Confirm next discipleship touchpoint.'
+                  },
+                  {
+                    id: 'metric-serving',
+                    label: 'Next serve',
+                    value: record.serving?.nextServeDate ?? 'Schedule pending',
+                    change: record.serving?.team ? `${record.serving.team} · ${record.serving.schedule ?? 'Rhythm TBD'}` : 'Serving opportunity open',
+                    trend: 'flat',
+                    tone: 'neutral',
+                    description: record.carePlan?.assignedTo ? `Care pastor: ${record.carePlan.assignedTo}` : 'Assign a care contact.'
                   }
                 ];
               })()
             ]]></Prop>
           </Props>
         </Component>
-        <Component id="profile-panels" type="AdminDetailPanels">
+        <Component id="profile-workspace" type="AdminMemberWorkspace">
           <Props>
-            <Prop name="panels" kind="expression"><![CDATA[
+            <Prop name="variant" kind="static">profile</Prop>
+            <Prop name="tabs" kind="expression"><![CDATA[
               (() => {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const address = record.household?.address;
+                const targetId = record.id ?? params.memberId ?? '';
+                const manageUrl = (section) => `/admin/members/manage?memberId=${targetId}&section=${section}`;
+                const address = record.household?.address ?? {};
+                const envelope = record.household?.envelopeNumber ? `Envelope #${record.household.envelopeNumber}` : 'No envelope assigned';
+                const attendancePercent = record.attendance?.twelveWeekAttendance ?? 0;
+                const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : 'Attendance unknown';
+                const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount ?? 0);
+                const lastGift = record.giving?.lastGift ?? {};
+                const givingSummary = record.giving?.pledge ? `${formatCurrency(record.giving.pledge)} pledge` : 'No active pledge';
+
                 return [
                   {
-                    id: 'contact',
-                    title: 'Contact & household',
-                    description: record.household?.name ?? '',
-                    items: [
-                      { label: 'Email', type: 'link', href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? '—' },
-                      { label: 'Mobile', value: record.contact?.phone ?? '—' },
-                      { label: 'Preferred contact', value: record.contact?.preferred ?? 'Email' },
-                      { label: 'Household members', type: 'chips', items: record.household?.members ?? [] },
-                      { label: 'Address', type: 'multiline', value: address ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : 'No address on file' }
+                    id: 'overview',
+                    label: 'Overview',
+                    description: 'Identity, household, and sacramental history.',
+                    sections: [
+                      {
+                        kind: 'panel',
+                        id: 'identity',
+                        title: 'Identity & household',
+                        summary: {
+                          label: 'Household',
+                          value: record.household?.name ?? record.fullName ?? 'Household profile',
+                          description: envelope,
+                        },
+                        panels: [
+                          {
+                            id: 'profile-basics',
+                            title: 'Profile basics',
+                            action: { id: 'edit-identity', config: { label: 'Edit identity', url: manageUrl('identity'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Preferred name', value: record.preferredName ?? record.fullName ?? '—' },
+                              { label: 'Birthdate', value: record.demographics?.birthdate ?? '—' },
+                              { label: 'Marital status', value: record.demographics?.maritalStatus ?? '—' },
+                              { label: 'Anniversary', value: record.demographics?.anniversary ?? '—' },
+                              { label: 'Occupation', value: record.demographics?.occupation ?? '—' }
+                            ]
+                          },
+                          {
+                            id: 'household',
+                            title: 'Household & contact',
+                            action: { id: 'edit-household', config: { label: 'Edit household', url: manageUrl('household'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Household members', type: 'chips', items: record.household?.members ?? [] },
+                              { label: 'Preferred contact', value: record.contact?.preferred ?? 'Email' },
+                              { label: 'Email', type: 'link', href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? '—' },
+                              { label: 'Mobile', value: record.contact?.phone ?? '—' },
+                              { label: 'Address', type: 'multiline', value: address.street ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : 'No address on file' }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        kind: 'panel',
+                        id: 'emergency',
+                        title: 'Emergency & sacraments',
+                        summary: record.emergency?.contact ? {
+                          label: 'Primary contact',
+                          value: record.emergency.contact,
+                          description: `${record.emergency.relationship ?? 'Contact'} · ${record.emergency.phone ?? ''}`.trim(),
+                        } : null,
+                        panels: [
+                          {
+                            id: 'emergency-contact',
+                            title: 'Emergency contact',
+                            action: { id: 'edit-emergency', config: { label: 'Edit emergency contact', url: manageUrl('care'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Primary contact', value: record.emergency?.contact ?? '—' },
+                              { label: 'Relationship', value: record.emergency?.relationship ?? '—' },
+                              { label: 'Contact number', value: record.emergency?.phone ?? '—' },
+                              { label: 'Physician', value: record.emergency?.physician ?? '—' }
+                            ]
+                          },
+                          {
+                            id: 'sacraments',
+                            title: 'Sacraments & milestones',
+                            action: { id: 'edit-sacraments', config: { label: 'Update milestones', url: manageUrl('discipleship'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Baptism', value: record.sacraments?.baptismDate ?? 'Not recorded' },
+                              { label: 'Membership', value: record.sacraments?.membershipDate ?? record.joinDate ?? 'Not recorded' },
+                              { label: 'Child dedications', type: 'chips', items: record.sacraments?.childDedications ?? [] },
+                              { label: 'Spiritual milestones', type: 'chips', items: record.discipleship?.milestones ?? [] }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   },
                   {
-                    id: 'giving',
-                    title: 'Giving & pledges',
-                    badge: 'Finance',
-                    items: [
-                      { label: 'Year-to-date', type: 'currency', value: record.giving?.ytd ?? 0 },
-                      { label: 'Pledge commitment', type: 'currency', value: record.giving?.pledge ?? 0, description: record.giving?.campaign ?? 'Legacy Vision 2025' },
-                      { label: 'Recurring schedule', value: record.giving?.recurring ? `${record.giving.recurring.frequency} · ${record.giving.recurring.method}` : 'Not enrolled' },
-                      { label: 'Last gift', value: record.giving?.lastGift ? `${record.giving.lastGift.date} · ${record.giving.lastGift.fund}` : '—', description: record.giving?.lastGift ? `$${record.giving.lastGift.amount}` : '' }
-                    ]
-                  },
-                  {
-                    id: 'serving',
-                    title: 'Serving & leadership',
-                    badge: 'Teams',
-                    items: [
-                      { label: 'Team', value: record.serving?.team ?? 'Not serving' },
-                      { label: 'Role', value: record.serving?.role ?? '—' },
-                      { label: 'Schedule', value: record.serving?.schedule ?? 'Flexible' },
-                      { label: 'Coach', value: record.serving?.coach ?? 'Not assigned' }
+                    id: 'engagement',
+                    label: 'Engagement',
+                    description: 'Groups, ministry interests, and attendance signals.',
+                    sections: [
+                      {
+                        kind: 'panel',
+                        id: 'groups',
+                        title: 'Communities & pathways',
+                        summary: {
+                          label: 'Attendance pulse',
+                          value: attendanceDisplay,
+                          description: `Last attended ${record.attendance?.lastAttendance ?? '—'}`,
+                        },
+                        panels: [
+                          {
+                            id: 'group-participation',
+                            title: 'Group participation',
+                            action: { id: 'edit-groups', config: { label: 'Edit groups', url: manageUrl('engagement'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Active groups', type: 'chips', items: record.engagement?.groups ?? [] },
+                              { label: 'Pathways', type: 'chips', items: record.engagement?.pathways ?? [] },
+                              { label: 'Mentor', value: record.discipleship?.mentor ?? 'Not assigned' },
+                              { label: 'Next discipleship step', type: 'multiline', value: record.discipleship?.nextStep ?? 'Set the next discipleship step.' }
+                            ]
+                          },
+                          {
+                            id: 'gifts-interests',
+                            title: 'Gifts & interests',
+                            action: { id: 'edit-interests', config: { label: 'Edit interests', url: manageUrl('engagement'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Spiritual gifts', type: 'chips', items: record.engagement?.spiritualGifts ?? [] },
+                              { label: 'Ministry interests', type: 'chips', items: record.engagement?.interests ?? [] },
+                              { label: 'Recent prayer needs', type: 'multiline', value: record.carePlan?.prayerRequests ?? 'No prayer requests logged.' }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        kind: 'panel',
+                        id: 'serving',
+                        title: 'Serving & leadership',
+                        summary: record.serving?.nextServeDate ? {
+                          label: 'Next serve date',
+                          value: record.serving.nextServeDate,
+                          description: record.serving?.schedule ?? '',
+                        } : null,
+                        panels: [
+                          {
+                            id: 'serving-details',
+                            title: 'Serving assignment',
+                            action: { id: 'edit-serving', config: { label: 'Edit serving', url: manageUrl('serving'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Team', value: record.serving?.team ?? 'Not assigned' },
+                              { label: 'Role', value: record.serving?.role ?? '—' },
+                              { label: 'Schedule', value: record.serving?.schedule ?? 'Flexible' },
+                              { label: 'Coach', value: record.serving?.coach ?? 'Not assigned' }
+                            ]
+                          },
+                          {
+                            id: 'leadership',
+                            title: 'Leadership scope',
+                            action: { id: 'edit-leadership', config: { label: 'Edit leadership', url: manageUrl('serving'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Leadership roles', type: 'chips', items: record.leadership?.roles ?? [] },
+                              { label: 'Reports to', value: record.leadership?.reportsTo ?? record.serving?.coach ?? '—' },
+                              { label: 'Team focus', value: record.leadership?.teamFocus ?? record.serving?.team ?? '—' },
+                              { label: 'Last leadership touchpoint', value: record.leadership?.lastHuddle ?? '—' }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   },
                   {
                     id: 'care',
-                    title: 'Care plan',
-                    badge: 'Shepherding',
-                    items: [
-                      { label: 'Stage', type: 'badge', value: record.carePlan?.status ?? 'Resolved', variant: record.carePlan?.statusVariant ?? 'neutral' },
-                      { label: 'Assigned pastor', value: record.carePlan?.assignedTo ?? '—' },
-                      { label: 'Plan details', type: 'multiline', value: record.carePlan?.details ?? 'No active care tasks.' }
+                    label: 'Care & discipleship',
+                    description: 'Pastoral care assignments and confidential notes.',
+                    sections: [
+                      {
+                        kind: 'panel',
+                        id: 'care-plan',
+                        title: 'Care overview',
+                        summary: {
+                          label: 'Care status',
+                          value: record.carePlan?.status ?? 'Resolved',
+                          description: record.carePlan?.details ?? 'No active care plan.',
+                        },
+                        panels: [
+                          {
+                            id: 'care-details',
+                            title: 'Care plan',
+                            action: { id: 'edit-care', config: { label: 'Update care', url: manageUrl('care'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Status', type: 'badge', variant: record.carePlan?.statusVariant ?? 'neutral', value: record.carePlan?.status ?? 'Resolved' },
+                              { label: 'Assigned pastor', value: record.carePlan?.assignedTo ?? '—' },
+                              { label: 'Follow-up date', value: record.carePlan?.followUpDate ?? '—' },
+                              { label: 'Notes', type: 'multiline', value: record.carePlan?.details ?? 'No active tasks.' }
+                            ]
+                          },
+                          {
+                            id: 'pastoral-notes',
+                            title: 'Pastoral notes',
+                            action: { id: 'edit-notes', config: { label: 'Edit notes', url: manageUrl('care'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Confidential notes', type: 'multiline', value: record.carePlan?.pastoralNotes ?? 'No notes on file.' },
+                              { label: 'Prayer requests', type: 'multiline', value: record.carePlan?.prayerRequests ?? 'No prayer requests logged.' },
+                              { label: 'Care team', type: 'chips', items: record.carePlan?.team ?? [] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'finance',
+                    label: 'Finance',
+                    description: 'Giving trends, pledges, and campaign participation.',
+                    sections: [
+                      {
+                        kind: 'panel',
+                        id: 'giving',
+                        title: 'Giving snapshot',
+                        summary: {
+                          label: 'Recurring giving',
+                          value: record.giving?.recurring ? `${formatCurrency(record.giving.recurring.amount)} ${record.giving.recurring.frequency}` : 'Not enrolled',
+                          description: givingSummary,
+                        },
+                        panels: [
+                          {
+                            id: 'giving-metrics',
+                            title: 'Giving metrics',
+                            action: { id: 'edit-giving', config: { label: 'Update giving', url: manageUrl('finance'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Year-to-date', type: 'currency', value: record.giving?.ytd ?? 0 },
+                              { label: 'Pledge commitment', type: 'currency', value: record.giving?.pledge ?? 0, description: record.giving?.campaign ?? 'No active campaign' },
+                              { label: 'Last gift', value: lastGift.date ? `${lastGift.date} · ${lastGift.fund ?? 'Fund'}` : '—', description: lastGift.amount ? formatCurrency(lastGift.amount) : '' },
+                              { label: 'Preferred fund', value: record.giving?.primaryFund ?? 'General fund' }
+                            ]
+                          },
+                          {
+                            id: 'finance-admin',
+                            title: 'Finance admin',
+                            action: { id: 'manage-statements', config: { label: 'Record finance note', url: manageUrl('finance'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Statement delivery', value: record.finance?.statementPreference ?? 'Email' },
+                              { label: 'Gift capacity tier', value: record.finance?.capacityTier ?? 'Mid-tier' },
+                              { label: 'Finance notes', type: 'multiline', value: record.finance?.notes ?? 'No finance notes.' }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: 'admin',
+                    label: 'Admin',
+                    description: 'Membership status, centers, and segmentation tags.',
+                    sections: [
+                      {
+                        kind: 'panel',
+                        id: 'administration',
+                        title: 'Administrative details',
+                        summary: {
+                          label: 'Member ID',
+                          value: record.id ?? 'Pending ID',
+                          description: record.stage ?? 'Membership stage pending',
+                        },
+                        panels: [
+                          {
+                            id: 'membership',
+                            title: 'Membership & centers',
+                            action: { id: 'edit-admin', config: { label: 'Manage admin data', url: manageUrl('admin'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Stage', value: record.stage ?? 'Active' },
+                              { label: 'Membership type', value: record.membershipType ?? '—' },
+                              { label: 'Primary center', value: record.center ?? '—' },
+                              { label: 'Join date', value: record.joinDate ?? record.profile?.joinDate ?? '—' }
+                            ]
+                          },
+                          {
+                            id: 'tags-segmentation',
+                            title: 'Segmentation & tags',
+                            action: { id: 'edit-tags', config: { label: 'Edit tags', url: manageUrl('admin'), variant: 'ghost' } },
+                            items: [
+                              { label: 'Tags', type: 'chips', items: record.tags ?? [] },
+                              { label: 'Household envelope', value: record.household?.envelopeNumber ?? '—' },
+                              { label: 'Data steward', value: record.admin?.steward ?? '—' },
+                              { label: 'Last review', value: record.admin?.lastReview ?? '—' }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   }
                 ];
               })()
             ]]></Prop>
-            <Prop name="columns" kind="static">2</Prop>
           </Props>
         </Component>
         <Component id="profile-timeline" type="AdminActivityTimeline">
@@ -215,15 +452,31 @@
                 "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "Active member",
                 "statusVariant": "success",
+                "membershipType": "Covenant member",
+                "joinDate": "2016-03-14",
                 "center": "Downtown Center",
+                "demographics": {
+                  "birthdate": "1986-05-12",
+                  "maritalStatus": "Married",
+                  "anniversary": "2012-06-18",
+                  "occupation": "Operations director"
+                },
                 "serving": {
                   "team": "Hospitality",
                   "role": "Usher Captain",
                   "schedule": "2nd & 4th Sundays · 8:30a",
-                  "coach": "Rachel Kim"
+                  "coach": "Rachel Kim",
+                  "nextServeDate": "2024-10-27"
+                },
+                "leadership": {
+                  "roles": ["Hospitality captain", "Leadership mentor"],
+                  "reportsTo": "Rachel Kim",
+                  "teamFocus": "First impressions",
+                  "lastHuddle": "2024-10-05"
                 },
                 "household": {
                   "name": "Johnson Family",
+                  "envelopeNumber": "2041",
                   "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
                   "address": {
                     "street": "412 Hope Ave",
@@ -237,12 +490,40 @@
                   "phone": "(555) 204-1188",
                   "preferred": "Text"
                 },
+                "emergency": {
+                  "contact": "Jordan Johnson",
+                  "relationship": "Spouse",
+                  "phone": "(555) 204-1189",
+                  "physician": "Dr. Mae Chen"
+                },
+                "sacraments": {
+                  "baptismDate": "2014-03-02",
+                  "membershipDate": "2016-03-14",
+                  "childDedications": ["Micah 2017", "Selah 2020"]
+                },
+                "attendance": {
+                  "twelveWeekAttendance": 92,
+                  "lastAttendance": "2024-10-13",
+                  "lastCampus": "Downtown Center"
+                },
+                "engagement": {
+                  "groups": ["Leadership Cohort", "Hospitality Huddle"],
+                  "pathways": ["Mentor track", "Hospitality residency"],
+                  "spiritualGifts": ["Leadership", "Hospitality"],
+                  "interests": ["First impressions", "Mentoring"]
+                },
                 "giving": {
                   "ytd": 18450,
                   "pledge": 22000,
                   "campaign": "Legacy Vision 2025",
                   "recurring": { "amount": 900, "frequency": "Monthly", "method": "ACH" },
-                  "lastGift": { "amount": 450, "date": "2024-10-06", "fund": "General Tithe" }
+                  "lastGift": { "amount": 450, "date": "2024-10-06", "fund": "General Tithe" },
+                  "primaryFund": "General Tithe"
+                },
+                "finance": {
+                  "statementPreference": "Email",
+                  "capacityTier": "Legacy champion",
+                  "notes": "Prefers quarterly impact briefs with hospitality volunteer stats."
                 },
                 "discipleship": {
                   "smallGroup": "Downtown Leadership Cohort",
@@ -253,8 +534,18 @@
                 "carePlan": {
                   "stage": "Active",
                   "statusVariant": "info",
+                  "status": "Coaching",
                   "details": "Leadership coaching check-in scheduled October 28.",
-                  "assignedTo": "Pastor Lauren Patel"
+                  "assignedTo": "Pastor Lauren Patel",
+                  "followUpDate": "2024-10-28",
+                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
+                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
+                  "team": ["Pastor Lauren Patel", "Rachel Kim"],
+                  "prayerFocus": "Hospitality growth"
+                },
+                "admin": {
+                  "steward": "Finance desk",
+                  "lastReview": "2024-09-12"
                 },
                 "timeline": [
                   {
@@ -286,14 +577,23 @@
                 "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stage": "New here",
                 "statusVariant": "info",
+                "membershipType": "Attender",
+                "joinDate": "",
                 "center": "Northside Center",
+                "demographics": {
+                  "birthdate": "1993-11-02",
+                  "maritalStatus": "Single",
+                  "occupation": "UX researcher"
+                },
                 "serving": {
                   "team": "Exploring",
                   "role": "Foundations participant",
-                  "schedule": "Sundays · 9:30a"
+                  "schedule": "Sundays · 9:30a",
+                  "nextServeDate": "2024-10-20"
                 },
                 "household": {
                   "name": "Ruiz Household",
+                  "envelopeNumber": "Pending",
                   "members": ["Elena Ruiz"],
                   "address": {
                     "street": "88 River Crossing",
@@ -307,11 +607,38 @@
                   "phone": "(555) 407-9931",
                   "preferred": "Phone"
                 },
+                "emergency": {
+                  "contact": "Jamie Brooks",
+                  "relationship": "Small group mentor",
+                  "phone": "(555) 320-4411"
+                },
+                "sacraments": {
+                  "baptismDate": "",
+                  "membershipDate": "",
+                  "childDedications": []
+                },
+                "attendance": {
+                  "twelveWeekAttendance": 64,
+                  "lastAttendance": "2024-10-06",
+                  "lastCampus": "Northside Center"
+                },
+                "engagement": {
+                  "groups": ["Foundations Track"],
+                  "pathways": ["Discover class"],
+                  "spiritualGifts": [],
+                  "interests": ["Hospitality", "Community"]
+                },
                 "giving": {
                   "ytd": 420,
                   "pledge": 0,
                   "recurring": null,
-                  "lastGift": { "amount": 70, "date": "2024-10-05", "fund": "Guest Offering" }
+                  "lastGift": { "amount": 70, "date": "2024-10-05", "fund": "Guest Offering" },
+                  "primaryFund": "Guest Offering"
+                },
+                "finance": {
+                  "statementPreference": "Paper",
+                  "capacityTier": "Emerging giver",
+                  "notes": "Interested in learning about generosity pathways."
                 },
                 "discipleship": {
                   "smallGroup": "Foundations Track",
@@ -322,8 +649,16 @@
                 "carePlan": {
                   "stage": "Observation",
                   "statusVariant": "neutral",
-                  "details": "Following up after recent relocation.",
-                  "assignedTo": "Center Connections Team"
+                  "status": "Observation",
+                  "details": "Follow up after covenant class interview.",
+                  "assignedTo": "Center Connections Team",
+                  "followUpDate": "2024-10-24",
+                  "team": ["Connections Team"],
+                  "prayerRequests": "Discernment about joining a small group."
+                },
+                "admin": {
+                  "steward": "Connections desk",
+                  "lastReview": "2024-10-01"
                 },
                 "timeline": [
                   {

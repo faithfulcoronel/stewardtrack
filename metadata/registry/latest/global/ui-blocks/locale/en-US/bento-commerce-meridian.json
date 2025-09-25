@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "2c3186932989826042805c5f6d8cd888a9b01dbeda923080812a264f25b3e246",
+  "checksum": "dd1b043957c1076ee5f4cad47214f2f82bb4736ec91791b05eada128313df6bc",
   "layer": {
     "module": "ui-blocks",
     "route": "bento/commerce-meridian",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\bento-commerce-meridian.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\bento-commerce-meridian\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/bento-commerce-meridian.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/bento-commerce-meridian/1.0.0/1.0.0.json"
 }

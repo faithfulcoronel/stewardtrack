@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "8305f7902b2b1a5ef62cedef2a80f5863dd1779011eb84c4c55af7be81a7677e",
+  "checksum": "45e44822c6d8573de61ff38e297209eba03fe57eb1cc397b312c6db4757d3520",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/talent-engagement",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-talent-engagement.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-talent-engagement\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-talent-engagement.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-talent-engagement/1.0.0/1.0.0.json"
 }

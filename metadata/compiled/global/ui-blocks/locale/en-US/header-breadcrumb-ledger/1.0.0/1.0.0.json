@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "f750e82a747208d266ee96976d559d8424a5d366e892ab1d810702199932765e",
+  "checksum": "31a2b721f8678f73b4b59f0949a7cc622236ed10c18b812a14dea871955a82fc",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -123,5 +123,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-breadcrumb-ledger.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-breadcrumb-ledger.xml"
 }

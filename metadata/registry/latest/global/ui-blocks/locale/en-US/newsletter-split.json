@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d906e4d4c41093308e00e77a33e0e271f05037b1953627e9bb1ae56bf4999ea7",
+  "checksum": "092c2e094c63e89b02cfe565ee8d6fb81afaf0aa27f76f04ebd550aac239c725",
   "layer": {
     "module": "ui-blocks",
     "route": "newsletter/split",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\newsletter-split.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\newsletter-split\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/newsletter-split.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/newsletter-split/1.0.0/1.0.0.json"
 }
