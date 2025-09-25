@@ -63,19 +63,48 @@ type MemberManageRecord = {
       method?: string | null;
     } | null;
     pledge?: number | null;
+    primaryFund?: string | null;
+    tier?: string | null;
+    notes?: string | null;
   };
   serving?: {
     team?: string | null;
     role?: string | null;
     schedule?: string | null;
+    coach?: string | null;
+    nextServeDate?: string | null;
+    leadershipRoles?: string[];
+    teamFocus?: string | null;
+    reportsTo?: string | null;
+    lastHuddle?: string | null;
   };
   discipleship?: {
     nextStep?: string | null;
+    mentor?: string | null;
+    primaryGroup?: string | null;
+    additionalGroups?: string[];
+    pathways?: string[];
+    attendanceRate?: number | null;
+    lastAttendance?: string | null;
+    spiritualGifts?: string[];
+    ministryInterests?: string[];
+    prayerFocus?: string | null;
+    prayerRequests?: string[];
   };
   carePlan?: {
     status?: string | null;
     statusKey?: string | null;
     assignedTo?: string | null;
+    followUpDate?: string | null;
+    team?: string[];
+    emergencyContact?: {
+      name?: string | null;
+      relationship?: string | null;
+      phone?: string | null;
+      physician?: string | null;
+    };
+    prayerFocus?: string | null;
+    prayerRequests?: string[];
   };
   profile?: {
     fullName?: string | null;
@@ -100,6 +129,22 @@ type MemberManageRecord = {
     discipleshipNextStep?: string | null;
     notes?: string | null;
     tags?: string[] | null;
+    preferredName?: string | null;
+    birthdate?: string | null;
+    maritalStatus?: string | null;
+    anniversary?: string | null;
+    occupation?: string | null;
+    household?: {
+      id?: string | null;
+      name?: string | null;
+      envelopeNumber?: string | null;
+      members?: string[];
+      address?: HouseholdAddress | null;
+    } | null;
+  };
+  admin?: {
+    dataSteward?: string | null;
+    lastReview?: string | null;
   };
 };
 
@@ -137,6 +182,7 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
     name?: string | null;
     members?: string[];
     address?: HouseholdAddress | null;
+    envelopeNumber?: string | null;
   };
   serving?: {
     team?: string | null;
@@ -522,6 +568,10 @@ function mapCareStatusVariant(code: string | undefined | null): string {
 }
 
 function formatHouseholdName(member: MemberRow): string {
+  const explicitName = (member.household?.name ?? '').trim();
+  if (explicitName) {
+    return explicitName;
+  }
   const base = filterNonEmpty([member.last_name, member.preferred_name, member.first_name])[0];
   if (!base) {
     return 'Household';
@@ -681,6 +731,52 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
         .filter((value): value is string => Boolean(value))
     : [];
   const discipleshipGroup = (member.discipleship_group ?? '').trim();
+  const primaryGroup = (member.primary_small_group ?? '').trim() || discipleshipGroup || null;
+  const additionalGroups = ensureUnique(
+    groupTags.filter((group) => !primaryGroup || group.toLowerCase() !== primaryGroup.toLowerCase())
+  );
+  const pathways = Array.isArray(member.discipleship_pathways)
+    ? ensureUnique(
+        member.discipleship_pathways
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const spiritualGifts = Array.isArray(member.spiritual_gifts)
+    ? ensureUnique(
+        member.spiritual_gifts
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const ministryInterests = Array.isArray(member.ministry_interests)
+    ? ensureUnique(
+        member.ministry_interests
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const prayerRequestsList = Array.isArray(member.prayer_requests)
+    ? ensureUnique(
+        member.prayer_requests
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const careTeamList = Array.isArray(member.care_team)
+    ? ensureUnique(
+        member.care_team
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const leadershipRoles = Array.isArray(member.leadership_roles)
+    ? ensureUnique(
+        member.leadership_roles
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
   const tags = ensureUnique([
     ...memberTags,
     ...groupTags,
@@ -689,8 +785,8 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   const rawCareStatus = (member.care_status_code ?? '').trim();
   const careStatusKey = mapCareStatusKey(rawCareStatus);
   const careStatusLabel = formatLabel(rawCareStatus || careStatusKey, 'Observation');
-  const followUpDate = formatIsoDate(member.care_follow_up_at ?? null) ?? '';
-  const joinDate = formatIsoDate(member.membership_date ?? null) ?? '';
+  const followUpDate = formatIsoDate(member.care_follow_up_at ?? null);
+  const joinDate = formatIsoDate(member.membership_date ?? null);
   const hasRecurringGiving =
     member.giving_recurring_amount !== null && member.giving_recurring_amount !== undefined
       ? true
@@ -701,6 +797,31 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   const carePastor = (member.care_pastor ?? '').trim();
   const notes = (member.pastoral_notes ?? '').trim();
   const photoUrl = member.profile_picture_url ?? null;
+  const birthDate = formatIsoDate(member.birthday ?? null);
+  const anniversary = formatIsoDate(member.anniversary ?? null);
+  const nextServeDate = formatIsoDate(member.next_serve_at ?? null);
+  const lastHuddle = formatIsoDate(member.last_huddle_at ?? null);
+  const lastAttendance = formatIsoDate(member.last_attendance_date ?? null);
+  const lastReview = formatIsoDate(member.last_review_at ?? null);
+  const householdRecord = member.household ?? null;
+  const householdMemberNames = Array.isArray(householdRecord?.member_names)
+    ? householdRecord!.member_names!
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value): value is string => Boolean(value))
+    : [];
+  const householdMembers = ensureUnique(householdMemberNames);
+  const fallbackAddress = parseAddress(member.address ?? null);
+  const householdAddress = householdRecord
+    ? {
+        street: householdRecord.address_street ?? fallbackAddress?.street ?? null,
+        city: householdRecord.address_city ?? fallbackAddress?.city ?? null,
+        state: householdRecord.address_state ?? fallbackAddress?.state ?? null,
+        postalCode: householdRecord.address_postal_code ?? fallbackAddress?.postalCode ?? null,
+      }
+    : fallbackAddress;
+  const householdName = (householdRecord?.name ?? '').trim() || formatHouseholdName(member);
+  const envelopeNumber = householdRecord?.envelope_number ?? member.envelope_number ?? null;
+  const occupation = (member.occupation ?? '').trim() || null;
 
   return {
     id: member.id,
@@ -729,19 +850,48 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
           }
         : null,
       pledge: member.giving_pledge_amount ?? null,
+      primaryFund: member.giving_primary_fund ?? null,
+      tier: member.giving_tier ?? null,
+      notes: member.finance_notes ?? null,
     },
     serving: {
       team: member.serving_team ?? null,
       role: member.serving_role ?? null,
       schedule: member.serving_schedule ?? null,
+      coach: member.serving_coach ?? null,
+      nextServeDate: nextServeDate ?? '',
+      leadershipRoles,
+      teamFocus: member.team_focus ?? null,
+      reportsTo: member.reports_to ?? null,
+      lastHuddle: lastHuddle ?? '',
     },
     discipleship: {
       nextStep: member.discipleship_next_step ?? null,
+      mentor: member.discipleship_mentor ?? null,
+      primaryGroup,
+      additionalGroups,
+      pathways,
+      attendanceRate: member.attendance_rate ?? null,
+      lastAttendance: lastAttendance ?? '',
+      spiritualGifts,
+      ministryInterests,
+      prayerFocus: member.prayer_focus ?? null,
+      prayerRequests: prayerRequestsList,
     },
     carePlan: {
       status: careStatusLabel,
       statusKey: careStatusKey,
       assignedTo: carePastor || null,
+      followUpDate: followUpDate ?? '',
+      team: careTeamList,
+      emergencyContact: {
+        name: member.emergency_contact_name ?? null,
+        relationship: member.emergency_contact_relationship ?? null,
+        phone: member.emergency_contact_phone ?? null,
+        physician: member.physician_name ?? null,
+      },
+      prayerFocus: member.prayer_focus ?? null,
+      prayerRequests: prayerRequestsList,
     },
     profile: {
       fullName: recordName,
@@ -755,17 +905,33 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       stageKey,
       centerId,
       centerKey: centerKey ?? null,
-      joinDate,
+      joinDate: joinDate ?? '',
       preferredContact,
       careStatus: careStatusKey,
       carePastor,
-      followUpDate,
+      followUpDate: followUpDate ?? '',
       servingTeam: member.serving_team ?? '',
       servingRole: member.serving_role ?? '',
       servingSchedule: member.serving_schedule ?? '',
       discipleshipNextStep: member.discipleship_next_step ?? '',
       notes,
       tags,
+      preferredName: preferredName || null,
+      birthdate: birthDate ?? '',
+      maritalStatus: member.marital_status ?? null,
+      anniversary: anniversary ?? '',
+      occupation,
+      household: {
+        id: member.household_id ?? null,
+        name: householdName,
+        envelopeNumber,
+        members: householdMembers,
+        address: householdAddress ?? null,
+      },
+    },
+    admin: {
+      dataSteward: member.data_steward ?? null,
+      lastReview: lastReview ?? '',
     },
   } satisfies MemberManageRecord;
 }
@@ -869,6 +1035,15 @@ async function fetchHouseholdMembers(
     (member.preferred_name ?? '').trim();
   if (primary) {
     names.add(primary);
+  }
+
+  if (Array.isArray(member.household?.member_names)) {
+    for (const entry of member.household.member_names) {
+      const trimmed = typeof entry === 'string' ? entry.trim() : '';
+      if (trimmed) {
+        names.add(trimmed);
+      }
+    }
   }
 
   for (const relation of relationships) {
@@ -975,6 +1150,15 @@ async function buildMemberProfileRecord(
   const householdList = ensureUnique(
     householdMembers.length ? householdMembers : filterNonEmpty([fullName, preferredName])
   );
+  const fallbackAddress = parseAddress(member.address ?? null);
+  const householdAddress = member.household
+    ? {
+        street: member.household.address_street ?? fallbackAddress?.street ?? null,
+        city: member.household.address_city ?? fallbackAddress?.city ?? null,
+        state: member.household.address_state ?? fallbackAddress?.state ?? null,
+        postalCode: member.household.address_postal_code ?? fallbackAddress?.postalCode ?? null,
+      }
+    : fallbackAddress;
 
   return {
     id: member.id,
@@ -994,7 +1178,8 @@ async function buildMemberProfileRecord(
     household: {
       name: formatHouseholdName(member),
       members: householdList,
-      address: parseAddress(member.address ?? null),
+      address: householdAddress,
+      envelopeNumber: member.household?.envelope_number ?? member.envelope_number ?? null,
     },
     contact: {
       email: member.email ?? null,
