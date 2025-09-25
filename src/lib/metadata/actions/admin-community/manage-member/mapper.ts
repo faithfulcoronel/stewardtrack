@@ -49,181 +49,334 @@ const CENTER_SYNONYMS: Record<string, string[]> = {
 export class MemberFormMapper {
   map(request: ManageMemberRequest, resources: MemberManageResources): MemberFormMappingResult {
     const values = request.values ?? {};
+    const payload: Partial<Member> = {};
 
-    let firstName: string;
-    let lastName: string;
+    const isEditMode = Boolean(request.memberId);
+    const hasFirstNameField = this.hasField(values, "firstName");
+    const hasLastNameField = this.hasField(values, "lastName");
 
-    try {
-      firstName = this.requireString(values.firstName, "First name");
-      lastName = this.requireString(values.lastName, "Last name");
-    } catch (error) {
-      return {
-        success: false,
-        error: this.buildValidationError(
-          error instanceof Error ? error.message : "Required member details are missing.",
-        ),
-      };
+    if (!isEditMode) {
+      try {
+        payload.first_name = this.requireString(values.firstName, "First name");
+        payload.last_name = this.requireString(values.lastName, "Last name");
+      } catch (error) {
+        return {
+          success: false,
+          error: this.buildValidationError(
+            error instanceof Error ? error.message : "Required member details are missing.",
+          ),
+        } satisfies MemberFormMappingResult;
+      }
+    } else {
+      if (hasFirstNameField) {
+        const firstName = this.cleanString(values.firstName);
+        if (!firstName) {
+          return {
+            success: false,
+            error: this.buildValidationError("First name is required."),
+          } satisfies MemberFormMappingResult;
+        }
+        payload.first_name = firstName;
+      }
+
+      if (hasLastNameField) {
+        const lastName = this.cleanString(values.lastName);
+        if (!lastName) {
+          return {
+            success: false,
+            error: this.buildValidationError("Last name is required."),
+          } satisfies MemberFormMappingResult;
+        }
+        payload.last_name = lastName;
+      }
     }
 
-    if (!firstName || !lastName) {
+    if (!isEditMode && (!payload.first_name || !payload.last_name)) {
       return {
         success: false,
         error: this.buildValidationError("Required member details are missing."),
-      };
+      } satisfies MemberFormMappingResult;
     }
 
-    const email = this.cleanString(values.email)?.toLowerCase() ?? null;
-
-    if (email && !z.string().email().safeParse(email).success) {
-      return {
-        success: false,
-        error: this.buildValidationError("Please provide a valid email address."),
-      };
+    if (this.hasField(values, "email")) {
+      const email = this.cleanString(values.email)?.toLowerCase() ?? null;
+      if (email && !z.string().email().safeParse(email).success) {
+        return {
+          success: false,
+          error: this.buildValidationError("Please provide a valid email address."),
+        } satisfies MemberFormMappingResult;
+      }
+      payload.email = email;
     }
 
-    const phone = this.cleanString(values.phone);
-    const stageValue = this.cleanString(values.stage);
-    const membershipTypeValue = this.cleanString(values.membershipType);
-    const centerValue = this.cleanString(values.center);
-    const joinDate = this.toDateString(values.joinDate);
-    const preferredContact = this.toPreferredContact(values.preferredContact);
-    const recurringGiving = this.toNumeric(values.recurringGiving);
-    const recurringFrequency = this.cleanString(values.recurringFrequency);
-    const recurringMethod = this.cleanString(values.recurringMethod);
-    const pledgeAmount = this.toNumeric(values.pledgeAmount);
-    const careStatus = this.cleanString(values.careStatus)?.toLowerCase() ?? null;
-    const carePastor = this.cleanString(values.carePastor);
-    const followUpDate = this.toDateString(values.followUpDate);
-    const servingTeam = this.cleanString(values.servingTeam);
-    const servingRole = this.cleanString(values.servingRole);
-    const servingSchedule = this.cleanString(values.servingSchedule);
-    const discipleshipNextStep = this.cleanString(values.discipleshipNextStep);
-    const notes = this.cleanString(values.notes);
-    const tags = this.toTags(values.tags);
-    const preferredName = this.cleanString(values.preferredName);
-    const birthDate = this.toDateString(values.birthdate);
-    const maritalStatus = this.toMaritalStatus(values.maritalStatus);
-    const anniversary = this.toDateString(values.anniversary);
-    const occupation = this.cleanString(values.occupation);
-    const primaryGroup = this.cleanString(values.smallGroup);
-    const additionalGroups = this.toTags(values.additionalGroups);
-    const pathways = this.toTags(values.pathways);
-    const mentor = this.cleanString(values.mentor);
-    const attendanceRate = this.toNumeric(values.attendanceRate);
-    const lastAttendance = this.toDateString(values.lastAttendance);
-    const spiritualGifts = this.toTags(values.spiritualGifts);
-    const ministryInterests = this.toTags(values.ministryInterests);
-    const prayerFocus = this.cleanString(values.prayerFocus);
-    const prayerRequests = this.toTags(values.prayerRequests);
-    const careTeam = this.toTags(values.careTeam);
-    const emergencyContact = this.cleanString(values.emergencyContact);
-    const emergencyRelationship = this.cleanString(values.emergencyRelationship);
-    const emergencyPhone = this.cleanString(values.emergencyPhone);
-    const physician = this.cleanString(values.physician);
-    const nextServeDate = this.toDateString(values.nextServeDate);
-    const leadershipRoles = this.toTags(values.leadershipRoles);
-    const teamFocus = this.cleanString(values.teamFocus);
-    const reportsTo = this.cleanString(values.reportsTo);
-    const lastHuddle = this.toDateString(values.lastHuddle);
-    const primaryFund = this.cleanString(values.primaryFund);
-    const givingTier = this.cleanString(values.givingTier);
-    const financeNotes = this.cleanString(values.financeNotes);
-    const dataSteward = this.cleanString(values.dataSteward);
-    const lastReview = this.toDateString(values.lastReview);
-    const householdName = this.cleanString(values.householdName);
-    const householdMembers = this.toTags(values.householdMembers);
-    const addressStreet = this.cleanString(values.addressStreet);
-    const addressCity = this.cleanString(values.addressCity);
-    const addressState = this.cleanString(values.addressState);
-    const addressPostal = this.cleanString(values.addressPostal);
-    const envelopeNumber = this.cleanString(values.envelopeNumber);
-    const householdId = this.cleanString(values.householdId);
-    const profilePhotoUrl = this.toProfilePhoto(values.profilePhoto);
-
-    const stageId = this.findStageId(resources.stages, stageValue);
-    const typeId = this.findTypeId(resources.types, membershipTypeValue);
-    const centerId = centerValue === null ? null : this.findCenterId(resources.centers, centerValue);
-
-    const payload: Partial<Member> = {
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      membership_date: joinDate ?? null,
-      preferred_contact_method: preferredContact,
-      giving_recurring_amount: recurringGiving ?? null,
-      giving_pledge_amount: pledgeAmount ?? null,
-      giving_recurring_frequency: recurringFrequency ?? null,
-      giving_recurring_method: recurringMethod ?? null,
-      care_status_code: careStatus ?? null,
-      care_pastor: carePastor ?? null,
-      care_follow_up_at: followUpDate ?? null,
-      serving_team: servingTeam ?? null,
-      serving_role: servingRole ?? null,
-      serving_schedule: servingSchedule ?? null,
-      discipleship_next_step: discipleshipNextStep ?? null,
-      pastoral_notes: notes ?? null,
-      tags,
-    };
-
-    if (profilePhotoUrl !== undefined) {
-      payload.profile_picture_url = profilePhotoUrl;
+    if (this.hasField(values, "preferredContact")) {
+      payload.preferred_contact_method = this.toPreferredContact(values.preferredContact);
+    } else if (!isEditMode) {
+      payload.preferred_contact_method = this.toPreferredContact(null);
     }
 
-    if (preferredName !== null || Object.prototype.hasOwnProperty.call(values, 'preferredName')) {
-      payload.preferred_name = preferredName;
+    if (this.hasField(values, "recurringGiving")) {
+      payload.giving_recurring_amount = this.toNumeric(values.recurringGiving) ?? null;
     }
 
-    if (phone) {
-      payload.contact_number = phone;
+    if (this.hasField(values, "pledgeAmount")) {
+      payload.giving_pledge_amount = this.toNumeric(values.pledgeAmount) ?? null;
     }
 
-    payload.birthday = birthDate ?? null;
-    payload.marital_status = maritalStatus;
-    payload.anniversary = anniversary ?? null;
-    payload.occupation = occupation ?? null;
-    payload.primary_small_group = primaryGroup ?? null;
-    payload.discipleship_group = primaryGroup ?? null;
-    payload.small_groups = additionalGroups;
-    payload.discipleship_pathways = pathways;
-    payload.discipleship_mentor = mentor ?? null;
-    payload.attendance_rate = attendanceRate ?? null;
-    payload.last_attendance_date = lastAttendance ?? null;
-    payload.spiritual_gifts = spiritualGifts;
-    payload.ministry_interests = ministryInterests;
-    payload.prayer_focus = prayerFocus ?? null;
-    payload.prayer_requests = prayerRequests;
-    payload.care_team = careTeam;
-    payload.emergency_contact_name = emergencyContact ?? null;
-    payload.emergency_contact_relationship = emergencyRelationship ?? null;
-    payload.emergency_contact_phone = emergencyPhone ?? null;
-    payload.physician_name = physician ?? null;
-    payload.next_serve_at = nextServeDate ?? null;
-    payload.leadership_roles = leadershipRoles;
-    payload.team_focus = teamFocus ?? null;
-    payload.reports_to = reportsTo ?? null;
-    payload.last_huddle_at = lastHuddle ?? null;
-    payload.giving_primary_fund = primaryFund ?? null;
-    payload.giving_tier = givingTier ?? null;
-    payload.finance_notes = financeNotes ?? null;
-    payload.data_steward = dataSteward ?? null;
-    payload.last_review_at = lastReview ?? null;
-    payload.envelope_number = envelopeNumber ?? null;
-
-    if (stageId) {
-      payload.membership_status_id = stageId;
+    if (this.hasField(values, "recurringFrequency")) {
+      payload.giving_recurring_frequency = this.cleanString(values.recurringFrequency) ?? null;
     }
 
-    if (typeId) {
-      payload.membership_type_id = typeId;
+    if (this.hasField(values, "recurringMethod")) {
+      payload.giving_recurring_method = this.cleanString(values.recurringMethod) ?? null;
     }
 
-    if (centerValue === null) {
-      payload.membership_center_id = null;
-    } else if (centerId) {
-      payload.membership_center_id = centerId;
+    if (this.hasField(values, "careStatus")) {
+      payload.care_status_code = this.cleanString(values.careStatus)?.toLowerCase() ?? null;
     }
 
-    const hasHouseholdIdField = Object.prototype.hasOwnProperty.call(values, "householdId");
+    if (this.hasField(values, "carePastor")) {
+      payload.care_pastor = this.cleanString(values.carePastor) ?? null;
+    }
+
+    if (this.hasField(values, "followUpDate")) {
+      payload.care_follow_up_at = this.toDateString(values.followUpDate) ?? null;
+    }
+
+    if (this.hasField(values, "servingTeam")) {
+      payload.serving_team = this.cleanString(values.servingTeam) ?? null;
+    }
+
+    if (this.hasField(values, "servingRole")) {
+      payload.serving_role = this.cleanString(values.servingRole) ?? null;
+    }
+
+    if (this.hasField(values, "servingSchedule")) {
+      payload.serving_schedule = this.cleanString(values.servingSchedule) ?? null;
+    }
+
+    if (this.hasField(values, "discipleshipNextStep")) {
+      payload.discipleship_next_step = this.cleanString(values.discipleshipNextStep) ?? null;
+    }
+
+    if (this.hasField(values, "notes")) {
+      payload.pastoral_notes = this.cleanString(values.notes) ?? null;
+    }
+
+    if (this.hasField(values, "tags")) {
+      payload.tags = this.toTags(values.tags);
+    } else if (!isEditMode) {
+      payload.tags = [];
+    }
+
+    if (this.hasField(values, "profilePhoto")) {
+      const profilePhotoUrl = this.toProfilePhoto(values.profilePhoto);
+      if (profilePhotoUrl !== undefined) {
+        payload.profile_picture_url = profilePhotoUrl;
+      }
+    }
+
+    if (this.hasField(values, "preferredName")) {
+      payload.preferred_name = this.cleanString(values.preferredName);
+    }
+
+    if (this.hasField(values, "phone")) {
+      payload.contact_number = this.cleanString(values.phone) ?? null;
+    }
+
+    if (this.hasField(values, "birthdate")) {
+      payload.birthday = this.toDateString(values.birthdate) ?? null;
+    }
+
+    if (this.hasField(values, "maritalStatus")) {
+      payload.marital_status = this.toMaritalStatus(values.maritalStatus);
+    }
+
+    if (this.hasField(values, "anniversary")) {
+      payload.anniversary = this.toDateString(values.anniversary) ?? null;
+    }
+
+    if (this.hasField(values, "occupation")) {
+      payload.occupation = this.cleanString(values.occupation) ?? null;
+    }
+
+    if (this.hasField(values, "smallGroup")) {
+      const primaryGroup = this.cleanString(values.smallGroup) ?? null;
+      payload.primary_small_group = primaryGroup;
+      payload.discipleship_group = primaryGroup;
+    }
+
+    if (this.hasField(values, "additionalGroups")) {
+      payload.small_groups = this.toTags(values.additionalGroups);
+    } else if (!isEditMode) {
+      payload.small_groups = [];
+    }
+
+    if (this.hasField(values, "pathways")) {
+      payload.discipleship_pathways = this.toTags(values.pathways);
+    } else if (!isEditMode) {
+      payload.discipleship_pathways = [];
+    }
+
+    if (this.hasField(values, "mentor")) {
+      payload.discipleship_mentor = this.cleanString(values.mentor) ?? null;
+    }
+
+    if (this.hasField(values, "attendanceRate")) {
+      payload.attendance_rate = this.toNumeric(values.attendanceRate) ?? null;
+    }
+
+    if (this.hasField(values, "lastAttendance")) {
+      payload.last_attendance_date = this.toDateString(values.lastAttendance) ?? null;
+    }
+
+    if (this.hasField(values, "spiritualGifts")) {
+      payload.spiritual_gifts = this.toTags(values.spiritualGifts);
+    } else if (!isEditMode) {
+      payload.spiritual_gifts = [];
+    }
+
+    if (this.hasField(values, "ministryInterests")) {
+      payload.ministry_interests = this.toTags(values.ministryInterests);
+    } else if (!isEditMode) {
+      payload.ministry_interests = [];
+    }
+
+    if (this.hasField(values, "prayerFocus")) {
+      payload.prayer_focus = this.cleanString(values.prayerFocus) ?? null;
+    }
+
+    if (this.hasField(values, "prayerRequests")) {
+      payload.prayer_requests = this.toTags(values.prayerRequests);
+    } else if (!isEditMode) {
+      payload.prayer_requests = [];
+    }
+
+    if (this.hasField(values, "careTeam")) {
+      payload.care_team = this.toTags(values.careTeam);
+    } else if (!isEditMode) {
+      payload.care_team = [];
+    }
+
+    if (this.hasField(values, "emergencyContact")) {
+      payload.emergency_contact_name = this.cleanString(values.emergencyContact) ?? null;
+    }
+
+    if (this.hasField(values, "emergencyRelationship")) {
+      payload.emergency_contact_relationship = this.cleanString(values.emergencyRelationship) ?? null;
+    }
+
+    if (this.hasField(values, "emergencyPhone")) {
+      payload.emergency_contact_phone = this.cleanString(values.emergencyPhone) ?? null;
+    }
+
+    if (this.hasField(values, "physician")) {
+      payload.physician_name = this.cleanString(values.physician) ?? null;
+    }
+
+    if (this.hasField(values, "nextServeDate")) {
+      payload.next_serve_at = this.toDateString(values.nextServeDate) ?? null;
+    }
+
+    if (this.hasField(values, "leadershipRoles")) {
+      payload.leadership_roles = this.toTags(values.leadershipRoles);
+    } else if (!isEditMode) {
+      payload.leadership_roles = [];
+    }
+
+    if (this.hasField(values, "teamFocus")) {
+      payload.team_focus = this.cleanString(values.teamFocus) ?? null;
+    }
+
+    if (this.hasField(values, "reportsTo")) {
+      payload.reports_to = this.cleanString(values.reportsTo) ?? null;
+    }
+
+    if (this.hasField(values, "lastHuddle")) {
+      payload.last_huddle_at = this.toDateString(values.lastHuddle) ?? null;
+    }
+
+    if (this.hasField(values, "primaryFund")) {
+      payload.giving_primary_fund = this.cleanString(values.primaryFund) ?? null;
+    }
+
+    if (this.hasField(values, "givingTier")) {
+      payload.giving_tier = this.cleanString(values.givingTier) ?? null;
+    }
+
+    if (this.hasField(values, "financeNotes")) {
+      payload.finance_notes = this.cleanString(values.financeNotes) ?? null;
+    }
+
+    if (this.hasField(values, "dataSteward")) {
+      payload.data_steward = this.cleanString(values.dataSteward) ?? null;
+    }
+
+    if (this.hasField(values, "lastReview")) {
+      payload.last_review_at = this.toDateString(values.lastReview) ?? null;
+    }
+
+    if (this.hasField(values, "envelopeNumber")) {
+      payload.envelope_number = this.cleanString(values.envelopeNumber) ?? null;
+    }
+
+    if (this.hasField(values, "joinDate")) {
+      payload.membership_date = this.toDateString(values.joinDate) ?? null;
+    }
+
+    if (this.hasField(values, "stage")) {
+      const stageValue = this.cleanString(values.stage);
+      const stageId = this.findStageId(resources.stages, stageValue);
+      if (stageId) {
+        payload.membership_status_id = stageId;
+      }
+    }
+
+    if (this.hasField(values, "membershipType")) {
+      const membershipTypeValue = this.cleanString(values.membershipType);
+      const typeId = this.findTypeId(resources.types, membershipTypeValue);
+      if (typeId) {
+        payload.membership_type_id = typeId;
+      }
+    }
+
+    if (this.hasField(values, "center")) {
+      const centerValue = this.cleanString(values.center);
+      if (centerValue === null) {
+        payload.membership_center_id = null;
+      } else {
+        const centerId = this.findCenterId(resources.centers, centerValue);
+        if (centerId) {
+          payload.membership_center_id = centerId;
+        }
+      }
+    }
+
+    const hasHouseholdIdField = this.hasField(values, "householdId");
+    const householdName = this.hasField(values, "householdName")
+      ? this.cleanString(values.householdName)
+      : null;
+    const envelopeNumber = this.hasField(values, "envelopeNumber")
+      ? this.cleanString(values.envelopeNumber)
+      : null;
+    const addressStreet = this.hasField(values, "addressStreet")
+      ? this.cleanString(values.addressStreet)
+      : null;
+    const addressCity = this.hasField(values, "addressCity")
+      ? this.cleanString(values.addressCity)
+      : null;
+    const addressState = this.hasField(values, "addressState")
+      ? this.cleanString(values.addressState)
+      : null;
+    const addressPostal = this.hasField(values, "addressPostal")
+      ? this.cleanString(values.addressPostal)
+      : null;
+    const householdMembers = this.hasField(values, "householdMembers")
+      ? this.toTags(values.householdMembers)
+      : [];
+    const householdId = this.hasField(values, "householdId")
+      ? this.cleanString(values.householdId)
+      : null;
 
     const includeHousehold =
       householdId !== null ||
@@ -255,7 +408,7 @@ export class MemberFormMapper {
     return {
       success: true,
       data: { payload },
-    };
+    } satisfies MemberFormMappingResult;
   }
 
   private buildValidationError(message: string): MetadataActionResult {
@@ -264,6 +417,16 @@ export class MemberFormMapper {
       status: 400,
       message,
     };
+  }
+
+  private hasField(
+    values: ManageMemberRequest["values"],
+    key: keyof NonNullable<ManageMemberRequest["values"]>,
+  ): boolean {
+    if (!values) {
+      return false;
+    }
+    return Object.prototype.hasOwnProperty.call(values, key);
   }
 
   private requireString(value: unknown, label: string): string {
