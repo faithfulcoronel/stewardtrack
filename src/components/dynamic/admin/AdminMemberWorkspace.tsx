@@ -1055,54 +1055,69 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                                   key={field.name}
                                   control={controller.control}
                                   name={field.name as never}
-                                  render={({ field: controllerField }) => (
-                                    <FormItem className={getFieldClassName(field.colSpan ?? null)}>
-                                      {field.label && (
-                                        <FormLabel className="text-sm font-semibold text-foreground">
-                                          {field.label}
-                                        </FormLabel>
-                                      )}
-                                      <FormControl>
-                                        {field.name === "householdName" ? (
-                                          <HouseholdSelector
-                                            field={field}
-                                            controllerField={controllerField as ControllerRender & {
-                                              name: string;
-                                            }}
-                                            households={householdOptions}
-                                            onSelect={handleHouseholdSelect}
-                                            onManualInput={handleHouseholdManualInput}
-                                            onClearSelection={handleHouseholdClear}
-                                            selectedHouseholdId={
-                                              typeof watchHouseholdId === "string" ? watchHouseholdId : ""
-                                            }
-                                            isLoading={isLoadingHouseholds}
-                                          />
-                                        ) : field.type === "select" && field.quickCreate ? (
-                                          <div className="flex flex-wrap items-center gap-2">
-                                            <div className="flex-1">
-                                              {renderFieldInput(field, controllerField as ControllerRender)}
-                                            </div>
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="icon"
-                                              className="shrink-0"
-                                              aria-label={field.quickCreate?.label ?? `Add ${field.label ?? "option"}`}
-                                              onClick={() => handleQuickCreate(field)}
-                                            >
-                                              <Plus className="size-4" aria-hidden="true" />
-                                              <span className="sr-only">{field.quickCreate?.label ?? "Add"}</span>
-                                            </Button>
-                                          </div>
-                                        ) : (
-                                          renderFieldInput(field, controllerField as ControllerRender)
+                                  render={({ field: controllerField }) => {
+                                    const helperText =
+                                      typeof field.helperText === "string" ? field.helperText : "";
+                                    const hasHelperText = helperText.trim().length > 0;
+
+                                    return (
+                                      <FormItem className={getFieldClassName(field.colSpan ?? null)}>
+                                        {field.label && (
+                                          <FormLabel className="text-sm font-semibold text-foreground">
+                                            {field.label}
+                                          </FormLabel>
                                         )}
-                                      </FormControl>
-                                      {field.helperText && <FormDescription>{field.helperText}</FormDescription>}
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
+                                        <FormControl>
+                                          {field.name === "householdName" ? (
+                                            <HouseholdSelector
+                                              field={field}
+                                              controllerField={controllerField as ControllerRender & {
+                                                name: string;
+                                              }}
+                                              households={householdOptions}
+                                              onSelect={handleHouseholdSelect}
+                                              onManualInput={handleHouseholdManualInput}
+                                              onClearSelection={handleHouseholdClear}
+                                              selectedHouseholdId={
+                                                typeof watchHouseholdId === "string" ? watchHouseholdId : ""
+                                              }
+                                              isLoading={isLoadingHouseholds}
+                                            />
+                                          ) : field.type === "select" && field.quickCreate ? (
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <div className="flex-1">
+                                                {renderFieldInput(field, controllerField as ControllerRender)}
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="shrink-0"
+                                                aria-label={field.quickCreate?.label ?? `Add ${field.label ?? "option"}`}
+                                                onClick={() => handleQuickCreate(field)}
+                                              >
+                                                <Plus className="size-4" aria-hidden="true" />
+                                                <span className="sr-only">{field.quickCreate?.label ?? "Add"}</span>
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            renderFieldInput(field, controllerField as ControllerRender)
+                                          )}
+                                        </FormControl>
+                                        {hasHelperText ? (
+                                          <FormDescription>{helperText}</FormDescription>
+                                        ) : (
+                                          <FormDescription
+                                            aria-hidden="true"
+                                            className="select-none opacity-0"
+                                          >
+                                            Placeholder helper text
+                                          </FormDescription>
+                                        )}
+                                        <FormMessage />
+                                      </FormItem>
+                                    );
+                                  }}
                                 />
                               ))}
                             </div>
