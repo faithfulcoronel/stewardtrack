@@ -26,6 +26,11 @@ import type {
   FormFieldOption,
   FormFieldQuickCreateConfig,
 } from "./types";
+import {
+  buildFieldRowHelperMap,
+  getFieldGridClassName,
+  groupFieldsIntoRows,
+} from "./formLayout";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -1066,7 +1071,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                                       rowHasHelperText && !hasHelperText;
 
                                     return (
-                                      <FormItem className={getFieldClassName(field.colSpan ?? null)}>
+                                      <FormItem className={getFieldGridClassName(field.colSpan ?? null)}>
                                         {field.label && (
                                           <FormLabel className="text-sm font-semibold text-foreground">
                                             {field.label}
@@ -1216,74 +1221,3 @@ function ensureQuickCreateAction(field: FormFieldConfig): FormFieldQuickCreateCo
     action,
   } satisfies FormFieldQuickCreateConfig;
 }
-
-function getFieldClassName(colSpan: FormFieldConfig["colSpan"]): string {
-  switch (colSpan) {
-    case "full":
-      return "sm:col-span-2";
-    case "third":
-      return "sm:col-span-2 lg:col-span-1";
-    default:
-      return "";
-  }
-}
-
-function groupFieldsIntoRows(fields: FormFieldConfig[]): FormFieldConfig[][] {
-  const rows: FormFieldConfig[][] = [];
-  let currentRow: FormFieldConfig[] = [];
-  let remainingColumns = 2;
-
-  for (const field of fields) {
-    const span = getFieldColumnSpanUnits(field.colSpan ?? null);
-
-    if (span > remainingColumns && currentRow.length > 0) {
-      rows.push(currentRow);
-      currentRow = [];
-      remainingColumns = 2;
-    }
-
-    currentRow.push(field);
-    remainingColumns -= span;
-
-    if (remainingColumns <= 0) {
-      rows.push(currentRow);
-      currentRow = [];
-      remainingColumns = 2;
-    }
-  }
-
-  if (currentRow.length > 0) {
-    rows.push(currentRow);
-  }
-
-  return rows;
-}
-
-function buildFieldRowHelperMap(rows: FormFieldConfig[][]): Map<string, boolean> {
-  const map = new Map<string, boolean>();
-
-  for (const row of rows) {
-    const rowHasHelperText = row.some((field) => {
-      const helperText = typeof field.helperText === "string" ? field.helperText : "";
-      return helperText.trim().length > 0;
-    });
-
-    for (const field of row) {
-      map.set(field.name, rowHasHelperText);
-    }
-  }
-
-  return map;
-}
-
-function getFieldColumnSpanUnits(colSpan: FormFieldConfig["colSpan"] | null): number {
-  switch (colSpan) {
-    case "full":
-      return 2;
-    case "half":
-    case "third":
-    default:
-      return 1;
-  }
-}
-
