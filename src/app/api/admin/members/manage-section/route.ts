@@ -9,7 +9,7 @@ import {
 } from "@/lib/metadata/evaluation";
 import type { CanonicalComponent, CanonicalRegion } from "@/lib/metadata/generated/canonical";
 import { MANAGE_SECTION_CONFIG, type ManageSectionConfigEntry } from "@/lib/members/manageSectionConfig";
-import type { FormFieldConfig } from "@/components/dynamic/admin/types";
+import type { FormFieldConfig, FormFieldOption } from "@/components/dynamic/admin/types";
 import type { ActionConfig } from "@/components/dynamic/shared";
 
 interface WorkspaceFormSection {
@@ -26,6 +26,7 @@ interface ManageWorkspaceFormConfig {
   submitLabel?: string | null;
   mode?: string | null;
   footnote?: string | null;
+  lookupOptions?: Record<string, FormFieldOption[] | { items?: FormFieldOption[] } | null> | null;
 }
 
 interface ManageSectionResponse {

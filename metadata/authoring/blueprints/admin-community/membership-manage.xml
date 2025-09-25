@@ -86,6 +86,34 @@
                 const fallback = records[0] ?? {};
                 const isCreate = !params.memberId;
                 const lookupGroups = data.membershipLookups?.lookups ?? {};
+                const lookupOptions = Object.entries(lookupGroups).reduce((acc, [key, items]) => {
+                  if (!Array.isArray(items)) {
+                    return acc;
+                  }
+
+                  const options = [];
+                  for (const entry of items) {
+                    const rawId = entry?.id;
+                    const rawValue = entry?.value;
+                    const id = typeof rawId === 'number' ? String(rawId) : typeof rawId === 'string' ? rawId.trim() : '';
+                    const label =
+                      typeof rawValue === 'number'
+                        ? String(rawValue)
+                        : typeof rawValue === 'string'
+                          ? rawValue.trim()
+                          : '';
+                    if (!id || !label) {
+                      continue;
+                    }
+                    options.push({ label, value: id });
+                  }
+
+                  if (options.length > 0) {
+                    acc[key] = options;
+                  }
+
+                  return acc;
+                }, {});
                 const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';
                 const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';
                 const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
@@ -287,6 +315,7 @@
 
                 return {
                   initialValues,
+                  lookupOptions,
                   submitLabel: isCreate ? 'Create member' : 'Save changes',
                   mode: isCreate ? 'create' : 'edit',
                   submitAction: actions['save-member'] ?? null,
