@@ -31,6 +31,11 @@ import type {
   FormFieldOption,
   FormFieldQuickCreateConfig,
 } from "./types";
+import {
+  buildFieldRowHelperMap,
+  getFieldGridClassName,
+  groupFieldsIntoRows,
+} from "./formLayout";
 
 export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./types";
 
@@ -74,6 +79,14 @@ export function AdminFormSection(props: AdminFormSectionProps) {
       } satisfies FormFieldConfig;
     });
   }, [fields, quickCreateOptions]);
+
+  const fieldRows = React.useMemo(() => {
+    return groupFieldsIntoRows(augmentedFields);
+  }, [augmentedFields]);
+
+  const fieldRowHelperMap = React.useMemo(() => {
+    return buildFieldRowHelperMap(fieldRows);
+  }, [fieldRows]);
 
   const handleQuickCreate = React.useCallback(
     (field: FormFieldConfig) => {
@@ -160,11 +173,7 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                 name={field.name as never}
                 render={({ field: controller }) => (
                   <FormItem
-                    className={cn(
-                      "space-y-3",
-                      field.colSpan === "full" && "sm:col-span-2",
-                      field.colSpan === "third" && "sm:col-span-2 lg:col-span-1",
-                    )}
+                    className={cn("space-y-3", getFieldGridClassName(field.colSpan ?? null))}
                   >
                     {field.label && <FormLabel className="text-sm font-semibold text-foreground">{field.label}</FormLabel>}
                     <FormControl>
@@ -189,7 +198,26 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                         renderFieldInput(field, controller as ControllerRender)
                       )}
                     </FormControl>
-                    {field.helperText && <FormDescription>{field.helperText}</FormDescription>}
+                    {(() => {
+                      const helperText = typeof field.helperText === "string" ? field.helperText : "";
+                      const hasHelperText = helperText.trim().length > 0;
+                      const rowHasHelperText = fieldRowHelperMap.get(field.name) ?? false;
+                      const shouldRenderPlaceholder = rowHasHelperText && !hasHelperText;
+
+                      if (hasHelperText) {
+                        return <FormDescription>{helperText}</FormDescription>;
+                      }
+
+                      if (shouldRenderPlaceholder) {
+                        return (
+                          <FormDescription aria-hidden="true" className="select-none opacity-0">
+                            Placeholder helper text
+                          </FormDescription>
+                        );
+                      }
+
+                      return null;
+                    })()}
                     <FormMessage />
                   </FormItem>
                 )}
