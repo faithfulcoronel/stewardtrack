@@ -159,7 +159,9 @@ export class MemberFormMapper {
       payload.discipleship_next_step = this.cleanString(values.discipleshipNextStep) ?? null;
     }
 
-    if (this.hasField(values, "notes")) {
+    if (this.hasField(values, "pastoralNotes")) {
+      payload.pastoral_notes = this.cleanString(values.pastoralNotes) ?? null;
+    } else if (this.hasField(values, "notes")) {
       payload.pastoral_notes = this.cleanString(values.notes) ?? null;
     }
 
