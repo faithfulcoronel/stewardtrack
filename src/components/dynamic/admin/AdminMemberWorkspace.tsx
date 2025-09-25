@@ -1221,4 +1221,3 @@ function ensureQuickCreateAction(field: FormFieldConfig): FormFieldQuickCreateCo
     action,
   } satisfies FormFieldQuickCreateConfig;
 }
-
