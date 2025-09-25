@@ -189,7 +189,7 @@
                   anniversary: profile.anniversary ?? demographics.anniversary ?? '',
                   occupation: profile.occupation ?? demographics.occupation ?? '',
                   householdName: profile.householdName ?? household.name ?? '',
-                  envelopeNumber: profile.envelopeNumber ?? household.envelopeNumber ?? '',
+                  envelopeNumber: profile.envelopeNumber ?? record.envelopeNumber ?? '',
                   addressStreet: profile.addressStreet ?? household.address?.street ?? '',
                   addressCity: profile.addressCity ?? household.address?.city ?? '',
                   addressState: profile.addressState ?? household.address?.state ?? '',
@@ -344,6 +344,7 @@
                 "membershipTypeKey": "covenant-member",
                 "center": "Downtown Center",
                 "centerKey": "downtown",
+                "envelopeNumber": "2041",
                 "tags": ["Hospitality Team", "Leadership Cohort"],
                 "demographics": {
                   "birthdate": "1986-05-12",
@@ -353,7 +354,6 @@
                 },
                 "household": {
                   "name": "Johnson Family",
-                  "envelopeNumber": "2041",
                   "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
                   "address": {
                     "street": "412 Hope Ave",
@@ -726,6 +726,13 @@
                       { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
                       { "name": "preferredName", "label": "Preferred name", "type": "text", "colSpan": "half" },
                       { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
+                      {
+                        "name": "envelopeNumber",
+                        "label": "Envelope number",
+                        "type": "text",
+                        "colSpan": "half",
+                        "helperText": "Envelope numbers are assigned per individual, not per household."
+                      },
                       { "name": "birthdate", "label": "Birthdate", "type": "date", "colSpan": "half" },
                       {
                         "name": "maritalStatus",
@@ -749,7 +756,6 @@
                     "title": "Household",
                     "fields": [
                       { "name": "householdName", "label": "Household name", "type": "text", "colSpan": "half" },
-                      { "name": "envelopeNumber", "label": "Envelope number", "type": "text", "colSpan": "half" },
                       { "name": "householdMembers", "label": "Household members", "type": "tags", "colSpan": "full", "helperText": "Use nicknames and ages to personalize care." },
                       { "name": "addressStreet", "label": "Street address", "type": "text", "colSpan": "full" },
                       { "name": "addressCity", "label": "City", "type": "text", "colSpan": "half" },

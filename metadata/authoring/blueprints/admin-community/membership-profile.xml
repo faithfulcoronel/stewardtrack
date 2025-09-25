@@ -140,7 +140,7 @@
                 const targetId = record.id ?? params.memberId ?? '';
                 const manageUrl = (section) => `/admin/members/manage?memberId=${targetId}&section=${section}`;
                 const address = record.household?.address ?? {};
-                const envelope = record.household?.envelopeNumber ? `Envelope #${record.household.envelopeNumber}` : 'No envelope assigned';
+                const envelope = record.envelopeNumber ? `Envelope #${record.envelopeNumber}` : 'No envelope assigned';
                 const attendancePercent = record.attendance?.twelveWeekAttendance ?? 0;
                 const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : 'Attendance unknown';
                 const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount ?? 0);
@@ -411,7 +411,7 @@
                             action: { id: 'edit-tags', config: { label: 'Edit tags', url: manageUrl('admin'), variant: 'ghost' } },
                             items: [
                               { label: 'Tags', type: 'chips', items: record.tags ?? [] },
-                              { label: 'Household envelope', value: record.household?.envelopeNumber ?? '—' },
+                              { label: 'Envelope number', value: record.envelopeNumber ?? '—' },
                               { label: 'Data steward', value: record.admin?.steward ?? '—' },
                               { label: 'Last review', value: record.admin?.lastReview ?? '—' }
                             ]
@@ -455,6 +455,7 @@
                 "membershipType": "Covenant member",
                 "joinDate": "2016-03-14",
                 "center": "Downtown Center",
+                "envelopeNumber": "2041",
                 "demographics": {
                   "birthdate": "1986-05-12",
                   "maritalStatus": "Married",
@@ -476,7 +477,6 @@
                 },
                 "household": {
                   "name": "Johnson Family",
-                  "envelopeNumber": "2041",
                   "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
                   "address": {
                     "street": "412 Hope Ave",
@@ -580,6 +580,7 @@
                 "membershipType": "Attender",
                 "joinDate": "",
                 "center": "Northside Center",
+                "envelopeNumber": "Pending",
                 "demographics": {
                   "birthdate": "1993-11-02",
                   "maritalStatus": "Single",
@@ -593,7 +594,6 @@
                 },
                 "household": {
                   "name": "Ruiz Household",
-                  "envelopeNumber": "Pending",
                   "members": ["Elena Ruiz"],
                   "address": {
                     "street": "88 River Crossing",

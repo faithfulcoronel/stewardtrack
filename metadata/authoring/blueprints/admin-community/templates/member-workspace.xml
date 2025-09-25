@@ -49,13 +49,14 @@
                       "summary": {
                         "label": "Household",
                         "value": "Johnson family",
-                        "description": "Envelope #2041"
+                        "description": "Envelope #2041 · Individual assignment"
                       },
                       "panels": [
                         {
                           "title": "Profile",
                           "items": [
                             { "label": "Preferred name", "value": "Avery" },
+                            { "label": "Envelope number", "value": "2041" },
                             { "label": "Birthdate", "value": "1986-05-12" },
                             { "label": "Marital status", "value": "Married" }
                           ]
