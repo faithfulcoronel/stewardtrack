@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
 
 type SortDirection = "asc" | "desc";
 
@@ -33,6 +41,9 @@ export interface DataTableProps<TData> {
   className?: string;
   tableClassName?: string;
   caption?: React.ReactNode;
+  enablePagination?: boolean;
+  pageSizeOptions?: number[];
+  initialPageSize?: number;
 }
 
 export function DataTable<TData>({
@@ -42,8 +53,51 @@ export function DataTable<TData>({
   className,
   tableClassName,
   caption,
+  enablePagination = false,
+  pageSizeOptions,
+  initialPageSize,
 }: DataTableProps<TData>) {
   const [sortState, setSortState] = React.useState<SortState | null>(null);
+
+  const paginationOptions = React.useMemo(() => {
+    if (!enablePagination) {
+      return [] as number[];
+    }
+    const options =
+      pageSizeOptions && pageSizeOptions.length > 0
+        ? pageSizeOptions
+        : [10, 25, 50, 100];
+    const unique = Array.from(
+      new Set(
+        options.filter((option) => Number.isFinite(option) && option > 0)
+      )
+    );
+    unique.sort((a, b) => a - b);
+    return unique.length > 0 ? unique : [10, 25, 50, 100];
+  }, [enablePagination, pageSizeOptions]);
+
+  const resolvedInitialPageSize = React.useMemo(() => {
+    if (!enablePagination) {
+      return 0;
+    }
+    if (
+      typeof initialPageSize === "number" &&
+      paginationOptions.includes(initialPageSize)
+    ) {
+      return initialPageSize;
+    }
+    return paginationOptions[0] ?? 10;
+  }, [enablePagination, initialPageSize, paginationOptions]);
+
+  const [pageSize, setPageSize] = React.useState(resolvedInitialPageSize);
+  const [currentPage, setCurrentPage] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!enablePagination) {
+      return;
+    }
+    setPageSize(resolvedInitialPageSize);
+  }, [enablePagination, resolvedInitialPageSize]);
 
   const sortedData = React.useMemo(() => {
     if (!sortState) {
@@ -65,6 +119,61 @@ export function DataTable<TData>({
     });
     return copy;
   }, [columns, data, sortState]);
+
+  const effectivePageSize = enablePagination ? Math.max(1, pageSize) : 0;
+  const totalItems = sortedData.length;
+  const totalPages = enablePagination
+    ? Math.max(1, Math.ceil(totalItems / effectivePageSize))
+    : 1;
+
+  React.useEffect(() => {
+    if (!enablePagination) {
+      return;
+    }
+    setCurrentPage((previous) => {
+      const maxPage = Math.max(0, totalPages - 1);
+      return previous > maxPage ? maxPage : previous;
+    });
+  }, [enablePagination, totalPages]);
+
+  React.useEffect(() => {
+    if (!enablePagination) {
+      return;
+    }
+    setCurrentPage(0);
+  }, [data, enablePagination]);
+
+  const safeCurrentPage = enablePagination
+    ? Math.min(currentPage, Math.max(0, totalPages - 1))
+    : 0;
+  const startIndex = enablePagination ? safeCurrentPage * effectivePageSize : 0;
+  const paginatedData = enablePagination
+    ? sortedData.slice(startIndex, startIndex + effectivePageSize)
+    : sortedData;
+  const rangeStart = totalItems === 0 ? 0 : startIndex + 1;
+  const rangeEnd = totalItems === 0 ? 0 : startIndex + paginatedData.length;
+  const isFirstPage = safeCurrentPage === 0 || totalItems === 0;
+  const isLastPage = safeCurrentPage >= totalPages - 1 || totalItems === 0;
+
+  const handlePreviousPage = React.useCallback(() => {
+    setCurrentPage((previous) => Math.max(previous - 1, 0));
+  }, []);
+
+  const handleNextPage = React.useCallback(() => {
+    setCurrentPage((previous) => {
+      const maxPage = Math.max(0, totalPages - 1);
+      return Math.min(previous + 1, maxPage);
+    });
+  }, [totalPages]);
+
+  const handlePageSizeChange = React.useCallback((value: string) => {
+    const next = Number(value);
+    if (!Number.isFinite(next) || next <= 0) {
+      return;
+    }
+    setPageSize(next);
+    setCurrentPage(0);
+  }, []);
 
   const toggleSort = React.useCallback(
     (column: DataTableColumn<TData>) => {
@@ -155,11 +264,15 @@ export function DataTable<TData>({
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
-            {sortedData.map((row, rowIndex) => {
-              const key = getRowId?.(row, rowIndex);
-              const rowKey = key === undefined || key === null || key === ""
-                ? `row-${rowIndex}`
-                : String(key);
+            {paginatedData.map((row, rowIndex) => {
+              const absoluteIndex = enablePagination
+                ? startIndex + rowIndex
+                : rowIndex;
+              const key = getRowId?.(row, absoluteIndex);
+              const rowKey =
+                key === undefined || key === null || key === ""
+                  ? `row-${absoluteIndex}`
+                  : String(key);
               return (
                 <tr key={rowKey} className="bg-background transition hover:bg-muted/40">
                   {columns.map((column) => (
@@ -181,6 +294,59 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
+      {enablePagination && (
+        <div className="flex flex-col gap-3 border-t border-border/60 bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="whitespace-nowrap">Rows per page</span>
+            <Select
+              value={String(effectivePageSize)}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger size="sm" className="min-w-[4.5rem]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {paginationOptions.map((option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground sm:justify-end">
+            <span className="whitespace-nowrap">
+              {rangeStart === rangeEnd
+                ? `${rangeEnd} of ${totalItems}`
+                : `${rangeStart} – ${rangeEnd} of ${totalItems}`}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-8"
+                onClick={handlePreviousPage}
+                disabled={isFirstPage}
+              >
+                <ChevronLeft className="size-4" aria-hidden="true" />
+                <span className="sr-only">Previous page</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-8"
+                onClick={handleNextPage}
+                disabled={isLastPage}
+              >
+                <ChevronRight className="size-4" aria-hidden="true" />
+                <span className="sr-only">Next page</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

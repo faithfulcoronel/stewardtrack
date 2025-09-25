@@ -419,6 +419,9 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
             const id = getRowIdentifier(row);
             return id || `row-${index}`;
           }}
+          enablePagination
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialPageSize={25}
         />
 
         {filteredRows.length === 0 && (
