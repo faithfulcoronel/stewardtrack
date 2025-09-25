@@ -38,21 +38,7 @@ async function getMembershipContext(): Promise<MembershipContext> {
   }
 
   if (!tenant) {
-    try {
-      const { data, error } = await supabase.rpc("get_current_tenant");
-      if (error) {
-        throw error;
-      }
-
-      const tenantRecord = Array.isArray(data) ? data[0] : data;
-      const resolvedTenant = (tenantRecord as { id?: string } | null)?.id ?? null;
-      const normalizedTenant = typeof resolvedTenant === "string" ? resolvedTenant.trim() : null;
-      tenant = normalizedTenant || tenant;
-    } catch (error) {
-      if (process.env.NODE_ENV !== "test") {
-        console.error("Failed to determine tenant for metadata context", error);
-      }
-    }
+    throw new Error("Failed to determine tenant for membership metadata context");
   }
   return { role, tenant, locale, featureFlags };
 }
