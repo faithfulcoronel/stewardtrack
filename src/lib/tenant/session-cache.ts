@@ -10,7 +10,14 @@ type TenantSession = {
 
 async function getMutableCookieStore() {
   const store = await cookies();
-  const canMutate = typeof (store as any).set === "function" && typeof (store as any).delete === "function";
+  const setFn = (store as any).set;
+  const deleteFn = (store as any).delete;
+  const isCallableGuard = (fn: unknown) => typeof fn === "function" && fn.name === "callable";
+  const canMutate =
+    typeof setFn === "function" &&
+    typeof deleteFn === "function" &&
+    !isCallableGuard(setFn) &&
+    !isCallableGuard(deleteFn);
 
   return canMutate ? store : null;
 }
