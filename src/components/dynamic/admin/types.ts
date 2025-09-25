@@ -52,4 +52,5 @@ export interface AdminFormSectionProps {
   submitAction?: ActionConfig | null;
   mode?: AdminFormMode | null;
   footnote?: string | null;
+  contextParams?: Record<string, string | string[]> | null;
 }
