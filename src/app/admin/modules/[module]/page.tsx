@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, FileText, Layers } from "lucide-react";
 
 import {
-  MetadataRegistry,
+  createMetadataRegistry,
   type ManifestEntry,
 } from "@/lib/metadata/registry";
 import {
@@ -40,7 +40,7 @@ export default async function ModuleDetailPage({ params }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
   const moduleId = decodeURIComponent(resolvedParams.module);
 
-  const registry = new MetadataRegistry();
+  const registry = createMetadataRegistry();
   const manifest = await registry.readManifest();
 
   if (!manifest) {

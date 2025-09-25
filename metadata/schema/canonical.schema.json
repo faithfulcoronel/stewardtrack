@@ -120,6 +120,8 @@
       "properties": {
         "id": { "type": "string" },
         "type": { "type": "string" },
+        "namespace": { "type": "string" },
+        "version": { "type": "string" },
         "operation": { "type": "string", "enum": ["merge", "replace", "remove"] },
         "props": {
           "type": "object",

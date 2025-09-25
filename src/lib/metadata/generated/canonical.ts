@@ -40,6 +40,8 @@ export interface Region {
 export interface Component {
   id: string;
   type?: string;
+  namespace?: string;
+  version?: string;
   operation?: "merge" | "replace" | "remove";
   props?: {
     [k: string]: PropValue;

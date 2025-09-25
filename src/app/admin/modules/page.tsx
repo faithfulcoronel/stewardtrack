@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, Layers } from "lucide-react";
 
-import {
-  MetadataRegistry,
-  type ManifestEntry,
-} from "@/lib/metadata/registry";
+import { createMetadataRegistry, type ManifestEntry } from "@/lib/metadata/registry";
 import {
   Card,
   CardContent,
@@ -28,7 +25,7 @@ type ModuleGroup = {
 };
 
 export default async function ModulesPage() {
-  const registry = new MetadataRegistry();
+  const registry = createMetadataRegistry();
   const manifest = await registry.readManifest();
   const groups = manifest ? groupByModule(Object.values(manifest.entries)) : [];
 

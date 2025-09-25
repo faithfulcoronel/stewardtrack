@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 import {
-  MetadataRegistry,
+  createMetadataRegistry,
   type ManifestEntry,
   type ManifestFile,
 } from "@/lib/metadata/registry";
@@ -39,7 +39,7 @@ interface FeatureSample {
 }
 
 export default async function FeatureSectionsPage() {
-  const registry = new MetadataRegistry();
+  const registry = createMetadataRegistry();
   const manifest = await registry.readManifest();
 
   if (!manifest) {
