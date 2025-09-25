@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#Compiled JSON files
+/metadata/compiled/
+/metadata/registry/
