@@ -1026,6 +1026,8 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                       });
 
                       const accordionValue = section.id ?? section.title ?? `${tab.id}-form-section`;
+                      const fieldRows = groupFieldsIntoRows(sectionFields);
+                      const fieldRowHelperMap = buildFieldRowHelperMap(fieldRows);
 
                       return (
                         <AccordionItem
@@ -1055,54 +1057,72 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                                   key={field.name}
                                   control={controller.control}
                                   name={field.name as never}
-                                  render={({ field: controllerField }) => (
-                                    <FormItem className={getFieldClassName(field.colSpan ?? null)}>
-                                      {field.label && (
-                                        <FormLabel className="text-sm font-semibold text-foreground">
-                                          {field.label}
-                                        </FormLabel>
-                                      )}
-                                      <FormControl>
-                                        {field.name === "householdName" ? (
-                                          <HouseholdSelector
-                                            field={field}
-                                            controllerField={controllerField as ControllerRender & {
-                                              name: string;
-                                            }}
-                                            households={householdOptions}
-                                            onSelect={handleHouseholdSelect}
-                                            onManualInput={handleHouseholdManualInput}
-                                            onClearSelection={handleHouseholdClear}
-                                            selectedHouseholdId={
-                                              typeof watchHouseholdId === "string" ? watchHouseholdId : ""
-                                            }
-                                            isLoading={isLoadingHouseholds}
-                                          />
-                                        ) : field.type === "select" && field.quickCreate ? (
-                                          <div className="flex flex-wrap items-center gap-2">
-                                            <div className="flex-1">
-                                              {renderFieldInput(field, controllerField as ControllerRender)}
-                                            </div>
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="icon"
-                                              className="shrink-0"
-                                              aria-label={field.quickCreate?.label ?? `Add ${field.label ?? "option"}`}
-                                              onClick={() => handleQuickCreate(field)}
-                                            >
-                                              <Plus className="size-4" aria-hidden="true" />
-                                              <span className="sr-only">{field.quickCreate?.label ?? "Add"}</span>
-                                            </Button>
-                                          </div>
-                                        ) : (
-                                          renderFieldInput(field, controllerField as ControllerRender)
+                                  render={({ field: controllerField }) => {
+                                    const helperText =
+                                      typeof field.helperText === "string" ? field.helperText : "";
+                                    const hasHelperText = helperText.trim().length > 0;
+                                    const rowHasHelperText = fieldRowHelperMap.get(field.name) ?? false;
+                                    const shouldRenderPlaceholder =
+                                      rowHasHelperText && !hasHelperText;
+
+                                    return (
+                                      <FormItem className={getFieldClassName(field.colSpan ?? null)}>
+                                        {field.label && (
+                                          <FormLabel className="text-sm font-semibold text-foreground">
+                                            {field.label}
+                                          </FormLabel>
                                         )}
-                                      </FormControl>
-                                      {field.helperText && <FormDescription>{field.helperText}</FormDescription>}
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
+                                        <FormControl>
+                                          {field.name === "householdName" ? (
+                                            <HouseholdSelector
+                                              field={field}
+                                              controllerField={controllerField as ControllerRender & {
+                                                name: string;
+                                              }}
+                                              households={householdOptions}
+                                              onSelect={handleHouseholdSelect}
+                                              onManualInput={handleHouseholdManualInput}
+                                              onClearSelection={handleHouseholdClear}
+                                              selectedHouseholdId={
+                                                typeof watchHouseholdId === "string" ? watchHouseholdId : ""
+                                              }
+                                              isLoading={isLoadingHouseholds}
+                                            />
+                                          ) : field.type === "select" && field.quickCreate ? (
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <div className="flex-1">
+                                                {renderFieldInput(field, controllerField as ControllerRender)}
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="shrink-0"
+                                                aria-label={field.quickCreate?.label ?? `Add ${field.label ?? "option"}`}
+                                                onClick={() => handleQuickCreate(field)}
+                                              >
+                                                <Plus className="size-4" aria-hidden="true" />
+                                                <span className="sr-only">{field.quickCreate?.label ?? "Add"}</span>
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            renderFieldInput(field, controllerField as ControllerRender)
+                                          )}
+                                        </FormControl>
+                                        {hasHelperText ? (
+                                          <FormDescription>{helperText}</FormDescription>
+                                        ) : shouldRenderPlaceholder ? (
+                                          <FormDescription
+                                            aria-hidden="true"
+                                            className="select-none opacity-0"
+                                          >
+                                            Placeholder helper text
+                                          </FormDescription>
+                                        ) : null}
+                                        <FormMessage />
+                                      </FormItem>
+                                    );
+                                  }}
                                 />
                               ))}
                             </div>
@@ -1205,6 +1225,65 @@ function getFieldClassName(colSpan: FormFieldConfig["colSpan"]): string {
       return "sm:col-span-2 lg:col-span-1";
     default:
       return "";
+  }
+}
+
+function groupFieldsIntoRows(fields: FormFieldConfig[]): FormFieldConfig[][] {
+  const rows: FormFieldConfig[][] = [];
+  let currentRow: FormFieldConfig[] = [];
+  let remainingColumns = 2;
+
+  for (const field of fields) {
+    const span = getFieldColumnSpanUnits(field.colSpan ?? null);
+
+    if (span > remainingColumns && currentRow.length > 0) {
+      rows.push(currentRow);
+      currentRow = [];
+      remainingColumns = 2;
+    }
+
+    currentRow.push(field);
+    remainingColumns -= span;
+
+    if (remainingColumns <= 0) {
+      rows.push(currentRow);
+      currentRow = [];
+      remainingColumns = 2;
+    }
+  }
+
+  if (currentRow.length > 0) {
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+function buildFieldRowHelperMap(rows: FormFieldConfig[][]): Map<string, boolean> {
+  const map = new Map<string, boolean>();
+
+  for (const row of rows) {
+    const rowHasHelperText = row.some((field) => {
+      const helperText = typeof field.helperText === "string" ? field.helperText : "";
+      return helperText.trim().length > 0;
+    });
+
+    for (const field of row) {
+      map.set(field.name, rowHasHelperText);
+    }
+  }
+
+  return map;
+}
+
+function getFieldColumnSpanUnits(colSpan: FormFieldConfig["colSpan"] | null): number {
+  switch (colSpan) {
+    case "full":
+      return 2;
+    case "half":
+    case "third":
+    default:
+      return 1;
   }
 }
 
