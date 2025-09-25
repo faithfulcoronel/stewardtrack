@@ -116,6 +116,7 @@
                 const careTeam = carePlan.team ?? profile.careTeam ?? [];
                 const leadershipRoles = leadership.roles ?? profile.leadershipRoles ?? [];
 
+                const householdId = household.id ?? profile.household?.id ?? record.householdId ?? '';
                 const initialValues = {
                   profilePhoto,
                   memberId: record.id ?? '',
@@ -133,6 +134,7 @@
                   addressState: profile.addressState ?? household.address?.state ?? '',
                   addressPostal: profile.addressPostal ?? household.address?.postalCode ?? '',
                   householdMembers: Array.isArray(members) ? members : [],
+                  householdId: typeof householdId === 'string' ? householdId : '',
                   email: profile.email ?? contact.email ?? '',
                   phone: profile.phone ?? contact.phone ?? '',
                   preferredContact: profile.preferredContact ?? contact.preferred ?? 'Email',
@@ -195,6 +197,7 @@
                   initialValues.householdName = '';
                   initialValues.envelopeNumber = '';
                   initialValues.householdMembers = [];
+                  initialValues.householdId = '';
                   initialValues.addressStreet = '';
                   initialValues.addressCity = '';
                   initialValues.addressState = '';

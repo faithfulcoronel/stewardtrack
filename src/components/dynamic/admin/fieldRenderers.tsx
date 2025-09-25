@@ -287,6 +287,9 @@ function ImageUploadField({ field, value, onChange }: ImageUploadFieldProps) {
 
 export function renderFieldInput(field: FormFieldConfig, controller: ControllerRender) {
   const basePlaceholder = field.placeholder ?? "";
+  const disabled = Boolean(field.disabled);
+  const readOnly = Boolean(field.readOnly);
+  const isInteractive = !(disabled || readOnly);
 
   if (isTagsField(field)) {
     const value = toTagArray(controller.value);
@@ -295,6 +298,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
         value={value}
         onChange={(next) => controller.onChange(next)}
         placeholder={basePlaceholder || "Add a tag"}
+        disabled={disabled}
+        readOnly={readOnly}
       />
     );
   }
@@ -308,13 +313,19 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder}
           className="min-h-[120px]"
+          disabled={disabled}
+          readOnly={readOnly}
         />
       );
     case "select": {
       const options = normalizeList<FormFieldOption>(field.options);
       return (
-        <Select value={String(controller.value ?? "")} onValueChange={(value) => controller.onChange(value)}>
-          <SelectTrigger>
+        <Select
+          value={String(controller.value ?? "")}
+          onValueChange={(value) => controller.onChange(value)}
+          disabled={!isInteractive}
+        >
+          <SelectTrigger disabled={!isInteractive}>
             <SelectValue placeholder={basePlaceholder || "Choose"} />
           </SelectTrigger>
           <SelectContent>
@@ -362,7 +373,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           }}
           placeholder={basePlaceholder || "Select date"}
           title={field.label ?? "Select date"}
-          buttonProps={{ variant: "outline" }}
+          buttonProps={{ variant: "outline", disabled: !isInteractive }}
+          isDisabled={!isInteractive}
         />
       );
     }
@@ -373,6 +385,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder}
+          disabled={disabled}
+          readOnly={readOnly}
         />
       );
     case "email":
@@ -382,6 +396,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder || "name@example.com"}
+          disabled={disabled}
+          readOnly={readOnly}
         />
       );
     case "tel":
@@ -391,6 +407,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder || "(000) 000-0000"}
+          disabled={disabled}
+          readOnly={readOnly}
         />
       );
     case "text":
@@ -400,6 +418,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder}
+          disabled={disabled}
+          readOnly={readOnly}
         />
       );
   }
