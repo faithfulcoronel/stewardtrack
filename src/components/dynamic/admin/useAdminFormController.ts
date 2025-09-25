@@ -74,7 +74,20 @@ export function useAdminFormController(props: AdminFormSectionProps) {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const contextParams = React.useMemo(() => buildContextParams(searchParams), [searchParams]);
+  const defaultContextParams = React.useMemo(() => buildContextParams(searchParams), [searchParams]);
+  const contextParams = React.useMemo(() => {
+    if (!props.contextParams) {
+      return defaultContextParams;
+    }
+    const merged: Record<string, string | string[]> = { ...defaultContextParams };
+    for (const [key, value] of Object.entries(props.contextParams)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      merged[key] = value;
+    }
+    return merged;
+  }, [defaultContextParams, props.contextParams]);
 
   const navigator = React.useMemo<NavigationService>(
     () => ({
