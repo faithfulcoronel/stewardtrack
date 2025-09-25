@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/enterprise-confidence"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/enterprise-confidence" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-enterprise-confidence">
     <Title>UI Block: Testimonials - Enterprise confidence</Title>
     <Regions>
@@ -17,61 +10,124 @@
             <Prop name="eyebrow" kind="static">Enterprise confidence</Prop>
             <Prop name="headline" kind="static">Enterprise leaders trust StewardTrack with complex change</Prop>
             <Prop name="description" kind="static">Staggered cards create rhythm and motion. Use this layout for enterprise proof, board decks, or analyst spotlights.</Prop>
-            <Prop name="testimonials" kind="binding" source="enterpriseTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-reference" />
-            <Prop name="secondaryCta" kind="action" actionId="schedule-briefing" />
+            <Prop name="testimonials" kind="binding" contract="enterpriseTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-reference"/>
+            <Prop name="secondaryCta" kind="action" actionId="schedule-briefing"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="enterpriseTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "We delivered a multi-brand replatforming without replacing our runbooks. StewardTrack orchestrated each milestone.",
-                "author": "Allison Mercer",
-                "role": "SVP Digital Transformation",
-                "company": "Cobalt Group",
-                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
-                "highlight": "Global rollout, 6 regions"
-              },
-              {
-                "quote": "Board updates now include live customer sentiment from StewardTrack, which changed how we prioritize investment.",
-                "author": "Rafael D'Amico",
-                "role": "Chief Strategy Officer",
-                "company": "Vertex Financial",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "highlight": "Board-ready telemetry"
-              },
-              {
-                "quote": "Partner enablement used to take quarters. Sharing StewardTrack experiences gives them a turnkey revenue playbook.",
-                "author": "Mei Tan",
-                "role": "VP Global Channels",
-                "company": "Orbit Systems",
-                "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=240&h=240&q=80",
-                "highlight": "Launch-ready partners"
-              },
-              {
-                "quote": "StewardTrack is our connective tissue across GTM, product, and ops. Everyone acts on the same evidence.",
-                "author": "Henry Crawford",
-                "role": "Chief Operating Officer",
-                "company": "Ardent Cloud",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "highlight": "Shared command center"
-              },
-              {
-                "quote": "Audit prep is now ongoing, not last-minute. StewardTrack ties policy evidence to every workflow.",
-                "author": "Sofia Idris",
-                "role": "Chief Risk Officer",
-                "company": "Meridian",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "highlight": "Continuous compliance"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-enterprise-confidence.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>We delivered a multi-brand replatforming without replacing our runbooks. StewardTrack orchestrated each milestone.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Allison Mercer</Value>
+                </Field>
+                <Field name="role">
+                  <Value>SVP Digital Transformation</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Cobalt Group</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Global rollout, 6 regions</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Board updates now include live customer sentiment from StewardTrack, which changed how we prioritize investment.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Rafael D&apos;Amico</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Strategy Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Vertex Financial</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Board-ready telemetry</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Partner enablement used to take quarters. Sharing StewardTrack experiences gives them a turnkey revenue playbook.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Mei Tan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Global Channels</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Orbit Systems</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Launch-ready partners</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>StewardTrack is our connective tissue across GTM, product, and ops. Everyone acts on the same evidence.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Henry Crawford</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Operating Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Ardent Cloud</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Shared command center</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Audit prep is now ongoing, not last-minute. StewardTrack ties policy evidence to every workflow.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Sofia Idris</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Risk Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Meridian</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Continuous compliance</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

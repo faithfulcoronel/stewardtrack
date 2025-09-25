@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/product-trial"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/product-trial" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-product-trial">
     <Title>UI Block: Product trial CTA</Title>
     <Regions>
@@ -18,33 +11,41 @@
             <Prop name="eyebrow" kind="static">Free trial</Prop>
             <Prop name="headline" kind="static">Launch StewardTrack experiments in days</Prop>
             <Prop name="description" kind="static">Provision a workspace, connect sources, and validate new messaging without waiting on an engineering deploy.</Prop>
-            <Prop name="checklist" kind="binding" source="trialChecklist" path="items" />
-            <Prop name="image" kind="binding" source="trialMedia" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="start-trial" />
-            <Prop name="secondaryCta" kind="action" actionId="view-guide" />
+            <Prop name="checklist" kind="binding" contract="trialChecklist.items"/>
+            <Prop name="image" kind="binding" contract="trialMedia.value"/>
+            <Prop name="primaryCta" kind="action" actionId="start-trial"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-guide"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="trialChecklist" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Set up a workspace in under 15 minutes with guided defaults.",
-              "Sync product analytics, CRM context, and launch plans automatically.",
-              "Invite collaborators and assign review tasks across teams."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-product-trial.checklist"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Set up a workspace in under 15 minutes with guided defaults.</Value>
+              <Value>Sync product analytics, CRM context, and launch plans automatically.</Value>
+              <Value>Invite collaborators and assign review tasks across teams.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="trialMedia" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80",
-            "alt": "Product team collaborating during a trial onboarding"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for cta-product-trial.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&amp;amp;fit=crop&amp;amp;w=1200&amp;amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Product team collaborating during a trial onboarding</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

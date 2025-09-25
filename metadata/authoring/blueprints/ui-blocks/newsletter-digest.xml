@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/digest"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/digest" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-digest">
     <Title>UI Block: Newsletter digest timeline</Title>
     <Regions>
@@ -17,66 +10,111 @@
             <Prop name="badge" kind="static">Monday prep</Prop>
             <Prop name="headline" kind="static">Ops cadence in your inbox</Prop>
             <Prop name="description" kind="static">Kick off the week with the three metadata moves that keep your GTM pipeline humming.</Prop>
-            <Prop name="steps" kind="binding" source="digestSteps" path="items" />
-            <Prop name="stats" kind="binding" source="digestStats" path="items" />
-            <Prop name="form" kind="binding" source="digestForm" path="$" />
+            <Prop name="steps" kind="binding" contract="digestSteps.items"/>
+            <Prop name="stats" kind="binding" contract="digestStats.items"/>
+            <Prop name="form" kind="binding" contract="digestForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="digestSteps" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Plan",
-                "description": "Roll out a shared scorecard that highlights metadata debt."
-              },
-              {
-                "title": "Ship",
-                "description": "Cut redundant automation and focus on the two experiments with signal."
-              },
-              {
-                "title": "Report",
-                "description": "Translate results into metrics leadership cares about."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-digest.steps"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Plan</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Roll out a shared scorecard that highlights metadata debt.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Ship</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Cut redundant automation and focus on the two experiments with signal.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Report</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Translate results into metrics leadership cares about.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="digestStats" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Read time",
-                "value": "3 min",
-                "caption": "One card for each Monday stand-up."
-              },
-              {
-                "label": "Programs monitored",
-                "value": "15",
-                "caption": "From lifecycle to revenue ops."
-              },
-              {
-                "label": "Signals",
-                "value": "24k",
-                "caption": "Daily jobs processed in the StewardTrack network."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-digest.stats"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Read time</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3 min</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>One card for each Monday stand-up.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Programs monitored</Value>
+                </Field>
+                <Field name="value">
+                  <Value>15</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>From lifecycle to revenue ops.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Signals</Value>
+                </Field>
+                <Field name="value">
+                  <Value>24k</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Daily jobs processed in the StewardTrack network.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="digestForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "ops.team@company.com",
-            "buttonLabel": "Send Monday plan",
-            "disclaimer": "Arrives Mondays at 7am in your local timezone.",
-            "url": "/newsletter/ops-cadence/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-digest.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>ops.team@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Send Monday plan</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Arrives Mondays at 7am in your local timezone.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/ops-cadence/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

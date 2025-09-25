@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/event"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/event" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-event">
     <Title>UI Block: Newsletter event concierge</Title>
     <Regions>
@@ -17,55 +10,88 @@
             <Prop name="badge" kind="static">Live workshop</Prop>
             <Prop name="headline" kind="static">Metadata Launch Lab</Prop>
             <Prop name="description" kind="static">A monthly live session where we deconstruct a shipping workflow and rebuild it using composable metadata.</Prop>
-            <Prop name="event" kind="binding" source="eventDetails" path="$" />
-            <Prop name="steps" kind="binding" source="eventAgenda" path="items" />
-            <Prop name="form" kind="binding" source="eventForm" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="add-calendar" />
-            <Prop name="secondaryCta" kind="action" actionId="watch-trailer" />
+            <Prop name="event" kind="binding" contract="eventDetails.value"/>
+            <Prop name="steps" kind="binding" contract="eventAgenda.items"/>
+            <Prop name="form" kind="binding" contract="eventForm.value"/>
+            <Prop name="primaryCta" kind="action" actionId="add-calendar"/>
+            <Prop name="secondaryCta" kind="action" actionId="watch-trailer"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="eventDetails" kind="static">
-        <Json><![CDATA[
-          {
-            "date": "March 27, 2025",
-            "time": "12:00 PM",
-            "timezone": "ET",
-            "location": "Virtual (Zoom)"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-event.event"/>
+        </Contract>
+        <Data>
+          <Field name="date">
+            <Value>March 27, 2025</Value>
+          </Field>
+          <Field name="time">
+            <Value>12:00 PM</Value>
+          </Field>
+          <Field name="timezone">
+            <Value>ET</Value>
+          </Field>
+          <Field name="location">
+            <Value>Virtual (Zoom)</Value>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="eventAgenda" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Introductions",
-                "description": "Meet the product, revenue, and ops leads joining the session."
-              },
-              {
-                "title": "Playbook walkthrough",
-                "description": "We rebuild a launch workflow using metadata overlays and automation."
-              },
-              {
-                "title": "Office hours",
-                "description": "Bring your architecture questions for live debugging."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-event.steps"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Introductions</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Meet the product, revenue, and ops leads joining the session.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Playbook walkthrough</Value>
+                </Field>
+                <Field name="description">
+                  <Value>We rebuild a launch workflow using metadata overlays and automation.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Office hours</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Bring your architecture questions for live debugging.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="eventForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "creator@company.com",
-            "buttonLabel": "Reserve my spot",
-            "disclaimer": "Subscribers receive recording, templates, and reminders.",
-            "url": "/newsletter/launch-lab/rsvp"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-event.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>creator@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Reserve my spot</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Subscribers receive recording, templates, and reminders.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/launch-lab/rsvp</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/video-trailer"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/video-trailer" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-video-trailer">
     <Title>UI Block: Video trailer header</Title>
     <Regions>
@@ -17,22 +10,29 @@
             <Prop name="badge" kind="static">Event premiere</Prop>
             <Prop name="headline" kind="static">Blueprint Sessions: The Trailer</Prop>
             <Prop name="description" kind="static">Anchor a launch or event with a cinematic trailer preview paired with confident calls to engage.</Prop>
-            <Prop name="video" kind="binding" source="trailerVideo" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="reserve-seat" />
-            <Prop name="secondaryCta" kind="action" actionId="view-agenda" />
+            <Prop name="video" kind="binding" contract="trailerVideo.value"/>
+            <Prop name="primaryCta" kind="action" actionId="reserve-seat"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-agenda"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="trailerVideo" kind="static">
-        <Json><![CDATA[
-          {
-            "label": "Play trailer",
-            "url": "https://example.com/trailer",
-            "thumbnail": "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1400&q=80"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-video-trailer.video"/>
+        </Contract>
+        <Data>
+          <Field name="label">
+            <Value>Play trailer</Value>
+          </Field>
+          <Field name="url">
+            <Value>https://example.com/trailer</Value>
+          </Field>
+          <Field name="thumbnail">
+            <Value>https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&amp;fit=crop&amp;w=1400&amp;q=80</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

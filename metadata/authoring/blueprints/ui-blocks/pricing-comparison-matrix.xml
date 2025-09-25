@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/comparison-matrix"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/comparison-matrix" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-comparison-matrix">
     <Title>UI Block: Comparison matrix pricing</Title>
     <Regions>
@@ -17,102 +10,238 @@
             <Prop name="eyebrow" kind="static">Benchmark capabilities</Prop>
             <Prop name="title" kind="static">Compare platform depth before you choose a revenue tier</Prop>
             <Prop name="description" kind="static">Procurement teams can inspect security, automation, and support coverage in a single matrix. Every row maps to our compliance handbook.</Prop>
-            <Prop name="tiers" kind="binding" source="matrixTiers" path="items" />
-            <Prop name="comparisons" kind="binding" source="matrixRows" path="items" />
+            <Prop name="tiers" kind="binding" contract="matrixTiers.items"/>
+            <Prop name="comparisons" kind="binding" contract="matrixRows.items"/>
             <Prop name="footnote" kind="static">All plans include SOC 2 Type II, GDPR readiness, and 99.9% uptime SLA. Enterprise support response within 30 minutes.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="request-matrix-review" />
-            <Prop name="secondaryCta" kind="action" actionId="export-detailed-matrix" />
+            <Prop name="primaryCta" kind="action" actionId="request-matrix-review"/>
+            <Prop name="secondaryCta" kind="action" actionId="export-detailed-matrix"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="matrixTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Launch",
-                "price": "$199",
-                "period": "month"
-              },
-              {
-                "name": "Scale",
-                "price": "$499",
-                "period": "month"
-              },
-              {
-                "name": "Enterprise",
-                "price": "Custom",
-                "period": "annual"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-comparison-matrix.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Launch</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$199</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Scale</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$499</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Enterprise</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="matrixRows" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "feature": "Automation canvas",
-                "values": [
-                  { "included": true },
-                  { "included": true },
-                  { "included": true }
-                ]
-              },
-              {
-                "feature": "Seats included",
-                "values": [
-                  { "value": "25 builders" },
-                  { "value": "75 builders" },
-                  { "value": "Unlimited" }
-                ]
-              },
-              {
-                "feature": "Regional data residency",
-                "values": [
-                  { "label": "US only" },
-                  { "value": "US + EU" },
-                  { "value": "Global coverage" }
-                ]
-              },
-              {
-                "feature": "Lifecycle advisors",
-                "values": [
-                  { "label": "Community sessions" },
-                  { "value": "Monthly coaching" },
-                  { "value": "Dedicated pod" }
-                ]
-              },
-              {
-                "feature": "Audit logging",
-                "values": [
-                  { "included": true },
-                  { "included": true },
-                  { "included": true }
-                ]
-              },
-              {
-                "feature": "Service-level agreement",
-                "values": [
-                  { "value": "99.5%" },
-                  { "value": "99.9%" },
-                  { "value": "99.95%" }
-                ]
-              },
-              {
-                "feature": "Escalation path",
-                "values": [
-                  { "label": "Email support" },
-                  { "value": "Priority queue" },
-                  { "value": "Dedicated Slack" }
-                ]
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-comparison-matrix.comparisons"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="feature">
+                  <Value>Automation canvas</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Seats included</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="value">
+                        <Value>25 builders</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>75 builders</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Unlimited</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Regional data residency</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="label">
+                        <Value>US only</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>US + EU</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Global coverage</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Lifecycle advisors</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="label">
+                        <Value>Community sessions</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Monthly coaching</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Dedicated pod</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Audit logging</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="included">
+                        <Value>true</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Service-level agreement</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="value">
+                        <Value>99.5%</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>99.9%</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>99.95%</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="feature">
+                  <Value>Escalation path</Value>
+                </Field>
+                <Field name="values">
+                  <Array>
+                    <Object>
+                      <Field name="label">
+                        <Value>Email support</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Priority queue</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="value">
+                        <Value>Dedicated Slack</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

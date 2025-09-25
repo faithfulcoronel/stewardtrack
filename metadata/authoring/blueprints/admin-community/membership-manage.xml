@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="admin-community"
-  route="members/manage"
-  schemaVersion="1.0.0"
-  contentVersion="1.1.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="admin-community" route="members/manage" schemaVersion="1.0.0" contentVersion="1.1.0" locale="en-US">
   <Page id="admin-community-membership-manage">
     <Title>Manage membership record</Title>
     <Regions>
@@ -14,79 +7,79 @@
         <Component id="manage-hero" type="HeroSection">
           <Props>
             <Prop name="variant" kind="static">minimal</Prop>
-            <Prop name="eyebrow" kind="expression"><![CDATA[
-              (() => {
-                const mode = params.memberId ? 'Edit member' : 'Add new member';
+            <Prop name="eyebrow" kind="expression">
+              (() =&gt; {
+                const mode = params.memberId ? &apos;Edit member&apos; : &apos;Add new member&apos;;
                 return `${mode} · Community module`;
               })()
-            ]]></Prop>
-            <Prop name="headline" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="headline" kind="expression">
+              (() =&gt; {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? 'member'}'s profile` : 'Create a new household profile';
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? &apos;member&apos;}&apos;s profile` : &apos;Create a new household profile&apos;;
               })()
-            ]]></Prop>
+            </Prop>
             <Prop name="description" kind="static">Align membership data with pastoral care, serving teams, and financial commitments from one form.</Prop>
-            <Prop name="image" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="image" kind="expression">
+              (() =&gt; {
                 if (!params.memberId) {
                   return null;
                 }
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const photoUrl = record.photoUrl ?? record.profile?.photoUrl ?? '';
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const photoUrl = record.photoUrl ?? record.profile?.photoUrl ?? &apos;&apos;;
                 if (!photoUrl) {
                   return null;
                 }
-                const fullName = record.profile?.fullName ?? record.fullName ?? 'Member';
+                const fullName = record.profile?.fullName ?? record.fullName ?? &apos;Member&apos;;
                 return {
                   src: photoUrl,
-                  alt: `${fullName}'s profile photo`
+                  alt: `${fullName}&apos;s profile photo`
                 };
               })()
-            ]]></Prop>
-            <Prop name="metrics" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="metrics" kind="expression">
+              (() =&gt; {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
                 if (!params.memberId) {
                   return [
-                    { label: 'Mode', value: 'Create new record', caption: 'Member ID assigned after approval' },
-                    { label: 'Center', value: 'Assign center', caption: 'Choose from the form below' },
-                    { label: 'Recurring giving', value: '$0', caption: 'Not enrolled' }
+                    { label: &apos;Mode&apos;, value: &apos;Create new record&apos;, caption: &apos;Member ID assigned after approval&apos; },
+                    { label: &apos;Center&apos;, value: &apos;Assign center&apos;, caption: &apos;Choose from the form below&apos; },
+                    { label: &apos;Recurring giving&apos;, value: &apos;$0&apos;, caption: &apos;Not enrolled&apos; }
                   ];
                 }
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const formatCurrency = (value) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: value &gt;= 1000 ? 0 : 2 }).format(value ?? 0);
                 return [
-                  { label: 'Mode', value: 'Edit existing record', caption: `Member ID ${record.id}` },
-                  { label: 'Center', value: record.center ?? 'Downtown Center', caption: 'Can be changed below' },
-                  { label: 'Recurring giving', value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? 'Not enrolled' }
+                  { label: &apos;Mode&apos;, value: &apos;Edit existing record&apos;, caption: `Member ID ${record.id}` },
+                  { label: &apos;Center&apos;, value: record.center ?? &apos;Downtown Center&apos;, caption: &apos;Can be changed below&apos; },
+                  { label: &apos;Recurring giving&apos;, value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? &apos;Not enrolled&apos; }
                 ];
               })()
-            ]]></Prop>
-            <Prop name="secondaryCta" kind="expression"><![CDATA[
-              (() => {
-                const target = params.memberId ? `/admin/members/${params.memberId}` : '/admin/members/list';
-                return { id: 'cancel-cta', config: { label: 'Cancel', url: target, variant: 'secondary' } };
+            </Prop>
+            <Prop name="secondaryCta" kind="expression">
+              (() =&gt; {
+                const target = params.memberId ? `/admin/members/${params.memberId}` : &apos;/admin/members/list&apos;;
+                return { id: &apos;cancel-cta&apos;, config: { label: &apos;Cancel&apos;, url: target, variant: &apos;secondary&apos; } };
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
         <Component id="manage-workspace" type="AdminMemberWorkspace">
           <Props>
             <Prop name="variant" kind="static">manage</Prop>
-            <Prop name="tabs" kind="binding" source="formBlueprint" path="$.tabs" />
-            <Prop name="form" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="tabs" kind="binding" contract="formBlueprint.tabs"/>
+            <Prop name="form" kind="expression">
+              (() =&gt; {
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
                 const isCreate = !params.memberId;
                 const lookupGroups = data.membershipLookups?.lookups ?? {};
-                const lookupOptions = Object.entries(lookupGroups).reduce((acc, [key, items]) => {
+                const lookupOptions = Object.entries(lookupGroups).reduce((acc, [key, items]) =&gt; {
                   if (!Array.isArray(items)) {
                     return acc;
                   }
@@ -95,31 +88,31 @@
                   for (const entry of items) {
                     const rawId = entry?.id;
                     const rawValue = entry?.value;
-                    const id = typeof rawId === 'number' ? String(rawId) : typeof rawId === 'string' ? rawId.trim() : '';
+                    const id = typeof rawId === &apos;number&apos; ? String(rawId) : typeof rawId === &apos;string&apos; ? rawId.trim() : &apos;&apos;;
                     const label =
-                      typeof rawValue === 'number'
+                      typeof rawValue === &apos;number&apos;
                         ? String(rawValue)
-                        : typeof rawValue === 'string'
+                        : typeof rawValue === &apos;string&apos;
                           ? rawValue.trim()
-                          : '';
+                          : &apos;&apos;;
                     if (!id || !label) {
                       continue;
                     }
                     options.push({ label, value: id });
                   }
 
-                  if (options.length > 0) {
+                  if (options.length &gt; 0) {
                     acc[key] = options;
                   }
 
                   return acc;
                 }, {});
-                const defaultStageId = lookupGroups['membership.stage']?.[0]?.id ?? '';
-                const defaultTypeId = lookupGroups['membership.type']?.[0]?.id ?? '';
-                const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
+                const defaultStageId = lookupGroups[&apos;membership.stage&apos;]?.[0]?.id ?? &apos;&apos;;
+                const defaultTypeId = lookupGroups[&apos;membership.type&apos;]?.[0]?.id ?? &apos;&apos;;
+                const defaultCenterId = lookupGroups[&apos;membership.center&apos;]?.[0]?.id ?? &apos;&apos;;
                 const record = isCreate
                   ? {}
-                  : records.find((item) => item.id === params.memberId) ?? fallback;
+                  : records.find((item) =&gt; item.id === params.memberId) ?? fallback;
                 const profile = record.profile ?? {};
                 const demographics = profile.demographics ?? record.demographics ?? {};
                 const household = record.household ?? {};
@@ -130,7 +123,7 @@
                 const serving = record.serving ?? {};
                 const giving = record.giving ?? {};
                 const admin = record.admin ?? {};
-                const profilePhoto = record.photoUrl ?? profile.photoUrl ?? '';
+                const profilePhoto = record.photoUrl ?? profile.photoUrl ?? &apos;&apos;;
                 const tags = Array.isArray(profile.tags)
                   ? profile.tags
                   : Array.isArray(record.tags)
@@ -165,874 +158,3181 @@
                   : profile.leadershipRoles;
                 const leadershipRoles = Array.isArray(leadershipRolesSource) ? leadershipRolesSource : [];
                 const formattedPrayerRequests =
-                  typeof profile.prayerRequests === 'string'
+                  typeof profile.prayerRequests === &apos;string&apos;
                     ? profile.prayerRequests
                     : Array.isArray(profile.prayerRequests)
-                      ? profile.prayerRequests.join('\\n')
+                      ? profile.prayerRequests.join(&apos;\\n&apos;)
                       : Array.isArray(carePlan.prayerRequests)
-                        ? carePlan.prayerRequests.join('\\n')
+                        ? carePlan.prayerRequests.join(&apos;\\n&apos;)
                         : Array.isArray(discipleship.prayerRequests)
-                          ? discipleship.prayerRequests.join('\\n')
-                          : typeof carePlan.prayerRequests === 'string'
+                          ? discipleship.prayerRequests.join(&apos;\\n&apos;)
+                          : typeof carePlan.prayerRequests === &apos;string&apos;
                             ? carePlan.prayerRequests
-                            : '';
+                            : &apos;&apos;;
 
-                const householdId = household.id ?? profile.household?.id ?? record.householdId ?? '';
+                const householdId = household.id ?? profile.household?.id ?? record.householdId ?? &apos;&apos;;
                 const initialValues = {
                   profilePhoto,
-                  memberId: record.id ?? '',
-                  firstName: profile.firstName ?? record.fullName?.split(' ')[0] ?? '',
-                  preferredName: profile.preferredName ?? record.preferredName ?? '',
-                  lastName: profile.lastName ?? record.fullName?.split(' ').slice(-1)[0] ?? '',
-                  birthdate: profile.birthdate ?? demographics.birthdate ?? '',
-                  maritalStatus: profile.maritalStatus ?? demographics.maritalStatus ?? 'single',
-                  anniversary: profile.anniversary ?? demographics.anniversary ?? '',
-                  occupation: profile.occupation ?? demographics.occupation ?? '',
-                  householdName: profile.householdName ?? household.name ?? '',
-                  envelopeNumber: profile.envelopeNumber ?? record.envelopeNumber ?? '',
-                  addressStreet: profile.addressStreet ?? household.address?.street ?? '',
-                  addressCity: profile.addressCity ?? household.address?.city ?? '',
-                  addressState: profile.addressState ?? household.address?.state ?? '',
-                  addressPostal: profile.addressPostal ?? household.address?.postalCode ?? '',
+                  memberId: record.id ?? &apos;&apos;,
+                  firstName: profile.firstName ?? record.fullName?.split(&apos; &apos;)[0] ?? &apos;&apos;,
+                  preferredName: profile.preferredName ?? record.preferredName ?? &apos;&apos;,
+                  lastName: profile.lastName ?? record.fullName?.split(&apos; &apos;).slice(-1)[0] ?? &apos;&apos;,
+                  birthdate: profile.birthdate ?? demographics.birthdate ?? &apos;&apos;,
+                  maritalStatus: profile.maritalStatus ?? demographics.maritalStatus ?? &apos;single&apos;,
+                  anniversary: profile.anniversary ?? demographics.anniversary ?? &apos;&apos;,
+                  occupation: profile.occupation ?? demographics.occupation ?? &apos;&apos;,
+                  householdName: profile.householdName ?? household.name ?? &apos;&apos;,
+                  envelopeNumber: profile.envelopeNumber ?? record.envelopeNumber ?? &apos;&apos;,
+                  addressStreet: profile.addressStreet ?? household.address?.street ?? &apos;&apos;,
+                  addressCity: profile.addressCity ?? household.address?.city ?? &apos;&apos;,
+                  addressState: profile.addressState ?? household.address?.state ?? &apos;&apos;,
+                  addressPostal: profile.addressPostal ?? household.address?.postalCode ?? &apos;&apos;,
                   householdMembers: Array.isArray(members) ? members : [],
-                  householdId: typeof householdId === 'string' ? householdId : '',
-                  email: profile.email ?? contact.email ?? '',
-                  phone: profile.phone ?? contact.phone ?? '',
-                  preferredContact: profile.preferredContact ?? contact.preferred ?? 'Email',
-                  smallGroup: discipleship.primaryGroup ?? profile.smallGroup ?? '',
+                  householdId: typeof householdId === &apos;string&apos; ? householdId : &apos;&apos;,
+                  email: profile.email ?? contact.email ?? &apos;&apos;,
+                  phone: profile.phone ?? contact.phone ?? &apos;&apos;,
+                  preferredContact: profile.preferredContact ?? contact.preferred ?? &apos;Email&apos;,
+                  smallGroup: discipleship.primaryGroup ?? profile.smallGroup ?? &apos;&apos;,
                   additionalGroups: Array.isArray(groups) ? groups : [],
                   pathways: Array.isArray(pathways) ? pathways : [],
-                  mentor: discipleship.mentor ?? profile.mentor ?? '',
-                  attendanceRate: profile.attendanceRate ?? discipleship.attendanceRate ?? '',
-                  lastAttendance: profile.lastAttendance ?? discipleship.lastAttendance ?? '',
+                  mentor: discipleship.mentor ?? profile.mentor ?? &apos;&apos;,
+                  attendanceRate: profile.attendanceRate ?? discipleship.attendanceRate ?? &apos;&apos;,
+                  lastAttendance: profile.lastAttendance ?? discipleship.lastAttendance ?? &apos;&apos;,
                   spiritualGifts: Array.isArray(gifts) ? gifts : [],
                   ministryInterests: Array.isArray(interests) ? interests : [],
-                  discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? '',
-                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? discipleship.prayerFocus ?? '',
-                  careStatus: profile.careStatus ?? carePlan.statusKey ?? 'observation',
-                  carePastor: profile.carePastor ?? carePlan.assignedTo ?? '',
-                  followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? '',
+                  discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? &apos;&apos;,
+                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? discipleship.prayerFocus ?? &apos;&apos;,
+                  careStatus: profile.careStatus ?? carePlan.statusKey ?? &apos;observation&apos;,
+                  carePastor: profile.carePastor ?? carePlan.assignedTo ?? &apos;&apos;,
+                  followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? &apos;&apos;,
                   careTeam: Array.isArray(careTeam) ? careTeam : [],
-                  pastoralNotes: profile.notes ?? '',
+                  pastoralNotes: profile.notes ?? &apos;&apos;,
                   prayerRequests: formattedPrayerRequests,
-                  emergencyContact: profile.emergencyContact ?? emergency.contact ?? '',
-                  emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? '',
-                  emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? '',
-                  physician: profile.physician ?? emergency.physician ?? '',
-                  servingTeam: profile.servingTeam ?? serving.team ?? '',
-                  servingRole: profile.servingRole ?? serving.role ?? '',
-                  servingSchedule: profile.servingSchedule ?? serving.schedule ?? '',
-                  servingCoach: profile.servingCoach ?? serving.coach ?? '',
-                  nextServeDate: profile.nextServeDate ?? serving.nextServeDate ?? '',
+                  emergencyContact: profile.emergencyContact ?? emergency.contact ?? &apos;&apos;,
+                  emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? &apos;&apos;,
+                  emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? &apos;&apos;,
+                  physician: profile.physician ?? emergency.physician ?? &apos;&apos;,
+                  servingTeam: profile.servingTeam ?? serving.team ?? &apos;&apos;,
+                  servingRole: profile.servingRole ?? serving.role ?? &apos;&apos;,
+                  servingSchedule: profile.servingSchedule ?? serving.schedule ?? &apos;&apos;,
+                  servingCoach: profile.servingCoach ?? serving.coach ?? &apos;&apos;,
+                  nextServeDate: profile.nextServeDate ?? serving.nextServeDate ?? &apos;&apos;,
                   leadershipRoles: Array.isArray(leadershipRoles) ? leadershipRoles : [],
-                  teamFocus: profile.teamFocus ?? serving.teamFocus ?? '',
-                  reportsTo: profile.reportsTo ?? serving.reportsTo ?? serving.coach ?? '',
-                  lastHuddle: profile.lastHuddle ?? serving.lastHuddle ?? '',
-                  recurringGiving: profile.recurringGiving ?? giving.recurring?.amount ?? '',
-                  recurringFrequency: profile.recurringFrequency ?? giving.recurring?.frequencyKey ?? giving.recurring?.frequency ?? 'monthly',
-                  recurringMethod: profile.recurringMethod ?? giving.recurring?.method ?? 'ach',
-                  pledgeAmount: profile.pledgeAmount ?? giving.pledge ?? '',
-                  pledgeCampaign: profile.pledgeCampaign ?? giving.campaign ?? '',
-                  primaryFund: profile.primaryFund ?? giving.primaryFund ?? '',
-                  statementPreference: profile.statementPreference ?? giving.statementPreference ?? 'email',
-                  capacityTier: profile.capacityTier ?? giving.tier ?? 'mid',
-                  financeNotes: profile.financeNotes ?? giving.notes ?? '',
+                  teamFocus: profile.teamFocus ?? serving.teamFocus ?? &apos;&apos;,
+                  reportsTo: profile.reportsTo ?? serving.reportsTo ?? serving.coach ?? &apos;&apos;,
+                  lastHuddle: profile.lastHuddle ?? serving.lastHuddle ?? &apos;&apos;,
+                  recurringGiving: profile.recurringGiving ?? giving.recurring?.amount ?? &apos;&apos;,
+                  recurringFrequency: profile.recurringFrequency ?? giving.recurring?.frequencyKey ?? giving.recurring?.frequency ?? &apos;monthly&apos;,
+                  recurringMethod: profile.recurringMethod ?? giving.recurring?.method ?? &apos;ach&apos;,
+                  pledgeAmount: profile.pledgeAmount ?? giving.pledge ?? &apos;&apos;,
+                  pledgeCampaign: profile.pledgeCampaign ?? giving.campaign ?? &apos;&apos;,
+                  primaryFund: profile.primaryFund ?? giving.primaryFund ?? &apos;&apos;,
+                  statementPreference: profile.statementPreference ?? giving.statementPreference ?? &apos;email&apos;,
+                  capacityTier: profile.capacityTier ?? giving.tier ?? &apos;mid&apos;,
+                  financeNotes: profile.financeNotes ?? giving.notes ?? &apos;&apos;,
                   stage: profile.stageId ?? record.stageId ?? defaultStageId,
                   membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
                   center: profile.centerId ?? record.centerId ?? defaultCenterId,
-                  joinDate: profile.joinDate ?? record.joinDate ?? '',
+                  joinDate: profile.joinDate ?? record.joinDate ?? &apos;&apos;,
                   tags: Array.isArray(tags) ? tags : [],
-                  dataSteward: profile.dataSteward ?? admin.steward ?? '',
-                  lastReview: profile.lastReview ?? admin.lastReview ?? ''
+                  dataSteward: profile.dataSteward ?? admin.steward ?? &apos;&apos;,
+                  lastReview: profile.lastReview ?? admin.lastReview ?? &apos;&apos;
                 };
 
                 if (isCreate) {
-                  initialValues.memberId = '';
-                  initialValues.firstName = '';
-                  initialValues.preferredName = '';
-                  initialValues.lastName = '';
-                  initialValues.birthdate = '';
-                  initialValues.maritalStatus = 'single';
-                  initialValues.anniversary = '';
-                  initialValues.occupation = '';
-                  initialValues.householdName = '';
-                  initialValues.envelopeNumber = '';
+                  initialValues.memberId = &apos;&apos;;
+                  initialValues.firstName = &apos;&apos;;
+                  initialValues.preferredName = &apos;&apos;;
+                  initialValues.lastName = &apos;&apos;;
+                  initialValues.birthdate = &apos;&apos;;
+                  initialValues.maritalStatus = &apos;single&apos;;
+                  initialValues.anniversary = &apos;&apos;;
+                  initialValues.occupation = &apos;&apos;;
+                  initialValues.householdName = &apos;&apos;;
+                  initialValues.envelopeNumber = &apos;&apos;;
                   initialValues.householdMembers = [];
-                  initialValues.householdId = '';
-                  initialValues.addressStreet = '';
-                  initialValues.addressCity = '';
-                  initialValues.addressState = '';
-                  initialValues.addressPostal = '';
-                  initialValues.email = '';
-                  initialValues.phone = '';
-                  initialValues.preferredContact = 'Email';
-                  initialValues.smallGroup = '';
+                  initialValues.householdId = &apos;&apos;;
+                  initialValues.addressStreet = &apos;&apos;;
+                  initialValues.addressCity = &apos;&apos;;
+                  initialValues.addressState = &apos;&apos;;
+                  initialValues.addressPostal = &apos;&apos;;
+                  initialValues.email = &apos;&apos;;
+                  initialValues.phone = &apos;&apos;;
+                  initialValues.preferredContact = &apos;Email&apos;;
+                  initialValues.smallGroup = &apos;&apos;;
                   initialValues.additionalGroups = [];
                   initialValues.pathways = [];
-                  initialValues.mentor = '';
-                  initialValues.attendanceRate = '';
-                  initialValues.lastAttendance = '';
+                  initialValues.mentor = &apos;&apos;;
+                  initialValues.attendanceRate = &apos;&apos;;
+                  initialValues.lastAttendance = &apos;&apos;;
                   initialValues.spiritualGifts = [];
                   initialValues.ministryInterests = [];
-                  initialValues.discipleshipNextStep = '';
-                  initialValues.prayerFocus = '';
-                  initialValues.careStatus = 'observation';
-                  initialValues.carePastor = '';
-                  initialValues.followUpDate = '';
+                  initialValues.discipleshipNextStep = &apos;&apos;;
+                  initialValues.prayerFocus = &apos;&apos;;
+                  initialValues.careStatus = &apos;observation&apos;;
+                  initialValues.carePastor = &apos;&apos;;
+                  initialValues.followUpDate = &apos;&apos;;
                   initialValues.careTeam = [];
-                  initialValues.pastoralNotes = '';
-                  initialValues.prayerRequests = '';
-                  initialValues.emergencyContact = '';
-                  initialValues.emergencyRelationship = '';
-                  initialValues.emergencyPhone = '';
-                  initialValues.physician = '';
-                  initialValues.servingTeam = '';
-                  initialValues.servingRole = '';
-                  initialValues.servingSchedule = '';
-                  initialValues.servingCoach = '';
-                  initialValues.nextServeDate = '';
+                  initialValues.pastoralNotes = &apos;&apos;;
+                  initialValues.prayerRequests = &apos;&apos;;
+                  initialValues.emergencyContact = &apos;&apos;;
+                  initialValues.emergencyRelationship = &apos;&apos;;
+                  initialValues.emergencyPhone = &apos;&apos;;
+                  initialValues.physician = &apos;&apos;;
+                  initialValues.servingTeam = &apos;&apos;;
+                  initialValues.servingRole = &apos;&apos;;
+                  initialValues.servingSchedule = &apos;&apos;;
+                  initialValues.servingCoach = &apos;&apos;;
+                  initialValues.nextServeDate = &apos;&apos;;
                   initialValues.leadershipRoles = [];
-                  initialValues.teamFocus = '';
-                  initialValues.reportsTo = '';
-                  initialValues.lastHuddle = '';
-                  initialValues.recurringGiving = '';
-                  initialValues.recurringFrequency = 'monthly';
-                  initialValues.recurringMethod = 'ach';
-                  initialValues.pledgeAmount = '';
-                  initialValues.pledgeCampaign = '';
-                  initialValues.primaryFund = '';
-                  initialValues.statementPreference = 'email';
-                  initialValues.capacityTier = 'mid';
-                  initialValues.financeNotes = '';
+                  initialValues.teamFocus = &apos;&apos;;
+                  initialValues.reportsTo = &apos;&apos;;
+                  initialValues.lastHuddle = &apos;&apos;;
+                  initialValues.recurringGiving = &apos;&apos;;
+                  initialValues.recurringFrequency = &apos;monthly&apos;;
+                  initialValues.recurringMethod = &apos;ach&apos;;
+                  initialValues.pledgeAmount = &apos;&apos;;
+                  initialValues.pledgeCampaign = &apos;&apos;;
+                  initialValues.primaryFund = &apos;&apos;;
+                  initialValues.statementPreference = &apos;email&apos;;
+                  initialValues.capacityTier = &apos;mid&apos;;
+                  initialValues.financeNotes = &apos;&apos;;
                   initialValues.stage = defaultStageId;
                   initialValues.membershipType = defaultTypeId;
                   initialValues.center = defaultCenterId;
-                  initialValues.joinDate = '';
+                  initialValues.joinDate = &apos;&apos;;
                   initialValues.tags = [];
-                  initialValues.dataSteward = '';
-                  initialValues.lastReview = '';
+                  initialValues.dataSteward = &apos;&apos;;
+                  initialValues.lastReview = &apos;&apos;;
                 }
 
                 return {
                   initialValues,
                   lookupOptions,
-                  submitLabel: isCreate ? 'Create member' : 'Save changes',
-                  mode: isCreate ? 'create' : 'edit',
-                  submitAction: actions['save-member'] ?? null,
+                  submitLabel: isCreate ? &apos;Create member&apos; : &apos;Save changes&apos;,
+                  mode: isCreate ? &apos;create&apos; : &apos;edit&apos;,
+                  submitAction: actions[&apos;save-member&apos;] ?? null,
                   cancelAction: params.memberId
-                    ? { id: 'cancel-edit', config: { label: 'Back to profile', url: `/admin/members/${params.memberId}`, variant: 'ghost' } }
-                    : { id: 'cancel-create', config: { label: 'Back to list', url: '/admin/members/list', variant: 'ghost' } },
-                  footnote: 'Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates.'
+                    ? { id: &apos;cancel-edit&apos;, config: { label: &apos;Back to profile&apos;, url: `/admin/members/${params.memberId}`, variant: &apos;ghost&apos; } }
+                    : { id: &apos;cancel-create&apos;, config: { label: &apos;Back to list&apos;, url: &apos;/admin/members/list&apos;, variant: &apos;ghost&apos; } },
+                  footnote: &apos;Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates.&apos;
                 };
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="membershipRecords" kind="service">
-        <Json><![CDATA[
-          {
-            "records": [
-              {
-                "id": "mem_001",
-                "fullName": "Avery Johnson",
-                "preferredName": "Avery",
-                "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stageKey": "active",
-                "membershipTypeKey": "covenant-member",
-                "center": "Downtown Center",
-                "centerKey": "downtown",
-                "envelopeNumber": "2041",
-                "tags": ["Hospitality Team", "Leadership Cohort"],
-                "demographics": {
-                  "birthdate": "1986-05-12",
-                  "maritalStatus": "married",
-                  "anniversary": "2012-06-18",
-                  "occupation": "Operations director"
-                },
-                "household": {
-                  "name": "Johnson Family",
-                  "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
-                  "address": {
-                    "street": "412 Hope Ave",
-                    "city": "Springfield",
-                    "state": "IL",
-                    "postalCode": "62704"
-                  }
-                },
-                "contact": { "email": "avery.johnson@example.org", "phone": "(555) 204-1188", "preferred": "Text" },
-                "emergency": { "contact": "Jordan Johnson", "relationship": "Spouse", "phone": "(555) 204-1189", "physician": "Dr. Mae Chen" },
-                "attendance": { "twelveWeekAttendance": 92, "lastAttendance": "2024-10-13" },
-                "engagement": {
-                  "groups": ["Leadership Cohort", "Hospitality Huddle"],
-                  "pathways": ["Mentor track", "Hospitality residency"],
-                  "spiritualGifts": ["Leadership", "Hospitality"],
-                  "interests": ["First impressions", "Mentoring"]
-                },
-                "giving": {
-                  "recurring": { "amount": 900, "frequency": "Monthly", "frequencyKey": "monthly", "method": "ach" },
-                  "pledge": 22000,
-                  "campaign": "Legacy Vision 2025",
-                  "primaryFund": "General Tithe"
-                },
-                "finance": {
-                  "statementPreference": "email",
-                  "capacityTier": "legacy",
-                  "notes": "Prefers quarterly impact briefs with hospitality volunteer stats."
-                },
-                "serving": {
-                  "team": "Hospitality",
-                  "role": "Usher Captain",
-                  "schedule": "2nd & 4th Sundays · 8:30a",
-                  "coach": "Rachel Kim",
-                  "nextServeDate": "2024-10-27"
-                },
-                "leadership": {
-                  "roles": ["Hospitality captain", "Leadership mentor"],
-                  "reportsTo": "Rachel Kim",
-                  "teamFocus": "First impressions",
-                  "lastHuddle": "2024-10-05"
-                },
-                "discipleship": {
-                  "smallGroup": "Downtown Leadership Cohort",
-                  "mentor": "Carlos Vega",
-                  "milestones": ["Baptized 2014", "Child dedication 2017", "Leadership Cohort 2022"],
-                  "nextStep": "Mentor two new ushers before Advent."
-                },
-                "carePlan": {
-                  "status": "Coaching",
-                  "statusKey": "active",
-                  "assignedTo": "Pastor Lauren Patel",
-                  "followUpDate": "2024-10-28",
-                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
-                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
-                  "team": ["Pastor Lauren Patel", "Rachel Kim"],
-                  "prayerFocus": "Hospitality growth"
-                },
-                "admin": {
-                  "steward": "Finance desk",
-                  "lastReview": "2024-09-12"
-                },
-                "profile": {
-                  "fullName": "Avery Johnson",
-                  "firstName": "Avery",
-                  "preferredName": "Avery",
-                  "lastName": "Johnson",
-                  "birthdate": "1986-05-12",
-                  "maritalStatus": "married",
-                  "anniversary": "2012-06-18",
-                  "occupation": "Operations director",
-                  "householdName": "Johnson Family",
-                  "envelopeNumber": "2041",
-                  "householdMembers": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
-                  "addressStreet": "412 Hope Ave",
-                  "addressCity": "Springfield",
-                  "addressState": "IL",
-                  "addressPostal": "62704",
-                  "email": "avery.johnson@example.org",
-                  "phone": "(555) 204-1188",
-                  "preferredContact": "Text",
-                  "membershipType": "Covenant member",
-                  "membershipTypeKey": "covenant-member",
-                  "stageId": "active",
-                  "membershipTypeId": "covenant-member",
-                  "centerId": "downtown",
-                  "joinDate": "2016-03-14",
-                  "smallGroup": "Downtown Leadership Cohort",
-                  "additionalGroups": ["Leadership Cohort", "Hospitality Huddle"],
-                  "pathways": ["Mentor track", "Hospitality residency"],
-                  "mentor": "Carlos Vega",
-                  "attendanceRate": 92,
-                  "lastAttendance": "2024-10-13",
-                  "spiritualGifts": ["Leadership", "Hospitality"],
-                  "ministryInterests": ["First impressions", "Mentoring"],
-                  "discipleshipNextStep": "Mentor two new ushers before Advent.",
-                  "prayerFocus": "Hospitality growth",
-                  "careStatus": "active",
-                  "carePastor": "Pastor Lauren Patel",
-                  "followUpDate": "2024-10-28",
-                  "careTeam": ["Pastor Lauren Patel", "Rachel Kim"],
-                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
-                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
-                  "emergencyContact": "Jordan Johnson",
-                  "emergencyRelationship": "Spouse",
-                  "emergencyPhone": "(555) 204-1189",
-                  "physician": "Dr. Mae Chen",
-                  "servingTeam": "Hospitality",
-                  "servingRole": "Usher Captain",
-                  "servingSchedule": "2nd & 4th Sundays · 8:30a",
-                  "servingCoach": "Rachel Kim",
-                  "nextServeDate": "2024-10-27",
-                  "leadershipRoles": ["Hospitality captain", "Leadership mentor"],
-                  "teamFocus": "First impressions",
-                  "reportsTo": "Rachel Kim",
-                  "lastHuddle": "2024-10-05",
-                  "recurringGiving": 900,
-                  "recurringFrequency": "monthly",
-                  "recurringMethod": "ach",
-                  "pledgeAmount": 22000,
-                  "pledgeCampaign": "Legacy Vision 2025",
-                  "primaryFund": "General Tithe",
-                  "statementPreference": "email",
-                  "capacityTier": "legacy",
-                  "financeNotes": "Prefers quarterly impact briefs with hospitality volunteer stats.",
-                  "notes": "Leading hospitality leadership cohort.",
-                  "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "tags": ["Hospitality Team", "Leadership Cohort"],
-                  "dataSteward": "Finance desk",
-                  "lastReview": "2024-09-12"
-                }
-              },
-              {
-                "id": "mem_002",
-                "fullName": "Elena Ruiz",
-                "preferredName": "Elena",
-                "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stageKey": "new",
-                "membershipTypeKey": "attender",
-                "center": "Northside Center",
-                "centerKey": "northside",
-                "tags": ["Foundations Track"],
-                "demographics": { "birthdate": "1993-11-02", "maritalStatus": "single", "occupation": "UX researcher" },
-                "household": {
-                  "name": "Ruiz Household",
-                  "envelopeNumber": "Pending",
-                  "members": ["Elena Ruiz"],
-                  "address": { "street": "88 River Crossing", "city": "Franklin", "state": "TN", "postalCode": "37067" }
-                },
-                "contact": { "email": "elena.ruiz@example.org", "phone": "(555) 407-9931", "preferred": "Phone" },
-                "emergency": { "contact": "Jamie Brooks", "relationship": "Small group mentor", "phone": "(555) 320-4411" },
-                "attendance": { "twelveWeekAttendance": 64, "lastAttendance": "2024-10-06" },
-                "engagement": { "groups": ["Foundations Track"], "pathways": ["Discover class"], "interests": ["Hospitality", "Community"] },
-                "giving": { "recurring": null, "pledge": 0, "primaryFund": "Guest Offering" },
-                "finance": { "statementPreference": "paper", "capacityTier": "emerging" },
-                "serving": { "team": "Foundations", "role": "Participant", "schedule": "Sundays · 9:30a", "nextServeDate": "2024-10-20" },
-                "leadership": { "roles": [], "reportsTo": "Jamie Brooks", "teamFocus": "Assimilation", "lastHuddle": "" },
-                "discipleship": { "smallGroup": "Foundations Track", "mentor": "Jamie Brooks", "nextStep": "Complete covenant interview." },
-                "carePlan": {
-                  "status": "Observation",
-                  "statusKey": "observation",
-                  "assignedTo": "Connections Team",
-                  "followUpDate": "2024-10-24",
-                  "prayerRequests": "Discernment about joining a small group.",
-                  "team": ["Connections Team"]
-                },
-                "admin": { "steward": "Connections desk", "lastReview": "2024-10-01" },
-                "profile": {
-                  "fullName": "Elena Ruiz",
-                  "firstName": "Elena",
-                  "preferredName": "Elena",
-                  "lastName": "Ruiz",
-                  "birthdate": "1993-11-02",
-                  "maritalStatus": "single",
-                  "householdName": "Ruiz Household",
-                  "envelopeNumber": "Pending",
-                  "householdMembers": ["Elena Ruiz"],
-                  "addressStreet": "88 River Crossing",
-                  "addressCity": "Franklin",
-                  "addressState": "TN",
-                  "addressPostal": "37067",
-                  "email": "elena.ruiz@example.org",
-                  "phone": "(555) 407-9931",
-                  "preferredContact": "Phone",
-                  "membershipType": "Attender",
-                  "membershipTypeKey": "attender",
-                  "stageId": "new",
-                  "membershipTypeId": "attender",
-                  "centerId": "northside",
-                  "joinDate": "",
-                  "smallGroup": "Foundations Track",
-                  "additionalGroups": ["Foundations Track"],
-                  "pathways": ["Discover class"],
-                  "mentor": "Jamie Brooks",
-                  "attendanceRate": 64,
-                  "lastAttendance": "2024-10-06",
-                  "spiritualGifts": [],
-                  "ministryInterests": ["Hospitality", "Community"],
-                  "discipleshipNextStep": "Complete covenant interview.",
-                  "careStatus": "observation",
-                  "carePastor": "Connections Team",
-                  "followUpDate": "2024-10-24",
-                  "careTeam": ["Connections Team"],
-                  "pastoralNotes": "Recently relocated from Denver.",
-                  "prayerRequests": "Discernment about joining a small group.",
-                  "emergencyContact": "Jamie Brooks",
-                  "emergencyRelationship": "Small group mentor",
-                  "emergencyPhone": "(555) 320-4411",
-                  "servingTeam": "Foundations",
-                  "servingRole": "Participant",
-                  "servingSchedule": "Sundays · 9:30a",
-                  "nextServeDate": "2024-10-20",
-                  "leadershipRoles": [],
-                  "reportsTo": "Jamie Brooks",
-                  "recurringGiving": "",
-                  "recurringFrequency": "monthly",
-                  "recurringMethod": "ach",
-                  "pledgeAmount": 0,
-                  "primaryFund": "Guest Offering",
-                  "statementPreference": "paper",
-                  "capacityTier": "emerging",
-                  "financeNotes": "Interested in learning about generosity pathways.",
-                  "tags": ["Foundations Track"],
-                  "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "dataSteward": "Connections desk",
-                  "lastReview": "2024-10-01"
-                }
-              },
-              {
-                "id": "mem_003",
-                "fullName": "Samuel and Dana Lee",
-                "preferredName": "Sam & Dana",
-                "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stageKey": "active",
-                "membershipTypeKey": "covenant-member",
-                "center": "Southridge Center",
-                "centerKey": "southridge",
-                "tags": ["Marriage Mentors"],
-                "demographics": { "maritalStatus": "married", "anniversary": "2008-05-18" },
-                "household": {
-                  "name": "Lee Household",
-                  "envelopeNumber": "1088",
-                  "members": ["Samuel Lee", "Dana Lee"],
-                  "address": { "street": "19 Orchard View", "city": "Nashville", "state": "TN", "postalCode": "37206" }
-                },
-                "contact": { "email": "samuel.dana.lee@example.org", "phone": "(555) 782-4410", "preferred": "Email" },
-                "emergency": { "contact": "Dana Lee", "relationship": "Spouse", "phone": "(555) 782-4410" },
-                "attendance": { "twelveWeekAttendance": 88, "lastAttendance": "2024-10-12" },
-                "engagement": { "groups": ["Marriage mentors"], "pathways": ["Marriage enrichment"], "spiritualGifts": ["Wisdom", "Hospitality"] },
-                "giving": { "recurring": { "amount": 2000, "frequency": "Monthly", "frequencyKey": "monthly", "method": "card" }, "pledge": 30000, "campaign": "Retreat Renewal", "primaryFund": "Marriage Ministry" },
-                "finance": { "statementPreference": "both", "capacityTier": "legacy", "notes": "Provide retreat outcome metrics quarterly." },
-                "serving": { "team": "Groups", "role": "Marriage mentors", "schedule": "1st & 3rd Wednesdays", "nextServeDate": "2024-10-30", "coach": "Pastor Lauren Patel" },
-                "leadership": { "roles": ["Retreat leaders"], "reportsTo": "Pastor Lauren Patel", "teamFocus": "Marriage mentors", "lastHuddle": "2024-09-29" },
-                "discipleship": { "smallGroup": "Marriage mentors", "mentor": "", "nextStep": "Launch two new marriage groups in Q1." },
-                "carePlan": { "status": "Resolved", "statusKey": "resolved", "assignedTo": "", "team": ["Pastoral Care"] },
-                "admin": { "steward": "Groups desk", "lastReview": "2024-08-18" },
-                "profile": {
-                  "fullName": "Samuel and Dana Lee",
-                  "firstName": "Samuel",
-                  "preferredName": "Sam & Dana",
-                  "lastName": "Lee",
-                  "householdName": "Lee Household",
-                  "envelopeNumber": "1088",
-                  "householdMembers": ["Samuel Lee", "Dana Lee"],
-                  "addressStreet": "19 Orchard View",
-                  "addressCity": "Nashville",
-                  "addressState": "TN",
-                  "addressPostal": "37206",
-                  "email": "samuel.dana.lee@example.org",
-                  "phone": "(555) 782-4410",
-                  "preferredContact": "Email",
-                  "membershipType": "Covenant member",
-                  "membershipTypeKey": "covenant-member",
-                  "stageId": "active",
-                  "membershipTypeId": "covenant-member",
-                  "centerId": "southridge",
-                  "joinDate": "2009-05-18",
-                  "smallGroup": "Marriage mentors",
-                  "additionalGroups": ["Marriage mentors"],
-                  "pathways": ["Marriage enrichment"],
-                  "attendanceRate": 88,
-                  "lastAttendance": "2024-10-12",
-                  "spiritualGifts": ["Wisdom", "Hospitality"],
-                  "ministryInterests": ["Marriage ministry", "Retreats"],
-                  "discipleshipNextStep": "Launch two new marriage groups in Q1.",
-                  "careStatus": "resolved",
-                  "carePastor": "",
-                  "careTeam": ["Pastoral Care"],
-                  "servingTeam": "Groups",
-                  "servingRole": "Marriage mentors",
-                  "servingSchedule": "1st & 3rd Wednesdays",
-                  "servingCoach": "Pastor Lauren Patel",
-                  "nextServeDate": "2024-10-30",
-                  "leadershipRoles": ["Retreat leaders"],
-                  "teamFocus": "Marriage mentors",
-                  "reportsTo": "Pastor Lauren Patel",
-                  "lastHuddle": "2024-09-29",
-                  "recurringGiving": 2000,
-                  "recurringFrequency": "monthly",
-                  "recurringMethod": "card",
-                  "pledgeAmount": 30000,
-                  "pledgeCampaign": "Retreat Renewal",
-                  "primaryFund": "Marriage Ministry",
-                  "statementPreference": "both",
-                  "capacityTier": "legacy",
-                  "financeNotes": "Provide retreat outcome metrics quarterly.",
-                  "tags": ["Marriage Mentors", "Retreat Leaders"],
-                  "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
-                  "dataSteward": "Groups desk",
-                  "lastReview": "2024-08-18"
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Default binding for membershipRecords"/>
+        </Contract>
         <Config>
           <handler>admin-community.members.manage.membershipRecords</handler>
           <limit>5</limit>
         </Config>
+        <Data>
+          <Field name="records">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>mem_001</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Avery Johnson</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Avery</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stageKey">
+                  <Value>active</Value>
+                </Field>
+                <Field name="membershipTypeKey">
+                  <Value>covenant-member</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Downtown Center</Value>
+                </Field>
+                <Field name="centerKey">
+                  <Value>downtown</Value>
+                </Field>
+                <Field name="envelopeNumber">
+                  <Value>2041</Value>
+                </Field>
+                <Field name="tags">
+                  <Array>
+                    <Value>Hospitality Team</Value>
+                    <Value>Leadership Cohort</Value>
+                  </Array>
+                </Field>
+                <Field name="demographics">
+                  <Object>
+                    <Field name="birthdate">
+                      <Value>1986-05-12</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>married</Value>
+                    </Field>
+                    <Field name="anniversary">
+                      <Value>2012-06-18</Value>
+                    </Field>
+                    <Field name="occupation">
+                      <Value>Operations director</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Johnson Family</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Avery Johnson</Value>
+                        <Value>Jordan Johnson</Value>
+                        <Value>Micah (7)</Value>
+                        <Value>Selah (4)</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>412 Hope Ave</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Springfield</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>IL</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>62704</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>avery.johnson@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 204-1188</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Text</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="emergency">
+                  <Object>
+                    <Field name="contact">
+                      <Value>Jordan Johnson</Value>
+                    </Field>
+                    <Field name="relationship">
+                      <Value>Spouse</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 204-1189</Value>
+                    </Field>
+                    <Field name="physician">
+                      <Value>Dr. Mae Chen</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="attendance">
+                  <Object>
+                    <Field name="twelveWeekAttendance">
+                      <Value>92</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-13</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="engagement">
+                  <Object>
+                    <Field name="groups">
+                      <Array>
+                        <Value>Leadership Cohort</Value>
+                        <Value>Hospitality Huddle</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Mentor track</Value>
+                        <Value>Hospitality residency</Value>
+                      </Array>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array>
+                        <Value>Leadership</Value>
+                        <Value>Hospitality</Value>
+                      </Array>
+                    </Field>
+                    <Field name="interests">
+                      <Array>
+                        <Value>First impressions</Value>
+                        <Value>Mentoring</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="recurring">
+                      <Object>
+                        <Field name="amount">
+                          <Value>900</Value>
+                        </Field>
+                        <Field name="frequency">
+                          <Value>Monthly</Value>
+                        </Field>
+                        <Field name="frequencyKey">
+                          <Value>monthly</Value>
+                        </Field>
+                        <Field name="method">
+                          <Value>ach</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>22000</Value>
+                    </Field>
+                    <Field name="campaign">
+                      <Value>Legacy Vision 2025</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>General Tithe</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="finance">
+                  <Object>
+                    <Field name="statementPreference">
+                      <Value>email</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>legacy</Value>
+                    </Field>
+                    <Field name="notes">
+                      <Value>Prefers quarterly impact briefs with hospitality volunteer stats.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Hospitality</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Usher Captain</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>2nd &amp; 4th Sundays · 8:30a</Value>
+                    </Field>
+                    <Field name="coach">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-27</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="leadership">
+                  <Object>
+                    <Field name="roles">
+                      <Array>
+                        <Value>Hospitality captain</Value>
+                        <Value>Leadership mentor</Value>
+                      </Array>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>First impressions</Value>
+                    </Field>
+                    <Field name="lastHuddle">
+                      <Value>2024-10-05</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Downtown Leadership Cohort</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Carlos Vega</Value>
+                    </Field>
+                    <Field name="milestones">
+                      <Array>
+                        <Value>Baptized 2014</Value>
+                        <Value>Child dedication 2017</Value>
+                        <Value>Leadership Cohort 2022</Value>
+                      </Array>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Mentor two new ushers before Advent.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="status">
+                      <Value>Coaching</Value>
+                    </Field>
+                    <Field name="statusKey">
+                      <Value>active</Value>
+                    </Field>
+                    <Field name="assignedTo">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-28</Value>
+                    </Field>
+                    <Field name="pastoralNotes">
+                      <Value>Ensure Avery has support onboarding new ushers during Advent.</Value>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Pray for energy balancing work travel with serving rhythm.</Value>
+                    </Field>
+                    <Field name="team">
+                      <Array>
+                        <Value>Pastor Lauren Patel</Value>
+                        <Value>Rachel Kim</Value>
+                      </Array>
+                    </Field>
+                    <Field name="prayerFocus">
+                      <Value>Hospitality growth</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="admin">
+                  <Object>
+                    <Field name="steward">
+                      <Value>Finance desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-09-12</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="profile">
+                  <Object>
+                    <Field name="fullName">
+                      <Value>Avery Johnson</Value>
+                    </Field>
+                    <Field name="firstName">
+                      <Value>Avery</Value>
+                    </Field>
+                    <Field name="preferredName">
+                      <Value>Avery</Value>
+                    </Field>
+                    <Field name="lastName">
+                      <Value>Johnson</Value>
+                    </Field>
+                    <Field name="birthdate">
+                      <Value>1986-05-12</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>married</Value>
+                    </Field>
+                    <Field name="anniversary">
+                      <Value>2012-06-18</Value>
+                    </Field>
+                    <Field name="occupation">
+                      <Value>Operations director</Value>
+                    </Field>
+                    <Field name="householdName">
+                      <Value>Johnson Family</Value>
+                    </Field>
+                    <Field name="envelopeNumber">
+                      <Value>2041</Value>
+                    </Field>
+                    <Field name="householdMembers">
+                      <Array>
+                        <Value>Avery Johnson</Value>
+                        <Value>Jordan Johnson</Value>
+                        <Value>Micah (7)</Value>
+                        <Value>Selah (4)</Value>
+                      </Array>
+                    </Field>
+                    <Field name="addressStreet">
+                      <Value>412 Hope Ave</Value>
+                    </Field>
+                    <Field name="addressCity">
+                      <Value>Springfield</Value>
+                    </Field>
+                    <Field name="addressState">
+                      <Value>IL</Value>
+                    </Field>
+                    <Field name="addressPostal">
+                      <Value>62704</Value>
+                    </Field>
+                    <Field name="email">
+                      <Value>avery.johnson@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 204-1188</Value>
+                    </Field>
+                    <Field name="preferredContact">
+                      <Value>Text</Value>
+                    </Field>
+                    <Field name="membershipType">
+                      <Value>Covenant member</Value>
+                    </Field>
+                    <Field name="membershipTypeKey">
+                      <Value>covenant-member</Value>
+                    </Field>
+                    <Field name="stageId">
+                      <Value>active</Value>
+                    </Field>
+                    <Field name="membershipTypeId">
+                      <Value>covenant-member</Value>
+                    </Field>
+                    <Field name="centerId">
+                      <Value>downtown</Value>
+                    </Field>
+                    <Field name="joinDate">
+                      <Value>2016-03-14</Value>
+                    </Field>
+                    <Field name="smallGroup">
+                      <Value>Downtown Leadership Cohort</Value>
+                    </Field>
+                    <Field name="additionalGroups">
+                      <Array>
+                        <Value>Leadership Cohort</Value>
+                        <Value>Hospitality Huddle</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Mentor track</Value>
+                        <Value>Hospitality residency</Value>
+                      </Array>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Carlos Vega</Value>
+                    </Field>
+                    <Field name="attendanceRate">
+                      <Value>92</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-13</Value>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array>
+                        <Value>Leadership</Value>
+                        <Value>Hospitality</Value>
+                      </Array>
+                    </Field>
+                    <Field name="ministryInterests">
+                      <Array>
+                        <Value>First impressions</Value>
+                        <Value>Mentoring</Value>
+                      </Array>
+                    </Field>
+                    <Field name="discipleshipNextStep">
+                      <Value>Mentor two new ushers before Advent.</Value>
+                    </Field>
+                    <Field name="prayerFocus">
+                      <Value>Hospitality growth</Value>
+                    </Field>
+                    <Field name="careStatus">
+                      <Value>active</Value>
+                    </Field>
+                    <Field name="carePastor">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-28</Value>
+                    </Field>
+                    <Field name="careTeam">
+                      <Array>
+                        <Value>Pastor Lauren Patel</Value>
+                        <Value>Rachel Kim</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pastoralNotes">
+                      <Value>Ensure Avery has support onboarding new ushers during Advent.</Value>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Pray for energy balancing work travel with serving rhythm.</Value>
+                    </Field>
+                    <Field name="emergencyContact">
+                      <Value>Jordan Johnson</Value>
+                    </Field>
+                    <Field name="emergencyRelationship">
+                      <Value>Spouse</Value>
+                    </Field>
+                    <Field name="emergencyPhone">
+                      <Value>(555) 204-1189</Value>
+                    </Field>
+                    <Field name="physician">
+                      <Value>Dr. Mae Chen</Value>
+                    </Field>
+                    <Field name="servingTeam">
+                      <Value>Hospitality</Value>
+                    </Field>
+                    <Field name="servingRole">
+                      <Value>Usher Captain</Value>
+                    </Field>
+                    <Field name="servingSchedule">
+                      <Value>2nd &amp; 4th Sundays · 8:30a</Value>
+                    </Field>
+                    <Field name="servingCoach">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-27</Value>
+                    </Field>
+                    <Field name="leadershipRoles">
+                      <Array>
+                        <Value>Hospitality captain</Value>
+                        <Value>Leadership mentor</Value>
+                      </Array>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>First impressions</Value>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="lastHuddle">
+                      <Value>2024-10-05</Value>
+                    </Field>
+                    <Field name="recurringGiving">
+                      <Value>900</Value>
+                    </Field>
+                    <Field name="recurringFrequency">
+                      <Value>monthly</Value>
+                    </Field>
+                    <Field name="recurringMethod">
+                      <Value>ach</Value>
+                    </Field>
+                    <Field name="pledgeAmount">
+                      <Value>22000</Value>
+                    </Field>
+                    <Field name="pledgeCampaign">
+                      <Value>Legacy Vision 2025</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>General Tithe</Value>
+                    </Field>
+                    <Field name="statementPreference">
+                      <Value>email</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>legacy</Value>
+                    </Field>
+                    <Field name="financeNotes">
+                      <Value>Prefers quarterly impact briefs with hospitality volunteer stats.</Value>
+                    </Field>
+                    <Field name="notes">
+                      <Value>Leading hospitality leadership cohort.</Value>
+                    </Field>
+                    <Field name="photoUrl">
+                      <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                    </Field>
+                    <Field name="tags">
+                      <Array>
+                        <Value>Hospitality Team</Value>
+                        <Value>Leadership Cohort</Value>
+                      </Array>
+                    </Field>
+                    <Field name="dataSteward">
+                      <Value>Finance desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-09-12</Value>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>mem_002</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Elena Ruiz</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Elena</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stageKey">
+                  <Value>new</Value>
+                </Field>
+                <Field name="membershipTypeKey">
+                  <Value>attender</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Northside Center</Value>
+                </Field>
+                <Field name="centerKey">
+                  <Value>northside</Value>
+                </Field>
+                <Field name="tags">
+                  <Array>
+                    <Value>Foundations Track</Value>
+                  </Array>
+                </Field>
+                <Field name="demographics">
+                  <Object>
+                    <Field name="birthdate">
+                      <Value>1993-11-02</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>single</Value>
+                    </Field>
+                    <Field name="occupation">
+                      <Value>UX researcher</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Ruiz Household</Value>
+                    </Field>
+                    <Field name="envelopeNumber">
+                      <Value>Pending</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Elena Ruiz</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>88 River Crossing</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Franklin</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>TN</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>37067</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>elena.ruiz@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 407-9931</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Phone</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="emergency">
+                  <Object>
+                    <Field name="contact">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="relationship">
+                      <Value>Small group mentor</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 320-4411</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="attendance">
+                  <Object>
+                    <Field name="twelveWeekAttendance">
+                      <Value>64</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-06</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="engagement">
+                  <Object>
+                    <Field name="groups">
+                      <Array>
+                        <Value>Foundations Track</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Discover class</Value>
+                      </Array>
+                    </Field>
+                    <Field name="interests">
+                      <Array>
+                        <Value>Hospitality</Value>
+                        <Value>Community</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="recurring"/>
+                    <Field name="pledge">
+                      <Value>0</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>Guest Offering</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="finance">
+                  <Object>
+                    <Field name="statementPreference">
+                      <Value>paper</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>emerging</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Foundations</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Participant</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>Sundays · 9:30a</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-20</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="leadership">
+                  <Object>
+                    <Field name="roles">
+                      <Array/>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>Assimilation</Value>
+                    </Field>
+                    <Field name="lastHuddle"/>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Foundations Track</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Complete covenant interview.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="status">
+                      <Value>Observation</Value>
+                    </Field>
+                    <Field name="statusKey">
+                      <Value>observation</Value>
+                    </Field>
+                    <Field name="assignedTo">
+                      <Value>Connections Team</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-24</Value>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Discernment about joining a small group.</Value>
+                    </Field>
+                    <Field name="team">
+                      <Array>
+                        <Value>Connections Team</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="admin">
+                  <Object>
+                    <Field name="steward">
+                      <Value>Connections desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-10-01</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="profile">
+                  <Object>
+                    <Field name="fullName">
+                      <Value>Elena Ruiz</Value>
+                    </Field>
+                    <Field name="firstName">
+                      <Value>Elena</Value>
+                    </Field>
+                    <Field name="preferredName">
+                      <Value>Elena</Value>
+                    </Field>
+                    <Field name="lastName">
+                      <Value>Ruiz</Value>
+                    </Field>
+                    <Field name="birthdate">
+                      <Value>1993-11-02</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>single</Value>
+                    </Field>
+                    <Field name="householdName">
+                      <Value>Ruiz Household</Value>
+                    </Field>
+                    <Field name="envelopeNumber">
+                      <Value>Pending</Value>
+                    </Field>
+                    <Field name="householdMembers">
+                      <Array>
+                        <Value>Elena Ruiz</Value>
+                      </Array>
+                    </Field>
+                    <Field name="addressStreet">
+                      <Value>88 River Crossing</Value>
+                    </Field>
+                    <Field name="addressCity">
+                      <Value>Franklin</Value>
+                    </Field>
+                    <Field name="addressState">
+                      <Value>TN</Value>
+                    </Field>
+                    <Field name="addressPostal">
+                      <Value>37067</Value>
+                    </Field>
+                    <Field name="email">
+                      <Value>elena.ruiz@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 407-9931</Value>
+                    </Field>
+                    <Field name="preferredContact">
+                      <Value>Phone</Value>
+                    </Field>
+                    <Field name="membershipType">
+                      <Value>Attender</Value>
+                    </Field>
+                    <Field name="membershipTypeKey">
+                      <Value>attender</Value>
+                    </Field>
+                    <Field name="stageId">
+                      <Value>new</Value>
+                    </Field>
+                    <Field name="membershipTypeId">
+                      <Value>attender</Value>
+                    </Field>
+                    <Field name="centerId">
+                      <Value>northside</Value>
+                    </Field>
+                    <Field name="joinDate"/>
+                    <Field name="smallGroup">
+                      <Value>Foundations Track</Value>
+                    </Field>
+                    <Field name="additionalGroups">
+                      <Array>
+                        <Value>Foundations Track</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Discover class</Value>
+                      </Array>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="attendanceRate">
+                      <Value>64</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-06</Value>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array/>
+                    </Field>
+                    <Field name="ministryInterests">
+                      <Array>
+                        <Value>Hospitality</Value>
+                        <Value>Community</Value>
+                      </Array>
+                    </Field>
+                    <Field name="discipleshipNextStep">
+                      <Value>Complete covenant interview.</Value>
+                    </Field>
+                    <Field name="careStatus">
+                      <Value>observation</Value>
+                    </Field>
+                    <Field name="carePastor">
+                      <Value>Connections Team</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-24</Value>
+                    </Field>
+                    <Field name="careTeam">
+                      <Array>
+                        <Value>Connections Team</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pastoralNotes">
+                      <Value>Recently relocated from Denver.</Value>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Discernment about joining a small group.</Value>
+                    </Field>
+                    <Field name="emergencyContact">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="emergencyRelationship">
+                      <Value>Small group mentor</Value>
+                    </Field>
+                    <Field name="emergencyPhone">
+                      <Value>(555) 320-4411</Value>
+                    </Field>
+                    <Field name="servingTeam">
+                      <Value>Foundations</Value>
+                    </Field>
+                    <Field name="servingRole">
+                      <Value>Participant</Value>
+                    </Field>
+                    <Field name="servingSchedule">
+                      <Value>Sundays · 9:30a</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-20</Value>
+                    </Field>
+                    <Field name="leadershipRoles">
+                      <Array/>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="recurringGiving"/>
+                    <Field name="recurringFrequency">
+                      <Value>monthly</Value>
+                    </Field>
+                    <Field name="recurringMethod">
+                      <Value>ach</Value>
+                    </Field>
+                    <Field name="pledgeAmount">
+                      <Value>0</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>Guest Offering</Value>
+                    </Field>
+                    <Field name="statementPreference">
+                      <Value>paper</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>emerging</Value>
+                    </Field>
+                    <Field name="financeNotes">
+                      <Value>Interested in learning about generosity pathways.</Value>
+                    </Field>
+                    <Field name="tags">
+                      <Array>
+                        <Value>Foundations Track</Value>
+                      </Array>
+                    </Field>
+                    <Field name="photoUrl">
+                      <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                    </Field>
+                    <Field name="dataSteward">
+                      <Value>Connections desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-10-01</Value>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>mem_003</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Samuel and Dana Lee</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Sam &amp; Dana</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stageKey">
+                  <Value>active</Value>
+                </Field>
+                <Field name="membershipTypeKey">
+                  <Value>covenant-member</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Southridge Center</Value>
+                </Field>
+                <Field name="centerKey">
+                  <Value>southridge</Value>
+                </Field>
+                <Field name="tags">
+                  <Array>
+                    <Value>Marriage Mentors</Value>
+                  </Array>
+                </Field>
+                <Field name="demographics">
+                  <Object>
+                    <Field name="maritalStatus">
+                      <Value>married</Value>
+                    </Field>
+                    <Field name="anniversary">
+                      <Value>2008-05-18</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Lee Household</Value>
+                    </Field>
+                    <Field name="envelopeNumber">
+                      <Value>1088</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Samuel Lee</Value>
+                        <Value>Dana Lee</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>19 Orchard View</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Nashville</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>TN</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>37206</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>samuel.dana.lee@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 782-4410</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Email</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="emergency">
+                  <Object>
+                    <Field name="contact">
+                      <Value>Dana Lee</Value>
+                    </Field>
+                    <Field name="relationship">
+                      <Value>Spouse</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 782-4410</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="attendance">
+                  <Object>
+                    <Field name="twelveWeekAttendance">
+                      <Value>88</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-12</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="engagement">
+                  <Object>
+                    <Field name="groups">
+                      <Array>
+                        <Value>Marriage mentors</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Marriage enrichment</Value>
+                      </Array>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array>
+                        <Value>Wisdom</Value>
+                        <Value>Hospitality</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="recurring">
+                      <Object>
+                        <Field name="amount">
+                          <Value>2000</Value>
+                        </Field>
+                        <Field name="frequency">
+                          <Value>Monthly</Value>
+                        </Field>
+                        <Field name="frequencyKey">
+                          <Value>monthly</Value>
+                        </Field>
+                        <Field name="method">
+                          <Value>card</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>30000</Value>
+                    </Field>
+                    <Field name="campaign">
+                      <Value>Retreat Renewal</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>Marriage Ministry</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="finance">
+                  <Object>
+                    <Field name="statementPreference">
+                      <Value>both</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>legacy</Value>
+                    </Field>
+                    <Field name="notes">
+                      <Value>Provide retreat outcome metrics quarterly.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Groups</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>1st &amp; 3rd Wednesdays</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-30</Value>
+                    </Field>
+                    <Field name="coach">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="leadership">
+                  <Object>
+                    <Field name="roles">
+                      <Array>
+                        <Value>Retreat leaders</Value>
+                      </Array>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="lastHuddle">
+                      <Value>2024-09-29</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="mentor"/>
+                    <Field name="nextStep">
+                      <Value>Launch two new marriage groups in Q1.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="status">
+                      <Value>Resolved</Value>
+                    </Field>
+                    <Field name="statusKey">
+                      <Value>resolved</Value>
+                    </Field>
+                    <Field name="assignedTo"/>
+                    <Field name="team">
+                      <Array>
+                        <Value>Pastoral Care</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="admin">
+                  <Object>
+                    <Field name="steward">
+                      <Value>Groups desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-08-18</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="profile">
+                  <Object>
+                    <Field name="fullName">
+                      <Value>Samuel and Dana Lee</Value>
+                    </Field>
+                    <Field name="firstName">
+                      <Value>Samuel</Value>
+                    </Field>
+                    <Field name="preferredName">
+                      <Value>Sam &amp; Dana</Value>
+                    </Field>
+                    <Field name="lastName">
+                      <Value>Lee</Value>
+                    </Field>
+                    <Field name="householdName">
+                      <Value>Lee Household</Value>
+                    </Field>
+                    <Field name="envelopeNumber">
+                      <Value>1088</Value>
+                    </Field>
+                    <Field name="householdMembers">
+                      <Array>
+                        <Value>Samuel Lee</Value>
+                        <Value>Dana Lee</Value>
+                      </Array>
+                    </Field>
+                    <Field name="addressStreet">
+                      <Value>19 Orchard View</Value>
+                    </Field>
+                    <Field name="addressCity">
+                      <Value>Nashville</Value>
+                    </Field>
+                    <Field name="addressState">
+                      <Value>TN</Value>
+                    </Field>
+                    <Field name="addressPostal">
+                      <Value>37206</Value>
+                    </Field>
+                    <Field name="email">
+                      <Value>samuel.dana.lee@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 782-4410</Value>
+                    </Field>
+                    <Field name="preferredContact">
+                      <Value>Email</Value>
+                    </Field>
+                    <Field name="membershipType">
+                      <Value>Covenant member</Value>
+                    </Field>
+                    <Field name="membershipTypeKey">
+                      <Value>covenant-member</Value>
+                    </Field>
+                    <Field name="stageId">
+                      <Value>active</Value>
+                    </Field>
+                    <Field name="membershipTypeId">
+                      <Value>covenant-member</Value>
+                    </Field>
+                    <Field name="centerId">
+                      <Value>southridge</Value>
+                    </Field>
+                    <Field name="joinDate">
+                      <Value>2009-05-18</Value>
+                    </Field>
+                    <Field name="smallGroup">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="additionalGroups">
+                      <Array>
+                        <Value>Marriage mentors</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Marriage enrichment</Value>
+                      </Array>
+                    </Field>
+                    <Field name="attendanceRate">
+                      <Value>88</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-12</Value>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array>
+                        <Value>Wisdom</Value>
+                        <Value>Hospitality</Value>
+                      </Array>
+                    </Field>
+                    <Field name="ministryInterests">
+                      <Array>
+                        <Value>Marriage ministry</Value>
+                        <Value>Retreats</Value>
+                      </Array>
+                    </Field>
+                    <Field name="discipleshipNextStep">
+                      <Value>Launch two new marriage groups in Q1.</Value>
+                    </Field>
+                    <Field name="careStatus">
+                      <Value>resolved</Value>
+                    </Field>
+                    <Field name="carePastor"/>
+                    <Field name="careTeam">
+                      <Array>
+                        <Value>Pastoral Care</Value>
+                      </Array>
+                    </Field>
+                    <Field name="servingTeam">
+                      <Value>Groups</Value>
+                    </Field>
+                    <Field name="servingRole">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="servingSchedule">
+                      <Value>1st &amp; 3rd Wednesdays</Value>
+                    </Field>
+                    <Field name="servingCoach">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-30</Value>
+                    </Field>
+                    <Field name="leadershipRoles">
+                      <Array>
+                        <Value>Retreat leaders</Value>
+                      </Array>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="lastHuddle">
+                      <Value>2024-09-29</Value>
+                    </Field>
+                    <Field name="recurringGiving">
+                      <Value>2000</Value>
+                    </Field>
+                    <Field name="recurringFrequency">
+                      <Value>monthly</Value>
+                    </Field>
+                    <Field name="recurringMethod">
+                      <Value>card</Value>
+                    </Field>
+                    <Field name="pledgeAmount">
+                      <Value>30000</Value>
+                    </Field>
+                    <Field name="pledgeCampaign">
+                      <Value>Retreat Renewal</Value>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>Marriage Ministry</Value>
+                    </Field>
+                    <Field name="statementPreference">
+                      <Value>both</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>legacy</Value>
+                    </Field>
+                    <Field name="financeNotes">
+                      <Value>Provide retreat outcome metrics quarterly.</Value>
+                    </Field>
+                    <Field name="tags">
+                      <Array>
+                        <Value>Marriage Mentors</Value>
+                        <Value>Retreat Leaders</Value>
+                      </Array>
+                    </Field>
+                    <Field name="photoUrl">
+                      <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                    </Field>
+                    <Field name="dataSteward">
+                      <Value>Groups desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-08-18</Value>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="membershipLookups" kind="service">
-        <Json><![CDATA[
-          {
-            "lookups": {
-              "membership.stage": [
-                { "id": "active", "value": "Active member" },
-                { "id": "new", "value": "New here" },
-                { "id": "care", "value": "Shepherding" },
-                { "id": "inactive", "value": "Inactive" }
-              ],
-              "membership.type": [
-                { "id": "covenant-member", "value": "Covenant member" },
-                { "id": "attender", "value": "Attender" },
-                { "id": "partner-process", "value": "Partner in process" }
-              ],
-              "membership.center": [
-                { "id": "downtown", "value": "Downtown" },
-                { "id": "northside", "value": "Northside" },
-                { "id": "southridge", "value": "Southridge" },
-                { "id": "online", "value": "Online" }
-              ]
-            }
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Default binding for membershipLookups"/>
+        </Contract>
         <Config>
           <handler>admin-community.members.manage.lookups</handler>
         </Config>
+        <Data>
+          <Field name="lookups">
+            <Object>
+              <Field name="membership.stage">
+                <Array>
+                  <Object>
+                    <Field name="id">
+                      <Value>active</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Active member</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>new</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>New here</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>care</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Shepherding</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>inactive</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Inactive</Value>
+                    </Field>
+                  </Object>
+                </Array>
+              </Field>
+              <Field name="membership.type">
+                <Array>
+                  <Object>
+                    <Field name="id">
+                      <Value>covenant-member</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Covenant member</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>attender</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Attender</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>partner-process</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Partner in process</Value>
+                    </Field>
+                  </Object>
+                </Array>
+              </Field>
+              <Field name="membership.center">
+                <Array>
+                  <Object>
+                    <Field name="id">
+                      <Value>downtown</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Downtown</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>northside</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Northside</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>southridge</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Southridge</Value>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>online</Value>
+                    </Field>
+                    <Field name="value">
+                      <Value>Online</Value>
+                    </Field>
+                  </Object>
+                </Array>
+              </Field>
+            </Object>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="formBlueprint" kind="static">
-        <Json><![CDATA[
-          {
-            "tabs": [
-              {
-                "id": "profile",
-                "label": "Profile basics",
-                "description": "Identity, household, and preferred communication details.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "identity",
-                    "title": "Identity & profile",
-                    "helperText": "Capture household names and demographics to power personal touches and statements.",
-                    "fields": [
-                      {
-                        "name": "profilePhoto",
-                        "label": "Profile photo",
-                        "type": "image",
-                        "colSpan": "full",
-                        "helperText": "Upload or remove the member's profile picture."
-                      },
-                      { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
-                      { "name": "preferredName", "label": "Preferred name", "type": "text", "colSpan": "half" },
-                      { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
-                      {
-                        "name": "envelopeNumber",
-                        "label": "Envelope number",
-                        "type": "text",
-                        "colSpan": "half",
-                        "helperText": "Envelope numbers are assigned per individual, not per household."
-                      },
-                      { "name": "birthdate", "label": "Birthdate", "type": "date", "colSpan": "half" },
-                      {
-                        "name": "maritalStatus",
-                        "label": "Marital status",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Single", "value": "single" },
-                          { "label": "Married", "value": "married" },
-                          { "label": "Engaged", "value": "engaged" },
-                          { "label": "Widowed", "value": "widowed" }
-                        ]
-                      },
-                      { "name": "anniversary", "label": "Anniversary", "type": "date", "colSpan": "half" },
-                      { "name": "occupation", "label": "Occupation", "type": "text", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "household",
-                    "title": "Household",
-                    "fields": [
-                      { "name": "householdName", "label": "Household name", "type": "text", "colSpan": "half" },
-                      { "name": "householdMembers", "label": "Household members", "type": "tags", "colSpan": "full", "helperText": "Use nicknames and ages to personalize care." },
-                      { "name": "addressStreet", "label": "Street address", "type": "text", "colSpan": "full" },
-                      { "name": "addressCity", "label": "City", "type": "text", "colSpan": "half" },
-                      { "name": "addressState", "label": "State", "type": "text", "colSpan": "half" },
-                      { "name": "addressPostal", "label": "Postal code", "type": "text", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "contact",
-                    "title": "Contact preferences",
-                    "fields": [
-                      { "name": "email", "label": "Email", "type": "email", "colSpan": "half", "required": true },
-                      { "name": "phone", "label": "Mobile", "type": "tel", "colSpan": "half", "placeholder": "(000) 000-0000" },
-                      {
-                        "name": "preferredContact",
-                        "label": "Preferred contact",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Email", "value": "Email" },
-                          { "label": "Phone", "value": "Phone" },
-                          { "label": "Text", "value": "Text" }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "engagement",
-                "label": "Engagement",
-                "description": "Group participation, attendance, and discipleship pathways.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "groups",
-                    "title": "Communities & pathways",
-                    "fields": [
-                      { "name": "smallGroup", "label": "Primary group", "type": "text", "colSpan": "half" },
-                      { "name": "additionalGroups", "label": "Additional groups", "type": "tags", "colSpan": "full" },
-                      { "name": "pathways", "label": "Growth pathways", "type": "tags", "colSpan": "full" },
-                      { "name": "mentor", "label": "Mentor", "type": "text", "colSpan": "half" },
-                      { "name": "attendanceRate", "label": "Attendance (last 12 weeks)", "type": "number", "colSpan": "half", "helperText": "Enter as a percentage." },
-                      { "name": "lastAttendance", "label": "Last attended", "type": "date", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "gifts",
-                    "title": "Gifts & interests",
-                    "fields": [
-                      { "name": "spiritualGifts", "label": "Spiritual gifts", "type": "tags", "colSpan": "full", "helperText": "Reference standardized gift assessments when possible." },
-                      { "name": "ministryInterests", "label": "Ministry interests", "type": "tags", "colSpan": "full" },
-                      { "name": "discipleshipNextStep", "label": "Next discipleship step", "type": "textarea", "colSpan": "full" },
-                      { "name": "prayerFocus", "label": "Prayer focus", "type": "text", "colSpan": "half" }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "care",
-                "label": "Care",
-                "description": "Emergency contacts, care status, and pastoral notes.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "care-plan",
-                    "title": "Care plan",
-                    "fields": [
-                      {
-                        "name": "careStatus",
-                        "label": "Care status",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Active", "value": "active" },
-                          { "label": "Observation", "value": "observation" },
-                          { "label": "Resolved", "value": "resolved" }
-                        ]
-                      },
-                      { "name": "carePastor", "label": "Assigned pastor", "type": "text", "colSpan": "half" },
-                      { "name": "followUpDate", "label": "Follow-up date", "type": "date", "colSpan": "half" },
-                      { "name": "careTeam", "label": "Care team", "type": "tags", "colSpan": "full" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "care-notes",
-                    "title": "Pastoral notes",
-                    "fields": [
-                      { "name": "pastoralNotes", "label": "Confidential notes", "type": "textarea", "colSpan": "full" },
-                      { "name": "prayerRequests", "label": "Prayer requests", "type": "textarea", "colSpan": "full" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "emergency",
-                    "title": "Emergency contact",
-                    "fields": [
-                      { "name": "emergencyContact", "label": "Contact name", "type": "text", "colSpan": "half" },
-                      { "name": "emergencyRelationship", "label": "Relationship", "type": "text", "colSpan": "half" },
-                      { "name": "emergencyPhone", "label": "Contact phone", "type": "tel", "colSpan": "half" },
-                      { "name": "physician", "label": "Physician", "type": "text", "colSpan": "half" }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "serving",
-                "label": "Serving",
-                "description": "Serving assignments and leadership development notes.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "serving-assignment",
-                    "title": "Serving assignment",
-                    "fields": [
-                      { "name": "servingTeam", "label": "Serving team", "type": "text", "colSpan": "half" },
-                      { "name": "servingRole", "label": "Serving role", "type": "text", "colSpan": "half" },
-                      { "name": "servingSchedule", "label": "Serving schedule", "type": "text", "colSpan": "half" },
-                      { "name": "servingCoach", "label": "Coach", "type": "text", "colSpan": "half" },
-                      { "name": "nextServeDate", "label": "Next serve date", "type": "date", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "leadership",
-                    "title": "Leadership scope",
-                    "fields": [
-                      { "name": "leadershipRoles", "label": "Leadership roles", "type": "tags", "colSpan": "full" },
-                      { "name": "teamFocus", "label": "Team focus", "type": "text", "colSpan": "half" },
-                      { "name": "reportsTo", "label": "Reports to", "type": "text", "colSpan": "half" },
-                      { "name": "lastHuddle", "label": "Last huddle", "type": "date", "colSpan": "half" }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "finance",
-                "label": "Finance",
-                "description": "Giving commitments and finance admin preferences.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "finance-snapshot",
-                    "title": "Giving",
-                    "fields": [
-                      { "name": "recurringGiving", "label": "Recurring amount", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
-                      {
-                        "name": "recurringFrequency",
-                        "label": "Recurring frequency",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Weekly", "value": "weekly" },
-                          { "label": "Biweekly", "value": "biweekly" },
-                          { "label": "Monthly", "value": "monthly" },
-                          { "label": "Quarterly", "value": "quarterly" }
-                        ]
-                      },
-                      {
-                        "name": "recurringMethod",
-                        "label": "Recurring method",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "ACH", "value": "ach" },
-                          { "label": "Card", "value": "card" },
-                          { "label": "Cash/Check", "value": "cash" }
-                        ]
-                      },
-                      { "name": "pledgeAmount", "label": "Pledge amount", "type": "currency", "colSpan": "half", "placeholder": "0.00" },
-                      { "name": "pledgeCampaign", "label": "Campaign", "type": "text", "colSpan": "half" },
-                      { "name": "primaryFund", "label": "Preferred fund", "type": "text", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "finance-admin",
-                    "title": "Finance admin",
-                    "fields": [
-                      {
-                        "name": "statementPreference",
-                        "label": "Statement delivery",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Email", "value": "email" },
-                          { "label": "Paper", "value": "paper" },
-                          { "label": "Email + Paper", "value": "both" }
-                        ]
-                      },
-                      {
-                        "name": "capacityTier",
-                        "label": "Capacity tier",
-                        "type": "select",
-                        "colSpan": "half",
-                        "options": [
-                          { "label": "Legacy champion", "value": "legacy" },
-                          { "label": "Mid-tier", "value": "mid" },
-                          { "label": "Emerging giver", "value": "emerging" }
-                        ]
-                      },
-                      { "name": "financeNotes", "label": "Finance notes", "type": "textarea", "colSpan": "full" }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "admin",
-                "label": "Admin",
-                "description": "Membership status, centers, and segmentation tags.",
-                "sections": [
-                  {
-                    "kind": "form",
-                    "id": "membership",
-                    "title": "Membership & centers",
-                    "fields": [
-                      { "name": "memberId", "label": "Member ID", "type": "text", "colSpan": "half", "helperText": "Auto-generated." },
-                      {
-                        "name": "stage",
-                        "label": "Membership stage",
-                        "type": "select",
-                        "colSpan": "half",
-                        "lookupId": "membership.stage",
-                        "quickCreate": {
-                          "label": "Add stage",
-                          "description": "Name the stage and the code will be generated automatically.",
-                          "submitLabel": "Save stage",
-                          "successMessage": "Membership stage saved"
-                        }
-                      },
-                      {
-                        "name": "membershipType",
-                        "label": "Membership type",
-                        "type": "select",
-                        "colSpan": "half",
-                        "lookupId": "membership.type",
-                        "quickCreate": {
-                          "label": "Add membership type",
-                          "description": "Name the membership type and the code will be generated automatically.",
-                          "submitLabel": "Save type",
-                          "successMessage": "Membership type saved"
-                        }
-                      },
-                      {
-                        "name": "center",
-                        "label": "Center",
-                        "type": "select",
-                        "colSpan": "half",
-                        "lookupId": "membership.center",
-                        "quickCreate": {
-                          "label": "Add center",
-                          "description": "Name the campus or center and the code will be generated automatically.",
-                          "submitLabel": "Save center",
-                          "successMessage": "Center saved"
-                        }
-                      },
-                      { "name": "joinDate", "label": "Join date", "type": "date", "colSpan": "half" }
-                    ]
-                  },
-                  {
-                    "kind": "form",
-                    "id": "segmentation",
-                    "title": "Segmentation",
-                    "fields": [
-                      { "name": "tags", "label": "Tags", "type": "tags", "colSpan": "full", "helperText": "Tags power list filters and automations." },
-                      { "name": "dataSteward", "label": "Data steward", "type": "text", "colSpan": "half" },
-                      { "name": "lastReview", "label": "Last review", "type": "date", "colSpan": "half" }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="tabs" path="$.tabs" description="Binding for manage-workspace.tabs"/>
+        </Contract>
+        <Data>
+          <Field name="tabs">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>profile</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Profile basics</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Identity, household, and preferred communication details.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>identity</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Identity &amp; profile</Value>
+                      </Field>
+                      <Field name="helperText">
+                        <Value>Capture household names and demographics to power personal touches and statements.</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>profilePhoto</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Profile photo</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>image</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Upload or remove the member&apos;s profile picture.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>firstName</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>First name</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="required">
+                              <Value>true</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>preferredName</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Preferred name</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>lastName</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Last name</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="required">
+                              <Value>true</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>envelopeNumber</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Envelope number</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Envelope numbers are assigned per individual, not per household.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>birthdate</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Birthdate</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>maritalStatus</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Marital status</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Single</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>single</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Married</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>married</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Engaged</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>engaged</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Widowed</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>widowed</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>anniversary</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Anniversary</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>occupation</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Occupation</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>household</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Household</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>householdName</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Household name</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>householdMembers</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Household members</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Use nicknames and ages to personalize care.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressStreet</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Street address</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressCity</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>City</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressState</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>State</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressPostal</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Postal code</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>contact</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Contact preferences</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>email</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Email</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>email</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="required">
+                              <Value>true</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>phone</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Mobile</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tel</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="placeholder">
+                              <Value>(000) 000-0000</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>preferredContact</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Preferred contact</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Email</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>Email</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Phone</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>Phone</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Text</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>Text</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>engagement</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Engagement</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Group participation, attendance, and discipleship pathways.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>groups</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Communities &amp; pathways</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>smallGroup</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Primary group</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>additionalGroups</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Additional groups</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>pathways</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Growth pathways</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>mentor</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Mentor</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>attendanceRate</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Attendance (last 12 weeks)</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>number</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Enter as a percentage.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>lastAttendance</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Last attended</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>gifts</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Gifts &amp; interests</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>spiritualGifts</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Spiritual gifts</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Reference standardized gift assessments when possible.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>ministryInterests</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Ministry interests</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>discipleshipNextStep</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Next discipleship step</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>textarea</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>prayerFocus</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Prayer focus</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>care</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Care</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Emergency contacts, care status, and pastoral notes.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>care-plan</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Care plan</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>careStatus</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Care status</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Active</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>active</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Observation</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>observation</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Resolved</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>resolved</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>carePastor</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Assigned pastor</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>followUpDate</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Follow-up date</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>careTeam</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Care team</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>care-notes</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Pastoral notes</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>pastoralNotes</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Confidential notes</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>textarea</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>prayerRequests</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Prayer requests</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>textarea</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>emergency</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Emergency contact</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>emergencyContact</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Contact name</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>emergencyRelationship</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Relationship</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>emergencyPhone</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Contact phone</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tel</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>physician</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Physician</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>serving</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Serving</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Serving assignments and leadership development notes.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>serving-assignment</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Serving assignment</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>servingTeam</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Serving team</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>servingRole</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Serving role</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>servingSchedule</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Serving schedule</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>servingCoach</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Coach</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>nextServeDate</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Next serve date</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>leadership</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Leadership scope</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>leadershipRoles</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Leadership roles</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>teamFocus</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Team focus</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>reportsTo</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Reports to</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>lastHuddle</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Last huddle</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>finance</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Finance</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Giving commitments and finance admin preferences.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>finance-snapshot</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Giving</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>recurringGiving</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Recurring amount</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>currency</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="placeholder">
+                              <Value>0.00</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>recurringFrequency</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Recurring frequency</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Weekly</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>weekly</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Biweekly</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>biweekly</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Monthly</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>monthly</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Quarterly</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>quarterly</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>recurringMethod</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Recurring method</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>ACH</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>ach</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Card</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>card</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Cash/Check</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>cash</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>pledgeAmount</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Pledge amount</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>currency</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="placeholder">
+                              <Value>0.00</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>pledgeCampaign</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Campaign</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>primaryFund</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Preferred fund</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>finance-admin</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Finance admin</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>statementPreference</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Statement delivery</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Email</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>email</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Paper</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>paper</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Email + Paper</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>both</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>capacityTier</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Capacity tier</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="options">
+                              <Array>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Legacy champion</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>legacy</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Mid-tier</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>mid</Value>
+                                  </Field>
+                                </Object>
+                                <Object>
+                                  <Field name="label">
+                                    <Value>Emerging giver</Value>
+                                  </Field>
+                                  <Field name="value">
+                                    <Value>emerging</Value>
+                                  </Field>
+                                </Object>
+                              </Array>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>financeNotes</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Finance notes</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>textarea</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>admin</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Admin</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Membership status, centers, and segmentation tags.</Value>
+                </Field>
+                <Field name="sections">
+                  <Array>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>membership</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Membership &amp; centers</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>memberId</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Member ID</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Auto-generated.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>stage</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Membership stage</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="lookupId">
+                              <Value>membership.stage</Value>
+                            </Field>
+                            <Field name="quickCreate">
+                              <Object>
+                                <Field name="label">
+                                  <Value>Add stage</Value>
+                                </Field>
+                                <Field name="description">
+                                  <Value>Name the stage and the code will be generated automatically.</Value>
+                                </Field>
+                                <Field name="submitLabel">
+                                  <Value>Save stage</Value>
+                                </Field>
+                                <Field name="successMessage">
+                                  <Value>Membership stage saved</Value>
+                                </Field>
+                              </Object>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>membershipType</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Membership type</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="lookupId">
+                              <Value>membership.type</Value>
+                            </Field>
+                            <Field name="quickCreate">
+                              <Object>
+                                <Field name="label">
+                                  <Value>Add membership type</Value>
+                                </Field>
+                                <Field name="description">
+                                  <Value>Name the membership type and the code will be generated automatically.</Value>
+                                </Field>
+                                <Field name="submitLabel">
+                                  <Value>Save type</Value>
+                                </Field>
+                                <Field name="successMessage">
+                                  <Value>Membership type saved</Value>
+                                </Field>
+                              </Object>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>center</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Center</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>select</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="lookupId">
+                              <Value>membership.center</Value>
+                            </Field>
+                            <Field name="quickCreate">
+                              <Object>
+                                <Field name="label">
+                                  <Value>Add center</Value>
+                                </Field>
+                                <Field name="description">
+                                  <Value>Name the campus or center and the code will be generated automatically.</Value>
+                                </Field>
+                                <Field name="submitLabel">
+                                  <Value>Save center</Value>
+                                </Field>
+                                <Field name="successMessage">
+                                  <Value>Center saved</Value>
+                                </Field>
+                              </Object>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>joinDate</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Join date</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>segmentation</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Segmentation</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Tags</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>tags</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                            <Field name="helperText">
+                              <Value>Tags power list filters and automations.</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>dataSteward</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Data steward</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>lastReview</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Last review</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>date</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

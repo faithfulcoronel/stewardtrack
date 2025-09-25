@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/support-hub"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/support-hub" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-support-hub">
     <Title>UI Block: Support hub CTA</Title>
     <Regions>
@@ -17,40 +10,67 @@
             <Prop name="eyebrow" kind="static">Support programs</Prop>
             <Prop name="headline" kind="static">Reach the right StewardTrack specialist</Prop>
             <Prop name="description" kind="static">Choose the channel aligned with your question and connect with solution architects, enablement leads, or billing experts.</Prop>
-            <Prop name="contactMethods" kind="binding" source="supportContacts" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="open-ticket" />
-            <Prop name="secondaryCta" kind="action" actionId="join-office-hours" />
-            <Prop name="tertiaryCta" kind="action" actionId="chat-live" />
+            <Prop name="contactMethods" kind="binding" contract="supportContacts.items"/>
+            <Prop name="primaryCta" kind="action" actionId="open-ticket"/>
+            <Prop name="secondaryCta" kind="action" actionId="join-office-hours"/>
+            <Prop name="tertiaryCta" kind="action" actionId="chat-live"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="supportContacts" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Solution architecture",
-                "value": "Architecture@StewardTrack.com",
-                "description": "For integration design, data modeling, and governance questions.",
-                "url": "mailto:architecture@StewardTrack.com"
-              },
-              {
-                "label": "Enablement office hours",
-                "value": "Every Tuesday • 9:00 AM PT",
-                "description": "Live Q&amp;A with customer success and product specialists.",
-                "url": "/events/office-hours"
-              },
-              {
-                "label": "Billing support",
-                "value": "+1 (415) 555-2045",
-                "description": "Account changes, invoices, and procurement documentation.",
-                "url": "tel:+14155552045"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-support-hub.contactMethods"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Solution architecture</Value>
+                </Field>
+                <Field name="value">
+                  <Value>Architecture@StewardTrack.com</Value>
+                </Field>
+                <Field name="description">
+                  <Value>For integration design, data modeling, and governance questions.</Value>
+                </Field>
+                <Field name="url">
+                  <Value>mailto:architecture@StewardTrack.com</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Enablement office hours</Value>
+                </Field>
+                <Field name="value">
+                  <Value>Every Tuesday • 9:00 AM PT</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Live Q&amp;amp;A with customer success and product specialists.</Value>
+                </Field>
+                <Field name="url">
+                  <Value>/events/office-hours</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Billing support</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+1 (415) 555-2045</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Account changes, invoices, and procurement documentation.</Value>
+                </Field>
+                <Field name="url">
+                  <Value>tel:+14155552045</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

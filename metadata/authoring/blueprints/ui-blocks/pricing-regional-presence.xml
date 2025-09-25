@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/regional-presence"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/regional-presence" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-regional-presence">
     <Title>UI Block: Regional presence pricing</Title>
     <Regions>
@@ -17,141 +10,276 @@
             <Prop name="eyebrow" kind="static">Global availability</Prop>
             <Prop name="title" kind="static">Regional packages that honor compliance and go-to-market nuance</Prop>
             <Prop name="description" kind="static">Pick a regional blueprint to match languages, currencies, and buyer expectations. Each package includes localized onboarding journeys.</Prop>
-            <Prop name="tiers" kind="binding" source="regionalPresenceTiers" path="items" />
+            <Prop name="tiers" kind="binding" contract="regionalPresenceTiers.items"/>
             <Prop name="footnote" kind="static">Exchange rates updated monthly. Regional success pods available during local business hours.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="talk-to-regional-team" />
+            <Prop name="primaryCta" kind="action" actionId="talk-to-regional-team"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="regionalPresenceTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "North America",
-                "price": "$2,250",
-                "period": "month",
-                "badge": "USD",
-                "description": "Support U.S. and Canada go-to-market teams with localized compliance checklists.",
-                "features": [
-                  "SOC 2 + HIPAA addendum",
-                  "USD & CAD billing",
-                  "EN/FR localization",
-                  "Dedicated PST support window"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch North America",
-                    "url": "/checkout?region=na",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Latin America",
-                "price": "$1,480",
-                "period": "month",
-                "badge": "MXN/BRL",
-                "description": "Regionalized onboarding journeys with Portuguese and Spanish content and tax handling.",
-                "features": [
-                  "MXN, BRL, CLP billing",
-                  "Spanish & Portuguese playbooks",
-                  "LATAM compliance library",
-                  "Regional partner ecosystem"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Activate LATAM",
-                    "url": "/checkout?region=latam",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Europe",
-                "price": "€1,990",
-                "period": "month",
-                "badge": "EUR",
-                "description": "Manage GDPR, multilingual onboarding, and EU procurement requirements in one plan.",
-                "features": [
-                  "GDPR & ISO controls",
-                  "EU data residency",
-                  "DE/FR/EN localization",
-                  "In-region customer success"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Scale across EU",
-                    "url": "/checkout?region=eu",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Middle East & Africa",
-                "price": "$1,650",
-                "period": "month",
-                "badge": "AED/ZAR",
-                "description": "Blend multi-currency billing and hybrid deployment models to serve MEA customers.",
-                "features": [
-                  "Dual cloud deployment",
-                  "Arabic localization",
-                  "VAT invoicing",
-                  "MEA enablement resources"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Enable MEA",
-                    "url": "/checkout?region=mea",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Asia Pacific",
-                "price": "$2,050",
-                "period": "month",
-                "badge": "SGD/JPY",
-                "description": "Handle local hosting, compliance, and language coverage across APAC markets.",
-                "features": [
-                  "Data residency in SG & JP",
-                  "Mandarin & Japanese playbooks",
-                  "APAC compliance accelerators",
-                  "Local procurement templates"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Deploy APAC",
-                    "url": "/checkout?region=apac",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Australia & New Zealand",
-                "price": "$1,420",
-                "period": "month",
-                "badge": "AUD",
-                "description": "Support ANZ customers with localized automation, GST compliance, and time-zone aligned teams.",
-                "features": [
-                  "GST-ready invoicing",
-                  "EN/NZ localization",
-                  "Regional integrations",
-                  "Sydney support pod"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch ANZ",
-                    "url": "/checkout?region=anz",
-                    "variant": "secondary"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-regional-presence.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>North America</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2,250</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>USD</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Support U.S. and Canada go-to-market teams with localized compliance checklists.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>SOC 2 + HIPAA addendum</Value>
+                    <Value>USD &amp; CAD billing</Value>
+                    <Value>EN/FR localization</Value>
+                    <Value>Dedicated PST support window</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch North America</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=na</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Latin America</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$1,480</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>MXN/BRL</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Regionalized onboarding journeys with Portuguese and Spanish content and tax handling.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>MXN, BRL, CLP billing</Value>
+                    <Value>Spanish &amp; Portuguese playbooks</Value>
+                    <Value>LATAM compliance library</Value>
+                    <Value>Regional partner ecosystem</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Activate LATAM</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=latam</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Europe</Value>
+                </Field>
+                <Field name="price">
+                  <Value>€1,990</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>EUR</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Manage GDPR, multilingual onboarding, and EU procurement requirements in one plan.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>GDPR &amp; ISO controls</Value>
+                    <Value>EU data residency</Value>
+                    <Value>DE/FR/EN localization</Value>
+                    <Value>In-region customer success</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Scale across EU</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=eu</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Middle East &amp; Africa</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$1,650</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>AED/ZAR</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend multi-currency billing and hybrid deployment models to serve MEA customers.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Dual cloud deployment</Value>
+                    <Value>Arabic localization</Value>
+                    <Value>VAT invoicing</Value>
+                    <Value>MEA enablement resources</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Enable MEA</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=mea</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Asia Pacific</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2,050</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>SGD/JPY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Handle local hosting, compliance, and language coverage across APAC markets.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Data residency in SG &amp; JP</Value>
+                    <Value>Mandarin &amp; Japanese playbooks</Value>
+                    <Value>APAC compliance accelerators</Value>
+                    <Value>Local procurement templates</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Deploy APAC</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=apac</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Australia &amp; New Zealand</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$1,420</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>AUD</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Support ANZ customers with localized automation, GST compliance, and time-zone aligned teams.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>GST-ready invoicing</Value>
+                    <Value>EN/NZ localization</Value>
+                    <Value>Regional integrations</Value>
+                    <Value>Sydney support pod</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch ANZ</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?region=anz</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

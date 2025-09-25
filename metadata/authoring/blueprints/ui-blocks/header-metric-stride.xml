@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/metric-stride"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/metric-stride" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-metric-stride">
     <Title>UI Block: Metric stride header</Title>
     <Regions>
@@ -17,23 +10,66 @@
             <Prop name="eyebrow" kind="static">Impact snapshot</Prop>
             <Prop name="headline" kind="static">Metrics that prove momentum</Prop>
             <Prop name="description" kind="static">Lead with data in a confident summary header designed for release notes, board updates, or internal launch recaps.</Prop>
-            <Prop name="metrics" kind="binding" source="strideMetrics" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="view-report" />
-            <Prop name="secondaryCta" kind="action" actionId="share-update" />
+            <Prop name="metrics" kind="binding" contract="strideMetrics.value"/>
+            <Prop name="primaryCta" kind="action" actionId="view-report"/>
+            <Prop name="secondaryCta" kind="action" actionId="share-update"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="strideMetrics" kind="static">
-        <Json><![CDATA[
-          [
-            { "label": "Activation lift", "value": "+42%", "caption": "vs. previous quarter" },
-            { "label": "Playbooks launched", "value": "128", "caption": "Cross-functional campaigns" },
-            { "label": "Customer NPS", "value": "68", "caption": "Rolling 90-day average" },
-            { "label": "Time saved", "value": "340h", "caption": "Automation reclaimed hours" }
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-metric-stride.metrics"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Object>
+              <Field name="label">
+                <Value>Activation lift</Value>
+              </Field>
+              <Field name="value">
+                <Value>+42%</Value>
+              </Field>
+              <Field name="caption">
+                <Value>vs. previous quarter</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="label">
+                <Value>Playbooks launched</Value>
+              </Field>
+              <Field name="value">
+                <Value>128</Value>
+              </Field>
+              <Field name="caption">
+                <Value>Cross-functional campaigns</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="label">
+                <Value>Customer NPS</Value>
+              </Field>
+              <Field name="value">
+                <Value>68</Value>
+              </Field>
+              <Field name="caption">
+                <Value>Rolling 90-day average</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="label">
+                <Value>Time saved</Value>
+              </Field>
+              <Field name="value">
+                <Value>340h</Value>
+              </Field>
+              <Field name="caption">
+                <Value>Automation reclaimed hours</Value>
+              </Field>
+            </Object>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

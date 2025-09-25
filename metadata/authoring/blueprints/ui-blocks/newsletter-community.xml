@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/community"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/community" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-community">
     <Title>UI Block: Newsletter community hub</Title>
     <Regions>
@@ -17,10 +10,10 @@
             <Prop name="badge" kind="static">Community wire</Prop>
             <Prop name="headline" kind="static">Stay close to the builders</Prop>
             <Prop name="description" kind="static">A weekly recap from 5,000+ metadata practitioners sharing what worked, what broke, and how they fixed it.</Prop>
-            <Prop name="highlights" kind="binding" source="communityHighlights" path="items" />
-            <Prop name="gallery" kind="binding" source="communityGallery" path="items" />
-            <Prop name="testimonials" kind="binding" source="communityTestimonial" path="items" />
-            <Prop name="form" kind="binding" source="communityForm" path="$" />
+            <Prop name="highlights" kind="binding" contract="communityHighlights.items"/>
+            <Prop name="gallery" kind="binding" contract="communityGallery.items"/>
+            <Prop name="testimonials" kind="binding" contract="communityTestimonial.items"/>
+            <Prop name="form" kind="binding" contract="communityForm.value"/>
             <Prop name="highlight" kind="static">Trade playbooks with peers shipping metadata in production.</Prop>
           </Props>
         </Component>
@@ -28,63 +21,155 @@
     </Regions>
     <DataSources>
       <DataSource id="communityHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Live feedback threads",
-                "description": "Jump into the weekly discussion with product, revenue, and ops leads."
-              },
-              {
-                "title": "Templates on demand",
-                "description": "Request workflows and data models — other members share what shipped."
-              },
-              {
-                "title": "Small group meetups",
-                "description": "Join pods by industry to compare metadata maturity and dashboards."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-community.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Live feedback threads</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Jump into the weekly discussion with product, revenue, and ops leads.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Templates on demand</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Request workflows and data models — other members share what shipped.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Small group meetups</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Join pods by industry to compare metadata maturity and dashboards.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="communityGallery" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {"src": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80", "alt": "Team member"},
-              {"src": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80", "alt": "Builder"},
-              {"src": "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=200&q=80", "alt": "Strategist"},
-              {"src": "https://images.unsplash.com/photo-1544723795-3fb6a70c0c16?auto=format&fit=crop&w=200&q=80", "alt": "Leader"},
-              {"src": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80", "alt": "Community"},
-              {"src": "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=200&q=80", "alt": "Engineer"},
-              {"src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=200&q=80", "alt": "Operator"},
-              {"src": "https://images.unsplash.com/photo-1544723795-4325372e953f?auto=format&fit=crop&w=200&q=80", "alt": "Partner"}
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-community.gallery"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Team member</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Builder</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Strategist</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6a70c0c16?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Leader</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Community</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Engineer</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Operator</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1544723795-4325372e953f?auto=format&amp;fit=crop&amp;w=200&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Partner</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="communityTestimonial" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "The community wire captures the nuance you never get from product launch notes.",
-                "author": "Akiko Tan", 
-                "role": "Head of Enablement, Stripe Atlas"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-community.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>The community wire captures the nuance you never get from product launch notes.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Akiko Tan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Enablement, Stripe Atlas</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="communityForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "community@company.com",
-            "buttonLabel": "Join the wire",
-            "disclaimer": "Delivered Thursdays. Includes invites to live sessions.",
-            "url": "/newsletter/community-wire/signup"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-community.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>community@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Join the wire</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Delivered Thursdays. Includes invites to live sessions.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/community-wire/signup</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

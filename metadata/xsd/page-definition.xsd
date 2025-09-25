@@ -53,6 +53,7 @@
         <xs:attribute name="path" type="xs:string" use="optional" />
         <xs:attribute name="actionId" type="xs:string" use="optional" />
         <xs:attribute name="format" type="xs:string" use="optional" />
+        <xs:attribute name="contract" type="xs:string" use="optional" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -100,9 +101,64 @@
     </xs:simpleContent>
   </xs:complexType>
 
+  <xs:complexType name="contractFieldType">
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="path" type="xs:string" use="optional" />
+    <xs:attribute name="description" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="contractType">
+    <xs:sequence>
+      <xs:element name="Field" type="contractFieldType" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="dataValueType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="type" type="xs:string" use="optional" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="dataContainerType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Field" type="dataFieldType" />
+      <xs:element name="Object" type="dataObjectType" />
+      <xs:element name="Array" type="dataArrayType" />
+      <xs:element name="Value" type="dataValueType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="dataFieldType">
+    <xs:complexContent>
+      <xs:extension base="dataContainerType">
+        <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="type" type="xs:string" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="dataObjectType">
+    <xs:complexContent>
+      <xs:extension base="dataContainerType">
+        <xs:attribute name="name" type="xs:string" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="dataArrayType">
+    <xs:complexContent>
+      <xs:extension base="dataContainerType">
+        <xs:attribute name="name" type="xs:string" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:complexType name="dataSourceType">
     <xs:sequence>
       <xs:element name="RBAC" type="rbacType" minOccurs="0" />
+      <xs:element name="Contract" type="contractType" minOccurs="0" />
       <xs:element name="Json" type="jsonType" minOccurs="0" />
       <xs:element name="Config" minOccurs="0" maxOccurs="1">
         <xs:complexType mixed="true">
@@ -111,6 +167,7 @@
           </xs:sequence>
         </xs:complexType>
       </xs:element>
+      <xs:element name="Data" type="dataContainerType" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="id" type="idType" use="required" />
     <xs:attribute name="kind" type="dataSourceKind" use="required" />

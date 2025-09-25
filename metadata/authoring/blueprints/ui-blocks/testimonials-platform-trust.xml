@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/platform-trust"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/platform-trust" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-platform-trust">
     <Title>UI Block: Testimonials - Platform trust</Title>
     <Regions>
@@ -17,81 +10,180 @@
             <Prop name="eyebrow" kind="static">Platform trust</Prop>
             <Prop name="headline" kind="static">Teams rely on StewardTrack to launch confidently</Prop>
             <Prop name="description" kind="static">A balanced grid for sharing multiple voices side by side. Perfect for product marketing pages or partner showcases.</Prop>
-            <Prop name="testimonials" kind="binding" source="platformTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-security" />
-            <Prop name="secondaryCta" kind="action" actionId="audit-checklist" />
+            <Prop name="testimonials" kind="binding" contract="platformTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-security"/>
+            <Prop name="secondaryCta" kind="action" actionId="audit-checklist"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="platformTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "StewardTrack gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.",
-                "author": "Jonah Park",
-                "role": "Chief Information Officer",
-                "company": "Helios Labs",
-                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Enterprise engineers reviewing dashboards",
-                "rating": 4.9
-              },
-              {
-                "quote": "We orchestrated five regional launches with one blueprint. Localization and permissions just worked.",
-                "author": "Noor Al-Khaled",
-                "role": "Program Director",
-                "company": "Atlas Mobility",
-                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "City skyline with connected devices",
-                "rating": 4.8
-              },
-              {
-                "quote": "Compliance used to slow us down. With StewardTrack, review cycles are embedded into every release plan.",
-                "author": "Heather Liu",
-                "role": "Head of Compliance",
-                "company": "Greenline",
-                "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1523958203904-cdcb402031fd?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Compliance manager annotating documents",
-                "rating": 5
-              },
-              {
-                "quote": "Stakeholders trust our dashboards now that we stream StewardTrack metrics into their daily workspace.",
-                "author": "Lucas Andrade",
-                "role": "Operations Lead",
-                "company": "Nimbus Retail",
-                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Operations team collaborating around a large display",
-                "rating": 4.7
-              },
-              {
-                "quote": "Every release review now ships with customer quotes and success metrics baked in.",
-                "author": "Samira Ortiz",
-                "role": "Principal Product Manager",
-                "company": "BrightLoop",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Product team mapping user journeys",
-                "rating": 4.9
-              },
-              {
-                "quote": "Partnerships finally see the same usage evidence we do. It transformed our quarterly business reviews.",
-                "author": "Marcus Reilly",
-                "role": "VP Partnerships",
-                "company": "Waypoint",
-                "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Team hosting a partner roundtable",
-                "rating": 4.8
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-platform-trust.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>StewardTrack gave us an audit trail that maps every user action to policy. Security sign-off was a non-event.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Jonah Park</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Information Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Helios Labs</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Enterprise engineers reviewing dashboards</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.9</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We orchestrated five regional launches with one blueprint. Localization and permissions just worked.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Noor Al-Khaled</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Program Director</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Atlas Mobility</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>City skyline with connected devices</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Compliance used to slow us down. With StewardTrack, review cycles are embedded into every release plan.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Heather Liu</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Compliance</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Greenline</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1523958203904-cdcb402031fd?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Compliance manager annotating documents</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>5</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Stakeholders trust our dashboards now that we stream StewardTrack metrics into their daily workspace.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Lucas Andrade</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Operations Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Nimbus Retail</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Operations team collaborating around a large display</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.7</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Every release review now ships with customer quotes and success metrics baked in.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Samira Ortiz</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Principal Product Manager</Value>
+                </Field>
+                <Field name="company">
+                  <Value>BrightLoop</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Product team mapping user journeys</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.9</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Partnerships finally see the same usage evidence we do. It transformed our quarterly business reviews.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Marcus Reilly</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Partnerships</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Waypoint</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Team hosting a partner roundtable</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.8</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

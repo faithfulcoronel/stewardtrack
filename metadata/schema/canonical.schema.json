@@ -66,6 +66,27 @@
         }
       }
     },
+    "dataContractField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "path"],
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": ["string", "null"] },
+        "description": { "type": "string" }
+      }
+    },
+    "dataContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields"],
+      "properties": {
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/dataContractField" }
+        }
+      }
+    },
     "propValueStatic": {
       "type": "object",
       "additionalProperties": false,
@@ -156,6 +177,7 @@
         "kind": { "type": "string", "enum": ["static", "supabase", "http", "service"] },
         "operation": { "type": "string", "enum": ["merge", "replace", "remove"] },
         "config": { "type": "object" },
+        "contract": { "$ref": "#/definitions/dataContract" },
         "rbac": { "$ref": "#/definitions/rbac" }
       }
     },

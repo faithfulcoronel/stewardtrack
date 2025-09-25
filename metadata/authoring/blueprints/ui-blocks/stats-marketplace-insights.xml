@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/marketplace-insights"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/marketplace-insights" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-marketplace-insights">
     <Title>UI Block: Stats - Marketplace insights</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">Marketplace coverage</Prop>
             <Prop name="headline" kind="static">Compare partner traction by region in seconds</Prop>
             <Prop name="description" kind="static">Surface the marketplace supply, demand, and revenue metrics operators need to plan regional expansion.</Prop>
-            <Prop name="metrics" kind="binding" source="marketplaceMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="marketplaceMetrics.items"/>
             <Prop name="annotation" kind="static">Marketplace telemetry refreshed nightly from partner API logs.</Prop>
           </Props>
         </Component>
@@ -25,20 +18,151 @@
     </Regions>
     <DataSources>
       <DataSource id="marketplaceMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "category": "North America", "label": "Active integrations", "value": "184", "change": "+22", "changeLabel": "QoQ" },
-              { "category": "EMEA", "label": "Active integrations", "value": "143", "change": "+18", "changeLabel": "QoQ" },
-              { "category": "APAC", "label": "Active integrations", "value": "98", "change": "+27", "changeLabel": "QoQ" },
-              { "category": "LATAM", "label": "Active integrations", "value": "76", "change": "+14", "changeLabel": "QoQ" },
-              { "category": "North America", "label": "GMV processed", "value": "$220M", "change": "+16%", "changeLabel": "YoY" },
-              { "category": "EMEA", "label": "GMV processed", "value": "$148M", "change": "+19%", "changeLabel": "YoY" },
-              { "category": "APAC", "label": "GMV processed", "value": "$104M", "change": "+23%", "changeLabel": "YoY" },
-              { "category": "LATAM", "label": "GMV processed", "value": "$68M", "change": "+28%", "changeLabel": "YoY" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-marketplace-insights.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="category">
+                  <Value>North America</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Active integrations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>184</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+22</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>EMEA</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Active integrations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>143</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+18</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>APAC</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Active integrations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>98</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+27</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>LATAM</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Active integrations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>76</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+14</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>North America</Value>
+                </Field>
+                <Field name="label">
+                  <Value>GMV processed</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$220M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+16%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>EMEA</Value>
+                </Field>
+                <Field name="label">
+                  <Value>GMV processed</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$148M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+19%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>APAC</Value>
+                </Field>
+                <Field name="label">
+                  <Value>GMV processed</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$104M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+23%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="category">
+                  <Value>LATAM</Value>
+                </Field>
+                <Field name="label">
+                  <Value>GMV processed</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$68M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+28%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

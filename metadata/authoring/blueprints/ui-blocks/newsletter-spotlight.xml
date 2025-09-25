@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/spotlight"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/spotlight" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-spotlight">
     <Title>UI Block: Newsletter testimonial spotlight</Title>
     <Regions>
@@ -17,43 +10,69 @@
             <Prop name="badge" kind="static">Executive brief</Prop>
             <Prop name="headline" kind="static">One email leaders actually read</Prop>
             <Prop name="description" kind="static">Summaries tailored for VPs and founders who want proof that metadata-led teams ship faster and stay aligned.</Prop>
-            <Prop name="testimonials" kind="binding" source="spotlightTestimonial" path="items" />
-            <Prop name="logos" kind="binding" source="spotlightLogos" path="items" />
-            <Prop name="form" kind="binding" source="spotlightForm" path="$" />
+            <Prop name="testimonials" kind="binding" contract="spotlightTestimonial.items"/>
+            <Prop name="logos" kind="binding" contract="spotlightLogos.items"/>
+            <Prop name="form" kind="binding" contract="spotlightForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="spotlightTestimonial" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "The executive brief gives me a board-ready read on how metadata is powering our customer experience.",
-                "author": "Morgan Hayes",
-                "role": "Chief Product Officer, Verse"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-spotlight.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>The executive brief gives me a board-ready read on how metadata is powering our customer experience.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Morgan Hayes</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Product Officer, Verse</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="spotlightLogos" kind="static">
-        <Json><![CDATA[
-          {
-            "items": ["Verse", "Paragon", "Haystack", "Vanta"]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-spotlight.logos"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Verse</Value>
+              <Value>Paragon</Value>
+              <Value>Haystack</Value>
+              <Value>Vanta</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="spotlightForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "leader@company.com",
-            "buttonLabel": "Send the brief",
-            "disclaimer": "Arrives Sunday evening with metrics and talking points.",
-            "url": "/newsletter/executive-brief/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-spotlight.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>leader@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Send the brief</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Arrives Sunday evening with metrics and talking points.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/executive-brief/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

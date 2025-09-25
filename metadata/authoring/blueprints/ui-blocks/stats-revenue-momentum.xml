@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/revenue-momentum"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/revenue-momentum" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-revenue-momentum">
     <Title>UI Block: Stats - Revenue momentum</Title>
     <Regions>
@@ -17,61 +10,107 @@
             <Prop name="eyebrow" kind="static">Growth velocity</Prop>
             <Prop name="headline" kind="static">Momentum across every GTM motion</Prop>
             <Prop name="description" kind="static">Demonstrate disciplined revenue execution with the KPIs investors and revenue leaders follow every week.</Prop>
-            <Prop name="metrics" kind="binding" source="revenueMetrics" path="items" />
-            <Prop name="highlights" kind="binding" source="revenueHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-forecast" />
-            <Prop name="secondaryCta" kind="action" actionId="share-update" />
+            <Prop name="metrics" kind="binding" contract="revenueMetrics.items"/>
+            <Prop name="highlights" kind="binding" contract="revenueHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-forecast"/>
+            <Prop name="secondaryCta" kind="action" actionId="share-update"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="revenueMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Annual recurring revenue",
-                "value": "$48M",
-                "change": "+18%",
-                "changeLabel": "QoQ",
-                "description": "Driven by net-new platform subscriptions across enterprise and scale segments."
-              },
-              {
-                "label": "Pipeline coverage",
-                "value": "4.3x",
-                "change": "+0.8x",
-                "changeLabel": "vs target",
-                "description": "Weighted pipeline coverage for the next two quarters."
-              },
-              {
-                "label": "Expansion ARR",
-                "value": "134%",
-                "change": "+12 pts",
-                "changeLabel": "NRR",
-                "description": "Net revenue retention from existing customers."
-              },
-              {
-                "label": "Enterprise win rate",
-                "value": "46%",
-                "change": "+5 pts",
-                "changeLabel": "QoQ",
-                "description": "Strategic deals over $100K closed with cross-functional pods."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-revenue-momentum.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Annual recurring revenue</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$48M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Driven by net-new platform subscriptions across enterprise and scale segments.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Pipeline coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.3x</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+0.8x</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>vs target</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Weighted pipeline coverage for the next two quarters.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Expansion ARR</Value>
+                </Field>
+                <Field name="value">
+                  <Value>134%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+12 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>NRR</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Net revenue retention from existing customers.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Enterprise win rate</Value>
+                </Field>
+                <Field name="value">
+                  <Value>46%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+5 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Strategic deals over $100K closed with cross-functional pods.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="revenueHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Forecast accuracy locked at 96%",
-              "Average sales cycle shortened to 42 days",
-              "Partner-sourced revenue up 31%"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-revenue-momentum.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Forecast accuracy locked at 96%</Value>
+              <Value>Average sales cycle shortened to 42 days</Value>
+              <Value>Partner-sourced revenue up 31%</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

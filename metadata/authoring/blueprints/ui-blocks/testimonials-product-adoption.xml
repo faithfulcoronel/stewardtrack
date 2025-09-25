@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/product-adoption"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/product-adoption" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-product-adoption">
     <Title>UI Block: Testimonials - Product adoption</Title>
     <Regions>
@@ -17,63 +10,117 @@
             <Prop name="eyebrow" kind="static">Adoption playbook</Prop>
             <Prop name="headline" kind="static">Adoption accelerators customers feel in weeks</Prop>
             <Prop name="description" kind="static">Blend a hero story with supporting proof points. Ideal for feature launches that demand narrative plus data.</Prop>
-            <Prop name="testimonials" kind="binding" source="adoptionTestimonials" path="items" />
-            <Prop name="highlights" kind="binding" source="adoptionHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="watch-demo" />
-            <Prop name="secondaryCta" kind="action" actionId="download-guide" />
+            <Prop name="testimonials" kind="binding" contract="adoptionTestimonials.items"/>
+            <Prop name="highlights" kind="binding" contract="adoptionHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="watch-demo"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-guide"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="adoptionTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Feature launches now roll out with playbooks, video chapters, and experiments already wired to metrics.",
-                "author": "Isabella Chen",
-                "role": "Head of Product Enablement",
-                "company": "Verse Analytics",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Product enablement leader recording a session",
-                "rating": 4.9
-              },
-              {
-                "quote": "Account teams reference StewardTrack journeys to personalize every executive briefing.",
-                "author": "Felix Romero",
-                "role": "Enterprise Strategist",
-                "company": "Signal North",
-                "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1519241047957-be31d7379a5d?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Executive briefing with digital whiteboard",
-                "rating": 4.8
-              },
-              {
-                "quote": "Customer marketing pulls quotes straight from StewardTrack, so every nurture stream feels timely and specific.",
-                "author": "Marley Watkins",
-                "role": "Lifecycle Marketing Lead",
-                "company": "Brightline",
-                "avatarUrl": "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Marketing strategist planning lifecycle campaigns",
-                "rating": 4.7
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-product-adoption.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Feature launches now roll out with playbooks, video chapters, and experiments already wired to metrics.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Isabella Chen</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Product Enablement</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Verse Analytics</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Product enablement leader recording a session</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.9</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Account teams reference StewardTrack journeys to personalize every executive briefing.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Felix Romero</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Enterprise Strategist</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Signal North</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1519241047957-be31d7379a5d?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Executive briefing with digital whiteboard</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Customer marketing pulls quotes straight from StewardTrack, so every nurture stream feels timely and specific.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Marley Watkins</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Lifecycle Marketing Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Brightline</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Marketing strategist planning lifecycle campaigns</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.7</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="adoptionHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Dynamic video chapters based on role",
-              "Usage telemetry piping directly into productboard",
-              "Confidence score surfaced before rollout reviews"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-product-adoption.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Dynamic video chapters based on role</Value>
+              <Value>Usage telemetry piping directly into productboard</Value>
+              <Value>Confidence score surfaced before rollout reviews</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

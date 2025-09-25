@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/community-invite"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/community-invite" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-community-invite">
     <Title>UI Block: Community invite CTA</Title>
     <Regions>
@@ -17,8 +10,8 @@
             <Prop name="badge" kind="static">Community</Prop>
             <Prop name="headline" kind="static">Join the metadata leadership circle</Prop>
             <Prop name="description" kind="static">A private space for product, lifecycle, and revenue leaders shipping metadata-driven experiences.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="request-invite" />
-            <Prop name="secondaryCta" kind="action" actionId="view-calendar" />
+            <Prop name="primaryCta" kind="action" actionId="request-invite"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-calendar"/>
           </Props>
         </Component>
       </Region>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/product"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/product" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-product">
     <Title>UI Block: Newsletter product ledger</Title>
     <Regions>
@@ -17,72 +10,153 @@
             <Prop name="eyebrow" kind="static">Release radar</Prop>
             <Prop name="headline" kind="static">StewardTrack change log</Prop>
             <Prop name="description" kind="static">The weekly bulletin covering every metadata update, experiment, and roadmap insight across the platform.</Prop>
-            <Prop name="cards" kind="binding" source="productCards" path="items" />
-            <Prop name="stats" kind="binding" source="productStats" path="items" />
-            <Prop name="form" kind="binding" source="productForm" path="$" />
+            <Prop name="cards" kind="binding" contract="productCards.items"/>
+            <Prop name="stats" kind="binding" contract="productStats.items"/>
+            <Prop name="form" kind="binding" contract="productForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="productCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Runtime",
-                "title": "Schema validation guardrails",
-                "description": "Automatically flag breaking changes before they reach production." 
-              },
-              {
-                "badge": "Experiments",
-                "title": "Adaptive onboarding tours",
-                "description": "We shipped metadata-driven tours that adapt to customer segments."
-              },
-              {
-                "badge": "Integrations",
-                "title": "New CRM connector",
-                "description": "Sync activation milestones into Salesforce in under 10 minutes."
-              },
-              {
-                "badge": "Roadmap",
-                "title": "Component analytics",
-                "description": "Preview the dashboards that benchmark blueprint performance."
-              },
-              {
-                "badge": "Docs",
-                "title": "Metadata API quickstart",
-                "description": "Get up and running with our new TypeScript SDK in a single afternoon."
-              },
-              {
-                "badge": "Community",
-                "title": "Contributor spotlights",
-                "description": "See how customers extend StewardTrack with custom renderers and data sources."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-product.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Runtime</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Schema validation guardrails</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Automatically flag breaking changes before they reach production.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Experiments</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Adaptive onboarding tours</Value>
+                </Field>
+                <Field name="description">
+                  <Value>We shipped metadata-driven tours that adapt to customer segments.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Integrations</Value>
+                </Field>
+                <Field name="title">
+                  <Value>New CRM connector</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Sync activation milestones into Salesforce in under 10 minutes.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Roadmap</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Component analytics</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Preview the dashboards that benchmark blueprint performance.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Docs</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Metadata API quickstart</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Get up and running with our new TypeScript SDK in a single afternoon.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Community</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Contributor spotlights</Value>
+                </Field>
+                <Field name="description">
+                  <Value>See how customers extend StewardTrack with custom renderers and data sources.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="productStats" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {"label": "Tickets resolved", "value": "412", "caption": "Issues closed in the last cycle."},
-              {"label": "Blueprints shipped", "value": "29", "caption": "New reusable layouts launched this quarter."},
-              {"label": "Community contributions", "value": "86", "caption": "Pull requests merged from builders."}
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-product.stats"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Tickets resolved</Value>
+                </Field>
+                <Field name="value">
+                  <Value>412</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Issues closed in the last cycle.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Blueprints shipped</Value>
+                </Field>
+                <Field name="value">
+                  <Value>29</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>New reusable layouts launched this quarter.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Community contributions</Value>
+                </Field>
+                <Field name="value">
+                  <Value>86</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Pull requests merged from builders.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="productForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "release-notes@company.com",
-            "buttonLabel": "Track every update",
-            "disclaimer": "Delivered Friday with change log, experiments, and roadmap calls.",
-            "url": "/newsletter/change-log/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-product.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>release-notes@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Track every update</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Delivered Friday with change log, experiments, and roadmap calls.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/change-log/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

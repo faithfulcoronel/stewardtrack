@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/security-posture"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/security-posture" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-security-posture">
     <Title>UI Block: Stats - Security posture</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">Security posture</Prop>
             <Prop name="headline" kind="static">Continuous controls that keep your auditors smiling</Prop>
             <Prop name="description" kind="static">Prove that your risk program runs on automation, not slide decks, with real-time security operations data.</Prop>
-            <Prop name="metrics" kind="binding" source="securityMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="securityMetrics.items"/>
             <Prop name="footnote" kind="static">Security posture validated quarterly by independent assessors.</Prop>
           </Props>
         </Component>
@@ -25,50 +18,105 @@
     </Regions>
     <DataSources>
       <DataSource id="securityMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Preventive controls automated",
-                "value": "87%",
-                "change": "+9 pts",
-                "changeLabel": "YoY",
-                "description": "Security policies enforced through code and workflows."
-              },
-              {
-                "label": "Third-party risk resolved",
-                "value": "96%",
-                "change": "+4 pts",
-                "changeLabel": "Quarter",
-                "description": "Vendors with mitigation plans accepted and tracked."
-              },
-              {
-                "label": "Critical findings",
-                "value": "0",
-                "change": "36 months",
-                "changeLabel": "Running",
-                "description": "Consecutive months without a critical vulnerability."
-              },
-              {
-                "label": "Security training completion",
-                "value": "99.2%",
-                "change": "+2 pts",
-                "changeLabel": "YoY",
-                "description": "Employees completing quarterly phishing simulations."
-              },
-              {
-                "label": "Penetration test cadence",
-                "value": "4x / year",
-                "description": "Independent red-team exercises executed annually."
-              },
-              {
-                "label": "Encryption coverage",
-                "value": "100%",
-                "description": "Data encrypted in transit and at rest across services."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-security-posture.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Preventive controls automated</Value>
+                </Field>
+                <Field name="value">
+                  <Value>87%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+9 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Security policies enforced through code and workflows.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Third-party risk resolved</Value>
+                </Field>
+                <Field name="value">
+                  <Value>96%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+4 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Quarter</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Vendors with mitigation plans accepted and tracked.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Critical findings</Value>
+                </Field>
+                <Field name="value">
+                  <Value>0</Value>
+                </Field>
+                <Field name="change">
+                  <Value>36 months</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Running</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Consecutive months without a critical vulnerability.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Security training completion</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.2%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+2 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Employees completing quarterly phishing simulations.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Penetration test cadence</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4x / year</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Independent red-team exercises executed annually.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Encryption coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>100%</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Data encrypted in transit and at rest across services.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

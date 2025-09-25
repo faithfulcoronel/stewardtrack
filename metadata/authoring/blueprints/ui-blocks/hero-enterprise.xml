@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/enterprise"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/enterprise" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-enterprise">
     <Title>UI Block: Enterprise hero</Title>
     <Regions>
@@ -17,25 +10,62 @@
             <Prop name="eyebrow" kind="static">Enterprise launchpad</Prop>
             <Prop name="headline" kind="static">Governed experiences at global scale</Prop>
             <Prop name="description" kind="static">Speak directly to procurement and compliance teams with quantified proof points.</Prop>
-            <Prop name="metrics" kind="binding" source="enterpriseProof" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="talk-sales" />
-            <Prop name="secondaryCta" kind="action" actionId="review-security" />
+            <Prop name="metrics" kind="binding" contract="enterpriseProof.items"/>
+            <Prop name="primaryCta" kind="action" actionId="talk-sales"/>
+            <Prop name="secondaryCta" kind="action" actionId="review-security"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="enterpriseProof" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Uptime", "value": "99.99%", "caption": "Measured across 4 global regions." },
-              { "label": "Certifications", "value": "SOC2 + ISO 27001" },
-              { "label": "Data regions", "value": "12", "caption": "Geo-fenced blueprint registries." },
-              { "label": "Access reviews", "value": "Quarterly" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-enterprise.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Uptime</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.99%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Measured across 4 global regions.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Certifications</Value>
+                </Field>
+                <Field name="value">
+                  <Value>SOC2 + ISO 27001</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Data regions</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Geo-fenced blueprint registries.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Access reviews</Value>
+                </Field>
+                <Field name="value">
+                  <Value>Quarterly</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

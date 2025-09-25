@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/integrations-hub"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/integrations-hub" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-integrations-hub">
     <Title>UI Block: Integrations hub CTA</Title>
     <Regions>
@@ -18,26 +11,57 @@
             <Prop name="headline" kind="static">Connect StewardTrack across your stack</Prop>
             <Prop name="description" kind="static">Activate pre-built connectors for analytics, product, and GTM teams while keeping governance centralized.</Prop>
             <Prop name="highlight" kind="static">Trusted by RevOps and Platform teams</Prop>
-            <Prop name="highlights" kind="binding" source="integrationHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="browse-integrations" />
-            <Prop name="secondaryCta" kind="action" actionId="talk-solutions" />
-            <Prop name="tertiaryCta" kind="action" actionId="see-roadmap" />
+            <Prop name="highlights" kind="binding" contract="integrationHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="browse-integrations"/>
+            <Prop name="secondaryCta" kind="action" actionId="talk-solutions"/>
+            <Prop name="tertiaryCta" kind="action" actionId="see-roadmap"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="integrationHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "title": "Analytics acceleration", "description": "Sync StewardTrack events to Snowflake, Looker, and Mode with governed schemas." },
-              { "title": "Lifecycle automation", "description": "Trigger lifecycle campaigns in HubSpot, Braze, and Customer.io from approval signals." },
-              { "title": "Product orchestration", "description": "Align backlog, documentation, and launch plans in Jira, Linear, and Notion." },
-              { "title": "Compliance workflows", "description": "Pipe release evidence into Vanta, Drata, and custom GRC tools." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-integrations-hub.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Analytics acceleration</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Sync StewardTrack events to Snowflake, Looker, and Mode with governed schemas.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Lifecycle automation</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trigger lifecycle campaigns in HubSpot, Braze, and Customer.io from approval signals.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Product orchestration</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Align backlog, documentation, and launch plans in Jira, Linear, and Notion.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Compliance workflows</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Pipe release evidence into Vanta, Drata, and custom GRC tools.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

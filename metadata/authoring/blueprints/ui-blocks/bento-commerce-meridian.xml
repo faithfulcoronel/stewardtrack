@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/commerce-meridian"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/commerce-meridian" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-commerce-meridian">
     <Title>UI Block: Commerce meridian bento grid</Title>
     <Regions>
@@ -17,92 +10,182 @@
             <Prop name="eyebrow" kind="static">Commerce acceleration</Prop>
             <Prop name="headline" kind="static">Launch high-converting storefronts with operational clarity</Prop>
             <Prop name="description" kind="static">Coordinate merchandising, fulfillment, and lifecycle messaging with a bento built for omnichannel teams.</Prop>
-            <Prop name="cards" kind="binding" source="commerceMeridianCards" path="items" />
-            <Prop name="metrics" kind="binding" source="commerceMeridianMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-commerce-playbook" />
-            <Prop name="secondaryCta" kind="action" actionId="talk-retail-ops" />
+            <Prop name="cards" kind="binding" contract="commerceMeridianCards.items"/>
+            <Prop name="metrics" kind="binding" contract="commerceMeridianMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-commerce-playbook"/>
+            <Prop name="secondaryCta" kind="action" actionId="talk-retail-ops"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="commerceMeridianCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Merchandising",
-                "title": "Dynamic assortment studio",
-                "description": "Blend inventory health, demand signals, and creative to auto-build landing experiences.",
-                "tone": "amber"
-              },
-              {
-                "eyebrow": "Fulfillment",
-                "title": "Promise accuracy",
-                "description": "Surface ship-from-store, curbside, and parcel ETAs that react to capacity in real-time.",
-                "tone": "forest",
-                "footnote": "Connected to warehouse control plane."
-              },
-              {
-                "badge": "Engagement",
-                "title": "Lifecycle journeys",
-                "description": "Trigger SMS, email, and push campaigns tied to basket health and loyalty tiers.",
-                "tone": "blossom"
-              },
-              {
-                "eyebrow": "Insights",
-                "title": "Margin intelligence",
-                "description": "Track bundle mix, promo leakage, and vendor funding in one view.",
-                "tone": "surface"
-              },
-              {
-                "eyebrow": "Trust",
-                "title": "Returns concierge",
-                "description": "Automate policy-driven approvals, restocking, and exchange experiences.",
-                "tone": "frost"
-              },
-              {
-                "badge": "Performance",
-                "stat": "+38%",
-                "title": "Checkout uplift",
-                "description": "Personalized checkout modules with A/B governance built in.",
-                "tone": "dark"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-commerce-meridian.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Merchandising</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Dynamic assortment studio</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend inventory health, demand signals, and creative to auto-build landing experiences.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>amber</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Fulfillment</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Promise accuracy</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Surface ship-from-store, curbside, and parcel ETAs that react to capacity in real-time.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Connected to warehouse control plane.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Engagement</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Lifecycle journeys</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trigger SMS, email, and push campaigns tied to basket health and loyalty tiers.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>blossom</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Insights</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Margin intelligence</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track bundle mix, promo leakage, and vendor funding in one view.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Trust</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Returns concierge</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Automate policy-driven approvals, restocking, and exchange experiences.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>frost</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Performance</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>+38%</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Checkout uplift</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Personalized checkout modules with A/B governance built in.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="commerceMeridianMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Average order value",
-                "value": "$184",
-                "change": "↑ 12% YoY",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Conversion uplift",
-                "value": "+3.8 pts",
-                "change": "Across priority segments",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Return automation",
-                "value": "76%",
-                "change": "Requests processed without agent",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Campaign velocity",
-                "value": "5 launches/wk",
-                "change": "Coordinated across 12 locales",
-                "sentiment": "neutral"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-commerce-meridian.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Average order value</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$184</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↑ 12% YoY</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Conversion uplift</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+3.8 pts</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Across priority segments</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Return automation</Value>
+                </Field>
+                <Field name="value">
+                  <Value>76%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Requests processed without agent</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Campaign velocity</Value>
+                </Field>
+                <Field name="value">
+                  <Value>5 launches/wk</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Coordinated across 12 locales</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/customer-trust"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/customer-trust" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-customer-trust">
     <Title>UI Block: Stats - Customer trust</Title>
     <Regions>
@@ -17,36 +10,112 @@
             <Prop name="eyebrow" kind="static">Customer trust</Prop>
             <Prop name="headline" kind="static">Confidence metrics your buyers ask for</Prop>
             <Prop name="description" kind="static">Answer diligence questionnaires in a single glance with audited platform metrics and independent attestations.</Prop>
-            <Prop name="metrics" kind="binding" source="trustMetrics" path="items" />
-            <Prop name="badges" kind="binding" source="trustBadges" path="items" />
+            <Prop name="metrics" kind="binding" contract="trustMetrics.items"/>
+            <Prop name="badges" kind="binding" contract="trustBadges.items"/>
             <Prop name="footnote" kind="static">Independent audit window: FY2024</Prop>
-            <Prop name="primaryCta" kind="action" actionId="view-trust" />
-            <Prop name="secondaryCta" kind="action" actionId="download-kit" />
+            <Prop name="primaryCta" kind="action" actionId="view-trust"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-kit"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="trustMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Platform uptime", "value": "99.995%", "description": "Across all global regions during the last 12 months." },
-              { "label": "Incident resolution", "value": "94% &lt;1h", "description": "Priority incidents resolved within the first hour." },
-              { "label": "Customer retention", "value": "98%", "change": "+3 pts", "changeLabel": "YoY", "description": "Enterprise segment retention rate." },
-              { "label": "Security reviews", "value": "28", "description": "Independent compliance assessments completed." },
-              { "label": "Customer satisfaction", "value": "4.92 / 5", "description": "Average CSAT across 18k survey responses." },
-              { "label": "Global coverage", "value": "14 regions", "description": "Active data residency zones maintained." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-customer-trust.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Platform uptime</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.995%</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Across all global regions during the last 12 months.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Incident resolution</Value>
+                </Field>
+                <Field name="value">
+                  <Value>94% &amp;lt;1h</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Priority incidents resolved within the first hour.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Customer retention</Value>
+                </Field>
+                <Field name="value">
+                  <Value>98%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+3 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Enterprise segment retention rate.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Security reviews</Value>
+                </Field>
+                <Field name="value">
+                  <Value>28</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Independent compliance assessments completed.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Customer satisfaction</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.92 / 5</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Average CSAT across 18k survey responses.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Global coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>14 regions</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Active data residency zones maintained.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="trustBadges" kind="static">
-        <Json><![CDATA[
-          {
-            "items": ["SOC 2 Type II", "ISO 27001", "GDPR ready"]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-customer-trust.badges"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>SOC 2 Type II</Value>
+              <Value>ISO 27001</Value>
+              <Value>GDPR ready</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

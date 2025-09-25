@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/enablement-hub"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/enablement-hub" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-enablement-hub">
     <Title>UI Block: Enablement hub feature section</Title>
     <Regions>
@@ -17,45 +10,126 @@
             <Prop name="eyebrow" kind="static">Revenue enablement</Prop>
             <Prop name="title" kind="static">Orchestrate learning, assets, and coaching in one hub</Prop>
             <Prop name="description" kind="static">Equip sales, customer success, and partners with curated paths tied directly to outcomes.</Prop>
-            <Prop name="columns" kind="binding" source="enablementColumns" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="explore-enablement" />
-            <Prop name="secondaryCta" kind="action" actionId="download-enablement-guide" />
+            <Prop name="columns" kind="binding" contract="enablementColumns.items"/>
+            <Prop name="primaryCta" kind="action" actionId="explore-enablement"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-enablement-guide"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="enablementColumns" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Learning journeys",
-                "description": "Tailor onboarding and ongoing development paths with adaptive assessments.",
-                "items": [
-                  { "icon": "📚", "title": "Role libraries", "description": "Map competencies for SDR, AE, CSM, and partner roles." },
-                  { "icon": "🧑‍🏫", "title": "Coaching loops", "description": "Blend live call reviews with asynchronous feedback." }
-                ]
-              },
-              {
-                "title": "Asset delivery",
-                "description": "Serve the right collateral at the right moment directly in team workflows.",
-                "items": [
-                  { "icon": "🔎", "title": "Contextual search", "description": "Surface battlecards and decks based on deal stage." },
-                  { "icon": "🔗", "title": "CRM automation", "description": "Trigger follow-up tasks when assets are viewed or shared." }
-                ]
-              },
-              {
-                "title": "Performance insights",
-                "description": "Connect learning progress with pipeline and revenue outcomes.",
-                "items": [
-                  { "icon": "📈", "title": "Readiness scores", "description": "Spot skill gaps with data-backed recommendations." },
-                  { "icon": "🤝", "title": "Deal influence", "description": "Attribute asset usage to closed-won revenue." }
-                ]
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-enablement-hub.columns"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Learning journeys</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Tailor onboarding and ongoing development paths with adaptive assessments.</Value>
+                </Field>
+                <Field name="items">
+                  <Array>
+                    <Object>
+                      <Field name="icon">
+                        <Value>📚</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Role libraries</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Map competencies for SDR, AE, CSM, and partner roles.</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="icon">
+                        <Value>🧑‍🏫</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Coaching loops</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Blend live call reviews with asynchronous feedback.</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Asset delivery</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Serve the right collateral at the right moment directly in team workflows.</Value>
+                </Field>
+                <Field name="items">
+                  <Array>
+                    <Object>
+                      <Field name="icon">
+                        <Value>🔎</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Contextual search</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Surface battlecards and decks based on deal stage.</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="icon">
+                        <Value>🔗</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>CRM automation</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Trigger follow-up tasks when assets are viewed or shared.</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Performance insights</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Connect learning progress with pipeline and revenue outcomes.</Value>
+                </Field>
+                <Field name="items">
+                  <Array>
+                    <Object>
+                      <Field name="icon">
+                        <Value>📈</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Readiness scores</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Spot skill gaps with data-backed recommendations.</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="icon">
+                        <Value>🤝</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Deal influence</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Attribute asset usage to closed-won revenue.</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

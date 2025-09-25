@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="admin-community"
-  route="members/profile"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="admin-community" route="members/profile" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="admin-community-membership-profile">
     <Title>Membership profile</Title>
     <Regions>
@@ -14,211 +7,211 @@
         <Component id="profile-hero" type="HeroSection">
           <Props>
             <Prop name="variant" kind="static">split</Prop>
-            <Prop name="eyebrow" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="eyebrow" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                return `${record.stage ?? "Active"} · ${record.center ?? "Center"}`;
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                return `${record.stage ?? &quot;Active&quot;} · ${record.center ?? &quot;Center&quot;}`;
               })()
-            ]]></Prop>
-            <Prop name="headline" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="headline" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                return `${record.fullName ?? "Member"} household profile`;
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                return `${record.fullName ?? &quot;Member&quot;} household profile`;
               })()
-            ]]></Prop>
-            <Prop name="description" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="description" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const center = record.center ?? "primary center";
-                const serving = record.serving?.team ? `${record.serving.team} team` : "serving opportunities";
-                const coach = record.serving?.coach ? `Coached by ${record.serving.coach}.` : "";
-                return `${record.preferredName ?? record.fullName ?? "This member"} worships at the ${center} and is engaged with the ${serving}. ${coach}`.trim();
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const center = record.center ?? &quot;primary center&quot;;
+                const serving = record.serving?.team ? `${record.serving.team} team` : &quot;serving opportunities&quot;;
+                const coach = record.serving?.coach ? `Coached by ${record.serving.coach}.` : &quot;&quot;;
+                return `${record.preferredName ?? record.fullName ?? &quot;This member&quot;} worships at the ${center} and is engaged with the ${serving}. ${coach}`.trim();
               })()
-            ]]></Prop>
-            <Prop name="image" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="image" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const fullName = record.fullName ?? 'Member';
-                const photoUrl = record.photoUrl ?? '';
-                const fallbackUrl = 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=facearea&w=600&h=600&q=80';
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const fullName = record.fullName ?? &apos;Member&apos;;
+                const photoUrl = record.photoUrl ?? &apos;&apos;;
+                const fallbackUrl = &apos;https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&amp;fit=facearea&amp;w=600&amp;h=600&amp;q=80&apos;;
                 return {
                   src: photoUrl || fallbackUrl,
-                  alt: `${fullName}'s profile photo`
+                  alt: `${fullName}&apos;s profile photo`
                 };
               })()
-            ]]></Prop>
-            <Prop name="metrics" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="metrics" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount ?? 0);
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
                 return [
-                  { label: 'YTD giving', value: formatCurrency(record.giving?.ytd ?? 0), caption: `Pledge ${formatCurrency(record.giving?.pledge ?? 0)}` },
-                  { label: 'Serving rhythm', value: record.serving?.schedule ?? 'Every other week', caption: record.serving?.team ?? 'Serving team' },
-                  { label: 'Care status', value: record.carePlan?.status ?? 'Resolved', caption: record.carePlan?.details ?? 'No active plan' }
+                  { label: &apos;YTD giving&apos;, value: formatCurrency(record.giving?.ytd ?? 0), caption: `Pledge ${formatCurrency(record.giving?.pledge ?? 0)}` },
+                  { label: &apos;Serving rhythm&apos;, value: record.serving?.schedule ?? &apos;Every other week&apos;, caption: record.serving?.team ?? &apos;Serving team&apos; },
+                  { label: &apos;Care status&apos;, value: record.carePlan?.status ?? &apos;Resolved&apos;, caption: record.carePlan?.details ?? &apos;No active plan&apos; }
                 ];
               })()
-            ]]></Prop>
-            <Prop name="primaryCta" kind="expression"><![CDATA[
-              (() => {
+            </Prop>
+            <Prop name="primaryCta" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const targetId = record.id ?? params.memberId ?? '';
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const targetId = record.id ?? params.memberId ?? &apos;&apos;;
                 return {
-                  id: 'edit-member-cta',
+                  id: &apos;edit-member-cta&apos;,
                   config: {
-                    label: 'Edit member',
+                    label: &apos;Edit member&apos;,
                     url: `/admin/members/manage?memberId=${targetId}`,
-                    variant: 'primary'
+                    variant: &apos;primary&apos;
                   }
                 };
               })()
-            ]]></Prop>
-            <Prop name="secondaryCta" kind="action" actionId="back-to-list" />
+            </Prop>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
           </Props>
         </Component>
         <Component id="profile-metrics" type="AdminMetricCards">
           <Props>
             <Prop name="title" kind="static">Discipleship pulse</Prop>
-            <Prop name="metrics" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="metrics" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value >= 1000 ? 0 : 2 }).format(value ?? 0);
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const formatCurrency = (value) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: value &gt;= 1000 ? 0 : 2 }).format(value ?? 0);
                 return [
                   {
-                    id: 'metric-recurring',
-                    label: 'Recurring giving',
+                    id: &apos;metric-recurring&apos;,
+                    label: &apos;Recurring giving&apos;,
                     value: formatCurrency(record.giving?.recurring?.amount ?? 0),
-                    change: record.giving?.recurring?.frequency ?? 'Monthly',
-                    trend: 'up',
-                    tone: 'informative',
-                    description: `Method: ${record.giving?.recurring?.method ?? 'Card'} · Last gift ${formatCurrency(record.giving?.lastGift?.amount ?? 0)} on ${record.giving?.lastGift?.date ?? ''}`
+                    change: record.giving?.recurring?.frequency ?? &apos;Monthly&apos;,
+                    trend: &apos;up&apos;,
+                    tone: &apos;informative&apos;,
+                    description: `Method: ${record.giving?.recurring?.method ?? &apos;Card&apos;} · Last gift ${formatCurrency(record.giving?.lastGift?.amount ?? 0)} on ${record.giving?.lastGift?.date ?? &apos;&apos;}`
                   },
                   {
-                    id: 'metric-attendance',
-                    label: 'Attendance pulse',
+                    id: &apos;metric-attendance&apos;,
+                    label: &apos;Attendance pulse&apos;,
                     value: `${record.attendance?.twelveWeekAttendance ?? 0}% engaged`,
-                    change: record.attendance?.lastAttendance ? `Last attended ${record.attendance.lastAttendance}` : 'Attendance unknown',
-                    trend: 'up',
-                    tone: 'positive',
-                    description: record.discipleship?.nextStep ?? 'Confirm next discipleship touchpoint.'
+                    change: record.attendance?.lastAttendance ? `Last attended ${record.attendance.lastAttendance}` : &apos;Attendance unknown&apos;,
+                    trend: &apos;up&apos;,
+                    tone: &apos;positive&apos;,
+                    description: record.discipleship?.nextStep ?? &apos;Confirm next discipleship touchpoint.&apos;
                   },
                   {
-                    id: 'metric-serving',
-                    label: 'Next serve',
-                    value: record.serving?.nextServeDate ?? 'Schedule pending',
-                    change: record.serving?.team ? `${record.serving.team} · ${record.serving.schedule ?? 'Rhythm TBD'}` : 'Serving opportunity open',
-                    trend: 'flat',
-                    tone: 'neutral',
-                    description: record.carePlan?.assignedTo ? `Care pastor: ${record.carePlan.assignedTo}` : 'Assign a care contact.'
+                    id: &apos;metric-serving&apos;,
+                    label: &apos;Next serve&apos;,
+                    value: record.serving?.nextServeDate ?? &apos;Schedule pending&apos;,
+                    change: record.serving?.team ? `${record.serving.team} · ${record.serving.schedule ?? &apos;Rhythm TBD&apos;}` : &apos;Serving opportunity open&apos;,
+                    trend: &apos;flat&apos;,
+                    tone: &apos;neutral&apos;,
+                    description: record.carePlan?.assignedTo ? `Care pastor: ${record.carePlan.assignedTo}` : &apos;Assign a care contact.&apos;
                   }
                 ];
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
         <Component id="profile-workspace" type="AdminMemberWorkspace">
           <Props>
             <Prop name="variant" kind="static">profile</Prop>
-            <Prop name="tabs" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="tabs" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const targetId = record.id ?? params.memberId ?? '';
-                const manageUrl = (section) => `/admin/members/manage?memberId=${targetId}&section=${section}`;
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                const targetId = record.id ?? params.memberId ?? &apos;&apos;;
+                const manageUrl = (section) =&gt; `/admin/members/manage?memberId=${targetId}&amp;section=${section}`;
                 const address = record.household?.address ?? {};
-                const envelope = record.envelopeNumber ? `Envelope #${record.envelopeNumber}` : 'No envelope assigned';
+                const envelope = record.envelopeNumber ? `Envelope #${record.envelopeNumber}` : &apos;No envelope assigned&apos;;
                 const attendancePercent = record.attendance?.twelveWeekAttendance ?? 0;
-                const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : 'Attendance unknown';
-                const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount ?? 0);
+                const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : &apos;Attendance unknown&apos;;
+                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
                 const lastGift = record.giving?.lastGift ?? {};
-                const givingSummary = record.giving?.pledge ? `${formatCurrency(record.giving.pledge)} pledge` : 'No active pledge';
+                const givingSummary = record.giving?.pledge ? `${formatCurrency(record.giving.pledge)} pledge` : &apos;No active pledge&apos;;
 
                 return [
                   {
-                    id: 'overview',
-                    label: 'Overview',
-                    description: 'Identity, household, and milestone history.',
+                    id: &apos;overview&apos;,
+                    label: &apos;Overview&apos;,
+                    description: &apos;Identity, household, and milestone history.&apos;,
                     sections: [
                       {
-                        kind: 'panel',
-                        id: 'identity',
-                        title: 'Identity & household',
+                        kind: &apos;panel&apos;,
+                        id: &apos;identity&apos;,
+                        title: &apos;Identity &amp; household&apos;,
                         summary: {
-                          label: 'Household',
-                          value: record.household?.name ?? record.fullName ?? 'Household profile',
+                          label: &apos;Household&apos;,
+                          value: record.household?.name ?? record.fullName ?? &apos;Household profile&apos;,
                           description: envelope,
                         },
                         panels: [
                           {
-                            id: 'profile-basics',
-                            title: 'Profile basics',
-                            action: { id: 'edit-identity', config: { label: 'Edit identity', url: manageUrl('identity'), variant: 'ghost' } },
+                            id: &apos;profile-basics&apos;,
+                            title: &apos;Profile basics&apos;,
+                            action: { id: &apos;edit-identity&apos;, config: { label: &apos;Edit identity&apos;, url: manageUrl(&apos;identity&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Preferred name', value: record.preferredName ?? record.fullName ?? '—' },
-                              { label: 'Birthdate', value: record.demographics?.birthdate ?? '—' },
-                              { label: 'Marital status', value: record.demographics?.maritalStatus ?? '—' },
-                              { label: 'Anniversary', value: record.demographics?.anniversary ?? '—' },
-                              { label: 'Occupation', value: record.demographics?.occupation ?? '—' }
+                              { label: &apos;Preferred name&apos;, value: record.preferredName ?? record.fullName ?? &apos;—&apos; },
+                              { label: &apos;Birthdate&apos;, value: record.demographics?.birthdate ?? &apos;—&apos; },
+                              { label: &apos;Marital status&apos;, value: record.demographics?.maritalStatus ?? &apos;—&apos; },
+                              { label: &apos;Anniversary&apos;, value: record.demographics?.anniversary ?? &apos;—&apos; },
+                              { label: &apos;Occupation&apos;, value: record.demographics?.occupation ?? &apos;—&apos; }
                             ]
                           },
                           {
-                            id: 'household',
-                            title: 'Household & contact',
-                            action: { id: 'edit-household', config: { label: 'Edit household', url: manageUrl('household'), variant: 'ghost' } },
+                            id: &apos;household&apos;,
+                            title: &apos;Household &amp; contact&apos;,
+                            action: { id: &apos;edit-household&apos;, config: { label: &apos;Edit household&apos;, url: manageUrl(&apos;household&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Household members', type: 'chips', items: record.household?.members ?? [] },
-                              { label: 'Preferred contact', value: record.contact?.preferred ?? 'Email' },
-                              { label: 'Email', type: 'link', href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? '—' },
-                              { label: 'Mobile', value: record.contact?.phone ?? '—' },
-                              { label: 'Address', type: 'multiline', value: address.street ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : 'No address on file' }
+                              { label: &apos;Household members&apos;, type: &apos;chips&apos;, items: record.household?.members ?? [] },
+                              { label: &apos;Preferred contact&apos;, value: record.contact?.preferred ?? &apos;Email&apos; },
+                              { label: &apos;Email&apos;, type: &apos;link&apos;, href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? &apos;—&apos; },
+                              { label: &apos;Mobile&apos;, value: record.contact?.phone ?? &apos;—&apos; },
+                              { label: &apos;Address&apos;, type: &apos;multiline&apos;, value: address.street ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : &apos;No address on file&apos; }
                             ]
                           }
                         ]
                       },
                       {
-                        kind: 'panel',
-                        id: 'emergency',
-                        title: 'Emergency & milestones',
+                        kind: &apos;panel&apos;,
+                        id: &apos;emergency&apos;,
+                        title: &apos;Emergency &amp; milestones&apos;,
                         summary: record.emergency?.contact ? {
-                          label: 'Primary contact',
+                          label: &apos;Primary contact&apos;,
                           value: record.emergency.contact,
-                          description: `${record.emergency.relationship ?? 'Contact'} · ${record.emergency.phone ?? ''}`.trim(),
+                          description: `${record.emergency.relationship ?? &apos;Contact&apos;} · ${record.emergency.phone ?? &apos;&apos;}`.trim(),
                         } : null,
                         panels: [
                           {
-                            id: 'emergency-contact',
-                            title: 'Emergency contact',
-                            action: { id: 'edit-emergency', config: { label: 'Edit emergency contact', url: manageUrl('care'), variant: 'ghost' } },
+                            id: &apos;emergency-contact&apos;,
+                            title: &apos;Emergency contact&apos;,
+                            action: { id: &apos;edit-emergency&apos;, config: { label: &apos;Edit emergency contact&apos;, url: manageUrl(&apos;care&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Primary contact', value: record.emergency?.contact ?? '—' },
-                              { label: 'Relationship', value: record.emergency?.relationship ?? '—' },
-                              { label: 'Contact number', value: record.emergency?.phone ?? '—' },
-                              { label: 'Physician', value: record.emergency?.physician ?? '—' }
+                              { label: &apos;Primary contact&apos;, value: record.emergency?.contact ?? &apos;—&apos; },
+                              { label: &apos;Relationship&apos;, value: record.emergency?.relationship ?? &apos;—&apos; },
+                              { label: &apos;Contact number&apos;, value: record.emergency?.phone ?? &apos;—&apos; },
+                              { label: &apos;Physician&apos;, value: record.emergency?.physician ?? &apos;—&apos; }
                             ]
                           },
                           {
-                            id: 'milestones',
-                            title: 'Faith milestones',
-                            action: { id: 'edit-milestones', config: { label: 'Update milestones', url: manageUrl('discipleship'), variant: 'ghost' } },
+                            id: &apos;milestones&apos;,
+                            title: &apos;Faith milestones&apos;,
+                            action: { id: &apos;edit-milestones&apos;, config: { label: &apos;Update milestones&apos;, url: manageUrl(&apos;discipleship&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Baptism', value: record.sacraments?.baptismDate ?? 'Not recorded' },
-                              { label: 'Membership', value: record.sacraments?.membershipDate ?? record.joinDate ?? 'Not recorded' },
-                              { label: 'Child dedications', type: 'chips', items: record.sacraments?.childDedications ?? [] },
-                              { label: 'Spiritual milestones', type: 'chips', items: record.discipleship?.milestones ?? [] }
+                              { label: &apos;Baptism&apos;, value: record.sacraments?.baptismDate ?? &apos;Not recorded&apos; },
+                              { label: &apos;Membership&apos;, value: record.sacraments?.membershipDate ?? record.joinDate ?? &apos;Not recorded&apos; },
+                              { label: &apos;Child dedications&apos;, type: &apos;chips&apos;, items: record.sacraments?.childDedications ?? [] },
+                              { label: &apos;Spiritual milestones&apos;, type: &apos;chips&apos;, items: record.discipleship?.milestones ?? [] }
                             ]
                           }
                         ]
@@ -226,73 +219,73 @@
                     ]
                   },
                   {
-                    id: 'engagement',
-                    label: 'Engagement',
-                    description: 'Groups, ministry interests, and attendance signals.',
+                    id: &apos;engagement&apos;,
+                    label: &apos;Engagement&apos;,
+                    description: &apos;Groups, ministry interests, and attendance signals.&apos;,
                     sections: [
                       {
-                        kind: 'panel',
-                        id: 'groups',
-                        title: 'Communities & pathways',
+                        kind: &apos;panel&apos;,
+                        id: &apos;groups&apos;,
+                        title: &apos;Communities &amp; pathways&apos;,
                         summary: {
-                          label: 'Attendance pulse',
+                          label: &apos;Attendance pulse&apos;,
                           value: attendanceDisplay,
-                          description: `Last attended ${record.attendance?.lastAttendance ?? '—'}`,
+                          description: `Last attended ${record.attendance?.lastAttendance ?? &apos;—&apos;}`,
                         },
                         panels: [
                           {
-                            id: 'group-participation',
-                            title: 'Group participation',
-                            action: { id: 'edit-groups', config: { label: 'Edit groups', url: manageUrl('engagement'), variant: 'ghost' } },
+                            id: &apos;group-participation&apos;,
+                            title: &apos;Group participation&apos;,
+                            action: { id: &apos;edit-groups&apos;, config: { label: &apos;Edit groups&apos;, url: manageUrl(&apos;engagement&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Active groups', type: 'chips', items: record.engagement?.groups ?? [] },
-                              { label: 'Pathways', type: 'chips', items: record.engagement?.pathways ?? [] },
-                              { label: 'Mentor', value: record.discipleship?.mentor ?? 'Not assigned' },
-                              { label: 'Next discipleship step', type: 'multiline', value: record.discipleship?.nextStep ?? 'Set the next discipleship step.' }
+                              { label: &apos;Active groups&apos;, type: &apos;chips&apos;, items: record.engagement?.groups ?? [] },
+                              { label: &apos;Pathways&apos;, type: &apos;chips&apos;, items: record.engagement?.pathways ?? [] },
+                              { label: &apos;Mentor&apos;, value: record.discipleship?.mentor ?? &apos;Not assigned&apos; },
+                              { label: &apos;Next discipleship step&apos;, type: &apos;multiline&apos;, value: record.discipleship?.nextStep ?? &apos;Set the next discipleship step.&apos; }
                             ]
                           },
                           {
-                            id: 'gifts-interests',
-                            title: 'Gifts & interests',
-                            action: { id: 'edit-interests', config: { label: 'Edit interests', url: manageUrl('engagement'), variant: 'ghost' } },
+                            id: &apos;gifts-interests&apos;,
+                            title: &apos;Gifts &amp; interests&apos;,
+                            action: { id: &apos;edit-interests&apos;, config: { label: &apos;Edit interests&apos;, url: manageUrl(&apos;engagement&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Spiritual gifts', type: 'chips', items: record.engagement?.spiritualGifts ?? [] },
-                              { label: 'Ministry interests', type: 'chips', items: record.engagement?.interests ?? [] },
-                              { label: 'Recent prayer needs', type: 'multiline', value: record.carePlan?.prayerRequests ?? 'No prayer requests logged.' }
+                              { label: &apos;Spiritual gifts&apos;, type: &apos;chips&apos;, items: record.engagement?.spiritualGifts ?? [] },
+                              { label: &apos;Ministry interests&apos;, type: &apos;chips&apos;, items: record.engagement?.interests ?? [] },
+                              { label: &apos;Recent prayer needs&apos;, type: &apos;multiline&apos;, value: record.carePlan?.prayerRequests ?? &apos;No prayer requests logged.&apos; }
                             ]
                           }
                         ]
                       },
                       {
-                        kind: 'panel',
-                        id: 'serving',
-                        title: 'Serving & leadership',
+                        kind: &apos;panel&apos;,
+                        id: &apos;serving&apos;,
+                        title: &apos;Serving &amp; leadership&apos;,
                         summary: record.serving?.nextServeDate ? {
-                          label: 'Next serve date',
+                          label: &apos;Next serve date&apos;,
                           value: record.serving.nextServeDate,
-                          description: record.serving?.schedule ?? '',
+                          description: record.serving?.schedule ?? &apos;&apos;,
                         } : null,
                         panels: [
                           {
-                            id: 'serving-details',
-                            title: 'Serving assignment',
-                            action: { id: 'edit-serving', config: { label: 'Edit serving', url: manageUrl('serving'), variant: 'ghost' } },
+                            id: &apos;serving-details&apos;,
+                            title: &apos;Serving assignment&apos;,
+                            action: { id: &apos;edit-serving&apos;, config: { label: &apos;Edit serving&apos;, url: manageUrl(&apos;serving&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Team', value: record.serving?.team ?? 'Not assigned' },
-                              { label: 'Role', value: record.serving?.role ?? '—' },
-                              { label: 'Schedule', value: record.serving?.schedule ?? 'Flexible' },
-                              { label: 'Coach', value: record.serving?.coach ?? 'Not assigned' }
+                              { label: &apos;Team&apos;, value: record.serving?.team ?? &apos;Not assigned&apos; },
+                              { label: &apos;Role&apos;, value: record.serving?.role ?? &apos;—&apos; },
+                              { label: &apos;Schedule&apos;, value: record.serving?.schedule ?? &apos;Flexible&apos; },
+                              { label: &apos;Coach&apos;, value: record.serving?.coach ?? &apos;Not assigned&apos; }
                             ]
                           },
                           {
-                            id: 'leadership',
-                            title: 'Leadership scope',
-                            action: { id: 'edit-leadership', config: { label: 'Edit leadership', url: manageUrl('serving'), variant: 'ghost' } },
+                            id: &apos;leadership&apos;,
+                            title: &apos;Leadership scope&apos;,
+                            action: { id: &apos;edit-leadership&apos;, config: { label: &apos;Edit leadership&apos;, url: manageUrl(&apos;serving&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Leadership roles', type: 'chips', items: record.leadership?.roles ?? [] },
-                              { label: 'Reports to', value: record.leadership?.reportsTo ?? record.serving?.coach ?? '—' },
-                              { label: 'Team focus', value: record.leadership?.teamFocus ?? record.serving?.team ?? '—' },
-                              { label: 'Last leadership touchpoint', value: record.leadership?.lastHuddle ?? '—' }
+                              { label: &apos;Leadership roles&apos;, type: &apos;chips&apos;, items: record.leadership?.roles ?? [] },
+                              { label: &apos;Reports to&apos;, value: record.leadership?.reportsTo ?? record.serving?.coach ?? &apos;—&apos; },
+                              { label: &apos;Team focus&apos;, value: record.leadership?.teamFocus ?? record.serving?.team ?? &apos;—&apos; },
+                              { label: &apos;Last leadership touchpoint&apos;, value: record.leadership?.lastHuddle ?? &apos;—&apos; }
                             ]
                           }
                         ]
@@ -300,39 +293,39 @@
                     ]
                   },
                   {
-                    id: 'care',
-                    label: 'Care & discipleship',
-                    description: 'Pastoral care assignments and confidential notes.',
+                    id: &apos;care&apos;,
+                    label: &apos;Care &amp; discipleship&apos;,
+                    description: &apos;Pastoral care assignments and confidential notes.&apos;,
                     sections: [
                       {
-                        kind: 'panel',
-                        id: 'care-plan',
-                        title: 'Care overview',
+                        kind: &apos;panel&apos;,
+                        id: &apos;care-plan&apos;,
+                        title: &apos;Care overview&apos;,
                         summary: {
-                          label: 'Care status',
-                          value: record.carePlan?.status ?? 'Resolved',
-                          description: record.carePlan?.details ?? 'No active care plan.',
+                          label: &apos;Care status&apos;,
+                          value: record.carePlan?.status ?? &apos;Resolved&apos;,
+                          description: record.carePlan?.details ?? &apos;No active care plan.&apos;,
                         },
                         panels: [
                           {
-                            id: 'care-details',
-                            title: 'Care plan',
-                            action: { id: 'edit-care', config: { label: 'Update care', url: manageUrl('care'), variant: 'ghost' } },
+                            id: &apos;care-details&apos;,
+                            title: &apos;Care plan&apos;,
+                            action: { id: &apos;edit-care&apos;, config: { label: &apos;Update care&apos;, url: manageUrl(&apos;care&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Status', type: 'badge', variant: record.carePlan?.statusVariant ?? 'neutral', value: record.carePlan?.status ?? 'Resolved' },
-                              { label: 'Assigned pastor', value: record.carePlan?.assignedTo ?? '—' },
-                              { label: 'Follow-up date', value: record.carePlan?.followUpDate ?? '—' },
-                              { label: 'Notes', type: 'multiline', value: record.carePlan?.details ?? 'No active tasks.' }
+                              { label: &apos;Status&apos;, type: &apos;badge&apos;, variant: record.carePlan?.statusVariant ?? &apos;neutral&apos;, value: record.carePlan?.status ?? &apos;Resolved&apos; },
+                              { label: &apos;Assigned pastor&apos;, value: record.carePlan?.assignedTo ?? &apos;—&apos; },
+                              { label: &apos;Follow-up date&apos;, value: record.carePlan?.followUpDate ?? &apos;—&apos; },
+                              { label: &apos;Notes&apos;, type: &apos;multiline&apos;, value: record.carePlan?.details ?? &apos;No active tasks.&apos; }
                             ]
                           },
                           {
-                            id: 'pastoral-notes',
-                            title: 'Pastoral notes',
-                            action: { id: 'edit-notes', config: { label: 'Edit notes', url: manageUrl('care'), variant: 'ghost' } },
+                            id: &apos;pastoral-notes&apos;,
+                            title: &apos;Pastoral notes&apos;,
+                            action: { id: &apos;edit-notes&apos;, config: { label: &apos;Edit notes&apos;, url: manageUrl(&apos;care&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Confidential notes', type: 'multiline', value: record.carePlan?.pastoralNotes ?? 'No notes on file.' },
-                              { label: 'Prayer requests', type: 'multiline', value: record.carePlan?.prayerRequests ?? 'No prayer requests logged.' },
-                              { label: 'Care team', type: 'chips', items: record.carePlan?.team ?? [] }
+                              { label: &apos;Confidential notes&apos;, type: &apos;multiline&apos;, value: record.carePlan?.pastoralNotes ?? &apos;No notes on file.&apos; },
+                              { label: &apos;Prayer requests&apos;, type: &apos;multiline&apos;, value: record.carePlan?.prayerRequests ?? &apos;No prayer requests logged.&apos; },
+                              { label: &apos;Care team&apos;, type: &apos;chips&apos;, items: record.carePlan?.team ?? [] }
                             ]
                           }
                         ]
@@ -340,39 +333,39 @@
                     ]
                   },
                   {
-                    id: 'finance',
-                    label: 'Finance',
-                    description: 'Giving trends, pledges, and campaign participation.',
+                    id: &apos;finance&apos;,
+                    label: &apos;Finance&apos;,
+                    description: &apos;Giving trends, pledges, and campaign participation.&apos;,
                     sections: [
                       {
-                        kind: 'panel',
-                        id: 'giving',
-                        title: 'Giving snapshot',
+                        kind: &apos;panel&apos;,
+                        id: &apos;giving&apos;,
+                        title: &apos;Giving snapshot&apos;,
                         summary: {
-                          label: 'Recurring giving',
-                          value: record.giving?.recurring ? `${formatCurrency(record.giving.recurring.amount)} ${record.giving.recurring.frequency}` : 'Not enrolled',
+                          label: &apos;Recurring giving&apos;,
+                          value: record.giving?.recurring ? `${formatCurrency(record.giving.recurring.amount)} ${record.giving.recurring.frequency}` : &apos;Not enrolled&apos;,
                           description: givingSummary,
                         },
                         panels: [
                           {
-                            id: 'giving-metrics',
-                            title: 'Giving metrics',
-                            action: { id: 'edit-giving', config: { label: 'Update giving', url: manageUrl('finance'), variant: 'ghost' } },
+                            id: &apos;giving-metrics&apos;,
+                            title: &apos;Giving metrics&apos;,
+                            action: { id: &apos;edit-giving&apos;, config: { label: &apos;Update giving&apos;, url: manageUrl(&apos;finance&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Year-to-date', type: 'currency', value: record.giving?.ytd ?? 0 },
-                              { label: 'Pledge commitment', type: 'currency', value: record.giving?.pledge ?? 0, description: record.giving?.campaign ?? 'No active campaign' },
-                              { label: 'Last gift', value: lastGift.date ? `${lastGift.date} · ${lastGift.fund ?? 'Fund'}` : '—', description: lastGift.amount ? formatCurrency(lastGift.amount) : '' },
-                              { label: 'Preferred fund', value: record.giving?.primaryFund ?? 'General fund' }
+                              { label: &apos;Year-to-date&apos;, type: &apos;currency&apos;, value: record.giving?.ytd ?? 0 },
+                              { label: &apos;Pledge commitment&apos;, type: &apos;currency&apos;, value: record.giving?.pledge ?? 0, description: record.giving?.campaign ?? &apos;No active campaign&apos; },
+                              { label: &apos;Last gift&apos;, value: lastGift.date ? `${lastGift.date} · ${lastGift.fund ?? &apos;Fund&apos;}` : &apos;—&apos;, description: lastGift.amount ? formatCurrency(lastGift.amount) : &apos;&apos; },
+                              { label: &apos;Preferred fund&apos;, value: record.giving?.primaryFund ?? &apos;General fund&apos; }
                             ]
                           },
                           {
-                            id: 'finance-admin',
-                            title: 'Finance admin',
-                            action: { id: 'manage-statements', config: { label: 'Record finance note', url: manageUrl('finance'), variant: 'ghost' } },
+                            id: &apos;finance-admin&apos;,
+                            title: &apos;Finance admin&apos;,
+                            action: { id: &apos;manage-statements&apos;, config: { label: &apos;Record finance note&apos;, url: manageUrl(&apos;finance&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Statement delivery', value: record.finance?.statementPreference ?? 'Email' },
-                              { label: 'Gift capacity tier', value: record.finance?.capacityTier ?? 'Mid-tier' },
-                              { label: 'Finance notes', type: 'multiline', value: record.finance?.notes ?? 'No finance notes.' }
+                              { label: &apos;Statement delivery&apos;, value: record.finance?.statementPreference ?? &apos;Email&apos; },
+                              { label: &apos;Gift capacity tier&apos;, value: record.finance?.capacityTier ?? &apos;Mid-tier&apos; },
+                              { label: &apos;Finance notes&apos;, type: &apos;multiline&apos;, value: record.finance?.notes ?? &apos;No finance notes.&apos; }
                             ]
                           }
                         ]
@@ -380,40 +373,40 @@
                     ]
                   },
                   {
-                    id: 'admin',
-                    label: 'Admin',
-                    description: 'Membership status, centers, and segmentation tags.',
+                    id: &apos;admin&apos;,
+                    label: &apos;Admin&apos;,
+                    description: &apos;Membership status, centers, and segmentation tags.&apos;,
                     sections: [
                       {
-                        kind: 'panel',
-                        id: 'administration',
-                        title: 'Administrative details',
+                        kind: &apos;panel&apos;,
+                        id: &apos;administration&apos;,
+                        title: &apos;Administrative details&apos;,
                         summary: {
-                          label: 'Member ID',
-                          value: record.id ?? 'Pending ID',
-                          description: record.stage ?? 'Membership stage pending',
+                          label: &apos;Member ID&apos;,
+                          value: record.id ?? &apos;Pending ID&apos;,
+                          description: record.stage ?? &apos;Membership stage pending&apos;,
                         },
                         panels: [
                           {
-                            id: 'membership',
-                            title: 'Membership & centers',
-                            action: { id: 'edit-admin', config: { label: 'Manage admin data', url: manageUrl('admin'), variant: 'ghost' } },
+                            id: &apos;membership&apos;,
+                            title: &apos;Membership &amp; centers&apos;,
+                            action: { id: &apos;edit-admin&apos;, config: { label: &apos;Manage admin data&apos;, url: manageUrl(&apos;admin&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Stage', value: record.stage ?? 'Active' },
-                              { label: 'Membership type', value: record.membershipType ?? '—' },
-                              { label: 'Primary center', value: record.center ?? '—' },
-                              { label: 'Join date', value: record.joinDate ?? record.profile?.joinDate ?? '—' }
+                              { label: &apos;Stage&apos;, value: record.stage ?? &apos;Active&apos; },
+                              { label: &apos;Membership type&apos;, value: record.membershipType ?? &apos;—&apos; },
+                              { label: &apos;Primary center&apos;, value: record.center ?? &apos;—&apos; },
+                              { label: &apos;Join date&apos;, value: record.joinDate ?? record.profile?.joinDate ?? &apos;—&apos; }
                             ]
                           },
                           {
-                            id: 'tags-segmentation',
-                            title: 'Segmentation & tags',
-                            action: { id: 'edit-tags', config: { label: 'Edit tags', url: manageUrl('admin'), variant: 'ghost' } },
+                            id: &apos;tags-segmentation&apos;,
+                            title: &apos;Segmentation &amp; tags&apos;,
+                            action: { id: &apos;edit-tags&apos;, config: { label: &apos;Edit tags&apos;, url: manageUrl(&apos;admin&apos;), variant: &apos;ghost&apos; } },
                             items: [
-                              { label: 'Tags', type: 'chips', items: record.tags ?? [] },
-                              { label: 'Envelope number', value: record.envelopeNumber ?? '—' },
-                              { label: 'Data steward', value: record.admin?.steward ?? '—' },
-                              { label: 'Last review', value: record.admin?.lastReview ?? '—' }
+                              { label: &apos;Tags&apos;, type: &apos;chips&apos;, items: record.tags ?? [] },
+                              { label: &apos;Envelope number&apos;, value: record.envelopeNumber ?? &apos;—&apos; },
+                              { label: &apos;Data steward&apos;, value: record.admin?.steward ?? &apos;—&apos; },
+                              { label: &apos;Last review&apos;, value: record.admin?.lastReview ?? &apos;—&apos; }
                             ]
                           }
                         ]
@@ -422,402 +415,1104 @@
                   }
                 ];
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
         <Component id="profile-timeline" type="AdminActivityTimeline">
           <Props>
             <Prop name="title" kind="static">Recent milestones</Prop>
-            <Prop name="events" kind="expression"><![CDATA[
-              (() => {
+            <Prop name="events" kind="expression">
+              (() =&gt; {
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
-                const record = records.find((item) => item.id === params.memberId) ?? fallback;
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
                 return record.timeline ?? [];
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="memberDirectory" kind="service">
-        <Json><![CDATA[
-          {
-            "records": [
-              {
-                "id": "mem_001",
-                "fullName": "Avery Johnson",
-                "preferredName": "Avery",
-                "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stage": "Active member",
-                "statusVariant": "success",
-                "membershipType": "Covenant member",
-                "joinDate": "2016-03-14",
-                "center": "Downtown Center",
-                "envelopeNumber": "2041",
-                "demographics": {
-                  "birthdate": "1986-05-12",
-                  "maritalStatus": "Married",
-                  "anniversary": "2012-06-18",
-                  "occupation": "Operations director"
-                },
-                "serving": {
-                  "team": "Hospitality",
-                  "role": "Usher Captain",
-                  "schedule": "2nd & 4th Sundays · 8:30a",
-                  "coach": "Rachel Kim",
-                  "nextServeDate": "2024-10-27"
-                },
-                "leadership": {
-                  "roles": ["Hospitality captain", "Leadership mentor"],
-                  "reportsTo": "Rachel Kim",
-                  "teamFocus": "First impressions",
-                  "lastHuddle": "2024-10-05"
-                },
-                "household": {
-                  "name": "Johnson Family",
-                  "members": ["Avery Johnson", "Jordan Johnson", "Micah (7)", "Selah (4)"],
-                  "address": {
-                    "street": "412 Hope Ave",
-                    "city": "Springfield",
-                    "state": "IL",
-                    "postalCode": "62704"
-                  }
-                },
-                "contact": {
-                  "email": "avery.johnson@example.org",
-                  "phone": "(555) 204-1188",
-                  "preferred": "Text"
-                },
-                "emergency": {
-                  "contact": "Jordan Johnson",
-                  "relationship": "Spouse",
-                  "phone": "(555) 204-1189",
-                  "physician": "Dr. Mae Chen"
-                },
-                "sacraments": {
-                  "baptismDate": "2014-03-02",
-                  "membershipDate": "2016-03-14",
-                  "childDedications": ["Micah 2017", "Selah 2020"]
-                },
-                "attendance": {
-                  "twelveWeekAttendance": 92,
-                  "lastAttendance": "2024-10-13",
-                  "lastCampus": "Downtown Center"
-                },
-                "engagement": {
-                  "groups": ["Leadership Cohort", "Hospitality Huddle"],
-                  "pathways": ["Mentor track", "Hospitality residency"],
-                  "spiritualGifts": ["Leadership", "Hospitality"],
-                  "interests": ["First impressions", "Mentoring"]
-                },
-                "giving": {
-                  "ytd": 18450,
-                  "pledge": 22000,
-                  "campaign": "Legacy Vision 2025",
-                  "recurring": { "amount": 900, "frequency": "Monthly", "method": "ACH" },
-                  "lastGift": { "amount": 450, "date": "2024-10-06", "fund": "General Tithe" },
-                  "primaryFund": "General Tithe"
-                },
-                "finance": {
-                  "statementPreference": "Email",
-                  "capacityTier": "Legacy champion",
-                  "notes": "Prefers quarterly impact briefs with hospitality volunteer stats."
-                },
-                "discipleship": {
-                  "smallGroup": "Downtown Leadership Cohort",
-                  "mentor": "Carlos Vega",
-                  "milestones": ["Baptized 2014", "Child dedication 2017", "Leadership Cohort 2022"],
-                  "nextStep": "Mentor two new ushers before Advent."
-                },
-                "carePlan": {
-                  "stage": "Active",
-                  "statusVariant": "info",
-                  "status": "Coaching",
-                  "details": "Leadership coaching check-in scheduled October 28.",
-                  "assignedTo": "Pastor Lauren Patel",
-                  "followUpDate": "2024-10-28",
-                  "pastoralNotes": "Ensure Avery has support onboarding new ushers during Advent.",
-                  "prayerRequests": "Pray for energy balancing work travel with serving rhythm.",
-                  "team": ["Pastor Lauren Patel", "Rachel Kim"],
-                  "prayerFocus": "Hospitality growth"
-                },
-                "admin": {
-                  "steward": "Finance desk",
-                  "lastReview": "2024-09-12"
-                },
-                "timeline": [
-                  {
-                    "id": "t1",
-                    "title": "Hosted hospitality huddle",
-                    "date": "Oct 13",
-                    "timeAgo": "3 days ago",
-                    "description": "Led new volunteer orientation for the downtown center.",
-                    "category": "Serving",
-                    "stage": "completed",
-                    "icon": "🙌"
-                  },
-                  {
-                    "id": "t2",
-                    "title": "Mentor meeting",
-                    "date": "Oct 21",
-                    "timeAgo": "In 5 days",
-                    "description": "Coaching session with new volunteer captain.",
-                    "category": "Leadership",
-                    "stage": "scheduled",
-                    "icon": "🗓️"
-                  }
-                ]
-              },
-              {
-                "id": "mem_002",
-                "fullName": "Elena Ruiz",
-                "preferredName": "Elena",
-                "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stage": "New here",
-                "statusVariant": "info",
-                "membershipType": "Attender",
-                "joinDate": "",
-                "center": "Northside Center",
-                "envelopeNumber": "Pending",
-                "demographics": {
-                  "birthdate": "1993-11-02",
-                  "maritalStatus": "Single",
-                  "occupation": "UX researcher"
-                },
-                "serving": {
-                  "team": "Exploring",
-                  "role": "Foundations participant",
-                  "schedule": "Sundays · 9:30a",
-                  "nextServeDate": "2024-10-20"
-                },
-                "household": {
-                  "name": "Ruiz Household",
-                  "members": ["Elena Ruiz"],
-                  "address": {
-                    "street": "88 River Crossing",
-                    "city": "Franklin",
-                    "state": "TN",
-                    "postalCode": "37067"
-                  }
-                },
-                "contact": {
-                  "email": "elena.ruiz@example.org",
-                  "phone": "(555) 407-9931",
-                  "preferred": "Phone"
-                },
-                "emergency": {
-                  "contact": "Jamie Brooks",
-                  "relationship": "Small group mentor",
-                  "phone": "(555) 320-4411"
-                },
-                "sacraments": {
-                  "baptismDate": "",
-                  "membershipDate": "",
-                  "childDedications": []
-                },
-                "attendance": {
-                  "twelveWeekAttendance": 64,
-                  "lastAttendance": "2024-10-06",
-                  "lastCampus": "Northside Center"
-                },
-                "engagement": {
-                  "groups": ["Foundations Track"],
-                  "pathways": ["Discover class"],
-                  "spiritualGifts": [],
-                  "interests": ["Hospitality", "Community"]
-                },
-                "giving": {
-                  "ytd": 420,
-                  "pledge": 0,
-                  "recurring": null,
-                  "lastGift": { "amount": 70, "date": "2024-10-05", "fund": "Guest Offering" },
-                  "primaryFund": "Guest Offering"
-                },
-                "finance": {
-                  "statementPreference": "Paper",
-                  "capacityTier": "Emerging giver",
-                  "notes": "Interested in learning about generosity pathways."
-                },
-                "discipleship": {
-                  "smallGroup": "Foundations Track",
-                  "mentor": "Jamie Brooks",
-                  "milestones": ["Guest dinner 2024-09-22"],
-                  "nextStep": "Complete covenant class interview."
-                },
-                "carePlan": {
-                  "stage": "Observation",
-                  "statusVariant": "neutral",
-                  "status": "Observation",
-                  "details": "Follow up after covenant class interview.",
-                  "assignedTo": "Center Connections Team",
-                  "followUpDate": "2024-10-24",
-                  "team": ["Connections Team"],
-                  "prayerRequests": "Discernment about joining a small group."
-                },
-                "admin": {
-                  "steward": "Connections desk",
-                  "lastReview": "2024-10-01"
-                },
-                "timeline": [
-                  {
-                    "id": "r1",
-                    "title": "Foundations session two",
-                    "date": "Oct 10",
-                    "timeAgo": "6 days ago",
-                    "description": "Completed teaching on church values.",
-                    "category": "Assimilation",
-                    "stage": "completed",
-                    "icon": "📘"
-                  },
-                  {
-                    "id": "r2",
-                    "title": "Covenant interview scheduled",
-                    "date": "Oct 24",
-                    "timeAgo": "In 8 days",
-                    "description": "Meeting with elder team to finalize membership.",
-                    "category": "Next step",
-                    "stage": "scheduled",
-                    "icon": "🤝"
-                  }
-                ]
-              },
-              {
-                "id": "mem_003",
-                "fullName": "Samuel and Dana Lee",
-                "preferredName": "Lee Family",
-                "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stage": "Active member",
-                "statusVariant": "success",
-                "center": "Southridge Center",
-                "serving": {
-                  "team": "Groups",
-                  "role": "Marriage mentors",
-                  "schedule": "1st & 3rd Wednesdays"
-                },
-                "household": {
-                  "name": "Lee Household",
-                  "members": ["Samuel Lee", "Dana Lee", "Elliot (12)"],
-                  "address": {
-                    "street": "215 Grace Circle",
-                    "city": "Nashville",
-                    "state": "TN",
-                    "postalCode": "37211"
-                  }
-                },
-                "contact": {
-                  "email": "samuel.dana.lee@example.org",
-                  "phone": "(555) 782-4410",
-                  "preferred": "Email"
-                },
-                "giving": {
-                  "ytd": 23780,
-                  "pledge": 30000,
-                  "campaign": "Southridge Expansion",
-                  "recurring": { "amount": 2000, "frequency": "Monthly", "method": "Card" },
-                  "lastGift": { "amount": 2500, "date": "2024-09-30", "fund": "Expansion" }
-                },
-                "discipleship": {
-                  "smallGroup": "Southridge Marriage Mentors",
-                  "mentor": "Elder Hannah Cruz",
-                  "milestones": ["Baptized 2009", "Marriage mentors certified 2018"],
-                  "nextStep": "Launch two new marriage groups in Q1."
-                },
-                "carePlan": {
-                  "stage": "Resolved",
-                  "statusVariant": "neutral",
-                  "details": "No active pastoral needs.",
-                  "assignedTo": ""
-                },
-                "timeline": [
-                  {
-                    "id": "l1",
-                    "title": "Led marriage intensive",
-                    "date": "Oct 05",
-                    "timeAgo": "11 days ago",
-                    "description": "Hosted eight couples for weekend retreat.",
-                    "category": "Ministry",
-                    "stage": "completed",
-                    "icon": "💍"
-                  }
-                ]
-              },
-              {
-                "id": "mem_004",
-                "fullName": "Jordan Miles",
-                "preferredName": "Jordan",
-                "photoUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&h=400&q=80",
-                "stage": "Shepherding",
-                "statusVariant": "warning",
-                "center": "Downtown Center",
-                "serving": {
-                  "team": "Tech",
-                  "role": "Audio volunteer",
-                  "schedule": "Paused"
-                },
-                "household": {
-                  "name": "Miles Household",
-                  "members": ["Jordan Miles", "Taylor Miles"],
-                  "address": {
-                    "street": "18 Lantern Way",
-                    "city": "Springfield",
-                    "state": "IL",
-                    "postalCode": "62703"
-                  }
-                },
-                "contact": {
-                  "email": "jordan.miles@example.org",
-                  "phone": "(555) 338-6611",
-                  "preferred": "Text"
-                },
-                "giving": {
-                  "ytd": 2600,
-                  "pledge": 3000,
-                  "recurring": null,
-                  "lastGift": { "amount": 200, "date": "2024-08-18", "fund": "General Tithe" }
-                },
-                "discipleship": {
-                  "smallGroup": "Young Professionals",
-                  "mentor": "Pastor Lauren Patel",
-                  "milestones": ["Baptized 2016"],
-                  "nextStep": "Resume serve team rotation after care plan concludes."
-                },
-                "carePlan": {
-                  "stage": "Active",
-                  "statusVariant": "warning",
-                  "details": "Meeting with counselor weekly for grief support.",
-                  "assignedTo": "Care Pastor Ben Adams"
-                },
-                "timeline": [
-                  {
-                    "id": "m1",
-                    "title": "Counseling session",
-                    "date": "Oct 11",
-                    "timeAgo": "5 days ago",
-                    "description": "Third session in current care plan.",
-                    "category": "Care",
-                    "stage": "completed",
-                    "icon": "🕊️"
-                  },
-                  {
-                    "id": "m2",
-                    "title": "Care team check-in",
-                    "date": "Oct 17",
-                    "timeAgo": "Tomorrow",
-                    "description": "Home visit with meal train delivery.",
-                    "category": "Shepherding",
-                    "stage": "scheduled",
-                    "icon": "🍲"
-                  }
-                ]
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Default binding for memberDirectory"/>
+        </Contract>
         <Config>
           <handler>admin-community.members.profile.memberDirectory</handler>
         </Config>
+        <Data>
+          <Field name="records">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>mem_001</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Avery Johnson</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Avery</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stage">
+                  <Value>Active member</Value>
+                </Field>
+                <Field name="statusVariant">
+                  <Value>success</Value>
+                </Field>
+                <Field name="membershipType">
+                  <Value>Covenant member</Value>
+                </Field>
+                <Field name="joinDate">
+                  <Value>2016-03-14</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Downtown Center</Value>
+                </Field>
+                <Field name="envelopeNumber">
+                  <Value>2041</Value>
+                </Field>
+                <Field name="demographics">
+                  <Object>
+                    <Field name="birthdate">
+                      <Value>1986-05-12</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>Married</Value>
+                    </Field>
+                    <Field name="anniversary">
+                      <Value>2012-06-18</Value>
+                    </Field>
+                    <Field name="occupation">
+                      <Value>Operations director</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Hospitality</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Usher Captain</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>2nd &amp; 4th Sundays · 8:30a</Value>
+                    </Field>
+                    <Field name="coach">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-27</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="leadership">
+                  <Object>
+                    <Field name="roles">
+                      <Array>
+                        <Value>Hospitality captain</Value>
+                        <Value>Leadership mentor</Value>
+                      </Array>
+                    </Field>
+                    <Field name="reportsTo">
+                      <Value>Rachel Kim</Value>
+                    </Field>
+                    <Field name="teamFocus">
+                      <Value>First impressions</Value>
+                    </Field>
+                    <Field name="lastHuddle">
+                      <Value>2024-10-05</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Johnson Family</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Avery Johnson</Value>
+                        <Value>Jordan Johnson</Value>
+                        <Value>Micah (7)</Value>
+                        <Value>Selah (4)</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>412 Hope Ave</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Springfield</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>IL</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>62704</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>avery.johnson@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 204-1188</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Text</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="emergency">
+                  <Object>
+                    <Field name="contact">
+                      <Value>Jordan Johnson</Value>
+                    </Field>
+                    <Field name="relationship">
+                      <Value>Spouse</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 204-1189</Value>
+                    </Field>
+                    <Field name="physician">
+                      <Value>Dr. Mae Chen</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="sacraments">
+                  <Object>
+                    <Field name="baptismDate">
+                      <Value>2014-03-02</Value>
+                    </Field>
+                    <Field name="membershipDate">
+                      <Value>2016-03-14</Value>
+                    </Field>
+                    <Field name="childDedications">
+                      <Array>
+                        <Value>Micah 2017</Value>
+                        <Value>Selah 2020</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="attendance">
+                  <Object>
+                    <Field name="twelveWeekAttendance">
+                      <Value>92</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-13</Value>
+                    </Field>
+                    <Field name="lastCampus">
+                      <Value>Downtown Center</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="engagement">
+                  <Object>
+                    <Field name="groups">
+                      <Array>
+                        <Value>Leadership Cohort</Value>
+                        <Value>Hospitality Huddle</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Mentor track</Value>
+                        <Value>Hospitality residency</Value>
+                      </Array>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array>
+                        <Value>Leadership</Value>
+                        <Value>Hospitality</Value>
+                      </Array>
+                    </Field>
+                    <Field name="interests">
+                      <Array>
+                        <Value>First impressions</Value>
+                        <Value>Mentoring</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="ytd">
+                      <Value>18450</Value>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>22000</Value>
+                    </Field>
+                    <Field name="campaign">
+                      <Value>Legacy Vision 2025</Value>
+                    </Field>
+                    <Field name="recurring">
+                      <Object>
+                        <Field name="amount">
+                          <Value>900</Value>
+                        </Field>
+                        <Field name="frequency">
+                          <Value>Monthly</Value>
+                        </Field>
+                        <Field name="method">
+                          <Value>ACH</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="lastGift">
+                      <Object>
+                        <Field name="amount">
+                          <Value>450</Value>
+                        </Field>
+                        <Field name="date">
+                          <Value>2024-10-06</Value>
+                        </Field>
+                        <Field name="fund">
+                          <Value>General Tithe</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>General Tithe</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="finance">
+                  <Object>
+                    <Field name="statementPreference">
+                      <Value>Email</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>Legacy champion</Value>
+                    </Field>
+                    <Field name="notes">
+                      <Value>Prefers quarterly impact briefs with hospitality volunteer stats.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Downtown Leadership Cohort</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Carlos Vega</Value>
+                    </Field>
+                    <Field name="milestones">
+                      <Array>
+                        <Value>Baptized 2014</Value>
+                        <Value>Child dedication 2017</Value>
+                        <Value>Leadership Cohort 2022</Value>
+                      </Array>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Mentor two new ushers before Advent.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="stage">
+                      <Value>Active</Value>
+                    </Field>
+                    <Field name="statusVariant">
+                      <Value>info</Value>
+                    </Field>
+                    <Field name="status">
+                      <Value>Coaching</Value>
+                    </Field>
+                    <Field name="details">
+                      <Value>Leadership coaching check-in scheduled October 28.</Value>
+                    </Field>
+                    <Field name="assignedTo">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-28</Value>
+                    </Field>
+                    <Field name="pastoralNotes">
+                      <Value>Ensure Avery has support onboarding new ushers during Advent.</Value>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Pray for energy balancing work travel with serving rhythm.</Value>
+                    </Field>
+                    <Field name="team">
+                      <Array>
+                        <Value>Pastor Lauren Patel</Value>
+                        <Value>Rachel Kim</Value>
+                      </Array>
+                    </Field>
+                    <Field name="prayerFocus">
+                      <Value>Hospitality growth</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="admin">
+                  <Object>
+                    <Field name="steward">
+                      <Value>Finance desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-09-12</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="timeline">
+                  <Array>
+                    <Object>
+                      <Field name="id">
+                        <Value>t1</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Hosted hospitality huddle</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 13</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>3 days ago</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Led new volunteer orientation for the downtown center.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Serving</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>completed</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>🙌</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="id">
+                        <Value>t2</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Mentor meeting</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 21</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>In 5 days</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Coaching session with new volunteer captain.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Leadership</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>scheduled</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>🗓️</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>mem_002</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Elena Ruiz</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Elena</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stage">
+                  <Value>New here</Value>
+                </Field>
+                <Field name="statusVariant">
+                  <Value>info</Value>
+                </Field>
+                <Field name="membershipType">
+                  <Value>Attender</Value>
+                </Field>
+                <Field name="joinDate"/>
+                <Field name="center">
+                  <Value>Northside Center</Value>
+                </Field>
+                <Field name="envelopeNumber">
+                  <Value>Pending</Value>
+                </Field>
+                <Field name="demographics">
+                  <Object>
+                    <Field name="birthdate">
+                      <Value>1993-11-02</Value>
+                    </Field>
+                    <Field name="maritalStatus">
+                      <Value>Single</Value>
+                    </Field>
+                    <Field name="occupation">
+                      <Value>UX researcher</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Exploring</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Foundations participant</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>Sundays · 9:30a</Value>
+                    </Field>
+                    <Field name="nextServeDate">
+                      <Value>2024-10-20</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Ruiz Household</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Elena Ruiz</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>88 River Crossing</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Franklin</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>TN</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>37067</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>elena.ruiz@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 407-9931</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Phone</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="emergency">
+                  <Object>
+                    <Field name="contact">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="relationship">
+                      <Value>Small group mentor</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 320-4411</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="sacraments">
+                  <Object>
+                    <Field name="baptismDate"/>
+                    <Field name="membershipDate"/>
+                    <Field name="childDedications">
+                      <Array/>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="attendance">
+                  <Object>
+                    <Field name="twelveWeekAttendance">
+                      <Value>64</Value>
+                    </Field>
+                    <Field name="lastAttendance">
+                      <Value>2024-10-06</Value>
+                    </Field>
+                    <Field name="lastCampus">
+                      <Value>Northside Center</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="engagement">
+                  <Object>
+                    <Field name="groups">
+                      <Array>
+                        <Value>Foundations Track</Value>
+                      </Array>
+                    </Field>
+                    <Field name="pathways">
+                      <Array>
+                        <Value>Discover class</Value>
+                      </Array>
+                    </Field>
+                    <Field name="spiritualGifts">
+                      <Array/>
+                    </Field>
+                    <Field name="interests">
+                      <Array>
+                        <Value>Hospitality</Value>
+                        <Value>Community</Value>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="ytd">
+                      <Value>420</Value>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>0</Value>
+                    </Field>
+                    <Field name="recurring"/>
+                    <Field name="lastGift">
+                      <Object>
+                        <Field name="amount">
+                          <Value>70</Value>
+                        </Field>
+                        <Field name="date">
+                          <Value>2024-10-05</Value>
+                        </Field>
+                        <Field name="fund">
+                          <Value>Guest Offering</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="primaryFund">
+                      <Value>Guest Offering</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="finance">
+                  <Object>
+                    <Field name="statementPreference">
+                      <Value>Paper</Value>
+                    </Field>
+                    <Field name="capacityTier">
+                      <Value>Emerging giver</Value>
+                    </Field>
+                    <Field name="notes">
+                      <Value>Interested in learning about generosity pathways.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Foundations Track</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Jamie Brooks</Value>
+                    </Field>
+                    <Field name="milestones">
+                      <Array>
+                        <Value>Guest dinner 2024-09-22</Value>
+                      </Array>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Complete covenant class interview.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="stage">
+                      <Value>Observation</Value>
+                    </Field>
+                    <Field name="statusVariant">
+                      <Value>neutral</Value>
+                    </Field>
+                    <Field name="status">
+                      <Value>Observation</Value>
+                    </Field>
+                    <Field name="details">
+                      <Value>Follow up after covenant class interview.</Value>
+                    </Field>
+                    <Field name="assignedTo">
+                      <Value>Center Connections Team</Value>
+                    </Field>
+                    <Field name="followUpDate">
+                      <Value>2024-10-24</Value>
+                    </Field>
+                    <Field name="team">
+                      <Array>
+                        <Value>Connections Team</Value>
+                      </Array>
+                    </Field>
+                    <Field name="prayerRequests">
+                      <Value>Discernment about joining a small group.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="admin">
+                  <Object>
+                    <Field name="steward">
+                      <Value>Connections desk</Value>
+                    </Field>
+                    <Field name="lastReview">
+                      <Value>2024-10-01</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="timeline">
+                  <Array>
+                    <Object>
+                      <Field name="id">
+                        <Value>r1</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Foundations session two</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 10</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>6 days ago</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Completed teaching on church values.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Assimilation</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>completed</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>📘</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="id">
+                        <Value>r2</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Covenant interview scheduled</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 24</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>In 8 days</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Meeting with elder team to finalize membership.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Next step</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>scheduled</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>🤝</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>mem_003</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Samuel and Dana Lee</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Lee Family</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stage">
+                  <Value>Active member</Value>
+                </Field>
+                <Field name="statusVariant">
+                  <Value>success</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Southridge Center</Value>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Groups</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Marriage mentors</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>1st &amp; 3rd Wednesdays</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Lee Household</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Samuel Lee</Value>
+                        <Value>Dana Lee</Value>
+                        <Value>Elliot (12)</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>215 Grace Circle</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Nashville</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>TN</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>37211</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>samuel.dana.lee@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 782-4410</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Email</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="ytd">
+                      <Value>23780</Value>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>30000</Value>
+                    </Field>
+                    <Field name="campaign">
+                      <Value>Southridge Expansion</Value>
+                    </Field>
+                    <Field name="recurring">
+                      <Object>
+                        <Field name="amount">
+                          <Value>2000</Value>
+                        </Field>
+                        <Field name="frequency">
+                          <Value>Monthly</Value>
+                        </Field>
+                        <Field name="method">
+                          <Value>Card</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                    <Field name="lastGift">
+                      <Object>
+                        <Field name="amount">
+                          <Value>2500</Value>
+                        </Field>
+                        <Field name="date">
+                          <Value>2024-09-30</Value>
+                        </Field>
+                        <Field name="fund">
+                          <Value>Expansion</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Southridge Marriage Mentors</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Elder Hannah Cruz</Value>
+                    </Field>
+                    <Field name="milestones">
+                      <Array>
+                        <Value>Baptized 2009</Value>
+                        <Value>Marriage mentors certified 2018</Value>
+                      </Array>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Launch two new marriage groups in Q1.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="stage">
+                      <Value>Resolved</Value>
+                    </Field>
+                    <Field name="statusVariant">
+                      <Value>neutral</Value>
+                    </Field>
+                    <Field name="details">
+                      <Value>No active pastoral needs.</Value>
+                    </Field>
+                    <Field name="assignedTo"/>
+                  </Object>
+                </Field>
+                <Field name="timeline">
+                  <Array>
+                    <Object>
+                      <Field name="id">
+                        <Value>l1</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Led marriage intensive</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 05</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>11 days ago</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Hosted eight couples for weekend retreat.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Ministry</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>completed</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>💍</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>mem_004</Value>
+                </Field>
+                <Field name="fullName">
+                  <Value>Jordan Miles</Value>
+                </Field>
+                <Field name="preferredName">
+                  <Value>Jordan</Value>
+                </Field>
+                <Field name="photoUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=400&amp;h=400&amp;q=80</Value>
+                </Field>
+                <Field name="stage">
+                  <Value>Shepherding</Value>
+                </Field>
+                <Field name="statusVariant">
+                  <Value>warning</Value>
+                </Field>
+                <Field name="center">
+                  <Value>Downtown Center</Value>
+                </Field>
+                <Field name="serving">
+                  <Object>
+                    <Field name="team">
+                      <Value>Tech</Value>
+                    </Field>
+                    <Field name="role">
+                      <Value>Audio volunteer</Value>
+                    </Field>
+                    <Field name="schedule">
+                      <Value>Paused</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="household">
+                  <Object>
+                    <Field name="name">
+                      <Value>Miles Household</Value>
+                    </Field>
+                    <Field name="members">
+                      <Array>
+                        <Value>Jordan Miles</Value>
+                        <Value>Taylor Miles</Value>
+                      </Array>
+                    </Field>
+                    <Field name="address">
+                      <Object>
+                        <Field name="street">
+                          <Value>18 Lantern Way</Value>
+                        </Field>
+                        <Field name="city">
+                          <Value>Springfield</Value>
+                        </Field>
+                        <Field name="state">
+                          <Value>IL</Value>
+                        </Field>
+                        <Field name="postalCode">
+                          <Value>62703</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="contact">
+                  <Object>
+                    <Field name="email">
+                      <Value>jordan.miles@example.org</Value>
+                    </Field>
+                    <Field name="phone">
+                      <Value>(555) 338-6611</Value>
+                    </Field>
+                    <Field name="preferred">
+                      <Value>Text</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="giving">
+                  <Object>
+                    <Field name="ytd">
+                      <Value>2600</Value>
+                    </Field>
+                    <Field name="pledge">
+                      <Value>3000</Value>
+                    </Field>
+                    <Field name="recurring"/>
+                    <Field name="lastGift">
+                      <Object>
+                        <Field name="amount">
+                          <Value>200</Value>
+                        </Field>
+                        <Field name="date">
+                          <Value>2024-08-18</Value>
+                        </Field>
+                        <Field name="fund">
+                          <Value>General Tithe</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="discipleship">
+                  <Object>
+                    <Field name="smallGroup">
+                      <Value>Young Professionals</Value>
+                    </Field>
+                    <Field name="mentor">
+                      <Value>Pastor Lauren Patel</Value>
+                    </Field>
+                    <Field name="milestones">
+                      <Array>
+                        <Value>Baptized 2016</Value>
+                      </Array>
+                    </Field>
+                    <Field name="nextStep">
+                      <Value>Resume serve team rotation after care plan concludes.</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="carePlan">
+                  <Object>
+                    <Field name="stage">
+                      <Value>Active</Value>
+                    </Field>
+                    <Field name="statusVariant">
+                      <Value>warning</Value>
+                    </Field>
+                    <Field name="details">
+                      <Value>Meeting with counselor weekly for grief support.</Value>
+                    </Field>
+                    <Field name="assignedTo">
+                      <Value>Care Pastor Ben Adams</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="timeline">
+                  <Array>
+                    <Object>
+                      <Field name="id">
+                        <Value>m1</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Counseling session</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 11</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>5 days ago</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Third session in current care plan.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Care</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>completed</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>🕊️</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="id">
+                        <Value>m2</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Care team check-in</Value>
+                      </Field>
+                      <Field name="date">
+                        <Value>Oct 17</Value>
+                      </Field>
+                      <Field name="timeAgo">
+                        <Value>Tomorrow</Value>
+                      </Field>
+                      <Field name="description">
+                        <Value>Home visit with meal train delivery.</Value>
+                      </Field>
+                      <Field name="category">
+                        <Value>Shepherding</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>scheduled</Value>
+                      </Field>
+                      <Field name="icon">
+                        <Value>🍲</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

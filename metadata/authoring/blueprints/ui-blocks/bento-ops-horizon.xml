@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/ops-horizon"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/ops-horizon" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-ops-horizon">
     <Title>UI Block: Ops horizon bento grid</Title>
     <Regions>
@@ -17,97 +10,191 @@
             <Prop name="eyebrow" kind="static">Operations control</Prop>
             <Prop name="headline" kind="static">Keep mission-critical workflows resilient and audit-ready</Prop>
             <Prop name="description" kind="static">Coordinate changes, evidence, and service health through one orchestrated command center.</Prop>
-            <Prop name="cards" kind="binding" source="opsHorizonCards" path="items" />
-            <Prop name="metrics" kind="binding" source="opsHorizonMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="open-runbook" />
-            <Prop name="secondaryCta" kind="action" actionId="book-audit-briefing" />
+            <Prop name="cards" kind="binding" contract="opsHorizonCards.items"/>
+            <Prop name="metrics" kind="binding" contract="opsHorizonMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="open-runbook"/>
+            <Prop name="secondaryCta" kind="action" actionId="book-audit-briefing"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="opsHorizonCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Runbooks",
-                "title": "Automated response playbooks",
-                "description": "Trigger templated workflows, evidence capture, and sign-off routing from the same dashboard.",
-                "bullets": [
-                  "Stakeholder paging with context",
-                  "Embedded root-cause narratives"
-                ],
-                "tone": "surface"
-              },
-              {
-                "eyebrow": "Compliance",
-                "title": "Continuous controls",
-                "description": "Track SOC 2, ISO, and HIPAA controls with real-time attestations and drift detection.",
-                "tone": "sand",
-                "footnote": "Mapped to auditor-ready evidence lockers."
-              },
-              {
-                "badge": "Insights",
-                "stat": "99.96%",
-                "title": "Change success rate",
-                "description": "Risk-based approvals guide pre-flight checks and dependency notifications.",
-                "tone": "forest"
-              },
-              {
-                "eyebrow": "Reliability",
-                "title": "Incident bridge",
-                "description": "Spin up a war room with chat, timeline, and live run metrics in under 30 seconds.",
-                "icon": "🛠️",
-                "tone": "dark"
-              },
-              {
-                "eyebrow": "Capacity",
-                "title": "SLO planner",
-                "description": "See burn rates, forecasted debt, and recommended error budget guardrails.",
-                "tone": "light"
-              },
-              {
-                "badge": "Governance",
-                "title": "Policy autopilot",
-                "description": "Generate change windows, review cadences, and exception workflows from your policy graph.",
-                "tone": "brand"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-ops-horizon.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Runbooks</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Automated response playbooks</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trigger templated workflows, evidence capture, and sign-off routing from the same dashboard.</Value>
+                </Field>
+                <Field name="bullets">
+                  <Array>
+                    <Value>Stakeholder paging with context</Value>
+                    <Value>Embedded root-cause narratives</Value>
+                  </Array>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Compliance</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Continuous controls</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track SOC 2, ISO, and HIPAA controls with real-time attestations and drift detection.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>sand</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Mapped to auditor-ready evidence lockers.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Insights</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>99.96%</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Change success rate</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Risk-based approvals guide pre-flight checks and dependency notifications.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Reliability</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Incident bridge</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Spin up a war room with chat, timeline, and live run metrics in under 30 seconds.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🛠️</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Capacity</Value>
+                </Field>
+                <Field name="title">
+                  <Value>SLO planner</Value>
+                </Field>
+                <Field name="description">
+                  <Value>See burn rates, forecasted debt, and recommended error budget guardrails.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>light</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Governance</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Policy autopilot</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Generate change windows, review cadences, and exception workflows from your policy graph.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>brand</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="opsHorizonMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Change success",
-                "value": "99.1%",
-                "change": "↑ 2.3 pts quarter-to-date",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Rollback rate",
-                "value": "0.4%",
-                "change": "Down from 1.2%",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Audit findings",
-                "value": "0",
-                "change": "Closed 14 outstanding items",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Average RTO",
-                "value": "26 min",
-                "change": "Meets 45 min objective",
-                "sentiment": "positive"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-ops-horizon.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Change success</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.1%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↑ 2.3 pts quarter-to-date</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Rollback rate</Value>
+                </Field>
+                <Field name="value">
+                  <Value>0.4%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Down from 1.2%</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Audit findings</Value>
+                </Field>
+                <Field name="value">
+                  <Value>0</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Closed 14 outstanding items</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Average RTO</Value>
+                </Field>
+                <Field name="value">
+                  <Value>26 min</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Meets 45 min objective</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

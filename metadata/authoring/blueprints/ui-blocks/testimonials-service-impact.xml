@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/service-impact"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/service-impact" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-service-impact">
     <Title>UI Block: Testimonials - Service impact</Title>
     <Regions>
@@ -17,53 +10,104 @@
             <Prop name="eyebrow" kind="static">Service impact</Prop>
             <Prop name="headline" kind="static">Support teams see measurable impact in days</Prop>
             <Prop name="description" kind="static">Simple, centered storytelling with enough space for quotes to breathe. Great for customer success, onboarding, or services pages.</Prop>
-            <Prop name="testimonials" kind="binding" source="serviceTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-packages" />
-            <Prop name="secondaryCta" kind="action" actionId="contact-support" />
+            <Prop name="testimonials" kind="binding" contract="serviceTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-packages"/>
+            <Prop name="secondaryCta" kind="action" actionId="contact-support"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="serviceTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Escalations now resolve 43% faster because StewardTrack puts every playbook and asset where we need it.",
-                "author": "Adrian Fox",
-                "role": "Head of Support",
-                "company": "Polar Desk",
-                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "rating": 4.8
-              },
-              {
-                "quote": "Our onboarding team finally retired the internal wiki. We just send customers a StewardTrack journey.",
-                "author": "Nadia Esposito",
-                "role": "Customer Onboarding Manager",
-                "company": "Starlane",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "rating": 4.9
-              },
-              {
-                "quote": "Professional services packages now include co-branded playbooks that update automatically.",
-                "author": "Leon Wright",
-                "role": "Director of Professional Services",
-                "company": "Lumina",
-                "avatarUrl": "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?auto=format&fit=facearea&w=240&h=240&q=80",
-                "rating": 4.7
-              },
-              {
-                "quote": "Customers love that our knowledge base and in-product checklists stay perfectly in sync.",
-                "author": "Maya Villar",
-                "role": "Customer Education Lead",
-                "company": "SummitFlow",
-                "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=240&h=240&q=80",
-                "rating": 5
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-service-impact.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Escalations now resolve 43% faster because StewardTrack puts every playbook and asset where we need it.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Adrian Fox</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Support</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Polar Desk</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Our onboarding team finally retired the internal wiki. We just send customers a StewardTrack journey.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Nadia Esposito</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Customer Onboarding Manager</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Starlane</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.9</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Professional services packages now include co-branded playbooks that update automatically.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Leon Wright</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Professional Services</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Lumina</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1517365830460-955ce3ccd263?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.7</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Customers love that our knowledge base and in-product checklists stay perfectly in sync.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Maya Villar</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Customer Education Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>SummitFlow</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>5</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

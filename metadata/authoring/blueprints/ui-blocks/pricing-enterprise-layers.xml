@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/enterprise-layers"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/enterprise-layers" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-enterprise-layers">
     <Title>UI Block: Enterprise layers pricing</Title>
     <Regions>
@@ -18,96 +11,170 @@
             <Prop name="title" kind="static">Standardize governance and adoption in one layered plan</Prop>
             <Prop name="description" kind="static">Blend self-serve collaboration with enterprise guardrails. Configure seats, data residency, and support depth as you grow.</Prop>
             <Prop name="highlight" kind="static">Every contract includes a quarterly innovation review, roadmap access, and budget forecasting templates.</Prop>
-            <Prop name="features" kind="binding" source="enterpriseLayerHighlights" path="items" />
-            <Prop name="tiers" kind="binding" source="enterpriseLayerTiers" path="items" />
+            <Prop name="features" kind="binding" contract="enterpriseLayerHighlights.items"/>
+            <Prop name="tiers" kind="binding" contract="enterpriseLayerTiers.items"/>
             <Prop name="footnote" kind="static">Annual contracts billed upfront. Enterprise desk response times under 20 minutes.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="start-enterprise-pilot" />
-            <Prop name="secondaryCta" kind="action" actionId="download-security-brief" />
-            <Prop name="supportCta" kind="action" actionId="contact-enterprise-desk" />
+            <Prop name="primaryCta" kind="action" actionId="start-enterprise-pilot"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-security-brief"/>
+            <Prop name="supportCta" kind="action" actionId="contact-enterprise-desk"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="enterpriseLayerHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Native SSO, SCIM, and advanced RBAC included",
-              "Regional data residency with customer-managed keys",
-              "Change management playbooks for adoption and communications"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-enterprise-layers.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Native SSO, SCIM, and advanced RBAC included</Value>
+              <Value>Regional data residency with customer-managed keys</Value>
+              <Value>Change management playbooks for adoption and communications</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="enterpriseLayerTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Operational foundation",
-                "price": "$1,250",
-                "period": "month",
-                "badge": "Core",
-                "description": "Centralize lifecycle execution, reporting, and permissions for go-to-market teams.",
-                "features": [
-                  "20 orchestrator seats",
-                  "Regional segmentation",
-                  "Playbook library",
-                  "Email + chat support"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch foundation",
-                    "url": "/checkout?plan=foundation",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Enterprise scale",
-                "price": "$3,400",
-                "period": "month",
-                "badge": "Global",
-                "highlight": "Security-approved",
-                "description": "Extend governance to subsidiaries, partner ecosystems, and mission-critical workflows.",
-                "features": [
-                  "Unlimited orchestrator seats",
-                  "Customer-managed keys",
-                  "Advanced audit log export",
-                  "24/7 incident desk"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Scale globally",
-                    "url": "/checkout?plan=enterprise-scale",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Includes red/blue team onboarding sessions."
-              },
-              {
-                "name": "Strategic success",
-                "price": "Custom",
-                "period": "annual",
-                "description": "Pair a dedicated success architect with quarterly innovation councils and custom ROI frameworks.",
-                "features": [
-                  "Adoption architect residency",
-                  "Executive briefing center",
-                  "Custom analytics pipelines",
-                  "Joint value realization models"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Tailor engagement",
-                    "url": "/contact/strategic-success",
-                    "variant": "primary"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-enterprise-layers.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Operational foundation</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$1,250</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Core</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Centralize lifecycle execution, reporting, and permissions for go-to-market teams.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>20 orchestrator seats</Value>
+                    <Value>Regional segmentation</Value>
+                    <Value>Playbook library</Value>
+                    <Value>Email + chat support</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch foundation</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=foundation</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Enterprise scale</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$3,400</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Global</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Security-approved</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Extend governance to subsidiaries, partner ecosystems, and mission-critical workflows.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unlimited orchestrator seats</Value>
+                    <Value>Customer-managed keys</Value>
+                    <Value>Advanced audit log export</Value>
+                    <Value>24/7 incident desk</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Scale globally</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=enterprise-scale</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes red/blue team onboarding sessions.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Strategic success</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Pair a dedicated success architect with quarterly innovation councils and custom ROI frameworks.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Adoption architect residency</Value>
+                    <Value>Executive briefing center</Value>
+                    <Value>Custom analytics pipelines</Value>
+                    <Value>Joint value realization models</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Tailor engagement</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/strategic-success</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

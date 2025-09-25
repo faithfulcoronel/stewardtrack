@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="admin-community"
-  route="members/manage/lookup-new"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="admin-community" route="members/manage/lookup-new" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="admin-community-membership-lookup-create">
     <Title>Quick add membership option</Title>
     <Regions>
@@ -15,32 +8,32 @@
           <Props>
             <Prop name="variant" kind="static">centered-pill</Prop>
             <Prop name="eyebrow" kind="static">Membership settings</Prop>
-            <Prop name="headline" kind="expression"><![CDATA[
-              (() => {
-                const label = params.label ? String(params.label) : 'Lookup option';
+            <Prop name="headline" kind="expression">
+              (() =&gt; {
+                const label = params.label ? String(params.label) : &apos;Lookup option&apos;;
                 return `Add ${label.toLowerCase()}`;
               })()
-            ]]></Prop>
-            <Prop name="description" kind="expression"><![CDATA[
-              (() => {
-                const label = params.label ? String(params.label) : 'your next option';
+            </Prop>
+            <Prop name="description" kind="expression">
+              (() =&gt; {
+                const label = params.label ? String(params.label) : &apos;your next option&apos;;
                 return `Create a reusable choice for ${label.toLowerCase()} without leaving your workflow.`;
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
         <Component id="lookup-form" type="AdminLookupQuickCreate">
           <Props>
-            <Prop name="lookupId" kind="expression"><![CDATA[String(params.lookupId ?? '')]]></Prop>
-            <Prop name="lookupLabel" kind="expression"><![CDATA[String(params.label ?? 'Lookup option')]]></Prop>
+            <Prop name="lookupId" kind="expression">String(params.lookupId ?? &apos;&apos;)</Prop>
+            <Prop name="lookupLabel" kind="expression">String(params.label ?? &apos;Lookup option&apos;)</Prop>
             <Prop name="description" kind="static">Give the option a clear name. The code is generated automatically and can be refined before saving.</Prop>
             <Prop name="submitLabel" kind="static">Save option</Prop>
-            <Prop name="successMessage" kind="expression"><![CDATA[
-              (() => {
-                const label = params.label ? String(params.label) : 'Lookup option';
+            <Prop name="successMessage" kind="expression">
+              (() =&gt; {
+                const label = params.label ? String(params.label) : &apos;Lookup option&apos;;
                 return `${label} saved`;
               })()
-            ]]></Prop>
+            </Prop>
           </Props>
         </Component>
       </Region>

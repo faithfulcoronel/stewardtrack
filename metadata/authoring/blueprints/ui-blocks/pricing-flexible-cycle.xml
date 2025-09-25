@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/flexible-cycle"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/flexible-cycle" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-flexible-cycle">
     <Title>UI Block: Flexible cycle pricing</Title>
     <Regions>
@@ -17,120 +10,226 @@
             <Prop name="eyebrow" kind="static">Billing flexibility</Prop>
             <Prop name="title" kind="static">Switch between monthly and annual momentum without migrations</Prop>
             <Prop name="description" kind="static">Operational finance teams use these tiers to calibrate adoption targets and pay-for-performance guardrails in the same view.</Prop>
-            <Prop name="tiers" kind="binding" source="flexibleCycleTiers" path="items" />
-            <Prop name="toggles" kind="binding" source="flexibleCycleToggles" path="items" />
+            <Prop name="tiers" kind="binding" contract="flexibleCycleTiers.items"/>
+            <Prop name="toggles" kind="binding" contract="flexibleCycleToggles.items"/>
             <Prop name="footnote" kind="static">Annual pricing reflects a 17% savings. Usage above contracted thresholds is billed at month end.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="schedule-forecast-session" />
-            <Prop name="secondaryCta" kind="action" actionId="view-usage-policy" />
+            <Prop name="primaryCta" kind="action" actionId="schedule-forecast-session"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-usage-policy"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="flexibleCycleTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Momentum",
-                "price": "$489",
-                "period": "month",
-                "badge": "Billing optimized",
-                "highlight": "Annual discount",
-                "description": "Bundle lifecycle orchestration, automation, and workspace analytics for hybrid revenue teams.",
-                "features": [
-                  "Quarterly usage coaching",
-                  "Sandbox + production environments",
-                  "Automation throttles",
-                  "Slack + Teams notifications",
-                  "Saved forecast scenarios"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Activate annual",
-                    "url": "/checkout?plan=momentum",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Eligible for quarterly billing." 
-              },
-              {
-                "name": "Sprint",
-                "price": "$189",
-                "period": "month",
-                "highlight": "Best for pilots",
-                "description": "Spin up regional experiments and observe activation metrics before committing to a full rollout.",
-                "features": [
-                  "2 orchestration canvases",
-                  "5k participant events",
-                  "Segment + HubSpot integrations",
-                  "Weekly AI adoption recaps"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch pilot",
-                    "url": "/checkout?plan=sprint",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Add-on seats",
-                "price": "$35",
-                "period": "user",
-                "description": "Extend workspace governance to contractors, partners, and seasonal teams.",
-                "features": [
-                  "Role-based templates",
-                  "1:Many workspace invites",
-                  "Security review tooling"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Add collaborators",
-                    "url": "/checkout?plan=add-on",
-                    "variant": "ghost"
-                  }
-                }
-              },
-              {
-                "name": "Data warehouse",
-                "price": "$0.45",
-                "period": "per 1k events",
-                "description": "Stream raw product signals to your warehouse with governance and lineage intact.",
-                "features": [
-                  "Snowflake + BigQuery connectors",
-                  "Field-level filtering",
-                  "Latency alerts"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Estimate volume",
-                    "url": "/contact/data-streams",
-                    "variant": "ghost"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-flexible-cycle.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Momentum</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$489</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Billing optimized</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Annual discount</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Bundle lifecycle orchestration, automation, and workspace analytics for hybrid revenue teams.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Quarterly usage coaching</Value>
+                    <Value>Sandbox + production environments</Value>
+                    <Value>Automation throttles</Value>
+                    <Value>Slack + Teams notifications</Value>
+                    <Value>Saved forecast scenarios</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Activate annual</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=momentum</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Eligible for quarterly billing.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Sprint</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$189</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Best for pilots</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Spin up regional experiments and observe activation metrics before committing to a full rollout.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>2 orchestration canvases</Value>
+                    <Value>5k participant events</Value>
+                    <Value>Segment + HubSpot integrations</Value>
+                    <Value>Weekly AI adoption recaps</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch pilot</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=sprint</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Add-on seats</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$35</Value>
+                </Field>
+                <Field name="period">
+                  <Value>user</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Extend workspace governance to contractors, partners, and seasonal teams.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Role-based templates</Value>
+                    <Value>1:Many workspace invites</Value>
+                    <Value>Security review tooling</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Add collaborators</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=add-on</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>ghost</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Data warehouse</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$0.45</Value>
+                </Field>
+                <Field name="period">
+                  <Value>per 1k events</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Stream raw product signals to your warehouse with governance and lineage intact.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Snowflake + BigQuery connectors</Value>
+                    <Value>Field-level filtering</Value>
+                    <Value>Latency alerts</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Estimate volume</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/data-streams</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>ghost</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="flexibleCycleToggles" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Annual",
-                "description": "17% savings",
-                "active": true
-              },
-              {
-                "label": "Monthly",
-                "description": "Cancel anytime",
-                "active": false
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-flexible-cycle.toggles"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Annual</Value>
+                </Field>
+                <Field name="description">
+                  <Value>17% savings</Value>
+                </Field>
+                <Field name="active">
+                  <Value>true</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Monthly</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Cancel anytime</Value>
+                </Field>
+                <Field name="active">
+                  <Value>false</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

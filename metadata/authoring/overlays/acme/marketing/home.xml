@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="overlay"
-  module="marketing"
-  route="home"
-  schemaVersion="1.0.0"
-  contentVersion="1.1.0"
-  tenant="acme"
-  locale="en-US"
->
+<PageDefinition kind="overlay" module="marketing" route="home" schemaVersion="1.0.0" contentVersion="1.1.0" tenant="acme" locale="en-US">
   <Overlay>
     <Regions>
       <Region id="feature-grid" operation="replace">
@@ -15,23 +7,23 @@
           <Props>
             <Prop name="variant" kind="static">split</Prop>
             <Prop name="eyebrow" kind="static">Metadata building blocks</Prop>
-            <Prop name="title" kind="binding" source="featureShowcase" path="title" />
-            <Prop name="description" kind="binding" source="featureShowcase" path="description" />
-            <Prop name="highlight" kind="binding" source="featureShowcase" path="highlight" />
-            <Prop name="features" kind="binding" source="featureShowcase" path="features" />
-            <Prop name="primaryCta" kind="action" actionId="explore-blueprints" />
-            <Prop name="secondaryCta" kind="action" actionId="launch-playbook" />
+            <Prop name="title" kind="binding" contract="featureShowcase.title"/>
+            <Prop name="description" kind="binding" contract="featureShowcase.description"/>
+            <Prop name="highlight" kind="binding" contract="featureShowcase.highlight"/>
+            <Prop name="features" kind="binding" contract="featureShowcase.features"/>
+            <Prop name="primaryCta" kind="action" actionId="explore-blueprints"/>
+            <Prop name="secondaryCta" kind="action" actionId="launch-playbook"/>
           </Props>
         </Component>
         <Component id="momentum-stats" type="StatsSection">
           <Props>
             <Prop name="variant" kind="static">velocity-panel</Prop>
             <Prop name="eyebrow" kind="static">Operational velocity</Prop>
-            <Prop name="headline" kind="binding" source="momentumStats" path="headline" />
-            <Prop name="description" kind="binding" source="momentumStats" path="description" />
-            <Prop name="metrics" kind="binding" source="momentumStats" path="metrics" />
-            <Prop name="highlights" kind="binding" source="momentumStats" path="highlights" />
-            <Prop name="primaryCta" kind="action" actionId="see-catalog" />
+            <Prop name="headline" kind="binding" contract="momentumStats.headline"/>
+            <Prop name="description" kind="binding" contract="momentumStats.description"/>
+            <Prop name="metrics" kind="binding" contract="momentumStats.metrics"/>
+            <Prop name="highlights" kind="binding" contract="momentumStats.highlights"/>
+            <Prop name="primaryCta" kind="action" actionId="see-catalog"/>
           </Props>
         </Component>
         <Component id="activation-cta" type="CTASection">
@@ -39,11 +31,11 @@
             <Prop name="variant" kind="static">split</Prop>
             <Prop name="badge" kind="static">Acme × StewardTrack</Prop>
             <Prop name="eyebrow" kind="static">Blueprint activation</Prop>
-            <Prop name="headline" kind="binding" source="ctaCopy" path="headline" />
-            <Prop name="description" kind="binding" source="ctaCopy" path="description" />
-            <Prop name="checklist" kind="binding" source="ctaCopy" path="checklist" />
-            <Prop name="primaryCta" kind="action" actionId="launch-playbook" />
-            <Prop name="secondaryCta" kind="action" actionId="connect-team" />
+            <Prop name="headline" kind="binding" contract="ctaCopy.headline"/>
+            <Prop name="description" kind="binding" contract="ctaCopy.description"/>
+            <Prop name="checklist" kind="binding" contract="ctaCopy.checklist"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-playbook"/>
+            <Prop name="secondaryCta" kind="action" actionId="connect-team"/>
           </Props>
         </Component>
         <Component id="newsletter-invite" type="NewsletterSection">
@@ -51,11 +43,11 @@
             <Prop name="variant" kind="static">product</Prop>
             <Prop name="badge" kind="static">Stay aligned</Prop>
             <Prop name="eyebrow" kind="static">Metadata dispatch</Prop>
-            <Prop name="headline" kind="binding" source="newsletterCopy" path="headline" />
-            <Prop name="description" kind="binding" source="newsletterCopy" path="description" />
-            <Prop name="checklist" kind="binding" source="newsletterCopy" path="checklist" />
-            <Prop name="logos" kind="binding" source="newsletterCopy" path="logos" />
-            <Prop name="primaryCta" kind="action" actionId="subscribe-updates" />
+            <Prop name="headline" kind="binding" contract="newsletterCopy.headline"/>
+            <Prop name="description" kind="binding" contract="newsletterCopy.description"/>
+            <Prop name="checklist" kind="binding" contract="newsletterCopy.checklist"/>
+            <Prop name="logos" kind="binding" contract="newsletterCopy.logos"/>
+            <Prop name="primaryCta" kind="action" actionId="subscribe-updates"/>
           </Props>
         </Component>
       </Region>
@@ -66,130 +58,279 @@
           <Prop name="variant" kind="static">split</Prop>
           <Prop name="badge" kind="static">Acme launchpad</Prop>
           <Prop name="eyebrow" kind="static">StewardTrack metadata</Prop>
-          <Prop name="headline" kind="binding" source="heroCopy" path="headline" />
-          <Prop name="description" kind="binding" source="heroCopy" path="description" />
-          <Prop name="highlights" kind="binding" source="heroCopy" path="highlights" />
-          <Prop name="metrics" kind="binding" source="heroCopy" path="metrics" />
-          <Prop name="primaryCta" kind="action" actionId="launch-playbook" />
-          <Prop name="secondaryCta" kind="action" actionId="view-docs" />
+          <Prop name="headline" kind="binding" contract="heroCopy.headline"/>
+          <Prop name="description" kind="binding" contract="heroCopy.description"/>
+          <Prop name="highlights" kind="binding" contract="heroCopy.highlights"/>
+          <Prop name="metrics" kind="binding" contract="heroCopy.metrics"/>
+          <Prop name="primaryCta" kind="action" actionId="launch-playbook"/>
+          <Prop name="secondaryCta" kind="action" actionId="view-docs"/>
         </Props>
       </Component>
     </Components>
     <DataSources>
       <DataSource id="heroCopy" kind="static" operation="replace">
-        <Json><![CDATA[
-          {
-            "headline": "Operationalize metadata building blocks in days",
-            "description": "Compose heroes, stats, and CTAs from reusable XML so every steward sees a guided path to value.",
-            "highlights": [
-              "Launch dynamic experiences without rewriting React",
-              "Blend blueprint defaults with tenant-specific overlays",
-              "Measure adoption with every versioned release"
-            ],
-            "metrics": [
-              { "label": "Blueprint reuse", "value": "92%", "caption": "Teams lean on shared UI blocks." },
-              { "label": "Authoring time", "value": "-48%", "caption": "Reduced iteration across launches." },
-              { "label": "Tenant rollouts", "value": "3.8x", "caption": "More markets activated per quarter." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="headline" path="headline" description="Binding for hero-section.headline"/>
+          <Field name="description" path="description" description="Binding for hero-section.description"/>
+          <Field name="highlights" path="highlights" description="Binding for hero-section.highlights"/>
+          <Field name="metrics" path="metrics" description="Binding for hero-section.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="headline">
+            <Value>Operationalize metadata building blocks in days</Value>
+          </Field>
+          <Field name="description">
+            <Value>Compose heroes, stats, and CTAs from reusable XML so every steward sees a guided path to value.</Value>
+          </Field>
+          <Field name="highlights">
+            <Array>
+              <Value>Launch dynamic experiences without rewriting React</Value>
+              <Value>Blend blueprint defaults with tenant-specific overlays</Value>
+              <Value>Measure adoption with every versioned release</Value>
+            </Array>
+          </Field>
+          <Field name="metrics">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Blueprint reuse</Value>
+                </Field>
+                <Field name="value">
+                  <Value>92%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Teams lean on shared UI blocks.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Authoring time</Value>
+                </Field>
+                <Field name="value">
+                  <Value>-48%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Reduced iteration across launches.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Tenant rollouts</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3.8x</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>More markets activated per quarter.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="featureShowcase" kind="static">
-        <Json><![CDATA[
-          {
-            "title": "Design once, extend everywhere",
-            "description": "Dynamic page sections keep Acme launch teams aligned while letting each steward tailor messaging.",
-            "highlight": "Building blocks plug into any region so teams can pilot a new journey without copy-pasting components.",
-            "features": [
-              {
-                "title": "Hero building blocks",
-                "description": "Switch hero variants per tenant with a single overlay patch.",
-                "icon": "✨"
-              },
-              {
-                "title": "Composable data",
-                "description": "Bind reusable JSON payloads into features, stats, and CTAs across the page.",
-                "icon": "🧩"
-              },
-              {
-                "title": "Versioned actions",
-                "description": "Promote the right CTA for each steward while keeping analytics consistent.",
-                "icon": "📈"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="title" path="title" description="Binding for metadata-feature.title"/>
+          <Field name="description" path="description" description="Binding for metadata-feature.description"/>
+          <Field name="highlight" path="highlight" description="Binding for metadata-feature.highlight"/>
+          <Field name="features" path="features" description="Binding for metadata-feature.features"/>
+        </Contract>
+        <Data>
+          <Field name="title">
+            <Value>Design once, extend everywhere</Value>
+          </Field>
+          <Field name="description">
+            <Value>Dynamic page sections keep Acme launch teams aligned while letting each steward tailor messaging.</Value>
+          </Field>
+          <Field name="highlight">
+            <Value>Building blocks plug into any region so teams can pilot a new journey without copy-pasting components.</Value>
+          </Field>
+          <Field name="features">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Hero building blocks</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Switch hero variants per tenant with a single overlay patch.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>✨</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Composable data</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Bind reusable JSON payloads into features, stats, and CTAs across the page.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🧩</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Versioned actions</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Promote the right CTA for each steward while keeping analytics consistent.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>📈</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="momentumStats" kind="static">
-        <Json><![CDATA[
-          {
-            "headline": "Momentum that teams can quantify",
-            "description": "Overlay-driven launches shorten review cycles and keep funnels accountable.",
-            "metrics": [
-              {
-                "label": "Spec sign-off",
-                "value": "5 days",
-                "description": "Average blueprint approval time once metadata blocks are standardized.",
-                "change": "-37%",
-                "changeLabel": "vs. last quarter"
-              },
-              {
-                "label": "Journey experiments",
-                "value": "24 / mo",
-                "description": "Test new regional narratives without redeploying code.",
-                "change": "+18%",
-                "changeLabel": "QoQ"
-              },
-              {
-                "label": "Review comments",
-                "value": "↓ 42%",
-                "description": "Centralized data sources resolve feedback before launch reviews.",
-                "change": "-12",
-                "changeLabel": "per release"
-              },
-              {
-                "label": "Guided conversions",
-                "value": "+28%",
-                "description": "Stack CTA and newsletter blocks to keep stewards moving forward.",
-                "change": "+7%",
-                "changeLabel": "WoW"
-              }
-            ],
-            "highlights": [
-              "Dynamic regions mix stats, CTA, and newsletter primitives",
-              "Actions stay reusable across hero and follow-up prompts"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="headline" path="headline" description="Binding for momentum-stats.headline"/>
+          <Field name="description" path="description" description="Binding for momentum-stats.description"/>
+          <Field name="metrics" path="metrics" description="Binding for momentum-stats.metrics"/>
+          <Field name="highlights" path="highlights" description="Binding for momentum-stats.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="headline">
+            <Value>Momentum that teams can quantify</Value>
+          </Field>
+          <Field name="description">
+            <Value>Overlay-driven launches shorten review cycles and keep funnels accountable.</Value>
+          </Field>
+          <Field name="metrics">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Spec sign-off</Value>
+                </Field>
+                <Field name="value">
+                  <Value>5 days</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Average blueprint approval time once metadata blocks are standardized.</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-37%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>vs. last quarter</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Journey experiments</Value>
+                </Field>
+                <Field name="value">
+                  <Value>24 / mo</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Test new regional narratives without redeploying code.</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Review comments</Value>
+                </Field>
+                <Field name="value">
+                  <Value>↓ 42%</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Centralized data sources resolve feedback before launch reviews.</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-12</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>per release</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Guided conversions</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+28%</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Stack CTA and newsletter blocks to keep stewards moving forward.</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+7%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>WoW</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+          <Field name="highlights">
+            <Array>
+              <Value>Dynamic regions mix stats, CTA, and newsletter primitives</Value>
+              <Value>Actions stay reusable across hero and follow-up prompts</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="ctaCopy" kind="static">
-        <Json><![CDATA[
-          {
-            "headline": "Activate your metadata playbook",
-            "description": "Give each steward a curated plan that pairs UI building blocks with measurable outcomes.",
-            "checklist": [
-              "Align every launch on the same hero-to-CTA story arc",
-              "Feed product metrics directly into storytelling blocks",
-              "Route feedback into the next overlay iteration"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="headline" path="headline" description="Binding for activation-cta.headline"/>
+          <Field name="description" path="description" description="Binding for activation-cta.description"/>
+          <Field name="checklist" path="checklist" description="Binding for activation-cta.checklist"/>
+        </Contract>
+        <Data>
+          <Field name="headline">
+            <Value>Activate your metadata playbook</Value>
+          </Field>
+          <Field name="description">
+            <Value>Give each steward a curated plan that pairs UI building blocks with measurable outcomes.</Value>
+          </Field>
+          <Field name="checklist">
+            <Array>
+              <Value>Align every launch on the same hero-to-CTA story arc</Value>
+              <Value>Feed product metrics directly into storytelling blocks</Value>
+              <Value>Route feedback into the next overlay iteration</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="newsletterCopy" kind="static">
-        <Json><![CDATA[
-          {
-            "headline": "Join the metadata dispatch",
-            "description": "Monthly breakdowns of the newest dynamic sections, overlays, and performance benchmarks.",
-            "checklist": [
-              "Blueprint spotlights from high-performing teams",
-              "Telemetry deep dives to replicate winning journeys",
-              "Early access to upcoming building blocks"
-            ],
-            "logos": [
-              "Northwind", "Globex", "Inertia", "Parallel", "Brightline"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="headline" path="headline" description="Binding for newsletter-invite.headline"/>
+          <Field name="description" path="description" description="Binding for newsletter-invite.description"/>
+          <Field name="checklist" path="checklist" description="Binding for newsletter-invite.checklist"/>
+          <Field name="logos" path="logos" description="Binding for newsletter-invite.logos"/>
+        </Contract>
+        <Data>
+          <Field name="headline">
+            <Value>Join the metadata dispatch</Value>
+          </Field>
+          <Field name="description">
+            <Value>Monthly breakdowns of the newest dynamic sections, overlays, and performance benchmarks.</Value>
+          </Field>
+          <Field name="checklist">
+            <Array>
+              <Value>Blueprint spotlights from high-performing teams</Value>
+              <Value>Telemetry deep dives to replicate winning journeys</Value>
+              <Value>Early access to upcoming building blocks</Value>
+            </Array>
+          </Field>
+          <Field name="logos">
+            <Array>
+              <Value>Northwind</Value>
+              <Value>Globex</Value>
+              <Value>Inertia</Value>
+              <Value>Parallel</Value>
+              <Value>Brightline</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

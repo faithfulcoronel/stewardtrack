@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/spotlight"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/spotlight" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-spotlight">
     <Title>UI Block: Spotlight hero</Title>
     <Regions>
@@ -17,46 +10,94 @@
             <Prop name="badge" kind="static">Blueprint release</Prop>
             <Prop name="headline" kind="static">Launch products faster with StewardTrack blocks</Prop>
             <Prop name="description" kind="static">Pick a curated hero blueprint, orchestrate overlays, and ship a marketing launch page without waiting on deploys.</Prop>
-            <Prop name="highlights" kind="binding" source="spotlightHighlights" path="items" />
-            <Prop name="metrics" kind="binding" source="spotlightMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-library" />
-            <Prop name="secondaryCta" kind="action" actionId="watch-demo" />
-            <Prop name="image" kind="binding" source="spotlightMedia" path="$" />
+            <Prop name="highlights" kind="binding" contract="spotlightHighlights.items"/>
+            <Prop name="metrics" kind="binding" contract="spotlightMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-library"/>
+            <Prop name="secondaryCta" kind="action" actionId="watch-demo"/>
+            <Prop name="image" kind="binding" contract="spotlightMedia.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="spotlightHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Blueprint previews render instantly inside admin sandbox routes.",
-              "Layer tenant overlays without redeploying code.",
-              "Roll back content versions with deterministic diffs."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-spotlight.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Blueprint previews render instantly inside admin sandbox routes.</Value>
+              <Value>Layer tenant overlays without redeploying code.</Value>
+              <Value>Roll back content versions with deterministic diffs.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="spotlightMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Time to publish", "value": "2x faster", "caption": "Compared to ad-hoc React deploys." },
-              { "label": "Reusable heroes", "value": "48", "caption": "Maintained across modules." },
-              { "label": "Author satisfaction", "value": "94%" },
-              { "label": "Metadata PRs", "value": "-63%", "caption": "Less engineering review time." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-spotlight.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Time to publish</Value>
+                </Field>
+                <Field name="value">
+                  <Value>2x faster</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Compared to ad-hoc React deploys.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Reusable heroes</Value>
+                </Field>
+                <Field name="value">
+                  <Value>48</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Maintained across modules.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Author satisfaction</Value>
+                </Field>
+                <Field name="value">
+                  <Value>94%</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Metadata PRs</Value>
+                </Field>
+                <Field name="value">
+                  <Value>-63%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Less engineering review time.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="spotlightMedia" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
-            "alt": "Product team collaborating on laptops"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for hero-spotlight.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&amp;amp;fit=crop&amp;amp;w=1600&amp;amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Product team collaborating on laptops</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

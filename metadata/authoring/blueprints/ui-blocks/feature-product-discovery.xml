@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/product-discovery"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/product-discovery" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-product-discovery">
     <Title>UI Block: Product discovery feature section</Title>
     <Regions>
@@ -17,58 +10,109 @@
             <Prop name="eyebrow" kind="static">Product intelligence</Prop>
             <Prop name="title" kind="static">Illuminate every discovery signal</Prop>
             <Prop name="description" kind="static">Bundle research intake, synthesis, and roadmap conversations into a single surface that teams can skim in seconds.</Prop>
-            <Prop name="features" kind="binding" source="discoveryFeatures" path="items" />
+            <Prop name="features" kind="binding" contract="discoveryFeatures.items"/>
             <Prop name="footnote" kind="static">Designed for research operations teams coordinating insight backlogs across product, design, and go-to-market partners.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="start-discovery" />
-            <Prop name="secondaryCta" kind="action" actionId="view-research-playbook" />
+            <Prop name="primaryCta" kind="action" actionId="start-discovery"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-research-playbook"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="discoveryFeatures" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "icon": "🧭",
-                "title": "Journey heatmaps",
-                "description": "Surface volume, sentiment, and blockers across every discovery request in real time.",
-                "href": "/playbooks/discovery-maps"
-              },
-              {
-                "icon": "🧪",
-                "title": "Experiment registry",
-                "description": "Track hypotheses, owners, and evidence with linked artifacts from your favorite tools.",
-                "href": "/integrations/experiment-registry"
-              },
-              {
-                "icon": "💬",
-                "title": "Voice of customer",
-                "description": "Route qualitative interviews into structured themes with automated tagging and summaries.",
-                "href": "/solutions/voice-of-customer"
-              },
-              {
-                "icon": "📈",
-                "title": "Opportunity sizing",
-                "description": "Blend demand scoring with impact projections to prioritize the next best research sprint.",
-                "href": "/guides/opportunity-model"
-              },
-              {
-                "icon": "🤝",
-                "title": "Partner review",
-                "description": "Align PMs, design leads, and analysts around weekly decisions using collaborative scorecards.",
-                "href": "/templates/decision-review"
-              },
-              {
-                "icon": "📚",
-                "title": "Insight library",
-                "description": "Publish canonical learnings with lineage back to the original transcript, clip, and note.",
-                "href": "/library/insight-atlas"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-product-discovery.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="icon">
+                  <Value>🧭</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Journey heatmaps</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Surface volume, sentiment, and blockers across every discovery request in real time.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/playbooks/discovery-maps</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🧪</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Experiment registry</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track hypotheses, owners, and evidence with linked artifacts from your favorite tools.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/integrations/experiment-registry</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>💬</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Voice of customer</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Route qualitative interviews into structured themes with automated tagging and summaries.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/solutions/voice-of-customer</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📈</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Opportunity sizing</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend demand scoring with impact projections to prioritize the next best research sprint.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/guides/opportunity-model</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🤝</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Partner review</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Align PMs, design leads, and analysts around weekly decisions using collaborative scorecards.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/templates/decision-review</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📚</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Insight library</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Publish canonical learnings with lineage back to the original transcript, clip, and note.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/library/insight-atlas</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

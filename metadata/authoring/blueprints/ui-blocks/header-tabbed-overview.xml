@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/tabbed-overview"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/tabbed-overview" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-tabbed-overview">
     <Title>UI Block: Tabbed overview header</Title>
     <Regions>
@@ -17,22 +10,46 @@
             <Prop name="eyebrow" kind="static">Product pillars</Prop>
             <Prop name="headline" kind="static">Choose your starting point</Prop>
             <Prop name="description" kind="static">A strategic header with tabbed entry points for different audiences—perfect for solution overviews or pricing guides.</Prop>
-            <Prop name="tabs" kind="binding" source="overviewTabs" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="request-access" />
-            <Prop name="secondaryCta" kind="action" actionId="compare-plans" />
+            <Prop name="tabs" kind="binding" contract="overviewTabs.value"/>
+            <Prop name="primaryCta" kind="action" actionId="request-access"/>
+            <Prop name="secondaryCta" kind="action" actionId="compare-plans"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="overviewTabs" kind="static">
-        <Json><![CDATA[
-          [
-            { "label": "Lifecycle automation", "description": "Blueprint journeys, routing, and scoring" },
-            { "label": "Revenue intelligence", "description": "Forecast-ready dashboards and alerts" },
-            { "label": "Partner velocity", "description": "Co-selling workspaces and deal rooms" }
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-tabbed-overview.tabs"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Object>
+              <Field name="label">
+                <Value>Lifecycle automation</Value>
+              </Field>
+              <Field name="description">
+                <Value>Blueprint journeys, routing, and scoring</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="label">
+                <Value>Revenue intelligence</Value>
+              </Field>
+              <Field name="description">
+                <Value>Forecast-ready dashboards and alerts</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="label">
+                <Value>Partner velocity</Value>
+              </Field>
+              <Field name="description">
+                <Value>Co-selling workspaces and deal rooms</Value>
+              </Field>
+            </Object>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/usage-insights"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/usage-insights" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-usage-insights">
     <Title>UI Block: Usage insights pricing</Title>
     <Regions>
@@ -18,54 +11,112 @@
             <Prop name="title" kind="static">Predictable telemetry for product, revops, and finance</Prop>
             <Prop name="description" kind="static">Lock in real-time visibility across your activation funnel with transparent thresholds, rollovers, and insights bundled together.</Prop>
             <Prop name="highlight" kind="static">Usage overages billed at 68% capacity to protect experimentation bursts.</Prop>
-            <Prop name="tiers" kind="binding" source="usageInsightsTier" path="items" />
-            <Prop name="metrics" kind="binding" source="usageInsightMetrics" path="items" />
+            <Prop name="tiers" kind="binding" contract="usageInsightsTier.items"/>
+            <Prop name="metrics" kind="binding" contract="usageInsightMetrics.items"/>
             <Prop name="footnote" kind="static">Billing reconciled monthly. Export raw telemetry to your warehouse at no additional cost.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="forecast-usage" />
-            <Prop name="secondaryCta" kind="action" actionId="download-usage-brief" />
+            <Prop name="primaryCta" kind="action" actionId="forecast-usage"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-usage-brief"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="usageInsightsTier" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Insight envelope",
-                "price": "$0.009",
-                "period": "per tracked event",
-                "description": "Standardize activation telemetry and automation triggers without overage surprises.",
-                "features": [
-                  "50M events included",
-                  "Adaptive sampling",
-                  "24h replay buffer",
-                  "Real-time anomaly detection"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Estimate events",
-                    "url": "/calculator/usage",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Events beyond 50M priced at $0.006 each."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-usage-insights.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Insight envelope</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$0.009</Value>
+                </Field>
+                <Field name="period">
+                  <Value>per tracked event</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Standardize activation telemetry and automation triggers without overage surprises.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>50M events included</Value>
+                    <Value>Adaptive sampling</Value>
+                    <Value>24h replay buffer</Value>
+                    <Value>Real-time anomaly detection</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Estimate events</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/calculator/usage</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Events beyond 50M priced at $0.006 each.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="usageInsightMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Realtime dashboards", "value": "12", "caption": "Included seats" },
-              { "label": "Adoption lift", "value": "+18%", "caption": "Median after 90 days" },
-              { "label": "Warehoused data", "value": "<5m", "caption": "Pipeline latency" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-usage-insights.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Realtime dashboards</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Included seats</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Adoption lift</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Median after 90 days</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Warehoused data</Value>
+                </Field>
+                <Field name="value">
+                  <Value>&lt;5m</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Pipeline latency</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/modular-suite"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/modular-suite" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-modular-suite">
     <Title>UI Block: Modular suite pricing</Title>
     <Regions>
@@ -18,91 +11,151 @@
             <Prop name="title" kind="static">Start with the orchestration core, layer only what you need</Prop>
             <Prop name="description" kind="static">Teams mix and match modules to orchestrate onboarding, retention, and expansion without bloated bundles.</Prop>
             <Prop name="note" kind="static">Base plan required. Add-ons can be toggled each quarter to match evolving priorities.</Prop>
-            <Prop name="tiers" kind="binding" source="modularSuiteBase" path="items" />
-            <Prop name="addOns" kind="binding" source="modularSuiteAddOns" path="items" />
+            <Prop name="tiers" kind="binding" contract="modularSuiteBase.items"/>
+            <Prop name="addOns" kind="binding" contract="modularSuiteAddOns.items"/>
             <Prop name="footnote" kind="static">Usage for automation runs beyond included volume billed at $0.004 per action.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="configure-suite" />
-            <Prop name="secondaryCta" kind="action" actionId="view-solution-templates" />
+            <Prop name="primaryCta" kind="action" actionId="configure-suite"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-solution-templates"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="modularSuiteBase" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Orchestration core",
-                "price": "$640",
-                "period": "month",
-                "description": "Centralize user journeys, automate lifecycle nudges, and instrument success metrics.",
-                "features": [
-                  "Unified journey canvas",
-                  "Role-based permissions",
-                  "5M automation actions",
-                  "Insights workspace"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Activate core",
-                    "url": "/checkout?plan=orchestration-core",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Includes onboarding concierge and template migration assistance."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-modular-suite.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Orchestration core</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$640</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Centralize user journeys, automate lifecycle nudges, and instrument success metrics.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unified journey canvas</Value>
+                    <Value>Role-based permissions</Value>
+                    <Value>5M automation actions</Value>
+                    <Value>Insights workspace</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Activate core</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=orchestration-core</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes onboarding concierge and template migration assistance.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="modularSuiteAddOns" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Customer marketing",
-                "price": "+$240/mo",
-                "description": "Email, in-app, and webinar campaigns with shared insights dashboard.",
-                "features": [
-                  "Journey-based audiences",
-                  "Campaign QA sandbox",
-                  "Deliverability monitor"
-                ]
-              },
-              {
-                "name": "Revenue intelligence",
-                "price": "+$320/mo",
-                "description": "Connect usage signals with pipeline data to accelerate expansion.",
-                "features": [
-                  "CRM bi-directional sync",
-                  "Deal risk scoring",
-                  "Forecast variance alerts"
-                ]
-              },
-              {
-                "name": "Advocacy studio",
-                "price": "+$180/mo",
-                "description": "Capture testimonials, referrals, and community contributions automatically.",
-                "features": [
-                  "Advocate portal",
-                  "Incentive wallet",
-                  "Content release approvals"
-                ]
-              },
-              {
-                "name": "Service desk",
-                "price": "+$90/mo",
-                "description": "Add concierge support for configuration, QA, and migrations on demand.",
-                "features": [
-                  "Unlimited ticketing",
-                  "Specialist pairing",
-                  "SLA-backed responses"
-                ]
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-modular-suite.addOns"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Customer marketing</Value>
+                </Field>
+                <Field name="price">
+                  <Value>+$240/mo</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Email, in-app, and webinar campaigns with shared insights dashboard.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Journey-based audiences</Value>
+                    <Value>Campaign QA sandbox</Value>
+                    <Value>Deliverability monitor</Value>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Revenue intelligence</Value>
+                </Field>
+                <Field name="price">
+                  <Value>+$320/mo</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Connect usage signals with pipeline data to accelerate expansion.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>CRM bi-directional sync</Value>
+                    <Value>Deal risk scoring</Value>
+                    <Value>Forecast variance alerts</Value>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Advocacy studio</Value>
+                </Field>
+                <Field name="price">
+                  <Value>+$180/mo</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Capture testimonials, referrals, and community contributions automatically.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Advocate portal</Value>
+                    <Value>Incentive wallet</Value>
+                    <Value>Content release approvals</Value>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Service desk</Value>
+                </Field>
+                <Field name="price">
+                  <Value>+$90/mo</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Add concierge support for configuration, QA, and migrations on demand.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unlimited ticketing</Value>
+                    <Value>Specialist pairing</Value>
+                    <Value>SLA-backed responses</Value>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

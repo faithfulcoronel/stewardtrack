@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/support-intelligence"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/support-intelligence" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-support-intelligence">
     <Title>UI Block: Support intelligence feature section</Title>
     <Regions>
@@ -17,38 +10,59 @@
             <Prop name="eyebrow" kind="static">Support intelligence</Prop>
             <Prop name="title" kind="static">Give agents superpowers, not silos</Prop>
             <Prop name="description" kind="static">Pair real-time assistance with operational analytics to boost CSAT while reducing handle time.</Prop>
-            <Prop name="features" kind="binding" source="supportHighlights" path="items" />
+            <Prop name="features" kind="binding" contract="supportHighlights.items"/>
             <Prop name="highlight" kind="static">AI-suggested resolutions cut manual triage by 63% across our enterprise customers.</Prop>
             <Prop name="footnote" kind="static">Benchmark performance against peers and set goals grounded in anonymized industry telemetry.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="explore-support-ai" />
-            <Prop name="secondaryCta" kind="action" actionId="join-support-benchmark" />
+            <Prop name="primaryCta" kind="action" actionId="explore-support-ai"/>
+            <Prop name="secondaryCta" kind="action" actionId="join-support-benchmark"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="supportHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "icon": "🧠",
-                "title": "Agent copilots",
-                "description": "Surface suggested replies, knowledge base snippets, and policy guidance instantly."
-              },
-              {
-                "icon": "📥",
-                "title": "Smart intake",
-                "description": "Detect intent, risk, and sentiment to route cases with the right context every time."
-              },
-              {
-                "icon": "📊",
-                "title": "Operations dashboard",
-                "description": "Track backlog health, channel mix, and staffing forecasts in one adaptive view."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-support-intelligence.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="icon">
+                  <Value>🧠</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Agent copilots</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Surface suggested replies, knowledge base snippets, and policy guidance instantly.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📥</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Smart intake</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Detect intent, risk, and sentiment to route cases with the right context every time.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📊</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Operations dashboard</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track backlog health, channel mix, and staffing forecasts in one adaptive view.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

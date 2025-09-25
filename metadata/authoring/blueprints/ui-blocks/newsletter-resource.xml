@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/resource"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/resource" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-resource">
     <Title>UI Block: Newsletter resource vault</Title>
     <Regions>
@@ -17,62 +10,101 @@
             <Prop name="badge" kind="static">Resource kit</Prop>
             <Prop name="headline" kind="static">Unlock the metadata enablement vault</Prop>
             <Prop name="description" kind="static">Every issue includes a guided lesson, worksheet, and video walkthrough so your team can master metadata workflows.</Prop>
-            <Prop name="checklist" kind="binding" source="resourceChecklist" path="items" />
-            <Prop name="cards" kind="binding" source="resourceCards" path="items" />
-            <Prop name="form" kind="binding" source="resourceForm" path="$" />
+            <Prop name="checklist" kind="binding" contract="resourceChecklist.items"/>
+            <Prop name="cards" kind="binding" contract="resourceCards.items"/>
+            <Prop name="form" kind="binding" contract="resourceForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="resourceChecklist" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Weekly lab to practice a metadata workflow.",
-              "Downloadable worksheets for each lesson.",
-              "Recordings with annotated blueprints."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-resource.checklist"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Weekly lab to practice a metadata workflow.</Value>
+              <Value>Downloadable worksheets for each lesson.</Value>
+              <Value>Recordings with annotated blueprints.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="resourceCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Guide",
-                "title": "Metadata maturity assessment",
-                "description": "Score your current stack and prioritize the next three upgrades."
-              },
-              {
-                "badge": "Worksheet",
-                "title": "Schema change playbook",
-                "description": "Coordinate product, docs, and go-to-market in one template."
-              },
-              {
-                "badge": "Video",
-                "title": "Experiment review clinic",
-                "description": "See how a revenue team scaled experimentation using overlays."
-              },
-              {
-                "badge": "Checklist",
-                "title": "Lifecycle automation QA",
-                "description": "Verify metadata accuracy before flipping on a new journey."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-resource.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Guide</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Metadata maturity assessment</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Score your current stack and prioritize the next three upgrades.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Worksheet</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Schema change playbook</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Coordinate product, docs, and go-to-market in one template.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Video</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Experiment review clinic</Value>
+                </Field>
+                <Field name="description">
+                  <Value>See how a revenue team scaled experimentation using overlays.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Checklist</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Lifecycle automation QA</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Verify metadata accuracy before flipping on a new journey.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="resourceForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "enablement@company.com",
-            "buttonLabel": "Email me the kit",
-            "disclaimer": "Delivered Sunday evening with lessons for the week ahead.",
-            "url": "/newsletter/resource-vault/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-resource.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>enablement@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Email me the kit</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Delivered Sunday evening with lessons for the week ahead.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/resource-vault/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

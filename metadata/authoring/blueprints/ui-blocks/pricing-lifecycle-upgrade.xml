@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/lifecycle-upgrade"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/lifecycle-upgrade" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-lifecycle-upgrade">
     <Title>UI Block: Lifecycle upgrade pricing</Title>
     <Regions>
@@ -17,101 +10,190 @@
             <Prop name="eyebrow" kind="static">Lifecycle roadmap</Prop>
             <Prop name="title" kind="static">Level up adoption with milestones that compound value</Prop>
             <Prop name="description" kind="static">Each tier unlocks new rituals—coaching, analytics, and automation—so customer teams can prove ROI at every checkpoint.</Prop>
-            <Prop name="tiers" kind="binding" source="lifecycleSteps" path="items" />
+            <Prop name="tiers" kind="binding" contract="lifecycleSteps.items"/>
             <Prop name="footnote" kind="static">Milestone reviews included at each upgrade. Cancel or pause between stages with 30 days notice.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="map-lifecycle" />
-            <Prop name="secondaryCta" kind="action" actionId="explore-case-studies" />
+            <Prop name="primaryCta" kind="action" actionId="map-lifecycle"/>
+            <Prop name="secondaryCta" kind="action" actionId="explore-case-studies"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="lifecycleSteps" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Orientation",
-                "price": "$2k",
-                "period": "one-time",
-                "description": "Align teams, map critical journeys, and deploy best-practice instrumentation within two weeks.",
-                "features": [
-                  "Discovery workshop",
-                  "KPI alignment charter",
-                  "Workspace configuration",
-                  "Platform enablement"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Start orientation",
-                    "url": "/checkout?plan=orientation",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Activation",
-                "price": "$1.5k",
-                "period": "month",
-                "highlight": "Popular",
-                "description": "Orchestrate product tours, trial conversions, and nurture sequences with guided reviews.",
-                "features": [
-                  "Weekly performance clinics",
-                  "Experiment backlog management",
-                  "Automated lifecycle scoring",
-                  "Executive adoption dashboard"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Unlock activation",
-                    "url": "/checkout?plan=activation",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Includes up to 5 workspaces."
-              },
-              {
-                "name": "Expansion",
-                "price": "$2.8k",
-                "period": "month",
-                "description": "Scale enterprise handoffs, ROI storytelling, and partner enablement across business units.",
-                "features": [
-                  "Account health scoring",
-                  "Forecast-to-adoption bridge",
-                  "Revenue instrumentation reviews",
-                  "Partner enablement portal"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Expand coverage",
-                    "url": "/checkout?plan=expansion",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Advocacy",
-                "price": "Custom",
-                "period": "annual",
-                "description": "Co-create customer councils, roadmap visibility, and influence programs tied to revenue goals.",
-                "features": [
-                  "Customer story studio",
-                  "Roadmap feedback cadences",
-                  "Executive sponsor briefings",
-                  "Advocacy fund management"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Design advocacy plan",
-                    "url": "/contact/advocacy",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Includes bespoke OKR tracking and voice-of-customer research."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-lifecycle-upgrade.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Orientation</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2k</Value>
+                </Field>
+                <Field name="period">
+                  <Value>one-time</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Align teams, map critical journeys, and deploy best-practice instrumentation within two weeks.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Discovery workshop</Value>
+                    <Value>KPI alignment charter</Value>
+                    <Value>Workspace configuration</Value>
+                    <Value>Platform enablement</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Start orientation</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=orientation</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Activation</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$1.5k</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Popular</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Orchestrate product tours, trial conversions, and nurture sequences with guided reviews.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Weekly performance clinics</Value>
+                    <Value>Experiment backlog management</Value>
+                    <Value>Automated lifecycle scoring</Value>
+                    <Value>Executive adoption dashboard</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Unlock activation</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=activation</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes up to 5 workspaces.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Expansion</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2.8k</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Scale enterprise handoffs, ROI storytelling, and partner enablement across business units.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Account health scoring</Value>
+                    <Value>Forecast-to-adoption bridge</Value>
+                    <Value>Revenue instrumentation reviews</Value>
+                    <Value>Partner enablement portal</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Expand coverage</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=expansion</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Advocacy</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Co-create customer councils, roadmap visibility, and influence programs tied to revenue goals.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Customer story studio</Value>
+                    <Value>Roadmap feedback cadences</Value>
+                    <Value>Executive sponsor briefings</Value>
+                    <Value>Advocacy fund management</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Design advocacy plan</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/advocacy</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes bespoke OKR tracking and voice-of-customer research.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

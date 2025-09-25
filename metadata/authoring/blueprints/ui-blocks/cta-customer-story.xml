@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/customer-story"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/customer-story" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-customer-story">
     <Title>UI Block: Customer story CTA</Title>
     <Regions>
@@ -17,22 +10,29 @@
             <Prop name="badge" kind="static">Customer story</Prop>
             <Prop name="headline" kind="static">See how RelayOps scaled releases with StewardTrack</Prop>
             <Prop name="description" kind="static">RelayOps replaced manual launch checklists with metadata-driven workflows and cut review cycles in half.</Prop>
-            <Prop name="testimonial" kind="binding" source="relayTestimonial" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="read-story" />
-            <Prop name="secondaryCta" kind="action" actionId="schedule-tour" />
+            <Prop name="testimonial" kind="binding" contract="relayTestimonial.value"/>
+            <Prop name="primaryCta" kind="action" actionId="read-story"/>
+            <Prop name="secondaryCta" kind="action" actionId="schedule-tour"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="relayTestimonial" kind="static">
-        <Json><![CDATA[
-          {
-            "quote": "StewardTrack helped us orchestrate launches across product, marketing, and support without adding headcount.",
-            "author": "Mira Han",
-            "role": "Director of Product Marketing, RelayOps"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for cta-customer-story.testimonial"/>
+        </Contract>
+        <Data>
+          <Field name="quote">
+            <Value>StewardTrack helped us orchestrate launches across product, marketing, and support without adding headcount.</Value>
+          </Field>
+          <Field name="author">
+            <Value>Mira Han</Value>
+          </Field>
+          <Field name="role">
+            <Value>Director of Product Marketing, RelayOps</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

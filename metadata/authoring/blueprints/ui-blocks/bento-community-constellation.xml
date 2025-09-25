@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/community-constellation"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/community-constellation" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-community-constellation">
     <Title>UI Block: Community constellation bento grid</Title>
     <Regions>
@@ -17,73 +10,129 @@
             <Prop name="eyebrow" kind="static">Community programs</Prop>
             <Prop name="headline" kind="static">Unite advocates, contributors, and customer councils</Prop>
             <Prop name="description" kind="static">Bring programs, events, and story amplification into one orbit that celebrates your community.</Prop>
-            <Prop name="cards" kind="binding" source="communityConstellationCards" path="items" />
-            <Prop name="logos" kind="binding" source="communityConstellationLogos" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="explore-community" />
-            <Prop name="secondaryCta" kind="action" actionId="submit-story" />
+            <Prop name="cards" kind="binding" contract="communityConstellationCards.items"/>
+            <Prop name="logos" kind="binding" contract="communityConstellationLogos.items"/>
+            <Prop name="primaryCta" kind="action" actionId="explore-community"/>
+            <Prop name="secondaryCta" kind="action" actionId="submit-story"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="communityConstellationCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Programs",
-                "title": "Advocate pathways",
-                "description": "Design tracks for builders, strategists, and champions with themed missions.",
-                "tone": "brand"
-              },
-              {
-                "eyebrow": "Spotlight",
-                "title": "Member stories",
-                "description": "Curated success narratives with ready-to-share assets and social copy.",
-                "tone": "blossom"
-              },
-              {
-                "eyebrow": "Events",
-                "title": "Galaxy calendar",
-                "description": "Auto-sync meetups, AMAs, and advisory boards across time zones.",
-                "tone": "surface",
-                "footnote": "Includes streaming links and recordings archive."
-              },
-              {
-                "badge": "Enablement",
-                "title": "Playbook exchange",
-                "description": "Share templates, frameworks, and labs with upvote feedback loops.",
-                "tone": "violet"
-              },
-              {
-                "eyebrow": "Recognition",
-                "title": "Constellation awards",
-                "description": "Nominate outstanding contributors and celebrate peer-to-peer impact.",
-                "tone": "light"
-              },
-              {
-                "badge": "Advisory",
-                "title": "Customer council",
-                "description": "Capture roadmap insights, sentiment, and beta interest in one place.",
-                "tone": "forest"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-community-constellation.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Programs</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Advocate pathways</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Design tracks for builders, strategists, and champions with themed missions.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>brand</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Spotlight</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Member stories</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Curated success narratives with ready-to-share assets and social copy.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>blossom</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Events</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Galaxy calendar</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Auto-sync meetups, AMAs, and advisory boards across time zones.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes streaming links and recordings archive.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Enablement</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Playbook exchange</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Share templates, frameworks, and labs with upvote feedback loops.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>violet</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Recognition</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Constellation awards</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Nominate outstanding contributors and celebrate peer-to-peer impact.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>light</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Advisory</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Customer council</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Capture roadmap insights, sentiment, and beta interest in one place.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="communityConstellationLogos" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Champions Guild",
-              "Makers Hub",
-              "Navigator Circle",
-              "Product Council",
-              "Growth Guild",
-              "Advisor Forum"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-community-constellation.logos"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Champions Guild</Value>
+              <Value>Makers Hub</Value>
+              <Value>Navigator Circle</Value>
+              <Value>Product Council</Value>
+              <Value>Growth Guild</Value>
+              <Value>Advisor Forum</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

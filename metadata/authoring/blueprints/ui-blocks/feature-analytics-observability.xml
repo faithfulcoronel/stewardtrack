@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/analytics-observability"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/analytics-observability" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-analytics-observability">
     <Title>UI Block: Analytics observability feature section</Title>
     <Regions>
@@ -17,54 +10,114 @@
             <Prop name="eyebrow" kind="static">Analytics observability</Prop>
             <Prop name="title" kind="static">Prove impact with trustworthy telemetry</Prop>
             <Prop name="description" kind="static">Unify product analytics, revenue signals, and adoption milestones with governed definitions that never drift.</Prop>
-            <Prop name="features" kind="binding" source="analyticsFeatures" path="items" />
-            <Prop name="metrics" kind="binding" source="analyticsMetrics" path="items" />
+            <Prop name="features" kind="binding" contract="analyticsFeatures.items"/>
+            <Prop name="metrics" kind="binding" contract="analyticsMetrics.items"/>
             <Prop name="footnote" kind="static">Observability teams rely on this template to standardize definitions across data engineering, finance, and product leadership.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="explore-observability" />
-            <Prop name="secondaryCta" kind="action" actionId="download-metrics-guide" />
+            <Prop name="primaryCta" kind="action" actionId="explore-observability"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-metrics-guide"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="analyticsFeatures" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "icon": "🛰️",
-                "title": "Event lineage",
-                "description": "Trace every dashboard metric back to its raw source, transformation, and owner."
-              },
-              {
-                "icon": "🧮",
-                "title": "Governed formulas",
-                "description": "Version control KPIs with approvals, change logs, and proactive anomaly detection."
-              },
-              {
-                "icon": "🪄",
-                "title": "Narrative snapshots",
-                "description": "Auto-generate executive briefs that combine metrics, insights, and recommended actions."
-              },
-              {
-                "icon": "🛰",
-                "title": "Signal routing",
-                "description": "Pipe alerts to Slack, PagerDuty, or email with contextual play suggestions."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-analytics-observability.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="icon">
+                  <Value>🛰️</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Event lineage</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trace every dashboard metric back to its raw source, transformation, and owner.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🧮</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Governed formulas</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Version control KPIs with approvals, change logs, and proactive anomaly detection.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🪄</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Narrative snapshots</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Auto-generate executive briefs that combine metrics, insights, and recommended actions.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🛰</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Signal routing</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Pipe alerts to Slack, PagerDuty, or email with contextual play suggestions.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="analyticsMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Unified sources", "value": "18", "caption": "Systems monitored" },
-              { "label": "Metric freshness", "value": "99.3%", "caption": "Updates within SLA" },
-              { "label": "Insights published", "value": "240/mo", "caption": "Automated recaps" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-analytics-observability.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Unified sources</Value>
+                </Field>
+                <Field name="value">
+                  <Value>18</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Systems monitored</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Metric freshness</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.3%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Updates within SLA</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Insights published</Value>
+                </Field>
+                <Field name="value">
+                  <Value>240/mo</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Automated recaps</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

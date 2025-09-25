@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/analytics"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/analytics" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-analytics">
     <Title>UI Block: Analytics hero</Title>
     <Regions>
@@ -17,25 +10,62 @@
             <Prop name="badge" kind="static">Analytics hub</Prop>
             <Prop name="headline" kind="static">Operational visibility for every stakeholder</Prop>
             <Prop name="description" kind="static">Showcase dashboards, alerts, and the instrumentation that proves your platform runs at scale.</Prop>
-            <Prop name="metrics" kind="binding" source="analyticsHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-dashboards" />
-            <Prop name="secondaryCta" kind="action" actionId="request-tour" />
+            <Prop name="metrics" kind="binding" contract="analyticsHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-dashboards"/>
+            <Prop name="secondaryCta" kind="action" actionId="request-tour"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="analyticsHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Dashboards", "value": "140+", "caption": "Blueprint-driven analytics suites." },
-              { "label": "Alert rules", "value": "380" },
-              { "label": "Data freshness", "value": "&lt; 5 min" },
-              { "label": "API latency", "value": "43 ms", "caption": "P95 across production tenants." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-analytics.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Dashboards</Value>
+                </Field>
+                <Field name="value">
+                  <Value>140+</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Blueprint-driven analytics suites.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Alert rules</Value>
+                </Field>
+                <Field name="value">
+                  <Value>380</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Data freshness</Value>
+                </Field>
+                <Field name="value">
+                  <Value>&amp;lt; 5 min</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>API latency</Value>
+                </Field>
+                <Field name="value">
+                  <Value>43 ms</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>P95 across production tenants.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="admin-community"
-  route="members/dashboard"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="admin-community" route="members/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="admin-community-membership-dashboard">
     <Title>Membership intelligence dashboard</Title>
     <Regions>
@@ -14,20 +7,20 @@
         <Component id="dashboard-hero" type="HeroSection">
           <Props>
             <Prop name="variant" kind="static">split</Prop>
-            <Prop name="eyebrow" kind="binding" source="dashboardHero" path="eyebrow" />
-            <Prop name="headline" kind="binding" source="dashboardHero" path="headline" />
-            <Prop name="description" kind="binding" source="dashboardHero" path="description" />
-            <Prop name="highlights" kind="binding" source="dashboardHero" path="highlights" />
-            <Prop name="metrics" kind="binding" source="dashboardHero" path="metrics" />
-            <Prop name="primaryCta" kind="action" actionId="open-member-list" />
-            <Prop name="secondaryCta" kind="action" actionId="launch-new-member" />
+            <Prop name="eyebrow" kind="binding" contract="dashboardHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="dashboardHero.headline"/>
+            <Prop name="description" kind="binding" contract="dashboardHero.description"/>
+            <Prop name="highlights" kind="binding" contract="dashboardHero.highlights"/>
+            <Prop name="metrics" kind="binding" contract="dashboardHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="open-member-list"/>
+            <Prop name="secondaryCta" kind="action" actionId="launch-new-member"/>
           </Props>
         </Component>
         <Component id="dashboard-kpis" type="AdminMetricCards">
           <Props>
             <Prop name="title" kind="static">Ministry KPIs at a glance</Prop>
             <Prop name="description" kind="static">Measure the spiritual and financial health of your congregation in real time.</Prop>
-            <Prop name="metrics" kind="binding" source="membershipMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="membershipMetrics.items"/>
             <Prop name="footnote" kind="static">Benchmarks compare against the previous four-week cycle across all centers.</Prop>
           </Props>
         </Component>
@@ -36,16 +29,16 @@
             <Prop name="title" kind="static">Jump to focus areas</Prop>
             <Prop name="description" kind="static">Coordinate membership, giving, and care workflows without leaving the dashboard.</Prop>
             <Prop name="columns" kind="static">3</Prop>
-            <Prop name="links" kind="binding" source="dashboardQuickLinks" path="items" />
-            <Prop name="actions" kind="binding" source="dashboardQuickLinks" path="actions" />
+            <Prop name="links" kind="binding" contract="dashboardQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
           </Props>
         </Component>
         <Component id="giving-trend" type="AdminGivingChart">
           <Props>
             <Prop name="title" kind="static">Covenant giving momentum</Prop>
             <Prop name="description" kind="static">Track pledged commitments, received giving, and household participation to steward financial health.</Prop>
-            <Prop name="data" kind="binding" source="givingTrend" path="points" />
-            <Prop name="highlight" kind="binding" source="givingTrend" path="highlight" />
+            <Prop name="data" kind="binding" contract="givingTrend.points"/>
+            <Prop name="highlight" kind="binding" contract="givingTrend.highlight"/>
           </Props>
         </Component>
         <Component id="care-timeline" type="AdminActivityTimeline">
@@ -53,214 +46,588 @@
             <Prop name="title" kind="static">Care &amp; discipleship milestones</Prop>
             <Prop name="description" kind="static">Recent spiritual milestones and upcoming pastoral follow-ups surfaced across your membership.</Prop>
             <Prop name="accentLabel" kind="static">This week</Prop>
-            <Prop name="events" kind="binding" source="careTimeline" path="items" />
+            <Prop name="events" kind="binding" contract="careTimeline.items"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="dashboardHero" kind="static">
-        <Json><![CDATA[
-          {
-            "eyebrow": "Community health pulse",
-            "headline": "Shepherd every household with real-time ministry insight",
-            "description": "Monitor membership vitality, giving momentum, and care commitments across all centers in one workspace.",
-            "highlights": [
-              "Map the journey from first-time guests to covenant members with automated stage tracking.",
-              "Surface households at financial risk before pledges lapse and route them to center pastors.",
-              "Keep every ministry aligned with dashboards tailored for elders, finance teams, and care leads."
-            ],
-            "metrics": [
-              { "label": "Active households", "value": "1,284", "caption": "73% engaged over the last 30 days." },
-              { "label": "Recurring giving", "value": "$412K", "caption": "42% increase versus last fall." },
-              { "label": "Care plans", "value": "186", "caption": "Active pastoral follow-up sequences." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for dashboard-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for dashboard-hero.headline"/>
+          <Field name="description" path="description" description="Binding for dashboard-hero.description"/>
+          <Field name="highlights" path="highlights" description="Binding for dashboard-hero.highlights"/>
+          <Field name="metrics" path="metrics" description="Binding for dashboard-hero.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="eyebrow">
+            <Value>Community health pulse</Value>
+          </Field>
+          <Field name="headline">
+            <Value>Shepherd every household with real-time ministry insight</Value>
+          </Field>
+          <Field name="description">
+            <Value>Monitor membership vitality, giving momentum, and care commitments across all centers in one workspace.</Value>
+          </Field>
+          <Field name="highlights">
+            <Array>
+              <Value>Map the journey from first-time guests to covenant members with automated stage tracking.</Value>
+              <Value>Surface households at financial risk before pledges lapse and route them to center pastors.</Value>
+              <Value>Keep every ministry aligned with dashboards tailored for elders, finance teams, and care leads.</Value>
+            </Array>
+          </Field>
+          <Field name="metrics">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Active households</Value>
+                </Field>
+                <Field name="value">
+                  <Value>1,284</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>73% engaged over the last 30 days.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Recurring giving</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$412K</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>42% increase versus last fall.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Care plans</Value>
+                </Field>
+                <Field name="value">
+                  <Value>186</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Active pastoral follow-up sequences.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="membershipMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "id": "kpi-new-members",
-                "label": "New covenant members",
-                "value": "38",
-                "change": "+12",
-                "changeLabel": "vs. last month",
-                "trend": "up",
-                "tone": "positive",
-                "description": "Fifteen households completed the covenant class and onboarding interviews."
-              },
-              {
-                "id": "kpi-lapsed-givers",
-                "label": "Lapsed recurring givers",
-                "value": "17",
-                "change": "-5",
-                "changeLabel": "since July",
-                "trend": "down",
-                "tone": "negative",
-                "description": "Coaching calls scheduled to re-engage families who paused automated giving."
-              },
-              {
-                "id": "kpi-pledge-fulfillment",
-                "label": "Pledge fulfillment",
-                "value": "92%",
-                "change": "+4",
-                "changeLabel": "quarter over quarter",
-                "trend": "up",
-                "tone": "informative",
-                "description": "Steady rhythm of testimonies has accelerated campaign follow-through."
-              },
-              {
-                "id": "kpi-benevolence",
-                "label": "Benevolence requests",
-                "value": "24",
-                "change": "+6",
-                "changeLabel": "pending review",
-                "trend": "flat",
-                "tone": "neutral",
-                "description": "Deacons coordinating relief with local partners and finance committee approval."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for dashboard-kpis.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>kpi-new-members</Value>
+                </Field>
+                <Field name="label">
+                  <Value>New covenant members</Value>
+                </Field>
+                <Field name="value">
+                  <Value>38</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+12</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>vs. last month</Value>
+                </Field>
+                <Field name="trend">
+                  <Value>up</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>positive</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Fifteen households completed the covenant class and onboarding interviews.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>kpi-lapsed-givers</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Lapsed recurring givers</Value>
+                </Field>
+                <Field name="value">
+                  <Value>17</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-5</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>since July</Value>
+                </Field>
+                <Field name="trend">
+                  <Value>down</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>negative</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Coaching calls scheduled to re-engage families who paused automated giving.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>kpi-pledge-fulfillment</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Pledge fulfillment</Value>
+                </Field>
+                <Field name="value">
+                  <Value>92%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+4</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>quarter over quarter</Value>
+                </Field>
+                <Field name="trend">
+                  <Value>up</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>informative</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Steady rhythm of testimonies has accelerated campaign follow-through.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>kpi-benevolence</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Benevolence requests</Value>
+                </Field>
+                <Field name="value">
+                  <Value>24</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+6</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>pending review</Value>
+                </Field>
+                <Field name="trend">
+                  <Value>flat</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>neutral</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Deacons coordinating relief with local partners and finance committee approval.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="dashboardQuickLinks" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "id": "link-directory",
-                "title": "Membership directory",
-                "description": "Filter households, stages, and pastoral assignments to steward discipleship.",
-                "href": "/admin/members/list",
-                "badge": "Directory",
-                "stat": "1,284 active households"
-              },
-              {
-                "id": "link-finance",
-                "title": "Financial overview",
-                "description": "Review tithes, pledges, and fund balances with finance committee ready reports.",
-                "href": "/admin/financial-overview",
-                "badge": "Finance",
-                "stat": "$1.8M received FY24"
-              },
-              {
-                "id": "link-care",
-                "title": "Care follow-ups",
-                "description": "Prioritize counseling, hospital visits, and benevolence requests across centers.",
-                "href": "/admin/members/list?tab=care",
-                "badge": "Shepherding",
-                "stat": "186 active care plans"
-              },
-              {
-                "id": "link-groups",
-                "title": "Groups &amp; teams",
-                "description": "Audit participation in small groups and volunteer rotations to close serving gaps.",
-                "href": "/admin/modules",
-                "badge": "Engagement",
-                "stat": "78 thriving teams"
-              },
-              {
-                "id": "link-events",
-                "title": "Next step pipeline",
-                "description": "Track baptisms, membership interviews, and leadership residency cohorts.",
-                "href": "/admin/members/list?view=next-steps",
-                "badge": "Milestones",
-                "stat": "52 in discipleship track"
-              },
-              {
-                "id": "link-statements",
-                "title": "Giving statements",
-                "description": "Download quarterly statements and pledge letters ready for donor distribution.",
-                "href": "/admin/reports",
-                "badge": "Reports",
-                "stat": "Next send: Nov 15"
-              }
-            ],
-            "actions": [
-              {
-                "id": "action-care-strategy",
-                "kind": "link",
-                "config": {
-                  "label": "Plan weekend huddles",
-                  "url": "/admin/support",
-                  "variant": "secondary"
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for dashboard-quick-links.links"/>
+          <Field name="actions" path="actions" description="Binding for dashboard-quick-links.actions"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>link-directory</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Membership directory</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Filter households, stages, and pastoral assignments to steward discipleship.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/members/list</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Directory</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>1,284 active households</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>link-finance</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Financial overview</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Review tithes, pledges, and fund balances with finance committee ready reports.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/financial-overview</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Finance</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>$1.8M received FY24</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>link-care</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Care follow-ups</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Prioritize counseling, hospital visits, and benevolence requests across centers.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/members/list?tab=care</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Shepherding</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>186 active care plans</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>link-groups</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Groups &amp;amp; teams</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Audit participation in small groups and volunteer rotations to close serving gaps.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/modules</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Engagement</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>78 thriving teams</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>link-events</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Next step pipeline</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track baptisms, membership interviews, and leadership residency cohorts.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/members/list?view=next-steps</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Milestones</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>52 in discipleship track</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>link-statements</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Giving statements</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Download quarterly statements and pledge letters ready for donor distribution.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/reports</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Reports</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>Next send: Nov 15</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+          <Field name="actions">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>action-care-strategy</Value>
+                </Field>
+                <Field name="kind">
+                  <Value>link</Value>
+                </Field>
+                <Field name="config">
+                  <Object>
+                    <Field name="label">
+                      <Value>Plan weekend huddles</Value>
+                    </Field>
+                    <Field name="url">
+                      <Value>/admin/support</Value>
+                    </Field>
+                    <Field name="variant">
+                      <Value>secondary</Value>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="givingTrend" kind="static">
-        <Json><![CDATA[
-          {
-            "highlight": {
-              "label": "FY25 YTD",
-              "value": "$1.48M received",
-              "change": "+11% participation"
-            },
-            "points": [
-              { "period": "Apr", "pledged": 210000, "received": 198000, "participation": 58 },
-              { "period": "May", "pledged": 224000, "received": 205500, "participation": 60 },
-              { "period": "Jun", "pledged": 238500, "received": 219800, "participation": 62 },
-              { "period": "Jul", "pledged": 247000, "received": 231400, "participation": 63 },
-              { "period": "Aug", "pledged": 255500, "received": 244300, "participation": 65 },
-              { "period": "Sep", "pledged": 263000, "received": 251900, "participation": 66 },
-              { "period": "Oct", "pledged": 276500, "received": 269400, "participation": 68 }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="points" path="points" description="Binding for giving-trend.data"/>
+          <Field name="highlight" path="highlight" description="Binding for giving-trend.highlight"/>
+        </Contract>
+        <Data>
+          <Field name="highlight">
+            <Object>
+              <Field name="label">
+                <Value>FY25 YTD</Value>
+              </Field>
+              <Field name="value">
+                <Value>$1.48M received</Value>
+              </Field>
+              <Field name="change">
+                <Value>+11% participation</Value>
+              </Field>
+            </Object>
+          </Field>
+          <Field name="points">
+            <Array>
+              <Object>
+                <Field name="period">
+                  <Value>Apr</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>210000</Value>
+                </Field>
+                <Field name="received">
+                  <Value>198000</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>58</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>May</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>224000</Value>
+                </Field>
+                <Field name="received">
+                  <Value>205500</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>60</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>Jun</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>238500</Value>
+                </Field>
+                <Field name="received">
+                  <Value>219800</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>62</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>Jul</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>247000</Value>
+                </Field>
+                <Field name="received">
+                  <Value>231400</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>63</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>Aug</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>255500</Value>
+                </Field>
+                <Field name="received">
+                  <Value>244300</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>65</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>Sep</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>263000</Value>
+                </Field>
+                <Field name="received">
+                  <Value>251900</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>66</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="period">
+                  <Value>Oct</Value>
+                </Field>
+                <Field name="pledged">
+                  <Value>276500</Value>
+                </Field>
+                <Field name="received">
+                  <Value>269400</Value>
+                </Field>
+                <Field name="participation">
+                  <Value>68</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="careTimeline" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "id": "timeline-baptisms",
-                "title": "Seven baptisms celebrated",
-                "date": "Oct 13",
-                "timeAgo": "3 days ago",
-                "description": "Downtown center welcomed seven new believers during the 11am gathering.",
-                "category": "Milestone",
-                "status": "completed",
-                "icon": "💧"
-              },
-              {
-                "id": "timeline-benevolence",
-                "title": "Benevolence board review",
-                "date": "Oct 16",
-                "timeAgo": "Tomorrow",
-                "description": "Finance and deacon teams meeting to approve four urgent assistance requests.",
-                "category": "Finance",
-                "status": "scheduled",
-                "icon": "🤝",
-                "amount": "$6,200"
-              },
-              {
-                "id": "timeline-hospital",
-                "title": "Hospital visit scheduled",
-                "date": "Oct 18",
-                "timeAgo": "In 3 days",
-                "description": "Care pastors rotating to pray with the Walters family during recovery.",
-                "category": "Care",
-                "status": "attention",
-                "icon": "🕊️"
-              },
-              {
-                "id": "timeline-leadership",
-                "title": "Leadership residency interviews",
-                "date": "Oct 20",
-                "timeAgo": "In 5 days",
-                "description": "Eight candidates progressing to final round for 2025 discipleship cohort.",
-                "category": "Development",
-                "status": "new",
-                "icon": "🌱"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for care-timeline.events"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>timeline-baptisms</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Seven baptisms celebrated</Value>
+                </Field>
+                <Field name="date">
+                  <Value>Oct 13</Value>
+                </Field>
+                <Field name="timeAgo">
+                  <Value>3 days ago</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Downtown center welcomed seven new believers during the 11am gathering.</Value>
+                </Field>
+                <Field name="category">
+                  <Value>Milestone</Value>
+                </Field>
+                <Field name="status">
+                  <Value>completed</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>💧</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>timeline-benevolence</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Benevolence board review</Value>
+                </Field>
+                <Field name="date">
+                  <Value>Oct 16</Value>
+                </Field>
+                <Field name="timeAgo">
+                  <Value>Tomorrow</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Finance and deacon teams meeting to approve four urgent assistance requests.</Value>
+                </Field>
+                <Field name="category">
+                  <Value>Finance</Value>
+                </Field>
+                <Field name="status">
+                  <Value>scheduled</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🤝</Value>
+                </Field>
+                <Field name="amount">
+                  <Value>$6,200</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>timeline-hospital</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Hospital visit scheduled</Value>
+                </Field>
+                <Field name="date">
+                  <Value>Oct 18</Value>
+                </Field>
+                <Field name="timeAgo">
+                  <Value>In 3 days</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Care pastors rotating to pray with the Walters family during recovery.</Value>
+                </Field>
+                <Field name="category">
+                  <Value>Care</Value>
+                </Field>
+                <Field name="status">
+                  <Value>attention</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🕊️</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>timeline-leadership</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Leadership residency interviews</Value>
+                </Field>
+                <Field name="date">
+                  <Value>Oct 20</Value>
+                </Field>
+                <Field name="timeAgo">
+                  <Value>In 5 days</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Eight candidates progressing to final round for 2025 discipleship cohort.</Value>
+                </Field>
+                <Field name="category">
+                  <Value>Development</Value>
+                </Field>
+                <Field name="status">
+                  <Value>new</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🌱</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

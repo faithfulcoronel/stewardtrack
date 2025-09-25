@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/conversion"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/conversion" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-conversion">
     <Title>UI Block: Conversion hero</Title>
     <Regions>
@@ -17,25 +10,59 @@
             <Prop name="badge" kind="static">Conversion playbook</Prop>
             <Prop name="headline" kind="static">Personalize every hero with metadata-driven targeting</Prop>
             <Prop name="description" kind="static">Experiment with copy, CTAs, and overlays in real time while surfacing the results in a stats ribbon.</Prop>
-            <Prop name="metrics" kind="binding" source="conversionData" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="build-experiment" />
-            <Prop name="secondaryCta" kind="action" actionId="view-template" />
+            <Prop name="metrics" kind="binding" contract="conversionData.items"/>
+            <Prop name="primaryCta" kind="action" actionId="build-experiment"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-template"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="conversionData" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Variant uplift", "value": "+18%", "caption": "Median improvement across 8 segments." },
-              { "label": "Segmentation rules", "value": "24" },
-              { "label": "Runtime targeting", "value": "Real-time" },
-              { "label": "Overlay updates", "value": "0 deploys" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-conversion.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Variant uplift</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Median improvement across 8 segments.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Segmentation rules</Value>
+                </Field>
+                <Field name="value">
+                  <Value>24</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Runtime targeting</Value>
+                </Field>
+                <Field name="value">
+                  <Value>Real-time</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Overlay updates</Value>
+                </Field>
+                <Field name="value">
+                  <Value>0 deploys</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>
