@@ -4,7 +4,7 @@ Phase 1 of the [RBAC architecture plan](./rbac-architecture-plan.md) focuses on 
 
 ## Prerequisites
 
-The export script connects directly to Supabase using a service role key so that tenant-scoped tables can be read without running into row-level security. Set the following environment variables before running the tool:
+The export script connects directly to Supabase using a service role key so that tenant-scoped tables can be read without running into row-level security. Set the following environment variables before running the tool. The script will attempt to hydrate them automatically from `.env.local`, `.env`, `supabase/.env.local`, or `supabase/.env` if those files exist, so you can also store the credentials in one of those files instead of exporting them in your shell:
 
 - `SUPABASE_URL` – The Supabase project URL (e.g., `https://example.supabase.co`).
 - `SUPABASE_SERVICE_ROLE_KEY` – The service role key that bypasses row-level security for read access.

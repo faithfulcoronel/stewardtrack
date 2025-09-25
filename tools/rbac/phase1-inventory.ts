@@ -4,6 +4,13 @@ import path from 'node:path';
 
 const PAGE_SIZE = 1000;
 
+const ENV_FILE_CANDIDATES = [
+  path.resolve('.env.local'),
+  path.resolve('.env'),
+  path.resolve(path.join('supabase', '.env.local')),
+  path.resolve(path.join('supabase', '.env')),
+];
+
 type TableExportConfig = {
   table: string;
   orderBy?: string;
@@ -30,6 +37,80 @@ type MetadataRBACSummary = {
 };
 
 type SupabaseEnvironment = { supabaseUrl: string; serviceRoleKey: string };
+
+type EnvDictionary = Record<string, string>;
+
+function stripEnvValue(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function parseEnvFile(contents: string): EnvDictionary {
+  const env: EnvDictionary = {};
+  const lines = contents.split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+
+    const equalsIndex = line.indexOf('=');
+    if (equalsIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, equalsIndex).trim();
+    if (!key) {
+      continue;
+    }
+
+    const value = stripEnvValue(line.slice(equalsIndex + 1));
+    env[key] = value;
+  }
+
+  return env;
+}
+
+async function loadEnvFromFile(filePath: string): Promise<EnvDictionary | null> {
+  try {
+    const contents = await fs.readFile(filePath, 'utf-8');
+    return parseEnvFile(contents);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+async function hydrateEnvironment(): Promise<void> {
+  for (const candidate of ENV_FILE_CANDIDATES) {
+    const parsed = await loadEnvFromFile(candidate);
+    if (!parsed) {
+      continue;
+    }
+
+    const assignedKeys: string[] = [];
+    for (const [key, value] of Object.entries(parsed)) {
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+        assignedKeys.push(key);
+      }
+    }
+
+    if (assignedKeys.length > 0) {
+      const relativePath = path.relative(process.cwd(), candidate);
+      console.log(`Loaded ${assignedKeys.length} environment variable(s) from ${relativePath}`);
+    }
+  }
+}
 
 async function ensureEnvironment(): Promise<SupabaseEnvironment> {
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -307,6 +388,7 @@ async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  await hydrateEnvironment();
   const env = await ensureEnvironment();
   const client = createSupabaseClient(env);
 
