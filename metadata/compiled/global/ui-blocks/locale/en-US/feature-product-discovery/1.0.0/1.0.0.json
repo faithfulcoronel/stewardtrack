@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "c8b0da41a43fdd77b42a6cb5b86a7376430211a9efd177a02a6217e55a40e090",
+  "checksum": "ca2cf29806a8348c0f78c9c67fb3f0baf54a330c41ee80e8beab7052c91c3ca2",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -129,5 +129,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\feature-product-discovery.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/feature-product-discovery.xml"
 }

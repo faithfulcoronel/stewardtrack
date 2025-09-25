@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "554d9e93285783e7e879d63916281f714d4f52e10f7af2ef642abb7c9e053488",
+  "checksum": "1ded41a48098aa7bf2c25ab78c022ddd523e1812e4c0ae89964076406b9c2156",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/community-invite",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-community-invite.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-community-invite\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-community-invite.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-community-invite/1.0.0/1.0.0.json"
 }

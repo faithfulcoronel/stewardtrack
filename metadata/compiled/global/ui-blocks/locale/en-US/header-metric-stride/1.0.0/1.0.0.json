@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "27d254072855ba6b421c28b632b4c15913ec9d71fe95a7afbce7ca0e233d0d3a",
+  "checksum": "747a899c7f83f0d4a1224a5e0827f3ebb63ecf60481efb4df24ad2660d6bdf02",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -107,5 +107,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\header-metric-stride.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/header-metric-stride.xml"
 }

@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "6918f27ac65c6091bdca57cd35dd2d6e69862386ca8b98ed195907f63cb68e6d",
+  "checksum": "93354e0fb816ad9c2d8d06977b42b0204b375337c8945033f805a66a2849c6c0",
   "layer": {
     "module": "ui-blocks",
     "route": "stats/support-health",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-support-health.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\stats-support-health\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-support-health.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/stats-support-health/1.0.0/1.0.0.json"
 }

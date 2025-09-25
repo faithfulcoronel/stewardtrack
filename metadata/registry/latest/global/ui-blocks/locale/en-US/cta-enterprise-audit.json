@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "80098ec0f9a642da9e2c73b429e3ae1dffcd354200d4133562ba40a60617a9c4",
+  "checksum": "337e10d735a9998fda63baf53fb20d9bb98b7de9b1f1f78084faa7d2b44da516",
   "layer": {
     "module": "ui-blocks",
     "route": "cta/enterprise-audit",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\cta-enterprise-audit.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\cta-enterprise-audit\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/cta-enterprise-audit.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/cta-enterprise-audit/1.0.0/1.0.0.json"
 }

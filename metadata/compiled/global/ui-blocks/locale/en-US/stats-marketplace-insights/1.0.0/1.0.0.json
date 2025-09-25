@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "dace098bffa9ef50706935e6c65e25c8278dca5a962d58217e6b99b74c2a251c",
+  "checksum": "dc1fb145b24e7323ac060ae7c2b368aee2805e993b500da2dfc7a4fb039bb168",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -121,5 +121,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-marketplace-insights.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-marketplace-insights.xml"
 }

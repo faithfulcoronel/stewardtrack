@@ -29,6 +29,7 @@ export interface FormFieldConfig {
     | "number"
     | "toggle"
     | "multiline"
+    | "tags"
     | "image"
     | null;
   placeholder?: string | null;

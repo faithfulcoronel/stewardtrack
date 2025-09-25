@@ -47,6 +47,10 @@ import {
   AdminLookupQuickCreate,
   type AdminLookupQuickCreateProps,
 } from '@/components/dynamic/admin/AdminLookupQuickCreate';
+import {
+  AdminMemberWorkspace,
+  type AdminMemberWorkspaceProps,
+} from '@/components/dynamic/admin/AdminMemberWorkspace';
 
 type ComponentRenderer<Props extends Record<string, unknown>> = (
   props: Props,
@@ -78,6 +82,7 @@ const componentRegistry: Record<string, ComponentRenderer<Record<string, unknown
   AdminFormSection: (props) => <AdminFormSection {...(props as AdminFormSectionProps)} />,
   AdminGivingChart: (props) => <AdminGivingChart {...(props as AdminGivingChartProps)} />,
   AdminLookupQuickCreate: (props) => <AdminLookupQuickCreate {...(props as AdminLookupQuickCreateProps)} />,
+  AdminMemberWorkspace: (props) => <AdminMemberWorkspace {...(props as AdminMemberWorkspaceProps)} />,
 };
 
 export interface InterpreterContext {
@@ -101,6 +106,7 @@ interface ExpressionScope {
   flags: Record<string, boolean>;
   params: Record<string, string | string[] | undefined>;
   role: string;
+  actions: ActionScope;
 }
 
 type ExpressionEvaluator = (scope: ExpressionScope) => unknown;
@@ -286,7 +292,8 @@ function evaluateProp(
         data: dataScope,
         flags: context.featureFlags ?? {},
         params: context.searchParams ?? {},
-        role: context.role ?? 'guest'
+        role: context.role ?? 'guest',
+        actions
       };
       try {
         return evaluateExpression(prop.expression, scope);
@@ -323,15 +330,17 @@ function compileExpression(expression: string): ExpressionEvaluator {
       'flags',
       'params',
       'role',
+      'actions',
       `"use strict"; return (${expression});`
     ) as (
       data: DataScope,
       flags: Record<string, boolean>,
       params: Record<string, string | string[] | undefined>,
-      role: string
+      role: string,
+      actions: ActionScope
     ) => unknown;
 
-    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role);
+    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role, scope.actions);
   } catch (error) {
     const err = toError(error);
     console.error(`Failed to compile expression ${expression}`, err);

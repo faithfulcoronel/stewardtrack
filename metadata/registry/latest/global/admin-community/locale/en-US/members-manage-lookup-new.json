@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "3b5f72f6a5dce0cb31f00f91b51129a5ed0068140d531746344af24906df25d3",
+  "checksum": "9ae0f66edc49e49b3d588ffa5826159443aee7986b05df4c19d73c995dd43fec",
   "layer": {
     "module": "admin-community",
     "route": "members/manage/lookup-new",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\admin-community\\membership-lookup-create.xml",
-  "compiledPath": "metadata\\compiled\\global\\admin-community\\locale\\en-US\\members-manage-lookup-new\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/admin-community/membership-lookup-create.xml",
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/members-manage-lookup-new/1.0.0/1.0.0.json"
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "aeb50b6122042e137a07078bcacdb1959facffed828cf9277fe856686a4646e7",
+  "checksum": "59d7f9d829f9546943cd4eab736e5b806c5c82b84ecddff301eeefe427bb124b",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -135,5 +135,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-revenue-momentum.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-revenue-momentum.xml"
 }

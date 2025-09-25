@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "5cf08d0fad347e3297bffc7f8cb67c2ae6b8d84fdec0ec4e72eefc43cf46f7a4",
+  "checksum": "b2f3c48dc53f82dd4887468ecf6745ab1fe44fd3b0652063c1a52a60f155ed7d",
   "kind": "blueprint",
   "layer": {
     "module": "ui-blocks",
@@ -89,5 +89,5 @@
       }
     ]
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\stats-product-readiness.xml"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/stats-product-readiness.xml"
 }

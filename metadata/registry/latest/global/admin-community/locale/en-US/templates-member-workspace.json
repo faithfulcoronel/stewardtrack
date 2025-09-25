@@ -1,0 +1,17 @@
+{
+  "key": "global::admin-community::templates/member-workspace::-::-::en-US",
+  "kind": "blueprint",
+  "schemaVersion": "1.0.0",
+  "contentVersion": "1.0.0",
+  "checksum": "147ac38737b42cf3d217f3614ab71266d47c6c0b37d5e7eeed901eeb312a7121",
+  "layer": {
+    "module": "admin-community",
+    "route": "templates/member-workspace",
+    "tenant": null,
+    "role": null,
+    "variant": null,
+    "locale": "en-US"
+  },
+  "sourcePath": "metadata/authoring/blueprints/admin-community/templates/member-workspace.xml",
+  "compiledPath": "metadata/compiled/global/admin-community/locale/en-US/templates-member-workspace/1.0.0/1.0.0.json"
+}

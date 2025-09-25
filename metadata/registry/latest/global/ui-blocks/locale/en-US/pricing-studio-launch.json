@@ -3,7 +3,7 @@
   "kind": "blueprint",
   "schemaVersion": "1.0.0",
   "contentVersion": "1.0.0",
-  "checksum": "d498faaa028f0149677618d1cdf6787532b86620db18445d4c3da0186efaa6a0",
+  "checksum": "3126fb20885024176056dfcef7e48e0a41201c0f2bb72fe119afe511e23b4e69",
   "layer": {
     "module": "ui-blocks",
     "route": "pricing/studio-launch",
@@ -12,6 +12,6 @@
     "variant": null,
     "locale": "en-US"
   },
-  "sourcePath": "metadata\\authoring\\blueprints\\ui-blocks\\pricing-studio-launch.xml",
-  "compiledPath": "metadata\\compiled\\global\\ui-blocks\\locale\\en-US\\pricing-studio-launch\\1.0.0\\1.0.0.json"
+  "sourcePath": "metadata/authoring/blueprints/ui-blocks/pricing-studio-launch.xml",
+  "compiledPath": "metadata/compiled/global/ui-blocks/locale/en-US/pricing-studio-launch/1.0.0/1.0.0.json"
 }
