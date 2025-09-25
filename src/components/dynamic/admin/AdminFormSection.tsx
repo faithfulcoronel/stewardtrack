@@ -122,9 +122,11 @@ export function AdminFormSection(props: AdminFormSectionProps) {
     [form]
   );
 
+  const shouldRenderHeader = !props.hideHeader && Boolean(props.title || props.description);
+
   return (
     <section className="space-y-6">
-      {(props.title || props.description) && (
+      {shouldRenderHeader && (
         <header className="space-y-2">
           {props.title && <h2 className="text-xl font-semibold text-foreground">{props.title}</h2>}
           {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}

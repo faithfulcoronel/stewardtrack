@@ -47,6 +47,7 @@ export interface FormFieldConfig {
 export interface AdminFormSectionProps {
   title?: string;
   description?: string;
+  hideHeader?: boolean | null;
   fields?: FormFieldConfig[] | { items?: FormFieldConfig[] } | null;
   initialValues?: Record<string, unknown> | null;
   submitLabel?: string | null;
