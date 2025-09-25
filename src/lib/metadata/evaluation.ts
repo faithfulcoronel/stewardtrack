@@ -45,13 +45,15 @@ export async function evaluateMetadataDataSources(
       continue;
     }
 
+    const config = normalizeRecord(source.config ?? {});
+
     if (source.kind === "static") {
-      results[source.id] = source.config?.value ?? null;
+      results[source.id] = config.value ?? null;
       continue;
     }
 
     if (source.kind === "http") {
-      const url = String(source.config?.url ?? "");
+      const url = typeof config.url === "string" ? config.url : "";
       if (!url) {
         continue;
       }
@@ -72,11 +74,11 @@ export async function evaluateMetadataDataSources(
     }
 
     if (source.kind === "service") {
-      const handlerId = typeof source.config?.handler === "string" ? source.config.handler : "";
+      const handlerId = typeof config.handler === "string" ? config.handler : "";
       if (!handlerId) {
         console.warn(`Service data source ${source.id} is missing a handler identifier.`);
-        if (source.config?.value !== undefined) {
-          results[source.id] = source.config.value;
+        if (config.value !== undefined) {
+          results[source.id] = config.value;
         }
         continue;
       }
@@ -84,8 +86,8 @@ export async function evaluateMetadataDataSources(
       const handler = resolveServiceDataSourceHandler(handlerId);
       if (!handler) {
         console.warn(`No handler registered for service data source ${source.id} (${handlerId}).`);
-        if (source.config?.value !== undefined) {
-          results[source.id] = source.config.value;
+        if (config.value !== undefined) {
+          results[source.id] = config.value;
         }
         continue;
       }
@@ -94,18 +96,18 @@ export async function evaluateMetadataDataSources(
         const resolved = await handler({
           id: source.id,
           role,
-          config: source.config ?? {},
+          config,
           params,
         });
         if (resolved !== undefined) {
           results[source.id] = resolved;
-        } else if (source.config?.value !== undefined) {
-          results[source.id] = source.config.value;
+        } else if (config.value !== undefined) {
+          results[source.id] = config.value;
         }
       } catch (error) {
         console.error(`Failed to evaluate service data source ${source.id}`, toError(error));
-        if (source.config?.value !== undefined) {
-          results[source.id] = source.config.value;
+        if (config.value !== undefined) {
+          results[source.id] = config.value;
         }
       }
       continue;

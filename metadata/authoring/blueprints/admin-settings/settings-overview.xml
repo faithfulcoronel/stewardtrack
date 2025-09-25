@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-settings" route="settings/overview" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
+  <Page id="admin-settings-overview">
+    <Title>Admin settings overview</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="settings-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="settingsOverview.heroEyebrow"/>
+            <Prop name="headline" kind="binding" contract="settingsOverview.heroHeadline"/>
+            <Prop name="description" kind="binding" contract="settingsOverview.heroDescription"/>
+            <Prop name="highlights" kind="binding" contract="settingsOverview.heroHighlights"/>
+            <Prop name="metrics" kind="binding" contract="settingsOverview.heroMetrics"/>
+            <Prop name="primaryCta" kind="binding" contract="settingsOverview.heroPrimaryCta"/>
+            <Prop name="secondaryCta" kind="binding" contract="settingsOverview.heroSecondaryCta"/>
+          </Props>
+        </Component>
+        <Component id="settings-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="panels" kind="binding" contract="settingsOverview.summaryPanels"/>
+          </Props>
+        </Component>
+        <Component id="settings-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="settingsOverview.formTitle"/>
+            <Prop name="description" kind="binding" contract="settingsOverview.formDescription"/>
+            <Prop name="fields" kind="binding" contract="settingsOverview.formFields"/>
+            <Prop name="initialValues" kind="binding" contract="settingsOverview.formInitialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="settingsOverview.formSubmitLabel"/>
+            <Prop name="mode" kind="binding" contract="settingsOverview.formMode"/>
+            <Prop name="footnote" kind="binding" contract="settingsOverview.formFootnote"/>
+            <Prop name="contextParams" kind="binding" contract="settingsOverview.formContextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-settings"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="settingsOverview" kind="service">
+        <Contract>
+          <Field name="heroEyebrow" path="hero.eyebrow" description="Binding for settings-hero.eyebrow"/>
+          <Field name="heroHeadline" path="hero.headline" description="Binding for settings-hero.headline"/>
+          <Field name="heroDescription" path="hero.description" description="Binding for settings-hero.description"/>
+          <Field name="heroHighlights" path="hero.highlights" description="Binding for settings-hero.highlights"/>
+          <Field name="heroMetrics" path="hero.metrics" description="Binding for settings-hero.metrics"/>
+          <Field name="heroPrimaryCta" path="hero.primaryCta" description="Binding for settings-hero.primaryCta"/>
+          <Field name="heroSecondaryCta" path="hero.secondaryCta" description="Binding for settings-hero.secondaryCta"/>
+          <Field name="summaryPanels" path="summary.panels" description="Binding for settings-summary.panels"/>
+          <Field name="formTitle" path="form.title" description="Binding for settings-form.title"/>
+          <Field name="formDescription" path="form.description" description="Binding for settings-form.description"/>
+          <Field name="formFields" path="form.fields" description="Binding for settings-form.fields"/>
+          <Field name="formInitialValues" path="form.initialValues" description="Binding for settings-form.initialValues"/>
+          <Field name="formSubmitLabel" path="form.submitLabel" description="Binding for settings-form.submitLabel"/>
+          <Field name="formMode" path="form.mode" description="Binding for settings-form.mode"/>
+          <Field name="formFootnote" path="form.footnote" description="Binding for settings-form.footnote"/>
+          <Field name="formContextParams" path="form.contextParams" description="Binding for settings-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-settings.settings.overview</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-settings" kind="metadata.service">
+        <Config>
+          <Handler>admin-settings.settings.overview.save</Handler>
+          <SuccessMessage>Settings synced across every campus.</SuccessMessage>
+          <UpdateMessage>Admin settings updated.</UpdateMessage>
+          <ErrorMessage>We couldn&apos;t persist your settings. Try again shortly.</ErrorMessage>
+          <IdentifierKey>tenantId</IdentifierKey>
+          <IdentifierCandidates>
+            <Array>
+              <Value>tenantId</Value>
+              <Value>data.tenantId</Value>
+              <Value>params.tenantId</Value>
+            </Array>
+          </IdentifierCandidates>
+          <RedirectTemplate>/admin/settings</RedirectTemplate>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
