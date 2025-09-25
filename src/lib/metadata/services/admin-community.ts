@@ -1,5 +1,7 @@
 import { format, formatDistanceToNow } from 'date-fns';
 
+import type { GridColumnConfig } from '@/components/dynamic/admin/AdminDataGridSection';
+
 import { MembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import {
   MembersDashboardRepository,
@@ -792,6 +794,9 @@ function toMembersTableRow(member: MemberDirectoryRecord) {
       member.id ??
       (member.email ? `member-${member.email}` : `member-${fullName.replace(/\s+/g, '-').toLowerCase()}`),
     name: fullName || member.email || 'Unknown member',
+    firstName: member.first_name ?? '',
+    lastName: member.last_name ?? '',
+    avatarUrl: member.profile_picture_url ?? null,
     membershipLabel: stageLabel,
     stage: stageLabel,
     stageKey: stageCode ?? 'unknown',
@@ -811,6 +816,7 @@ async function resolveMembersTable(
   request: ServiceDataSourceRequest
 ): Promise<MembersTableStaticConfig & { rows: unknown[] }> {
   const base = cloneBaseConfig(request.config.value);
+  enhanceMembersTableColumns(base);
   const limit = toNumber(request.config.limit, 100);
   const service = createMembersDashboardService();
   const directory = await service.getDirectory(undefined, limit);
@@ -819,6 +825,37 @@ async function resolveMembersTable(
     ...base,
     rows,
   };
+}
+
+function enhanceMembersTableColumns(config: MembersTableStaticConfig) {
+  const columns = extractColumns(config.columns);
+  if (!columns) {
+    return;
+  }
+  for (const column of columns) {
+    if (column.field === 'name') {
+      column.avatarField = 'avatarUrl';
+      column.avatarFirstNameField = 'firstName';
+      column.avatarLastNameField = 'lastName';
+      break;
+    }
+  }
+}
+
+function extractColumns(
+  source: unknown
+): Array<GridColumnConfig & Record<string, unknown>> | null {
+  if (Array.isArray(source)) {
+    return source.filter(isGridColumnConfig);
+  }
+  if (isRecord(source) && Array.isArray(source.items)) {
+    return source.items.filter(isGridColumnConfig);
+  }
+  return null;
+}
+
+function isGridColumnConfig(value: unknown): value is GridColumnConfig & Record<string, unknown> {
+  return isRecord(value) && typeof value.field === 'string';
 }
 
 async function fetchHouseholdMembers(
