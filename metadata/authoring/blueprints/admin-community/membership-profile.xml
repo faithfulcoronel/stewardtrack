@@ -151,7 +151,7 @@
                   {
                     id: 'overview',
                     label: 'Overview',
-                    description: 'Identity, household, and sacramental history.',
+                    description: 'Identity, household, and milestone history.',
                     sections: [
                       {
                         kind: 'panel',
