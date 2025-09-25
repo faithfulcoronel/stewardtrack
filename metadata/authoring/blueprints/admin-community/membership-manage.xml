@@ -969,7 +969,7 @@
                     "id": "membership",
                     "title": "Membership & centers",
                     "fields": [
-                      { "name": "memberId", "label": "Member ID", "type": "text", "colSpan": "half", "helperText": "Auto-generated after approval." },
+                      { "name": "memberId", "label": "Member ID", "type": "text", "colSpan": "half", "helperText": "Auto-generated." },
                       {
                         "name": "stage",
                         "label": "Membership stage",
