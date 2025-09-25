@@ -84,6 +84,7 @@ export interface WorkspaceFormConfig {
   cancelAction?: ActionConfig | null;
   mode?: AdminFormMode | null;
   footnote?: string | null;
+  lookupOptions?: Record<string, FormFieldOption[] | { items?: FormFieldOption[] } | null> | null;
 }
 
 export interface AdminMemberWorkspaceProps {
@@ -200,6 +201,14 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
 }
 
 function maybeAugmentHouseholdField(field: FormFieldConfig): FormFieldConfig {
+  if (field.name === "memberId") {
+    return {
+      ...field,
+      readOnly: true,
+      disabled: true,
+    } satisfies FormFieldConfig;
+  }
+
   if (field.name === "householdMembers") {
     const automationNote = "Household members are managed automatically from the selected household.";
     const helperText = field.helperText ?? "";
@@ -428,6 +437,35 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   }, [tabs]);
 
   const formSections = React.useMemo(() => sections.filter(isFormSection), [sections]);
+
+  const lookupOptionsMap = React.useMemo<Record<string, FormFieldOption[]>>(() => {
+    const map: Record<string, FormFieldOption[]> = {};
+    if (!form?.lookupOptions) {
+      return map;
+    }
+
+    for (const [key, rawOptions] of Object.entries(form.lookupOptions)) {
+      if (!rawOptions) {
+        continue;
+      }
+
+      const normalized = normalizeList<FormFieldOption>(rawOptions).reduce<FormFieldOption[]>((acc, option) => {
+        const label = typeof option.label === "string" ? option.label.trim() : "";
+        const value = typeof option.value === "string" ? option.value.trim() : "";
+        if (!label || !value) {
+          return acc;
+        }
+        acc.push({ label, value });
+        return acc;
+      }, []);
+
+      if (normalized.length > 0) {
+        map[key] = normalized;
+      }
+    }
+
+    return map;
+  }, [form?.lookupOptions]);
 
   const initialHouseholdId = React.useMemo(() => {
     const raw = form?.initialValues?.householdId;
@@ -663,10 +701,35 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     };
   }, []);
 
+  const applyLookupOptions = React.useCallback(
+    (field: FormFieldConfig): FormFieldConfig => {
+      const lookupId = field.lookupId?.trim();
+      if (!lookupId) {
+        return field;
+      }
+      const options = lookupOptionsMap[lookupId];
+      if (!options?.length) {
+        return field;
+      }
+      return {
+        ...field,
+        options,
+      } satisfies FormFieldConfig;
+    },
+    [lookupOptionsMap],
+  );
+
+  const augmentField = React.useCallback(
+    (field: FormFieldConfig): FormFieldConfig => {
+      return applyLookupOptions(maybeAugmentHouseholdField(field));
+    },
+    [applyLookupOptions],
+  );
+
   const augmentedFields = React.useMemo(() => {
     return fields.map((field) => {
       const quickCreate = ensureQuickCreateAction(field);
-      let resultField: FormFieldConfig = maybeAugmentHouseholdField(field);
+      let resultField: FormFieldConfig = augmentField(field);
 
       if (quickCreate && quickCreate !== field.quickCreate) {
         resultField = {
@@ -697,15 +760,15 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
         options: merged,
       } satisfies FormFieldConfig;
     });
-  }, [fields, quickCreateOptions]);
+  }, [augmentField, fields, quickCreateOptions]);
 
   const fieldMap = React.useMemo(() => {
     const map = new Map<string, FormFieldConfig>();
     for (const field of augmentedFields) {
-      map.set(field.name, maybeAugmentHouseholdField(field));
+      map.set(field.name, augmentField(field));
     }
     return map;
-  }, [augmentedFields]);
+  }, [augmentField, augmentedFields]);
 
   const groupedTabs = React.useMemo(() => {
     return tabs.map((tab) => {
@@ -952,7 +1015,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                       const sectionFields = normalizeList<FormFieldConfig>(section.fields).map((field) => {
                         const augmented = fieldMap.get(field.name);
                         if (!augmented) {
-                          return maybeAugmentHouseholdField(field);
+                          return augmentField(field);
                         }
                         return {
                           ...augmented,
