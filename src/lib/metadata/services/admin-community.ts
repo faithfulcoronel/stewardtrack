@@ -185,6 +185,9 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
   stage?: string | null;
   statusVariant?: string | null;
   center?: string | null;
+  membershipType?: string | null;
+  joinDate?: string | null;
+  tags?: string[];
   membershipLabel?: string | null;
   demographics?: {
     birthdate?: string | null;
@@ -208,6 +211,10 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
     members?: string[];
     address?: HouseholdAddress | null;
     envelopeNumber?: string | null;
+  };
+  admin?: {
+    steward?: string | null;
+    lastReview?: string | null;
   };
   serving?: {
     team?: string | null;
@@ -1209,6 +1216,9 @@ async function buildMemberProfileRecord(
   const preferredName = (member.preferred_name ?? '').trim() || null;
   const stageCode = member.membership_stage?.code ?? null;
   const stageLabel = member.membership_stage?.name ?? formatStageLabel(stageCode);
+  const membershipTypeCode = member.membership_type?.code ?? null;
+  const membershipTypeLabel = (member.membership_type?.name ?? '').trim() ||
+    mapMembershipType(membershipTypeCode ?? stageCode ?? null);
   const centerLabel = member.membership_center?.name ?? null;
   const photoUrl = member.profile_picture_url ?? null;
   const birthdate = formatFullDate(member.birthday ?? null);
@@ -1216,6 +1226,24 @@ async function buildMemberProfileRecord(
   const rawMaritalStatus = (member.marital_status ?? '').trim();
   const maritalStatus = rawMaritalStatus ? formatLabel(rawMaritalStatus, 'Unknown') : null;
   const occupation = (member.occupation ?? '').trim() || null;
+  const joinDate = formatFullDate(member.membership_date ?? null);
+
+  const groupTags = Array.isArray(member.small_groups)
+    ? member.small_groups
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value): value is string => Boolean(value))
+    : [];
+  const memberTags = Array.isArray(member.tags)
+    ? member.tags
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter((value): value is string => Boolean(value))
+    : [];
+  const discipleshipGroup = (member.discipleship_group ?? '').trim();
+  const tags = ensureUnique([
+    ...memberTags,
+    ...groupTags,
+    ...(discipleshipGroup ? [discipleshipGroup] : []),
+  ]);
 
   const carePlanDetails = buildCarePlan(carePlan, member);
   const emergencyDetails = carePlanDetails.emergencyContact
@@ -1239,6 +1267,8 @@ async function buildMemberProfileRecord(
         postalCode: member.household.address_postal_code ?? fallbackAddress?.postalCode ?? null,
       }
     : fallbackAddress;
+  const dataSteward = (member.data_steward ?? '').trim() || null;
+  const lastReview = formatFullDate(member.last_review_at ?? null);
 
   return {
     id: member.id,
@@ -1248,12 +1278,19 @@ async function buildMemberProfileRecord(
     stage: stageLabel,
     statusVariant: mapStageVariant(stageCode),
     center: centerLabel,
+    membershipType: membershipTypeLabel,
+    joinDate,
+    tags,
     membershipLabel: stageLabel,
     demographics: {
       birthdate,
       maritalStatus,
       anniversary,
       occupation,
+    },
+    admin: {
+      steward: dataSteward,
+      lastReview,
     },
     serving: {
       team: member.serving_team ?? null,
