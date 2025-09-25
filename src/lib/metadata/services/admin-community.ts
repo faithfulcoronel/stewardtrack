@@ -173,6 +173,18 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
   statusVariant?: string | null;
   center?: string | null;
   membershipLabel?: string | null;
+  demographics?: {
+    birthdate?: string | null;
+    maritalStatus?: string | null;
+    anniversary?: string | null;
+    occupation?: string | null;
+  };
+  emergency?: {
+    contact?: string | null;
+    relationship?: string | null;
+    phone?: string | null;
+    physician?: string | null;
+  } | null;
   contact?: {
     email?: string | null;
     phone?: string | null;
@@ -218,6 +230,13 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
     statusVariant?: string | null;
     assignedTo?: string | null;
     details?: string | null;
+    followUpDate?: string | null;
+    emergencyContact?: {
+      name?: string | null;
+      relationship?: string | null;
+      phone?: string | null;
+      physician?: string | null;
+    } | null;
   };
   timeline?: Array<{
     id: string;
@@ -1119,11 +1138,26 @@ function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
   const appended = followUpText
     ? `${details ? `${details} ` : ''}Next follow-up ${followUpText}`.trim()
     : details;
+  const emergencyName = (member.emergency_contact_name ?? '').trim();
+  const emergencyRelationship = (member.emergency_contact_relationship ?? '').trim();
+  const emergencyPhone = (member.emergency_contact_phone ?? '').trim();
+  const emergencyPhysician = (member.physician_name ?? '').trim();
+  const emergencyContact =
+    emergencyName || emergencyRelationship || emergencyPhone || emergencyPhysician
+      ? {
+          name: emergencyName || null,
+          relationship: emergencyRelationship || null,
+          phone: emergencyPhone || null,
+          physician: emergencyPhysician || null,
+        }
+      : null;
   return {
     status: statusLabel,
     statusVariant: mapCareStatusVariant(statusCode),
     assignedTo: carePlan?.assigned_to ?? member.care_pastor ?? null,
     details: appended || 'No active care tasks.',
+    followUpDate: followUpText,
+    emergencyContact,
   } satisfies MemberProfileRecord['carePlan'];
 }
 
@@ -1146,6 +1180,21 @@ async function buildMemberProfileRecord(
   const stageLabel = member.membership_stage?.name ?? formatStageLabel(stageCode);
   const centerLabel = member.membership_center?.name ?? null;
   const photoUrl = member.profile_picture_url ?? null;
+  const birthdate = formatFullDate(member.birthday ?? null);
+  const anniversary = formatFullDate(member.anniversary ?? null);
+  const rawMaritalStatus = (member.marital_status ?? '').trim();
+  const maritalStatus = rawMaritalStatus ? formatLabel(rawMaritalStatus, 'Unknown') : null;
+  const occupation = (member.occupation ?? '').trim() || null;
+
+  const carePlanDetails = buildCarePlan(carePlan, member);
+  const emergencyDetails = carePlanDetails.emergencyContact
+    ? {
+        contact: carePlanDetails.emergencyContact.name ?? null,
+        relationship: carePlanDetails.emergencyContact.relationship ?? null,
+        phone: carePlanDetails.emergencyContact.phone ?? null,
+        physician: carePlanDetails.emergencyContact.physician ?? null,
+      }
+    : null;
 
   const householdList = ensureUnique(
     householdMembers.length ? householdMembers : filterNonEmpty([fullName, preferredName])
@@ -1169,6 +1218,12 @@ async function buildMemberProfileRecord(
     statusVariant: mapStageVariant(stageCode),
     center: centerLabel,
     membershipLabel: stageLabel,
+    demographics: {
+      birthdate,
+      maritalStatus,
+      anniversary,
+      occupation,
+    },
     serving: {
       team: member.serving_team ?? null,
       role: member.serving_role ?? null,
@@ -1193,7 +1248,8 @@ async function buildMemberProfileRecord(
       milestones: mapMilestones(milestoneRows),
       nextStep: member.discipleship_next_step ?? null,
     },
-    carePlan: buildCarePlan(carePlan, member),
+    carePlan: carePlanDetails,
+    emergency: emergencyDetails,
     timeline: timelineEvents.map((event) => ({
       id: event.id,
       title: event.title,
