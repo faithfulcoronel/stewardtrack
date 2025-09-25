@@ -211,9 +211,9 @@
                             ]
                           },
                           {
-                            id: 'sacraments',
-                            title: 'Sacraments & milestones',
-                            action: { id: 'edit-sacraments', config: { label: 'Update milestones', url: manageUrl('discipleship'), variant: 'ghost' } },
+                            id: 'milestones',
+                            title: 'Faith milestones',
+                            action: { id: 'edit-milestones', config: { label: 'Update milestones', url: manageUrl('discipleship'), variant: 'ghost' } },
                             items: [
                               { label: 'Baptism', value: record.sacraments?.baptismDate ?? 'Not recorded' },
                               { label: 'Membership', value: record.sacraments?.membershipDate ?? record.joinDate ?? 'Not recorded' },
