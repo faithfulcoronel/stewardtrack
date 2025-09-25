@@ -269,6 +269,7 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
               key={`${dialogState.actionId}-${dialogState.memberId}`}
               title={dialogState.panelTitle ?? dialogState.actionLabel}
               description={formState.helperText ?? undefined}
+              hideHeader
               fields={formState.fields}
               initialValues={formState.initialValues}
               submitLabel={formState.submitLabel ?? undefined}
