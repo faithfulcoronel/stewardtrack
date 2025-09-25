@@ -117,6 +117,7 @@ type MemberManageRecord = {
     firstName?: string | null;
     lastName?: string | null;
     photoUrl?: string | null;
+    envelopeNumber?: string | null;
     membershipType?: string | null;
     membershipTypeId?: string | null;
     membershipTypeKey?: string | null;
@@ -143,7 +144,6 @@ type MemberManageRecord = {
     household?: {
       id?: string | null;
       name?: string | null;
-      envelopeNumber?: string | null;
       members?: string[];
       address?: HouseholdAddress | null;
     } | null;
@@ -155,7 +155,6 @@ type MemberManageRecord = {
   household?: {
     id?: string | null;
     name?: string | null;
-    envelopeNumber?: string | null;
     members?: string[];
     address?: HouseholdAddress | null;
   } | null;
@@ -187,6 +186,7 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
   center?: string | null;
   membershipType?: string | null;
   joinDate?: string | null;
+  envelopeNumber?: string | null;
   tags?: string[];
   membershipLabel?: string | null;
   engagement?: {
@@ -217,7 +217,6 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
     name?: string | null;
     members?: string[];
     address?: HouseholdAddress | null;
-    envelopeNumber?: string | null;
   };
   admin?: {
     steward?: string | null;
@@ -868,12 +867,11 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       }
     : fallbackAddress;
   const householdName = (householdRecord?.name ?? '').trim() || formatHouseholdName(member);
-  const envelopeNumber = householdRecord?.envelope_number ?? member.envelope_number ?? null;
+  const envelopeNumber = member.envelope_number ?? householdRecord?.envelope_number ?? null;
   const occupation = (member.occupation ?? '').trim() || null;
   const householdDetails: NonNullable<MemberManageRecord["household"]> = {
     id: member.household_id ?? null,
     name: householdName,
-    envelopeNumber,
     members: householdMembers,
     address: householdAddress ?? null,
   };
@@ -969,6 +967,7 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       firstName: member.first_name ?? '',
       lastName: member.last_name ?? '',
       photoUrl,
+      envelopeNumber,
       membershipType: membershipTypeLabel,
       membershipTypeId,
       membershipTypeKey: membershipTypeCode ?? null,
@@ -1236,6 +1235,7 @@ async function buildMemberProfileRecord(
   const maritalStatus = rawMaritalStatus ? formatLabel(rawMaritalStatus, 'Unknown') : null;
   const occupation = (member.occupation ?? '').trim() || null;
   const joinDate = formatFullDate(member.membership_date ?? null);
+  const envelopeNumber = member.envelope_number ?? member.household?.envelope_number ?? null;
 
   const groupTags = Array.isArray(member.small_groups)
     ? member.small_groups
@@ -1326,6 +1326,7 @@ async function buildMemberProfileRecord(
     center: centerLabel,
     membershipType: membershipTypeLabel,
     joinDate,
+    envelopeNumber,
     tags,
     membershipLabel: stageLabel,
     demographics: {
@@ -1348,7 +1349,6 @@ async function buildMemberProfileRecord(
       name: formatHouseholdName(member),
       members: householdList,
       address: householdAddress,
-      envelopeNumber: member.household?.envelope_number ?? member.envelope_number ?? null,
     },
     contact: {
       email: member.email ?? null,
