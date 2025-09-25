@@ -11,6 +11,8 @@ interface TagsInputProps {
   onChange: (value: string[]) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
 }
 
 function toTagArray(value: unknown): string[] {
@@ -29,15 +31,19 @@ function toTagArray(value: unknown): string[] {
     .filter((item) => item.length > 0);
 }
 
-export function TagsInput({ value, onChange, placeholder, className }: TagsInputProps) {
+export function TagsInput({ value, onChange, placeholder, className, disabled, readOnly }: TagsInputProps) {
   const tags = React.useMemo(() => toTagArray(value), [value]);
   const [inputValue, setInputValue] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
   const normalizedTags = React.useMemo(() => tags.map((tag) => tag.toLowerCase()), [tags]);
+  const isInteractive = !(disabled || readOnly);
 
   const addTag = React.useCallback(
     (rawTag: string) => {
+      if (!isInteractive) {
+        return;
+      }
       const trimmed = rawTag.trim();
       if (!trimmed) {
         return;
@@ -50,26 +56,36 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
       onChange([...tags, trimmed]);
       setInputValue("");
     },
-    [normalizedTags, onChange, tags],
+    [isInteractive, normalizedTags, onChange, tags],
   );
 
   const addFromInput = React.useCallback(() => {
+    if (!isInteractive) {
+      setInputValue("");
+      return;
+    }
     if (!inputValue.trim()) {
       return;
     }
     addTag(inputValue);
-  }, [addTag, inputValue]);
+  }, [addTag, inputValue, isInteractive]);
 
   const removeTag = React.useCallback(
     (index: number) => {
+      if (!isInteractive) {
+        return;
+      }
       const next = tags.filter((_, itemIndex) => itemIndex !== index);
       onChange(next);
     },
-    [onChange, tags],
+    [isInteractive, onChange, tags],
   );
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!isInteractive) {
+        return;
+      }
       if (event.key === "Enter" || event.key === ",") {
         event.preventDefault();
         addFromInput();
@@ -85,15 +101,21 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
         return;
       }
     },
-    [addFromInput, inputValue, removeTag, tags],
+    [addFromInput, inputValue, isInteractive, removeTag, tags],
   );
 
   const handleBlur = React.useCallback(() => {
+    if (!isInteractive) {
+      return;
+    }
     addFromInput();
-  }, [addFromInput]);
+  }, [addFromInput, isInteractive]);
 
   const handlePaste = React.useCallback(
     (event: React.ClipboardEvent<HTMLInputElement>) => {
+      if (!isInteractive) {
+        return;
+      }
       const text = event.clipboardData?.getData("text");
       if (!text) {
         return;
@@ -118,7 +140,7 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
       onChange(next);
       setInputValue("");
     },
-    [onChange, tags],
+    [isInteractive, onChange, tags],
   );
 
   return (
@@ -128,6 +150,9 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
         className,
       )}
       onClick={() => {
+        if (!isInteractive) {
+          return;
+        }
         inputRef.current?.focus();
       }}
     >
@@ -139,6 +164,8 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
             onClick={() => removeTag(index)}
             className="rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground"
             aria-label={`Remove ${tag}`}
+            disabled={!isInteractive}
+            aria-disabled={!isInteractive}
           >
             <X className="size-3" aria-hidden="true" />
           </button>
@@ -153,6 +180,8 @@ export function TagsInput({ value, onChange, placeholder, className }: TagsInput
         onPaste={handlePaste}
         placeholder={tags.length === 0 ? placeholder : undefined}
         className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        readOnly={readOnly}
+        disabled={disabled}
       />
     </div>
   );

@@ -40,6 +40,8 @@ export interface FormFieldConfig {
   defaultValue?: unknown;
   lookupId?: string | null;
   quickCreate?: FormFieldQuickCreateConfig | null;
+  disabled?: boolean | null;
+  readOnly?: boolean | null;
 }
 
 export interface AdminFormSectionProps {
