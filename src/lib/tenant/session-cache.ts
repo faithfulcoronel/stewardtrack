@@ -31,8 +31,14 @@ export async function writeTenantSession(tenant: string, sessionId: string) {
     return;
   }
 
-  (store as any).set({ name: TENANT_CACHE_KEY, value: tenant, path: "/" });
-  (store as any).set({ name: TENANT_SESSION_KEY, value: sessionId, path: "/" });
+  try {
+    (store as any).set({ name: TENANT_CACHE_KEY, value: tenant, path: "/" });
+    (store as any).set({ name: TENANT_SESSION_KEY, value: sessionId, path: "/" });
+  } catch (error) {
+    if (process.env.NODE_ENV !== "test") {
+      console.warn("Failed to persist tenant session cookies", error);
+    }
+  }
 }
 
 export async function clearTenantSession() {
@@ -42,6 +48,12 @@ export async function clearTenantSession() {
     return;
   }
 
-  (store as any).delete(TENANT_CACHE_KEY);
-  (store as any).delete(TENANT_SESSION_KEY);
+  try {
+    (store as any).delete(TENANT_CACHE_KEY);
+    (store as any).delete(TENANT_SESSION_KEY);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "test") {
+      console.warn("Failed to clear tenant session cookies", error);
+    }
+  }
 }
