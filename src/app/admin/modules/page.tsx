@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, FileText, Layers } from "lucide-react";
+import { FileText, Layers } from "lucide-react";
 
 import {
   MetadataRegistry,
@@ -13,24 +13,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Modules | StewardTrack",
 };
 
-type ManifestGroup = {
+type ModuleGroup = {
   id: string;
   module: string;
-  route: string;
-  entries: ManifestEntry[];
+  entryCount: number;
+  routeCount: number;
+  sampleRoutes: string[];
 };
 
 export default async function ModulesPage() {
   const registry = new MetadataRegistry();
   const manifest = await registry.readManifest();
-  const groups = manifest ? groupByRoute(Object.values(manifest.entries)) : [];
+  const groups = manifest ? groupByModule(Object.values(manifest.entries)) : [];
 
   if (!manifest || groups.length === 0) {
     return (
@@ -50,27 +50,43 @@ export default async function ModulesPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold">Metadata modules</h1>
         <p className="text-sm text-muted-foreground">
-          Automatically generated from the metadata registry manifest. Click any layer to open its public rendering.
+          Automatically generated from the metadata registry manifest. Select a module to explore the pages that belong to it.
         </p>
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         {groups.map((group) => (
-          <Card key={group.id} className="border-border/60">
+          <Card key={group.id} className="flex h-full flex-col justify-between border-border/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Layers className="hidden size-4 sm:block" />
                 <span className="capitalize">{group.module}</span>
-                <span className="text-muted-foreground">/</span>
-                <span className="font-mono text-sm lowercase">{group.route}</span>
               </CardTitle>
               <CardDescription>
-                {group.entries.length} {group.entries.length === 1 ? "layer" : "layers"} available
+                {group.entryCount} {group.entryCount === 1 ? "layer" : "layers"} across {group.routeCount} {" "}
+                {group.routeCount === 1 ? "route" : "routes"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {group.entries.map((entry) => (
-                <LayerRow key={entry.key} entry={entry} />
-              ))}
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Featured routes</p>
+                {group.sampleRoutes.length > 0 ? (
+                  <ul className="space-y-1">
+                    {group.sampleRoutes.map((route) => (
+                      <li key={route} className="flex items-center gap-2 font-mono text-xs uppercase">
+                        <FileText className="size-4" />
+                        <span>{route}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs">No routes available yet.</p>
+                )}
+              </div>
+              <Button asChild>
+                <Link href={`/admin/modules/${encodeURIComponent(group.module)}`} prefetch={false}>
+                  View module
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -79,89 +95,30 @@ export default async function ModulesPage() {
   );
 }
 
-function groupByRoute(entries: ManifestEntry[]): ManifestGroup[] {
-  const map = new Map<string, ManifestGroup>();
+function groupByModule(entries: ManifestEntry[]): ModuleGroup[] {
+  const map = new Map<string, { module: string; entryCount: number; routes: Set<string> }>();
 
   for (const entry of entries) {
-    const id = `${entry.layer.module}::${entry.layer.route}`;
+    const id = entry.layer.module;
     if (!map.has(id)) {
-      map.set(id, {
-        id,
-        module: entry.layer.module,
-        route: entry.layer.route,
-        entries: [],
-      });
+      map.set(id, { module: entry.layer.module, entryCount: 0, routes: new Set<string>() });
     }
-    map.get(id)!.entries.push(entry);
+
+    const group = map.get(id)!;
+    group.entryCount += 1;
+    const route = entry.layer.route === "home" ? "home" : entry.layer.route;
+    group.routes.add(route);
   }
 
-  return Array.from(map.values())
-    .sort((a, b) => {
-      if (a.module === b.module) {
-        return a.route.localeCompare(b.route);
-      }
-      return a.module.localeCompare(b.module);
-    })
-    .map((group) => ({
-      ...group,
-      entries: group.entries.sort((a, b) => {
-        const tenantA = a.layer.tenant ?? "global";
-        const tenantB = b.layer.tenant ?? "global";
-        if (tenantA === tenantB) {
-          if (a.kind === b.kind) {
-            return (a.layer.locale ?? "").localeCompare(b.layer.locale ?? "");
-          }
-          return a.kind.localeCompare(b.kind);
-        }
-        return tenantA.localeCompare(tenantB);
-      }),
-    }));
+  return Array.from(map.entries())
+    .map(([id, group]) => ({
+      id,
+      module: group.module,
+      entryCount: group.entryCount,
+      routeCount: group.routes.size,
+      sampleRoutes: Array.from(group.routes)
+        .sort((a, b) => a.localeCompare(b))
+        .slice(0, 3),
+    }))
+    .sort((a, b) => a.module.localeCompare(b.module));
 }
-
-function LayerRow({ entry }: { entry: ManifestEntry }) {
-  const tenant = entry.layer.tenant ?? "global";
-  const locale = entry.layer.locale ?? "default";
-  const routeSegments = entry.layer.route === "home" ? [] : entry.layer.route.split("/");
-  const tenantSegment = entry.layer.tenant ?? "global";
-  const href = `/pages/${tenantSegment}/${entry.layer.module}${routeSegments.length ? `/${routeSegments.join("/")}` : ""}`;
-
-  return (
-    <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1 text-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="capitalize">
-              {entry.kind}
-            </Badge>
-            <Badge variant="outline" className="font-mono uppercase">
-              {tenant}
-            </Badge>
-            <Badge variant="outline" className="font-mono uppercase">
-              {locale}
-            </Badge>
-          </div>
-          <p className="font-semibold text-foreground">{entry.sourcePath}</p>
-          <p className="text-xs text-muted-foreground">
-            Schema v{entry.schemaVersion} - Content v{entry.contentVersion}
-          </p>
-          {entry.dependsOn && entry.dependsOn.length > 0 ? (
-            <p className="text-xs text-muted-foreground">
-              Depends on: {entry.dependsOn.join(", ")}
-            </p>
-          ) : null}
-        </div>
-        <Button variant="ghost" size="icon" className="flex-none" asChild>
-          <Link href={href} prefetch={false} target="_blank" rel="noreferrer noopener">
-            <ArrowUpRight className="size-4" />
-            <span className="sr-only">Open rendered page</span>
-          </Link>
-        </Button>
-      </div>
-      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-        <FileText className="size-3.5" />
-        <span>{entry.compiledPath}</span>
-      </div>
-    </div>
-  );
-}
-
