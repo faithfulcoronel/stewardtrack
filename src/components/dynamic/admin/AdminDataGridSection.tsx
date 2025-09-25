@@ -331,7 +331,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               );
               return (
                 <div className="flex items-center gap-3">
-                  <Avatar className="size-9 border border-border/60">
+                  <Avatar className="size-12 border border-border/60">
                     <AvatarImage src={avatarSrc ?? undefined} alt={label} />
                     <AvatarFallback className="text-xs font-semibold uppercase">{initials}</AvatarFallback>
                   </Avatar>
