@@ -39,6 +39,7 @@ type MemberDirectoryRecord = DirectoryMember & {
 type MemberManageRecord = {
   id?: string;
   fullName?: string;
+  photoUrl?: string | null;
   stageId?: string | null;
   stageKey?: string | null;
   membershipTypeId?: string | null;
@@ -78,6 +79,7 @@ type MemberManageRecord = {
     fullName?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    photoUrl?: string | null;
     membershipType?: string | null;
     membershipTypeId?: string | null;
     membershipTypeKey?: string | null;
@@ -118,6 +120,7 @@ type HouseholdAddress = {
 
 interface MemberProfileRecord extends MemberDirectoryRecord {
   fullName?: string;
+  photoUrl?: string | null;
   preferredName?: string | null;
   stage?: string | null;
   statusVariant?: string | null;
@@ -695,10 +698,12 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
         );
   const carePastor = (member.care_pastor ?? '').trim();
   const notes = (member.pastoral_notes ?? '').trim();
+  const photoUrl = member.profile_picture_url ?? null;
 
   return {
     id: member.id,
     fullName: recordName,
+    photoUrl,
     stageId,
     stageKey,
     membershipTypeId,
@@ -740,6 +745,7 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       fullName: recordName,
       firstName: member.first_name ?? '',
       lastName: member.last_name ?? '',
+      photoUrl,
       membershipType: membershipTypeLabel,
       membershipTypeId,
       membershipTypeKey: membershipTypeCode ?? null,
@@ -927,6 +933,7 @@ async function buildMemberProfileRecord(
   const stageCode = member.membership_stage?.code ?? null;
   const stageLabel = member.membership_stage?.name ?? formatStageLabel(stageCode);
   const centerLabel = member.membership_center?.name ?? null;
+  const photoUrl = member.profile_picture_url ?? null;
 
   const householdList = ensureUnique(
     householdMembers.length ? householdMembers : filterNonEmpty([fullName, preferredName])
@@ -935,6 +942,7 @@ async function buildMemberProfileRecord(
   return {
     id: member.id,
     fullName: fullName || preferredName || member.email || 'Member',
+    photoUrl,
     preferredName,
     stage: stageLabel,
     statusVariant: mapStageVariant(stageCode),

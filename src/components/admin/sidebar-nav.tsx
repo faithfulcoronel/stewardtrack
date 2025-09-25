@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -73,10 +74,13 @@ export function AdminSidebar({
           className="flex size-11 items-center justify-center text-base font-semibold text-[color:var(--sidebar-primary-foreground)] shadow-lg shadow-black/10"
         >
           <div className="flex items-center">
-            <img
+            <Image
               src="/logo_square.svg"
               alt="StewardTrack Logo"
-              className="h-8 sm:h-10 w-auto"
+              width={40}
+              height={40}
+              className="h-8 w-8 sm:h-10 sm:w-10"
+              priority
             />
           </div>
         </Link>

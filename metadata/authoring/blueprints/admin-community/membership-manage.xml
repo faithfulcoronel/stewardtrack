@@ -37,7 +37,7 @@
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) => item.id === params.memberId) ?? fallback;
-                const photoUrl = record.profile?.photoUrl ?? '';
+                const photoUrl = record.photoUrl ?? record.profile?.photoUrl ?? '';
                 if (!photoUrl) {
                   return null;
                 }
@@ -130,6 +130,7 @@
                 const defaultCenterId = lookupGroups['membership.center']?.[0]?.id ?? '';
                 if (!params.memberId) {
                   return {
+                    profilePhoto: '',
                     firstName: '',
                     lastName: '',
                     email: '',
@@ -154,8 +155,10 @@
                 }
                 const record = records.find((item) => item.id === params.memberId) ?? fallback;
                 const profile = record.profile ?? {};
+                const profilePhoto = record.photoUrl ?? profile.photoUrl ?? '';
                 const tags = profile.tags ?? record.tags ?? [];
                 return {
+                  profilePhoto,
                   firstName: profile.firstName ?? '',
                   lastName: profile.lastName ?? '',
                   email: record.contact?.email ?? '',
@@ -203,6 +206,7 @@
               {
                 "id": "mem_001",
                 "fullName": "Avery Johnson",
+                "photoUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "active",
                 "membershipTypeKey": "covenant-member",
                 "center": "Downtown Center",
@@ -236,6 +240,7 @@
               {
                 "id": "mem_002",
                 "fullName": "Elena Ruiz",
+                "photoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "new",
                 "membershipTypeKey": "attender",
                 "center": "Northside Center",
@@ -269,6 +274,7 @@
               {
                 "id": "mem_003",
                 "fullName": "Samuel and Dana Lee",
+                "photoUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=400&h=400&q=80",
                 "stageKey": "active",
                 "membershipTypeKey": "covenant-member",
                 "center": "Southridge Center",
@@ -339,6 +345,13 @@
         <Json><![CDATA[
           {
             "fields": [
+              {
+                "name": "profilePhoto",
+                "label": "Profile photo",
+                "type": "image",
+                "colSpan": "full",
+                "helperText": "Upload or remove the member's profile picture."
+              },
               { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
               { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
               { "name": "email", "label": "Email", "type": "email", "colSpan": "half", "required": true },

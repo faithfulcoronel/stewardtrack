@@ -32,6 +32,24 @@ function normalizeTags(value: unknown): string[] {
     .filter((item) => item.length > 0);
 }
 
+function normalizeImage(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "object") {
+    const candidate = (value as { url?: unknown }).url;
+    if (typeof candidate === "string") {
+      const trimmed = candidate.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+  }
+  return null;
+}
+
 export function useAdminFormController(props: AdminFormSectionProps) {
   const fields = React.useMemo(() => normalizeList<FormFieldConfig>(props.fields), [props.fields]);
   const defaultValues = React.useMemo(
@@ -125,15 +143,31 @@ function buildDefaultValues(
   for (const field of fields) {
     const incoming = initialValues[field.name];
     if (incoming !== undefined) {
-      values[field.name] = isTagsField(field) ? normalizeTags(incoming) : incoming;
+      if (isTagsField(field)) {
+        values[field.name] = normalizeTags(incoming);
+      } else if (field.type === "image") {
+        values[field.name] = normalizeImage(incoming);
+      } else {
+        values[field.name] = incoming;
+      }
       continue;
     }
     if (field.defaultValue !== undefined) {
-      values[field.name] = isTagsField(field) ? normalizeTags(field.defaultValue) : field.defaultValue;
+      if (isTagsField(field)) {
+        values[field.name] = normalizeTags(field.defaultValue);
+      } else if (field.type === "image") {
+        values[field.name] = normalizeImage(field.defaultValue);
+      } else {
+        values[field.name] = field.defaultValue;
+      }
       continue;
     }
     if (isTagsField(field)) {
       values[field.name] = [];
+      continue;
+    }
+    if (field.type === "image") {
+      values[field.name] = null;
       continue;
     }
     values[field.name] = field.type === "toggle" ? false : "";
