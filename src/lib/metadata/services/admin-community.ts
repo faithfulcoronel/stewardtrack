@@ -152,6 +152,13 @@ type MemberManageRecord = {
     dataSteward?: string | null;
     lastReview?: string | null;
   };
+  household?: {
+    id?: string | null;
+    name?: string | null;
+    envelopeNumber?: string | null;
+    members?: string[];
+    address?: HouseholdAddress | null;
+  } | null;
 };
 
 type FormMembershipStageKey = 'active' | 'new' | 'care' | 'inactive';
@@ -847,6 +854,13 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   const householdName = (householdRecord?.name ?? '').trim() || formatHouseholdName(member);
   const envelopeNumber = householdRecord?.envelope_number ?? member.envelope_number ?? null;
   const occupation = (member.occupation ?? '').trim() || null;
+  const householdDetails: NonNullable<MemberManageRecord["household"]> = {
+    id: member.household_id ?? null,
+    name: householdName,
+    envelopeNumber,
+    members: householdMembers,
+    address: householdAddress ?? null,
+  };
 
   const emergencyContact = {
     name: member.emergency_contact_name ?? null,
@@ -962,18 +976,13 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       maritalStatus: member.marital_status ?? null,
       anniversary: anniversary ?? '',
       occupation,
-      household: {
-        id: member.household_id ?? null,
-        name: householdName,
-        envelopeNumber,
-        members: householdMembers,
-        address: householdAddress ?? null,
-      },
+      household: householdDetails,
     },
     admin: {
       dataSteward: member.data_steward ?? null,
       lastReview: lastReview ?? '',
     },
+    household: householdDetails,
   } satisfies MemberManageRecord;
 }
 
