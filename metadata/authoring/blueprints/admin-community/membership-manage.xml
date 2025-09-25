@@ -97,24 +97,57 @@
                 const household = record.household ?? {};
                 const contact = record.contact ?? {};
                 const emergency = record.emergency ?? {};
-                const engagement = record.engagement ?? {};
-                const attendance = record.attendance ?? {};
                 const discipleship = record.discipleship ?? {};
                 const carePlan = record.carePlan ?? {};
                 const serving = record.serving ?? {};
-                const leadership = record.leadership ?? {};
                 const giving = record.giving ?? {};
-                const finance = record.finance ?? {};
                 const admin = record.admin ?? {};
                 const profilePhoto = record.photoUrl ?? profile.photoUrl ?? '';
-                const tags = profile.tags ?? record.tags ?? [];
-                const members = household.members ?? profile.householdMembers ?? [];
-                const groups = engagement.groups ?? profile.additionalGroups ?? [];
-                const pathways = engagement.pathways ?? profile.pathways ?? [];
-                const gifts = engagement.spiritualGifts ?? profile.spiritualGifts ?? [];
-                const interests = engagement.interests ?? profile.ministryInterests ?? [];
-                const careTeam = carePlan.team ?? profile.careTeam ?? [];
-                const leadershipRoles = leadership.roles ?? profile.leadershipRoles ?? [];
+                const tags = Array.isArray(profile.tags)
+                  ? profile.tags
+                  : Array.isArray(record.tags)
+                    ? record.tags
+                    : [];
+                const membersSource = Array.isArray(household.members)
+                  ? household.members
+                  : Array.isArray(profile.household?.members)
+                    ? profile.household.members
+                    : profile.householdMembers;
+                const members = Array.isArray(membersSource) ? membersSource : [];
+                const groupsSource = Array.isArray(discipleship.additionalGroups)
+                  ? discipleship.additionalGroups
+                  : profile.additionalGroups;
+                const groups = Array.isArray(groupsSource) ? groupsSource : [];
+                const pathwaysSource = Array.isArray(discipleship.pathways)
+                  ? discipleship.pathways
+                  : profile.pathways;
+                const pathways = Array.isArray(pathwaysSource) ? pathwaysSource : [];
+                const giftsSource = Array.isArray(discipleship.spiritualGifts)
+                  ? discipleship.spiritualGifts
+                  : profile.spiritualGifts;
+                const gifts = Array.isArray(giftsSource) ? giftsSource : [];
+                const interestsSource = Array.isArray(discipleship.ministryInterests)
+                  ? discipleship.ministryInterests
+                  : profile.ministryInterests;
+                const interests = Array.isArray(interestsSource) ? interestsSource : [];
+                const careTeamSource = Array.isArray(carePlan.team) ? carePlan.team : profile.careTeam;
+                const careTeam = Array.isArray(careTeamSource) ? careTeamSource : [];
+                const leadershipRolesSource = Array.isArray(serving.leadershipRoles)
+                  ? serving.leadershipRoles
+                  : profile.leadershipRoles;
+                const leadershipRoles = Array.isArray(leadershipRolesSource) ? leadershipRolesSource : [];
+                const prayerRequests =
+                  typeof profile.prayerRequests === 'string'
+                    ? profile.prayerRequests
+                    : Array.isArray(profile.prayerRequests)
+                      ? profile.prayerRequests.join('\\n')
+                      : Array.isArray(carePlan.prayerRequests)
+                        ? carePlan.prayerRequests.join('\\n')
+                        : Array.isArray(discipleship.prayerRequests)
+                          ? discipleship.prayerRequests.join('\\n')
+                          : typeof carePlan.prayerRequests === 'string'
+                            ? carePlan.prayerRequests
+                            : '';
 
                 const householdId = household.id ?? profile.household?.id ?? record.householdId ?? '';
                 const initialValues = {
@@ -138,22 +171,22 @@
                   email: profile.email ?? contact.email ?? '',
                   phone: profile.phone ?? contact.phone ?? '',
                   preferredContact: profile.preferredContact ?? contact.preferred ?? 'Email',
-                  smallGroup: discipleship.smallGroup ?? profile.smallGroup ?? '',
+                  smallGroup: discipleship.primaryGroup ?? profile.smallGroup ?? '',
                   additionalGroups: Array.isArray(groups) ? groups : [],
                   pathways: Array.isArray(pathways) ? pathways : [],
                   mentor: discipleship.mentor ?? profile.mentor ?? '',
-                  attendanceRate: profile.attendanceRate ?? attendance.twelveWeekAttendance ?? '',
-                  lastAttendance: profile.lastAttendance ?? attendance.lastAttendance ?? '',
+                  attendanceRate: profile.attendanceRate ?? discipleship.attendanceRate ?? '',
+                  lastAttendance: profile.lastAttendance ?? discipleship.lastAttendance ?? '',
                   spiritualGifts: Array.isArray(gifts) ? gifts : [],
                   ministryInterests: Array.isArray(interests) ? interests : [],
                   discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? '',
-                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? '',
+                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? discipleship.prayerFocus ?? '',
                   careStatus: profile.careStatus ?? carePlan.statusKey ?? 'observation',
                   carePastor: profile.carePastor ?? carePlan.assignedTo ?? '',
                   followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? '',
                   careTeam: Array.isArray(careTeam) ? careTeam : [],
-                  pastoralNotes: profile.pastoralNotes ?? carePlan.pastoralNotes ?? '',
-                  prayerRequests: profile.prayerRequests ?? carePlan.prayerRequests ?? '',
+                  pastoralNotes: profile.notes ?? '',
+                  prayerRequests,
                   emergencyContact: profile.emergencyContact ?? emergency.contact ?? '',
                   emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? '',
                   emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? '',
@@ -164,18 +197,18 @@
                   servingCoach: profile.servingCoach ?? serving.coach ?? '',
                   nextServeDate: profile.nextServeDate ?? serving.nextServeDate ?? '',
                   leadershipRoles: Array.isArray(leadershipRoles) ? leadershipRoles : [],
-                  teamFocus: profile.teamFocus ?? leadership.teamFocus ?? '',
-                  reportsTo: profile.reportsTo ?? leadership.reportsTo ?? serving.coach ?? '',
-                  lastHuddle: profile.lastHuddle ?? leadership.lastHuddle ?? '',
+                  teamFocus: profile.teamFocus ?? serving.teamFocus ?? '',
+                  reportsTo: profile.reportsTo ?? serving.reportsTo ?? serving.coach ?? '',
+                  lastHuddle: profile.lastHuddle ?? serving.lastHuddle ?? '',
                   recurringGiving: profile.recurringGiving ?? giving.recurring?.amount ?? '',
                   recurringFrequency: profile.recurringFrequency ?? giving.recurring?.frequencyKey ?? giving.recurring?.frequency ?? 'monthly',
                   recurringMethod: profile.recurringMethod ?? giving.recurring?.method ?? 'ach',
                   pledgeAmount: profile.pledgeAmount ?? giving.pledge ?? '',
                   pledgeCampaign: profile.pledgeCampaign ?? giving.campaign ?? '',
                   primaryFund: profile.primaryFund ?? giving.primaryFund ?? '',
-                  statementPreference: profile.statementPreference ?? finance.statementPreference ?? 'email',
-                  capacityTier: profile.capacityTier ?? finance.capacityTier ?? 'mid',
-                  financeNotes: profile.financeNotes ?? finance.notes ?? '',
+                  statementPreference: profile.statementPreference ?? giving.statementPreference ?? 'email',
+                  capacityTier: profile.capacityTier ?? giving.tier ?? 'mid',
+                  financeNotes: profile.financeNotes ?? giving.notes ?? '',
                   stage: profile.stageId ?? record.stageId ?? defaultStageId,
                   membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
                   center: profile.centerId ?? record.centerId ?? defaultCenterId,

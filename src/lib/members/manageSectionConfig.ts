@@ -39,7 +39,7 @@ export const MANAGE_SECTION_CONFIG: Record<string, ManageSectionConfigEntry> = {
     helperText: "Leadership scope clarifies coaching relationships and development plans.",
   },
   "edit-care": {
-    sectionIds: ["care-plan"],
+    sectionIds: ["care-plan", "emergency"],
     helperText: "Care plan updates notify pastors responsible for shepherding this member.",
   },
   "edit-notes": {
