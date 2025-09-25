@@ -17,9 +17,6 @@ export class MemberValidator {
     if (data.contact_number !== undefined && !data.contact_number.trim()) {
       throw new Error('Contact number is required');
     }
-    if (data.address !== undefined && !data.address.trim()) {
-      throw new Error('Address is required');
-    }
     if (data.email !== undefined && data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       throw new Error('Invalid email format');
     }

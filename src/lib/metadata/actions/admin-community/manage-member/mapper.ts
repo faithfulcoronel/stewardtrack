@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Member } from "@/models/member.model";
+import type { MemberHousehold } from "@/models/memberHousehold.model";
 import type { MetadataActionResult } from "../../types";
 
 import type { ManageMemberRequest } from "./request";
@@ -87,6 +88,8 @@ export class MemberFormMapper {
     const joinDate = this.toDateString(values.joinDate);
     const preferredContact = this.toPreferredContact(values.preferredContact);
     const recurringGiving = this.toNumeric(values.recurringGiving);
+    const recurringFrequency = this.cleanString(values.recurringFrequency);
+    const recurringMethod = this.cleanString(values.recurringMethod);
     const pledgeAmount = this.toNumeric(values.pledgeAmount);
     const careStatus = this.cleanString(values.careStatus)?.toLowerCase() ?? null;
     const carePastor = this.cleanString(values.carePastor);
@@ -97,6 +100,44 @@ export class MemberFormMapper {
     const discipleshipNextStep = this.cleanString(values.discipleshipNextStep);
     const notes = this.cleanString(values.notes);
     const tags = this.toTags(values.tags);
+    const preferredName = this.cleanString(values.preferredName);
+    const birthDate = this.toDateString(values.birthdate);
+    const maritalStatus = this.toMaritalStatus(values.maritalStatus);
+    const anniversary = this.toDateString(values.anniversary);
+    const occupation = this.cleanString(values.occupation);
+    const primaryGroup = this.cleanString(values.smallGroup);
+    const additionalGroups = this.toTags(values.additionalGroups);
+    const pathways = this.toTags(values.pathways);
+    const mentor = this.cleanString(values.mentor);
+    const attendanceRate = this.toNumeric(values.attendanceRate);
+    const lastAttendance = this.toDateString(values.lastAttendance);
+    const spiritualGifts = this.toTags(values.spiritualGifts);
+    const ministryInterests = this.toTags(values.ministryInterests);
+    const prayerFocus = this.cleanString(values.prayerFocus);
+    const prayerRequests = this.toTags(values.prayerRequests);
+    const careTeam = this.toTags(values.careTeam);
+    const emergencyContact = this.cleanString(values.emergencyContact);
+    const emergencyRelationship = this.cleanString(values.emergencyRelationship);
+    const emergencyPhone = this.cleanString(values.emergencyPhone);
+    const physician = this.cleanString(values.physician);
+    const nextServeDate = this.toDateString(values.nextServeDate);
+    const leadershipRoles = this.toTags(values.leadershipRoles);
+    const teamFocus = this.cleanString(values.teamFocus);
+    const reportsTo = this.cleanString(values.reportsTo);
+    const lastHuddle = this.toDateString(values.lastHuddle);
+    const primaryFund = this.cleanString(values.primaryFund);
+    const givingTier = this.cleanString(values.givingTier);
+    const financeNotes = this.cleanString(values.financeNotes);
+    const dataSteward = this.cleanString(values.dataSteward);
+    const lastReview = this.toDateString(values.lastReview);
+    const householdName = this.cleanString(values.householdName);
+    const householdMembers = this.toTags(values.householdMembers);
+    const addressStreet = this.cleanString(values.addressStreet);
+    const addressCity = this.cleanString(values.addressCity);
+    const addressState = this.cleanString(values.addressState);
+    const addressPostal = this.cleanString(values.addressPostal);
+    const envelopeNumber = this.cleanString(values.envelopeNumber);
+    const householdId = this.cleanString(values.householdId);
     const profilePhotoUrl = this.toProfilePhoto(values.profilePhoto);
 
     const stageId = this.findStageId(resources.stages, stageValue);
@@ -111,6 +152,8 @@ export class MemberFormMapper {
       preferred_contact_method: preferredContact,
       giving_recurring_amount: recurringGiving ?? null,
       giving_pledge_amount: pledgeAmount ?? null,
+      giving_recurring_frequency: recurringFrequency ?? null,
+      giving_recurring_method: recurringMethod ?? null,
       care_status_code: careStatus ?? null,
       care_pastor: carePastor ?? null,
       care_follow_up_at: followUpDate ?? null,
@@ -126,9 +169,45 @@ export class MemberFormMapper {
       payload.profile_picture_url = profilePhotoUrl;
     }
 
+    if (preferredName !== null || Object.prototype.hasOwnProperty.call(values, 'preferredName')) {
+      payload.preferred_name = preferredName;
+    }
+
     if (phone) {
       payload.contact_number = phone;
     }
+
+    payload.birthday = birthDate ?? null;
+    payload.marital_status = maritalStatus;
+    payload.anniversary = anniversary ?? null;
+    payload.occupation = occupation ?? null;
+    payload.primary_small_group = primaryGroup ?? null;
+    payload.discipleship_group = primaryGroup ?? null;
+    payload.small_groups = additionalGroups;
+    payload.discipleship_pathways = pathways;
+    payload.discipleship_mentor = mentor ?? null;
+    payload.attendance_rate = attendanceRate ?? null;
+    payload.last_attendance_date = lastAttendance ?? null;
+    payload.spiritual_gifts = spiritualGifts;
+    payload.ministry_interests = ministryInterests;
+    payload.prayer_focus = prayerFocus ?? null;
+    payload.prayer_requests = prayerRequests;
+    payload.care_team = careTeam;
+    payload.emergency_contact_name = emergencyContact ?? null;
+    payload.emergency_contact_relationship = emergencyRelationship ?? null;
+    payload.emergency_contact_phone = emergencyPhone ?? null;
+    payload.physician_name = physician ?? null;
+    payload.next_serve_at = nextServeDate ?? null;
+    payload.leadership_roles = leadershipRoles;
+    payload.team_focus = teamFocus ?? null;
+    payload.reports_to = reportsTo ?? null;
+    payload.last_huddle_at = lastHuddle ?? null;
+    payload.giving_primary_fund = primaryFund ?? null;
+    payload.giving_tier = givingTier ?? null;
+    payload.finance_notes = financeNotes ?? null;
+    payload.data_steward = dataSteward ?? null;
+    payload.last_review_at = lastReview ?? null;
+    payload.envelope_number = envelopeNumber ?? null;
 
     if (stageId) {
       payload.membership_status_id = stageId;
@@ -142,6 +221,35 @@ export class MemberFormMapper {
       payload.membership_center_id = null;
     } else if (centerId) {
       payload.membership_center_id = centerId;
+    }
+
+    const hasHouseholdIdField = Object.prototype.hasOwnProperty.call(values, "householdId");
+
+    const includeHousehold =
+      householdId !== null ||
+      householdName !== null ||
+      envelopeNumber !== null ||
+      addressStreet !== null ||
+      addressCity !== null ||
+      addressState !== null ||
+      addressPostal !== null ||
+      householdMembers.length > 0;
+
+    if (includeHousehold) {
+      const householdPayload: Partial<MemberHousehold> = {};
+      if (householdId) {
+        householdPayload.id = householdId;
+      }
+      householdPayload.name = householdName;
+      householdPayload.envelope_number = envelopeNumber;
+      householdPayload.address_street = addressStreet;
+      householdPayload.address_city = addressCity;
+      householdPayload.address_state = addressState;
+      householdPayload.address_postal_code = addressPostal;
+      householdPayload.member_names = householdMembers;
+      payload.household = householdPayload;
+    } else if (hasHouseholdIdField && householdId === null) {
+      payload.household = { id: null } satisfies Partial<MemberHousehold>;
     }
 
     return {
@@ -262,9 +370,23 @@ export class MemberFormMapper {
       return [];
     }
     return String(value)
-      .split(",")
+      .split(/[\n,]/)
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
+  }
+
+  private toMaritalStatus(value: unknown): Member['marital_status'] | null {
+    const normalized = this.cleanString(value)?.toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+    if (normalized === 'engaged' || normalized === 'engagement') {
+      return 'engaged';
+    }
+    if (normalized === 'single' || normalized === 'married' || normalized === 'widowed' || normalized === 'divorced') {
+      return normalized as Member['marital_status'];
+    }
+    return null;
   }
 
   private findStageId(stages: MemberManageResources["stages"], stageValue: string | null): string | null {

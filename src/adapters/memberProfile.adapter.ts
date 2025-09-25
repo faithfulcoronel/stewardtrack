@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { RequestContext } from '@/lib/server/context';
 import { tenantUtils } from '@/utils/tenantUtils';
+import type { MemberHousehold } from '@/models/memberHousehold.model';
 
 export interface MemberRow {
   id: string;
@@ -16,21 +17,38 @@ export interface MemberRow {
   email?: string | null;
   contact_number?: string | null;
   address?: unknown;
+  household_id?: string | null;
   membership_date?: string | null;
+  birthday?: string | null;
+  anniversary?: string | null;
   profile_picture_url?: string | null;
+  gender?: string | null;
+  marital_status?: string | null;
+  envelope_number?: string | null;
   membership_stage?: { id?: string | null; name?: string | null; code?: string | null } | null;
   membership_type?: { id?: string | null; name?: string | null; code?: string | null } | null;
   membership_center?: { id?: string | null; name?: string | null; code?: string | null } | null;
   preferred_contact_method?: string | null;
+  occupation?: string | null;
   serving_team?: string | null;
   serving_role?: string | null;
   serving_schedule?: string | null;
   serving_coach?: string | null;
+  next_serve_at?: string | null;
   discipleship_next_step?: string | null;
   discipleship_mentor?: string | null;
   discipleship_group?: string | null;
+  primary_small_group?: string | null;
   small_groups?: string[] | null;
   tags?: string[] | null;
+  discipleship_pathways?: string[] | null;
+  attendance_rate?: number | null;
+  last_attendance_date?: string | null;
+  spiritual_gifts?: string[] | null;
+  ministry_interests?: string[] | null;
+  volunteer_roles?: string[] | null;
+  prayer_focus?: string | null;
+  prayer_requests?: string[] | null;
   giving_recurring_amount?: number | null;
   giving_recurring_frequency?: string | null;
   giving_recurring_method?: string | null;
@@ -39,10 +57,25 @@ export interface MemberRow {
   giving_last_gift_amount?: number | null;
   giving_last_gift_at?: string | null;
   giving_last_gift_fund?: string | null;
+  giving_primary_fund?: string | null;
+  giving_tier?: string | null;
+  finance_notes?: string | null;
   care_status_code?: string | null;
   care_pastor?: string | null;
   care_follow_up_at?: string | null;
   pastoral_notes?: string | null;
+  care_team?: string[] | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relationship?: string | null;
+  physician_name?: string | null;
+  leadership_roles?: string[] | null;
+  team_focus?: string | null;
+  reports_to?: string | null;
+  last_huddle_at?: string | null;
+  data_steward?: string | null;
+  last_review_at?: string | null;
+  household?: MemberHousehold | null;
 }
 
 export interface MemberGivingProfileRow {
@@ -159,21 +192,38 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           email,
           contact_number,
           address,
+          envelope_number,
+          household_id,
           membership_date,
+          birthday,
+          anniversary,
+          gender,
+          marital_status,
+          occupation,
           profile_picture_url,
           membership_stage:membership_status_id(id, name, code),
           membership_type:membership_type_id(id, name, code),
           membership_center:membership_center_id(id, name, code),
           preferred_contact_method,
+          primary_small_group,
           serving_team,
           serving_role,
           serving_schedule,
           serving_coach,
+          next_serve_at,
           discipleship_next_step,
           discipleship_mentor,
           discipleship_group,
           small_groups,
+          discipleship_pathways,
+          attendance_rate,
+          last_attendance_date,
+          spiritual_gifts,
+          ministry_interests,
+          volunteer_roles,
           tags,
+          prayer_focus,
+          prayer_requests,
           giving_recurring_amount,
           giving_recurring_frequency,
           giving_recurring_method,
@@ -182,10 +232,35 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           giving_last_gift_amount,
           giving_last_gift_at,
           giving_last_gift_fund,
+          giving_primary_fund,
+          giving_tier,
+          finance_notes,
           care_status_code,
           care_pastor,
           care_follow_up_at,
-          pastoral_notes
+          pastoral_notes,
+          care_team,
+          emergency_contact_name,
+          emergency_contact_phone,
+          emergency_contact_relationship,
+          physician_name,
+          leadership_roles,
+          team_focus,
+          reports_to,
+          last_huddle_at,
+          data_steward,
+          last_review_at,
+          household:household_id(
+            id,
+            name,
+            envelope_number,
+            address_street,
+            address_city,
+            address_state,
+            address_postal_code,
+            member_names,
+            notes
+          )
         `
       )
       .is('deleted_at', null)
