@@ -25,6 +25,7 @@ export class FieldValidationError extends Error {
 }
 
 export function handleError(error: unknown, ctx?: ErrorContext): Error {
+  console.log('Handling error:', error, ctx);
   const baseError =
     error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Unknown error');
 
