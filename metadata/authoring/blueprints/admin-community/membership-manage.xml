@@ -136,7 +136,7 @@
                   ? serving.leadershipRoles
                   : profile.leadershipRoles;
                 const leadershipRoles = Array.isArray(leadershipRolesSource) ? leadershipRolesSource : [];
-                const prayerRequests =
+                const formattedPrayerRequests =
                   typeof profile.prayerRequests === 'string'
                     ? profile.prayerRequests
                     : Array.isArray(profile.prayerRequests)
@@ -186,7 +186,7 @@
                   followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? '',
                   careTeam: Array.isArray(careTeam) ? careTeam : [],
                   pastoralNotes: profile.notes ?? '',
-                  prayerRequests: prayerRequests,
+                  prayerRequests: formattedPrayerRequests,
                   emergencyContact: profile.emergencyContact ?? emergency.contact ?? '',
                   emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? '',
                   emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? '',
