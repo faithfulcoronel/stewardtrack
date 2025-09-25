@@ -106,6 +106,12 @@ type MemberManageRecord = {
     prayerFocus?: string | null;
     prayerRequests?: string[];
   };
+  emergency?: {
+    contact?: string | null;
+    relationship?: string | null;
+    phone?: string | null;
+    physician?: string | null;
+  } | null;
   profile?: {
     fullName?: string | null;
     firstName?: string | null;
@@ -842,6 +848,19 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   const envelopeNumber = householdRecord?.envelope_number ?? member.envelope_number ?? null;
   const occupation = (member.occupation ?? '').trim() || null;
 
+  const emergencyContact = {
+    name: member.emergency_contact_name ?? null,
+    relationship: member.emergency_contact_relationship ?? null,
+    phone: member.emergency_contact_phone ?? null,
+    physician: member.physician_name ?? null,
+  };
+
+  const hasEmergencyContact =
+    (emergencyContact.name ?? '').toString().trim().length > 0 ||
+    (emergencyContact.relationship ?? '').toString().trim().length > 0 ||
+    (emergencyContact.phone ?? '').toString().trim().length > 0 ||
+    (emergencyContact.physician ?? '').toString().trim().length > 0;
+
   return {
     id: member.id,
     fullName: recordName,
@@ -903,15 +922,18 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       assignedTo: carePastor || null,
       followUpDate: followUpDate ?? '',
       team: careTeamList,
-      emergencyContact: {
-        name: member.emergency_contact_name ?? null,
-        relationship: member.emergency_contact_relationship ?? null,
-        phone: member.emergency_contact_phone ?? null,
-        physician: member.physician_name ?? null,
-      },
+      emergencyContact,
       prayerFocus: member.prayer_focus ?? null,
       prayerRequests: prayerRequestsList,
     },
+    emergency: hasEmergencyContact
+      ? {
+          contact: emergencyContact.name ?? null,
+          relationship: emergencyContact.relationship ?? null,
+          phone: emergencyContact.phone ?? null,
+          physician: emergencyContact.physician ?? null,
+        }
+      : null,
     profile: {
       fullName: recordName,
       firstName: member.first_name ?? '',
