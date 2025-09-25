@@ -357,13 +357,8 @@ function HouseholdSelector({
   const isBrowseDisabled = isLoading && households.length === 0;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Input
-          value={currentValue}
-          onChange={handleInputChange}
-          placeholder={field.placeholder ?? "Start typing or select a household"}
-        />
         <Button
           type="button"
           variant="outline"
@@ -373,11 +368,22 @@ function HouseholdSelector({
           Browse households
         </Button>
         {(hasSelection || currentValue) && (
-          <Button type="button" variant="ghost" onClick={handleClear} className="text-muted-foreground">
-            Clear
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClear}
+            className="text-muted-foreground"
+          >
+            Clear selection
           </Button>
         )}
       </div>
+      <Input
+        value={currentValue}
+        onChange={handleInputChange}
+        placeholder={field.placeholder ?? "Start typing or select a household"}
+        disabled={hasSelection}
+      />
 
       <CommandDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <Command>
@@ -657,6 +663,22 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     [controller],
   );
 
+  const ensureMemberNameIncluded = React.useCallback(
+    (members: string[]): string[] => {
+      const fullName = formatFullName(controller.getValues("firstName"), controller.getValues("lastName"));
+      if (!fullName) {
+        return members;
+      }
+      const normalizedMembers = members.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean);
+      const exists = normalizedMembers.some((value) => value.localeCompare(fullName, undefined, { sensitivity: "accent" }) === 0);
+      if (exists) {
+        return normalizedMembers;
+      }
+      return [...normalizedMembers, fullName];
+    },
+    [controller],
+  );
+
   const handleHouseholdSelect = React.useCallback(
     (option: HouseholdOption) => {
       controller.setValue("householdId", option.id ?? "", {
@@ -702,9 +724,10 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
         }
       }
 
-      setHouseholdMembers(option.members, { dirty: true });
+      const nextMembers = ensureMemberNameIncluded(option.members);
+      setHouseholdMembers(nextMembers, { dirty: true });
     },
-    [controller, setHouseholdMembers],
+    [controller, ensureMemberNameIncluded, setHouseholdMembers],
   );
 
   const handleHouseholdManualInput = React.useCallback(() => {
@@ -755,7 +778,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     if (normalizedId) {
       const selected = householdOptions.find((option) => (option.id ?? "") === normalizedId);
       if (selected) {
-        setHouseholdMembers(selected.members, { dirty: false });
+        setHouseholdMembers(ensureMemberNameIncluded(selected.members), { dirty: false });
       }
       return;
     }
@@ -766,7 +789,14 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
       return;
     }
     setHouseholdMembers([fallbackName], { dirty: false });
-  }, [householdOptions, setHouseholdMembers, watchFirstName, watchHouseholdId, watchLastName]);
+  }, [
+    ensureMemberNameIncluded,
+    householdOptions,
+    setHouseholdMembers,
+    watchFirstName,
+    watchHouseholdId,
+    watchLastName,
+  ]);
 
   const handleQuickCreate = React.useCallback((field: FormFieldConfig) => {
     const lookupId = field.lookupId?.trim();
