@@ -10,7 +10,8 @@
     "metadata:compile": "tsx tools/metadata/compile.ts",
     "metadata:watch": "tsx watch --clear-screen=false tools/metadata/compile.ts",
     "metadata:types": "tsx tools/metadata/generate-types.ts",
-    "prebuild": "npm run metadata:compile"
+    "prebuild": "npm run metadata:compile",
+    "rbac:phase1": "tsx tools/rbac/phase1-inventory.ts"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.3",
