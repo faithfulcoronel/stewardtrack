@@ -186,7 +186,7 @@
                   followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? '',
                   careTeam: Array.isArray(careTeam) ? careTeam : [],
                   pastoralNotes: profile.notes ?? '',
-                  prayerRequests,
+                  prayerRequests: prayerRequests,
                   emergencyContact: profile.emergencyContact ?? emergency.contact ?? '',
                   emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? '',
                   emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? '',
