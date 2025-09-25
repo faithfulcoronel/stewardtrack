@@ -48,7 +48,8 @@ CREATE TRIGGER set_member_households_updated_at
 
 ALTER TABLE member_households ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Member households are viewable by tenant users" ON member_households
+DROP POLICY IF EXISTS "Member households are viewable by tenant users" ON member_households;
+CREATE POLICY "Member households are viewable by tenant users" ON member_households
   FOR SELECT TO authenticated
   USING (
     deleted_at IS NULL
@@ -59,7 +60,8 @@ CREATE POLICY IF NOT EXISTS "Member households are viewable by tenant users" ON 
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Member households are manageable by tenant admins" ON member_households
+DROP POLICY IF EXISTS "Member households are manageable by tenant admins" ON member_households;
+CREATE POLICY "Member households are manageable by tenant admins" ON member_households
   FOR ALL TO authenticated
   USING (
     deleted_at IS NULL
