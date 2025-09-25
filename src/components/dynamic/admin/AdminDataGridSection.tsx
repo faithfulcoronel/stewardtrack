@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/datatable";
@@ -41,6 +42,9 @@ export interface GridColumnConfig {
   badgeMap?: Record<string, string> | null;
   hrefTemplate?: string | null;
   subtitleField?: string | null;
+  avatarField?: string | null;
+  avatarFirstNameField?: string | null;
+  avatarLastNameField?: string | null;
   actions?: GridActionConfig[] | { items?: GridActionConfig[] } | null;
   currency?: { currency?: string; notation?: "standard" | "compact" } | null;
   dateFormat?: Intl.DateTimeFormatOptions | null;
@@ -310,10 +314,40 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               : value
                 ? String(value)
                 : "#";
+            const label = value == null ? "—" : String(value);
+            if (column.avatarField || column.avatarFirstNameField || column.avatarLastNameField) {
+              const avatarSrcRaw = column.avatarField ? resolveValue(row, column.avatarField) : null;
+              const firstNameRaw = column.avatarFirstNameField
+                ? resolveValue(row, column.avatarFirstNameField)
+                : null;
+              const lastNameRaw = column.avatarLastNameField
+                ? resolveValue(row, column.avatarLastNameField)
+                : null;
+              const avatarSrc = typeof avatarSrcRaw === "string" && avatarSrcRaw.trim() ? avatarSrcRaw : null;
+              const initials = getInitials(
+                typeof firstNameRaw === "string" ? firstNameRaw : null,
+                typeof lastNameRaw === "string" ? lastNameRaw : null,
+                label
+              );
+              return (
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-9 border border-border/60">
+                    <AvatarImage src={avatarSrc ?? undefined} alt={label} />
+                    <AvatarFallback className="text-xs font-semibold uppercase">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
+                      {label}
+                    </Link>
+                    {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+                  </div>
+                </div>
+              );
+            }
             return (
               <div className="flex flex-col">
                 <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
-                  {value == null ? "—" : String(value)}
+                  {label}
                 </Link>
                 {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
               </div>
@@ -548,6 +582,47 @@ function renderDefaultCell(value: unknown) {
     return JSON.stringify(value);
   }
   return String(value);
+}
+
+function getInitials(
+  firstName: string | null,
+  lastName: string | null,
+  fallbackLabel: string
+): string {
+  const parts: string[] = [];
+  const first = firstName?.trim();
+  const last = lastName?.trim();
+  if (first) {
+    parts.push(first);
+  }
+  if (last) {
+    parts.push(last);
+  }
+  if (parts.length === 0) {
+    const tokens = fallbackLabel
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+    if (tokens.length > 0) {
+      parts.push(tokens[0]);
+      if (tokens.length > 1) {
+        parts.push(tokens[tokens.length - 1]);
+      }
+    }
+  }
+
+  const initials = parts
+    .map((part) => part.charAt(0).toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+
+  if (initials) {
+    return initials;
+  }
+
+  const firstChar = fallbackLabel.trim().charAt(0).toUpperCase();
+  return firstChar || "?";
 }
 
 function getComparableValue(value: unknown): string | number | null {
