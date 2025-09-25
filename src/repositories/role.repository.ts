@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { Role } from '@/models/role.model';
 import { NotificationService } from '@/services/NotificationService';
 import { RoleValidator } from '@/validators/role.validator';
@@ -9,6 +8,7 @@ import type { IMenuPermissionRepository } from '@/repositories/menuPermission.re
 import type { IRoleMenuItemRepository } from '@/repositories/roleMenuItem.repository';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
 import { TYPES } from '@/lib/types';
+import type { IRoleAdapter } from '@/adapters/role.adapter';
 
 export interface IRoleRepository extends BaseRepository<Role> {
   updateRolePermissions(id: string, permissionIds: string[]): Promise<void>;
@@ -20,7 +20,7 @@ export class RoleRepository
   implements IRoleRepository
 {
   constructor(
-    @inject(TYPES.IRoleAdapter) adapter: BaseAdapter<Role>,
+    @inject(TYPES.IRoleAdapter) adapter: IRoleAdapter,
     @inject(TYPES.IPermissionRepository)
     private permissionRepository: IPermissionRepository,
     @inject(TYPES.IMenuPermissionRepository)

@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { Setting } from '@/models/setting.model';
 import { SettingValidator } from '@/validators/setting.validator';
 import { TYPES } from '@/lib/types';
+import type { ISettingAdapter } from '@/adapters/setting.adapter';
 
 export interface ISettingRepository extends BaseRepository<Setting> {
   getByKey(key: string): Promise<Setting | null>;
@@ -14,7 +14,7 @@ export class SettingRepository
   extends BaseRepository<Setting>
   implements ISettingRepository
 {
-  constructor(@inject(TYPES.ISettingAdapter) adapter: BaseAdapter<Setting>) {
+  constructor(@inject(TYPES.ISettingAdapter) adapter: ISettingAdapter) {
     super(adapter);
   }
 

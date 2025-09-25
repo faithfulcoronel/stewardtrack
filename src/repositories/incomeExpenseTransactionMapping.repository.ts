@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { IncomeExpenseTransactionMapping } from '@/models/incomeExpenseTransactionMapping.model';
 import { IncomeExpenseTransactionMappingValidator } from '@/validators/incomeExpenseTransactionMapping.validator';
 import type { IIncomeExpenseTransactionMappingAdapter } from '@/adapters/incomeExpenseTransactionMapping.adapter';
@@ -17,9 +16,9 @@ export class IncomeExpenseTransactionMappingRepository
   implements IIncomeExpenseTransactionMappingRepository {
   constructor(
     @inject(TYPES.IIncomeExpenseTransactionMappingAdapter)
-    adapter: BaseAdapter<IncomeExpenseTransactionMapping>
+    private readonly incomeExpenseTransactionMappingAdapter: IIncomeExpenseTransactionMappingAdapter
   ) {
-    super(adapter);
+    super(incomeExpenseTransactionMappingAdapter);
   }
 
   protected override async beforeCreate(
@@ -56,16 +55,12 @@ export class IncomeExpenseTransactionMappingRepository
   public async getByTransactionId(
     id: string
   ): Promise<IncomeExpenseTransactionMapping[]> {
-    return (
-      this.adapter as unknown as IIncomeExpenseTransactionMappingAdapter
-    ).getByTransactionId(id);
+    return this.incomeExpenseTransactionMappingAdapter.getByTransactionId(id);
   }
 
   public async getByHeaderId(
     id: string
   ): Promise<IncomeExpenseTransactionMapping[]> {
-    return (
-      this.adapter as unknown as IIncomeExpenseTransactionMappingAdapter
-    ).getByHeaderId(id);
+    return this.incomeExpenseTransactionMappingAdapter.getByHeaderId(id);
   }
 }

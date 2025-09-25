@@ -1,8 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import { Account } from '@/models/account.model';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { TYPES } from '@/lib/types';
+import type { IAccountAdapter } from '@/adapters/account.adapter';
 
 export interface IAccountRepository extends BaseRepository<Account> {
   // Add any account-specific repository methods here
@@ -10,7 +10,7 @@ export interface IAccountRepository extends BaseRepository<Account> {
 
 @injectable()
 export class AccountRepository extends BaseRepository<Account> implements IAccountRepository {
-  constructor(@inject(TYPES.IAccountAdapter) adapter: BaseAdapter<Account>) {
+  constructor(@inject(TYPES.IAccountAdapter) adapter: IAccountAdapter) {
     super(adapter);
   }
 

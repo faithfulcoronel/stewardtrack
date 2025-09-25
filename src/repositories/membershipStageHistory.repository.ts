@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { MembershipStageHistory } from '@/models/membershipStageHistory.model';
 import { TYPES } from '@/lib/types';
+import type { IMembershipStageHistoryAdapter } from '@/adapters/membershipStageHistory.adapter';
 
 export type IMembershipStageHistoryRepository = BaseRepository<MembershipStageHistory>;
 
@@ -14,7 +14,7 @@ export class MembershipStageHistoryRepository
 {
   constructor(
     @inject(TYPES.IMembershipStageHistoryAdapter)
-    adapter: BaseAdapter<MembershipStageHistory>,
+    adapter: IMembershipStageHistoryAdapter,
   ) {
     super(adapter);
   }

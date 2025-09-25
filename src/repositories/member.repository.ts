@@ -18,12 +18,8 @@ export class MemberRepository
   extends BaseRepository<Member>
   implements IMemberRepository
 {
-  private memberAdapter: IMemberAdapter;
-
-  constructor(@inject(TYPES.IMemberAdapter) adapter: IMemberAdapter) {
-    // Cast to any to bypass TypeScript interface mismatch
-    super(adapter as any);
-    this.memberAdapter = adapter;
+  constructor(@inject(TYPES.IMemberAdapter) private readonly memberAdapter: IMemberAdapter) {
+    super(memberAdapter);
   }
 
   async getCurrentMonthBirthdays(): Promise<Member[]> {

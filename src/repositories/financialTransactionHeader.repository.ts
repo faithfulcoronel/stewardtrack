@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
 import type { IFinancialTransactionHeaderAdapter } from '@/adapters/financialTransactionHeader.adapter';
 import { NotificationService } from '@/services/NotificationService';
@@ -34,9 +33,9 @@ export class FinancialTransactionHeaderRepository
 {
   constructor(
     @inject(TYPES.IFinancialTransactionHeaderAdapter)
-    adapter: BaseAdapter<FinancialTransactionHeader>
+    private readonly financialTransactionHeaderAdapter: IFinancialTransactionHeaderAdapter
   ) {
-    super(adapter);
+    super(financialTransactionHeaderAdapter);
   }
 
   protected override async beforeCreate(data: Partial<FinancialTransactionHeader>): Promise<Partial<FinancialTransactionHeader>> {
@@ -84,9 +83,10 @@ export class FinancialTransactionHeaderRepository
     transactions: any[],
   ): Promise<{ header: FinancialTransactionHeader; transactions: any[] }> {
     const processed = await this.beforeCreate(data);
-    const result = await (
-      this.adapter as unknown as IFinancialTransactionHeaderAdapter
-    ).createWithTransactions(processed, transactions);
+    const result = await this.financialTransactionHeaderAdapter.createWithTransactions(
+      processed,
+      transactions
+    );
     await this.afterCreate(result.header);
     return result;
   }
@@ -97,9 +97,11 @@ export class FinancialTransactionHeaderRepository
     transactions: any[],
   ): Promise<{ header: FinancialTransactionHeader; transactions: any[] }> {
     const processed = await this.beforeUpdate(id, data);
-    const result = await (
-      this.adapter as unknown as IFinancialTransactionHeaderAdapter
-    ).updateWithTransactions(id, processed, transactions);
+    const result = await this.financialTransactionHeaderAdapter.updateWithTransactions(
+      id,
+      processed,
+      transactions
+    );
     await this.afterUpdate(result.header);
     return result;
   }
@@ -122,7 +124,7 @@ export class FinancialTransactionHeaderRepository
 
   public async postTransaction(id: string): Promise<void> {
     try {
-      await (this.adapter as unknown as IFinancialTransactionHeaderAdapter).postTransaction(id);
+      await this.financialTransactionHeaderAdapter.postTransaction(id);
 
       NotificationService.showSuccess('Transaction posted successfully');
     } catch (error) {
@@ -136,7 +138,7 @@ export class FinancialTransactionHeaderRepository
 
   public async submitTransaction(id: string): Promise<void> {
     try {
-      await (this.adapter as unknown as IFinancialTransactionHeaderAdapter).submitTransaction(id);
+      await this.financialTransactionHeaderAdapter.submitTransaction(id);
 
       NotificationService.showSuccess('Transaction submitted successfully');
     } catch (error) {
@@ -150,7 +152,7 @@ export class FinancialTransactionHeaderRepository
 
   public async approveTransaction(id: string): Promise<void> {
     try {
-      await (this.adapter as unknown as IFinancialTransactionHeaderAdapter).approveTransaction(id);
+      await this.financialTransactionHeaderAdapter.approveTransaction(id);
 
       NotificationService.showSuccess('Transaction approved successfully');
     } catch (error) {
@@ -164,7 +166,7 @@ export class FinancialTransactionHeaderRepository
 
   public async voidTransaction(id: string, reason: string): Promise<void> {
     try {
-      await (this.adapter as unknown as IFinancialTransactionHeaderAdapter).voidTransaction(id, reason);
+      await this.financialTransactionHeaderAdapter.voidTransaction(id, reason);
       
       NotificationService.showSuccess('Transaction voided successfully');
     } catch (error) {
@@ -177,14 +179,14 @@ export class FinancialTransactionHeaderRepository
   }
 
   public async getTransactionEntries(headerId: string): Promise<any[]> {
-    return (this.adapter as unknown as IFinancialTransactionHeaderAdapter).getTransactionEntries(headerId);
+    return this.financialTransactionHeaderAdapter.getTransactionEntries(headerId);
   }
 
   public async isTransactionBalanced(headerId: string): Promise<boolean> {
-    return (this.adapter as unknown as IFinancialTransactionHeaderAdapter).isTransactionBalanced(headerId);
+    return this.financialTransactionHeaderAdapter.isTransactionBalanced(headerId);
   }
 
   public async getUnmappedHeaders(): Promise<FinancialTransactionHeader[]> {
-    return (this.adapter as unknown as IFinancialTransactionHeaderAdapter).getUnmappedHeaders();
+    return this.financialTransactionHeaderAdapter.getUnmappedHeaders();
   }
 }

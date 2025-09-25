@@ -1,8 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { FamilyRelationship } from '@/models/familyRelationship.model';
 import { TYPES } from '@/lib/types';
+import type { IFamilyRelationshipAdapter } from '@/adapters/familyRelationship.adapter';
 
 export type IFamilyRelationshipRepository = BaseRepository<FamilyRelationship>;
 
@@ -12,7 +12,7 @@ export class FamilyRelationshipRepository
   implements IFamilyRelationshipRepository
 {
   constructor(
-    @inject(TYPES.IFamilyRelationshipAdapter) adapter: BaseAdapter<FamilyRelationship>,
+    @inject(TYPES.IFamilyRelationshipAdapter) adapter: IFamilyRelationshipAdapter,
   ) {
     super(adapter);
   }

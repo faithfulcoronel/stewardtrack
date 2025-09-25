@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { OfferingBatch } from '@/models/offeringBatch.model';
 import { NotificationService } from '@/services/NotificationService';
 import { OfferingBatchValidator } from '@/validators/offeringBatch.validator';
 import { TYPES } from '@/lib/types';
+import type { IOfferingBatchAdapter } from '@/adapters/offeringBatch.adapter';
 
 export type IOfferingBatchRepository = BaseRepository<OfferingBatch>;
 
@@ -13,7 +13,7 @@ export class OfferingBatchRepository
   extends BaseRepository<OfferingBatch>
   implements IOfferingBatchRepository
 {
-  constructor(@inject(TYPES.IOfferingBatchAdapter) adapter: BaseAdapter<OfferingBatch>) {
+  constructor(@inject(TYPES.IOfferingBatchAdapter) adapter: IOfferingBatchAdapter) {
     super(adapter);
   }
 

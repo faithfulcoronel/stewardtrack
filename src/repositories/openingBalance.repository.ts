@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { OpeningBalance } from '@/models/openingBalance.model';
 import { NotificationService } from '@/services/NotificationService';
 import { OpeningBalanceValidator } from '@/validators/openingBalance.validator';
 import { TYPES } from '@/lib/types';
+import type { IOpeningBalanceAdapter } from '@/adapters/openingBalance.adapter';
 
 export type IOpeningBalanceRepository = BaseRepository<OpeningBalance>;
 
@@ -13,7 +13,7 @@ export class OpeningBalanceRepository
   extends BaseRepository<OpeningBalance>
   implements IOpeningBalanceRepository
 {
-  constructor(@inject(TYPES.IOpeningBalanceAdapter) adapter: BaseAdapter<OpeningBalance>) {
+  constructor(@inject(TYPES.IOpeningBalanceAdapter) adapter: IOpeningBalanceAdapter) {
     super(adapter);
   }
 

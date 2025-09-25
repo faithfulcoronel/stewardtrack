@@ -1,13 +1,11 @@
 import 'server-only';
-import { BaseAdapter } from '@/adapters/base.adapter';
-import { BaseModel } from '@/models/base.model';
-import { QueryOptions } from '@/adapters/base.adapter';
-import type { RequestContext } from '@/lib/server/context';
+import type { BaseModel } from '@/models/base.model';
+import type { ReadableAdapter, WritableAdapter } from '@/lib/repository/adapter.interfaces';
+import type { QueryOptions } from '@/lib/repository/query';
 
 export abstract class BaseRepository<T extends BaseModel> {
   constructor(
-    protected adapter: BaseAdapter<T>,
-    protected context: RequestContext = (adapter as any).context
+    protected adapter: ReadableAdapter<T> & WritableAdapter<T>
   ) {}
 
   async find(options: QueryOptions = {}) {

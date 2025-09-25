@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { MemberServingAssignment } from '@/models/memberServingAssignment.model';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
+import type { IMemberServingAssignmentAdapter } from '@/adapters/memberServingAssignment.adapter';
 
 export type IMemberServingAssignmentRepository = BaseRepository<MemberServingAssignment>;
 
@@ -13,7 +13,7 @@ export class MemberServingAssignmentRepository
   extends BaseRepository<MemberServingAssignment>
   implements IMemberServingAssignmentRepository
 {
-  constructor(@inject(TYPES.IMemberServingAssignmentAdapter) adapter: BaseAdapter<MemberServingAssignment>) {
+  constructor(@inject(TYPES.IMemberServingAssignmentAdapter) adapter: IMemberServingAssignmentAdapter) {
     super(adapter);
   }
 

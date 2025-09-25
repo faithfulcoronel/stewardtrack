@@ -1,4 +1,4 @@
-import { PostgrestError } from "@supabase/supabase-js";
+import { PostgrestError } from '@supabase/supabase-js';
 
 export interface Entity {
   id: string;
@@ -31,34 +31,6 @@ export type FilterOperator =
   | 'isNotEmpty'
   | 'isAnyOf'
   | 'between';
-
-export type Primitive = string | number | boolean | null;
-
-export interface FilterValue {
-  operator: FilterOperator;
-  value: Primitive | Primitive[];
-  valueTo?: Primitive; // For 'between' operator
-}
-
-export interface QueryOptions {
-  select?: string;
-  filters?: Record<string, FilterValue | FilterValue[]>;
-  order?: {
-    column: string;
-    ascending?: boolean;
-  };
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  relationships?: {
-    table: string;
-    foreignKey: string;
-    select?: string[];
-    nestedRelationships?: string[];
-  }[];
-  enabled?: boolean;
-}
 
 export interface QueryResult<T> {
   data: T[];
@@ -131,3 +103,5 @@ export interface UpdateOptions<T> {
    */
   fieldsToRemove?: string[];
 }
+
+export type { FilterCondition, QueryOptions, RelationshipQuery } from './query';

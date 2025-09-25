@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { LicenseFeature } from '@/models/licenseFeature.model';
 import { LicenseFeatureValidator } from '@/validators/licenseFeature.validator';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
+import type { ILicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
 
 export type ILicenseFeatureRepository = BaseRepository<LicenseFeature>;
 
@@ -13,7 +13,7 @@ export class LicenseFeatureRepository
   extends BaseRepository<LicenseFeature>
   implements ILicenseFeatureRepository
 {
-  constructor(@inject(TYPES.ILicenseFeatureAdapter) adapter: BaseAdapter<LicenseFeature>) {
+  constructor(@inject(TYPES.ILicenseFeatureAdapter) adapter: ILicenseFeatureAdapter) {
     super(adapter);
   }
 
