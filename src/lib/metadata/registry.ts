@@ -1,14 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import Ajv, { type ValidateFunction } from 'ajv';
-import { cache } from 'react';
 import type { CanonicalPageDefinition, CanonicalLayer } from './generated/canonical';
 import { migrateToLatest } from './migrations';
-
-const ROOT = process.cwd();
-const SCHEMA_PATH = path.join(ROOT, 'metadata', 'schema', 'canonical.schema.json');
-const REGISTRY_LATEST_DIR = path.join(ROOT, 'metadata', 'registry', 'latest');
-const MANIFEST_PATH = path.join(ROOT, 'metadata', 'registry', 'manifest.json');
 
 export interface ManifestEntry {
   key: string;
@@ -41,23 +35,33 @@ export interface ResolvedLayer {
   definition: CanonicalPageDefinition;
 }
 
-const readJsonFile = cache(async (absolutePath: string) => {
-  const content = await fs.readFile(absolutePath, 'utf-8');
-  return JSON.parse(content) as unknown;
-});
-
-const ajv = new Ajv({ allErrors: true, strict: false });
-let validateSchema: ValidateFunction<unknown> | null = null;
-
-async function getValidator() {
-  if (!validateSchema) {
-    const schema = (await readJsonFile(SCHEMA_PATH)) as Record<string, unknown>;
-    validateSchema = ajv.compile(schema);
-  }
-  return validateSchema;
+export interface MetadataRegistry {
+  resolveLayers(request: LayerRequest): Promise<ResolvedLayer[]>;
+  readManifest(): Promise<ManifestFile | null>;
 }
 
-export class MetadataRegistry {
+export interface FileSystemMetadataRegistryOptions {
+  rootDir?: string;
+  schemaPath?: string;
+  latestDir?: string;
+  manifestPath?: string;
+}
+
+export class FileSystemMetadataRegistry implements MetadataRegistry {
+  private readonly rootDir: string;
+  private readonly schemaPath: string;
+  private readonly latestDir: string;
+  private readonly manifestPath: string;
+  private validator: ValidateFunction<unknown> | null = null;
+  private readonly ajv = new Ajv({ allErrors: true, strict: false });
+
+  constructor(options?: FileSystemMetadataRegistryOptions) {
+    this.rootDir = options?.rootDir ?? process.cwd();
+    this.schemaPath = options?.schemaPath ?? path.join(this.rootDir, 'metadata', 'schema', 'canonical.schema.json');
+    this.latestDir = options?.latestDir ?? path.join(this.rootDir, 'metadata', 'registry', 'latest');
+    this.manifestPath = options?.manifestPath ?? path.join(this.rootDir, 'metadata', 'registry', 'manifest.json');
+  }
+
   async resolveLayers(request: LayerRequest): Promise<ResolvedLayer[]> {
     const specs = this.buildLayerRequests(request);
     const layers: ResolvedLayer[] = [];
@@ -73,7 +77,7 @@ export class MetadataRegistry {
 
     if (layers.length === 0) {
       throw new Error(
-        `No metadata found for module=${request.module} route=${request.route} locale=${request.locale ?? 'default'}`
+        `No metadata found for module=${request.module} route=${request.route} locale=${request.locale ?? 'default'}`,
       );
     }
 
@@ -82,14 +86,23 @@ export class MetadataRegistry {
 
   async readManifest(): Promise<ManifestFile | null> {
     try {
-      const raw = (await readJsonFile(MANIFEST_PATH)) as ManifestFile;
-      return raw;
+      const raw = await fs.readFile(this.manifestPath, 'utf-8');
+      return JSON.parse(raw) as ManifestFile;
     } catch (error) {
       if (isNodeError(error) && error.code === 'ENOENT') {
         return null;
       }
       throw error;
     }
+  }
+
+  private async getValidator(): Promise<ValidateFunction<unknown>> {
+    if (!this.validator) {
+      const schemaRaw = await fs.readFile(this.schemaPath, 'utf-8');
+      const schema = JSON.parse(schemaRaw) as Record<string, unknown>;
+      this.validator = this.ajv.compile(schema);
+    }
+    return this.validator;
   }
 
   private buildLayerRequests(request: LayerRequest): CanonicalLayer[] {
@@ -99,7 +112,7 @@ export class MetadataRegistry {
       tenant: null,
       role: null,
       variant: null,
-      locale: request.locale ?? null
+      locale: request.locale ?? null,
     };
 
     const seen = new Set<string>([this.computeKey(baseLayer)]);
@@ -125,9 +138,9 @@ export class MetadataRegistry {
           tenant: request.tenant,
           role: null,
           variant: null,
-          locale: request.locale ?? null
+          locale: request.locale ?? null,
         },
-        tenantLayers
+        tenantLayers,
       );
     }
 
@@ -139,9 +152,9 @@ export class MetadataRegistry {
           tenant: request.tenant,
           role: request.role,
           variant: null,
-          locale: request.locale ?? null
+          locale: request.locale ?? null,
         },
-        roleLayers
+        roleLayers,
       );
     }
 
@@ -153,9 +166,9 @@ export class MetadataRegistry {
           tenant: null,
           role: null,
           variant: request.variant,
-          locale: request.locale ?? null
+          locale: request.locale ?? null,
         },
-        variantLayers
+        variantLayers,
       );
       if (request.tenant) {
         appendUnique(
@@ -165,9 +178,9 @@ export class MetadataRegistry {
             tenant: request.tenant,
             role: null,
             variant: request.variant,
-            locale: request.locale ?? null
+            locale: request.locale ?? null,
           },
-          variantLayers
+          variantLayers,
         );
       }
     }
@@ -180,9 +193,9 @@ export class MetadataRegistry {
           tenant: request.tenant ?? null,
           role: request.role ?? null,
           variant: request.variant ?? null,
-          locale: request.locale
+          locale: request.locale,
         },
-        localeLayers
+        localeLayers,
       );
     }
 
@@ -190,17 +203,21 @@ export class MetadataRegistry {
   }
 
   private computeKey(layer: CanonicalLayer): string {
-    return [layer.tenant ?? 'global', layer.module, layer.route, layer.role ?? '-', layer.variant ?? '-', layer.locale ?? '-'].join(
-      '::'
-    );
+    return [
+      layer.tenant ?? 'global',
+      layer.module,
+      layer.route,
+      layer.role ?? '-',
+      layer.variant ?? '-',
+      layer.locale ?? '-',
+    ].join('::');
   }
 
   private async loadPointer(layer: CanonicalLayer): Promise<ManifestEntry | null> {
     const pointerPath = this.getPointerPath(layer);
     try {
-      const content = await fs.readFile(pointerPath, 'utf-8');
-      const pointer = JSON.parse(content) as ManifestEntry;
-      return pointer;
+      const raw = await fs.readFile(pointerPath, 'utf-8');
+      return JSON.parse(raw) as ManifestEntry;
     } catch (error) {
       if (isNodeError(error) && error.code === 'ENOENT') {
         return null;
@@ -210,33 +227,38 @@ export class MetadataRegistry {
   }
 
   private getPointerPath(layer: CanonicalLayer): string {
-    const segments = [sanitize(layer.tenant ?? 'global'), sanitize(layer.module)];
+    const segments = [sanitizeSegment(layer.tenant ?? 'global'), sanitizeSegment(layer.module)];
     if (layer.role) {
-      segments.push('role', sanitize(layer.role));
+      segments.push('role', sanitizeSegment(layer.role));
     }
     if (layer.variant) {
-      segments.push('variant', sanitize(layer.variant));
+      segments.push('variant', sanitizeSegment(layer.variant));
     }
     if (layer.locale) {
-      segments.push('locale', sanitize(layer.locale));
+      segments.push('locale', sanitizeSegment(layer.locale));
     }
-    const routeSegment = sanitize(layer.route);
-    return path.join(REGISTRY_LATEST_DIR, ...segments, `${routeSegment}.json`);
+    const routeSegment = sanitizeSegment(layer.route);
+    return path.join(this.latestDir, ...segments, `${routeSegment}.json`);
   }
 
-  private async loadDefinition(relativePath: string): Promise<CanonicalPageDefinition> {
-    const absolute = path.join(ROOT, relativePath);
-    const raw = (await readJsonFile(absolute)) as CanonicalPageDefinition;
-    const validator = await getValidator();
-    const valid = validator(raw);
-    if (!valid) {
-      throw new Error(`Compiled metadata failed schema validation for ${relativePath}: ${ajv.errorsText(validator.errors)}`);
+  private async loadDefinition(compiledPath: string): Promise<CanonicalPageDefinition> {
+    const absolutePath = path.isAbsolute(compiledPath) ? compiledPath : path.join(this.rootDir, compiledPath);
+    const raw = await fs.readFile(absolutePath, 'utf-8');
+    const parsed = JSON.parse(raw) as unknown;
+    const validator = await this.getValidator();
+    if (!validator(parsed)) {
+      const message = (validator.errors ?? []).map((err) => `${err.instancePath} ${err.message ?? ''}`.trim()).join('\n');
+      throw new Error(`Invalid canonical metadata at ${absolutePath}:\n${message}`);
     }
-    return migrateToLatest(raw);
+    return migrateToLatest(parsed as CanonicalPageDefinition);
   }
 }
 
-function sanitize(value: string): string {
+export function createMetadataRegistry(options?: FileSystemMetadataRegistryOptions): MetadataRegistry {
+  return new FileSystemMetadataRegistry(options);
+}
+
+function sanitizeSegment(value: string): string {
   return value.replace(/[^a-zA-Z0-9-_]/g, '-');
 }
 

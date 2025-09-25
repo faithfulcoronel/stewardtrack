@@ -1,14 +1,10 @@
-import { adminCommunityActionHandlers } from './admin-community';
 import type { MetadataActionHandler } from './types';
-
-const registry: Record<string, MetadataActionHandler> = {
-  ...adminCommunityActionHandlers,
-};
+import { initializeMetadataModules } from '../modules';
+import { resolveMetadataActionHandler as resolveFromModules } from '../modules/registry';
 
 export * from './types';
 
-export function resolveMetadataActionHandler(
-  handlerId: string
-): MetadataActionHandler | undefined {
-  return registry[handlerId];
+export function resolveMetadataActionHandler(handlerId: string): MetadataActionHandler | undefined {
+  initializeMetadataModules();
+  return resolveFromModules(handlerId);
 }

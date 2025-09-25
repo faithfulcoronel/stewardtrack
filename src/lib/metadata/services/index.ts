@@ -1,14 +1,10 @@
-import { adminCommunityHandlers } from './admin-community';
 import type { ServiceDataSourceHandler } from './types';
-
-const registry: Record<string, ServiceDataSourceHandler> = {
-  ...adminCommunityHandlers,
-};
+import { initializeMetadataModules } from '../modules';
+import { resolveServiceDataSourceHandler as resolveFromModules } from '../modules/registry';
 
 export type { ServiceDataSourceHandler, ServiceDataSourceRequest } from './types';
 
-export function resolveServiceDataSourceHandler(
-  handlerId: string
-): ServiceDataSourceHandler | undefined {
-  return registry[handlerId];
+export function resolveServiceDataSourceHandler(handlerId: string): ServiceDataSourceHandler | undefined {
+  initializeMetadataModules();
+  return resolveFromModules(handlerId);
 }

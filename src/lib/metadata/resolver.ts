@@ -7,7 +7,8 @@ import type {
   CanonicalPageDefinition,
   CanonicalRegion
 } from './generated/canonical';
-import { MetadataRegistry, ResolvedLayer, type LayerRequest } from './registry';
+import { ResolvedLayer, type LayerRequest } from './registry';
+import { getMetadataRegistry } from './registryProvider';
 
 export interface ResolveOptions extends LayerRequest {
   featureFlags?: Record<string, boolean>;
@@ -20,10 +21,9 @@ export interface ResolvedMetadata {
   fingerprints: string[];
 }
 
-const registry = new MetadataRegistry();
-
 const resolveCached = unstable_cache(
   async (options: ResolveOptions): Promise<ResolvedMetadata> => {
+    const registry = getMetadataRegistry();
     const layers = await registry.resolveLayers(options);
     const merged = mergeLayers(layers);
     const cacheKey = computeCacheKey(options, merged, layers);

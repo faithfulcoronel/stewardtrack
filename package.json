@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "metadata:compile": "tsx tools/metadata/compile.ts",
-    "metadata:types": "tsx tools/metadata/generate-types.ts"
+    "metadata:watch": "tsx watch --clear-screen=false tools/metadata/compile.ts",
+    "metadata:types": "tsx tools/metadata/generate-types.ts",
+    "prebuild": "npm run metadata:compile"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.3",
