@@ -1,4 +1,5 @@
 import * as React from "react";
+import { format, isValid, parseISO } from "date-fns";
 
 import { normalizeList } from "../shared";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import type { FormFieldConfig, FormFieldOption } from "./types";
 import { TagsInput } from "@/components/ui/tags-input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useMetadataClientContext } from "@/lib/metadata/context";
+import { DatePicker } from "@/components/ui/date-picker";
 
 function isTagsField(field: FormFieldConfig): boolean {
   return field.type === "tags" || field.name === "tags";
@@ -40,6 +42,35 @@ function toTagArray(value: unknown): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
+}
+
+function toDateValue(value: unknown): Date | null {
+  if (value instanceof Date) {
+    return isValid(value) ? value : null;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const parsed = parseISO(trimmed);
+    if (isValid(parsed)) {
+      return parsed;
+    }
+    const timestamp = Date.parse(trimmed);
+    if (!Number.isNaN(timestamp)) {
+      const candidate = new Date(timestamp);
+      return isValid(candidate) ? candidate : null;
+    }
+  }
+  return null;
+}
+
+function formatDateValue(value: Date | null): string {
+  if (!value || !isValid(value)) {
+    return "";
+  }
+  return format(value, "yyyy-MM-dd");
 }
 
 export type ControllerRender = {
@@ -319,14 +350,22 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           placeholder={basePlaceholder || "0.00"}
         />
       );
-    case "date":
+    case "date": {
+      const dateValue = toDateValue(controller.value);
       return (
-        <Input
-          type="date"
-          value={controller.value ? String(controller.value) : ""}
-          onChange={(event) => controller.onChange(event.target.value)}
+        <DatePicker
+          mode="single"
+          value={dateValue ?? undefined}
+          onChange={(nextValue) => {
+            const normalized = nextValue instanceof Date && isValid(nextValue) ? nextValue : null;
+            controller.onChange(formatDateValue(normalized));
+          }}
+          placeholder={basePlaceholder || "Select date"}
+          title={field.label ?? "Select date"}
+          buttonProps={{ variant: "outline" }}
         />
       );
+    }
     case "number":
       return (
         <Input
