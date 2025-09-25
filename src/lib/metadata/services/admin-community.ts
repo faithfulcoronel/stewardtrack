@@ -189,6 +189,13 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
   joinDate?: string | null;
   tags?: string[];
   membershipLabel?: string | null;
+  engagement?: {
+    groups?: string[];
+    pathways?: string[];
+    spiritualGifts?: string[];
+    interests?: string[];
+    prayerFocus?: string | null;
+  };
   demographics?: {
     birthdate?: string | null;
     maritalStatus?: string | null;
@@ -257,6 +264,8 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
       phone?: string | null;
       physician?: string | null;
     } | null;
+    prayerFocus?: string | null;
+    prayerRequests?: string | null;
   };
   timeline?: Array<{
     id: string;
@@ -1239,6 +1248,38 @@ async function buildMemberProfileRecord(
         .filter((value): value is string => Boolean(value))
     : [];
   const discipleshipGroup = (member.discipleship_group ?? '').trim();
+  const primaryGroup = (member.primary_small_group ?? '').trim() || discipleshipGroup || null;
+  const pathways = Array.isArray(member.discipleship_pathways)
+    ? ensureUnique(
+        member.discipleship_pathways
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const spiritualGifts = Array.isArray(member.spiritual_gifts)
+    ? ensureUnique(
+        member.spiritual_gifts
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const ministryInterests = Array.isArray(member.ministry_interests)
+    ? ensureUnique(
+        member.ministry_interests
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const prayerRequestsList = Array.isArray(member.prayer_requests)
+    ? ensureUnique(
+        member.prayer_requests
+          .map((value) => (typeof value === 'string' ? value.trim() : ''))
+          .filter((value): value is string => Boolean(value))
+      )
+    : [];
+  const prayerRequestsText = prayerRequestsList.length ? prayerRequestsList.join('\n') : null;
+  const prayerFocus = (member.prayer_focus ?? '').trim() || null;
+  const activeGroups = ensureUnique(filterNonEmpty([primaryGroup, discipleshipGroup, ...groupTags]));
   const tags = ensureUnique([
     ...memberTags,
     ...groupTags,
@@ -1246,12 +1287,17 @@ async function buildMemberProfileRecord(
   ]);
 
   const carePlanDetails = buildCarePlan(carePlan, member);
-  const emergencyDetails = carePlanDetails.emergencyContact
+  const carePlanRecord = {
+    ...carePlanDetails,
+    prayerFocus,
+    prayerRequests: prayerRequestsText,
+  };
+  const emergencyDetails = carePlanRecord.emergencyContact
     ? {
-        contact: carePlanDetails.emergencyContact.name ?? null,
-        relationship: carePlanDetails.emergencyContact.relationship ?? null,
-        phone: carePlanDetails.emergencyContact.phone ?? null,
-        physician: carePlanDetails.emergencyContact.physician ?? null,
+        contact: carePlanRecord.emergencyContact.name ?? null,
+        relationship: carePlanRecord.emergencyContact.relationship ?? null,
+        phone: carePlanRecord.emergencyContact.phone ?? null,
+        physician: carePlanRecord.emergencyContact.physician ?? null,
       }
     : null;
 
@@ -1309,6 +1355,13 @@ async function buildMemberProfileRecord(
       phone: member.contact_number ?? null,
       preferred: mapPreferredContactMethod(member.preferred_contact_method ?? null),
     },
+    engagement: {
+      groups: activeGroups,
+      pathways,
+      spiritualGifts,
+      interests: ministryInterests,
+      prayerFocus,
+    },
     giving: buildGiving(givingProfile, member),
     discipleship: {
       smallGroup: member.discipleship_group ?? member.small_groups?.[0] ?? null,
@@ -1316,7 +1369,7 @@ async function buildMemberProfileRecord(
       milestones: mapMilestones(milestoneRows),
       nextStep: member.discipleship_next_step ?? null,
     },
-    carePlan: carePlanDetails,
+    carePlan: carePlanRecord,
     emergency: emergencyDetails,
     timeline: timelineEvents.map((event) => ({
       id: event.id,
