@@ -526,6 +526,48 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     if (!initialHousehold) {
       return;
     }
+
+    const ensureTextValue = (fieldName: string, nextValue: string | null | undefined) => {
+      if (nextValue === undefined || nextValue === null) {
+        return;
+      }
+      const currentValue = controller.getValues(fieldName);
+      const normalizedCurrent = typeof currentValue === "string" ? currentValue.trim() : "";
+      if (normalizedCurrent.length > 0) {
+        return;
+      }
+      controller.setValue(fieldName as never, nextValue ?? "", {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+    };
+
+    ensureTextValue("householdName", initialHousehold.name ?? "");
+    ensureTextValue("envelopeNumber", initialHousehold.envelopeNumber ?? "");
+
+    if (initialHousehold.address) {
+      ensureTextValue("addressStreet", initialHousehold.address.street ?? "");
+      ensureTextValue("addressCity", initialHousehold.address.city ?? "");
+      ensureTextValue("addressState", initialHousehold.address.state ?? "");
+      ensureTextValue("addressPostal", initialHousehold.address.postalCode ?? "");
+    }
+
+    const currentMembers = controller.getValues("householdMembers");
+    const hasMembers = Array.isArray(currentMembers) && currentMembers.some((value) => typeof value === "string" && value.trim().length > 0);
+    if (!hasMembers && initialHousehold.members.length > 0) {
+      setHouseholdMembers(ensureMemberNameIncluded(initialHousehold.members), { dirty: false });
+    }
+  }, [
+    controller,
+    ensureMemberNameIncluded,
+    initialHousehold,
+    setHouseholdMembers,
+  ]);
+
+  React.useEffect(() => {
+    if (!initialHousehold) {
+      return;
+    }
     setHouseholdOptions((previous) => {
       if (previous.some((option) => option.key === initialHousehold.key)) {
         return previous;
