@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/security-checklist"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/security-checklist" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-security-checklist">
     <Title>UI Block: Security checklist CTA</Title>
     <Regions>
@@ -17,26 +10,57 @@
             <Prop name="eyebrow" kind="static">Security review</Prop>
             <Prop name="headline" kind="static">Guide your security team through StewardTrack</Prop>
             <Prop name="description" kind="static">Share pre-vetted artifacts, control scopes, and map compliance requirements without slowing down adoption.</Prop>
-            <Prop name="highlights" kind="binding" source="securityHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="download-pack" />
-            <Prop name="secondaryCta" kind="action" actionId="meet-security" />
-            <Prop name="tertiaryCta" kind="action" actionId="view-compliance" />
+            <Prop name="highlights" kind="binding" contract="securityHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="download-pack"/>
+            <Prop name="secondaryCta" kind="action" actionId="meet-security"/>
+            <Prop name="tertiaryCta" kind="action" actionId="view-compliance"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="securityHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "title": "SOC 2 and ISO packets", "description": "Share audit-ready control narratives and pen-test summaries." },
-              { "title": "Granular permissions", "description": "Demonstrate field-level policies across authoring and runtime." },
-              { "title": "Data residency controls", "description": "Review hosting options across regions and isolation tiers." },
-              { "title": "Change management logs", "description": "Export approval trails aligned with your governance program." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-security-checklist.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>SOC 2 and ISO packets</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Share audit-ready control narratives and pen-test summaries.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Granular permissions</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Demonstrate field-level policies across authoring and runtime.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Data residency controls</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Review hosting options across regions and isolation tiers.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Change management logs</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Export approval trails aligned with your governance program.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

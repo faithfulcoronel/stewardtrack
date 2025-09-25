@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/partner-network"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/partner-network" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-partner-network">
     <Title>UI Block: Partner network CTA</Title>
     <Regions>
@@ -17,43 +10,49 @@
             <Prop name="eyebrow" kind="static">Partner ecosystem</Prop>
             <Prop name="headline" kind="static">Collaborate with certified StewardTrack partners</Prop>
             <Prop name="description" kind="static">Tap into specialized agencies for content operations, experimentation, and platform migrations.</Prop>
-            <Prop name="logos" kind="binding" source="partnerLogos" path="items" />
-            <Prop name="checklist" kind="binding" source="partnerBenefits" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-partners" />
-            <Prop name="secondaryCta" kind="action" actionId="become-partner" />
-            <Prop name="tertiaryCta" kind="action" actionId="download-brief" />
+            <Prop name="logos" kind="binding" contract="partnerLogos.items"/>
+            <Prop name="checklist" kind="binding" contract="partnerBenefits.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-partners"/>
+            <Prop name="secondaryCta" kind="action" actionId="become-partner"/>
+            <Prop name="tertiaryCta" kind="action" actionId="download-brief"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="partnerLogos" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Northwind Labs",
-              "Acme Advisory",
-              "Brightscale",
-              "Gridline Collective",
-              "Atlas Enablement",
-              "Pioneer RevOps",
-              "Sierra Studio",
-              "Beacon Partners"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-partner-network.logos"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Northwind Labs</Value>
+              <Value>Acme Advisory</Value>
+              <Value>Brightscale</Value>
+              <Value>Gridline Collective</Value>
+              <Value>Atlas Enablement</Value>
+              <Value>Pioneer RevOps</Value>
+              <Value>Sierra Studio</Value>
+              <Value>Beacon Partners</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="partnerBenefits" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Certified on schema governance and rollout planning.",
-              "Dedicated shared Slack channels for launch coordination.",
-              "Co-marketing opportunities and shared case studies.",
-              "Preferred access to beta modules and sandbox environments."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-partner-network.checklist"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Certified on schema governance and rollout planning.</Value>
+              <Value>Dedicated shared Slack channels for launch coordination.</Value>
+              <Value>Co-marketing opportunities and shared case studies.</Value>
+              <Value>Preferred access to beta modules and sandbox environments.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/support-health"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/support-health" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-support-health">
     <Title>UI Block: Stats - Support health</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">Support health</Prop>
             <Prop name="headline" kind="static">Service signals customers notice immediately</Prop>
             <Prop name="description" kind="static">Share the real-time experience metrics that show how your support team anticipates and resolves customer needs.</Prop>
-            <Prop name="metrics" kind="binding" source="supportMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="supportMetrics.items"/>
             <Prop name="footnote" kind="static">Signals tracked across chat, email, and proactive status automation.</Prop>
           </Props>
         </Component>
@@ -25,18 +18,99 @@
     </Regions>
     <DataSources>
       <DataSource id="supportMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "CSAT", "value": "4.82 / 5", "change": "+0.3", "changeLabel": "YoY" },
-              { "label": "First response", "value": "12 min", "change": "-4 min", "changeLabel": "Avg" },
-              { "label": "Resolution SLA", "value": "96%", "change": "+5 pts", "changeLabel": "Within target" },
-              { "label": "Self-serve deflection", "value": "41%", "change": "+8 pts", "changeLabel": "QoQ" },
-              { "label": "Proactive alerts", "value": "320", "change": "+47", "changeLabel": "MoM" },
-              { "label": "Escalations", "value": "1.2%", "change": "-0.5 pts", "changeLabel": "QoQ" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-support-health.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>CSAT</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.82 / 5</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+0.3</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>First response</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12 min</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-4 min</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Avg</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Resolution SLA</Value>
+                </Field>
+                <Field name="value">
+                  <Value>96%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+5 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Within target</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Self-serve deflection</Value>
+                </Field>
+                <Field name="value">
+                  <Value>41%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+8 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Proactive alerts</Value>
+                </Field>
+                <Field name="value">
+                  <Value>320</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+47</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>MoM</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Escalations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>1.2%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-0.5 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/centered-pill"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/centered-pill" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-centered-pill">
     <Title>UI Block: Centered pill header</Title>
     <Regions>
@@ -18,22 +11,25 @@
             <Prop name="headline" kind="static">Campaigns with conviction</Prop>
             <Prop name="highlight" kind="static">Q2 spotlight</Prop>
             <Prop name="description" kind="static">Use a balanced, centered header to introduce quarterly moments with crisp positioning and resourceful CTAs.</Prop>
-            <Prop name="highlights" kind="binding" source="pillHighlights" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="start-campaign" />
-            <Prop name="secondaryCta" kind="action" actionId="view-calendar" />
+            <Prop name="highlights" kind="binding" contract="pillHighlights.value"/>
+            <Prop name="primaryCta" kind="action" actionId="start-campaign"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-calendar"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="pillHighlights" kind="static">
-        <Json><![CDATA[
-          [
-            "Persona-tuned nurture journeys",
-            "Message testing in every activation",
-            "Campaign analytics built for storytelling"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-centered-pill.highlights"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Persona-tuned nurture journeys</Value>
+            <Value>Message testing in every activation</Value>
+            <Value>Campaign analytics built for storytelling</Value>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

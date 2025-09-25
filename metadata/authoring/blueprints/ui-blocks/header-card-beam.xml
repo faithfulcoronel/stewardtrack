@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/card-beam"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/card-beam" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-card-beam">
     <Title>UI Block: Card beam header</Title>
     <Regions>
@@ -17,23 +10,26 @@
             <Prop name="eyebrow" kind="static">Lifecycle orchestration</Prop>
             <Prop name="headline" kind="static">Guide every customer journey</Prop>
             <Prop name="description" kind="static">Deliver a dramatic headline card with supporting proof points, ideal for executive updates or campaign landing pages.</Prop>
-            <Prop name="highlights" kind="binding" source="cardBeamHighlights" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="open-playbook" />
-            <Prop name="secondaryCta" kind="action" actionId="talk-to-team" />
+            <Prop name="highlights" kind="binding" contract="cardBeamHighlights.value"/>
+            <Prop name="primaryCta" kind="action" actionId="open-playbook"/>
+            <Prop name="secondaryCta" kind="action" actionId="talk-to-team"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="cardBeamHighlights" kind="static">
-        <Json><![CDATA[
-          [
-            "Map triggers to every lifecycle stage in minutes",
-            "Reclaim revenue with automated renewal nudges",
-            "Roll out experiments with governed guardrails",
-            "Align GTM teams around shared, living playbooks"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-card-beam.highlights"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Map triggers to every lifecycle stage in minutes</Value>
+            <Value>Reclaim revenue with automated renewal nudges</Value>
+            <Value>Roll out experiments with governed guardrails</Value>
+            <Value>Align GTM teams around shared, living playbooks</Value>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

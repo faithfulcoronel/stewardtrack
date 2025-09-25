@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/logo-array"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/logo-array" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-logo-array">
     <Title>UI Block: Logo array header</Title>
     <Regions>
@@ -17,25 +10,28 @@
             <Prop name="badge" kind="static">Trusted by teams</Prop>
             <Prop name="headline" kind="static">Adopted by leading operators</Prop>
             <Prop name="description" kind="static">Highlight social proof with a clean grid of customer logos alongside your primary invitation to learn more.</Prop>
-            <Prop name="logos" kind="binding" source="logoArray" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="view-case-studies" />
-            <Prop name="secondaryCta" kind="action" actionId="see-integrations" />
+            <Prop name="logos" kind="binding" contract="logoArray.value"/>
+            <Prop name="primaryCta" kind="action" actionId="view-case-studies"/>
+            <Prop name="secondaryCta" kind="action" actionId="see-integrations"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="logoArray" kind="static">
-        <Json><![CDATA[
-          [
-            "Atlas Logistics",
-            "Brightside Health",
-            "Northwind Energy",
-            "Horizon Retail",
-            "Polaris Cloud",
-            "Union Analytics"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-logo-array.logos"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Atlas Logistics</Value>
+            <Value>Brightside Health</Value>
+            <Value>Northwind Energy</Value>
+            <Value>Horizon Retail</Value>
+            <Value>Polaris Cloud</Value>
+            <Value>Union Analytics</Value>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

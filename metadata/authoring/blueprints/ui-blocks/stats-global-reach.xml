@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/global-reach"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/global-reach" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-global-reach">
     <Title>UI Block: Stats - Global reach</Title>
     <Regions>
@@ -17,59 +10,101 @@
             <Prop name="eyebrow" kind="static">Global presence</Prop>
             <Prop name="headline" kind="static">Reach every customer with localized confidence</Prop>
             <Prop name="description" kind="static">Showcase adoption, momentum, and satisfaction in every region with a narrative that sales and success teams can rely on.</Prop>
-            <Prop name="metrics" kind="binding" source="reachMetrics" path="items" />
-            <Prop name="highlights" kind="binding" source="reachHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-playbooks" />
-            <Prop name="secondaryCta" kind="action" actionId="open-map" />
+            <Prop name="metrics" kind="binding" contract="reachMetrics.items"/>
+            <Prop name="highlights" kind="binding" contract="reachHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-playbooks"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-map"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="reachMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Global active customers",
-                "value": "182K",
-                "description": "Monthly active organizations across self-serve and enterprise plans."
-              },
-              {
-                "label": "Monthly signups",
-                "value": "12.4K",
-                "change": "+19%",
-                "changeLabel": "MoM",
-                "description": "New accounts onboarding each month."
-              },
-              {
-                "label": "Enterprise accounts",
-                "value": "640",
-                "change": "+44",
-                "changeLabel": "QoQ",
-                "description": "Customers deploying at least 1K seats globally."
-              },
-              {
-                "label": "Net promoter score",
-                "value": "67",
-                "change": "+6 pts",
-                "changeLabel": "YoY",
-                "description": "Composite NPS across top 10 regions."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-global-reach.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Global active customers</Value>
+                </Field>
+                <Field name="value">
+                  <Value>182K</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Monthly active organizations across self-serve and enterprise plans.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Monthly signups</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12.4K</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+19%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>MoM</Value>
+                </Field>
+                <Field name="description">
+                  <Value>New accounts onboarding each month.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Enterprise accounts</Value>
+                </Field>
+                <Field name="value">
+                  <Value>640</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+44</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Customers deploying at least 1K seats globally.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Net promoter score</Value>
+                </Field>
+                <Field name="value">
+                  <Value>67</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+6 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Composite NPS across top 10 regions.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="reachHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Localized experiences in 26 languages",
-              "Regional success architects in 14 markets",
-              "In-product billing across 9 currencies"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-global-reach.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Localized experiences in 26 languages</Value>
+              <Value>Regional success architects in 14 markets</Value>
+              <Value>In-product billing across 9 currencies</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

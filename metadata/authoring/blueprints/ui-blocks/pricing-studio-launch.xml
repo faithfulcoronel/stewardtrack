@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/studio-launch"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/studio-launch" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-studio-launch">
     <Title>UI Block: Studio launch pricing</Title>
     <Regions>
@@ -17,87 +10,162 @@
             <Prop name="eyebrow" kind="static">Plans for every launch</Prop>
             <Prop name="title" kind="static">Choose a workspace that scales with your product velocity</Prop>
             <Prop name="description" kind="static">From scrappy experiments to funded teams, these tiers keep your activation, usage, and governance aligned without surprise fees.</Prop>
-            <Prop name="tiers" kind="binding" source="studioLaunchTiers" path="items" />
+            <Prop name="tiers" kind="binding" contract="studioLaunchTiers.items"/>
             <Prop name="footnote" kind="static">Prices listed in USD. All plans include SOC 2 controls, SSO, and localized email support.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="speak-to-pricing" />
-            <Prop name="secondaryCta" kind="action" actionId="download-pricing-guide" />
+            <Prop name="primaryCta" kind="action" actionId="speak-to-pricing"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-pricing-guide"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="studioLaunchTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Starter",
-                "price": "$0",
-                "period": "forever",
-                "badge": "Launch-ready",
-                "description": "For founders building the first version with telemetry and guided onboarding.",
-                "features": [
-                  "Up to 3 active journeys",
-                  "1k tracked participants",
-                  "Usage dashboards refreshed daily",
-                  "Email-based workspace invites"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Start for free",
-                    "url": "/get-started?plan=starter",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Growth",
-                "price": "$349",
-                "period": "month",
-                "badge": "Most adopted",
-                "highlight": "2 months free annual",
-                "description": "Ideal for product-led teams coordinating launches across squads and geos.",
-                "features": [
-                  "Unlimited experiments",
-                  "10k tracked participants",
-                  "AI insight digests",
-                  "Lifecycle journey templates",
-                  "Regional feature flag controls"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Start growth trial",
-                    "url": "/signup?plan=growth",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Includes a 30-day guided onboarding sprint."
-              },
-              {
-                "name": "Scale",
-                "price": "Custom",
-                "period": "annual",
-                "badge": "Enterprise",
-                "description": "Designed for multi-product organizations with strict compliance and volume requirements.",
-                "features": [
-                  "Unlimited workspaces",
-                  "Unlimited tracked participants",
-                  "Private deployment regions",
-                  "Audit-ready activity log exports",
-                  "Dedicated adoption architect"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Design my plan",
-                    "url": "/contact/pricing?plan=scale",
-                    "variant": "primary"
-                  }
-                },
-                "footnote": "Volume-based pricing with quarterly true-up."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-studio-launch.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Starter</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$0</Value>
+                </Field>
+                <Field name="period">
+                  <Value>forever</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Launch-ready</Value>
+                </Field>
+                <Field name="description">
+                  <Value>For founders building the first version with telemetry and guided onboarding.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Up to 3 active journeys</Value>
+                    <Value>1k tracked participants</Value>
+                    <Value>Usage dashboards refreshed daily</Value>
+                    <Value>Email-based workspace invites</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Start for free</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/get-started?plan=starter</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Growth</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$349</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Most adopted</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>2 months free annual</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Ideal for product-led teams coordinating launches across squads and geos.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unlimited experiments</Value>
+                    <Value>10k tracked participants</Value>
+                    <Value>AI insight digests</Value>
+                    <Value>Lifecycle journey templates</Value>
+                    <Value>Regional feature flag controls</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Start growth trial</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/signup?plan=growth</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Includes a 30-day guided onboarding sprint.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Scale</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Enterprise</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Designed for multi-product organizations with strict compliance and volume requirements.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unlimited workspaces</Value>
+                    <Value>Unlimited tracked participants</Value>
+                    <Value>Private deployment regions</Value>
+                    <Value>Audit-ready activity log exports</Value>
+                    <Value>Dedicated adoption architect</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Design my plan</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/pricing?plan=scale</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="footnote">
+                  <Value>Volume-based pricing with quarterly true-up.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

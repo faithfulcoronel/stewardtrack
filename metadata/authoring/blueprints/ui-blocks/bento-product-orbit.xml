@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/product-orbit"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/product-orbit" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-product-orbit">
     <Title>UI Block: Product orbit bento grid</Title>
     <Regions>
@@ -17,110 +10,218 @@
             <Prop name="eyebrow" kind="static">Product enablement</Prop>
             <Prop name="headline" kind="static">Accelerate adoption across every release train</Prop>
             <Prop name="description" kind="static">Curate progressive onboarding with telemetry-backed segmentation and embedded coaching lanes.</Prop>
-            <Prop name="cards" kind="binding" source="productOrbitCards" path="items" />
-            <Prop name="metrics" kind="binding" source="productOrbitMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-roadmap" />
-            <Prop name="secondaryCta" kind="action" actionId="schedule-workshop" />
+            <Prop name="cards" kind="binding" contract="productOrbitCards.items"/>
+            <Prop name="metrics" kind="binding" contract="productOrbitMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-roadmap"/>
+            <Prop name="secondaryCta" kind="action" actionId="schedule-workshop"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="productOrbitCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Activation",
-                "stat": "92%",
-                "title": "Guided launch blueprint",
-                "description": "Stage interactive tours by persona with release-aware gating and tailored goal checks.",
-                "bullets": [
-                  "Progressive discovery per champion cohort",
-                  "Automated nudges triggered by telemetry milestones"
-                ],
-                "footnote": "Syncs nightly with product release metadata.",
-                "tone": "brand"
-              },
-              {
-                "eyebrow": "Signals",
-                "title": "Engagement constellation",
-                "description": "Blend clickstream, feature flags, and workspace health into a shared activation score.",
-                "icon": "🛰️",
-                "bullets": [
-                  "Weights adapt per lifecycle stage",
-                  "Exports to RevOps scorecards"
-                ],
-                "tone": "dark"
-              },
-              {
-                "eyebrow": "Playbooks",
-                "title": "Persona-specific tracks",
-                "description": "Launch activation canvases with curated assets and progress receipts.",
-                "bullets": [
-                  "Invite champions with workspace-ready agendas",
-                  "Route blockers directly to support automations"
-                ],
-                "tone": "light",
-                "footnote": "Updates auto-translate for local markets."
-              },
-              {
-                "badge": "Insights",
-                "title": "Adoption velocity",
-                "description": "Monitor momentum across squads with week-over-week deltas and burn-down projections.",
-                "stat": "3.2x",
-                "footnote": "Compared to control cohorts without metadata orchestration.",
-                "tone": "forest"
-              },
-              {
-                "eyebrow": "Guides",
-                "title": "Launch rehearsal studio",
-                "description": "Preview customer journeys and validate gating logic before publishing live.",
-                "icon": "🎛️",
-                "tone": "violet"
-              },
-              {
-                "eyebrow": "Trust",
-                "title": "Value confirmation",
-                "description": "Capture verified outcomes with embedded surveys and auto-generated success stories.",
-                "tone": "surface",
-                "footnote": "Stories share to community hub in one click."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-product-orbit.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Activation</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>92%</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Guided launch blueprint</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Stage interactive tours by persona with release-aware gating and tailored goal checks.</Value>
+                </Field>
+                <Field name="bullets">
+                  <Array>
+                    <Value>Progressive discovery per champion cohort</Value>
+                    <Value>Automated nudges triggered by telemetry milestones</Value>
+                  </Array>
+                </Field>
+                <Field name="footnote">
+                  <Value>Syncs nightly with product release metadata.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>brand</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Signals</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Engagement constellation</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend clickstream, feature flags, and workspace health into a shared activation score.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🛰️</Value>
+                </Field>
+                <Field name="bullets">
+                  <Array>
+                    <Value>Weights adapt per lifecycle stage</Value>
+                    <Value>Exports to RevOps scorecards</Value>
+                  </Array>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Playbooks</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Persona-specific tracks</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Launch activation canvases with curated assets and progress receipts.</Value>
+                </Field>
+                <Field name="bullets">
+                  <Array>
+                    <Value>Invite champions with workspace-ready agendas</Value>
+                    <Value>Route blockers directly to support automations</Value>
+                  </Array>
+                </Field>
+                <Field name="tone">
+                  <Value>light</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Updates auto-translate for local markets.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Insights</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Adoption velocity</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Monitor momentum across squads with week-over-week deltas and burn-down projections.</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>3.2x</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Compared to control cohorts without metadata orchestration.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Guides</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Launch rehearsal studio</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Preview customer journeys and validate gating logic before publishing live.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🎛️</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>violet</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Trust</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Value confirmation</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Capture verified outcomes with embedded surveys and auto-generated success stories.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Stories share to community hub in one click.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="productOrbitMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Time-to-value",
-                "value": "3.2 days",
-                "change": "↓ 47% vs last quarter",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Champion coverage",
-                "value": "94%",
-                "change": "+6 pts across enterprise",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Live experiments",
-                "value": "28",
-                "change": "Autopublished each sprint",
-                "sentiment": "neutral"
-              },
-              {
-                "label": "Weekly NPS",
-                "value": "67",
-                "change": "+9 vs baseline",
-                "sentiment": "positive"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-product-orbit.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Time-to-value</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3.2 days</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↓ 47% vs last quarter</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Champion coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>94%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+6 pts across enterprise</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Live experiments</Value>
+                </Field>
+                <Field name="value">
+                  <Value>28</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Autopublished each sprint</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Weekly NPS</Value>
+                </Field>
+                <Field name="value">
+                  <Value>67</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+9 vs baseline</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

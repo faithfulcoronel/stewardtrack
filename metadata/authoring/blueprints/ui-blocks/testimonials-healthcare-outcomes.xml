@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/healthcare-outcomes"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/healthcare-outcomes" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-healthcare-outcomes">
     <Title>UI Block: Testimonials - Healthcare outcomes</Title>
     <Regions>
@@ -17,53 +10,104 @@
             <Prop name="eyebrow" kind="static">Care transformation</Prop>
             <Prop name="headline" kind="static">Hospitals guide teams through transformation milestones</Prop>
             <Prop name="description" kind="static">A vertical timeline for programs with sequenced wins—perfect for healthcare, education, or enterprise change management.</Prop>
-            <Prop name="testimonials" kind="binding" source="healthcareTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="explore-outcomes" />
-            <Prop name="secondaryCta" kind="action" actionId="book-briefing" />
+            <Prop name="testimonials" kind="binding" contract="healthcareTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="explore-outcomes"/>
+            <Prop name="secondaryCta" kind="action" actionId="book-briefing"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="healthcareTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Nurses completed new workflow training 3 weeks faster because StewardTrack delivered micro-lessons by shift.",
-                "author": "Angela Brooks",
-                "role": "Chief Nursing Officer",
-                "company": "Riverbend Health",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "location": "Phase 1 · Clinician onboarding"
-              },
-              {
-                "quote": "We aligned care teams and revenue cycle leaders on a single playbook—no more conflicting spreadsheets.",
-                "author": "Dr. Evan Soto",
-                "role": "Chief Medical Information Officer",
-                "company": "MetroCare",
-                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80",
-                "location": "Phase 2 · Service line alignment"
-              },
-              {
-                "quote": "Patient experience improved because volunteers, clinicians, and IT teams finally share the same context.",
-                "author": "Priyanka Desai",
-                "role": "VP Patient Experience",
-                "company": "Unity Medical",
-                "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=240&h=240&q=80",
-                "location": "Phase 3 · Experience redesign"
-              },
-              {
-                "quote": "Accreditation prep is always ready; StewardTrack maps each policy to the evidence reviewers need.",
-                "author": "Greg Lemaire",
-                "role": "Director of Quality",
-                "company": "Summit Health",
-                "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "location": "Phase 4 · Continuous compliance"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-healthcare-outcomes.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Nurses completed new workflow training 3 weeks faster because StewardTrack delivered micro-lessons by shift.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Angela Brooks</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Nursing Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Riverbend Health</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="location">
+                  <Value>Phase 1 · Clinician onboarding</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We aligned care teams and revenue cycle leaders on a single playbook—no more conflicting spreadsheets.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Dr. Evan Soto</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Medical Information Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>MetroCare</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="location">
+                  <Value>Phase 2 · Service line alignment</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Patient experience improved because volunteers, clinicians, and IT teams finally share the same context.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Priyanka Desai</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Patient Experience</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Unity Medical</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="location">
+                  <Value>Phase 3 · Experience redesign</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Accreditation prep is always ready; StewardTrack maps each policy to the evidence reviewers need.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Greg Lemaire</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Quality</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Summit Health</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="location">
+                  <Value>Phase 4 · Continuous compliance</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

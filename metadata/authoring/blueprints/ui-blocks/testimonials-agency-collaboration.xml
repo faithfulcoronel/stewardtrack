@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/agency-collaboration"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/agency-collaboration" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-agency-collaboration">
     <Title>UI Block: Testimonials - Agency collaboration</Title>
     <Regions>
@@ -17,73 +10,143 @@
             <Prop name="eyebrow" kind="static">Agency collaboration</Prop>
             <Prop name="headline" kind="static">Agencies orchestrate global launches without silos</Prop>
             <Prop name="description" kind="static">Use this patterned column layout when you want to pair highlights with a gallery of visual testimonials from different industries.</Prop>
-            <Prop name="testimonials" kind="binding" source="agencyTestimonials" path="items" />
-            <Prop name="highlights" kind="binding" source="agencyHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="partner-program" />
-            <Prop name="secondaryCta" kind="action" actionId="view-portfolio" />
+            <Prop name="testimonials" kind="binding" contract="agencyTestimonials.items"/>
+            <Prop name="highlights" kind="binding" contract="agencyHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="partner-program"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-portfolio"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="agencyTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Our multi-brand rollout for EcoWave stayed on track because StewardTrack synced approvals with every stakeholder.",
-                "author": "Daphne Reyes",
-                "role": "Client Partner",
-                "company": "Northlight Agency",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Creative team presenting branding concepts",
-                "industry": "Climate tech"
-              },
-              {
-                "quote": "Retail franchisees finally see the same launch kits we prepare centrally—no more email chaos.",
-                "author": "Marcus O'Neill",
-                "role": "Managing Director",
-                "company": "Studio Atlas",
-                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Retail strategy workshop",
-                "industry": "Retail"
-              },
-              {
-                "quote": "We tailor messaging by region in a click. StewardTrack variations keep translation, creative, and legal aligned.",
-                "author": "Oksana Ilyin",
-                "role": "Localization Lead",
-                "company": "Bold Signal",
-                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Localization specialists collaborating",
-                "industry": "Global SaaS"
-              },
-              {
-                "quote": "Every deliverable is versioned alongside the decisions that shaped it. Clients see progress in real time.",
-                "author": "Riya Gupta",
-                "role": "Executive Producer",
-                "company": "Pulse Creative",
-                "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?auto=format&fit=crop&w=800&q=80",
-                "imageAlt": "Producer reviewing storyboard with clients",
-                "industry": "Media"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-agency-collaboration.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Our multi-brand rollout for EcoWave stayed on track because StewardTrack synced approvals with every stakeholder.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Daphne Reyes</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Client Partner</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Northlight Agency</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Creative team presenting branding concepts</Value>
+                </Field>
+                <Field name="industry">
+                  <Value>Climate tech</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Retail franchisees finally see the same launch kits we prepare centrally—no more email chaos.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Marcus O&apos;Neill</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Managing Director</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Studio Atlas</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Retail strategy workshop</Value>
+                </Field>
+                <Field name="industry">
+                  <Value>Retail</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We tailor messaging by region in a click. StewardTrack variations keep translation, creative, and legal aligned.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Oksana Ilyin</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Localization Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Bold Signal</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Localization specialists collaborating</Value>
+                </Field>
+                <Field name="industry">
+                  <Value>Global SaaS</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Every deliverable is versioned alongside the decisions that shaped it. Clients see progress in real time.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Riya Gupta</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Executive Producer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Pulse Creative</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?auto=format&amp;fit=crop&amp;w=800&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Producer reviewing storyboard with clients</Value>
+                </Field>
+                <Field name="industry">
+                  <Value>Media</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="agencyHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Granular permissions per client workstream",
-              "Shared launch calendar with automated reminders",
-              "Commentary threads linked to creative assets"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-agency-collaboration.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Granular permissions per client workstream</Value>
+              <Value>Shared launch calendar with automated reminders</Value>
+              <Value>Commentary threads linked to creative assets</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

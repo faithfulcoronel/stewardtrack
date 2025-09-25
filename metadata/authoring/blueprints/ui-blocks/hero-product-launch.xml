@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/product-launch"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/product-launch" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-product-launch">
     <Title>UI Block: Product launch hero</Title>
     <Regions>
@@ -17,33 +10,41 @@
             <Prop name="eyebrow" kind="static">Launch week</Prop>
             <Prop name="headline" kind="static">Adaptive workflows that sync every launch team</Prop>
             <Prop name="description" kind="static">Showcase the release, link to the roadmap, and let marketing, product, and success stay aligned inside one metadata-powered hero.</Prop>
-            <Prop name="highlights" kind="binding" source="launchHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="start-trial" />
-            <Prop name="secondaryCta" kind="action" actionId="view-roadmap" />
-            <Prop name="image" kind="binding" source="launchMedia" path="$" />
+            <Prop name="highlights" kind="binding" contract="launchHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="start-trial"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-roadmap"/>
+            <Prop name="image" kind="binding" contract="launchMedia.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="launchHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Blueprint overlays gate features by tenant and role.",
-              "Run launch checklists with metadata-driven status badges.",
-              "Sync roadmap cards automatically from product spec sources."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-product-launch.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Blueprint overlays gate features by tenant and role.</Value>
+              <Value>Run launch checklists with metadata-driven status badges.</Value>
+              <Value>Sync roadmap cards automatically from product spec sources.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="launchMedia" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&amp;fit=crop&amp;w=1600&amp;q=80",
-            "alt": "Team planning a launch release"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for hero-product-launch.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&amp;amp;fit=crop&amp;amp;w=1600&amp;amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Team planning a launch release</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

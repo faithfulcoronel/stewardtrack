@@ -3,6 +3,7 @@ import { XMLParser } from 'fast-xml-parser';
 import {
   CanonicalAction,
   CanonicalComponent,
+  CanonicalDataContract,
   CanonicalDataSource,
   CanonicalDefinition,
   CanonicalLayer,
@@ -67,6 +68,8 @@ function parseScalar(value: string | null, format?: string): unknown {
   return trimmed;
 }
 
+type ContractRegistry = Map<string, CanonicalDataContract>;
+
 export class CanonicalTransformer {
   private readonly parser = new XMLParser({
     ignoreAttributes: false,
@@ -115,15 +118,22 @@ export class CanonicalTransformer {
       const pageNode = root.Page as XmlElement;
       page.id = pageNode['@_id'] ? String(pageNode['@_id']) : undefined;
       page.title = typeof pageNode.Title === 'string' ? pageNode.Title : undefined;
-      if (isRecord(pageNode.Regions)) {
-        const regionContainer = pageNode.Regions as XmlElement;
-        const regions = ensureArray(regionContainer.Region as XmlElement | XmlElement[] | undefined);
-        page.regions = regions.map((regionNode) => this.normalizeRegion(regionNode));
-      }
+      const contracts: ContractRegistry = new Map();
       if (isRecord(pageNode.DataSources)) {
         const sourceContainer = pageNode.DataSources as XmlElement;
         const sources = ensureArray(sourceContainer.DataSource as XmlElement | XmlElement[] | undefined);
-        page.dataSources = sources.map((sourceNode) => this.normalizeDataSource(sourceNode));
+        page.dataSources = sources.map((sourceNode) => {
+          const dataSource = this.normalizeDataSource(sourceNode);
+          if (dataSource.contract) {
+            contracts.set(dataSource.id, dataSource.contract);
+          }
+          return dataSource;
+        });
+      }
+      if (isRecord(pageNode.Regions)) {
+        const regionContainer = pageNode.Regions as XmlElement;
+        const regions = ensureArray(regionContainer.Region as XmlElement | XmlElement[] | undefined);
+        page.regions = regions.map((regionNode) => this.normalizeRegion(regionNode, contracts));
       }
       if (isRecord(pageNode.Actions)) {
         const actionContainer = pageNode.Actions as XmlElement;
@@ -134,17 +144,29 @@ export class CanonicalTransformer {
 
     if (isRecord(root.Overlay)) {
       const overlayNode = root.Overlay as XmlElement;
+      const overlayContracts: ContractRegistry = new Map(page.dataSources?.reduce((entries, source) => {
+        if (source.contract) {
+          entries.push([source.id, source.contract] as const);
+        }
+        return entries;
+      }, [] as Array<readonly [string, CanonicalDataContract]>) ?? []);
+      if (isRecord(overlayNode.DataSources)) {
+        const sources = ensureArray((overlayNode.DataSources as XmlElement).DataSource as XmlElement | XmlElement[] | undefined);
+        page.dataSources = sources.map((sourceNode) => {
+          const dataSource = this.normalizeDataSource(sourceNode);
+          if (dataSource.contract) {
+            overlayContracts.set(dataSource.id, dataSource.contract);
+          }
+          return dataSource;
+        });
+      }
       if (isRecord(overlayNode.Regions)) {
         const regions = ensureArray((overlayNode.Regions as XmlElement).Region as XmlElement | XmlElement[] | undefined);
-        page.regions = regions.map((regionNode) => this.normalizeRegion(regionNode));
+        page.regions = regions.map((regionNode) => this.normalizeRegion(regionNode, overlayContracts));
       }
       if (isRecord(overlayNode.Components)) {
         const components = ensureArray((overlayNode.Components as XmlElement).Component as XmlElement | XmlElement[] | undefined);
-        page.components = components.map((componentNode) => this.normalizeComponent(componentNode));
-      }
-      if (isRecord(overlayNode.DataSources)) {
-        const sources = ensureArray((overlayNode.DataSources as XmlElement).DataSource as XmlElement | XmlElement[] | undefined);
-        page.dataSources = sources.map((sourceNode) => this.normalizeDataSource(sourceNode));
+        page.components = components.map((componentNode) => this.normalizeComponent(componentNode, overlayContracts));
       }
       if (isRecord(overlayNode.Actions)) {
         const actions = ensureArray((overlayNode.Actions as XmlElement).Action as XmlElement | XmlElement[] | undefined);
@@ -163,19 +185,19 @@ export class CanonicalTransformer {
     };
   }
 
-  private normalizeRegion(region: XmlElement): CanonicalRegion {
+  private normalizeRegion(region: XmlElement, contracts: ContractRegistry): CanonicalRegion {
     const regionNode: CanonicalRegion = {
       id: String(region['@_id'] ?? ''),
       operation: parseOperation(region['@_operation']),
     };
     const components = ensureArray(region.Component as XmlElement | XmlElement[] | undefined);
     if (components.length > 0) {
-      regionNode.components = components.map((component) => this.normalizeComponent(component));
+      regionNode.components = components.map((component) => this.normalizeComponent(component, contracts));
     }
     return regionNode;
   }
 
-  private normalizeComponent(component: XmlElement): CanonicalComponent {
+  private normalizeComponent(component: XmlElement, contracts: ContractRegistry): CanonicalComponent {
     const node: CanonicalComponent = {
       id: String(component['@_id'] ?? ''),
       type: component['@_type'] ? String(component['@_type']) : undefined,
@@ -195,7 +217,7 @@ export class CanonicalTransformer {
         node.props = {};
         for (const prop of propEntries) {
           const name = String(prop['@_name']);
-          node.props[name] = this.normalizeProp(prop);
+          node.props[name] = this.normalizeProp(prop, contracts);
         }
       }
     }
@@ -204,23 +226,43 @@ export class CanonicalTransformer {
       const childElement = component.Children as XmlElement;
       const children = ensureArray(childElement.Component as XmlElement | XmlElement[] | undefined);
       if (children.length > 0) {
-        node.children = children.map((child) => this.normalizeComponent(child));
+        node.children = children.map((child) => this.normalizeComponent(child, contracts));
       }
     }
 
     return node;
   }
 
-  private normalizeProp(prop: XmlElement): PropValue {
+  private normalizeProp(prop: XmlElement, contracts: ContractRegistry): PropValue {
     const kind = prop['@_kind'];
     const formatAttr = typeof prop['@_format'] === 'string' ? prop['@_format'] : undefined;
     switch (kind) {
       case 'binding': {
-        const source = String(prop['@_source'] ?? '');
+        const contractAlias = typeof prop['@_contract'] === 'string' ? prop['@_contract'].trim() : undefined;
+        let source = String(prop['@_source'] ?? '');
+        let path = prop['@_path'] ? String(prop['@_path']) : null;
+        if (contractAlias) {
+          const [contractSource, contractField] = contractAlias.split('.');
+          if (!contractSource || !contractField) {
+            throw new Error(`Invalid contract binding reference "${contractAlias}" on prop ${String(prop['@_name'])}`);
+          }
+          const contract = contracts.get(contractSource);
+          if (!contract) {
+            throw new Error(`Unknown data contract for source "${contractSource}" used by prop ${String(prop['@_name'])}`);
+          }
+          const field = contract.fields[contractField];
+          if (!field) {
+            throw new Error(
+              `Unknown contract field "${contractField}" on source "${contractSource}" used by prop ${String(prop['@_name'])}`,
+            );
+          }
+          source = contractSource;
+          path = field.path;
+        }
         const binding: PropValue = {
           kind: 'binding',
           source,
-          path: prop['@_path'] ? String(prop['@_path']) : null,
+          path,
         };
         if (prop['@_fallback']) {
           binding.fallback = parseScalar(String(prop['@_fallback']), formatAttr);
@@ -250,6 +292,9 @@ export class CanonicalTransformer {
     if (isRecord(source.RBAC)) {
       node.rbac = this.normalizeRBAC(source.RBAC as XmlElement);
     }
+    if (isRecord(source.Contract)) {
+      node.contract = this.normalizeContract(source.Contract as XmlElement);
+    }
     if (source.Json) {
       const value = typeof source.Json === 'string' ? source.Json : extractNodeValue(source.Json as XmlElement);
       if (typeof value === 'string') {
@@ -263,6 +308,13 @@ export class CanonicalTransformer {
       node.config = {
         ...(node.config ?? {}),
         ...this.normalizeConfig(source.Config as XmlElement),
+      };
+    }
+    if (isRecord(source.Data)) {
+      const payload = this.normalizeDataPayload(source.Data as XmlElement);
+      node.config = {
+        ...(node.config ?? {}),
+        value: payload,
       };
     }
     return node;
@@ -281,6 +333,183 @@ export class CanonicalTransformer {
       node.config = this.normalizeConfig(action.Config as XmlElement);
     }
     return node;
+  }
+
+  private normalizeContract(contract: XmlElement): CanonicalDataContract {
+    const fieldNodes = ensureArray(contract.Field as XmlElement | XmlElement[] | undefined);
+    const fields: CanonicalDataContract['fields'] = {};
+    for (const field of fieldNodes) {
+      const nameAttr = field['@_name'];
+      if (!nameAttr) {
+        throw new Error('Contract <Field> entries must specify a name attribute.');
+      }
+      const name = String(nameAttr);
+      const pathAttr = field['@_path'];
+      const descriptionAttr = typeof field['@_description'] === 'string' ? field['@_description'].trim() : undefined;
+      let description = descriptionAttr;
+      if (!description && field.Description) {
+        description = extractNodeValue(field.Description as XmlElement) ?? undefined;
+      }
+      fields[name] = {
+        name,
+        path: pathAttr != null ? String(pathAttr) : null,
+        description: description && description.length > 0 ? description : undefined,
+      };
+    }
+    return { fields };
+  }
+
+  private normalizeDataPayload(node: XmlElement, scalarFormat?: string): unknown {
+    const namedEntries: Record<string, unknown> = {};
+    const unnamedValues: unknown[] = [];
+
+    const fieldNodes = ensureArray(node.Field as XmlElement | XmlElement[] | undefined);
+    for (const field of fieldNodes) {
+      const [fieldName, fieldValue] = this.normalizeDataField(field, scalarFormat);
+      namedEntries[fieldName] = fieldValue;
+    }
+
+    const objectNodes = ensureArray(node.Object as XmlElement | XmlElement[] | undefined);
+    for (const objectNode of objectNodes) {
+      const result = this.normalizeDataObject(objectNode, scalarFormat);
+      if (result.name) {
+        namedEntries[result.name] = result.value;
+      } else {
+        unnamedValues.push(result.value);
+      }
+    }
+
+    const arrayNodes = ensureArray(node.Array as XmlElement | XmlElement[] | undefined);
+    for (const arrayNode of arrayNodes) {
+      const result = this.normalizeDataArray(arrayNode, scalarFormat);
+      if (result.name) {
+        namedEntries[result.name] = result.value;
+      } else {
+        unnamedValues.push(result.value);
+      }
+    }
+
+    const valueNodes = ensureArray(node.Value as XmlElement | XmlElement[] | undefined);
+    if (valueNodes.length > 0) {
+      if (valueNodes.length === 1) {
+        unnamedValues.push(this.normalizeDataScalar(valueNodes[0], scalarFormat));
+      } else {
+        unnamedValues.push(valueNodes.map((valueNode) => this.normalizeDataScalar(valueNode, scalarFormat)));
+      }
+    }
+
+    const textValue = typeof node['#text'] === 'string' ? node['#text'].trim() : '';
+    if (textValue) {
+      unnamedValues.push(this.normalizeDataScalar(textValue, scalarFormat));
+    }
+
+    const hasNamedEntries = Object.keys(namedEntries).length > 0;
+    if (hasNamedEntries && unnamedValues.length > 0) {
+      throw new Error('Data payloads cannot mix named and unnamed values at the same level.');
+    }
+    if (hasNamedEntries) {
+      return namedEntries;
+    }
+    if (unnamedValues.length === 1) {
+      return unnamedValues[0];
+    }
+    if (unnamedValues.length > 1) {
+      return unnamedValues;
+    }
+    return {};
+  }
+
+  private normalizeDataObject(node: XmlElement, scalarFormat?: string): { name?: string; value: Record<string, unknown> } {
+    const name = node['@_name'] ? String(node['@_name']) : undefined;
+    const payload = this.normalizeDataPayload(node, scalarFormat);
+    if (payload == null) {
+      return { name, value: {} };
+    }
+    if (typeof payload !== 'object' || Array.isArray(payload)) {
+      throw new Error('<Object> nodes must resolve to an object payload.');
+    }
+    return { name, value: payload as Record<string, unknown> };
+  }
+
+  private normalizeDataArray(node: XmlElement, scalarFormat?: string): { name?: string; value: unknown[] } {
+    const name = node['@_name'] ? String(node['@_name']) : undefined;
+    const values: unknown[] = [];
+
+    const objectNodes = ensureArray(node.Object as XmlElement | XmlElement[] | undefined);
+    for (const objectNode of objectNodes) {
+      values.push(this.normalizeDataObject(objectNode, scalarFormat).value);
+    }
+
+    const fieldNodes = ensureArray(node.Field as XmlElement | XmlElement[] | undefined);
+    for (const field of fieldNodes) {
+      const [fieldName, fieldValue] = this.normalizeDataField(field, scalarFormat);
+      values.push({ [fieldName]: fieldValue });
+    }
+
+    const arrayNodes = ensureArray(node.Array as XmlElement | XmlElement[] | undefined);
+    for (const arrayNode of arrayNodes) {
+      values.push(this.normalizeDataArray(arrayNode, scalarFormat).value);
+    }
+
+    const valueNodes = ensureArray(node.Value as XmlElement | XmlElement[] | undefined);
+    for (const valueNode of valueNodes) {
+      values.push(this.normalizeDataScalar(valueNode, scalarFormat));
+    }
+
+    const textValue = typeof node['#text'] === 'string' ? node['#text'].trim() : '';
+    if (textValue) {
+      values.push(this.normalizeDataScalar(textValue, scalarFormat));
+    }
+
+    return { name, value: values };
+  }
+
+  private normalizeDataField(field: XmlElement, inheritedFormat?: string): [string, unknown] {
+    const nameAttr = field['@_name'];
+    if (!nameAttr) {
+      throw new Error('Data <Field> entries must specify a name attribute.');
+    }
+    const name = String(nameAttr);
+    const formatAttr = typeof field['@_type'] === 'string' ? field['@_type'] : inheritedFormat;
+    const fieldClone: XmlElement = { ...field };
+    delete fieldClone['@_name'];
+    delete fieldClone['@_type'];
+    const payload = this.normalizeDataPayload(fieldClone, formatAttr);
+    return [name, payload];
+  }
+
+  private normalizeDataScalar(value: XmlElement | string | null | undefined, formatAttr?: string): unknown {
+    if (value == null) {
+      return null;
+    }
+    if (typeof value === 'string') {
+      return parseScalar(value, this.normalizeScalarFormat(formatAttr));
+    }
+    const element = value as XmlElement;
+    const nestedFormat = typeof element['@_type'] === 'string' ? element['@_type'] : formatAttr;
+    const text = extractNodeValue(element);
+    return parseScalar(text, this.normalizeScalarFormat(nestedFormat));
+  }
+
+  private normalizeScalarFormat(format?: string): string | undefined {
+    if (!format) {
+      return undefined;
+    }
+    switch (format) {
+      case 'string':
+      case 'text':
+        return 'text';
+      case 'integer':
+      case 'number':
+        return 'number';
+      case 'bool':
+      case 'boolean':
+        return 'boolean';
+      case 'json':
+        return 'json';
+      default:
+        return format;
+    }
   }
 
   private normalizeRBAC(rbac: XmlElement): CanonicalRBAC {

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/roi-analytics"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/roi-analytics" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-roi-analytics">
     <Title>UI Block: ROI analytics pricing</Title>
     <Regions>
@@ -17,94 +10,204 @@
             <Prop name="eyebrow" kind="static">ROI analytics</Prop>
             <Prop name="title" kind="static">Prove outcomes with telemetry, forecasts, and narrative</Prop>
             <Prop name="description" kind="static">Finance, revops, and product leaders partner on these packages to monitor ROI in real time and generate board-ready narratives.</Prop>
-            <Prop name="metrics" kind="binding" source="roiAnalyticsMetrics" path="items" />
-            <Prop name="tiers" kind="binding" source="roiAnalyticsTiers" path="items" />
+            <Prop name="metrics" kind="binding" contract="roiAnalyticsMetrics.items"/>
+            <Prop name="tiers" kind="binding" contract="roiAnalyticsTiers.items"/>
             <Prop name="footnote" kind="static">ROI assessments refreshed quarterly. Dedicated analyst access varies by plan.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="book-roi-assessment" />
-            <Prop name="secondaryCta" kind="action" actionId="download-roi-onepager" />
+            <Prop name="primaryCta" kind="action" actionId="book-roi-assessment"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-roi-onepager"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="roiAnalyticsMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Median payback", "value": "4.5 months", "caption": "Across product-led teams" },
-              { "label": "Net retention lift", "value": "+12%", "caption": "After two quarters" },
-              { "label": "Automation savings", "value": "$186k", "caption": "Average annual reduction" },
-              { "label": "Time to insight", "value": "< 7 days", "caption": "First executive narrative" }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-roi-analytics.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Median payback</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.5 months</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Across product-led teams</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Net retention lift</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+12%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>After two quarters</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Automation savings</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$186k</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Average annual reduction</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Time to insight</Value>
+                </Field>
+                <Field name="value">
+                  <Value>&lt; 7 days</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>First executive narrative</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="roiAnalyticsTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Snapshot",
-                "price": "$8k",
-                "period": "quarter",
-                "badge": "Quick start",
-                "description": "Baseline adoption and revenue impact with a curated insight deck.",
-                "features": [
-                  "KPI alignment workshop",
-                  "Executive-ready narrative",
-                  "Forecast variance analysis",
-                  "Opportunity backlog"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Schedule snapshot",
-                    "url": "/checkout?plan=roi-snapshot",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Continuous",
-                "price": "$2.9k",
-                "period": "month",
-                "badge": "Most popular",
-                "description": "Keep a rolling view of ROI, adoption, and lifecycle initiatives with analyst support.",
-                "features": [
-                  "Monthly ROI forecasts",
-                  "Scenario planning",
-                  "Executive QBRs",
-                  "Slack analyst channel"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch continuous",
-                    "url": "/checkout?plan=roi-continuous",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Embedded",
-                "price": "Custom",
-                "period": "annual",
-                "description": "Co-create ROI frameworks, data governance, and executive communications with our strategy desk.",
-                "features": [
-                  "Dedicated strategic analyst",
-                  "Custom attribution modeling",
-                  "Board packet creation",
-                  "Budget defense support"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Design embedded program",
-                    "url": "/contact/roi-embedded",
-                    "variant": "primary"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-roi-analytics.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Snapshot</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$8k</Value>
+                </Field>
+                <Field name="period">
+                  <Value>quarter</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Quick start</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Baseline adoption and revenue impact with a curated insight deck.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>KPI alignment workshop</Value>
+                    <Value>Executive-ready narrative</Value>
+                    <Value>Forecast variance analysis</Value>
+                    <Value>Opportunity backlog</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Schedule snapshot</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=roi-snapshot</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Continuous</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2.9k</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Most popular</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Keep a rolling view of ROI, adoption, and lifecycle initiatives with analyst support.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Monthly ROI forecasts</Value>
+                    <Value>Scenario planning</Value>
+                    <Value>Executive QBRs</Value>
+                    <Value>Slack analyst channel</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch continuous</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=roi-continuous</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Embedded</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Co-create ROI frameworks, data governance, and executive communications with our strategy desk.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Dedicated strategic analyst</Value>
+                    <Value>Custom attribution modeling</Value>
+                    <Value>Board packet creation</Value>
+                    <Value>Budget defense support</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Design embedded program</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/roi-embedded</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

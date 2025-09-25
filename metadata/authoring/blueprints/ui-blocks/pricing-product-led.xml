@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/product-led"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/product-led" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-product-led">
     <Title>UI Block: Product-led pricing</Title>
     <Regions>
@@ -18,95 +11,169 @@
             <Prop name="title" kind="static">Pair self-serve adoption with guided expansion</Prop>
             <Prop name="description" kind="static">These stacked tiers balance upgrade nudges, lifecycle education, and white-glove coaching so teams can convert users at their pace.</Prop>
             <Prop name="highlight" kind="static">All packages are bundled with experimentation best practices, cohort playbooks, and a dedicated revenue desk for escalations.</Prop>
-            <Prop name="features" kind="binding" source="productLedHighlights" path="items" />
-            <Prop name="tiers" kind="binding" source="productLedTiers" path="items" />
+            <Prop name="features" kind="binding" contract="productLedHighlights.items"/>
+            <Prop name="tiers" kind="binding" contract="productLedTiers.items"/>
             <Prop name="footnote" kind="static">Seat counts reset monthly. Expansion credit balances roll over for 90 days.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="book-pdlab" />
-            <Prop name="secondaryCta" kind="action" actionId="share-with-finance" />
+            <Prop name="primaryCta" kind="action" actionId="book-pdlab"/>
+            <Prop name="secondaryCta" kind="action" actionId="share-with-finance"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="productLedHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Usage-based scoring that syncs to HubSpot and Salesforce",
-              "Launch center with reusable multi-language email templates",
-              "Advanced segmentation with cohort recipes across product and billing data"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-product-led.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Usage-based scoring that syncs to HubSpot and Salesforce</Value>
+              <Value>Launch center with reusable multi-language email templates</Value>
+              <Value>Advanced segmentation with cohort recipes across product and billing data</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="productLedTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Starter motions",
-                "price": "$129",
-                "period": "month",
-                "badge": "PLG essentials",
-                "description": "Activate your first monetization loop with guided onboarding flows and experiment templates.",
-                "features": [
-                  "In-app checklist builder",
-                  "3 monetization triggers",
-                  "Churn prediction alerts",
-                  "Weekly activation review"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Launch starter",
-                    "url": "/checkout?plan=plg-starter",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Revenue studio",
-                "price": "$459",
-                "period": "month",
-                "badge": "Signal + action",
-                "highlight": "Top pick",
-                "description": "Automate paywall experiences, contextual upsells, and lifecycle messaging while aligning GTM teams.",
-                "features": [
-                  "Unlimited monetization triggers",
-                  "Usage-to-CRM sync",
-                  "Campaign attribution",
-                  "Deal acceleration workspace"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Start revenue studio",
-                    "url": "/checkout?plan=revenue-studio",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Retention guild",
-                "price": "Custom",
-                "period": "annual",
-                "badge": "Strategic",
-                "description": "Partner with our adoption strategists to orchestrate account expansions, renewal health, and partner enablement.",
-                "features": [
-                  "Quarterly business reviews",
-                  "Voice-of-customer research sprints",
-                  "Shared experimentation backlog",
-                  "Embedded lifecycle architect"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Design retention guild",
-                    "url": "/contact/retention-guild",
-                    "variant": "primary"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-product-led.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Starter motions</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$129</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>PLG essentials</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Activate your first monetization loop with guided onboarding flows and experiment templates.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>In-app checklist builder</Value>
+                    <Value>3 monetization triggers</Value>
+                    <Value>Churn prediction alerts</Value>
+                    <Value>Weekly activation review</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Launch starter</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=plg-starter</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Revenue studio</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$459</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Signal + action</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Top pick</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Automate paywall experiences, contextual upsells, and lifecycle messaging while aligning GTM teams.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Unlimited monetization triggers</Value>
+                    <Value>Usage-to-CRM sync</Value>
+                    <Value>Campaign attribution</Value>
+                    <Value>Deal acceleration workspace</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Start revenue studio</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=revenue-studio</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Retention guild</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>annual</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Strategic</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Partner with our adoption strategists to orchestrate account expansions, renewal health, and partner enablement.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Quarterly business reviews</Value>
+                    <Value>Voice-of-customer research sprints</Value>
+                    <Value>Shared experimentation backlog</Value>
+                    <Value>Embedded lifecycle architect</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Design retention guild</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/retention-guild</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

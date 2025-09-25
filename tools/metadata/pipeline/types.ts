@@ -16,6 +16,16 @@ export type PropValue =
   | { kind: 'expression'; expression: string; fallback?: unknown }
   | { kind: 'action'; actionId: string };
 
+export interface CanonicalDataContractField {
+  name: string;
+  path: string | null;
+  description?: string;
+}
+
+export interface CanonicalDataContract {
+  fields: Record<string, CanonicalDataContractField>;
+}
+
 export interface CanonicalRBAC {
   allow?: string[];
   deny?: string[];
@@ -43,6 +53,7 @@ export interface CanonicalDataSource {
   kind: 'static' | 'supabase' | 'http' | 'service';
   operation?: Operation;
   config?: Record<string, unknown>;
+  contract?: CanonicalDataContract;
   rbac?: CanonicalRBAC;
 }
 

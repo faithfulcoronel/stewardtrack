@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/ai-adoption"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/ai-adoption" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-ai-adoption">
     <Title>UI Block: Stats - AI adoption</Title>
     <Regions>
@@ -17,72 +10,138 @@
             <Prop name="eyebrow" kind="static">AI adoption</Prop>
             <Prop name="headline" kind="static">Operationalize AI responsibly and at scale</Prop>
             <Prop name="description" kind="static">Tell the story of how automation, governance, and performance come together across your AI portfolio.</Prop>
-            <Prop name="metrics" kind="binding" source="aiMetrics" path="items" />
-            <Prop name="badges" kind="binding" source="aiBadges" path="items" />
+            <Prop name="metrics" kind="binding" contract="aiMetrics.items"/>
+            <Prop name="badges" kind="binding" contract="aiBadges.items"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="aiMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Automations shipped",
-                "value": "1,240",
-                "change": "+34%",
-                "changeLabel": "QoQ",
-                "description": "Production AI workflows executed monthly."
-              },
-              {
-                "label": "Inference latency",
-                "value": "48 ms",
-                "change": "-12 ms",
-                "changeLabel": "YoY",
-                "description": "Median response time across customer endpoints."
-              },
-              {
-                "label": "Model accuracy",
-                "value": "93.4%",
-                "change": "+2.8 pts",
-                "changeLabel": "Benchmark",
-                "description": "Composite accuracy across 12 public datasets."
-              },
-              {
-                "label": "Cost per task",
-                "value": "$0.004",
-                "change": "-18%",
-                "changeLabel": "YoY",
-                "description": "Average compute cost per task across tenants."
-              },
-              {
-                "label": "Feature adoption",
-                "value": "72%",
-                "change": "+9 pts",
-                "changeLabel": "Active users",
-                "description": "Weekly active accounts using AI copilots."
-              },
-              {
-                "label": "Governed prompts",
-                "value": "18.6K",
-                "change": "+41%",
-                "changeLabel": "QoQ",
-                "description": "Prompts reviewed and approved by compliance."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-ai-adoption.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Automations shipped</Value>
+                </Field>
+                <Field name="value">
+                  <Value>1,240</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+34%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Production AI workflows executed monthly.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Inference latency</Value>
+                </Field>
+                <Field name="value">
+                  <Value>48 ms</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-12 ms</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Median response time across customer endpoints.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Model accuracy</Value>
+                </Field>
+                <Field name="value">
+                  <Value>93.4%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+2.8 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Benchmark</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Composite accuracy across 12 public datasets.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Cost per task</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$0.004</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-18%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Average compute cost per task across tenants.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Feature adoption</Value>
+                </Field>
+                <Field name="value">
+                  <Value>72%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+9 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Active users</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Weekly active accounts using AI copilots.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Governed prompts</Value>
+                </Field>
+                <Field name="value">
+                  <Value>18.6K</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+41%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QoQ</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Prompts reviewed and approved by compliance.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="aiBadges" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Responsible AI scorecard",
-              "SOC 2 automation controls"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-ai-adoption.badges"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Responsible AI scorecard</Value>
+              <Value>SOC 2 automation controls</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

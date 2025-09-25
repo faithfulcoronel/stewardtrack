@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/executive-lens"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/executive-lens" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-executive-lens">
     <Title>UI Block: Executive lens bento grid</Title>
     <Regions>
@@ -17,90 +10,176 @@
             <Prop name="eyebrow" kind="static">Executive briefing</Prop>
             <Prop name="headline" kind="static">See the enterprise at a glance and act with conviction</Prop>
             <Prop name="description" kind="static">Combine financial health, customer momentum, and strategic bets in one executive-ready grid.</Prop>
-            <Prop name="cards" kind="binding" source="executiveLensCards" path="items" />
-            <Prop name="metrics" kind="binding" source="executiveLensMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="open-board-brief" />
-            <Prop name="secondaryCta" kind="action" actionId="share-investor-update" />
+            <Prop name="cards" kind="binding" contract="executiveLensCards.items"/>
+            <Prop name="metrics" kind="binding" contract="executiveLensMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="open-board-brief"/>
+            <Prop name="secondaryCta" kind="action" actionId="share-investor-update"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="executiveLensCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Finance",
-                "title": "Quarter pulse",
-                "description": "Revenue, margin, and cash runway scenarios aligned with board targets.",
-                "tone": "dark"
-              },
-              {
-                "eyebrow": "Customers",
-                "title": "Health score",
-                "description": "Expansion risk, logo retention, and advocacy momentum summarized for top cohorts.",
-                "tone": "frost"
-              },
-              {
-                "badge": "Product",
-                "title": "Roadmap reality",
-                "description": "View delivery confidence, launch impact, and dependency alerts in real-time.",
-                "tone": "surface"
-              },
-              {
-                "eyebrow": "Strategy",
-                "title": "Capital allocation",
-                "description": "Model opex shifts, hiring, and investments against macro signals.",
-                "tone": "brand"
-              },
-              {
-                "badge": "Risk",
-                "title": "Executive watchlist",
-                "description": "Track compliance, security, and talent signals needing attention.",
-                "tone": "cobalt"
-              },
-              {
-                "eyebrow": "Culture",
-                "title": "People resonance",
-                "description": "Engagement, attrition, and DEI indicators with commentary from each region.",
-                "tone": "light"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-executive-lens.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Finance</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Quarter pulse</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Revenue, margin, and cash runway scenarios aligned with board targets.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Customers</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Health score</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Expansion risk, logo retention, and advocacy momentum summarized for top cohorts.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>frost</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Product</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Roadmap reality</Value>
+                </Field>
+                <Field name="description">
+                  <Value>View delivery confidence, launch impact, and dependency alerts in real-time.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Strategy</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Capital allocation</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Model opex shifts, hiring, and investments against macro signals.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>brand</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Risk</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Executive watchlist</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track compliance, security, and talent signals needing attention.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>cobalt</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Culture</Value>
+                </Field>
+                <Field name="title">
+                  <Value>People resonance</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Engagement, attrition, and DEI indicators with commentary from each region.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>light</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="executiveLensMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "ARR run rate",
-                "value": "$212M",
-                "change": "+18% YoY",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Adjusted EBITDA",
-                "value": "12%",
-                "change": "Within guidance range",
-                "sentiment": "neutral"
-              },
-              {
-                "label": "Customer health index",
-                "value": "8.7/10",
-                "change": "↑ 0.4 after success motions",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Innovation throughput",
-                "value": "24 launches",
-                "change": "Quarter-to-date",
-                "sentiment": "neutral"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-executive-lens.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>ARR run rate</Value>
+                </Field>
+                <Field name="value">
+                  <Value>$212M</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+18% YoY</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Adjusted EBITDA</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Within guidance range</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Customer health index</Value>
+                </Field>
+                <Field name="value">
+                  <Value>8.7/10</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↑ 0.4 after success motions</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Innovation throughput</Value>
+                </Field>
+                <Field name="value">
+                  <Value>24 launches</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Quarter-to-date</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/sustainability-progress"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/sustainability-progress" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-sustainability-progress">
     <Title>UI Block: Testimonials - Sustainability progress</Title>
     <Regions>
@@ -17,53 +10,104 @@
             <Prop name="eyebrow" kind="static">Sustainability progress</Prop>
             <Prop name="headline" kind="static">Operators share the measurable impact of sustainability programs</Prop>
             <Prop name="description" kind="static">Magazine-inspired storytelling that pairs a feature story with supporting quotes and metrics—ideal for ESG and impact reports.</Prop>
-            <Prop name="testimonials" kind="binding" source="sustainabilityTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="download-report" />
-            <Prop name="secondaryCta" kind="action" actionId="view-framework" />
+            <Prop name="testimonials" kind="binding" contract="sustainabilityTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="download-report"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-framework"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="sustainabilityTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Our sustainability council tracks every initiative, evidence, and board update in StewardTrack.",
-                "author": "Camila Duarte",
-                "role": "Chief Sustainability Officer",
-                "company": "TerraNova",
-                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Wind turbines at sunset",
-                "metricLabel": "Emissions reduced",
-                "metricValue": "-32% YoY"
-              },
-              {
-                "quote": "We accelerated supplier onboarding by sharing interactive scorecards instead of static docs.",
-                "author": "Jonas Matthews",
-                "role": "Director of Supply Chain",
-                "company": "EverGreen Logistics",
-                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80"
-              },
-              {
-                "quote": "The ESG team and finance finally work from the same numbers thanks to StewardTrack data connectors.",
-                "author": "Hannah Kwan",
-                "role": "VP Corporate Finance",
-                "company": "Luminor",
-                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80"
-              },
-              {
-                "quote": "Regional site leaders contribute stories and evidence without chasing spreadsheets.",
-                "author": "Aiden Ross",
-                "role": "Head of Operations",
-                "company": "Northstar Manufacturing",
-                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-sustainability-progress.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Our sustainability council tracks every initiative, evidence, and board update in StewardTrack.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Camila Duarte</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Sustainability Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>TerraNova</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Wind turbines at sunset</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Emissions reduced</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>-32% YoY</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We accelerated supplier onboarding by sharing interactive scorecards instead of static docs.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Jonas Matthews</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Supply Chain</Value>
+                </Field>
+                <Field name="company">
+                  <Value>EverGreen Logistics</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>The ESG team and finance finally work from the same numbers thanks to StewardTrack data connectors.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Hannah Kwan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Corporate Finance</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Luminor</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Regional site leaders contribute stories and evidence without chasing spreadsheets.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Aiden Ross</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Operations</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Northstar Manufacturing</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/research-newsletter"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/research-newsletter" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-research-newsletter">
     <Title>UI Block: Research newsletter CTA</Title>
     <Regions>
@@ -17,35 +10,68 @@
             <Prop name="badge" kind="static">Weekly research</Prop>
             <Prop name="headline" kind="static">Stay ahead with metadata research briefs</Prop>
             <Prop name="description" kind="static">Subscribe for curated experiments, benchmarks, and implementation tactics from leading metadata teams.</Prop>
-            <Prop name="highlights" kind="binding" source="researchHighlights" path="items" />
-            <Prop name="form" kind="binding" source="researchForm" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="subscribe-research" />
-            <Prop name="secondaryCta" kind="action" actionId="view-archive" />
+            <Prop name="highlights" kind="binding" contract="researchHighlights.items"/>
+            <Prop name="form" kind="binding" contract="researchForm.value"/>
+            <Prop name="primaryCta" kind="action" actionId="subscribe-research"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-archive"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="researchHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "title": "Experiment playbooks", "description": "See how product teams validate value props with metadata-driven launches." },
-              { "title": "Benchmarks", "description": "Compare activation and retention metrics across industries." },
-              { "title": "Operational tactics", "description": "Get guidance on governance, release rituals, and reporting." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-research-newsletter.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Experiment playbooks</Value>
+                </Field>
+                <Field name="description">
+                  <Value>See how product teams validate value props with metadata-driven launches.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Benchmarks</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Compare activation and retention metrics across industries.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Operational tactics</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Get guidance on governance, release rituals, and reporting.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="researchForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "product-ops@company.com",
-            "buttonLabel": "Subscribe",
-            "disclaimer": "One research briefing every Thursday.",
-            "url": "/newsletter/research/join"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for cta-research-newsletter.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>product-ops@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Subscribe</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>One research briefing every Thursday.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/research/join</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

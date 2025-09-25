@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/live-workshop"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/live-workshop" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-live-workshop">
     <Title>UI Block: Live workshop CTA</Title>
     <Regions>
@@ -17,23 +10,32 @@
             <Prop name="badge" kind="static">Live workshop</Prop>
             <Prop name="headline" kind="static">Build a metadata playbook with our team</Prop>
             <Prop name="description" kind="static">Join an interactive session to blueprint a launch workflow tailored to your product, marketing, and lifecycle squads.</Prop>
-            <Prop name="event" kind="binding" source="workshopDetails" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="reserve-seat" />
-            <Prop name="secondaryCta" kind="action" actionId="view-agenda" />
+            <Prop name="event" kind="binding" contract="workshopDetails.value"/>
+            <Prop name="primaryCta" kind="action" actionId="reserve-seat"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-agenda"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="workshopDetails" kind="static">
-        <Json><![CDATA[
-          {
-            "date": "April 18, 2025",
-            "time": "10:00 AM",
-            "timezone": "PT",
-            "location": "Virtual via Zoom"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for cta-live-workshop.event"/>
+        </Contract>
+        <Data>
+          <Field name="date">
+            <Value>April 18, 2025</Value>
+          </Field>
+          <Field name="time">
+            <Value>10:00 AM</Value>
+          </Field>
+          <Field name="timezone">
+            <Value>PT</Value>
+          </Field>
+          <Field name="location">
+            <Value>Virtual via Zoom</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

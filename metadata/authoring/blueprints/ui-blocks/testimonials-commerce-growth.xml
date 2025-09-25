@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/commerce-growth"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/commerce-growth" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-commerce-growth">
     <Title>UI Block: Testimonials - Commerce growth</Title>
     <Regions>
@@ -17,57 +10,116 @@
             <Prop name="eyebrow" kind="static">Commerce growth</Prop>
             <Prop name="headline" kind="static">Retail leaders scale new formats faster with StewardTrack</Prop>
             <Prop name="description" kind="static">Pair photography with quotes to tell rich commerce stories. Ideal for retail, marketplaces, and consumer product launches.</Prop>
-            <Prop name="testimonials" kind="binding" source="commerceTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="see-blueprint" />
-            <Prop name="secondaryCta" kind="action" actionId="request-tour" />
+            <Prop name="testimonials" kind="binding" contract="commerceTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="see-blueprint"/>
+            <Prop name="secondaryCta" kind="action" actionId="request-tour"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="commerceTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "We turned pop-up experimentation into a repeatable process—StewardTrack handles staffing playbooks, signage, and KPIs.",
-                "author": "Casey Lind",
-                "role": "VP Retail Innovation",
-                "company": "Modo Market",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Retail pop-up installation in progress"
-              },
-              {
-                "quote": "Merchants upload product drops once. StewardTrack syndicates assets, checklists, and promos across every region.",
-                "author": "Tomasz Zielinski",
-                "role": "Global Merchandising Lead",
-                "company": "Nova Collective",
-                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Merchandising team arranging display"
-              },
-              {
-                "quote": "Franchise operators get localized campaigns with zero back-and-forth. StewardTrack keeps legal and creative synced.",
-                "author": "Imani Powell",
-                "role": "Director of Field Marketing",
-                "company": "Brightline Retail",
-                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Franchise owners reviewing marketing kits"
-              },
-              {
-                "quote": "Our DTC and wholesale teams finally collaborate. We share outcomes from one StewardTrack workspace to the next.",
-                "author": "Rae Donovan",
-                "role": "Chief Commercial Officer",
-                "company": "Lattice & Co",
-                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1450101215322-bf5cd27642fc?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Team reviewing omnichannel strategy"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-commerce-growth.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>We turned pop-up experimentation into a repeatable process—StewardTrack handles staffing playbooks, signage, and KPIs.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Casey Lind</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Retail Innovation</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Modo Market</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Retail pop-up installation in progress</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Merchants upload product drops once. StewardTrack syndicates assets, checklists, and promos across every region.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Tomasz Zielinski</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Global Merchandising Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Nova Collective</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Merchandising team arranging display</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Franchise operators get localized campaigns with zero back-and-forth. StewardTrack keeps legal and creative synced.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Imani Powell</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Field Marketing</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Brightline Retail</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Franchise owners reviewing marketing kits</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Our DTC and wholesale teams finally collaborate. We share outcomes from one StewardTrack workspace to the next.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Rae Donovan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Commercial Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Lattice &amp; Co</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1450101215322-bf5cd27642fc?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Team reviewing omnichannel strategy</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

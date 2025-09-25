@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/activation"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/activation" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-activation">
     <Title>UI Block: Activation hero</Title>
     <Regions>
@@ -17,24 +10,27 @@
             <Prop name="eyebrow" kind="static">Activation sprint</Prop>
             <Prop name="headline" kind="static">Guide new teams to value in days, not weeks</Prop>
             <Prop name="description" kind="static">Underpin onboarding with metadata-driven playbooks, telemetry, and editor-friendly flows.</Prop>
-            <Prop name="highlights" kind="binding" source="activationHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-guide" />
-            <Prop name="secondaryCta" kind="action" actionId="see-checklist" />
+            <Prop name="highlights" kind="binding" contract="activationHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-guide"/>
+            <Prop name="secondaryCta" kind="action" actionId="see-checklist"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="activationHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Blueprints include embedded onboarding flows per segment.",
-              "Usage telemetry flows back into metadata scoring.",
-              "Success teams tweak overlays without code pushes."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-activation.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Blueprints include embedded onboarding flows per segment.</Value>
+              <Value>Usage telemetry flows back into metadata scoring.</Value>
+              <Value>Success teams tweak overlays without code pushes.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

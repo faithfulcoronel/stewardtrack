@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/image-cascade"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/image-cascade" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-image-cascade">
     <Title>UI Block: Image cascade header</Title>
     <Regions>
@@ -17,31 +10,39 @@
             <Prop name="badge" kind="static">Platform update</Prop>
             <Prop name="headline" kind="static">Design once, scale everywhere</Prop>
             <Prop name="description" kind="static">Showcase a visual product story with a crisp layout that pairs narrative and imagery for teams comparing solutions.</Prop>
-            <Prop name="highlights" kind="binding" source="cascadeHighlights" path="$" />
-            <Prop name="image" kind="binding" source="cascadeImage" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="explore-platform" />
-            <Prop name="secondaryCta" kind="action" actionId="watch-demo" />
+            <Prop name="highlights" kind="binding" contract="cascadeHighlights.value"/>
+            <Prop name="image" kind="binding" contract="cascadeImage.value"/>
+            <Prop name="primaryCta" kind="action" actionId="explore-platform"/>
+            <Prop name="secondaryCta" kind="action" actionId="watch-demo"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="cascadeHighlights" kind="static">
-        <Json><![CDATA[
-          [
-            "Adaptive layouts that speak your brand language",
-            "Collaborative approvals directly inside every screen",
-            "Global component tokens shipped with governance"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-image-cascade.highlights"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Adaptive layouts that speak your brand language</Value>
+            <Value>Collaborative approvals directly inside every screen</Value>
+            <Value>Global component tokens shipped with governance</Value>
+          </Array>
+        </Data>
       </DataSource>
       <DataSource id="cascadeImage" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1440&q=80",
-            "alt": "Team reviewing a design system dashboard"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-image-cascade.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&amp;fit=crop&amp;w=1440&amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Team reviewing a design system dashboard</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/operations-control"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/operations-control" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-operations-control">
     <Title>UI Block: Operations control feature section</Title>
     <Regions>
@@ -17,46 +10,74 @@
             <Prop name="eyebrow" kind="static">Operational excellence</Prop>
             <Prop name="title" kind="static">Keep every launch on rails</Prop>
             <Prop name="description" kind="static">Bring PMO, engineering, and GTM teams into the same command center with realtime status and risk signals.</Prop>
-            <Prop name="features" kind="binding" source="operationsHighlights" path="items" />
-            <Prop name="testimonial" kind="binding" source="opsTestimonial" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="launch-control-room" />
-            <Prop name="secondaryCta" kind="action" actionId="meet-ops-lead" />
+            <Prop name="features" kind="binding" contract="operationsHighlights.items"/>
+            <Prop name="testimonial" kind="binding" contract="opsTestimonial.value"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-control-room"/>
+            <Prop name="secondaryCta" kind="action" actionId="meet-ops-lead"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="operationsHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "icon": "🧭",
-                "title": "Critical path tracker",
-                "description": "Understand dependencies and unblockers across teams with automated risk scoring."
-              },
-              {
-                "icon": "📊",
-                "title": "Status intelligence",
-                "description": "Auto-curate launch digests with metrics, blockers, and next actions for every workstream."
-              },
-              {
-                "icon": "🎯",
-                "title": "Outcome alignment",
-                "description": "Tie every project milestone back to OKRs with dashboards built for executives and doers."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-operations-control.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="icon">
+                  <Value>🧭</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Critical path tracker</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Understand dependencies and unblockers across teams with automated risk scoring.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📊</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Status intelligence</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Auto-curate launch digests with metrics, blockers, and next actions for every workstream.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🎯</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Outcome alignment</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Tie every project milestone back to OKRs with dashboards built for executives and doers.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="opsTestimonial" kind="static">
-        <Json><![CDATA[
-          {
-            "quote": "We replaced six status meetings and finally have a single view of impact, risk, and owners.",
-            "author": "Priya Natarajan",
-            "role": "Head of Program Operations, Heliograph"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for feature-operations-control.testimonial"/>
+        </Contract>
+        <Data>
+          <Field name="quote">
+            <Value>We replaced six status meetings and finally have a single view of impact, risk, and owners.</Value>
+          </Field>
+          <Field name="author">
+            <Value>Priya Natarajan</Value>
+          </Field>
+          <Field name="role">
+            <Value>Head of Program Operations, Heliograph</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

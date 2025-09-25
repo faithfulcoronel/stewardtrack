@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/platform-ecosystem"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/platform-ecosystem" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-platform-ecosystem">
     <Title>UI Block: Platform ecosystem feature section</Title>
     <Regions>
@@ -17,45 +10,76 @@
             <Prop name="eyebrow" kind="static">Platform ecosystem</Prop>
             <Prop name="title" kind="static">Accelerate adoption with ready-made integrations</Prop>
             <Prop name="description" kind="static">Highlight technology partners, certified implementers, and solution accelerators in one modular showcase.</Prop>
-            <Prop name="features" kind="binding" source="ecosystemHighlights" path="items" />
-            <Prop name="logos" kind="binding" source="ecosystemLogos" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="browse-integration-directory" />
-            <Prop name="secondaryCta" kind="action" actionId="become-partner" />
+            <Prop name="features" kind="binding" contract="ecosystemHighlights.items"/>
+            <Prop name="logos" kind="binding" contract="ecosystemLogos.items"/>
+            <Prop name="primaryCta" kind="action" actionId="browse-integration-directory"/>
+            <Prop name="secondaryCta" kind="action" actionId="become-partner"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="ecosystemHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Certified partners",
-                "description": "Match with vetted experts for implementations, migrations, and change management."
-              },
-              {
-                "title": "Solution accelerators",
-                "description": "Deploy pre-built templates that combine automation, AI, and governance best practices."
-              },
-              {
-                "title": "Open APIs",
-                "description": "Extend your platform with SDKs, reference apps, and webhook tooling maintained by our team."
-              },
-              {
-                "title": "Marketplace analytics",
-                "description": "Track activation, retention, and expansion driven by partner solutions with granular reporting."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-platform-ecosystem.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Certified partners</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Match with vetted experts for implementations, migrations, and change management.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Solution accelerators</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Deploy pre-built templates that combine automation, AI, and governance best practices.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Open APIs</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Extend your platform with SDKs, reference apps, and webhook tooling maintained by our team.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Marketplace analytics</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track activation, retention, and expansion driven by partner solutions with granular reporting.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="ecosystemLogos" kind="static">
-        <Json><![CDATA[
-          {
-            "items": ["Northwind", "Acadia", "Lumina", "Ferro", "Beacon", "Stratus", "Nebula", "Harbor"]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-platform-ecosystem.logos"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Northwind</Value>
+              <Value>Acadia</Value>
+              <Value>Lumina</Value>
+              <Value>Ferro</Value>
+              <Value>Beacon</Value>
+              <Value>Stratus</Value>
+              <Value>Nebula</Value>
+              <Value>Harbor</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/minimal"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/minimal" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-minimal">
     <Title>UI Block: Newsletter minimal inline</Title>
     <Regions>
@@ -17,33 +10,45 @@
             <Prop name="eyebrow" kind="static">Get the digest</Prop>
             <Prop name="headline" kind="static">StewardTrack Field Notes</Prop>
             <Prop name="description" kind="static">A five-minute read that helps product and ops teams adopt metadata patterns without slowing delivery.</Prop>
-            <Prop name="checklist" kind="binding" source="minimalChecklist" path="items" />
-            <Prop name="form" kind="binding" source="minimalForm" path="$" />
+            <Prop name="checklist" kind="binding" contract="minimalChecklist.items"/>
+            <Prop name="form" kind="binding" contract="minimalForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="minimalChecklist" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "On-call stories from teams automating governance.",
-              "Experiment templates for onboarding and lifecycle.",
-              "A playbook to ship metadata safely at scale."
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-minimal.checklist"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>On-call stories from teams automating governance.</Value>
+              <Value>Experiment templates for onboarding and lifecycle.</Value>
+              <Value>A playbook to ship metadata safely at scale.</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="minimalForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "product.lead@company.com",
-            "buttonLabel": "Email me updates",
-            "disclaimer": "Sent every other Wednesday at 8am local time.",
-            "url": "/newsletter/field-notes/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-minimal.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>product.lead@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Email me updates</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Sent every other Wednesday at 8am local time.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/field-notes/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

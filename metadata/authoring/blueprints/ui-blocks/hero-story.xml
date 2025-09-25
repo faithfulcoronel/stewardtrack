@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/story"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/story" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-story">
     <Title>UI Block: Story-driven hero</Title>
     <Regions>
@@ -17,22 +10,29 @@
             <Prop name="badge" kind="static">Founder spotlight</Prop>
             <Prop name="headline" kind="static">Metadata that tells your customer story</Prop>
             <Prop name="description" kind="static">Introduce your audience to the vision behind your product with a quote-driven hero and confident next steps.</Prop>
-            <Prop name="testimonial" kind="binding" source="storyTestimonial" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="meet-founders" />
-            <Prop name="secondaryCta" kind="action" actionId="download-deck" />
+            <Prop name="testimonial" kind="binding" contract="storyTestimonial.value"/>
+            <Prop name="primaryCta" kind="action" actionId="meet-founders"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-deck"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="storyTestimonial" kind="static">
-        <Json><![CDATA[
-          {
-            "quote": "StewardTrack gives our lifecycle team the guardrails to ship dream experiences without waking up engineering.",
-            "author": "Jordan Winters",
-            "role": "Director of Lifecycle, Acme"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for hero-story.testimonial"/>
+        </Contract>
+        <Data>
+          <Field name="quote">
+            <Value>StewardTrack gives our lifecycle team the guardrails to ship dream experiences without waking up engineering.</Value>
+          </Field>
+          <Field name="author">
+            <Value>Jordan Winters</Value>
+          </Field>
+          <Field name="role">
+            <Value>Director of Lifecycle, Acme</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

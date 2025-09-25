@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/customer-delight"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/customer-delight" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-customer-delight">
     <Title>UI Block: Testimonials - Customer delight</Title>
     <Regions>
@@ -17,81 +10,161 @@
             <Prop name="eyebrow" kind="static">Customer delight</Prop>
             <Prop name="headline" kind="static">Customer onboarding that feels bespoke at scale</Prop>
             <Prop name="description" kind="static">Showcase a primary story alongside a supporting bench of champions. Ideal for spotlighting activation wins.</Prop>
-            <Prop name="testimonials" kind="binding" source="customerVoices" path="items" />
-            <Prop name="logos" kind="binding" source="customerLogos" path="items" />
-            <Prop name="highlights" kind="binding" source="customerHighlights" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-stories" />
-            <Prop name="secondaryCta" kind="action" actionId="book-intro" />
+            <Prop name="testimonials" kind="binding" contract="customerVoices.items"/>
+            <Prop name="logos" kind="binding" contract="customerLogos.items"/>
+            <Prop name="highlights" kind="binding" contract="customerHighlights.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-stories"/>
+            <Prop name="secondaryCta" kind="action" actionId="book-intro"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="customerVoices" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "StewardTrack let us configure onboarding journeys in half the time, and new workspaces activate themselves.",
-                "author": "Mira Collins",
-                "role": "VP Product",
-                "company": "Northwind Systems",
-                "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Team collaborating in a sunlit product studio",
-                "rating": 4.9,
-                "highlight": "120% activation lift"
-              },
-              {
-                "quote": "We pair StewardTrack with our in-app tours, and our customers now reach time-to-value without human handoffs.",
-                "author": "Elliot Grant",
-                "role": "Director of CX",
-                "company": "Globex Platform",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Product manager reviewing adoption analytics",
-                "rating": 4.8
-              },
-              {
-                "quote": "Role-aware welcome flows meant we stopped writing custom scripts for every enterprise rollout.",
-                "author": "Priya Natarajan",
-                "role": "Implementation Lead",
-                "company": "AcmeBio",
-                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Onboarding specialists sharing playbooks",
-                "rating": 5
-              },
-              {
-                "quote": "With StewardTrack actions tied to milestones, our onboarding managers focus on coaching instead of chasing data.",
-                "author": "Gabriela Ortiz",
-                "role": "Customer Success Manager",
-                "company": "Velocia",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80",
-                "imageUrl": "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=900&q=80",
-                "imageAlt": "Smiling customer success manager leading a workshop",
-                "rating": 4.7
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-customer-delight.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>StewardTrack let us configure onboarding journeys in half the time, and new workspaces activate themselves.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Mira Collins</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Product</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Northwind Systems</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Team collaborating in a sunlit product studio</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.9</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>120% activation lift</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We pair StewardTrack with our in-app tours, and our customers now reach time-to-value without human handoffs.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Elliot Grant</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of CX</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Globex Platform</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Product manager reviewing adoption analytics</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Role-aware welcome flows meant we stopped writing custom scripts for every enterprise rollout.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Priya Natarajan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Implementation Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>AcmeBio</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1521737604893-3647cbe1880f?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Onboarding specialists sharing playbooks</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>5</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>With StewardTrack actions tied to milestones, our onboarding managers focus on coaching instead of chasing data.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Gabriela Ortiz</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Customer Success Manager</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Velocia</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="imageUrl">
+                  <Value>https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&amp;fit=crop&amp;w=900&amp;q=80</Value>
+                </Field>
+                <Field name="imageAlt">
+                  <Value>Smiling customer success manager leading a workshop</Value>
+                </Field>
+                <Field name="rating">
+                  <Value>4.7</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="customerLogos" kind="static">
-        <Json><![CDATA[
-          {
-            "items": ["Northwind", "Globex", "AcmeBio", "Velocia"]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-customer-delight.logos"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Northwind</Value>
+              <Value>Globex</Value>
+              <Value>AcmeBio</Value>
+              <Value>Velocia</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="customerHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Guided tours adapt automatically to role and locale",
-              "Lifecycle emails sync to StewardTrack activation markers"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-customer-delight.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Guided tours adapt automatically to role and locale</Value>
+              <Value>Lifecycle emails sync to StewardTrack activation markers</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

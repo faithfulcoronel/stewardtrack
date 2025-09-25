@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/announcement-bar"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/announcement-bar" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-announcement-bar">
     <Title>UI Block: Announcement bar header</Title>
     <Regions>
@@ -14,25 +7,34 @@
         <Component id="header-announcement-bar" type="HeaderSection">
           <Props>
             <Prop name="variant" kind="static">announcement-bar</Prop>
-            <Prop name="announcement" kind="binding" source="announcementData" path="$" />
+            <Prop name="announcement" kind="binding" contract="announcementData.value"/>
             <Prop name="headline" kind="static">Rewriting retention playbooks</Prop>
             <Prop name="description" kind="static">Invite your audience into the moment with an announcement bar that pairs urgency with a succinct value promise.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="read-whitepaper" />
-            <Prop name="secondaryCta" kind="action" actionId="join-briefing" />
+            <Prop name="primaryCta" kind="action" actionId="read-whitepaper"/>
+            <Prop name="secondaryCta" kind="action" actionId="join-briefing"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="announcementData" kind="static">
-        <Json><![CDATA[
-          {
-            "label": "New research",
-            "message": "Download the retention playbook",
-            "href": "/resources/retention-playbook",
-            "timestamp": "May 2025"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-announcement-bar.announcement"/>
+        </Contract>
+        <Data>
+          <Field name="label">
+            <Value>New research</Value>
+          </Field>
+          <Field name="message">
+            <Value>Download the retention playbook</Value>
+          </Field>
+          <Field name="href">
+            <Value>/resources/retention-playbook</Value>
+          </Field>
+          <Field name="timestamp">
+            <Value>May 2025</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

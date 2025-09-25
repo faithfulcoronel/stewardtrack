@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/education-transformation"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/education-transformation" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-education-transformation">
     <Title>UI Block: Testimonials - Education transformation</Title>
     <Regions>
@@ -17,49 +10,92 @@
             <Prop name="eyebrow" kind="static">Education transformation</Prop>
             <Prop name="headline" kind="static">Districts modernize professional learning with StewardTrack</Prop>
             <Prop name="description" kind="static">Speech bubble styling spotlights human stories. Ideal for education, nonprofit, or community testimonials.</Prop>
-            <Prop name="testimonials" kind="binding" source="educationTestimonials" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-case-study" />
-            <Prop name="secondaryCta" kind="action" actionId="talk-expert" />
+            <Prop name="testimonials" kind="binding" contract="educationTestimonials.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-case-study"/>
+            <Prop name="secondaryCta" kind="action" actionId="talk-expert"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="educationTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "Teachers binge the micro-lessons on their phones between classes. Adoption has been our fastest yet.",
-                "author": "Anika Flores",
-                "role": "Director of Learning Innovation",
-                "company": "Crestview Unified",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80"
-              },
-              {
-                "quote": "Principals finally have visibility into staff progress without downloading a single spreadsheet.",
-                "author": "Mason Clarke",
-                "role": "Assistant Superintendent",
-                "company": "Lakeside Schools",
-                "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&w=240&h=240&q=80"
-              },
-              {
-                "quote": "Family engagement skyrocketed after we launched StewardTrack journeys for caregivers in multiple languages.",
-                "author": "Dr. Leila Morgan",
-                "role": "Chief Academic Officer",
-                "company": "Aurora Charter Network",
-                "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=240&h=240&q=80"
-              },
-              {
-                "quote": "Grant reporting takes minutes now that every artifact and outcome lives inside StewardTrack.",
-                "author": "Jordan Kline",
-                "role": "Director of Grants",
-                "company": "Summit STEM",
-                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-education-transformation.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>Teachers binge the micro-lessons on their phones between classes. Adoption has been our fastest yet.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Anika Flores</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Learning Innovation</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Crestview Unified</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Principals finally have visibility into staff progress without downloading a single spreadsheet.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Mason Clarke</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Assistant Superintendent</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Lakeside Schools</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Family engagement skyrocketed after we launched StewardTrack journeys for caregivers in multiple languages.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Dr. Leila Morgan</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Academic Officer</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Aurora Charter Network</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Grant reporting takes minutes now that every artifact and outcome lives inside StewardTrack.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Jordan Kline</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Grants</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Summit STEM</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

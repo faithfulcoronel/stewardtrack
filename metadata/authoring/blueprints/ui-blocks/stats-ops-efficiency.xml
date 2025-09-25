@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/ops-efficiency"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/ops-efficiency" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-ops-efficiency">
     <Title>UI Block: Stats - Operational efficiency</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">Operational excellence</Prop>
             <Prop name="headline" kind="static">Automation, reliability, and throughput at a glance</Prop>
             <Prop name="description" kind="static">Highlight the control room metrics that prove your operating model scales without sacrificing quality.</Prop>
-            <Prop name="metrics" kind="binding" source="opsMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="opsMetrics.items"/>
             <Prop name="footnote" kind="static">Metrics refresh every 15 minutes from the operations command center.</Prop>
           </Props>
         </Component>
@@ -25,40 +18,83 @@
     </Regions>
     <DataSources>
       <DataSource id="opsMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Automation coverage",
-                "value": "82%",
-                "change": "+11 pts",
-                "changeLabel": "YoY",
-                "description": "Core workflows executed without manual intervention."
-              },
-              {
-                "label": "Mean resolution time",
-                "value": "2.4 hrs",
-                "change": "-38%",
-                "changeLabel": "YoY",
-                "description": "Average time to resolve priority incidents across global regions."
-              },
-              {
-                "label": "Release frequency",
-                "value": "148 / month",
-                "change": "+21%",
-                "changeLabel": "YoY",
-                "description": "Production deployments with automated verification."
-              },
-              {
-                "label": "Change failure rate",
-                "value": "1.8%",
-                "change": "-0.6 pts",
-                "changeLabel": "YoY",
-                "description": "Deployments requiring rollback or emergency remediation."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-ops-efficiency.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Automation coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>82%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+11 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Core workflows executed without manual intervention.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Mean resolution time</Value>
+                </Field>
+                <Field name="value">
+                  <Value>2.4 hrs</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-38%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Average time to resolve priority incidents across global regions.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Release frequency</Value>
+                </Field>
+                <Field name="value">
+                  <Value>148 / month</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+21%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Production deployments with automated verification.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Change failure rate</Value>
+                </Field>
+                <Field name="value">
+                  <Value>1.8%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-0.6 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Deployments requiring rollback or emergency remediation.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

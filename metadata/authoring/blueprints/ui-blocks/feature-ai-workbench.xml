@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/ai-workbench"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/ai-workbench" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-ai-workbench">
     <Title>UI Block: AI workbench feature section</Title>
     <Regions>
@@ -18,46 +11,70 @@
             <Prop name="title" kind="static">Operationalize machine intelligence in days</Prop>
             <Prop name="description" kind="static">Bundle prompts, evaluation harnesses, and human-in-the-loop reviews into a governed workspace teams actually trust.</Prop>
             <Prop name="highlight" kind="static">Security and platform teams get consolidated audit trails while product squads experiment safely.</Prop>
-            <Prop name="features" kind="binding" source="workbenchHighlights" path="items" />
-            <Prop name="image" kind="binding" source="workbenchMedia" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="tour-workbench" />
-            <Prop name="secondaryCta" kind="action" actionId="review-architecture" />
+            <Prop name="features" kind="binding" contract="workbenchHighlights.items"/>
+            <Prop name="image" kind="binding" contract="workbenchMedia.value"/>
+            <Prop name="primaryCta" kind="action" actionId="tour-workbench"/>
+            <Prop name="secondaryCta" kind="action" actionId="review-architecture"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="workbenchHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Prompt versioning",
-                "description": "Compare quality scores and safety checks across every release in a single diff view."
-              },
-              {
-                "title": "Evaluator studio",
-                "description": "Blend automated metrics with calibrated human rubrics for nuanced generative tasks."
-              },
-              {
-                "title": "Isolation sandboxes",
-                "description": "Spin up governed environments with per-model secrets, guardrails, and access policies."
-              },
-              {
-                "title": "Feedback signals",
-                "description": "Route real user reactions into retraining pipelines without compromising privacy."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-ai-workbench.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Prompt versioning</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Compare quality scores and safety checks across every release in a single diff view.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Evaluator studio</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend automated metrics with calibrated human rubrics for nuanced generative tasks.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Isolation sandboxes</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Spin up governed environments with per-model secrets, guardrails, and access policies.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Feedback signals</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Route real user reactions into retraining pipelines without compromising privacy.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="workbenchMedia" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&fit=crop&w=1600&q=80",
-            "alt": "Team collaborating around AI dashboards"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for feature-ai-workbench.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&amp;fit=crop&amp;w=1600&amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Team collaborating around AI dashboards</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="feature/content-lifecycle"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="feature/content-lifecycle" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-feature-content-lifecycle">
     <Title>UI Block: Content lifecycle feature section</Title>
     <Regions>
@@ -17,42 +10,69 @@
             <Prop name="eyebrow" kind="static">Content operations</Prop>
             <Prop name="title" kind="static">Plan, produce, and measure from one canvas</Prop>
             <Prop name="description" kind="static">Help editorial, demand gen, and product marketing teams align on priorities, briefs, and performance loops.</Prop>
-            <Prop name="features" kind="binding" source="contentHighlights" path="items" />
+            <Prop name="features" kind="binding" contract="contentHighlights.items"/>
             <Prop name="highlight" kind="static">Repurpose winning assets into localized campaigns with automated approvals and translation handoffs.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="launch-editorial-hub" />
-            <Prop name="secondaryCta" kind="action" actionId="view-content-metrics" />
+            <Prop name="primaryCta" kind="action" actionId="launch-editorial-hub"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-content-metrics"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="contentHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "icon": "🗂️",
-                "title": "Editorial calendar",
-                "description": "Visualize production stages, owners, and deadlines across every channel."
-              },
-              {
-                "icon": "📝",
-                "title": "Brief builder",
-                "description": "Standardize research, messaging, and SEO requirements with smart templates."
-              },
-              {
-                "icon": "🔄",
-                "title": "Reuse matrix",
-                "description": "Track derivative assets and distribution experiments with performance tags."
-              },
-              {
-                "icon": "📣",
-                "title": "Stakeholder updates",
-                "description": "Automate rollups for execs, regional leads, and sales enablement teams."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for feature-content-lifecycle.features"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="icon">
+                  <Value>🗂️</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Editorial calendar</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Visualize production stages, owners, and deadlines across every channel.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📝</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Brief builder</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Standardize research, messaging, and SEO requirements with smart templates.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>🔄</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Reuse matrix</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Track derivative assets and distribution experiments with performance tags.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="icon">
+                  <Value>📣</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Stakeholder updates</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Automate rollups for execs, regional leads, and sales enablement teams.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

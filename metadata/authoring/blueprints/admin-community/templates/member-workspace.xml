@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="admin-community"
-  route="templates/member-workspace"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="admin-community" route="templates/member-workspace" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="admin-community-template-member-workspace">
     <Title>Template · Member workspace</Title>
     <Regions>
@@ -14,163 +7,557 @@
         <Component id="workspace-profile" type="AdminMemberWorkspace">
           <Props>
             <Prop name="variant" kind="static">profile</Prop>
-            <Prop name="tabs" kind="binding" source="workspaceTemplate" path="$.profile.tabs" />
-            <Prop name="emptyState" kind="binding" source="workspaceTemplate" path="$.profile.emptyState" />
+            <Prop name="tabs" kind="binding" contract="workspaceTemplate.tabs"/>
+            <Prop name="emptyState" kind="binding" contract="workspaceTemplate.emptyState"/>
           </Props>
         </Component>
         <Component id="workspace-manage" type="AdminMemberWorkspace">
           <Props>
             <Prop name="variant" kind="static">manage</Prop>
-            <Prop name="tabs" kind="binding" source="workspaceTemplate" path="$.manage.tabs" />
-            <Prop name="form" kind="binding" source="workspaceTemplate" path="$.manage.form" />
+            <Prop name="tabs" kind="binding" contract="workspaceTemplate.tabs"/>
+            <Prop name="form" kind="binding" contract="workspaceTemplate.form"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="workspaceTemplate" kind="static">
-        <Json><![CDATA[
-          {
-            "profile": {
-              "emptyState": {
-                "title": "No member data",
-                "description": "This template requires a tab definition to render workspace content."
-              },
-              "tabs": [
-                {
-                  "id": "identity",
-                  "label": "Identity",
-                  "description": "Household profile, contact preferences, and emergency contacts.",
-                  "sections": [
-                    {
-                      "kind": "panel",
-                      "id": "identity-basics",
-                      "title": "Identity & household",
-                      "summary": {
-                        "label": "Household",
-                        "value": "Johnson family",
-                        "description": "Envelope #2041 · Individual assignment"
-                      },
-                      "panels": [
-                        {
-                          "title": "Profile",
-                          "items": [
-                            { "label": "Preferred name", "value": "Avery" },
-                            { "label": "Envelope number", "value": "2041" },
-                            { "label": "Birthdate", "value": "1986-05-12" },
-                            { "label": "Marital status", "value": "Married" }
-                          ]
-                        },
-                        {
-                          "title": "Household",
-                          "items": [
-                            { "label": "Members", "type": "chips", "items": ["Avery", "Jordan", "Micah", "Selah"] },
-                            { "label": "Address", "type": "multiline", "value": "412 Hope Ave\nSpringfield, IL 62704" }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "engagement",
-                  "label": "Engagement",
-                  "description": "Groups, serving rhythm, and attendance signals.",
-                  "sections": [
-                    {
-                      "kind": "panel",
-                      "id": "engagement-overview",
-                      "title": "Groups & attendance",
-                      "panels": [
-                        {
-                          "title": "Communities",
-                          "items": [
-                            { "label": "Groups", "type": "chips", "items": ["Leadership Cohort", "Hospitality" ] },
-                            { "label": "Attendance", "value": "92% last 12 weeks" },
-                            { "label": "Last check-in", "value": "2024-10-13" }
-                          ]
-                        },
-                        {
-                          "title": "Serving",
-                          "items": [
-                            { "label": "Team", "value": "Hospitality" },
-                            { "label": "Role", "value": "Usher captain" },
-                            { "label": "Coach", "value": "Rachel Kim" }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            "manage": {
-              "form": {
-                "initialValues": {
-                  "firstName": "Avery",
-                  "lastName": "Johnson",
-                  "email": "avery.johnson@example.org",
-                  "phone": "(555) 204-1188",
-                  "stage": "active",
-                  "careStatus": "active"
-                },
-                "submitLabel": "Save member",
-                "cancelAction": {
-                  "config": { "label": "Back to profile", "url": "/admin/members/mem_001", "variant": "ghost" }
-                },
-                "submitAction": {
-                  "config": { "handler": "admin-community.members.manage.saveMember" }
-                },
-                "mode": "edit",
-                "footnote": "Workspace template demo"
-              },
-              "tabs": [
-                {
-                  "id": "profile",
-                  "label": "Profile basics",
-                  "sections": [
-                    {
-                      "kind": "form",
-                      "id": "identity",
-                      "title": "Identity",
-                      "description": "Names, household, and demographics.",
-                      "fields": [
-                        { "name": "firstName", "label": "First name", "type": "text", "colSpan": "half", "required": true },
-                        { "name": "lastName", "label": "Last name", "type": "text", "colSpan": "half", "required": true },
-                        { "name": "birthdate", "label": "Birthdate", "type": "date", "colSpan": "half" },
-                        { "name": "maritalStatus", "label": "Marital status", "type": "select", "colSpan": "half", "options": [
-                          { "label": "Single", "value": "single" },
-                          { "label": "Married", "value": "married" },
-                          { "label": "Widowed", "value": "widowed" }
-                        ] }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "care",
-                  "label": "Care",
-                  "sections": [
-                    {
-                      "kind": "form",
-                      "id": "care-section",
-                      "title": "Care plan",
-                      "fields": [
-                        { "name": "careStatus", "label": "Care status", "type": "select", "colSpan": "half", "options": [
-                          { "label": "Active", "value": "active" },
-                          { "label": "Observation", "value": "observation" },
-                          { "label": "Resolved", "value": "resolved" }
-                        ] },
-                        { "name": "carePastor", "label": "Assigned pastor", "type": "text", "colSpan": "half" },
-                        { "name": "pastoralNotes", "label": "Pastoral notes", "type": "textarea", "colSpan": "full" }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="tabs" path="$.profile.tabs" description="Binding for workspace-profile.tabs"/>
+          <Field name="emptyState" path="$.profile.emptyState" description="Binding for workspace-profile.emptyState"/>
+          <Field name="form" path="$.manage.form" description="Binding for workspace-manage.form"/>
+        </Contract>
+        <Data>
+          <Field name="profile">
+            <Object>
+              <Field name="emptyState">
+                <Object>
+                  <Field name="title">
+                    <Value>No member data</Value>
+                  </Field>
+                  <Field name="description">
+                    <Value>This template requires a tab definition to render workspace content.</Value>
+                  </Field>
+                </Object>
+              </Field>
+              <Field name="tabs">
+                <Array>
+                  <Object>
+                    <Field name="id">
+                      <Value>identity</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Identity</Value>
+                    </Field>
+                    <Field name="description">
+                      <Value>Household profile, contact preferences, and emergency contacts.</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>panel</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>identity-basics</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Identity &amp; household</Value>
+                          </Field>
+                          <Field name="summary">
+                            <Object>
+                              <Field name="label">
+                                <Value>Household</Value>
+                              </Field>
+                              <Field name="value">
+                                <Value>Johnson family</Value>
+                              </Field>
+                              <Field name="description">
+                                <Value>Envelope #2041 · Individual assignment</Value>
+                              </Field>
+                            </Object>
+                          </Field>
+                          <Field name="panels">
+                            <Array>
+                              <Object>
+                                <Field name="title">
+                                  <Value>Profile</Value>
+                                </Field>
+                                <Field name="items">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Preferred name</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>Avery</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Envelope number</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>2041</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Birthdate</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>1986-05-12</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Marital status</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>Married</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="title">
+                                  <Value>Household</Value>
+                                </Field>
+                                <Field name="items">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Members</Value>
+                                      </Field>
+                                      <Field name="type">
+                                        <Value>chips</Value>
+                                      </Field>
+                                      <Field name="items">
+                                        <Array>
+                                          <Value>Avery</Value>
+                                          <Value>Jordan</Value>
+                                          <Value>Micah</Value>
+                                          <Value>Selah</Value>
+                                        </Array>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Address</Value>
+                                      </Field>
+                                      <Field name="type">
+                                        <Value>multiline</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>412 Hope Ave
+Springfield, IL 62704</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>engagement</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Engagement</Value>
+                    </Field>
+                    <Field name="description">
+                      <Value>Groups, serving rhythm, and attendance signals.</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>panel</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>engagement-overview</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Groups &amp; attendance</Value>
+                          </Field>
+                          <Field name="panels">
+                            <Array>
+                              <Object>
+                                <Field name="title">
+                                  <Value>Communities</Value>
+                                </Field>
+                                <Field name="items">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Groups</Value>
+                                      </Field>
+                                      <Field name="type">
+                                        <Value>chips</Value>
+                                      </Field>
+                                      <Field name="items">
+                                        <Array>
+                                          <Value>Leadership Cohort</Value>
+                                          <Value>Hospitality</Value>
+                                        </Array>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Attendance</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>92% last 12 weeks</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Last check-in</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>2024-10-13</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="title">
+                                  <Value>Serving</Value>
+                                </Field>
+                                <Field name="items">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Team</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>Hospitality</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Role</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>Usher captain</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Coach</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>Rachel Kim</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Array>
+              </Field>
+            </Object>
+          </Field>
+          <Field name="manage">
+            <Object>
+              <Field name="form">
+                <Object>
+                  <Field name="initialValues">
+                    <Object>
+                      <Field name="firstName">
+                        <Value>Avery</Value>
+                      </Field>
+                      <Field name="lastName">
+                        <Value>Johnson</Value>
+                      </Field>
+                      <Field name="email">
+                        <Value>avery.johnson@example.org</Value>
+                      </Field>
+                      <Field name="phone">
+                        <Value>(555) 204-1188</Value>
+                      </Field>
+                      <Field name="stage">
+                        <Value>active</Value>
+                      </Field>
+                      <Field name="careStatus">
+                        <Value>active</Value>
+                      </Field>
+                    </Object>
+                  </Field>
+                  <Field name="submitLabel">
+                    <Value>Save member</Value>
+                  </Field>
+                  <Field name="cancelAction">
+                    <Object>
+                      <Field name="config">
+                        <Object>
+                          <Field name="label">
+                            <Value>Back to profile</Value>
+                          </Field>
+                          <Field name="url">
+                            <Value>/admin/members/mem_001</Value>
+                          </Field>
+                          <Field name="variant">
+                            <Value>ghost</Value>
+                          </Field>
+                        </Object>
+                      </Field>
+                    </Object>
+                  </Field>
+                  <Field name="submitAction">
+                    <Object>
+                      <Field name="config">
+                        <Object>
+                          <Field name="handler">
+                            <Value>admin-community.members.manage.saveMember</Value>
+                          </Field>
+                        </Object>
+                      </Field>
+                    </Object>
+                  </Field>
+                  <Field name="mode">
+                    <Value>edit</Value>
+                  </Field>
+                  <Field name="footnote">
+                    <Value>Workspace template demo</Value>
+                  </Field>
+                </Object>
+              </Field>
+              <Field name="tabs">
+                <Array>
+                  <Object>
+                    <Field name="id">
+                      <Value>profile</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Profile basics</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>identity</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Identity</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Names, household, and demographics.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>firstName</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>First name</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="required">
+                                  <Value>true</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>lastName</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Last name</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="required">
+                                  <Value>true</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>birthdate</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Birthdate</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>date</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>maritalStatus</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Marital status</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Single</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>single</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Married</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>married</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Widowed</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>widowed</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>care</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Care</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>care-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Care plan</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>careStatus</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Care status</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Active</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>active</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Observation</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>observation</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Resolved</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>resolved</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>carePastor</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Assigned pastor</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>pastoralNotes</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Pastoral notes</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>textarea</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>full</Value>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
+                </Array>
+              </Field>
+            </Object>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

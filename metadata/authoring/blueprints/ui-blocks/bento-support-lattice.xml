@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/support-lattice"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/support-lattice" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-support-lattice">
     <Title>UI Block: Support lattice bento grid</Title>
     <Regions>
@@ -17,91 +10,179 @@
             <Prop name="eyebrow" kind="static">Customer support</Prop>
             <Prop name="headline" kind="static">Resolve issues faster with context-rich assistance</Prop>
             <Prop name="description" kind="static">Blend intelligence, automation, and human empathy into a support lattice tuned for every channel.</Prop>
-            <Prop name="cards" kind="binding" source="supportLatticeCards" path="items" />
-            <Prop name="metrics" kind="binding" source="supportLatticeMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="launch-support-center" />
-            <Prop name="secondaryCta" kind="action" actionId="view-playbooks" />
+            <Prop name="cards" kind="binding" contract="supportLatticeCards.items"/>
+            <Prop name="metrics" kind="binding" contract="supportLatticeMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-support-center"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-playbooks"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="supportLatticeCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Routing",
-                "title": "Signal-aware triage",
-                "description": "Route cases by sentiment, tier, and predicted effort with live workload balancing.",
-                "tone": "surface"
-              },
-              {
-                "eyebrow": "Assist",
-                "title": "Copilot workspace",
-                "description": "Pull recent interactions, docs, and product telemetry into sidekick cards.",
-                "tone": "dark"
-              },
-              {
-                "badge": "Knowledge",
-                "title": "Content engine",
-                "description": "Author guides with approval flows, translation memory, and freshness alerts.",
-                "tone": "brand"
-              },
-              {
-                "eyebrow": "Automation",
-                "title": "Proactive heal",
-                "description": "Trigger config fixes and safe-mode restarts directly from incident insights.",
-                "tone": "forest"
-              },
-              {
-                "eyebrow": "Voice",
-                "title": "Quality studio",
-                "description": "Score calls, transcripts, and satisfaction signals with calibration loops.",
-                "tone": "sand"
-              },
-              {
-                "badge": "Insights",
-                "stat": "87",
-                "title": "CSAT index",
-                "description": "Blend survey, emoji, and adoption telemetry to monitor satisfaction.",
-                "tone": "frost"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-support-lattice.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Routing</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Signal-aware triage</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Route cases by sentiment, tier, and predicted effort with live workload balancing.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>surface</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Assist</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Copilot workspace</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Pull recent interactions, docs, and product telemetry into sidekick cards.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Knowledge</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Content engine</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Author guides with approval flows, translation memory, and freshness alerts.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>brand</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Automation</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Proactive heal</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trigger config fixes and safe-mode restarts directly from incident insights.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Voice</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Quality studio</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Score calls, transcripts, and satisfaction signals with calibration loops.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>sand</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Insights</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>87</Value>
+                </Field>
+                <Field name="title">
+                  <Value>CSAT index</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blend survey, emoji, and adoption telemetry to monitor satisfaction.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>frost</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="supportLatticeMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "First response",
-                "value": "3m 42s",
-                "change": "↓ 29% after lattice rollout",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Resolution rate",
-                "value": "94%",
-                "change": "Within 24 hours",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Backlog",
-                "value": "62",
-                "change": "-41 cases week-over-week",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Escalations",
-                "value": "3.2%",
-                "change": "Stabilized below target",
-                "sentiment": "neutral"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-support-lattice.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>First response</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3m 42s</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↓ 29% after lattice rollout</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Resolution rate</Value>
+                </Field>
+                <Field name="value">
+                  <Value>94%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Within 24 hours</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Backlog</Value>
+                </Field>
+                <Field name="value">
+                  <Value>62</Value>
+                </Field>
+                <Field name="change">
+                  <Value>-41 cases week-over-week</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Escalations</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3.2%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Stabilized below target</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

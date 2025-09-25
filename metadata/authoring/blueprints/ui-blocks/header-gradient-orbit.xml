@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/gradient-orbit"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/gradient-orbit" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-gradient-orbit">
     <Title>UI Block: Gradient orbit header</Title>
     <Regions>
@@ -19,23 +12,26 @@
             <Prop name="headline" kind="static">Blueprint Orbit is live</Prop>
             <Prop name="highlight" kind="static">Product launch</Prop>
             <Prop name="description" kind="static">Bring attention to a flagship release with a cinematic gradient header that cues the story and invites deeper exploration.</Prop>
-            <Prop name="highlights" kind="binding" source="orbitHighlights" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="view-roadmap" />
-            <Prop name="secondaryCta" kind="action" actionId="read-blog" />
+            <Prop name="highlights" kind="binding" contract="orbitHighlights.value"/>
+            <Prop name="primaryCta" kind="action" actionId="view-roadmap"/>
+            <Prop name="secondaryCta" kind="action" actionId="read-blog"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="orbitHighlights" kind="static">
-        <Json><![CDATA[
-          [
-            "Orchestrate product, marketing, and success milestones in one canvas",
-            "Launch guided onboarding built from reusable blueprints",
-            "Automate launch alerts directly into the channels your teams trust",
-            "Measure activation with decision-ready dashboards"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-gradient-orbit.highlights"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Orchestrate product, marketing, and success milestones in one canvas</Value>
+            <Value>Launch guided onboarding built from reusable blueprints</Value>
+            <Value>Automate launch alerts directly into the channels your teams trust</Value>
+            <Value>Measure activation with decision-ready dashboards</Value>
+          </Array>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

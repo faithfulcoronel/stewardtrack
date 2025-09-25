@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="testimonials/innovation-leaders"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="testimonials/innovation-leaders" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-testimonials-innovation-leaders">
     <Title>UI Block: Testimonials - Innovation leaders</Title>
     <Regions>
@@ -17,76 +10,163 @@
             <Prop name="eyebrow" kind="static">Innovation leaders</Prop>
             <Prop name="headline" kind="static">Innovation teams scale discovery with measurable outcomes</Prop>
             <Prop name="description" kind="static">Quantify results alongside customer quotes. Use this layout for ROI landing pages, analyst recaps, or board updates.</Prop>
-            <Prop name="testimonials" kind="binding" source="innovationTestimonials" path="items" />
+            <Prop name="testimonials" kind="binding" contract="innovationTestimonials.items"/>
             <Prop name="footnote" kind="static">Metrics reflect reported customer outcomes aggregated across StewardTrack programs.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="view-roi" />
-            <Prop name="secondaryCta" kind="action" actionId="calculate-benefits" />
+            <Prop name="primaryCta" kind="action" actionId="view-roi"/>
+            <Prop name="secondaryCta" kind="action" actionId="calculate-benefits"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="innovationTestimonials" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "quote": "We cut experiment lead time by half while doubling validated insights each quarter.",
-                "author": "Noelle Park",
-                "role": "Director of Product Discovery",
-                "company": "Fathom Labs",
-                "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Experiment velocity",
-                "metricValue": "2.1x"
-              },
-              {
-                "quote": "Our innovation guild shares reusable playbooks so satellite teams move just as fast as HQ.",
-                "author": "Lionel Harper",
-                "role": "VP Strategy",
-                "company": "Helix Aero",
-                "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Launch cadence",
-                "metricValue": "+38%"
-              },
-              {
-                "quote": "Legal and security approve emerging pilots in days because context lives in one StewardTrack record.",
-                "author": "Anita Sethi",
-                "role": "Chief Innovation Counsel",
-                "company": "Blue River",
-                "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Review cycle",
-                "metricValue": "-61%"
-              },
-              {
-                "quote": "We connect qualitative insights directly to the KPIs execs care about, which secured next year's budget.",
-                "author": "Ruth Delgado",
-                "role": "Innovation Portfolio Lead",
-                "company": "Vertex Dynamics",
-                "avatarUrl": "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Budget expansion",
-                "metricValue": "+24%"
-              },
-              {
-                "quote": "Customer advisory boards contribute directly to opportunity sizing because their inputs live in StewardTrack.",
-                "author": "Stephen Osei",
-                "role": "Head of Corporate Ventures",
-                "company": "NovaWorks",
-                "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Qual insights reused",
-                "metricValue": "3.4x"
-              },
-              {
-                "quote": "We productized internal experiments into offerings 6 months faster thanks to StewardTrack automation.",
-                "author": "Emily Cho",
-                "role": "GM New Ventures",
-                "company": "Summit Works",
-                "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=240&h=240&q=80",
-                "metricLabel": "Time to market",
-                "metricValue": "-27%"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for testimonials-innovation-leaders.testimonials"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="quote">
+                  <Value>We cut experiment lead time by half while doubling validated insights each quarter.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Noelle Park</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Director of Product Discovery</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Fathom Labs</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Experiment velocity</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>2.1x</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Our innovation guild shares reusable playbooks so satellite teams move just as fast as HQ.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Lionel Harper</Value>
+                </Field>
+                <Field name="role">
+                  <Value>VP Strategy</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Helix Aero</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Launch cadence</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>+38%</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Legal and security approve emerging pilots in days because context lives in one StewardTrack record.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Anita Sethi</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Chief Innovation Counsel</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Blue River</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Review cycle</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>-61%</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We connect qualitative insights directly to the KPIs execs care about, which secured next year&apos;s budget.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Ruth Delgado</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Innovation Portfolio Lead</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Vertex Dynamics</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Budget expansion</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>+24%</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>Customer advisory boards contribute directly to opportunity sizing because their inputs live in StewardTrack.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Stephen Osei</Value>
+                </Field>
+                <Field name="role">
+                  <Value>Head of Corporate Ventures</Value>
+                </Field>
+                <Field name="company">
+                  <Value>NovaWorks</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Qual insights reused</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>3.4x</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="quote">
+                  <Value>We productized internal experiments into offerings 6 months faster thanks to StewardTrack automation.</Value>
+                </Field>
+                <Field name="author">
+                  <Value>Emily Cho</Value>
+                </Field>
+                <Field name="role">
+                  <Value>GM New Ventures</Value>
+                </Field>
+                <Field name="company">
+                  <Value>Summit Works</Value>
+                </Field>
+                <Field name="avatarUrl">
+                  <Value>https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=facearea&amp;w=240&amp;h=240&amp;q=80</Value>
+                </Field>
+                <Field name="metricLabel">
+                  <Value>Time to market</Value>
+                </Field>
+                <Field name="metricValue">
+                  <Value>-27%</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

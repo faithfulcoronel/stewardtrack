@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/download-guide"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/download-guide" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-download-guide">
     <Title>UI Block: Download guide CTA</Title>
     <Regions>
@@ -17,33 +10,62 @@
             <Prop name="eyebrow" kind="static">Implementation guide</Prop>
             <Prop name="headline" kind="static">Download the schema operations playbook</Prop>
             <Prop name="description" kind="static">A 34-page walkthrough covering governance models, release rituals, and KPI measurement frameworks for metadata programs.</Prop>
-            <Prop name="resource" kind="binding" source="playbookResource" path="$" />
-            <Prop name="steps" kind="binding" source="playbookSteps" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="download-guide" />
-            <Prop name="secondaryCta" kind="action" actionId="share-team" />
+            <Prop name="resource" kind="binding" contract="playbookResource.value"/>
+            <Prop name="steps" kind="binding" contract="playbookSteps.items"/>
+            <Prop name="primaryCta" kind="action" actionId="download-guide"/>
+            <Prop name="secondaryCta" kind="action" actionId="share-team"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="playbookResource" kind="static">
-        <Json><![CDATA[
-          {
-            "label": "StewardTrack schema operations playbook.pdf",
-            "meta": "34 pages • Includes editable templates"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for cta-download-guide.resource"/>
+        </Contract>
+        <Data>
+          <Field name="label">
+            <Value>StewardTrack schema operations playbook.pdf</Value>
+          </Field>
+          <Field name="meta">
+            <Value>34 pages • Includes editable templates</Value>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="playbookSteps" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "title": "Benchmark readiness", "description": "Assess current tooling, governance, and publisher roles." },
-              { "title": "Design your schema", "description": "Model hero, CTA, and feature primitives with extensibility." },
-              { "title": "Roll out in waves", "description": "Plan enablement, QA rituals, and feedback cadences." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-download-guide.steps"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Benchmark readiness</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Assess current tooling, governance, and publisher roles.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Design your schema</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Model hero, CTA, and feature primitives with extensibility.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Roll out in waves</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Plan enablement, QA rituals, and feedback cadences.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

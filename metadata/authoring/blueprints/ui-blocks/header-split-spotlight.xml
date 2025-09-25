@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="header/split-spotlight"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="header/split-spotlight" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-header-split-spotlight">
     <Title>UI Block: Split spotlight header</Title>
     <Regions>
@@ -17,31 +10,39 @@
             <Prop name="eyebrow" kind="static">Workflow spotlight</Prop>
             <Prop name="headline" kind="static">Personalize onboarding at scale</Prop>
             <Prop name="description" kind="static">Pair a focused narrative with supporting highlights and a contextual image to preview a product workflow or program.</Prop>
-            <Prop name="highlights" kind="binding" source="spotlightHighlights" path="$" />
-            <Prop name="image" kind="binding" source="spotlightImage" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="launch-workflows" />
-            <Prop name="secondaryCta" kind="action" actionId="see-library" />
+            <Prop name="highlights" kind="binding" contract="spotlightHighlights.value"/>
+            <Prop name="image" kind="binding" contract="spotlightImage.value"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-workflows"/>
+            <Prop name="secondaryCta" kind="action" actionId="see-library"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="spotlightHighlights" kind="static">
-        <Json><![CDATA[
-          [
-            "Segment audiences by lifecycle triggers and intent",
-            "Feed product usage into nurture journeys automatically",
-            "Unlock partner accelerators with curated templates"
-          ]
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-split-spotlight.highlights"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Value>Segment audiences by lifecycle triggers and intent</Value>
+            <Value>Feed product usage into nurture journeys automatically</Value>
+            <Value>Unlock partner accelerators with curated templates</Value>
+          </Array>
+        </Data>
       </DataSource>
       <DataSource id="spotlightImage" kind="static">
-        <Json><![CDATA[
-          {
-            "src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
-            "alt": "Team collaboration interface preview"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for header-split-spotlight.image"/>
+        </Contract>
+        <Data>
+          <Field name="src">
+            <Value>https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&amp;fit=crop&amp;w=1200&amp;q=80</Value>
+          </Field>
+          <Field name="alt">
+            <Value>Team collaboration interface preview</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

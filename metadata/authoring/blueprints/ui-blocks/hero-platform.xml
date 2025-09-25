@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="hero/platform"
-  schemaVersion="1.0.0"
-  contentVersion="2.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="hero/platform" schemaVersion="1.0.0" contentVersion="2.0.0" locale="en-US">
   <Page id="ui-blocks-hero-platform">
     <Title>UI Block: Platform hero</Title>
     <Regions>
@@ -17,24 +10,48 @@
             <Prop name="eyebrow" kind="static">Platform core</Prop>
             <Prop name="headline" kind="static">Turn metadata into a composable system</Prop>
             <Prop name="description" kind="static">Anchor your hero around three pillars and let visitors dive deeper with card callouts.</Prop>
-            <Prop name="cards" kind="binding" source="platformCards" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="view-platform" />
-            <Prop name="secondaryCta" kind="action" actionId="talk-platform" />
+            <Prop name="cards" kind="binding" contract="platformCards.items"/>
+            <Prop name="primaryCta" kind="action" actionId="view-platform"/>
+            <Prop name="secondaryCta" kind="action" actionId="talk-platform"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="platformCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "title": "Orchestrate", "description": "Coordinate page, data, and action layers from a unified schema." },
-              { "title": "Experiment", "description": "Toggle variants and rollout flags without shipping new code." },
-              { "title": "Observe", "description": "Trace lineage from XML through compiled assets to runtime." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-platform.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Orchestrate</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Coordinate page, data, and action layers from a unified schema.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Experiment</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Toggle variants and rollout flags without shipping new code.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Observe</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Trace lineage from XML through compiled assets to runtime.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

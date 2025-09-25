@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/sustainability-impact"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/sustainability-impact" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-sustainability-impact">
     <Title>UI Block: Stats - Sustainability impact</Title>
     <Regions>
@@ -17,8 +10,8 @@
             <Prop name="eyebrow" kind="static">Sustainability impact</Prop>
             <Prop name="headline" kind="static">Proof points for climate-conscious customers</Prop>
             <Prop name="description" kind="static">Pair your sustainability narrative with metrics that procurement and ESG leaders require before signing.</Prop>
-            <Prop name="metrics" kind="binding" source="sustainabilityMetrics" path="items" />
-            <Prop name="highlights" kind="binding" source="sustainabilityHighlights" path="items" />
+            <Prop name="metrics" kind="binding" contract="sustainabilityMetrics.items"/>
+            <Prop name="highlights" kind="binding" contract="sustainabilityHighlights.items"/>
             <Prop name="footnote" kind="static">Data independently assured under GRI and CDP frameworks.</Prop>
           </Props>
         </Component>
@@ -26,51 +19,97 @@
     </Regions>
     <DataSources>
       <DataSource id="sustainabilityMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Carbon avoided",
-                "value": "4.8k tCO₂e",
-                "change": "+18%",
-                "changeLabel": "YoY",
-                "description": "Customer programs powered by shared infrastructure."
-              },
-              {
-                "label": "Renewable energy",
-                "value": "92%",
-                "change": "+11 pts",
-                "changeLabel": "YoY",
-                "description": "Facilities operating on certified renewable sources."
-              },
-              {
-                "label": "Circular materials",
-                "value": "68%",
-                "change": "+9 pts",
-                "changeLabel": "YoY",
-                "description": "Hardware sourced from circular supply partners."
-              },
-              {
-                "label": "Community hours",
-                "value": "12,400",
-                "change": "+2.1k",
-                "changeLabel": "Volunteer",
-                "description": "Employee volunteering hours contributed annually."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-sustainability-impact.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Carbon avoided</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.8k tCO₂e</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Customer programs powered by shared infrastructure.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Renewable energy</Value>
+                </Field>
+                <Field name="value">
+                  <Value>92%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+11 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Facilities operating on certified renewable sources.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Circular materials</Value>
+                </Field>
+                <Field name="value">
+                  <Value>68%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+9 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Hardware sourced from circular supply partners.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Community hours</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12,400</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+2.1k</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>Volunteer</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Employee volunteering hours contributed annually.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="sustainabilityHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              "Science Based Targets initiative aligned",
-              "Audited sustainability disclosures (GRI)",
-              "Public impact dashboard refreshed quarterly"
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-sustainability-impact.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Value>Science Based Targets initiative aligned</Value>
+              <Value>Audited sustainability disclosures (GRI)</Value>
+              <Value>Public impact dashboard refreshed quarterly</Value>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

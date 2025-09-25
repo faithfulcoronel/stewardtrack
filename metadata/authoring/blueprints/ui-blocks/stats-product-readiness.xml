@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/product-readiness"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/product-readiness" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-product-readiness">
     <Title>UI Block: Stats - Product readiness</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">Release readiness</Prop>
             <Prop name="headline" kind="static">Ship releases with measurable confidence</Prop>
             <Prop name="description" kind="static">Coordinate product, engineering, and go-to-market milestones from discovery through launch on a single readiness rail.</Prop>
-            <Prop name="metrics" kind="binding" source="readinessMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="readinessMetrics.items"/>
             <Prop name="footnote" kind="static">Status refreshed 3 hours ago from the launch readiness dashboard.</Prop>
           </Props>
         </Component>
@@ -25,36 +18,71 @@
     </Regions>
     <DataSources>
       <DataSource id="readinessMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Discovery sign-off",
-                "value": "Day 10",
-                "description": "Cross-functional charter approved with funded scope."
-              },
-              {
-                "label": "Beta cohort engaged",
-                "value": "36 teams",
-                "change": "+12",
-                "changeLabel": "vs last launch",
-                "description": "Design partners validating production build in live environments."
-              },
-              {
-                "label": "Readiness score",
-                "value": "92%",
-                "change": "+8 pts",
-                "changeLabel": "QA index",
-                "description": "Automated regression suites and manual validation coverage."
-              },
-              {
-                "label": "Launch communications",
-                "value": "28 assets",
-                "description": "Localized release notes, webinars, and enablement ready to ship."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-product-readiness.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Discovery sign-off</Value>
+                </Field>
+                <Field name="value">
+                  <Value>Day 10</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Cross-functional charter approved with funded scope.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Beta cohort engaged</Value>
+                </Field>
+                <Field name="value">
+                  <Value>36 teams</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+12</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>vs last launch</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Design partners validating production build in live environments.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Readiness score</Value>
+                </Field>
+                <Field name="value">
+                  <Value>92%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+8 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>QA index</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Automated regression suites and manual validation coverage.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Launch communications</Value>
+                </Field>
+                <Field name="value">
+                  <Value>28 assets</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Localized release notes, webinars, and enablement ready to ship.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

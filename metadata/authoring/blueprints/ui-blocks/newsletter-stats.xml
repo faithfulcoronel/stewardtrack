@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/stats"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/stats" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-stats">
     <Title>UI Block: Newsletter stats glow</Title>
     <Regions>
@@ -17,47 +10,77 @@
             <Prop name="eyebrow" kind="static">StewardTrack Signals</Prop>
             <Prop name="headline" kind="static">Understand the health of your metadata pipeline</Prop>
             <Prop name="description" kind="static">A mid-week pulse on ingestion uptime, experiment velocity, and the automations teams are adopting right now.</Prop>
-            <Prop name="stats" kind="binding" source="statsMetrics" path="items" />
-            <Prop name="form" kind="binding" source="statsForm" path="$" />
-            <Prop name="primaryCta" kind="action" actionId="view-dashboard" />
-            <Prop name="secondaryCta" kind="action" actionId="download-sample" />
+            <Prop name="stats" kind="binding" contract="statsMetrics.items"/>
+            <Prop name="form" kind="binding" contract="statsForm.value"/>
+            <Prop name="primaryCta" kind="action" actionId="view-dashboard"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-sample"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="statsMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Average uptime",
-                "value": "99.4%",
-                "caption": "Across 12k ingestion jobs tracked last month."
-              },
-              {
-                "label": "Experiment lift",
-                "value": "+18%",
-                "caption": "Median activation improvement from metadata-led tests."
-              },
-              {
-                "label": "Lifecycle triggers",
-                "value": "43",
-                "caption": "Workflows subscribers automated in the last 30 days."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-stats.stats"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Average uptime</Value>
+                </Field>
+                <Field name="value">
+                  <Value>99.4%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Across 12k ingestion jobs tracked last month.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Experiment lift</Value>
+                </Field>
+                <Field name="value">
+                  <Value>+18%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Median activation improvement from metadata-led tests.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Lifecycle triggers</Value>
+                </Field>
+                <Field name="value">
+                  <Value>43</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Workflows subscribers automated in the last 30 days.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="statsForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "data.ops@company.com",
-            "buttonLabel": "Monitor my pipeline",
-            "disclaimer": "Sent every Wednesday with fresh telemetry.",
-            "url": "/newsletter/StewardTrack-signals/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-stats.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>data.ops@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Monitor my pipeline</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Sent every Wednesday with fresh telemetry.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/StewardTrack-signals/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/magazine"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/magazine" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-magazine">
     <Title>UI Block: Newsletter magazine grid</Title>
     <Regions>
@@ -17,67 +10,114 @@
             <Prop name="eyebrow" kind="static">Inside the workspace</Prop>
             <Prop name="headline" kind="static">StewardTrack Journal</Prop>
             <Prop name="description" kind="static">Stories from teams building composable experiences with metadata — spanning design systems, docs, and revenue enablement.</Prop>
-            <Prop name="highlights" kind="binding" source="magazineHighlights" path="items" />
-            <Prop name="cards" kind="binding" source="magazineCards" path="items" />
-            <Prop name="form" kind="binding" source="magazineForm" path="$" />
+            <Prop name="highlights" kind="binding" contract="magazineHighlights.items"/>
+            <Prop name="cards" kind="binding" contract="magazineCards.items"/>
+            <Prop name="form" kind="binding" contract="magazineForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="magazineHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Curated by editors",
-                "description": "Each issue blends interviews, architecture diagrams, and playbooks."
-              },
-              {
-                "title": "Team-tested",
-                "description": "We only share tactics that shipped to production and delivered measurable lift."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-magazine.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Curated by editors</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Each issue blends interviews, architecture diagrams, and playbooks.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Team-tested</Value>
+                </Field>
+                <Field name="description">
+                  <Value>We only share tactics that shipped to production and delivered measurable lift.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="magazineCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Playbook",
-                "title": "Metadata ops review template",
-                "description": "Run a 45-minute retro that keeps systems reliable while shipping faster."
-              },
-              {
-                "badge": "Case study",
-                "title": "How Atlas unified customer onboarding",
-                "description": "The frameworks that helped a 40-person team cut activation time by 32%."
-              },
-              {
-                "badge": "Interview",
-                "title": "Making docs part of the product",
-                "description": "Why the Northwind docs team ships schema updates in lockstep with releases."
-              },
-              {
-                "badge": "Toolbox",
-                "title": "Automation stack of the week",
-                "description": "APIs, queries, and triggers we used to move data between marketing and product."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-magazine.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Playbook</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Metadata ops review template</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Run a 45-minute retro that keeps systems reliable while shipping faster.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Case study</Value>
+                </Field>
+                <Field name="title">
+                  <Value>How Atlas unified customer onboarding</Value>
+                </Field>
+                <Field name="description">
+                  <Value>The frameworks that helped a 40-person team cut activation time by 32%.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Interview</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Making docs part of the product</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Why the Northwind docs team ships schema updates in lockstep with releases.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Toolbox</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Automation stack of the week</Value>
+                </Field>
+                <Field name="description">
+                  <Value>APIs, queries, and triggers we used to move data between marketing and product.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="magazineForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "editor@company.com",
-            "buttonLabel": "Send me the journal",
-            "disclaimer": "New issues every first Friday of the month.",
-            "url": "/newsletter/StewardTrack-journal/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-magazine.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>editor@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Send me the journal</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>New issues every first Friday of the month.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/StewardTrack-journal/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

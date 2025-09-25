@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="stats/talent-engagement"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="stats/talent-engagement" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-stats-talent-engagement">
     <Title>UI Block: Stats - Talent engagement</Title>
     <Regions>
@@ -17,7 +10,7 @@
             <Prop name="eyebrow" kind="static">People analytics</Prop>
             <Prop name="headline" kind="static">Keep top talent energized and growing</Prop>
             <Prop name="description" kind="static">Combine engagement, mobility, and diversity indicators to tell a compelling people story to your board.</Prop>
-            <Prop name="metrics" kind="binding" source="talentMetrics" path="items" />
+            <Prop name="metrics" kind="binding" contract="talentMetrics.items"/>
             <Prop name="footnote" kind="static">Aggregated from HRIS and engagement platforms each quarter.</Prop>
           </Props>
         </Component>
@@ -25,40 +18,83 @@
     </Regions>
     <DataSources>
       <DataSource id="talentMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Engagement score",
-                "value": "91",
-                "change": "+7 pts",
-                "changeLabel": "YoY",
-                "description": "Weighted by quarterly pulse across all regions."
-              },
-              {
-                "label": "Average tenure",
-                "value": "4.2 yrs",
-                "change": "+0.6 yrs",
-                "changeLabel": "YoY",
-                "description": "Across product and engineering teams."
-              },
-              {
-                "label": "Leadership diversity",
-                "value": "58%",
-                "change": "+9 pts",
-                "changeLabel": "YoY",
-                "description": "Women and non-binary leaders across director level and above."
-              },
-              {
-                "label": "Internal mobility",
-                "value": "32%",
-                "change": "+5 pts",
-                "changeLabel": "YoY",
-                "description": "Roles filled by existing employees year to date."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for stats-talent-engagement.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Engagement score</Value>
+                </Field>
+                <Field name="value">
+                  <Value>91</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+7 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Weighted by quarterly pulse across all regions.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Average tenure</Value>
+                </Field>
+                <Field name="value">
+                  <Value>4.2 yrs</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+0.6 yrs</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Across product and engineering teams.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Leadership diversity</Value>
+                </Field>
+                <Field name="value">
+                  <Value>58%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+9 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Women and non-binary leaders across director level and above.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Internal mobility</Value>
+                </Field>
+                <Field name="value">
+                  <Value>32%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>+5 pts</Value>
+                </Field>
+                <Field name="changeLabel">
+                  <Value>YoY</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Roles filled by existing employees year to date.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

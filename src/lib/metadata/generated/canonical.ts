@@ -79,7 +79,18 @@ export interface DataSource {
   config?: {
     [k: string]: unknown;
   };
+  contract?: DataContract;
   rbac?: Rbac;
+}
+export interface DataContract {
+  fields: {
+    [k: string]: DataContractField;
+  };
+}
+export interface DataContractField {
+  name: string;
+  path: string | null;
+  description?: string;
 }
 export interface Action {
   id: string;

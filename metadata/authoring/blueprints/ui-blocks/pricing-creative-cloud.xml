@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="pricing/creative-cloud"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="pricing/creative-cloud" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-pricing-creative-cloud">
     <Title>UI Block: Creative cloud pricing</Title>
     <Regions>
@@ -17,79 +10,144 @@
             <Prop name="eyebrow" kind="static">Creative operations</Prop>
             <Prop name="title" kind="static">Curate editorial, video, and motion design in one contract</Prop>
             <Prop name="description" kind="static">Studios and agencies use these bundles to align creative output with campaign cadences, approvals, and analytics.</Prop>
-            <Prop name="tiers" kind="binding" source="creativeCloudTiers" path="items" />
+            <Prop name="tiers" kind="binding" contract="creativeCloudTiers.items"/>
             <Prop name="footnote" kind="static">Production windows reset each quarter. Additional revision cycles billed at $90/hr.</Prop>
-            <Prop name="primaryCta" kind="action" actionId="book-creative-tour" />
+            <Prop name="primaryCta" kind="action" actionId="book-creative-tour"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="creativeCloudTiers" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "name": "Editorial",
-                "price": "$2,400",
-                "period": "month",
-                "description": "Build a consistent publishing cadence with briefs, production boards, and insight reports.",
-                "features": [
-                  "8 long-form assets",
-                  "SEO playbooks",
-                  "Review + approval workspace",
-                  "Analytics recaps"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Start editorial",
-                    "url": "/checkout?plan=editorial",
-                    "variant": "secondary"
-                  }
-                }
-              },
-              {
-                "name": "Video",
-                "price": "$4,100",
-                "period": "month",
-                "highlight": "Most requested",
-                "description": "Deliver product explainers, launch teasers, and customer stories with motion design support.",
-                "features": [
-                  "6 produced videos",
-                  "Storyboard collaboration",
-                  "Animation + subtitle kit",
-                  "Usage rights tracking"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Book video crew",
-                    "url": "/checkout?plan=video",
-                    "variant": "primary"
-                  }
-                }
-              },
-              {
-                "name": "Campaign",
-                "price": "Custom",
-                "period": "quarter",
-                "description": "Combine brand strategy, design systems, and cross-channel execution for integrated launches.",
-                "features": [
-                  "Integrated planning board",
-                  "24/7 creative hotline",
-                  "Localization management",
-                  "Attribution + performance dashboards"
-                ],
-                "cta": {
-                  "config": {
-                    "label": "Design campaign",
-                    "url": "/contact/creative-campaign",
-                    "variant": "primary"
-                  }
-                }
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for pricing-creative-cloud.tiers"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="name">
+                  <Value>Editorial</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$2,400</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Build a consistent publishing cadence with briefs, production boards, and insight reports.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>8 long-form assets</Value>
+                    <Value>SEO playbooks</Value>
+                    <Value>Review + approval workspace</Value>
+                    <Value>Analytics recaps</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Start editorial</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=editorial</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>secondary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Video</Value>
+                </Field>
+                <Field name="price">
+                  <Value>$4,100</Value>
+                </Field>
+                <Field name="period">
+                  <Value>month</Value>
+                </Field>
+                <Field name="highlight">
+                  <Value>Most requested</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Deliver product explainers, launch teasers, and customer stories with motion design support.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>6 produced videos</Value>
+                    <Value>Storyboard collaboration</Value>
+                    <Value>Animation + subtitle kit</Value>
+                    <Value>Usage rights tracking</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Book video crew</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/checkout?plan=video</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="name">
+                  <Value>Campaign</Value>
+                </Field>
+                <Field name="price">
+                  <Value>Custom</Value>
+                </Field>
+                <Field name="period">
+                  <Value>quarter</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Combine brand strategy, design systems, and cross-channel execution for integrated launches.</Value>
+                </Field>
+                <Field name="features">
+                  <Array>
+                    <Value>Integrated planning board</Value>
+                    <Value>24/7 creative hotline</Value>
+                    <Value>Localization management</Value>
+                    <Value>Attribution + performance dashboards</Value>
+                  </Array>
+                </Field>
+                <Field name="cta">
+                  <Object>
+                    <Field name="config">
+                      <Object>
+                        <Field name="label">
+                          <Value>Design campaign</Value>
+                        </Field>
+                        <Field name="url">
+                          <Value>/contact/creative-campaign</Value>
+                        </Field>
+                        <Field name="variant">
+                          <Value>primary</Value>
+                        </Field>
+                      </Object>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

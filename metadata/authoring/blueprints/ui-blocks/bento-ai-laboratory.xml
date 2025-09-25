@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="bento/ai-laboratory"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="bento/ai-laboratory" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-bento-ai-laboratory">
     <Title>UI Block: AI laboratory bento grid</Title>
     <Regions>
@@ -17,93 +10,185 @@
             <Prop name="eyebrow" kind="static">AI research</Prop>
             <Prop name="headline" kind="static">Prototype, evaluate, and deploy responsible AI faster</Prop>
             <Prop name="description" kind="static">Run guarded experiments, align stakeholders, and ship human-centered assistants with confidence.</Prop>
-            <Prop name="cards" kind="binding" source="aiLaboratoryCards" path="items" />
-            <Prop name="metrics" kind="binding" source="aiLaboratoryMetrics" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="open-model-studio" />
-            <Prop name="secondaryCta" kind="action" actionId="review-ethics" />
+            <Prop name="cards" kind="binding" contract="aiLaboratoryCards.items"/>
+            <Prop name="metrics" kind="binding" contract="aiLaboratoryMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="open-model-studio"/>
+            <Prop name="secondaryCta" kind="action" actionId="review-ethics"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="aiLaboratoryCards" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "badge": "Datasets",
-                "title": "Curated corpus vault",
-                "description": "Versioned prompt and response sets with lineage, consent, and regional handling tags.",
-                "tone": "violet"
-              },
-              {
-                "eyebrow": "Evaluation",
-                "title": "Safety matrix",
-                "description": "Pair human review queues with automated guardrails that score toxicity, bias, and hallucinations.",
-                "icon": "🧪",
-                "tone": "dark"
-              },
-              {
-                "eyebrow": "Playground",
-                "title": "Conversation sandboxes",
-                "description": "Spin up role-based trials with scripted goals and instrumentation for live transcripts.",
-                "tone": "marine",
-                "footnote": "Captures voice, chat, and workflow context."
-              },
-              {
-                "badge": "Governance",
-                "title": "Policy checkpoints",
-                "description": "Enforce sign-offs, data retention limits, and explainability disclosures before launch.",
-                "tone": "frost"
-              },
-              {
-                "eyebrow": "Deployment",
-                "stat": "42 mins",
-                "title": "Release pipeline",
-                "description": "Blueprint inference routing with rollback toggles and live performance hooks.",
-                "tone": "forest"
-              },
-              {
-                "eyebrow": "Community",
-                "title": "Research notebook",
-                "description": "Share findings, prompts, and replayable sessions with the broader product team.",
-                "tone": "light"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-ai-laboratory.cards"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="badge">
+                  <Value>Datasets</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Curated corpus vault</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Versioned prompt and response sets with lineage, consent, and regional handling tags.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>violet</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Evaluation</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Safety matrix</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Pair human review queues with automated guardrails that score toxicity, bias, and hallucinations.</Value>
+                </Field>
+                <Field name="icon">
+                  <Value>🧪</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>dark</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Playground</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Conversation sandboxes</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Spin up role-based trials with scripted goals and instrumentation for live transcripts.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>marine</Value>
+                </Field>
+                <Field name="footnote">
+                  <Value>Captures voice, chat, and workflow context.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="badge">
+                  <Value>Governance</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Policy checkpoints</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Enforce sign-offs, data retention limits, and explainability disclosures before launch.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>frost</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Deployment</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>42 mins</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Release pipeline</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Blueprint inference routing with rollback toggles and live performance hooks.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>forest</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="eyebrow">
+                  <Value>Community</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Research notebook</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Share findings, prompts, and replayable sessions with the broader product team.</Value>
+                </Field>
+                <Field name="tone">
+                  <Value>light</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="aiLaboratoryMetrics" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "label": "Evaluation coverage",
-                "value": "1,240 cases",
-                "change": "↑ 32% vs last sprint",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Guardrail blocks",
-                "value": "74",
-                "change": "Prevented before production",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Bias delta",
-                "value": "-18%",
-                "change": "Weighted fairness score",
-                "sentiment": "positive"
-              },
-              {
-                "label": "Latency budget",
-                "value": "<280 ms",
-                "change": "Across target personas",
-                "sentiment": "neutral"
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for bento-ai-laboratory.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Evaluation coverage</Value>
+                </Field>
+                <Field name="value">
+                  <Value>1,240 cases</Value>
+                </Field>
+                <Field name="change">
+                  <Value>↑ 32% vs last sprint</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Guardrail blocks</Value>
+                </Field>
+                <Field name="value">
+                  <Value>74</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Prevented before production</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Bias delta</Value>
+                </Field>
+                <Field name="value">
+                  <Value>-18%</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Weighted fairness score</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>positive</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Latency budget</Value>
+                </Field>
+                <Field name="value">
+                  <Value>&lt;280 ms</Value>
+                </Field>
+                <Field name="change">
+                  <Value>Across target personas</Value>
+                </Field>
+                <Field name="sentiment">
+                  <Value>neutral</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

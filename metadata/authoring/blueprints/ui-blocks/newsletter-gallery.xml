@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="newsletter/gallery"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="newsletter/gallery" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-newsletter-gallery">
     <Title>UI Block: Newsletter gallery showcase</Title>
     <Regions>
@@ -17,55 +10,110 @@
             <Prop name="eyebrow" kind="static">Sneak peek</Prop>
             <Prop name="headline" kind="static">See blueprints before they ship</Prop>
             <Prop name="description" kind="static">We capture metadata experiments in progress — prototypes, dashboards, and patterns headed to production.</Prop>
-            <Prop name="highlights" kind="binding" source="galleryHighlights" path="items" />
-            <Prop name="gallery" kind="binding" source="galleryImages" path="items" />
-            <Prop name="form" kind="binding" source="galleryForm" path="$" />
+            <Prop name="highlights" kind="binding" contract="galleryHighlights.items"/>
+            <Prop name="gallery" kind="binding" contract="galleryImages.items"/>
+            <Prop name="form" kind="binding" contract="galleryForm.value"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="galleryHighlights" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {
-                "title": "Design snapshots",
-                "description": "Peek at real Figma frames and experiment dashboards each week."
-              },
-              {
-                "title": "Behind the scenes",
-                "description": "Understand how teams wired metadata to power their latest launch."
-              },
-              {
-                "title": "Field notes",
-                "description": "Learn which instrumentation choices paid off (and which didn't)."
-              }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-gallery.highlights"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="title">
+                  <Value>Design snapshots</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Peek at real Figma frames and experiment dashboards each week.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Behind the scenes</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Understand how teams wired metadata to power their latest launch.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="title">
+                  <Value>Field notes</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Learn which instrumentation choices paid off (and which didn&apos;t).</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="galleryImages" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              {"src": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=500&q=80", "alt": "Workspace"},
-              {"src": "https://images.unsplash.com/photo-1522199994201-9e76f9a62d83?auto=format&fit=crop&w=500&q=80", "alt": "Dashboard"},
-              {"src": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=500&q=80", "alt": "Automation"},
-              {"src": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=500&q=80", "alt": "Workflow"}
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for newsletter-gallery.gallery"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&amp;fit=crop&amp;w=500&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Workspace</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1522199994201-9e76f9a62d83?auto=format&amp;fit=crop&amp;w=500&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Dashboard</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&amp;fit=crop&amp;w=500&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Automation</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="src">
+                  <Value>https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&amp;fit=crop&amp;w=500&amp;q=80</Value>
+                </Field>
+                <Field name="alt">
+                  <Value>Workflow</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
       <DataSource id="galleryForm" kind="static">
-        <Json><![CDATA[
-          {
-            "placeholder": "designer@company.com",
-            "buttonLabel": "Send the preview",
-            "disclaimer": "Every Thursday. Includes annotated prototypes and notes.",
-            "url": "/newsletter/gallery-preview/subscribe"
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="value" path="$" description="Binding for newsletter-gallery.form"/>
+        </Contract>
+        <Data>
+          <Field name="placeholder">
+            <Value>designer@company.com</Value>
+          </Field>
+          <Field name="buttonLabel">
+            <Value>Send the preview</Value>
+          </Field>
+          <Field name="disclaimer">
+            <Value>Every Thursday. Includes annotated prototypes and notes.</Value>
+          </Field>
+          <Field name="url">
+            <Value>/newsletter/gallery-preview/subscribe</Value>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
   </Page>

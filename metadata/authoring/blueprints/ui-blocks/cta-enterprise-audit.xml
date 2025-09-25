@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition
-  kind="blueprint"
-  module="ui-blocks"
-  route="cta/enterprise-audit"
-  schemaVersion="1.0.0"
-  contentVersion="1.0.0"
-  locale="en-US"
->
+<PageDefinition kind="blueprint" module="ui-blocks" route="cta/enterprise-audit" schemaVersion="1.0.0" contentVersion="1.0.0" locale="en-US">
   <Page id="ui-blocks-cta-enterprise-audit">
     <Title>UI Block: Enterprise audit CTA</Title>
     <Regions>
@@ -18,25 +11,58 @@
             <Prop name="headline" kind="static">Uncover the roadmap impact of your content operations</Prop>
             <Prop name="description" kind="static">Partner with our solutions team for a guided audit of your publishing models, tooling handoffs, and release cadences.</Prop>
             <Prop name="highlight" kind="static">Limited to 10 teams per quarter</Prop>
-            <Prop name="stats" kind="binding" source="auditStats" path="items" />
-            <Prop name="primaryCta" kind="action" actionId="book-audit" />
-            <Prop name="secondaryCta" kind="action" actionId="download-brief" />
-            <Prop name="tertiaryCta" kind="action" actionId="share-invite" />
+            <Prop name="stats" kind="binding" contract="auditStats.items"/>
+            <Prop name="primaryCta" kind="action" actionId="book-audit"/>
+            <Prop name="secondaryCta" kind="action" actionId="download-brief"/>
+            <Prop name="tertiaryCta" kind="action" actionId="share-invite"/>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
       <DataSource id="auditStats" kind="static">
-        <Json><![CDATA[
-          {
-            "items": [
-              { "label": "Systems reviewed", "value": "12", "caption": "Average across product, marketing, and success." },
-              { "label": "Time-to-value", "value": "5 weeks", "caption": "From kickoff to operating model recommendation." },
-              { "label": "Stakeholder alignment", "value": "93%", "caption": "Post-audit agreement on governance changes." }
-            ]
-          }
-        ]]></Json>
+        <Contract>
+          <Field name="items" path="items" description="Binding for cta-enterprise-audit.stats"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Systems reviewed</Value>
+                </Field>
+                <Field name="value">
+                  <Value>12</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Average across product, marketing, and success.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Time-to-value</Value>
+                </Field>
+                <Field name="value">
+                  <Value>5 weeks</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>From kickoff to operating model recommendation.</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Stakeholder alignment</Value>
+                </Field>
+                <Field name="value">
+                  <Value>93%</Value>
+                </Field>
+                <Field name="caption">
+                  <Value>Post-audit agreement on governance changes.</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
       </DataSource>
     </DataSources>
     <Actions>

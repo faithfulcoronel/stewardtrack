@@ -28,8 +28,8 @@ Follow these steps whenever you introduce a new page or customization:
 2. **Create the XML blueprint**
    - Start from the `PageDefinition` root with attributes `kind="blueprint"`, `schemaVersion`, `contentVersion`, `module`, and `route`. Blueprints must set a `<Page id="…">` and may declare `<Regions>`, `<DataSources>`, and `<Actions>` sections.【F:tools/metadata/pipeline/transformer.ts†L53-L118】
    - Within `<Regions>`, author `<Region id="…">` nodes. Nest `<Component>` children, assigning stable `id`, `type`, `namespace`, and optional `version` for component resolution.【F:tools/metadata/pipeline/transformer.ts†L136-L181】
-   - Use `<Props>` with `<Prop name="…" kind="static|binding|expression|action">` entries to connect data and behaviors. Binding props declare `source` IDs and optional `path`/`fallback`; expression props embed evaluated JavaScript expressions.【F:tools/metadata/pipeline/transformer.ts†L182-L236】【F:src/lib/metadata/evaluation.ts†L70-L118】
-   - Register shared data under `<DataSources>`; for static JSON payloads embed `<Json>` or structured `<Config>` elements. Actions are defined similarly under `<Actions>` with `kind`-specific configs.【F:tools/metadata/pipeline/transformer.ts†L118-L236】
+  - Use `<Props>` with `<Prop name="…" kind="static|binding|expression|action">` entries to connect data and behaviors. Binding props can reference declarative aliases via `contract="dataSource.field"`, falling back to explicit `source`/`path` pairs when a contract is not present; expression props embed evaluated JavaScript expressions.【F:tools/metadata/pipeline/transformer.ts†L182-L236】【F:src/lib/metadata/evaluation.ts†L70-L118】
+  - Register shared data under `<DataSources>`. Declare reusable field aliases inside `<Contract>` and populate static payloads with the XML-first `<Data>` vocabulary (`<Object>`, `<Array>`, `<Field>`, `<Value>`). Legacy `<Json>` and `<Config>` elements remain supported for backwards compatibility. Actions are defined similarly under `<Actions>` with `kind`-specific configs.【F:tools/metadata/pipeline/transformer.ts†L118-L236】
    - Optional `<RBAC allow="role1,role2" deny="…">` attributes can be applied on components, data sources, or actions to restrict runtime visibility.【F:tools/metadata/pipeline/transformer.ts†L166-L224】【F:src/lib/metadata/evaluation.ts†L40-L118】
 
 3. **Add overlays when needed**
@@ -49,7 +49,7 @@ Follow these steps whenever you introduce a new page or customization:
 - **Design for reuse** – Treat each component ID as a reusable anchor point so overlays can surgically extend or replace behavior without forking the entire layout.
 - **Keep blueprints canonical** – Avoid tenant-specific logic in blueprints; isolate specialization to overlays so new tenants plug in without touching the base file.
 - **Use semantic versions** – `schemaVersion`, `contentVersion`, and component versions must follow semver so the registry can order and compare artifacts deterministically.【F:tools/metadata/pipeline/validators.ts†L14-L43】【F:tools/metadata/pipeline/publisher.ts†L60-L82】
-- **Validate bindings** – Ensure every `binding` prop references a declared data source. The validator fails fast on unresolved IDs to maintain contract integrity.【F:tools/metadata/pipeline/validators.ts†L62-L104】
+- **Validate bindings** – Prefer contract aliases so typos are caught when the compiler expands them. When you must use raw bindings, ensure every `binding` prop references a declared data source. The validator fails fast on unresolved IDs to maintain contract integrity.【F:tools/metadata/pipeline/validators.ts†L62-L104】
 - **Secure with RBAC** – Prefer RBAC scoping over conditional expressions to keep authorization decisions declarative and centralized.【F:src/lib/metadata/evaluation.ts†L40-L118】
 - **Document modules** – Keep blueprint directories grouped by module (e.g., `metadata/authoring/blueprints/<module>/…`) so new developers can discover reusable building blocks quickly.
 
