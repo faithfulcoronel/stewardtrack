@@ -8,51 +8,11 @@ import { getUserDisplayNameMap } from '@/lib/server/userDisplayName';
 import { TYPES } from '@/lib/types';
 import { BaseModel } from '@/models/base.model';
 import { FilterOperator } from '@/lib/repository/types';
+import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
+import type { FilterCondition, QueryOptions } from '@/lib/repository/query';
 import type { RequestContext } from '@/lib/server/context';
 import { handleError, TenantContextError } from '@/utils/errorHandler';
 import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
-
-export interface FilterCondition {
-  operator: FilterOperator | string;
-  value: unknown;
-  valueTo?: unknown;
-  field?: string;
-}
-
-export interface QueryOptions {
-  select?: string;
-  filters?: Record<string, FilterCondition | FilterCondition[] | string>;
-  order?: {
-    column: string;
-    ascending?: boolean;
-  };
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  relationships?: {
-    table: string;
-    foreignKey: string;
-    alias?: string;
-    select?: string[];
-    nestedRelationships?: Array<string | {
-      table: string;
-      foreignKey: string;
-      alias?: string;
-      select?: string[];
-    }>;
-  }[];
-  enabled?: boolean;
-}
-
-export interface IBaseAdapter<T extends BaseModel> {
-  fetch(options?: QueryOptions): Promise<{ data: T[]; count: number | null }>;
-  fetchById(id: string, options?: Omit<QueryOptions, 'pagination'>): Promise<T | null>;
-  create(data: Partial<T>, relations?: Record<string, string[]>, fieldsToRemove?: string[]): Promise<T>;
-  update(id: string, data: Partial<T>, relations?: Record<string, string[]>, fieldsToRemove?: string[]): Promise<T>;
-  delete(id: string): Promise<void>;
-  fetchAll(options?: Omit<QueryOptions, 'pagination'>): Promise<{ data: T[]; count: number | null }>;
-}
 
 @injectable()
 export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
@@ -604,3 +564,6 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     return this.fetch(options);
   }
 }
+
+export type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
+export type { FilterCondition, QueryOptions } from '@/lib/repository/query';

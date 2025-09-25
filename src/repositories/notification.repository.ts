@@ -18,20 +18,23 @@ export class NotificationRepository
   extends BaseRepository<Notification>
   implements INotificationRepository
 {
-  constructor(@inject(TYPES.INotificationAdapter) adapter: INotificationAdapter) {
-    super(adapter as any);
+  constructor(
+    @inject(TYPES.INotificationAdapter)
+    private readonly notificationAdapter: INotificationAdapter
+  ) {
+    super(notificationAdapter);
   }
 
   async markAsRead(id: string): Promise<void> {
-    await (this.adapter as unknown as INotificationAdapter).markAsRead(id);
+    await this.notificationAdapter.markAsRead(id);
   }
 
   async markAllAsRead(userId: string): Promise<void> {
-    await (this.adapter as unknown as INotificationAdapter).markAllAsRead(userId);
+    await this.notificationAdapter.markAllAsRead(userId);
   }
 
   async deleteExpired(): Promise<void> {
-    await (this.adapter as unknown as INotificationAdapter).deleteExpired();
+    await this.notificationAdapter.deleteExpired();
   }
 
   protected override async beforeCreate(data: Partial<Notification>): Promise<Partial<Notification>> {

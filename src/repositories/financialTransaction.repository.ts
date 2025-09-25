@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { FinancialTransaction } from '@/models/financialTransaction.model';
 import { FinancialTransactionValidator } from '@/validators/financialTransaction.validator';
 import { TYPES } from '@/lib/types';
+import type { IFinancialTransactionAdapter } from '@/adapters/financialTransaction.adapter';
 
 export type IFinancialTransactionRepository = BaseRepository<FinancialTransaction>;
 
@@ -13,7 +13,7 @@ export class FinancialTransactionRepository
   implements IFinancialTransactionRepository
 {
   constructor(
-    @inject(TYPES.IFinancialTransactionAdapter) adapter: BaseAdapter<FinancialTransaction>
+    @inject(TYPES.IFinancialTransactionAdapter) adapter: IFinancialTransactionAdapter
   ) {
     super(adapter);
   }

@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { MemberDiscipleshipMilestone } from '@/models/memberDiscipleshipMilestone.model';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
+import type { IMemberDiscipleshipMilestoneAdapter } from '@/adapters/memberDiscipleshipMilestone.adapter';
 
 export type IMemberDiscipleshipMilestoneRepository = BaseRepository<MemberDiscipleshipMilestone>;
 
@@ -15,7 +15,7 @@ export class MemberDiscipleshipMilestoneRepository
 {
   constructor(
     @inject(TYPES.IMemberDiscipleshipMilestoneAdapter)
-    adapter: BaseAdapter<MemberDiscipleshipMilestone>,
+    adapter: IMemberDiscipleshipMilestoneAdapter,
   ) {
     super(adapter);
   }

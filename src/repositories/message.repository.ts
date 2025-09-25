@@ -1,8 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { Message } from '@/models/message.model';
 import { TYPES } from '@/lib/types';
+import type { IMessageAdapter } from '@/adapters/message.adapter';
 
 export type IMessageRepository = BaseRepository<Message>;
 
@@ -11,7 +11,7 @@ export class MessageRepository
   extends BaseRepository<Message>
   implements IMessageRepository
 {
-  constructor(@inject(TYPES.IMessageAdapter) adapter: BaseAdapter<Message>) {
+  constructor(@inject(TYPES.IMessageAdapter) adapter: IMessageAdapter) {
     super(adapter);
   }
 }

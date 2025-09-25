@@ -26,9 +26,9 @@ export class UserRoleRepository
 {
   constructor(
     @inject(TYPES.IUserRoleAdapter)
-    private userRoleAdapter: IUserRoleAdapter,
+    private readonly userRoleAdapter: IUserRoleAdapter,
   ) {
-    super(userRoleAdapter as any);
+    super(userRoleAdapter);
   }
 
   async replaceUserRoles(
@@ -42,7 +42,7 @@ export class UserRoleRepository
         throw new Error('Invalid userId provided');
       }
 
-      await (this.adapter as unknown as IUserRoleAdapter).replaceUserRoles(
+      await this.userRoleAdapter.replaceUserRoles(
         userId,
         roleIds,
         tenantId || '',
@@ -64,7 +64,7 @@ export class UserRoleRepository
         throw new Error('Invalid userId provided');
       }
 
-      return await (this.adapter as unknown as IUserRoleAdapter).getRoleDetailsByUser(userId);
+      return await this.userRoleAdapter.getRoleDetailsByUser(userId);
     } catch (error) {
       throw handleError(error, {
         context: 'getRoleDetailsByUser',
@@ -83,7 +83,7 @@ export class UserRoleRepository
         throw new Error('Invalid tenantId provided');
       }
 
-      return await (this.adapter as unknown as IUserRoleAdapter).getAdminRole(userId, tenantId);
+      return await this.userRoleAdapter.getAdminRole(userId, tenantId);
     } catch (error) {
       throw handleError(error, {
         context: 'getAdminRole',
@@ -100,7 +100,7 @@ export class UserRoleRepository
         throw new Error('Invalid userId provided');
       }
 
-      const result = await (this.adapter as unknown as IUserRoleAdapter).getRolesWithPermissions(userId);
+      const result = await this.userRoleAdapter.getRolesWithPermissions(userId);
       // Convert the result to UserRole[] format
       return result as UserRole[];
     } catch (error) {
@@ -118,7 +118,7 @@ export class UserRoleRepository
         throw new Error('Invalid userId provided');
       }
 
-      return await (this.adapter as unknown as IUserRoleAdapter).isSuperAdmin();
+      return await this.userRoleAdapter.isSuperAdmin();
     } catch (error) {
       throw handleError(error, {
         context: 'isSuperAdmin',
@@ -134,7 +134,7 @@ export class UserRoleRepository
         throw new Error('Invalid userId provided');
       }
 
-      return await (this.adapter as unknown as IUserRoleAdapter).isAdmin(userId);
+      return await this.userRoleAdapter.isAdmin(userId);
     } catch (error) {
       throw handleError(error, {
         context: 'isAdmin',
@@ -150,7 +150,7 @@ export class UserRoleRepository
         throw new Error('Invalid roleId provided');
       }
 
-      return await (this.adapter as unknown as IUserRoleAdapter).getUsersByRole(roleId);
+      return await this.userRoleAdapter.getUsersByRole(roleId);
     } catch (error) {
       throw handleError(error, {
         context: 'getUsersByRole',

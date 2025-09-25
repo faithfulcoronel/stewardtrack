@@ -1,8 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import { Announcement } from '@/models/announcement.model';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { TYPES } from '@/lib/types';
+import type { IAnnouncementAdapter } from '@/adapters/announcement.adapter';
 
 export interface IAnnouncementRepository extends BaseRepository<Announcement> {
   // Add any announcement-specific repository methods here
@@ -10,7 +10,7 @@ export interface IAnnouncementRepository extends BaseRepository<Announcement> {
 
 @injectable()
 export class AnnouncementRepository extends BaseRepository<Announcement> implements IAnnouncementRepository {
-  constructor(@inject(TYPES.IAnnouncementAdapter) adapter: BaseAdapter<Announcement>) {
+  constructor(@inject(TYPES.IAnnouncementAdapter) adapter: IAnnouncementAdapter) {
     super(adapter);
   }
 

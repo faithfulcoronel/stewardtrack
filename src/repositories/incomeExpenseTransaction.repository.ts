@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { IncomeExpenseTransaction } from '@/models/incomeExpenseTransaction.model';
 import type { IIncomeExpenseTransactionAdapter } from '@/adapters/incomeExpenseTransaction.adapter';
 import { IncomeExpenseTransactionValidator } from '@/validators/incomeExpenseTransaction.validator';
@@ -16,9 +15,10 @@ export class IncomeExpenseTransactionRepository
   implements IIncomeExpenseTransactionRepository
 {
   constructor(
-    @inject(TYPES.IIncomeExpenseTransactionAdapter) adapter: BaseAdapter<IncomeExpenseTransaction>
+    @inject(TYPES.IIncomeExpenseTransactionAdapter)
+    private readonly incomeExpenseTransactionAdapter: IIncomeExpenseTransactionAdapter
   ) {
-    super(adapter);
+    super(incomeExpenseTransactionAdapter);
   }
 
   protected override async beforeCreate(
@@ -62,8 +62,6 @@ export class IncomeExpenseTransactionRepository
   }
 
   public async getByHeaderId(headerId: string): Promise<IncomeExpenseTransaction[]> {
-    return (
-      this.adapter as unknown as IIncomeExpenseTransactionAdapter
-    ).getByHeaderId(headerId);
+    return this.incomeExpenseTransactionAdapter.getByHeaderId(headerId);
   }
 }

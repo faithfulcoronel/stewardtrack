@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { MemberTimelineEvent } from '@/models/memberTimelineEvent.model';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
+import type { IMemberTimelineEventAdapter } from '@/adapters/memberTimelineEvent.adapter';
 
 export type IMemberTimelineEventRepository = BaseRepository<MemberTimelineEvent>;
 
@@ -15,7 +15,7 @@ export class MemberTimelineEventRepository
 {
   constructor(
     @inject(TYPES.IMemberTimelineEventAdapter)
-    adapter: BaseAdapter<MemberTimelineEvent>,
+    adapter: IMemberTimelineEventAdapter,
   ) {
     super(adapter);
   }

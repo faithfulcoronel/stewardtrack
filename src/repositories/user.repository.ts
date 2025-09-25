@@ -12,7 +12,7 @@ export class UserRepository
   extends BaseRepository<User>
   implements IUserRepository {
   constructor(@inject(TYPES.IAuthUserAdapter) adapter: IAuthUserAdapter) {
-    super(adapter as any);
+    super(adapter);
   }
 
   protected override async beforeCreate(data: Partial<User>): Promise<Partial<User>> {

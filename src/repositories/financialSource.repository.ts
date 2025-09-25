@@ -1,11 +1,11 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { FinancialSource } from '@/models/financialSource.model';
 import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
 import { NotificationService } from '@/services/NotificationService';
 import { FinancialSourceValidator } from '@/validators/financialSource.validator';
 import { TYPES } from '@/lib/types';
+import type { IFinancialSourceAdapter } from '@/adapters/financialSource.adapter';
 
 export type IFinancialSourceRepository = BaseRepository<FinancialSource>;
 
@@ -15,7 +15,7 @@ export class FinancialSourceRepository
   implements IFinancialSourceRepository
 {
   constructor(
-    @inject(TYPES.IFinancialSourceAdapter) adapter: BaseAdapter<FinancialSource>,
+    @inject(TYPES.IFinancialSourceAdapter) adapter: IFinancialSourceAdapter,
     @inject(TYPES.IChartOfAccountRepository)
     private chartOfAccountRepository: IChartOfAccountRepository
   ) {

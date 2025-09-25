@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { FiscalYear } from '@/models/fiscalYear.model';
 import { NotificationService } from '@/services/NotificationService';
 import { FiscalYearValidator } from '@/validators/fiscalYear.validator';
 import { TYPES } from '@/lib/types';
+import type { IFiscalYearAdapter } from '@/adapters/fiscalYear.adapter';
 
 export type IFiscalYearRepository = BaseRepository<FiscalYear>;
 
@@ -13,7 +13,7 @@ export class FiscalYearRepository
   extends BaseRepository<FiscalYear>
   implements IFiscalYearRepository
 {
-  constructor(@inject(TYPES.IFiscalYearAdapter) adapter: BaseAdapter<FiscalYear>) {
+  constructor(@inject(TYPES.IFiscalYearAdapter) adapter: IFiscalYearAdapter) {
     super(adapter);
   }
 

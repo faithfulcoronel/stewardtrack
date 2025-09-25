@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { BaseAdapter } from '@/adapters/base.adapter';
 import { Tenant } from '@/models/tenant.model';
 import type { ITenantAdapter } from '@/adapters/tenant.adapter';
 import { NotificationService } from '@/services/NotificationService';
@@ -20,8 +19,11 @@ export class TenantRepository
   extends BaseRepository<Tenant>
   implements ITenantRepository
 {
-  constructor(@inject(TYPES.ITenantAdapter) adapter: BaseAdapter<Tenant>) {
-    super(adapter);
+  constructor(
+    @inject(TYPES.ITenantAdapter)
+    private readonly tenantAdapter: ITenantAdapter
+  ) {
+    super(tenantAdapter);
   }
 
   protected override async afterCreate(data: Tenant): Promise<void> {
@@ -33,26 +35,26 @@ export class TenantRepository
   }
 
   async getCurrentTenant(): Promise<Tenant | null> {
-    return (this.adapter as unknown as ITenantAdapter).getCurrentTenant();
+    return this.tenantAdapter.getCurrentTenant();
   }
 
   async updateSubscription(tier: string, cycle: 'monthly' | 'annual'): Promise<unknown> {
-    return (this.adapter as unknown as ITenantAdapter).updateSubscription(tier, cycle);
+    return this.tenantAdapter.updateSubscription(tier, cycle);
   }
 
   async getTenantDataCounts(tenantId: string): Promise<Record<string, number>> {
-    return (this.adapter as unknown as ITenantAdapter).getTenantDataCounts(tenantId);
+    return this.tenantAdapter.getTenantDataCounts(tenantId);
   }
 
   async uploadLogo(tenantId: string, file: File): Promise<Tenant> {
-    return (this.adapter as unknown as ITenantAdapter).uploadLogo(tenantId, file);
+    return this.tenantAdapter.uploadLogo(tenantId, file);
   }
 
   async resetTenantData(tenantId: string): Promise<void> {
-    return (this.adapter as unknown as ITenantAdapter).resetTenantData(tenantId);
+    return this.tenantAdapter.resetTenantData(tenantId);
   }
 
   async previewResetTenantData(tenantId: string): Promise<Record<string, number>> {
-    return (this.adapter as unknown as ITenantAdapter).previewResetTenantData(tenantId);
+    return this.tenantAdapter.previewResetTenantData(tenantId);
   }
 }
