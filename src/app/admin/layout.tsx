@@ -31,6 +31,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "Administration",
     items: [
       { title: "Security", href: "/admin/security", icon: "security" },
+      { title: "RBAC Management", href: "/admin/security/rbac", icon: "shield" },
       { title: "Settings", href: "/admin/settings", icon: "settings" },
     ],
   },
