@@ -354,6 +354,11 @@ export class RbacService {
       throw new Error('No tenant context available');
     }
 
+    const existingBinding = await this.rbacRepository.getSurfaceBinding(id, effectiveTenantId);
+    if (!existingBinding) {
+      throw new Error('Surface binding not found');
+    }
+
     const binding = await this.rbacRepository.updateSurfaceBinding(id, data, effectiveTenantId);
 
     // Log the action
@@ -363,8 +368,9 @@ export class RbacService {
       action: 'UPDATE_SURFACE_BINDING',
       resource_type: 'rbac_surface_binding',
       resource_id: binding.id,
-      new_values: data,
-      notes: `Updated surface binding: ${id}`
+      old_values: existingBinding,
+      new_values: binding,
+      notes: `Updated surface binding ${id} for tenant ${effectiveTenantId}`
     });
 
     return binding;
@@ -391,7 +397,7 @@ export class RbacService {
       resource_type: 'rbac_surface_binding',
       resource_id: id,
       old_values: binding,
-      notes: `Deleted surface binding: ${id}`
+      notes: `Deleted surface binding ${id} for tenant ${effectiveTenantId}`
     });
   }
 

@@ -600,7 +600,11 @@ export class RbacRepository extends BaseRepository {
     return result;
   }
 
-  async updateSurfaceBinding(id: string, data: Partial<CreateSurfaceBindingDto>, tenantId: string): Promise<RbacSurfaceBinding> {
+  async updateSurfaceBinding(
+    id: string,
+    data: Partial<CreateSurfaceBindingDto>,
+    tenantId: string
+  ): Promise<RbacSurfaceBinding> {
     const supabase = await this.getSupabaseClient();
     const { data: result, error } = await supabase
       .from('rbac_surface_bindings')
@@ -611,10 +615,14 @@ export class RbacRepository extends BaseRepository {
       .eq('id', id)
       .eq('tenant_id', tenantId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to update surface binding: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Surface binding not found');
     }
 
     return result;
@@ -622,14 +630,20 @@ export class RbacRepository extends BaseRepository {
 
   async deleteSurfaceBinding(id: string, tenantId: string): Promise<void> {
     const supabase = await this.getSupabaseClient();
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('rbac_surface_bindings')
       .delete()
       .eq('id', id)
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', tenantId)
+      .select('id')
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to delete surface binding: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('Surface binding not found');
     }
   }
 

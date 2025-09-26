@@ -32,12 +32,14 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Error updating surface binding:', error);
+    const message = error instanceof Error ? error.message : 'Failed to update surface binding';
+    const status = error instanceof Error && error.message === 'Surface binding not found' ? 404 : 500;
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update surface binding'
+        error: message
       },
-      { status: 500 }
+      { status }
     );
   }
 }
@@ -58,12 +60,14 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting surface binding:', error);
+    const message = error instanceof Error ? error.message : 'Failed to delete surface binding';
+    const status = error instanceof Error && error.message === 'Surface binding not found' ? 404 : 500;
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete surface binding'
+        error: message
       },
-      { status: 500 }
+      { status }
     );
   }
 }
