@@ -3,6 +3,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { BaseRepository } from './base.repository';
 import {
+  cancelPublishingJob as cancelPublishingJobInStore,
+  getPublishingJobsSnapshot,
+  getPublishingStatsSnapshot,
+  getTenantPublishingStatusesSnapshot,
+  queuePublishingJob,
+  type PublishingJobSnapshot,
+  type PublishingStatsSnapshot,
+  type QueuePublishingJobResult,
+  type TenantPublishingStatusSnapshot,
+} from '@/lib/rbac/publishing-store';
+import {
   Role,
   PermissionBundle,
   Permission,
@@ -689,7 +700,7 @@ export class RbacRepository extends BaseRepository {
 
   // Metadata Surface management
   async getMetadataSurfaces(
-    tenantId: string,
+    _tenantId: string,
     filters?: {
       module?: string;
       phase?: string;
@@ -700,8 +711,7 @@ export class RbacRepository extends BaseRepository {
 
     let query = supabase
       .from('metadata_surfaces')
-      .select('*')
-      .or(`is_system.eq.true,tenant_id.eq.${tenantId}`);
+      .select('*');
 
     if (filters?.module) {
       query = query.eq('module', filters.module);
@@ -1759,81 +1769,75 @@ export class RbacRepository extends BaseRepository {
   }
 
   async getMetadataPublishingStatus(tenantId: string): Promise<any> {
-    const supabase = await createSupabaseServerClient();
+    const jobs = getPublishingJobsSnapshot(tenantId);
+    const stats = getPublishingStatsSnapshot(tenantId);
 
-    try {
-      // Get recent publishing activity from audit logs
-      const { data: publishingLogs, error } = await supabase
-        .from('rbac_audit_log')
-        .select('*')
-        .in('action', ['COMPILE_METADATA', 'VALIDATE_METADATA', 'PUBLISH_METADATA'])
-        .order('created_at', { ascending: false })
-        .limit(20);
+    const queueJobs = jobs.filter((job) => job.status === 'pending' || job.status === 'running');
+    const completedJobs = jobs.filter((job) => job.completed_at);
 
-      if (error) {
-        console.error('Error fetching metadata publishing status:', error);
+    const toAction = (job: PublishingJobSnapshot): string => {
+      switch (job.type) {
+        case 'metadata_compilation':
+          return job.status === 'completed' ? 'PUBLISH_METADATA' : 'COMPILE_METADATA';
+        case 'permission_sync':
+          return 'SYNC_PERMISSIONS';
+        case 'surface_binding_update':
+          return 'UPDATE_SURFACE_BINDINGS';
+        case 'license_validation':
+          return 'VALIDATE_LICENSES';
+        default:
+          return job.type.toUpperCase();
       }
+    };
 
-      const publishingHistory = publishingLogs?.map(log => ({
-        action: log.action,
-        timestamp: log.created_at,
-        status: log.security_impact === 'high' || log.security_impact === 'critical' ?
-          (log.action.includes('FAILED') ? 'failed' : 'success') : 'success',
-        duration: log.new_values?.duration_ms || null,
-        notes: log.notes,
-        details: log.new_values
-      })) || [];
+    const queue = queueJobs.map((job) => ({
+      action: toAction(job),
+      timestamp: job.started_at ?? new Date().toISOString(),
+      status: job.status,
+      notes: job.metadata.scope ? 'Scope: ' + job.metadata.scope : undefined,
+    }));
 
-      const latestPublish = publishingHistory.find(h => h.action === 'PUBLISH_METADATA');
-      const pendingCompilations = publishingHistory.filter(h =>
-        h.action === 'COMPILE_METADATA' && h.status === 'success' &&
-        !publishingHistory.some(p => p.action === 'PUBLISH_METADATA' && p.timestamp > h.timestamp)
-      );
+    const history = jobs
+      .map((job) => {
+        const status = job.status === 'completed' ? 'success' : job.status === 'failed' ? 'failed' : job.status;
+        const duration = job.started_at && job.completed_at
+          ? Math.round((new Date(job.completed_at).getTime() - new Date(job.started_at).getTime()) / 1000)
+          : null;
+        const notes = job.error_message
+          ? job.error_message
+          : 'Processed ' + job.metadata.processed_count + '/' + job.metadata.entity_count + ' entities';
 
-      return {
-        systemStatus: latestPublish?.status === 'failed' ? 'error' : 'healthy',
-        lastPublish: latestPublish?.timestamp || null,
-        pendingChanges: pendingCompilations.length,
-        publishingQueue: pendingCompilations,
-        publishingHistory,
-        compilerStatus: {
-          available: true,
-          version: '1.0.0',
-          lastHealthCheck: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      console.error('Error in getMetadataPublishingStatus:', error);
-      // Return mock data for development
-      return {
-        systemStatus: 'healthy',
-        lastPublish: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        pendingChanges: 2,
-        publishingQueue: [
-          {
-            action: 'COMPILE_METADATA',
-            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            status: 'success',
-            notes: 'Role permission bundle updated'
-          }
-        ],
-        publishingHistory: [
-          {
-            action: 'PUBLISH_METADATA',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            status: 'success',
-            duration: 3500,
-            notes: 'Metadata published successfully'
-          }
-        ],
-        compilerStatus: {
-          available: true,
-          version: '1.0.0',
-          lastHealthCheck: new Date().toISOString()
-        }
-      };
-    }
+        return {
+          action: toAction(job),
+          timestamp: job.completed_at ?? job.started_at ?? new Date().toISOString(),
+          status,
+          duration,
+          notes,
+          details: job,
+        };
+      })
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const lastPublishEntry = history.find((item) => item.action === 'PUBLISH_METADATA' && item.status === 'success');
+
+    const hasFailures = history.some((item) => item.status === 'failed');
+    const systemStatus = hasFailures ? 'error' : queue.length > 0 ? 'warning' : 'healthy';
+    const pendingChanges = Math.max(stats.runningJobs, queue.filter((item) => item.action === 'COMPILE_METADATA').length);
+
+    return {
+      systemStatus,
+      lastPublish: lastPublishEntry?.timestamp ?? null,
+      pendingChanges,
+      publishingQueue: queue,
+      publishingHistory: history,
+      compilerStatus: {
+        available: true,
+        version: '1.0.0',
+        lastHealthCheck: completedJobs[0]?.completed_at ?? new Date().toISOString(),
+      },
+    };
   }
+
 
   async compileMetadata(tenantId: string, metadata: any): Promise<any> {
     // Mock compilation process
@@ -1872,6 +1876,66 @@ export class RbacRepository extends BaseRepository {
       rollbackId: `rollback_${Date.now() - 1000}`,
       timestamp: new Date().toISOString()
     };
+  }
+
+  async getPublishingJobs(tenantId: string): Promise<PublishingJobSnapshot[]> {
+    return getPublishingJobsSnapshot(tenantId);
+  }
+
+  async getPublishingStats(tenantId: string): Promise<PublishingStatsSnapshot> {
+    return getPublishingStatsSnapshot(tenantId);
+  }
+
+  async getTenantPublishingStatuses(tenantId: string): Promise<TenantPublishingStatusSnapshot[]> {
+    return getTenantPublishingStatusesSnapshot(tenantId);
+  }
+
+  async queueMetadataCompilationJob(tenantId: string): Promise<QueuePublishingJobResult> {
+    return queuePublishingJob({
+      tenantId,
+      type: 'metadata_compilation',
+      metadata: {
+        tenant_id: tenantId,
+        scope: 'global',
+      },
+    });
+  }
+
+  async queuePermissionSyncJob(tenantId: string): Promise<PublishingJobSnapshot> {
+    const { job } = queuePublishingJob({
+      tenantId,
+      type: 'permission_sync',
+      metadata: {
+        tenant_id: tenantId,
+        scope: 'permissions',
+      },
+    });
+    return job;
+  }
+
+  async queueLicenseValidationJob(tenantId: string): Promise<PublishingJobSnapshot> {
+    const { job } = queuePublishingJob({
+      tenantId,
+      type: 'license_validation',
+      metadata: {
+        tenant_id: tenantId,
+        scope: 'licenses',
+      },
+    });
+    return job;
+  }
+
+  async cancelPublishingJob(jobId: string, tenantId: string): Promise<PublishingJobSnapshot> {
+    const job = cancelPublishingJobInStore(jobId);
+    if (!job) {
+      throw new Error('Publishing job not found');
+    }
+
+    if (job.metadata.tenant_id && job.metadata.tenant_id !== tenantId) {
+      throw new Error('Publishing job does not belong to tenant');
+    }
+
+    return job;
   }
 
   async getAuditTimelineForCompliance(tenantId: string, options?: {
@@ -2059,12 +2123,4 @@ export class RbacRepository extends BaseRepository {
     return recommendations;
   }
 }
-
-
-
-
-
-
-
-
 

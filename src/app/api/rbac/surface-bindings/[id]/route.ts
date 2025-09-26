@@ -6,12 +6,12 @@ import { CreateSurfaceBindingDto } from '@/models/rbac.model';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body: Partial<CreateSurfaceBindingDto> = await request.json();
-    const bindingId = params.id;
+    const { id: bindingId } = await context.params;
 
     // Validate that either role_id or bundle_id is provided
     if (!body.role_id && !body.bundle_id) {
@@ -46,11 +46,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
-    const bindingId = params.id;
+    const { id: bindingId } = await context.params;
 
     await rbacService.deleteSurfaceBinding(bindingId);
 

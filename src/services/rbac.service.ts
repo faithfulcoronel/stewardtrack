@@ -3,6 +3,12 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import { RbacRepository } from '@/repositories/rbac.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
+import type {
+  PublishingJobSnapshot,
+  PublishingStatsSnapshot,
+  QueuePublishingJobResult,
+  TenantPublishingStatusSnapshot
+} from '@/lib/rbac/publishing-store';
 import {
   Role,
   PermissionBundle,
@@ -1178,6 +1184,102 @@ export class RbacService {
   }
 
   // Metadata Publishing Controls
+  async getPublishingJobs(tenantId?: string): Promise<PublishingJobSnapshot[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return this.rbacRepository.getPublishingJobs(resolvedTenantId);
+  }
+
+  async getPublishingStats(tenantId?: string): Promise<PublishingStatsSnapshot> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return this.rbacRepository.getPublishingStats(resolvedTenantId);
+  }
+
+  async getTenantPublishingStatuses(tenantId?: string): Promise<TenantPublishingStatusSnapshot[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return this.rbacRepository.getTenantPublishingStatuses(resolvedTenantId);
+  }
+
+  async queueMetadataCompilationJob(tenantId?: string): Promise<QueuePublishingJobResult> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    const result = await this.rbacRepository.queueMetadataCompilationJob(resolvedTenantId);
+
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'QUEUE_METADATA_COMPILATION',
+      resource_type: 'metadata_publishing',
+      security_impact: 'medium',
+      new_values: {
+        job_id: result.job.id,
+        job_type: result.job.type,
+        entity_count: result.job.metadata.entity_count,
+        status: 'queued',
+      },
+      notes: 'Metadata compilation job queued via publishing controls',
+    });
+
+    return result;
+  }
+
+  async queuePermissionSyncJob(tenantId?: string): Promise<PublishingJobSnapshot> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    const job = await this.rbacRepository.queuePermissionSyncJob(resolvedTenantId);
+
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'QUEUE_PERMISSION_SYNC',
+      resource_type: 'metadata_publishing',
+      security_impact: 'medium',
+      new_values: {
+        job_id: job.id,
+        status: 'queued',
+      },
+      notes: 'Permission sync job queued via publishing controls',
+    });
+
+    return job;
+  }
+
+  async queueLicenseValidationJob(tenantId?: string): Promise<PublishingJobSnapshot> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    const job = await this.rbacRepository.queueLicenseValidationJob(resolvedTenantId);
+
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'QUEUE_LICENSE_VALIDATION',
+      resource_type: 'metadata_publishing',
+      security_impact: 'low',
+      new_values: {
+        job_id: job.id,
+        status: 'queued',
+      },
+      notes: 'License validation job queued via publishing controls',
+    });
+
+    return job;
+  }
+
+  async cancelPublishingJob(jobId: string, tenantId?: string): Promise<PublishingJobSnapshot> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    const job = await this.rbacRepository.cancelPublishingJob(jobId, resolvedTenantId);
+
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'CANCEL_PUBLISHING_JOB',
+      resource_type: 'metadata_publishing',
+      security_impact: 'medium',
+      new_values: {
+        job_id: job.id,
+        status: job.status,
+      },
+      notes: 'Publishing job cancelled via publishing controls',
+    });
+
+    return job;
+  }
   async getMetadataPublishingStatus(tenantId?: string): Promise<any> {
     const resolvedTenantId = await this.resolveTenantId(tenantId);
 

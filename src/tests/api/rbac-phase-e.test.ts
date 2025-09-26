@@ -22,6 +22,13 @@ import { RbacService } from '@/services/rbac.service';
 import { GET as healthGet } from '@/app/api/rbac/health/route';
 import { GET as materializedViewGet, POST as materializedViewPost } from '@/app/api/rbac/materialized-views/route';
 import { GET as publishingGet, POST as publishingPost } from '@/app/api/rbac/metadata/publishing/route';
+import { GET as publishingJobsGet } from '@/app/api/rbac/publishing/jobs/route';
+import { POST as publishingCancelPost } from '@/app/api/rbac/publishing/jobs/[jobId]/cancel/route';
+import { GET as publishingStatsGet } from '@/app/api/rbac/publishing/stats/route';
+import { GET as publishingTenantStatusGet } from '@/app/api/rbac/publishing/tenant-status/route';
+import { POST as publishingCompileQueuePost } from '@/app/api/rbac/publishing/compile/route';
+import { POST as publishingSyncPost } from '@/app/api/rbac/publishing/sync-permissions/route';
+import { POST as publishingLicensePost } from '@/app/api/rbac/publishing/validate-licenses/route';
 
 describe('RBAC Phase E API Endpoints', () => {
   let mockRbacService: jest.Mocked<RbacService>;
@@ -34,6 +41,13 @@ describe('RBAC Phase E API Endpoints', () => {
       getMaterializedViewStatus: jest.fn(),
       refreshMaterializedViews: jest.fn(),
       getMetadataPublishingStatus: jest.fn(),
+      getPublishingJobs: jest.fn(),
+      getPublishingStats: jest.fn(),
+      getTenantPublishingStatuses: jest.fn(),
+      queueMetadataCompilationJob: jest.fn(),
+      queuePermissionSyncJob: jest.fn(),
+      queueLicenseValidationJob: jest.fn(),
+      cancelPublishingJob: jest.fn(),
       compileMetadata: jest.fn(),
       validateMetadata: jest.fn(),
       publishMetadata: jest.fn(),
@@ -385,6 +399,210 @@ describe('RBAC Phase E API Endpoints', () => {
       await materializedViewGet(request);
 
       expect(mockRbacService.getMaterializedViewStatus).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('/api/rbac/publishing/jobs', () => {
+    it('returns publishing jobs successfully', async () => {
+      const jobs = [{ id: 'job-1' }] as any[];
+      mockRbacService.getPublishingJobs.mockResolvedValue(jobs);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/jobs');
+      const response = await publishingJobsGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.getPublishingJobs).toHaveBeenCalledWith(undefined);
+      expect(data).toEqual({ success: true, data: jobs });
+    });
+
+    it('handles publishing job fetch errors', async () => {
+      mockRbacService.getPublishingJobs.mockRejectedValue(new Error('Jobs unavailable'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/jobs');
+      const response = await publishingJobsGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/stats', () => {
+    it('returns publishing stats successfully', async () => {
+      const stats = {
+        totalJobs: 5,
+        runningJobs: 1,
+        completedJobs: 3,
+        failedJobs: 1,
+        averageCompletionTime: 4,
+        lastPublishedAt: '2025-09-26T00:00:00.000Z',
+        nextScheduledAt: '2025-09-26T01:00:00.000Z'
+      };
+      mockRbacService.getPublishingStats.mockResolvedValue(stats);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/stats');
+      const response = await publishingStatsGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.getPublishingStats).toHaveBeenCalledWith(undefined);
+      expect(data).toEqual({ success: true, data: stats });
+    });
+
+    it('handles publishing stats errors', async () => {
+      mockRbacService.getPublishingStats.mockRejectedValue(new Error('Stats unavailable'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/stats');
+      const response = await publishingStatsGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/tenant-status', () => {
+    it('returns tenant statuses successfully', async () => {
+      const statuses = [{ tenant_id: 'mock-tenant', status: 'current' }];
+      mockRbacService.getTenantPublishingStatuses.mockResolvedValue(statuses as any);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/tenant-status');
+      const response = await publishingTenantStatusGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.getTenantPublishingStatuses).toHaveBeenCalledWith(undefined);
+      expect(data).toEqual({ success: true, data: statuses });
+    });
+
+    it('handles tenant status fetch errors', async () => {
+      mockRbacService.getTenantPublishingStatuses.mockRejectedValue(new Error('Status unavailable'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/tenant-status');
+      const response = await publishingTenantStatusGet(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/compile', () => {
+    it('queues metadata compilation successfully', async () => {
+      const result = {
+        job: { id: 'job-10' } as any,
+        summary: { surfaces: 4 } as any
+      };
+      mockRbacService.queueMetadataCompilationJob.mockResolvedValue(result);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/compile', {
+        method: 'POST',
+        body: JSON.stringify({ scope: 'all' }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const response = await publishingCompileQueuePost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.queueMetadataCompilationJob).toHaveBeenCalledWith(undefined);
+      expect(data.success).toBe(true);
+      expect(data.data.job).toEqual(result.job);
+      expect(data.data.summary).toEqual(result.summary);
+      expect(data.data.scope).toBe('all');
+    });
+
+    it('handles compilation queue errors', async () => {
+      mockRbacService.queueMetadataCompilationJob.mockRejectedValue(new Error('Queue failed'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/compile', {
+        method: 'POST',
+        body: JSON.stringify({ scope: 'all' }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const response = await publishingCompileQueuePost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/sync-permissions', () => {
+    it('queues permission sync successfully', async () => {
+      const job = { id: 'job-11', status: 'pending' } as any;
+      mockRbacService.queuePermissionSyncJob.mockResolvedValue(job);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/sync-permissions', { method: 'POST' });
+      const response = await publishingSyncPost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.queuePermissionSyncJob).toHaveBeenCalledWith(undefined);
+      expect(data).toEqual({ success: true, data: job });
+    });
+
+    it('handles sync queue errors', async () => {
+      mockRbacService.queuePermissionSyncJob.mockRejectedValue(new Error('Sync failed'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/sync-permissions', { method: 'POST' });
+      const response = await publishingSyncPost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/validate-licenses', () => {
+    it('queues license validation successfully', async () => {
+      const job = { id: 'job-12', status: 'pending' } as any;
+      mockRbacService.queueLicenseValidationJob.mockResolvedValue(job);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/validate-licenses', { method: 'POST' });
+      const response = await publishingLicensePost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.queueLicenseValidationJob).toHaveBeenCalledWith(undefined);
+      expect(data).toEqual({ success: true, data: job });
+    });
+
+    it('handles license validation queue errors', async () => {
+      mockRbacService.queueLicenseValidationJob.mockRejectedValue(new Error('Validation failed'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/validate-licenses', { method: 'POST' });
+      const response = await publishingLicensePost(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.success).toBe(false);
+    });
+  });
+
+  describe('/api/rbac/publishing/jobs/[jobId]/cancel', () => {
+    it('cancels a publishing job successfully', async () => {
+      const job = { id: 'job-13', status: 'cancelled' } as any;
+      mockRbacService.cancelPublishingJob.mockResolvedValue(job);
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/jobs/job-13/cancel', { method: 'POST' });
+      const response = await publishingCancelPost(request, { params: { jobId: 'job-13' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockRbacService.cancelPublishingJob).toHaveBeenCalledWith('job-13', undefined);
+      expect(data).toEqual({ success: true, data: job });
+    });
+
+    it('handles publishing job cancel errors', async () => {
+      mockRbacService.cancelPublishingJob.mockRejectedValue(new Error('Publishing job not found'));
+
+      const request = new NextRequest('http://localhost:3000/api/rbac/publishing/jobs/job-99/cancel', { method: 'POST' });
+      const response = await publishingCancelPost(request, { params: { jobId: 'job-99' } });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.success).toBe(false);
     });
   });
 
