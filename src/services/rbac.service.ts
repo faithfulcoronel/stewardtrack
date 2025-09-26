@@ -363,7 +363,8 @@ export class RbacService {
       action: 'UPDATE_SURFACE_BINDING',
       resource_type: 'rbac_surface_binding',
       resource_id: binding.id,
-      new_values: data
+      new_values: data,
+      notes: `Updated surface binding: ${id}`
     });
 
     return binding;
@@ -375,6 +376,11 @@ export class RbacService {
       throw new Error('No tenant context available');
     }
 
+    const binding = await this.rbacRepository.getSurfaceBinding(id, effectiveTenantId);
+    if (!binding) {
+      throw new Error('Surface binding not found');
+    }
+
     await this.rbacRepository.deleteSurfaceBinding(id, effectiveTenantId);
 
     // Log the action
@@ -383,7 +389,9 @@ export class RbacService {
       user_id: 'system',
       action: 'DELETE_SURFACE_BINDING',
       resource_type: 'rbac_surface_binding',
-      resource_id: id
+      resource_id: id,
+      old_values: binding,
+      notes: `Deleted surface binding: ${id}`
     });
   }
 
@@ -397,13 +405,20 @@ export class RbacService {
   }
 
   // Metadata Surface management
-  async getMetadataSurfaces(): Promise<MetadataSurface[]> {
-    return await this.rbacRepository.getMetadataSurfaces();
+  async getMetadataSurfaces(
+    filters?: {
+      module?: string;
+      phase?: string;
+      surface_type?: string;
+    },
+    tenantId?: string
+  ): Promise<MetadataSurface[]> {
+    const effectiveTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.getMetadataSurfaces(effectiveTenantId, filters);
   }
 
-  async getMetadataSurfacesByPhase(phase: string): Promise<MetadataSurface[]> {
-    const surfaces = await this.getMetadataSurfaces();
-    return surfaces.filter(surface => surface.phase === phase);
+  async getMetadataSurfacesByPhase(phase: string, tenantId?: string): Promise<MetadataSurface[]> {
+    return await this.getMetadataSurfaces({ phase }, tenantId);
   }
 
   // Feature management
@@ -740,15 +755,6 @@ export class RbacService {
     };
   }
 
-  // Additional Phase C methods for Surface Binding Management
-  async getMetadataSurfaces(filters?: {
-    module?: string;
-    phase?: string;
-    surface_type?: string;
-  }): Promise<MetadataSurface[]> {
-    return await this.rbacRepository.getMetadataSurfaces(filters);
-  }
-
   async createMetadataSurface(data: {
     module: string;
     route?: string;
@@ -810,41 +816,6 @@ export class RbacService {
     });
 
     return feature;
-  }
-
-  async updateSurfaceBinding(bindingId: string, data: Partial<CreateSurfaceBindingDto>): Promise<RbacSurfaceBinding> {
-    const binding = await this.rbacRepository.updateSurfaceBinding(bindingId, data);
-
-    // Log the action
-    await this.logAuditEvent({
-      tenant_id: binding.tenant_id,
-      action: 'UPDATE_SURFACE_BINDING',
-      resource_type: 'rbac_surface_binding',
-      resource_id: binding.id,
-      new_values: data,
-      notes: `Updated surface binding: ${bindingId}`
-    });
-
-    return binding;
-  }
-
-  async deleteSurfaceBinding(bindingId: string): Promise<void> {
-    const binding = await this.rbacRepository.getSurfaceBinding(bindingId);
-    if (!binding) {
-      throw new Error('Surface binding not found');
-    }
-
-    await this.rbacRepository.deleteSurfaceBinding(bindingId);
-
-    // Log the action
-    await this.logAuditEvent({
-      tenant_id: binding.tenant_id,
-      action: 'DELETE_SURFACE_BINDING',
-      resource_type: 'rbac_surface_binding',
-      resource_id: bindingId,
-      old_values: binding,
-      notes: `Deleted surface binding: ${bindingId}`
-    });
   }
 
   // Phase D - Delegated Console Methods
