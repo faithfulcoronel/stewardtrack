@@ -156,15 +156,21 @@ export function BundleComposer() {
 
   const loadPermissions = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch('/api/rbac/permissions?groupByModule=true');
       const result = await response.json();
 
       if (result.success) {
         setPermissionsByModule(result.data);
+        console.log('Loaded permissions by module:', result.data);
+      } else {
+        toast.error(result.error || 'Failed to load permissions');
       }
     } catch (error) {
       console.error('Error loading permissions:', error);
-      toast.error('Failed to load permissions');
+      toast.error('Failed to load permissions from server');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -543,8 +549,16 @@ export function BundleComposer() {
               checked={bundleData.is_template}
               onCheckedChange={(checked) => setBundleData({ ...bundleData, is_template: !!checked })}
             />
-            <Label htmlFor="is-template" className="text-sm">
-              Make this a template bundle (can be reused across tenants)
+            <Label htmlFor="is-template" className="text-sm flex items-center gap-2">
+              Make this a template bundle (can be reused across organizations)
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Template bundles can be copied and reused by other church organizations as starting points</p>
+                </TooltipContent>
+              </Tooltip>
             </Label>
           </div>
         </CardContent>
@@ -555,11 +569,21 @@ export function BundleComposer() {
   const renderPermissionsStep = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          Select Permissions ({selectedPermissions.size} selected)
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">
+            Select Permissions ({selectedPermissions.size} selected)
+          </h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p>Permissions are organized by module. Select individual permissions or use 'Select All' for entire modules.</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <div className="text-sm text-gray-500">
-          Organize permissions by module for better management
+          Organized by module for better management
         </div>
       </div>
 
