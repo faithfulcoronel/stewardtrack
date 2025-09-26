@@ -12,6 +12,13 @@ DROP VIEW IF EXISTS user_menu_access;
 DROP VIEW IF EXISTS active_tenant_license_features;
 DROP MATERIALIZED VIEW IF EXISTS tenant_user_effective_permissions CASCADE;
 
+-- Drop policies that depend on helper functions
+DROP POLICY IF EXISTS "Metadata pages are viewable within tenant" ON metadata_pages;
+
+-- Drop policies that depend on helper functions
+DROP POLICY IF EXISTS "Menu items are viewable within tenant" ON menu_items;
+DROP POLICY IF EXISTS "Metadata pages are viewable within tenant" ON metadata_pages;
+
 -- Drop helper functions (will be recreated below)
 DROP FUNCTION IF EXISTS get_user_licensed_metadata_pages(uuid, uuid);
 DROP FUNCTION IF EXISTS get_user_licensed_menu_items(uuid, uuid);
@@ -23,13 +30,10 @@ DROP FUNCTION IF EXISTS migrate_role_menu_items_to_surface_bindings();
 DROP FUNCTION IF EXISTS can_user_all(text[], uuid);
 DROP FUNCTION IF EXISTS can_user_any(text[], uuid);
 DROP FUNCTION IF EXISTS can_user(text, uuid);
-DROP FUNCTION IF EXISTS current_tenant();
-DROP FUNCTION IF EXISTS trigger_refresh_effective_permissions_safe();
 DROP FUNCTION IF EXISTS refresh_tenant_user_effective_permissions_safe();
 DROP FUNCTION IF EXISTS refresh_tenant_user_effective_permissions();
 DROP FUNCTION IF EXISTS get_rbac_health_metrics(uuid);
 DROP FUNCTION IF EXISTS cleanup_old_audit_logs(integer);
-DROP FUNCTION IF EXISTS rbac_audit_trigger();
 DROP FUNCTION IF EXISTS get_user_effective_permissions(uuid, uuid);
 DROP FUNCTION IF EXISTS can_user_fast(text, uuid);
 DROP FUNCTION IF EXISTS get_user_role_metadata_keys(uuid, uuid);
@@ -41,6 +45,7 @@ DROP FUNCTION IF EXISTS validate_surface_binding_integrity();
 DROP FUNCTION IF EXISTS rebuild_rbac_materialized_view(uuid);
 DROP FUNCTION IF EXISTS rebuild_rbac_metadata_pages(uuid);
 DROP FUNCTION IF EXISTS record_rbac_validation_event(uuid, text, text, jsonb);
+DROP FUNCTION IF EXISTS current_tenant();
 
 -- Drop audit triggers (they will be recreated after tables exist)
 DROP TRIGGER IF EXISTS rbac_audit_trigger_roles ON roles;
@@ -51,11 +56,13 @@ DROP TRIGGER IF EXISTS rbac_audit_trigger_role_permissions ON role_permissions;
 DROP TRIGGER IF EXISTS rbac_audit_trigger_role_bundles ON role_bundles;
 DROP TRIGGER IF EXISTS rbac_audit_trigger_bundle_permissions ON bundle_permissions;
 DROP TRIGGER IF EXISTS rbac_audit_trigger_surface_bindings ON rbac_surface_bindings;
+DROP FUNCTION IF EXISTS rbac_audit_trigger();
 DROP TRIGGER IF EXISTS refresh_effective_permissions_user_roles ON user_roles;
 DROP TRIGGER IF EXISTS refresh_effective_permissions_role_permissions ON role_permissions;
 DROP TRIGGER IF EXISTS refresh_effective_permissions_role_bundles ON role_bundles;
 DROP TRIGGER IF EXISTS refresh_effective_permissions_bundle_permissions ON bundle_permissions;
 DROP TRIGGER IF EXISTS refresh_effective_permissions_surface_bindings ON rbac_surface_bindings;
+DROP FUNCTION IF EXISTS trigger_refresh_effective_permissions_safe();
 
 -- Drop RBAC tables (preserving tenant_* tables)
 DROP TABLE IF EXISTS rbac_audit_log CASCADE;
@@ -1700,11 +1707,11 @@ SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT 'roles', 'missing_tenant_id', COUNT(*), jsonb_agg(jsonb_build_object('id', id, 'name', name) ORDER BY created_at LIMIT 5)
+  SELECT 'roles', 'missing_tenant_id', COUNT(*), (SELECT jsonb_agg(jsonb_build_object('id', sample.id, 'name', sample.name) ORDER BY sample.created_at) FROM (SELECT id, name, created_at FROM roles WHERE tenant_id IS NULL ORDER BY created_at LIMIT 5) sample)
   FROM roles WHERE tenant_id IS NULL GROUP BY 1,2 HAVING COUNT(*) > 0;
 
   RETURN QUERY
-  SELECT 'permissions', 'missing_tenant_id', COUNT(*), jsonb_agg(jsonb_build_object('id', id, 'code', code) ORDER BY created_at LIMIT 5)
+  SELECT 'permissions', 'missing_tenant_id', COUNT(*), (SELECT jsonb_agg(jsonb_build_object('id', sample.id, 'code', sample.code) ORDER BY sample.created_at) FROM (SELECT id, code, created_at FROM permissions WHERE tenant_id IS NULL ORDER BY created_at LIMIT 5) sample)
   FROM permissions WHERE tenant_id IS NULL GROUP BY 1,2 HAVING COUNT(*) > 0;
 END;
 $$;

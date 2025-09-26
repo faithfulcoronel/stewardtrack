@@ -4,6 +4,10 @@
 BEGIN;
 
 -- Drop dependent views and functions tied to legacy metadata_pages and licenses
+-- Drop policies that depend on legacy functions
+DROP POLICY IF EXISTS "Menu items are viewable within tenant" ON menu_items;
+DROP POLICY IF EXISTS "Metadata pages are viewable within tenant" ON metadata_pages;
+
 DROP VIEW IF EXISTS user_metadata_surface_access;
 DROP VIEW IF EXISTS user_metadata_page_access;
 DROP VIEW IF EXISTS user_menu_access;
