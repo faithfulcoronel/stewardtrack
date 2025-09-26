@@ -8,6 +8,7 @@ import { resolveServiceDataSourceHandler } from "./services";
 
 export interface MetadataEvaluationContext {
   role?: string | null;
+  roles?: string[] | null; // Support for multiple roles
   featureFlags?: Record<string, boolean> | null | undefined;
   searchParams?: Record<string, string | string[] | undefined>;
 }
@@ -25,6 +26,7 @@ interface ExpressionScope {
   flags: Record<string, boolean>;
   params: Record<string, string | string[] | undefined>;
   role: string;
+  roles: string[];
   actions: ActionScope;
 }
 
@@ -37,11 +39,12 @@ export async function evaluateMetadataDataSources(
   context: MetadataEvaluationContext,
 ): Promise<DataScope> {
   const role = context.role ?? "guest";
+  const roles = context.roles ?? [role];
   const params = context.searchParams ?? {};
   const results: DataScope = {};
 
   for (const source of sources) {
-    if (!isPermitted(source.rbac, role)) {
+    if (!isPermittedWithRoles(source.rbac, role, roles)) {
       continue;
     }
 
@@ -96,6 +99,7 @@ export async function evaluateMetadataDataSources(
         const resolved = await handler({
           id: source.id,
           role,
+          roles,
           config,
           params,
         });
@@ -117,9 +121,10 @@ export async function evaluateMetadataDataSources(
   return results;
 }
 
-export function evaluateMetadataActions(actions: CanonicalAction[], role: string): ActionScope {
+export function evaluateMetadataActions(actions: CanonicalAction[], role: string, roles?: string[]): ActionScope {
+  const effectiveRoles = roles ?? [role];
   return actions.reduce<ActionScope>((acc, action) => {
-    if (!isPermitted(action.rbac, role)) {
+    if (!isPermittedWithRoles(action.rbac, role, effectiveRoles)) {
       return acc;
     }
     const config = normalizeRecord(action.config ?? {});
@@ -148,6 +153,7 @@ export function evaluateMetadataProp(
   context: MetadataEvaluationContext,
 ): unknown {
   const role = context.role ?? "guest";
+  const roles = context.roles ?? [role];
   switch (prop.kind) {
     case "static":
       return prop.value;
@@ -162,6 +168,7 @@ export function evaluateMetadataProp(
         flags: context.featureFlags ?? {},
         params: context.searchParams ?? {},
         role,
+        roles,
         actions,
       };
       try {
@@ -199,6 +206,7 @@ function compileExpression(expression: string): ExpressionEvaluator {
       "flags",
       "params",
       "role",
+      "roles",
       "actions",
       `"use strict"; return (${expression});`,
     ) as (
@@ -206,10 +214,11 @@ function compileExpression(expression: string): ExpressionEvaluator {
       flags: Record<string, boolean>,
       params: Record<string, string | string[] | undefined>,
       role: string,
+      roles: string[],
       actions: ActionScope,
     ) => unknown;
 
-    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role, scope.actions);
+    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role, scope.roles, scope.actions);
   } catch (error) {
     const err = toError(error);
     console.error(`Failed to compile expression ${expression}`, err);
@@ -268,6 +277,40 @@ export function isPermitted(
   if (rbac.allow && !rbac.allow.includes(role)) {
     return false;
   }
+  return true;
+}
+
+export function isPermittedWithRoles(
+  rbac:
+    | CanonicalAction["rbac"]
+    | CanonicalComponent["rbac"]
+    | CanonicalDataSource["rbac"],
+  primaryRole: string,
+  roles: string[],
+): boolean {
+  if (!rbac) {
+    return true;
+  }
+
+  // Check if any role is explicitly denied
+  if (rbac.deny) {
+    for (const role of roles) {
+      if (rbac.deny.includes(role)) {
+        return false;
+      }
+    }
+  }
+
+  // If allow list is specified, at least one role must be in it
+  if (rbac.allow && rbac.allow.length > 0) {
+    for (const role of roles) {
+      if (rbac.allow.includes(role)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   return true;
 }
 

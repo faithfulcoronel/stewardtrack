@@ -8,16 +8,24 @@ import { TYPES } from '@/lib/types';
 
 export interface IUserRoleAdapter extends IBaseAdapter<UserRole> {
   getRoleDetailsByUser(
-    userId: string
+    userId: string,
+    tenantId?: string
   ): Promise<{ role_id: string; role_name: string }[]>;
   getAdminRole(userId: string, tenantId: string): Promise<string | null>;
-  getRolesWithPermissions(userId: string): Promise<any[]>;
+  getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]>;
   isSuperAdmin(): Promise<boolean>;
   isAdmin(userId: string): Promise<boolean>;
-  canUser(permission: string): Promise<boolean>;
+  canUser(permission: string, tenantId?: string): Promise<boolean>;
+  canUserFast(permission: string, tenantId?: string): Promise<boolean>;
+  canUserAny(permissions: string[], tenantId?: string): Promise<boolean>;
+  canUserAll(permissions: string[], tenantId?: string): Promise<boolean>;
+  getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]>;
+  getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]>;
   replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
-  getRolesByUser(userId: string): Promise<string[]>;
+  getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
+  getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
+  getUserAccessibleMetadataPages(userId: string, tenantId?: string): Promise<any[]>;
 }
 
 @injectable()
@@ -54,7 +62,8 @@ export class UserRoleAdapter
   }
 
   public async getRoleDetailsByUser(
-    userId: string
+    userId: string,
+    tenantId?: string
   ): Promise<{ role_id: string; role_name: string }[]> {
     // Validate userId
     if (!userId || typeof userId !== 'string') {
@@ -64,6 +73,7 @@ export class UserRoleAdapter
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase.rpc('get_user_roles', {
       user_id: userId,
+      tenant_id: tenantId || null,
     });
     if (error) throw error;
     return (data || []) as { role_id: string; role_name: string }[];
@@ -92,7 +102,7 @@ export class UserRoleAdapter
     return (data as any)?.admin_role || null;
   }
 
-  public async getRolesWithPermissions(userId: string): Promise<any[]> {
+  public async getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]> {
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId provided to getRolesWithPermissions');
@@ -101,7 +111,10 @@ export class UserRoleAdapter
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase.rpc(
       'get_user_roles_with_permissions',
-      { target_user_id: userId }
+      {
+        target_user_id: userId,
+        target_tenant_id: tenantId || null
+      }
     );
     if (error) throw error;
     return data || [];
@@ -127,13 +140,74 @@ export class UserRoleAdapter
     return Boolean(data);
   }
 
-  public async canUser(permission: string): Promise<boolean> {
+  public async canUser(permission: string, tenantId?: string): Promise<boolean> {
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase.rpc('can_user', {
       required_permission: permission,
+      target_tenant_id: tenantId || null,
     });
     if (error) throw error;
-    return Boolean(data?.[0]);
+    return Boolean(data);
+  }
+
+  public async canUserFast(permission: string, tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_fast', {
+      required_permission: permission,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  public async canUserAny(permissions: string[], tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_any', {
+      required_permissions: permissions,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  public async canUserAll(permissions: string[], tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_all', {
+      required_permissions: permissions,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  public async getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserEffectivePermissions');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_effective_permissions', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  public async getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserRoleMetadataKeys');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_role_metadata_keys', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
   }
 
   public async replaceUserRoles(
@@ -173,7 +247,7 @@ export class UserRoleAdapter
     }
   }
 
-  public async getRolesByUser(userId: string): Promise<string[]> {
+  public async getRolesByUser(userId: string, tenantId?: string): Promise<string[]> {
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId provided to getRolesByUser');
@@ -182,9 +256,40 @@ export class UserRoleAdapter
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase.rpc('get_user_roles', {
       user_id: userId,
+      tenant_id: tenantId || null,
     });
     if (error) throw error;
     return (data || []).map((r: any) => r.role_name);
+  }
+
+  public async getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserAccessibleMenuItems');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_menu_with_metadata', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  public async getUserAccessibleMetadataPages(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserAccessibleMetadataPages');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_accessible_metadata_pages', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
   }
 
   public async getUsersByRole(roleId: string): Promise<UserRole[]> {

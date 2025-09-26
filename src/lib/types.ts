@@ -1,6 +1,7 @@
 export const TYPES = {
   AuditService: Symbol.for('AuditService'),
   AuthService: Symbol.for('AuthService'),
+  RbacRegistryService: Symbol.for('RbacRegistryService'),
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),
   IAccountRepository: Symbol.for('IAccountRepository'),
