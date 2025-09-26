@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  Publish,
+  Plus,
   PlayCircle,
   PauseCircle,
   StopCircle,
@@ -435,7 +435,7 @@ export function MetadataPublishingControls() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Publish className="h-5 w-5" />
+                  <Plus className="h-5 w-5" />
                   Publishing Operations
                 </CardTitle>
               </CardHeader>

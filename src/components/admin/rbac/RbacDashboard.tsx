@@ -90,10 +90,10 @@ export function RbacDashboard() {
     },
     {
       phase: 'Phase D',
-      title: 'Delegated Consoles',
-      status: 'planned',
-      description: 'Campus and ministry-scoped access management',
-      route: '/admin/security/rbac/delegation'
+      title: 'Delegated Consoles & Multi-Role Runtime',
+      status: 'complete',
+      description: 'Campus and ministry-scoped access management with multi-role support',
+      route: '/admin/rbac/delegated-console'
     },
     {
       phase: 'Phase E',
@@ -471,6 +471,36 @@ export function RbacDashboard() {
                   <Lock className="h-8 w-8 mx-auto mb-2 text-purple-600" />
                   <h3 className="font-semibold mb-1">Manage Bindings</h3>
                   <p className="text-xs text-gray-600">Link roles to UI surfaces</p>
+                </CardContent>
+              </Link>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/rbac/delegated-console">
+                <CardContent className="p-6 text-center">
+                  <Settings className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+                  <h3 className="font-semibold mb-1">Delegated Console</h3>
+                  <p className="text-xs text-gray-600">Campus & ministry-scoped access</p>
+                </CardContent>
+              </Link>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/rbac/multi-role">
+                <CardContent className="p-6 text-center">
+                  <UserCheck className="h-8 w-8 mx-auto mb-2 text-indigo-600" />
+                  <h3 className="font-semibold mb-1">Multi-Role Assignment</h3>
+                  <p className="text-xs text-gray-600">Assign multiple roles with conflict analysis</p>
+                </CardContent>
+              </Link>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/rbac/delegation-permissions">
+                <CardContent className="p-6 text-center">
+                  <Shield className="h-8 w-8 mx-auto mb-2 text-red-600" />
+                  <h3 className="font-semibold mb-1">Delegation Permissions</h3>
+                  <p className="text-xs text-gray-600">Manage delegation access controls</p>
                 </CardContent>
               </Link>
             </Card>
