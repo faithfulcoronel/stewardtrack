@@ -354,6 +354,11 @@ export class RbacService {
       throw new Error('No tenant context available');
     }
 
+    const existingBinding = await this.rbacRepository.getSurfaceBinding(id, effectiveTenantId);
+    if (!existingBinding) {
+      throw new Error('Surface binding not found');
+    }
+
     const binding = await this.rbacRepository.updateSurfaceBinding(id, data, effectiveTenantId);
 
     // Log the action
@@ -363,7 +368,9 @@ export class RbacService {
       action: 'UPDATE_SURFACE_BINDING',
       resource_type: 'rbac_surface_binding',
       resource_id: binding.id,
-      new_values: data
+      old_values: existingBinding,
+      new_values: data,
+      notes: `Updated surface binding: ${binding.id}`
     });
 
     return binding;
@@ -375,6 +382,11 @@ export class RbacService {
       throw new Error('No tenant context available');
     }
 
+    const binding = await this.rbacRepository.getSurfaceBinding(id, effectiveTenantId);
+    if (!binding) {
+      throw new Error('Surface binding not found');
+    }
+
     await this.rbacRepository.deleteSurfaceBinding(id, effectiveTenantId);
 
     // Log the action
@@ -383,7 +395,9 @@ export class RbacService {
       user_id: 'system',
       action: 'DELETE_SURFACE_BINDING',
       resource_type: 'rbac_surface_binding',
-      resource_id: id
+      resource_id: id,
+      old_values: binding,
+      notes: `Deleted surface binding: ${id}`
     });
   }
 
@@ -810,41 +824,6 @@ export class RbacService {
     });
 
     return feature;
-  }
-
-  async updateSurfaceBinding(bindingId: string, data: Partial<CreateSurfaceBindingDto>): Promise<RbacSurfaceBinding> {
-    const binding = await this.rbacRepository.updateSurfaceBinding(bindingId, data);
-
-    // Log the action
-    await this.logAuditEvent({
-      tenant_id: binding.tenant_id,
-      action: 'UPDATE_SURFACE_BINDING',
-      resource_type: 'rbac_surface_binding',
-      resource_id: binding.id,
-      new_values: data,
-      notes: `Updated surface binding: ${bindingId}`
-    });
-
-    return binding;
-  }
-
-  async deleteSurfaceBinding(bindingId: string): Promise<void> {
-    const binding = await this.rbacRepository.getSurfaceBinding(bindingId);
-    if (!binding) {
-      throw new Error('Surface binding not found');
-    }
-
-    await this.rbacRepository.deleteSurfaceBinding(bindingId);
-
-    // Log the action
-    await this.logAuditEvent({
-      tenant_id: binding.tenant_id,
-      action: 'DELETE_SURFACE_BINDING',
-      resource_type: 'rbac_surface_binding',
-      resource_id: bindingId,
-      old_values: binding,
-      notes: `Deleted surface binding: ${bindingId}`
-    });
   }
 
   // Phase D - Delegated Console Methods

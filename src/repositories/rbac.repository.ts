@@ -600,7 +600,11 @@ export class RbacRepository extends BaseRepository {
     return result;
   }
 
-  async updateSurfaceBinding(id: string, data: Partial<CreateSurfaceBindingDto>, tenantId: string): Promise<RbacSurfaceBinding> {
+  async updateSurfaceBinding(
+    id: string,
+    data: Partial<CreateSurfaceBindingDto>,
+    tenantId: string
+  ): Promise<RbacSurfaceBinding> {
     const supabase = await this.getSupabaseClient();
     const { data: result, error } = await supabase
       .from('rbac_surface_bindings')
@@ -631,6 +635,27 @@ export class RbacRepository extends BaseRepository {
     if (error) {
       throw new Error(`Failed to delete surface binding: ${error.message}`);
     }
+  }
+
+  async getSurfaceBinding(id: string, tenantId: string): Promise<RbacSurfaceBinding | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('rbac_surface_bindings')
+      .select('*')
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      console.error('Error fetching surface binding:', error);
+      throw new Error(`Failed to fetch surface binding: ${error.message}`);
+    }
+
+    return data;
   }
 
   async getSurfaceBindings(tenantId: string): Promise<RbacSurfaceBinding[]> {
@@ -1150,60 +1175,6 @@ export class RbacRepository extends BaseRepository {
     return data;
   }
 
-  async updateSurfaceBinding(bindingId: string, data: Partial<CreateSurfaceBindingDto>): Promise<RbacSurfaceBinding> {
-    const supabase = await this.getSupabaseClient();
-
-    const { data: binding, error } = await supabase
-      .from('rbac_surface_bindings')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', bindingId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating surface binding:', error);
-      throw new Error(`Failed to update surface binding: ${error.message}`);
-    }
-
-    return binding;
-  }
-
-  async getSurfaceBinding(bindingId: string): Promise<RbacSurfaceBinding | null> {
-    const supabase = await this.getSupabaseClient();
-
-    const { data, error } = await supabase
-      .from('rbac_surface_bindings')
-      .select('*')
-      .eq('id', bindingId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // Not found
-      }
-      console.error('Error fetching surface binding:', error);
-      throw new Error(`Failed to fetch surface binding: ${error.message}`);
-    }
-
-    return data;
-  }
-
-  async deleteSurfaceBinding(bindingId: string): Promise<void> {
-    const supabase = await this.getSupabaseClient();
-
-    const { error } = await supabase
-      .from('rbac_surface_bindings')
-      .delete()
-      .eq('id', bindingId);
-
-    if (error) {
-      console.error('Error deleting surface binding:', error);
-      throw new Error(`Failed to delete surface binding: ${error.message}`);
-    }
-  }
 
   // Phase D - Delegation Methods
   async getDelegationScopes(delegatedContext: any): Promise<any[]> {
