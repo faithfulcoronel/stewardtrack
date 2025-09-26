@@ -256,7 +256,7 @@ export function RbacDashboard() {
               </div>
             </div>
             <div className="mt-4">
-              <Link href="/admin/security/rbac/surfaces">
+              <Link href="/admin/security/rbac/surface-bindings">
                 <Button variant="outline" size="sm" className="w-full">
                   Manage Surfaces
                 </Button>
