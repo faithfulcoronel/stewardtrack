@@ -139,12 +139,12 @@ export class UserRoleService {
     }
   }
 
-  async getUserAccessibleMetadataPages(userId: string, tenantId?: string): Promise<any[]> {
+  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
     try {
       const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-      return await (this.repo as any).adapter.getUserAccessibleMetadataPages(userId, effectiveTenantId);
+      return await (this.repo as any).adapter.getUserAccessibleMetadataSurfaces(userId, effectiveTenantId);
     } catch (error) {
-      console.error('Error getting user accessible metadata pages:', error);
+      console.error('Error getting user accessible metadata surfaces:', error);
       return [];
     }
   }

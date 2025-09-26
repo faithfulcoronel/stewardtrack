@@ -2,10 +2,13 @@ import { z } from 'zod';
 import { LicenseFeature } from '@/models/licenseFeature.model';
 
 const schema = z.object({
-  license_id: z.string().uuid({ message: 'License ID is required' }),
-  feature: z.string().nonempty('Feature is required'),
-  plan_name: z.string().nonempty('Plan name is required'),
-  feature_key: z.string().nonempty('Feature key is required'),
+  code: z.string().nonempty('Feature code is required'),
+  name: z.string().nonempty('Feature name is required'),
+  category: z.string().nonempty('Category is required'),
+  description: z.string().optional().nullable(),
+  phase: z.string().nonempty('Phase is required'),
+  is_delegatable: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export class LicenseFeatureValidator {

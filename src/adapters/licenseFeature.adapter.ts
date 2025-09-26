@@ -17,15 +17,17 @@ export class LicenseFeatureAdapter
     super();
   }
 
-  protected tableName = 'license_features';
+  protected tableName = 'feature_catalog';
 
   protected defaultSelect = `
     id,
-    tenant_id,
-    license_id,
-    feature,
-    plan_name,
-    feature_key,
+    code,
+    name,
+    category,
+    description,
+    phase,
+    is_delegatable,
+    is_active,
     created_by,
     updated_by,
     created_at,
@@ -35,14 +37,14 @@ export class LicenseFeatureAdapter
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
   protected override async onAfterCreate(data: LicenseFeature): Promise<void> {
-    await this.auditService.logAuditEvent('create', 'license_feature', data.id, data);
+    await this.auditService.logAuditEvent('create', 'feature_catalog', data.id, data);
   }
 
   protected override async onAfterUpdate(data: LicenseFeature): Promise<void> {
-    await this.auditService.logAuditEvent('update', 'license_feature', data.id, data);
+    await this.auditService.logAuditEvent('update', 'feature_catalog', data.id, data);
   }
 
   protected override async onAfterDelete(id: string): Promise<void> {
-    await this.auditService.logAuditEvent('delete', 'license_feature', id, { id });
+    await this.auditService.logAuditEvent('delete', 'feature_catalog', id, { id });
   }
 }

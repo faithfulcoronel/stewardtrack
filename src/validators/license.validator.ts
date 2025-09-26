@@ -2,9 +2,13 @@ import { z } from 'zod';
 import { License } from '@/models/license.model';
 
 const schema = z.object({
-  plan_name: z.string().nonempty('Plan name is required'),
-  tier: z.string().nonempty('Tier is required'),
-  status: z.string().nonempty('Status is required'),
+  tenant_id: z.string().uuid({ message: 'Tenant ID is required' }),
+  feature_id: z.string().uuid({ message: 'Feature ID is required' }),
+  grant_source: z.enum(['package', 'direct', 'trial', 'comp'], {
+    errorMap: () => ({ message: 'Grant source is required' }),
+  }),
+  package_id: z.string().uuid().optional().nullable(),
+  source_reference: z.string().optional().nullable(),
   starts_at: z.string().optional().nullable(),
   expires_at: z.string().optional().nullable(),
 });

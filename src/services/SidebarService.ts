@@ -52,8 +52,8 @@ export class SidebarService {
       return [];
     }
 
-    const features = await this.licenseFeatureService.getActiveFeatures();
-    const featureKeys = features.map((f: any) => f.feature_key);
+    const features = await this.licenseFeatureService.getActiveFeatures(tenant.id);
+    const featureKeys = features.map((f: any) => f.feature_code);
 
     const allowed = items.filter((item: any) => {
       const roleItems = (item.role_menu_items as { role_id: string }[]) || [];

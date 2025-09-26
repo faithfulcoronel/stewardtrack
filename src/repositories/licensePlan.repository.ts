@@ -18,13 +18,13 @@ export class LicensePlanRepository
 
   protected override async afterCreate(data: LicensePlan): Promise<void> {
     NotificationService.showSuccess(
-      `License plan "${data.name}" created successfully`
+      `Feature package "${data.name}" created successfully`
     );
   }
 
   protected override async afterUpdate(data: LicensePlan): Promise<void> {
     NotificationService.showSuccess(
-      `License plan "${data.name}" updated successfully`
+      `Feature package "${data.name}" updated successfully`
     );
   }
 }

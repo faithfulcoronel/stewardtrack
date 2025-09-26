@@ -28,10 +28,10 @@ export class LicenseRepository
   }
 
   protected override async afterCreate(data: License): Promise<void> {
-    NotificationService.showSuccess(`License "${data.plan_name}" created successfully`);
+    NotificationService.showSuccess(`Feature grant for feature ${data.feature_id} created successfully`);
   }
 
   protected override async afterUpdate(data: License): Promise<void> {
-    NotificationService.showSuccess(`License "${data.plan_name}" updated successfully`);
+    NotificationService.showSuccess(`Feature grant for feature ${data.feature_id} updated successfully`);
   }
 }
