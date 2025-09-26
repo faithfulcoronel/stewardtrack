@@ -314,8 +314,8 @@ ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO feature_packages (code, name, description, cadence, is_active)
 SELECT DISTINCT
-  COALESCE(l.plan_name, l.code, 'legacy-package'),
-  initcap(replace(COALESCE(l.plan_name, l.code, 'legacy package'), '_', ' ')),
+  COALESCE(NULLIF(btrim(l.plan_name), ''), 'legacy-package'),
+  initcap(replace(COALESCE(NULLIF(btrim(l.plan_name), ''), 'legacy package'), '_', ' ')),
   CONCAT('Migrated legacy license tier ', l.tier),
   'legacy',
   l.status = 'active'
@@ -328,7 +328,7 @@ SELECT DISTINCT
   fc.id
 FROM license_features lf
 JOIN licenses l ON l.id = lf.license_id
-JOIN feature_packages fp ON fp.code = COALESCE(l.plan_name, l.code, 'legacy-package')
+JOIN feature_packages fp ON fp.code = COALESCE(NULLIF(btrim(l.plan_name), ''), 'legacy-package')
 JOIN feature_catalog fc ON fc.code = lf.feature
 ON CONFLICT (package_id, feature_id) DO NOTHING;
 
@@ -345,7 +345,7 @@ SELECT DISTINCT
   now()
 FROM license_features lf
 JOIN licenses l ON l.id = lf.license_id
-JOIN feature_packages fp ON fp.code = COALESCE(l.plan_name, l.code, 'legacy-package')
+JOIN feature_packages fp ON fp.code = COALESCE(NULLIF(btrim(l.plan_name), ''), 'legacy-package')
 JOIN feature_catalog fc ON fc.code = lf.feature
 ON CONFLICT (tenant_id, feature_id, grant_source, COALESCE(package_id, '00000000-0000-0000-0000-000000000000'::uuid), COALESCE(source_reference, '')) DO NOTHING;
 
