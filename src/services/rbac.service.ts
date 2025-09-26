@@ -1099,6 +1099,268 @@ export class RbacService {
 
     return await this.rbacRepository.getUsers(resolvedTenantId);
   }
+
+  // Phase E - Operational Dashboards & Automation
+
+  // RBAC Health Metrics
+  async getRbacHealthMetrics(tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.getRbacHealthMetrics(resolvedTenantId);
+  }
+
+  // Materialized View Monitoring
+  async getMaterializedViewStatus(tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const status = await this.rbacRepository.getMaterializedViewStatus(resolvedTenantId);
+
+    // Log access to materialized view monitoring (only if we have a valid tenant context)
+    if (resolvedTenantId && resolvedTenantId !== 'unknown') {
+      // Using fire-and-forget pattern for audit logging to avoid blocking the response
+      this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'VIEW_MATERIALIZED_STATUS',
+        resource_type: 'materialized_view',
+        security_impact: 'low',
+        notes: 'Platform engineer accessed materialized view status monitoring'
+      }).catch(error => {
+        console.warn('Audit logging failed for materialized view access:', error.message);
+      });
+    }
+
+    return status;
+  }
+
+  async refreshMaterializedViews(tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const startTime = new Date();
+
+    try {
+      const result = await this.rbacRepository.refreshMaterializedViews(resolvedTenantId);
+
+      // Log successful refresh
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'REFRESH_MATERIALIZED_VIEWS',
+        resource_type: 'materialized_view',
+        security_impact: 'medium',
+        new_values: {
+          start_time: startTime,
+          duration_ms: Date.now() - startTime.getTime(),
+          status: 'success'
+        },
+        notes: 'Manual materialized view refresh initiated by platform engineer'
+      });
+
+      return result;
+    } catch (error) {
+      // Log failed refresh
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'REFRESH_MATERIALIZED_VIEWS_FAILED',
+        resource_type: 'materialized_view',
+        security_impact: 'high',
+        new_values: {
+          start_time: startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          status: 'failed'
+        },
+        notes: 'Materialized view refresh failed - requires investigation'
+      });
+
+      throw error;
+    }
+  }
+
+  // Metadata Publishing Controls
+  async getMetadataPublishingStatus(tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const status = await this.rbacRepository.getMetadataPublishingStatus(resolvedTenantId);
+
+    // Log access to publishing dashboard
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'VIEW_PUBLISHING_STATUS',
+      resource_type: 'metadata_publishing',
+      security_impact: 'low',
+      notes: 'Release manager accessed metadata publishing dashboard'
+    });
+
+    return status;
+  }
+
+  async compileMetadata(tenantId?: string, metadata?: any): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const startTime = new Date();
+
+    try {
+      const result = await this.rbacRepository.compileMetadata(resolvedTenantId, metadata);
+
+      // Log successful compilation
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'COMPILE_METADATA',
+        resource_type: 'metadata_compilation',
+        security_impact: 'medium',
+        new_values: {
+          start_time: startTime,
+          duration_ms: Date.now() - startTime.getTime(),
+          status: 'success',
+          metadata_keys: metadata?.keys || []
+        },
+        notes: 'Metadata compilation completed successfully'
+      });
+
+      return result;
+    } catch (error) {
+      // Log failed compilation
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'COMPILE_METADATA_FAILED',
+        resource_type: 'metadata_compilation',
+        security_impact: 'high',
+        new_values: {
+          start_time: startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          status: 'failed'
+        },
+        notes: 'Metadata compilation failed - requires investigation'
+      });
+
+      throw error;
+    }
+  }
+
+  async validateMetadata(tenantId?: string, metadata?: any): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const result = await this.rbacRepository.validateMetadata(resolvedTenantId, metadata);
+
+    // Log validation activity
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'VALIDATE_METADATA',
+      resource_type: 'metadata_validation',
+      security_impact: 'low',
+      new_values: {
+        validation_status: result.isValid ? 'success' : 'failed',
+        errors: result.errors || [],
+        warnings: result.warnings || []
+      },
+      notes: `Metadata validation ${result.isValid ? 'passed' : 'failed'} with ${result.errors?.length || 0} errors`
+    });
+
+    return result;
+  }
+
+  async publishMetadata(tenantId?: string, metadata?: any): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const startTime = new Date();
+
+    try {
+      const result = await this.rbacRepository.publishMetadata(resolvedTenantId, metadata);
+
+      // Log successful publishing
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'PUBLISH_METADATA',
+        resource_type: 'metadata_publishing',
+        security_impact: 'high',
+        new_values: {
+          start_time: startTime,
+          duration_ms: Date.now() - startTime.getTime(),
+          status: 'success',
+          published_surfaces: result.publishedSurfaces || [],
+          deployment_id: result.deploymentId
+        },
+        notes: 'Metadata published successfully - system updated with new RBAC configuration'
+      });
+
+      return result;
+    } catch (error) {
+      // Log failed publishing
+      await this.logAuditEvent({
+        tenant_id: resolvedTenantId,
+        user_id: 'system',
+        action: 'PUBLISH_METADATA_FAILED',
+        resource_type: 'metadata_publishing',
+        security_impact: 'critical',
+        new_values: {
+          start_time: startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          status: 'failed'
+        },
+        notes: 'Metadata publishing failed - system may be in inconsistent state'
+      });
+
+      throw error;
+    }
+  }
+
+  // Enhanced Compliance Features
+  async getAuditTimelineForCompliance(tenantId?: string, options?: {
+    startDate?: string;
+    endDate?: string;
+    userId?: string;
+    impactLevels?: string[];
+    resourceTypes?: string[];
+  }): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const timeline = await this.rbacRepository.getAuditTimelineForCompliance(resolvedTenantId, options);
+
+    // Log compliance audit access
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'ACCESS_COMPLIANCE_AUDIT',
+      resource_type: 'audit_timeline',
+      security_impact: 'low',
+      new_values: {
+        search_criteria: options,
+        results_count: timeline.length
+      },
+      notes: 'Compliance officer accessed audit timeline for review'
+    });
+
+    return timeline;
+  }
+
+  async generateComplianceReport(tenantId?: string, reportType: string = 'access_review'): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    const report = await this.rbacRepository.generateComplianceReport(resolvedTenantId, reportType);
+
+    // Log compliance report generation
+    await this.logAuditEvent({
+      tenant_id: resolvedTenantId,
+      user_id: 'system',
+      action: 'GENERATE_COMPLIANCE_REPORT',
+      resource_type: 'compliance_report',
+      security_impact: 'medium',
+      new_values: {
+        report_type: reportType,
+        generated_at: new Date(),
+        report_id: report.id
+      },
+      notes: `Generated ${reportType} compliance report for audit purposes`
+    });
+
+    return report;
+  }
 }
 
 
