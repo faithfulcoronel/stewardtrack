@@ -24,8 +24,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface DashboardStats {
   totalRoles: number;
   totalBundles: number;
+  totalUsers: number;
   activeUsers: number;
   surfaceBindings: number;
+  systemRoles: number;
+  customBundles: number;
   recentChanges: number;
   pendingApprovals: number;
 }
@@ -51,8 +54,11 @@ export function RbacDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalRoles: 0,
     totalBundles: 0,
+    totalUsers: 0,
     activeUsers: 0,
     surfaceBindings: 0,
+    systemRoles: 0,
+    customBundles: 0,
     recentChanges: 0,
     pendingApprovals: 0
   });
@@ -104,37 +110,28 @@ export function RbacDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Load dashboard statistics
-      const [rolesRes, bundlesRes, surfaceBindingsRes, auditRes] = await Promise.all([
-        fetch('/api/rbac/roles'),
-        fetch('/api/rbac/bundles'),
-        fetch('/api/rbac/surface-bindings'),
+      // Load dashboard statistics and audit data
+      const [statisticsRes, auditRes] = await Promise.all([
+        fetch('/api/rbac/statistics'),
         fetch('/api/rbac/audit?limit=10')
       ]);
 
-      const [roles, bundles, bindings, audit] = await Promise.all([
-        rolesRes.json(),
-        bundlesRes.json(),
-        surfaceBindingsRes.json(),
+      const [statistics, audit] = await Promise.all([
+        statisticsRes.json(),
         auditRes.json()
       ]);
 
-      setStats({
-        totalRoles: roles.success ? roles.data.length : 0,
-        totalBundles: bundles.success ? bundles.data.length : 0,
-        activeUsers: 0, // This would come from user management
-        surfaceBindings: bindings.success ? bindings.data.length : 0,
-        recentChanges: audit.success ? audit.data.length : 0,
-        pendingApprovals: 0 // This would come from approval workflow
-      });
+      if (statistics.success) {
+        setStats(statistics.data);
+      }
 
       // Transform audit data to recent activity
       if (audit.success) {
         const activities: RecentActivity[] = audit.data.slice(0, 5).map((log: any) => ({
           id: log.id,
           action: log.action.replace(/_/g, ' ').toLowerCase(),
-          resource: log.resource_type,
-          user: log.user_id,
+          resource: log.resource_type || 'unknown',
+          user: log.user_id || 'system',
           timestamp: log.created_at,
           status: 'success' as const
         }));
@@ -347,28 +344,28 @@ export function RbacDashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>System Roles</span>
-                    <span>{Math.floor(stats.totalRoles * 0.3)} of {stats.totalRoles}</span>
+                    <span>{stats.systemRoles} of {stats.totalRoles}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{width: '30%'}}></div>
+                    <div className="bg-blue-600 h-2 rounded-full" style={{width: `${stats.totalRoles > 0 ? (stats.systemRoles / stats.totalRoles * 100) : 0}%`}}></div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Custom Bundles</span>
-                    <span>{Math.floor(stats.totalBundles * 0.7)} of {stats.totalBundles}</span>
+                    <span>{stats.customBundles} of {stats.totalBundles}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{width: '70%'}}></div>
+                    <div className="bg-green-600 h-2 rounded-full" style={{width: `${stats.totalBundles > 0 ? (stats.customBundles / stats.totalBundles * 100) : 0}%`}}></div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Active Bindings</span>
-                    <span>{stats.surfaceBindings} configured</span>
+                    <span>Active Users</span>
+                    <span>{stats.activeUsers} of {stats.totalUsers}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                    <div className="bg-purple-600 h-2 rounded-full" style={{width: `${stats.totalUsers > 0 ? (stats.activeUsers / stats.totalUsers * 100) : 0}%`}}></div>
                   </div>
                 </div>
               </CardContent>

@@ -9,9 +9,15 @@ export async function GET(request: NextRequest) {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
     const includeSystem = searchParams.get('includeSystem') === 'true';
+    const includeStats = searchParams.get('includeStats') === 'true';
     const tenantId = searchParams.get('tenantId') || undefined;
 
-    const roles = await rbacService.getRoles(tenantId, includeSystem);
+    let roles;
+    if (includeStats) {
+      roles = await rbacService.getRoleStatistics(tenantId, includeSystem);
+    } else {
+      roles = await rbacService.getRoles(tenantId, includeSystem);
+    }
 
     return NextResponse.json({
       success: true,

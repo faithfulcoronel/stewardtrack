@@ -686,4 +686,55 @@ export class RbacService {
     const trimmed = value.trim();
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(trimmed) ? trimmed : null;
   }
+
+  // Statistics methods
+  async getRoleStatistics(tenantId?: string, includeSystem = true): Promise<Role[]> {
+    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    if (!effectiveTenantId) {
+      throw new Error('No tenant context available');
+    }
+
+    return await this.rbacRepository.getRoleStatistics(effectiveTenantId, includeSystem);
+  }
+
+  async getBundleStatistics(tenantId?: string, scopeFilter?: string): Promise<PermissionBundle[]> {
+    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    if (!effectiveTenantId) {
+      throw new Error('No tenant context available');
+    }
+
+    return await this.rbacRepository.getBundleStatistics(effectiveTenantId, scopeFilter);
+  }
+
+  async getDashboardStatistics(tenantId?: string): Promise<{
+    totalRoles: number;
+    totalBundles: number;
+    totalUsers: number;
+    activeUsers: number;
+    surfaceBindings: number;
+    systemRoles: number;
+    customBundles: number;
+    recentChanges: number;
+    pendingApprovals: number;
+  }> {
+    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    if (!effectiveTenantId) {
+      throw new Error('No tenant context available');
+    }
+
+    const baseStats = await this.rbacRepository.getDashboardStatistics(effectiveTenantId);
+
+    // Get recent changes count from audit logs
+    const recentLogs = await this.rbacRepository.getAuditLogs(effectiveTenantId, 100, 0);
+    const recentChanges = recentLogs.length;
+
+    // Get pending approvals (would need to be implemented based on workflow)
+    const pendingApprovals = 0; // Placeholder for future approval workflow
+
+    return {
+      ...baseStats,
+      recentChanges,
+      pendingApprovals
+    };
+  }
 }

@@ -851,4 +851,171 @@ export class RbacRepository extends BaseRepository {
 
     return data;
   }
+
+  // Statistics methods
+  async getRoleStatistics(tenantId: string, includeSystem = true): Promise<Role[]> {
+    const supabase = await this.getSupabaseClient();
+    let roleQuery = supabase
+      .from('roles')
+      .select('*, user_roles(count)')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null);
+
+    if (!includeSystem) {
+      roleQuery = roleQuery.neq('scope', 'system');
+    }
+
+    const { data: rolesData, error: rolesError } = await roleQuery.order('name');
+
+    if (rolesError) {
+      throw new Error(`Failed to fetch role statistics: ${rolesError.message}`);
+    }
+
+    const enrichedRoles = this.enrichRoleList(rolesData) as Role[];
+
+    // Get user counts for each role
+    for (const role of enrichedRoles) {
+      const { count } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role_id', role.id)
+        .eq('tenant_id', tenantId);
+
+      (role as any).user_count = count || 0;
+
+      // Get bundle count for each role
+      const { count: bundleCount } = await supabase
+        .from('role_bundles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role_id', role.id)
+        .eq('tenant_id', tenantId);
+
+      (role as any).bundle_count = bundleCount || 0;
+    }
+
+    return enrichedRoles;
+  }
+
+  async getBundleStatistics(tenantId: string, scopeFilter?: string): Promise<PermissionBundle[]> {
+    const supabase = await this.getSupabaseClient();
+    let bundleQuery = supabase
+      .from('permission_bundles')
+      .select('*')
+      .eq('tenant_id', tenantId);
+
+    if (scopeFilter) {
+      bundleQuery = bundleQuery.eq('scope', scopeFilter);
+    }
+
+    const { data: bundlesData, error: bundlesError } = await bundleQuery.order('name');
+
+    if (bundlesError) {
+      throw new Error(`Failed to fetch bundle statistics: ${bundlesError.message}`);
+    }
+
+    const bundles = bundlesData || [];
+
+    // Get role counts and permission counts for each bundle
+    for (const bundle of bundles) {
+      // Get role count for this bundle
+      const { count: roleCount } = await supabase
+        .from('role_bundles')
+        .select('*', { count: 'exact', head: true })
+        .eq('bundle_id', bundle.id)
+        .eq('tenant_id', tenantId);
+
+      (bundle as any).role_count = roleCount || 0;
+
+      // Get permission count for this bundle
+      const { count: permissionCount } = await supabase
+        .from('bundle_permissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('bundle_id', bundle.id)
+        .eq('tenant_id', tenantId);
+
+      (bundle as any).permission_count = permissionCount || 0;
+    }
+
+    return bundles;
+  }
+
+  async getDashboardStatistics(tenantId: string): Promise<{
+    totalRoles: number;
+    totalBundles: number;
+    totalUsers: number;
+    activeUsers: number;
+    surfaceBindings: number;
+    systemRoles: number;
+    customBundles: number;
+  }> {
+    const supabase = await this.getSupabaseClient();
+
+    // Get all statistics in parallel
+    const [
+      { count: totalRoles },
+      { count: totalBundles },
+      { count: totalUsers },
+      { count: activeUsers },
+      { count: surfaceBindings },
+      { count: systemRoles },
+      { count: customBundles }
+    ] = await Promise.all([
+      // Total roles
+      supabase
+        .from('roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null),
+
+      // Total bundles
+      supabase
+        .from('permission_bundles')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
+
+      // Total users in tenant
+      supabase
+        .from('tenant_users')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
+
+      // Active users (users with roles)
+      supabase
+        .from('user_roles')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
+
+      // Surface bindings
+      supabase
+        .from('rbac_surface_bindings')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true),
+
+      // System roles
+      supabase
+        .from('roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .eq('scope', 'system')
+        .is('deleted_at', null),
+
+      // Custom bundles (non-template bundles)
+      supabase
+        .from('permission_bundles')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .eq('is_template', false)
+    ]);
+
+    return {
+      totalRoles: totalRoles || 0,
+      totalBundles: totalBundles || 0,
+      totalUsers: totalUsers || 0,
+      activeUsers: activeUsers || 0,
+      surfaceBindings: surfaceBindings || 0,
+      systemRoles: systemRoles || 0,
+      customBundles: customBundles || 0
+    };
+  }
 }

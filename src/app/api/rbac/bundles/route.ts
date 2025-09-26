@@ -9,9 +9,15 @@ export async function GET(request: NextRequest) {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
     const scopeFilter = searchParams.get('scope') || undefined;
+    const includeStats = searchParams.get('includeStats') === 'true';
     const tenantId = searchParams.get('tenantId') || undefined;
 
-    const bundles = await rbacService.getPermissionBundles(tenantId, scopeFilter);
+    let bundles;
+    if (includeStats) {
+      bundles = await rbacService.getBundleStatistics(tenantId, scopeFilter);
+    } else {
+      bundles = await rbacService.getPermissionBundles(tenantId, scopeFilter);
+    }
 
     return NextResponse.json({
       success: true,
