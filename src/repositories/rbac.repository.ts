@@ -22,9 +22,105 @@ import {
   AssignRoleDto,
   CreateSurfaceBindingDto,
   RbacAuditLog,
+  CreateRbacAuditLogInput,
+  RbacAuditOperation,
   DelegatedContext
 } from '@/models/rbac.model';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isUuid = (value?: string | null): value is string => Boolean(value && UUID_PATTERN.test(value));
+
+const composeAuditNote = (input: CreateRbacAuditLogInput): string | null => {
+  if (input.notes) {
+    return input.notes;
+  }
+
+  const payload: Record<string, string> = {};
+
+  if (input.action_label) {
+    payload.action = input.action_label;
+  }
+
+  if (input.resource_identifier) {
+    payload.resource_id = input.resource_identifier;
+  }
+
+  return Object.keys(payload).length > 0 ? JSON.stringify(payload) : null;
+};
+
+const parseAuditNote = (note?: string | null): {
+  actionLabel?: string;
+  resourceIdentifier?: string;
+} => {
+  if (!note) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(note);
+    if (parsed && typeof parsed === 'object') {
+      const record = parsed as Record<string, unknown>;
+      const action = typeof record.action === 'string' ? record.action : undefined;
+      const resourceId = typeof record.resource_id === 'string' ? record.resource_id : undefined;
+
+      return {
+        actionLabel: action,
+        resourceIdentifier: resourceId
+      };
+    }
+  } catch {
+    return { actionLabel: note };
+  }
+
+  return {};
+};
+
+const buildAuditActionFallback = (operation?: string | null, tableName?: string | null): string => {
+  const opSegment = (operation ?? 'SYSTEM').toString().toUpperCase();
+  const tableSegment = (tableName ?? 'EVENT').toString().toUpperCase();
+  return `${opSegment}_${tableSegment}`;
+};
+
+const normalizeUuid = (value?: string | null): string | null => (isUuid(value) ? value : null);
+
+const toResourceType = (tableName?: string | null): string | null => {
+  if (!tableName) {
+    return null;
+  }
+
+  switch (tableName) {
+    case 'roles':
+      return 'role';
+    case 'permission_bundles':
+      return 'permission_bundle';
+    case 'user_roles':
+      return 'user_role';
+    case 'rbac_surface_bindings':
+      return 'rbac_surface_binding';
+    default:
+      return tableName;
+  }
+};
+
+type AuditLogRow = {
+  id: string;
+  tenant_id: string | null;
+  table_name: string | null;
+  operation: RbacAuditOperation | null;
+  record_id: string | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  changed_fields: string[] | null;
+  user_id: string | null;
+  user_email: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  session_id: string | null;
+  created_at: string;
+  security_impact: string | null;
+  notes: string | null;
+};
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
 
 @injectable()
@@ -623,12 +719,28 @@ export class RbacRepository extends BaseRepository {
   }
 
   // Audit logging
-  async createAuditLog(log: Omit<RbacAuditLog, 'id' | 'created_at'>): Promise<void> {
+  async createAuditLog(log: CreateRbacAuditLogInput): Promise<void> {
     const supabase = await this.getSupabaseClient();
+    const recordId = normalizeUuid(log.record_id ?? log.resource_identifier ?? null);
+    const userId = normalizeUuid(log.user_id);
+
     const { error } = await supabase
-      .from('rbac_audit_logs')
+      .from('rbac_audit_log')
       .insert({
-        ...log,
+        tenant_id: log.tenant_id,
+        table_name: log.table_name,
+        operation: log.operation,
+        record_id: recordId,
+        old_values: log.old_values ?? null,
+        new_values: log.new_values ?? null,
+        changed_fields: log.changed_fields ?? null,
+        user_id: userId,
+        user_email: log.user_email ?? null,
+        ip_address: log.ip_address ?? null,
+        user_agent: log.user_agent ?? null,
+        session_id: log.session_id ?? null,
+        security_impact: log.security_impact ?? null,
+        notes: composeAuditNote(log),
         created_at: new Date().toISOString()
       });
 
@@ -643,7 +755,7 @@ export class RbacRepository extends BaseRepository {
     const safeOffset = Math.max(offset ?? 0, 0);
 
     let query = supabase
-      .from('rbac_audit_logs')
+      .from('rbac_audit_log')
       .select('*')
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false });
@@ -660,9 +772,38 @@ export class RbacRepository extends BaseRepository {
       throw new Error(`Failed to fetch audit logs: ${error.message}`);
     }
 
-    return data || [];
-  }
+    const rows = (data ?? []) as AuditLogRow[];
 
+    return rows.map(row => {
+      const { actionLabel, resourceIdentifier } = parseAuditNote(row.notes);
+      const operation = (row.operation ?? 'SYSTEM') as RbacAuditOperation;
+      const tableName = row.table_name ?? null;
+      const action = actionLabel ?? buildAuditActionFallback(operation, tableName);
+      const resourceId = row.record_id ?? resourceIdentifier ?? null;
+
+      return {
+        id: row.id,
+        tenant_id: row.tenant_id ?? null,
+        table_name: tableName,
+        resource_type: toResourceType(tableName),
+        operation,
+        action,
+        record_id: row.record_id ?? null,
+        resource_id: resourceId,
+        old_values: row.old_values ?? null,
+        new_values: row.new_values ?? null,
+        changed_fields: row.changed_fields ?? null,
+        user_id: row.user_id ?? null,
+        user_email: row.user_email ?? null,
+        ip_address: row.ip_address ?? null,
+        user_agent: row.user_agent ?? null,
+        session_id: row.session_id ?? null,
+        created_at: row.created_at,
+        security_impact: row.security_impact ?? null,
+        notes: row.notes ?? null
+      };
+    });
+  }
   // Delegated access context
   async getDelegatedContext(userId: string, tenantId: string): Promise<DelegatedContext | null> {
     const supabase = await this.getSupabaseClient();

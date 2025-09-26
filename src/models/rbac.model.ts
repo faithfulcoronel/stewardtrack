@@ -232,18 +232,59 @@ export interface UserWithRoles {
   effective_permissions: Permission[];
 }
 
+export type RbacAuditOperation =
+  | 'CREATE'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'INSERT'
+  | 'REFRESH'
+  | 'GRANT'
+  | 'REVOKE'
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'ACCESS'
+  | 'ERROR'
+  | 'SYSTEM';
+
 export interface RbacAuditLog {
   id: string;
-  tenant_id: string;
-  user_id: string;
+  tenant_id: string | null;
+  table_name: string | null;
+  resource_type: string | null;
+  operation: RbacAuditOperation;
   action: string;
-  resource_type: string;
-  resource_id: string;
-  old_values?: Record<string, any>;
-  new_values?: Record<string, any>;
-  ip_address?: string;
-  user_agent?: string;
+  record_id: string | null;
+  resource_id: string | null;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
+  changed_fields?: string[] | null;
+  user_id: string | null;
+  user_email?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  session_id?: string | null;
   created_at: string;
+  security_impact?: string | null;
+  notes?: string | null;
+}
+
+export interface CreateRbacAuditLogInput {
+  tenant_id: string | null;
+  table_name: string;
+  operation: RbacAuditOperation;
+  record_id?: string | null;
+  resource_identifier?: string | null;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
+  changed_fields?: string[] | null;
+  user_id?: string | null;
+  user_email?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  session_id?: string | null;
+  security_impact?: string | null;
+  notes?: string | null;
+  action_label?: string | null;
 }
 
 // Delegation context for scoped access
