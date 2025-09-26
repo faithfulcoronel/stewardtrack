@@ -977,6 +977,27 @@ export class RbacService {
     return await this.rbacRepository.getMultiRoleUsers(effectiveTenantId);
   }
 
+  async removeUserRole(userId: string, roleId: string, tenantId?: string): Promise<any> {
+    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    if (!effectiveTenantId) {
+      throw new Error('No tenant context available');
+    }
+
+    const result = await this.rbacRepository.removeUserRole(userId, roleId, effectiveTenantId);
+
+    // Log the action
+    await this.logAuditEvent({
+      tenant_id: effectiveTenantId,
+      action: 'REMOVE_USER_ROLE',
+      resource_type: 'user_role',
+      resource_id: userId,
+      old_values: { role_id: roleId },
+      notes: `Removed role ${roleId} from user: ${userId}`
+    });
+
+    return result;
+  }
+
   async assignMultipleRoles(userId: string, roleIds: string[], overrideConflicts = false, tenantId?: string): Promise<any> {
     const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
     if (!effectiveTenantId) {
@@ -1094,6 +1115,12 @@ export class RbacService {
     const resolvedTenantId = await this.resolveTenantId(tenantId);
 
     return await this.rbacRepository.getPermissionTemplates(resolvedTenantId);
+  }
+
+  async getUsers(tenantId?: string): Promise<any[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.getUsers(resolvedTenantId);
   }
 }
 

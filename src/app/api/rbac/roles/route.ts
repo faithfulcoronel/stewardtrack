@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeSystem = searchParams.get('includeSystem') === 'true';
     const includeStats = searchParams.get('includeStats') === 'true';
+    const delegatable = searchParams.get('delegatable') === 'true';
     const tenantId = searchParams.get('tenantId') || undefined;
 
     let roles;
@@ -17,6 +18,11 @@ export async function GET(request: NextRequest) {
       roles = await rbacService.getRoleStatistics(tenantId, includeSystem);
     } else {
       roles = await rbacService.getRoles(tenantId, includeSystem);
+    }
+
+    // Filter for delegatable roles if requested
+    if (delegatable && Array.isArray(roles)) {
+      roles = roles.filter((role: any) => role.is_delegatable === true);
     }
 
     return NextResponse.json({

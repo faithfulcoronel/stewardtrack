@@ -1438,6 +1438,24 @@ export class RbacRepository extends BaseRepository {
     return mockResult;
   }
 
+  async removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any> {
+    const supabase = await this.getSupabaseClient();
+
+    // In a real implementation, this would:
+    // 1. Remove the role assignment from user_roles table
+    // 2. Update multi-role context if needed
+    // 3. Refresh permission cache
+
+    const mockResult = {
+      user_id: userId,
+      removed_role_id: roleId,
+      tenant_id: tenantId,
+      removed_at: new Date().toISOString()
+    };
+
+    return mockResult;
+  }
+
   async getRole(roleId: string): Promise<Role | null> {
     const supabase = await this.getSupabaseClient();
 
@@ -1555,6 +1573,54 @@ export class RbacRepository extends BaseRepository {
     ];
 
     return mockTemplates;
+  }
+
+  async getUsers(tenantId: string): Promise<any[]> {
+    // Mock users data for demonstration
+    const mockUsers = [
+      {
+        id: 'user-1',
+        name: 'Pastor John Smith',
+        email: 'john.smith@church.org',
+        role: 'Senior Pastor',
+        campus: 'Main Campus',
+        active: true
+      },
+      {
+        id: 'user-2',
+        name: 'Sarah Johnson',
+        email: 'sarah.johnson@church.org',
+        role: 'Campus Pastor',
+        campus: 'Downtown Campus',
+        active: true
+      },
+      {
+        id: 'user-3',
+        name: 'Mike Wilson',
+        email: 'mike.wilson@church.org',
+        role: 'Youth Pastor',
+        campus: 'Main Campus',
+        active: true
+      },
+      {
+        id: 'user-4',
+        name: 'Emily Davis',
+        email: 'emily.davis@church.org',
+        role: 'Worship Leader',
+        campus: 'Downtown Campus',
+        active: true
+      },
+      {
+        id: 'user-5',
+        name: 'David Brown',
+        email: 'david.brown@church.org',
+        role: 'Care Pastor',
+        campus: 'Main Campus',
+        active: false
+      }
+    ];
+
+    return mockUsers;
   }
 }
 
