@@ -261,7 +261,7 @@ export class RbacRepository extends BaseRepository {
       .from('roles')
       .select('*')
       .eq('tenant_id', tenantId)
-      .is('deleted_at', null);
+
 
     if (!includeSystem) {
       query = query.neq('scope', 'system');
@@ -859,7 +859,7 @@ export class RbacRepository extends BaseRepository {
       .from('roles')
       .select('*, user_roles(count)')
       .eq('tenant_id', tenantId)
-      .is('deleted_at', null);
+
 
     if (!includeSystem) {
       roleQuery = roleQuery.neq('scope', 'system');
@@ -1018,4 +1018,193 @@ export class RbacRepository extends BaseRepository {
       customBundles: customBundles || 0
     };
   }
+
+  // Phase C - Metadata Surface Management
+  async getMetadataSurfaces(filters?: {
+    module?: string;
+    phase?: string;
+    surface_type?: string;
+  }): Promise<MetadataSurface[]> {
+    const supabase = await this.getSupabaseClient();
+
+    let query = supabase
+      .from('metadata_surfaces')
+      .select('*');
+
+    if (filters?.module) {
+      query = query.eq('module', filters.module);
+    }
+    if (filters?.phase) {
+      query = query.eq('phase', filters.phase);
+    }
+    if (filters?.surface_type) {
+      query = query.eq('surface_type', filters.surface_type);
+    }
+
+    const { data, error } = await query.order('module').order('title');
+
+    if (error) {
+      console.error('Error fetching metadata surfaces:', error);
+      throw new Error(`Failed to fetch metadata surfaces: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  async createMetadataSurface(surfaceData: {
+    module: string;
+    route?: string;
+    blueprint_path: string;
+    surface_type: string;
+    phase: string;
+    title?: string;
+    description?: string;
+    feature_code?: string;
+    rbac_role_keys?: string[];
+    rbac_bundle_keys?: string[];
+    default_menu_code?: string;
+    supports_mobile: boolean;
+    supports_desktop: boolean;
+    is_system: boolean;
+  }): Promise<MetadataSurface> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('metadata_surfaces')
+      .insert({
+        ...surfaceData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating metadata surface:', error);
+      throw new Error(`Failed to create metadata surface: ${error.message}`);
+    }
+
+    return data;
+  }
+
+  // Feature Catalog Management
+  async getFeatures(filters?: {
+    category?: string;
+    phase?: string;
+    is_active?: boolean;
+  }): Promise<FeatureCatalog[]> {
+    const supabase = await this.getSupabaseClient();
+
+    let query = supabase
+      .from('feature_catalog')
+      .select('*');
+
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+    if (filters?.phase) {
+      query = query.eq('phase', filters.phase);
+    }
+    if (filters?.is_active !== undefined) {
+      query = query.eq('is_active', filters.is_active);
+    }
+
+    const { data, error } = await query.order('category').order('name');
+
+    if (error) {
+      console.error('Error fetching features:', error);
+      throw new Error(`Failed to fetch features: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  async createFeature(featureData: {
+    code: string;
+    name: string;
+    category: string;
+    description?: string;
+    phase: string;
+    is_delegatable: boolean;
+    is_active: boolean;
+  }): Promise<FeatureCatalog> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('feature_catalog')
+      .insert({
+        ...featureData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating feature:', error);
+      throw new Error(`Failed to create feature: ${error.message}`);
+    }
+
+    return data;
+  }
+
+  async updateSurfaceBinding(bindingId: string, data: Partial<CreateSurfaceBindingDto>): Promise<RbacSurfaceBinding> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data: binding, error } = await supabase
+      .from('rbac_surface_bindings')
+      .update({
+        ...data,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bindingId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating surface binding:', error);
+      throw new Error(`Failed to update surface binding: ${error.message}`);
+    }
+
+    return binding;
+  }
+
+  async getSurfaceBinding(bindingId: string): Promise<RbacSurfaceBinding | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('rbac_surface_bindings')
+      .select('*')
+      .eq('id', bindingId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      console.error('Error fetching surface binding:', error);
+      throw new Error(`Failed to fetch surface binding: ${error.message}`);
+    }
+
+    return data;
+  }
+
+  async deleteSurfaceBinding(bindingId: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    const { error } = await supabase
+      .from('rbac_surface_bindings')
+      .delete()
+      .eq('id', bindingId);
+
+    if (error) {
+      console.error('Error deleting surface binding:', error);
+      throw new Error(`Failed to delete surface binding: ${error.message}`);
+    }
+  }
 }
+
+
+
+
+

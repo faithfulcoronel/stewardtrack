@@ -737,4 +737,111 @@ export class RbacService {
       pendingApprovals
     };
   }
+
+  // Additional Phase C methods for Surface Binding Management
+  async getMetadataSurfaces(filters?: {
+    module?: string;
+    phase?: string;
+    surface_type?: string;
+  }): Promise<MetadataSurface[]> {
+    return await this.rbacRepository.getMetadataSurfaces(filters);
+  }
+
+  async createMetadataSurface(data: {
+    module: string;
+    route?: string;
+    blueprint_path: string;
+    surface_type: string;
+    phase: string;
+    title?: string;
+    description?: string;
+    feature_code?: string;
+    rbac_role_keys?: string[];
+    rbac_bundle_keys?: string[];
+    default_menu_code?: string;
+    supports_mobile: boolean;
+    supports_desktop: boolean;
+    is_system: boolean;
+  }): Promise<MetadataSurface> {
+    const surface = await this.rbacRepository.createMetadataSurface(data);
+
+    // Log the action
+    await this.logAuditEvent({
+      tenant_id: 'system', // Metadata surfaces are typically system-level
+      action: 'CREATE_METADATA_SURFACE',
+      resource_type: 'metadata_surface',
+      resource_id: surface.id,
+      new_values: data,
+      notes: `Created metadata surface: ${data.title || data.blueprint_path}`
+    });
+
+    return surface;
+  }
+
+  async getFeatures(filters?: {
+    category?: string;
+    phase?: string;
+    is_active?: boolean;
+  }): Promise<FeatureCatalog[]> {
+    return await this.rbacRepository.getFeatures(filters);
+  }
+
+  async createFeature(data: {
+    code: string;
+    name: string;
+    category: string;
+    description?: string;
+    phase: string;
+    is_delegatable: boolean;
+    is_active: boolean;
+  }): Promise<FeatureCatalog> {
+    const feature = await this.rbacRepository.createFeature(data);
+
+    // Log the action
+    await this.logAuditEvent({
+      tenant_id: 'system', // Features are system-level
+      action: 'CREATE_FEATURE',
+      resource_type: 'feature_catalog',
+      resource_id: feature.id,
+      new_values: data,
+      notes: `Created feature: ${data.name} (${data.code})`
+    });
+
+    return feature;
+  }
+
+  async updateSurfaceBinding(bindingId: string, data: Partial<CreateSurfaceBindingDto>): Promise<RbacSurfaceBinding> {
+    const binding = await this.rbacRepository.updateSurfaceBinding(bindingId, data);
+
+    // Log the action
+    await this.logAuditEvent({
+      tenant_id: binding.tenant_id,
+      action: 'UPDATE_SURFACE_BINDING',
+      resource_type: 'rbac_surface_binding',
+      resource_id: binding.id,
+      new_values: data,
+      notes: `Updated surface binding: ${bindingId}`
+    });
+
+    return binding;
+  }
+
+  async deleteSurfaceBinding(bindingId: string): Promise<void> {
+    const binding = await this.rbacRepository.getSurfaceBinding(bindingId);
+    if (!binding) {
+      throw new Error('Surface binding not found');
+    }
+
+    await this.rbacRepository.deleteSurfaceBinding(bindingId);
+
+    // Log the action
+    await this.logAuditEvent({
+      tenant_id: binding.tenant_id,
+      action: 'DELETE_SURFACE_BINDING',
+      resource_type: 'rbac_surface_binding',
+      resource_id: bindingId,
+      old_values: binding,
+      notes: `Deleted surface binding: ${bindingId}`
+    });
+  }
 }

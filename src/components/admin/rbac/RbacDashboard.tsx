@@ -77,16 +77,16 @@ export function RbacDashboard() {
     {
       phase: 'Phase B',
       title: 'Role & Bundle Management',
-      status: 'in_progress',
+      status: 'complete',
       description: 'Role explorer and permission bundle composer',
       route: '/admin/security/rbac/roles'
     },
     {
       phase: 'Phase C',
       title: 'Surface Binding Integration',
-      status: 'planned',
+      status: 'complete',
       description: 'UI surface binding manager and license integration',
-      route: '/admin/security/rbac/surfaces'
+      route: '/admin/security/rbac/surface-bindings'
     },
     {
       phase: 'Phase D',
@@ -465,13 +465,14 @@ export function RbacDashboard() {
               </Link>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-md transition-shadow opacity-60">
-              <CardContent className="p-6 text-center">
-                <Lock className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <h3 className="font-semibold mb-1">Bind Surfaces</h3>
-                <p className="text-xs text-gray-600">Link roles to UI elements</p>
-                <Badge className="mt-2 bg-yellow-100 text-yellow-800">Coming Soon</Badge>
-              </CardContent>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/security/rbac/surface-bindings">
+                <CardContent className="p-6 text-center">
+                  <Lock className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                  <h3 className="font-semibold mb-1">Manage Bindings</h3>
+                  <p className="text-xs text-gray-600">Link roles to UI surfaces</p>
+                </CardContent>
+              </Link>
             </Card>
 
             <Card className="cursor-pointer hover:shadow-md transition-shadow">
@@ -491,6 +492,36 @@ export function RbacDashboard() {
                 <p className="text-xs text-gray-600">Campus & ministry controls</p>
                 <Badge className="mt-2 bg-yellow-100 text-yellow-800">Planned</Badge>
               </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/security/rbac/visual-editor">
+                <CardContent className="p-6 text-center">
+                  <TrendingUp className="h-8 w-8 mx-auto mb-2 text-cyan-600" />
+                  <h3 className="font-semibold mb-1">Visual Editor</h3>
+                  <p className="text-xs text-gray-600">Drag-and-drop binding editor</p>
+                </CardContent>
+              </Link>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/security/rbac/permission-mapper">
+                <CardContent className="p-6 text-center">
+                  <Key className="h-8 w-8 mx-auto mb-2 text-teal-600" />
+                  <h3 className="font-semibold mb-1">Permission Mapper</h3>
+                  <p className="text-xs text-gray-600">Visualize permission relationships</p>
+                </CardContent>
+              </Link>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Link href="/admin/security/rbac/publishing">
+                <CardContent className="p-6 text-center">
+                  <Shield className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
+                  <h3 className="font-semibold mb-1">Publishing Controls</h3>
+                  <p className="text-xs text-gray-600">Metadata compilation & deployment</p>
+                </CardContent>
+              </Link>
             </Card>
 
             <Card className="cursor-pointer hover:shadow-md transition-shadow">
