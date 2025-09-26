@@ -13,24 +13,52 @@ export class LicenseFeatureService {
     private featureRepo: ILicenseFeatureRepository,
   ) {}
 
-  async getActiveFeatures(date: string = new Date().toISOString().slice(0, 10)) {
-    const { data: licenses } = await this.licenseRepo.findAll({
-      select: 'plan_name,status,expires_at',
-    });
-
-    const plans = (licenses || [])
-      .filter(l => l.status === 'active' && (!l.expires_at || l.expires_at >= date))
-      .map(l => l.plan_name);
-
-    if (plans.length === 0) return [] as any[];
-
-    const { data } = await this.featureRepo.findAll({
-      select: 'plan_name,feature_key',
+  async getActiveFeatures(
+    tenantId: string,
+    date: string = new Date().toISOString().slice(0, 10),
+  ) {
+    const { data: grants } = await this.licenseRepo.findAll({
+      select: 'feature_id,grant_source,package_id,starts_at,expires_at',
       filters: {
-        plan_name: { operator: 'isAnyOf', value: plans },
+        tenant_id: { operator: 'eq', value: tenantId },
       },
     });
 
-    return data || [];
+    const activeGrants = (grants || []).filter(grant => {
+      const starts = grant.starts_at ? grant.starts_at <= date : true;
+      const expires = grant.expires_at ? grant.expires_at >= date : true;
+      return starts && expires;
+    });
+
+    if (activeGrants.length === 0) {
+      return [] as any[];
+    }
+
+    const featureIds = Array.from(new Set(activeGrants.map(grant => grant.feature_id)));
+    const { data: catalog } = await this.featureRepo.findAll({
+      select: 'id,code,name,category,phase',
+      filters: {
+        id: { operator: 'isAnyOf', value: featureIds },
+      },
+    });
+
+    return activeGrants
+      .map(grant => {
+        const feature = catalog?.find(entry => entry.id === grant.feature_id);
+        if (!feature) return null;
+        return {
+          tenant_id: tenantId,
+          feature_id: grant.feature_id,
+          feature_code: feature.code,
+          feature_name: feature.name,
+          category: feature.category,
+          phase: feature.phase,
+          grant_source: grant.grant_source,
+          package_id: grant.package_id,
+          starts_at: grant.starts_at,
+          expires_at: grant.expires_at,
+        };
+      })
+      .filter(Boolean);
   }
 }

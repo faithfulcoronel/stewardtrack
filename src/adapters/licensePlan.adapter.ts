@@ -17,13 +17,15 @@ export class LicensePlanAdapter
     super();
   }
 
-  protected tableName = 'license_plans';
+  protected tableName = 'feature_packages';
 
   protected defaultSelect = `
     id,
+    code,
     name,
-    tier,
+    cadence,
     description,
+    is_active,
     created_by,
     updated_by,
     created_at,
@@ -33,10 +35,10 @@ export class LicensePlanAdapter
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
   protected override async onAfterCreate(data: LicensePlan): Promise<void> {
-    await this.auditService.logAuditEvent('create', 'license_plan', data.id, data);
+    await this.auditService.logAuditEvent('create', 'feature_package', data.id, data);
   }
 
   protected override async onAfterUpdate(data: LicensePlan): Promise<void> {
-    await this.auditService.logAuditEvent('update', 'license_plan', data.id, data);
+    await this.auditService.logAuditEvent('update', 'feature_package', data.id, data);
   }
 }

@@ -306,40 +306,56 @@ describe('RBAC Database Functions Integration Tests', () => {
   });
 
   describe('License Integration', () => {
-    let testLicenseId: string;
+    let testFeatureId: string;
 
     beforeEach(async () => {
       if (process.env.NODE_ENV !== 'test') {
         return;
       }
 
-      // Create test license
-      const { data: license, error: licenseError } = await supabase
-        .from('licenses')
-        .insert({
-          tenant_id: testTenantId,
-          code: 'test_license',
-          tier: 'premium',
-          status: 'active',
-        })
-        .select()
+      // Ensure feature exists in catalog
+      await supabase
+        .from('feature_catalog')
+        .upsert(
+          {
+            code: 'advanced_admin',
+            name: 'Advanced Admin',
+            category: 'test',
+            description: 'Test-only advanced administration feature.',
+            phase: 'ga',
+          },
+          { onConflict: 'code' }
+        );
+
+      const { data: feature } = await supabase
+        .from('feature_catalog')
+        .select('id')
+        .eq('code', 'advanced_admin')
         .single();
 
-      if (!licenseError) {
-        testLicenseId = license.id;
+      testFeatureId = feature?.id;
 
-        // Add license feature
-        await supabase.from('license_features').insert({
+      if (testFeatureId) {
+        await supabase
+          .from('tenant_feature_grants')
+          .delete()
+          .eq('tenant_id', testTenantId)
+          .eq('feature_id', testFeatureId)
+          .eq('source_reference', 'test-suite');
+
+        await supabase.from('tenant_feature_grants').insert({
           tenant_id: testTenantId,
-          license_id: testLicenseId,
-          feature: 'advanced_admin',
+          feature_id: testFeatureId,
+          grant_source: 'direct',
+          source_reference: 'test-suite',
+          starts_at: new Date().toISOString().slice(0, 10),
         });
       }
     });
 
     it('should check tenant feature access', async () => {
-      if (process.env.NODE_ENV !== 'test' || !testLicenseId) {
-        console.log('Skipping test - not in test environment or license not created');
+      if (process.env.NODE_ENV !== 'test' || !testFeatureId) {
+        console.log('Skipping test - not in test environment or feature not created');
         return;
       }
 

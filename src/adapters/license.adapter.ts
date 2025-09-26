@@ -17,14 +17,15 @@ export class LicenseAdapter
     super();
   }
 
-  protected tableName = 'licenses';
+  protected tableName = 'tenant_feature_grants';
 
   protected defaultSelect = `
     id,
     tenant_id,
-    plan_name,
-    tier,
-    status,
+    feature_id,
+    grant_source,
+    package_id,
+    source_reference,
     starts_at,
     expires_at,
     created_by,
@@ -36,27 +37,14 @@ export class LicenseAdapter
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
   protected override async onAfterCreate(data: License): Promise<void> {
-    await this.auditService.logAuditEvent('create', 'license', data.id, data);
+    await this.auditService.logAuditEvent('create', 'tenant_feature_grant', data.id, data);
   }
 
   protected override async onAfterUpdate(data: License): Promise<void> {
-    await this.auditService.logAuditEvent('update', 'license', data.id, data);
-  }
-
-  protected override async onBeforeDelete(id: string): Promise<void> {
-    const supabase = await this.getSupabaseClient();
-    const { data: rows, error } = await supabase
-      .from('license_features')
-      .select('id')
-      .eq('license_id', id)
-      .limit(1);
-    if (error) throw error;
-    if (rows?.length) {
-      throw new Error('Cannot delete license with existing features');
-    }
+    await this.auditService.logAuditEvent('update', 'tenant_feature_grant', data.id, data);
   }
 
   protected override async onAfterDelete(id: string): Promise<void> {
-    await this.auditService.logAuditEvent('delete', 'license', id, { id });
+    await this.auditService.logAuditEvent('delete', 'tenant_feature_grant', id, { id });
   }
 }

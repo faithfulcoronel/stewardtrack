@@ -25,7 +25,7 @@ export interface IUserRoleAdapter extends IBaseAdapter<UserRole> {
   getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
   getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
-  getUserAccessibleMetadataPages(userId: string, tenantId?: string): Promise<any[]>;
+  getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]>;
 }
 
 @injectable()
@@ -277,14 +277,14 @@ export class UserRoleAdapter
     return data || [];
   }
 
-  public async getUserAccessibleMetadataPages(userId: string, tenantId?: string): Promise<any[]> {
+  public async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
     // Validate userId
     if (!userId || typeof userId !== 'string') {
-      throw new Error('Invalid userId provided to getUserAccessibleMetadataPages');
+      throw new Error('Invalid userId provided to getUserAccessibleMetadataSurfaces');
     }
 
     const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase.rpc('get_user_accessible_metadata_pages', {
+    const { data, error } = await supabase.rpc('get_user_accessible_metadata_surfaces', {
       target_user_id: userId,
       target_tenant_id: tenantId || null,
     });
