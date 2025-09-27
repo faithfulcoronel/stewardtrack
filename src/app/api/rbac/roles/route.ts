@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
 
     // Filter for delegatable roles if requested
     if (delegatable && Array.isArray(roles)) {
-      roles = roles.filter((role: any) => role.is_delegatable === true);
+      roles = roles.filter((role: any) => {
+        // If is_delegatable column exists, use it; otherwise assume all tenant/delegated scope roles are delegatable
+        if (role.is_delegatable !== undefined) {
+          return role.is_delegatable === true;
+        }
+        // Fallback: consider tenant and delegated scope roles as delegatable
+        return role.scope === 'tenant' || role.scope === 'delegated';
+      });
     }
 
     return NextResponse.json({

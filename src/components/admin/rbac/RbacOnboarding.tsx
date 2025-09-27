@@ -400,7 +400,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" widthMode='content'>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
@@ -442,7 +442,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
               </Button>
               <Button
                 onClick={nextStep}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
                 {currentStep < steps.length - 1 && <ArrowRight className="h-4 w-4 ml-2" />}

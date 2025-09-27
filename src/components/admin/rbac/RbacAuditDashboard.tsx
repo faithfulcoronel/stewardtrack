@@ -29,7 +29,7 @@ import {
   Key,
   Settings
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import type { RbacAuditLog } from '@/models/rbac.model';
 
 interface AuditStats {

@@ -18,7 +18,7 @@ import {
   BarChart3,
   Timer
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface MaterializedViewStatus {
   currentStatus: 'healthy' | 'warning' | 'error';

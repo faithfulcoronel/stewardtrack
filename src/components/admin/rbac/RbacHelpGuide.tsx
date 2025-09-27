@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Users,
   Shield,
@@ -45,7 +46,7 @@ function Step({ number, title, description, icon, isCompleted }: StepProps) {
   return (
     <div className="flex items-start gap-4 p-4 border rounded-lg">
       <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-        isCompleted ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+        isCompleted ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-primary/10 text-primary'
       }`}>
         {isCompleted ? <CheckCircle className="h-5 w-5" /> : <span className="font-semibold">{number}</span>}
       </div>
@@ -70,9 +71,9 @@ interface ConceptCardProps {
 
 function ConceptCard({ icon, title, description, example, difficulty }: ConceptCardProps) {
   const difficultyColors = {
-    Easy: 'bg-green-100 text-green-800 border-green-200',
-    Medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    Advanced: 'bg-red-100 text-red-800 border-red-200'
+    Easy: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400',
+    Medium: 'bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400',
+    Advanced: 'bg-destructive/10 text-destructive border-destructive/20'
   };
 
   return (
@@ -524,11 +525,11 @@ export function RbacHelpGuide() {
                   <h4 className="font-semibold mb-3">Weekly</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Check recent login activity</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Review failed login attempts</span>
                     </div>
                   </div>
@@ -537,15 +538,15 @@ export function RbacHelpGuide() {
                   <h4 className="font-semibold mb-3">Monthly</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Review all user accounts</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Check permission changes</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Remove inactive users</span>
                     </div>
                   </div>
@@ -554,15 +555,15 @@ export function RbacHelpGuide() {
                   <h4 className="font-semibold mb-3">Quarterly</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Full security audit</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Update security policies</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
+                      <Checkbox />
                       <span className="text-sm">Train staff on changes</span>
                     </div>
                   </div>

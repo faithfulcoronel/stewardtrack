@@ -23,6 +23,7 @@ import {
 import { RbacHelpGuide } from './RbacHelpGuide';
 import { ContextualHelp, QuickTip, HelpDialog, ProcessGuides, ProcessGuide } from './RbacHelper';
 import { RbacOnboarding, useRbacOnboarding } from './RbacOnboarding';
+import { UserManagement } from './UserManagement';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -371,10 +372,11 @@ export function RbacDashboard() {
 
       {/* Main Dashboard Content */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="phases">Implementation Phases</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+          <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="quick-actions">Quick Actions</TabsTrigger>
         </TabsList>
 
@@ -528,6 +530,10 @@ export function RbacDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="user-management" className="space-y-4">
+          <UserManagement />
         </TabsContent>
 
         <TabsContent value="quick-actions" className="space-y-4">

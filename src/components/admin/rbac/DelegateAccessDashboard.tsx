@@ -31,7 +31,7 @@ import {
   Star,
   Globe
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import { QuickTip, ProcessGuide } from './RbacHelper';
 
 interface DelegationRecord {
@@ -285,7 +285,7 @@ export function DelegateAccessDashboard() {
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Delegate Access
             </Button>

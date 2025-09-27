@@ -38,7 +38,7 @@ import {
   Target,
   Network
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import type {
   Permission,
   PermissionBundle,

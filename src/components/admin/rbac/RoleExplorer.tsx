@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Users,
   Key,
@@ -31,7 +33,7 @@ import {
   Layout,
   Layers
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import type { Role, PermissionBundle, CreateRoleDto, CreatePermissionBundleDto } from '@/models/rbac.model';
 
 interface RoleWithStats extends Role {
@@ -150,11 +152,11 @@ export function RoleExplorer() {
 
   const getScopeColor = (scope: string) => {
     switch (scope) {
-      case 'system': return 'bg-red-100 text-red-800 border-red-200 shadow-sm';
-      case 'tenant': return 'bg-blue-100 text-blue-800 border-blue-200 shadow-sm';
-      case 'campus': return 'bg-green-100 text-green-800 border-green-200 shadow-sm';
-      case 'ministry': return 'bg-purple-100 text-purple-800 border-purple-200 shadow-sm';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200 shadow-sm';
+      case 'system': return 'bg-destructive/10 text-destructive border-destructive/20 shadow-sm';
+      case 'tenant': return 'bg-primary/10 text-primary border-primary/20 shadow-sm';
+      case 'campus': return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 shadow-sm dark:text-emerald-400';
+      case 'ministry': return 'bg-violet-500/10 text-violet-700 border-violet-500/20 shadow-sm dark:text-violet-400';
+      default: return 'bg-muted text-muted-foreground border-border shadow-sm';
     }
   };
 
@@ -356,15 +358,13 @@ export function RoleExplorer() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+        <Skeleton className="h-8 w-1/4 mb-4" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-32" />
+          ))}
         </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
@@ -592,20 +592,19 @@ export function RoleExplorer() {
                 {['system', 'tenant', 'campus', 'ministry'].map((scope) => {
                   const isActive = scopeFilter === scope;
                   return (
-                    <button
+                    <Button
                       key={scope}
+                      variant={isActive ? "default" : "outline"}
+                      size="sm"
                       onClick={() => setScopeFilter(isActive ? 'all' : scope)}
                       className={`
-                        inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors
-                        ${isActive
-                          ? getScopeColor(scope)
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }
+                        h-auto px-3 py-1 rounded-full text-xs font-medium
+                        ${isActive ? getScopeColor(scope) : ''}
                       `}
                     >
                       {getScopeIcon(scope)}
-                      {scope}
-                    </button>
+                      <span className="ml-1">{scope}</span>
+                    </Button>
                   );
                 })}
               </div>
@@ -1094,11 +1093,11 @@ const getScopeIcon = (scope: string) => {
 // Helper function to get scope color
 const getScopeColor = (scope: string) => {
   switch (scope) {
-    case 'system': return 'bg-red-100 text-red-800 border-red-200';
-    case 'tenant': return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'campus': return 'bg-green-100 text-green-800 border-green-200';
-    case 'ministry': return 'bg-purple-100 text-purple-800 border-purple-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    case 'system': return 'bg-destructive/10 text-destructive border-destructive/20';
+    case 'tenant': return 'bg-primary/10 text-primary border-primary/20';
+    case 'campus': return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400';
+    case 'ministry': return 'bg-violet-500/10 text-violet-700 border-violet-500/20 dark:text-violet-400';
+    default: return 'bg-muted text-muted-foreground border-border';
   }
 };
 
@@ -1112,11 +1111,40 @@ function ViewRoleDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [usersWithRole, setUsersWithRole] = useState<any[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
+  useEffect(() => {
+    if (role && open) {
+      loadUsersWithRole(role.id);
+    }
+  }, [role, open]);
+
+  const loadUsersWithRole = async (roleId: string) => {
+    try {
+      setIsLoadingUsers(true);
+      const response = await fetch(`/api/rbac/roles/${roleId}/users`);
+      const result = await response.json();
+
+      if (result.success) {
+        setUsersWithRole(result.data || []);
+      } else {
+        console.error('Failed to load users for role:', result.error);
+        setUsersWithRole([]);
+      }
+    } catch (error) {
+      console.error('Error loading users for role:', error);
+      setUsersWithRole([]);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
   if (!role) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" widthMode='content'>
         <DialogHeader>
           <DialogTitle>Role Details: {role.name}</DialogTitle>
         </DialogHeader>
@@ -1151,6 +1179,59 @@ function ViewRoleDialog({
               <Label className="text-sm font-medium text-gray-600">Permission Bundles</Label>
               <p className="text-2xl font-bold text-green-600">{role.bundle_count}</p>
             </div>
+          </div>
+
+          {/* Users List Section */}
+          <div>
+            <Label className="text-sm font-medium text-gray-600 mb-3 block">
+              Users with this Role ({usersWithRole.length})
+            </Label>
+            {isLoadingUsers ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="text-blue-600" />
+                <span className="ml-2 text-sm text-gray-600">Loading users...</span>
+              </div>
+            ) : usersWithRole.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="py-2">Name</TableHead>
+                      <TableHead className="py-2">Email</TableHead>
+                      <TableHead className="py-2">Assigned Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {usersWithRole.map((userRole) => (
+                      <TableRow key={userRole.id} className="hover:bg-gray-50">
+                        <TableCell className="py-2">
+                          <div className="font-medium">
+                            {userRole.user?.first_name && userRole.user?.last_name
+                              ? `${userRole.user.first_name} ${userRole.user.last_name}`
+                              : userRole.user?.email?.split('@')[0] || 'Unknown User'
+                            }
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2 text-gray-600">
+                          {userRole.user?.email || 'No email available'}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm text-gray-500">
+                          {userRole.assigned_at
+                            ? new Date(userRole.assigned_at).toLocaleDateString()
+                            : 'Unknown'
+                          }
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No users have been assigned to this role</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -1200,11 +1281,62 @@ function ViewBundleDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [bundlePermissions, setBundlePermissions] = useState<any[]>([]);
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
+
+  useEffect(() => {
+    if (bundle && open) {
+      loadBundlePermissions(bundle.id);
+    }
+  }, [bundle, open]);
+
+  const loadBundlePermissions = async (bundleId: string) => {
+    try {
+      setIsLoadingPermissions(true);
+      const response = await fetch(`/api/rbac/bundles/${bundleId}/permissions`);
+      const result = await response.json();
+
+      if (result.success) {
+        setBundlePermissions(result.data || []);
+      } else {
+        console.error('Failed to load permissions for bundle:', result.error);
+        setBundlePermissions([]);
+      }
+    } catch (error) {
+      console.error('Error loading permissions for bundle:', error);
+      setBundlePermissions([]);
+    } finally {
+      setIsLoadingPermissions(false);
+    }
+  };
+
+  const getModuleIcon = (module: string) => {
+    switch (module.toLowerCase()) {
+      case 'admin': return <Shield className="h-4 w-4" />;
+      case 'financial': return <Key className="h-4 w-4" />;
+      case 'members': return <Users className="h-4 w-4" />;
+      case 'events': return <Building className="h-4 w-4" />;
+      case 'communications': return <Settings className="h-4 w-4" />;
+      default: return <Settings className="h-4 w-4" />;
+    }
+  };
+
+  const getModuleColor = (module: string) => {
+    switch (module.toLowerCase()) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'financial': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'members': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'events': return 'bg-green-100 text-green-800 border-green-200';
+      case 'communications': return 'bg-purple-100 text-purple-800 border-purple-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   if (!bundle) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" widthMode='content'>
         <DialogHeader>
           <DialogTitle>Bundle Details: {bundle.name}</DialogTitle>
         </DialogHeader>
@@ -1239,6 +1371,62 @@ function ViewBundleDialog({
               <Label className="text-sm font-medium text-gray-600">Total Permissions</Label>
               <p className="text-2xl font-bold text-green-600">{bundle.permission_count}</p>
             </div>
+          </div>
+
+          {/* Permissions List Section */}
+          <div>
+            <Label className="text-sm font-medium text-gray-600 mb-3 block">
+              Permissions in this Bundle ({bundlePermissions.length})
+            </Label>
+            {isLoadingPermissions ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="text-green-600" />
+                <span className="ml-2 text-sm text-gray-600">Loading permissions...</span>
+              </div>
+            ) : bundlePermissions.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="py-2">Permission</TableHead>
+                      <TableHead className="py-2">Module</TableHead>
+                      <TableHead className="py-2">Action</TableHead>
+                      <TableHead className="py-2">Description</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {bundlePermissions.map((permission) => (
+                      <TableRow key={permission.id} className="hover:bg-gray-50">
+                        <TableCell className="py-2">
+                          <div className="font-medium">{permission.name}</div>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Badge variant="outline" className={getModuleColor(permission.module)}>
+                            <span className="flex items-center gap-1">
+                              {getModuleIcon(permission.module)}
+                              {permission.module}
+                            </span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 text-gray-600">
+                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">
+                            {permission.action}
+                          </code>
+                        </TableCell>
+                        <TableCell className="py-2 text-sm text-gray-600">
+                          {permission.description || 'No description'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <Key className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No permissions have been added to this bundle</p>
+              </div>
+            )}
           </div>
 
           <div>

@@ -555,6 +555,165 @@ export class RbacRepository extends BaseRepository {
     };
   }
 
+  async getUsersWithRole(roleId: string, tenantId: string): Promise<any[]> {
+    const supabase = await this.getSupabaseClient();
+
+    try {
+      // Get user role assignments for this role
+      const { data: userRolesData, error: userRolesError } = await supabase
+        .from('user_roles')
+        .select(`
+          id,
+          user_id,
+          assigned_at,
+          assigned_by
+        `)
+        .eq('role_id', roleId);
+
+      if (userRolesError) {
+        console.error('Error fetching user roles:', userRolesError);
+        return [];
+      }
+
+      if (!userRolesData || userRolesData.length === 0) {
+        return [];
+      }
+
+      const userIds = userRolesData.map(ur => ur.user_id);
+
+      // Get user information using the same approach as getMultiRoleUsers
+      let usersInfo: any[] = [];
+
+      // Try to get from auth.users using RPC function first
+      try {
+        const { data: authUsersData, error: authUsersError } = await supabase
+          .rpc('get_user_profiles', { user_ids: userIds });
+
+        if (!authUsersError && authUsersData && authUsersData.length > 0) {
+          usersInfo = authUsersData.map(user => ({
+            id: user.id,
+            email: user.email,
+            first_name: user.raw_user_meta_data?.first_name || user.raw_user_meta_data?.firstName || '',
+            last_name: user.raw_user_meta_data?.last_name || user.raw_user_meta_data?.lastName || ''
+          }));
+        }
+      } catch (authError) {
+        console.warn('Could not access auth.users via RPC:', authError);
+      }
+
+      // For missing users, try member data
+      const foundUserIds = new Set(usersInfo.map(u => u.id));
+      const missingUserIds = userIds.filter(id => !foundUserIds.has(id));
+
+      if (missingUserIds.length > 0) {
+        try {
+          const { data: tenantUsersWithMember, error: memberError } = await supabase
+            .from('tenant_users')
+            .select(`
+              user_id,
+              member:member_id(
+                preferred_name,
+                first_name,
+                last_name,
+                email
+              )
+            `)
+            .eq('tenant_id', tenantId)
+            .in('user_id', missingUserIds);
+
+          if (!memberError && tenantUsersWithMember) {
+            const memberUsersInfo = tenantUsersWithMember
+              .filter(tu => tu.member && tu.member.email)
+              .map(tu => ({
+                id: tu.user_id,
+                email: tu.member!.email,
+                first_name: tu.member!.preferred_name || tu.member!.first_name || '',
+                last_name: tu.member!.last_name || ''
+              }));
+
+            usersInfo = [...usersInfo, ...memberUsersInfo];
+          }
+        } catch (memberError) {
+          console.warn('Could not access member data:', memberError);
+        }
+      }
+
+      // Combine user role data with user info
+      const results = userRolesData.map(userRole => {
+        const userInfo = usersInfo.find(u => u.id === userRole.user_id);
+
+        return {
+          id: userRole.id,
+          user_id: userRole.user_id,
+          assigned_at: userRole.assigned_at,
+          assigned_by: userRole.assigned_by,
+          user: userInfo || {
+            id: userRole.user_id,
+            email: `user-${userRole.user_id.slice(0, 8)}@unknown.local`,
+            first_name: 'Unknown',
+            last_name: 'User'
+          }
+        };
+      });
+
+      return results;
+    } catch (error) {
+      console.error('Error in getUsersWithRole:', error);
+      return [];
+    }
+  }
+
+  async getBundlePermissions(bundleId: string, tenantId: string): Promise<any[]> {
+    const supabase = await this.getSupabaseClient();
+
+    try {
+      // Get permissions that belong to this bundle
+      const { data: bundlePermissionsData, error: bundlePermissionsError } = await supabase
+        .from('bundle_permissions')
+        .select(`
+          id,
+          permission_id,
+          bundle_id,
+          permissions (
+            id,
+            name,
+            action,
+            module,
+            description,
+            scope
+          )
+        `)
+        .eq('bundle_id', bundleId);
+
+      if (bundlePermissionsError) {
+        console.error('Error fetching bundle permissions:', bundlePermissionsError);
+        return [];
+      }
+
+      if (!bundlePermissionsData || bundlePermissionsData.length === 0) {
+        return [];
+      }
+
+      // Transform the data to include permission details
+      const permissions = bundlePermissionsData
+        .filter(bp => bp.permissions) // Only include items that have permission data
+        .map(bp => ({
+          id: bp.permissions.id,
+          name: bp.permissions.name,
+          action: bp.permissions.action,
+          module: bp.permissions.module,
+          description: bp.permissions.description,
+          scope: bp.permissions.scope,
+          bundle_permission_id: bp.id // Include the relationship ID if needed
+        }));
+
+      return permissions;
+    } catch (error) {
+      console.error('Error in getBundlePermissions:', error);
+      return [];
+    }
+  }
+
   async getUserEffectivePermissions(userId: string, tenantId: string): Promise<Permission[]> {
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase
@@ -1415,81 +1574,6 @@ export class RbacRepository extends BaseRepository {
     return { success: true };
   }
 
-  // Multi-Role Methods
-  async getMultiRoleUsers(tenantId: string): Promise<any[]> {
-    const supabase = await this.getSupabaseClient();
-
-    // Mock implementation - would query users with multiple role assignments
-    const mockMultiRoleUsers = [
-      {
-        id: 'user-1',
-        email: 'multi.role@church.org',
-        first_name: 'Multi',
-        last_name: 'Role',
-        primary_role: { id: 'role-1', name: 'Campus Pastor', scope: 'campus' },
-        secondary_roles: [
-          { id: 'role-2', name: 'Youth Leader', scope: 'ministry' },
-          { id: 'role-3', name: 'Worship Leader', scope: 'ministry' }
-        ],
-        effective_permissions: [],
-        campus_assignments: ['campus-1'],
-        ministry_assignments: ['ministry-1', 'ministry-2'],
-        is_multi_role_enabled: true
-      },
-      {
-        id: 'user-2',
-        email: 'single.role@church.org',
-        first_name: 'Single',
-        last_name: 'Role',
-        primary_role: { id: 'role-4', name: 'Volunteer', scope: 'ministry' },
-        secondary_roles: [],
-        effective_permissions: [],
-        campus_assignments: ['campus-1'],
-        ministry_assignments: ['ministry-1'],
-        is_multi_role_enabled: false
-      }
-    ];
-
-    return mockMultiRoleUsers;
-  }
-
-  async assignMultipleRoles(userId: string, roleIds: string[], tenantId: string): Promise<any> {
-    const supabase = await this.getSupabaseClient();
-
-    // In a real implementation, this would:
-    // 1. Clear existing role assignments (except primary)
-    // 2. Assign new roles
-    // 3. Update multi-role context
-    // 4. Refresh permission cache
-
-    const mockResult = {
-      user_id: userId,
-      assigned_roles: roleIds,
-      conflicts_resolved: 0,
-      effective_permissions_count: roleIds.length * 5 // Mock calculation
-    };
-
-    return mockResult;
-  }
-
-  async removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any> {
-    const supabase = await this.getSupabaseClient();
-
-    // In a real implementation, this would:
-    // 1. Remove the role assignment from user_roles table
-    // 2. Update multi-role context if needed
-    // 3. Refresh permission cache
-
-    const mockResult = {
-      user_id: userId,
-      removed_role_id: roleId,
-      tenant_id: tenantId,
-      removed_at: new Date().toISOString()
-    };
-
-    return mockResult;
-  }
-
   async getRole(roleId: string): Promise<Role | null> {
     const supabase = await this.getSupabaseClient();
 
@@ -1775,53 +1859,225 @@ export class RbacRepository extends BaseRepository {
   }
 
   async getUsers(tenantId: string): Promise<any[]> {
-    // Mock users data for demonstration
-    const mockUsers = [
-      {
-        id: 'user-1',
-        name: 'Pastor John Smith',
-        email: 'john.smith@church.org',
-        role: 'Senior Pastor',
-        campus: 'Main Campus',
-        active: true
-      },
-      {
-        id: 'user-2',
-        name: 'Sarah Johnson',
-        email: 'sarah.johnson@church.org',
-        role: 'Campus Pastor',
-        campus: 'Downtown Campus',
-        active: true
-      },
-      {
-        id: 'user-3',
-        name: 'Mike Wilson',
-        email: 'mike.wilson@church.org',
-        role: 'Youth Pastor',
-        campus: 'Main Campus',
-        active: true
-      },
-      {
-        id: 'user-4',
-        name: 'Emily Davis',
-        email: 'emily.davis@church.org',
-        role: 'Worship Leader',
-        campus: 'Downtown Campus',
-        active: true
-      },
-      {
-        id: 'user-5',
-        name: 'David Brown',
-        email: 'david.brown@church.org',
-        role: 'Care Pastor',
-        campus: 'Main Campus',
-        active: false
+    if (!tenantId) {
+      return [];
+    }
+
+    const supabase = await this.getSupabaseClient();
+
+    type TenantUserRow = {
+      tenant_id: string;
+      user_id: string;
+      admin_role?: string | null;
+      role?: string | null;
+      member_id?: string | null;
+      created_at?: string | null;
+      member?: {
+        preferred_name?: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+        email?: string | null;
+      } | null;
+    };
+
+    type AuthUserRow = {
+      id: string;
+      email: string | null;
+      created_at: string | null;
+      last_sign_in_at: string | null;
+      raw_user_meta_data: Record<string, unknown> | null;
+      raw_app_meta_data: Record<string, unknown> | null;
+    };
+
+    type RoleRow = Record<string, any> & {
+      id: string;
+      name: string;
+      scope?: string | null;
+      description?: string | null;
+      metadata_key?: string | null;
+      is_system?: boolean | null;
+      is_delegatable?: boolean | null;
+    };
+
+    type UserRoleRow = {
+      user_id: string;
+      roles: RoleRow | null;
+    };
+
+    const pickString = (...values: unknown[]): string | null => {
+      for (const value of values) {
+        if (typeof value !== 'string') {
+          continue;
+        }
+        const trimmed = value.trim();
+        if (trimmed.length > 0) {
+          return trimmed;
+        }
       }
-    ];
+      return null;
+    };
 
-    return mockUsers;
+    try {
+      const { data: tenantUsersData, error: tenantUsersError } = await supabase
+        .from('tenant_users')
+        .select(`
+          tenant_id,
+          user_id,
+          admin_role,
+          role,
+          member_id,
+          created_at,
+          member:member_id (
+            preferred_name,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq('tenant_id', tenantId);
+
+      if (tenantUsersError) {
+        console.error('Error fetching tenant users:', tenantUsersError);
+        return [];
+      }
+
+      const tenantUsers = (tenantUsersData ?? []) as TenantUserRow[];
+
+      const { data: authUsersData, error: authUsersError } = await supabase
+        .rpc('get_tenant_users', { p_tenant_id: tenantId });
+
+      if (authUsersError) {
+        console.error('Error fetching auth users for tenant:', authUsersError);
+      }
+
+      const { data: userRolesData, error: userRolesError } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          roles:role_id (
+            id,
+            name,
+            description,
+            scope,
+            metadata_key,
+            is_system,
+            is_delegatable
+          )
+        `)
+        .eq('tenant_id', tenantId);
+
+      if (userRolesError) {
+        console.error('Error fetching tenant user roles:', userRolesError);
+      }
+
+      const authUsers = (authUsersData ?? []) as AuthUserRow[];
+      const authUserMap = new Map<string, AuthUserRow>();
+      authUsers.forEach(record => {
+        if (record?.id) {
+          authUserMap.set(record.id, record);
+        }
+      });
+
+      const userRoles = (userRolesData ?? []) as UserRoleRow[];
+      const userRolesMap = new Map<string, Role[]>();
+      userRoles.forEach(entry => {
+        if (!entry?.user_id || !entry.roles) {
+          return;
+        }
+
+        const enrichedRole = this.enrichRole(entry.roles);
+        if (!enrichedRole) {
+          return;
+        }
+
+        const existing = userRolesMap.get(entry.user_id) ?? [];
+        existing.push(enrichedRole as Role);
+        userRolesMap.set(entry.user_id, existing);
+      });
+
+      return tenantUsers.map(row => {
+        const authUser = authUserMap.get(row.user_id) ?? null;
+        const userMeta = (authUser?.raw_user_meta_data ?? {}) as Record<string, any>;
+        const roles = userRolesMap.get(row.user_id) ?? [];
+
+        const firstName =
+          pickString(
+            row.member?.first_name,
+            userMeta.first_name,
+            userMeta.firstName,
+            userMeta.given_name,
+            userMeta.givenName
+          ) ?? null;
+
+        const lastName =
+          pickString(
+            row.member?.last_name,
+            userMeta.last_name,
+            userMeta.lastName,
+            userMeta.family_name,
+            userMeta.familyName
+          ) ?? null;
+
+        const fullFromParts = pickString(
+          [firstName, lastName].filter(Boolean).join(' ')
+        );
+
+        const displayName =
+          pickString(
+            row.member?.preferred_name,
+            userMeta.preferred_name,
+            userMeta.preferredName,
+            fullFromParts,
+            userMeta.full_name,
+            userMeta.fullName,
+            userMeta.name
+          ) ??
+          pickString(
+            row.member?.email,
+            userMeta.email,
+            authUser?.email
+          ) ??
+          row.user_id;
+
+        const email =
+          pickString(
+            authUser?.email,
+            row.member?.email,
+            userMeta.email
+          ) ?? '';
+
+        const campus = pickString(
+          userMeta.campus,
+          userMeta.campus_name,
+          userMeta.campusName
+        );
+
+        return {
+          id: row.user_id,
+          email,
+          name: displayName,
+          first_name: firstName,
+          last_name: lastName,
+          admin_role: row.admin_role ?? null,
+          role: pickString(row.admin_role, row.role, roles[0]?.name) ?? null,
+          member_id: row.member_id ?? null,
+          campus,
+          active: Boolean(authUser?.last_sign_in_at) || roles.length > 0,
+          created_at: authUser?.created_at ?? row.created_at ?? null,
+          last_sign_in_at: authUser?.last_sign_in_at ?? null,
+          roles,
+          metadata: {
+            user: authUser?.raw_user_meta_data ?? null,
+            app: authUser?.raw_app_meta_data ?? null,
+            member: row.member ?? null,
+          },
+        };
+      });
+    } catch (error) {
+      console.error('Error in getUsers:', error);
+      return [];
+    }
   }
-
   // Phase E - Operational Dashboards & Automation
 
   async getRbacHealthMetrics(tenantId: string): Promise<any> {
@@ -2375,16 +2631,148 @@ export class RbacRepository extends BaseRepository {
         // Continue without roles data
       }
 
-      // Since we can't directly access auth.users, we'll create user info from IDs
-      // In a real system, this would be populated from user management
-      const usersInfo = userIds.map(userId => ({
-        id: userId,
-        email: `user-${userId.slice(0, 8)}@example.com`,
-        user_metadata: {
-          first_name: `User`,
-          last_name: `${userId.slice(-4)}`
+      // Get user information by trying multiple sources in priority order
+      let usersInfo: any[] = [];
+
+      // Strategy 1: Try to get from auth.users using RPC function
+      try {
+        const { data: authUsersData, error: authUsersError } = await supabase
+          .rpc('get_user_profiles', { user_ids: userIds });
+
+        if (!authUsersError && authUsersData && authUsersData.length > 0) {
+          usersInfo = authUsersData.map(user => ({
+            id: user.id,
+            email: user.email,
+            user_metadata: user.raw_user_meta_data || {}
+          }));
+          console.log(`Successfully fetched ${usersInfo.length} users from auth.users via RPC`);
+        } else if (authUsersError) {
+          console.warn('Error accessing auth.users via RPC:', authUsersError);
         }
-      }));
+      } catch (authError) {
+        console.warn('Could not access auth.users via RPC:', authError);
+      }
+
+      // Strategy 2: For users we couldn't get from auth.users, try member data
+      const foundUserIds = new Set(usersInfo.map(u => u.id));
+      const missingUserIds = userIds.filter(id => !foundUserIds.has(id));
+
+      if (missingUserIds.length > 0) {
+        console.log(`Trying to fetch ${missingUserIds.length} missing users from member data`);
+
+        try {
+          const { data: tenantUsersWithMember, error: memberError } = await supabase
+            .from('tenant_users')
+            .select(`
+              user_id,
+              member:member_id(
+                preferred_name,
+                first_name,
+                last_name,
+                email
+              )
+            `)
+            .eq('tenant_id', tenantId)
+            .in('user_id', missingUserIds);
+
+          if (!memberError && tenantUsersWithMember) {
+            const memberUsersInfo = tenantUsersWithMember
+              .filter(tu => tu.member && tu.member.email) // Only include users with valid member data
+              .map(tu => ({
+                id: tu.user_id,
+                email: tu.member!.email,
+                user_metadata: {
+                  first_name: tu.member!.preferred_name || tu.member!.first_name || '',
+                  last_name: tu.member!.last_name || ''
+                }
+              }));
+
+            usersInfo = [...usersInfo, ...memberUsersInfo];
+            console.log(`Added ${memberUsersInfo.length} users from member data`);
+          }
+        } catch (memberError) {
+          console.warn('Could not access member data:', memberError);
+        }
+      }
+
+      // Strategy 3: For still missing users, try to get basic auth data through RPC or alternative query
+      const stillMissingUserIds = userIds.filter(id => !usersInfo.find(u => u.id === id));
+
+      if (stillMissingUserIds.length > 0) {
+        console.log(`Attempting alternative query for ${stillMissingUserIds.length} remaining users`);
+
+        try {
+          // Try using the RPC function to get user profiles
+          const { data: rpcUserData, error: rpcError } = await supabase
+            .rpc('get_user_profiles', { user_ids: stillMissingUserIds });
+
+          if (!rpcError && rpcUserData && rpcUserData.length > 0) {
+            const rpcUsersInfo = rpcUserData.map((user: any) => ({
+              id: user.id,
+              email: user.email,
+              user_metadata: user.raw_user_meta_data || {}
+            }));
+
+            usersInfo = [...usersInfo, ...rpcUsersInfo];
+            console.log(`Added ${rpcUsersInfo.length} users via RPC function`);
+          } else {
+            console.warn('RPC function failed or returned no data:', rpcError);
+
+            // Try using a simpler query that might work even with restricted permissions
+            const { data: basicAuthData, error: basicError } = await supabase
+              .from('tenant_users')
+              .select(`
+                user_id,
+                created_at
+              `)
+              .eq('tenant_id', tenantId)
+              .in('user_id', stillMissingUserIds);
+
+            if (!basicError && basicAuthData) {
+              // For users we can confirm exist but have no other data, create minimal profiles
+              // using the user ID to derive a meaningful email and name
+              const basicUsersInfo = basicAuthData.map(tu => {
+                const userIdShort = tu.user_id.slice(0, 8);
+                const userIdEnd = tu.user_id.slice(-4);
+
+                return {
+                  id: tu.user_id,
+                  email: `user-${userIdShort}@tenant.local`, // More professional fallback
+                  user_metadata: {
+                    first_name: `User`,
+                    last_name: `${userIdEnd}`
+                  }
+                };
+              });
+
+              usersInfo = [...usersInfo, ...basicUsersInfo];
+              console.log(`Added ${basicUsersInfo.length} users with basic fallback data`);
+            }
+          }
+        } catch (rpcError) {
+          console.warn('RPC call and basic queries failed:', rpcError);
+
+          // Absolute final fallback - just ensure we have user objects for all user IDs
+          const finalFallbackUsers = stillMissingUserIds.map(userId => {
+            const userIdShort = userId.slice(0, 8);
+            const userIdEnd = userId.slice(-4);
+
+            return {
+              id: userId,
+              email: `user-${userIdShort}@unknown.local`,
+              user_metadata: {
+                first_name: 'Unknown',
+                last_name: `User-${userIdEnd}`
+              }
+            };
+          });
+
+          usersInfo = [...usersInfo, ...finalFallbackUsers];
+          console.log(`Using final fallback for ${finalFallbackUsers.length} users`);
+        }
+      }
+
+      console.log(`Total users resolved: ${usersInfo.length} out of ${userIds.length} requested`);
 
       // Transform data to group roles per user
       const userMap = new Map();
@@ -2522,6 +2910,7 @@ export class RbacRepository extends BaseRepository {
 
       // Insert new role assignments
       const roleAssignments = roleIds.map(roleId => ({
+        tenant_id: tenantId,
         user_id: userId,
         role_id: roleId,
         created_at: new Date().toISOString()

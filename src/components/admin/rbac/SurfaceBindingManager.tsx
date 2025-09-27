@@ -32,7 +32,7 @@ import {
   Code,
   Layers
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import type {
   RbacSurfaceBinding,
   MetadataSurface,

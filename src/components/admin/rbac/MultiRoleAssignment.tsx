@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Users,
   Shield,
@@ -38,7 +39,7 @@ import {
   Globe,
   Key
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 import type {
   Role,
   UserWithRoles,
@@ -287,7 +288,7 @@ export function MultiRoleAssignment() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner size="lg" className="text-blue-600" />
       </div>
     );
   }
@@ -715,29 +716,57 @@ export function MultiRoleAssignment() {
 
             <div>
               <Label>Select Roles</Label>
-              <div className="grid grid-cols-2 gap-4 mt-2 max-h-64 overflow-y-auto">
-                {availableRoles.map((role) => (
-                  <div key={role.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`role-${role.id}`}
-                      checked={selectedRoles.includes(role.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedRoles([...selectedRoles, role.id]);
-                        } else {
-                          setSelectedRoles(selectedRoles.filter(id => id !== role.id));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`role-${role.id}`} className="flex items-center gap-2">
-                      <Badge variant="outline" className={getScopeColor(role.scope)}>
-                        {getScopeIcon(role.scope)}
-                        <span className="ml-1">{role.name}</span>
-                      </Badge>
-                    </Label>
+              {availableRoles.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4 mt-2 max-h-64 overflow-y-auto">
+                  {availableRoles.map((role) => (
+                    <div key={role.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`role-${role.id}`}
+                        checked={selectedRoles.includes(role.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedRoles([...selectedRoles, role.id]);
+                          } else {
+                            setSelectedRoles(selectedRoles.filter(id => id !== role.id));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`role-${role.id}`} className="flex items-center gap-2">
+                        <Badge variant="outline" className={getScopeColor(role.scope)}>
+                          {getScopeIcon(role.scope)}
+                          <span className="ml-1">{role.name}</span>
+                        </Badge>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                  <Shield className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Roles Available</h3>
+                  <p className="text-gray-600 mb-4">
+                    There are no delegatable roles available for assignment. You need to create roles first before you can assign them to users.
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open('/admin/security/rbac/roles', '_blank')}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Roles
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => window.open('/admin/security/rbac', '_blank')}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      RBAC Dashboard
+                    </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
 
             {selectedRoles.length > 1 && (

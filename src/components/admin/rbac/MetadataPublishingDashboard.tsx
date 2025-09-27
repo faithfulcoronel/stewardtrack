@@ -23,7 +23,7 @@ import {
   Settings,
   Download
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface PublishingStatus {
   systemStatus: 'healthy' | 'warning' | 'error';

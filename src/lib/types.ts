@@ -111,6 +111,9 @@ export const TYPES = {
   MemberProfileService: Symbol.for('MemberProfileService'),
   RequestContext: Symbol.for('RequestContext'),
   TenantService: Symbol.for('TenantService'),
+  UserMemberLinkService: Symbol.for('UserMemberLinkService'),
+  UserMemberLinkRepository: Symbol.for('UserMemberLinkRepository'),
+  MemberInvitationRepository: Symbol.for('MemberInvitationRepository'),
 } as const;
 
 export type TypeBindings = typeof TYPES;
