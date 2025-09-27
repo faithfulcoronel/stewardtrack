@@ -990,7 +990,7 @@ export function RbacAuditDashboard() {
 
       {/* Modal Dashboards */}
       <Dialog open={showComplianceDashboard} onOpenChange={setShowComplianceDashboard}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" widthMode="content">
           <DialogHeader>
             <DialogTitle>Compliance Officer Dashboard</DialogTitle>
           </DialogHeader>
@@ -1065,7 +1065,7 @@ export function RbacAuditDashboard() {
       </Dialog>
 
       <Dialog open={showMaterializedViewDashboard} onOpenChange={setShowMaterializedViewDashboard}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" widthMode="content">
           <DialogHeader>
             <DialogTitle>Materialized View Monitoring</DialogTitle>
           </DialogHeader>
@@ -1074,7 +1074,7 @@ export function RbacAuditDashboard() {
       </Dialog>
 
       <Dialog open={showMetadataPublishingDashboard} onOpenChange={setShowMetadataPublishingDashboard}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" widthMode="content">
           <DialogHeader>
             <DialogTitle>Metadata Publishing Controls</DialogTitle>
           </DialogHeader>

@@ -5,7 +5,7 @@ import { RbacService } from '@/services/rbac.service';
 
 export async function POST(request: NextRequest) {
   try {
-    const _rbacService = container.get<RbacService>(TYPES.RbacService);
+    const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body = await request.json();
 
     const { user_id, enabled } = body;
@@ -20,12 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Toggle multi-role status for user
-    const result = {
-      user_id,
-      multi_role_enabled: enabled,
-      updated_at: new Date().toISOString()
-    };
+    const result = await rbacService.toggleMultiRoleMode(user_id, enabled);
 
     return NextResponse.json({
       success: true,

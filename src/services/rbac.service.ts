@@ -1463,6 +1463,109 @@ export class RbacService {
 
     return report;
   }
+
+  // Delegation management methods
+  async getDelegationStats(userId: string, tenantId?: string): Promise<{
+    total_active: number;
+    ministry_delegations: number;
+    campus_delegations: number;
+    expiring_soon: number;
+  }> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    // Get delegation permissions to calculate stats
+    const delegations = await this.rbacRepository.getDelegationPermissions(resolvedTenantId);
+
+    const activeDelegations = delegations.filter(d => d.is_active);
+    const ministryDelegations = activeDelegations.filter(d => d.scope_type === 'ministry');
+    const campusDelegations = activeDelegations.filter(d => d.scope_type === 'campus');
+
+    // Calculate expiring soon (within 30 days)
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const expiringSoon = activeDelegations.filter(d => {
+      if (!d.expiry_date) return false;
+      const expiryDate = new Date(d.expiry_date);
+      return expiryDate <= thirtyDaysFromNow;
+    });
+
+    return {
+      total_active: activeDelegations.length,
+      ministry_delegations: ministryDelegations.length,
+      campus_delegations: campusDelegations.length,
+      expiring_soon: expiringSoon.length
+    };
+  }
+
+  async getDelegationPermissions(tenantId?: string): Promise<any[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.getDelegationPermissions(resolvedTenantId);
+  }
+
+  async createDelegationPermission(permissionData: any, tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.createDelegationPermission(permissionData, resolvedTenantId);
+  }
+
+  async updateDelegationPermission(id: string, permissionData: any, tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.updateDelegationPermission(id, permissionData, resolvedTenantId);
+  }
+
+  async revokeDelegationPermission(id: string, tenantId?: string): Promise<void> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.revokeDelegationPermission(id, resolvedTenantId);
+  }
+
+  async getPermissionTemplates(tenantId?: string): Promise<any[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+
+    return await this.rbacRepository.getPermissionTemplates(resolvedTenantId);
+  }
+
+  async getDelegationScopes(delegatedContext: any): Promise<any[]> {
+    return await this.rbacRepository.getDelegationScopes(delegatedContext);
+  }
+
+  async getDelegatedUsers(delegatedContext: any): Promise<any[]> {
+    return await this.rbacRepository.getDelegatedUsers(delegatedContext);
+  }
+
+  // Multi-role management methods
+  async getMultiRoleUsers(tenantId?: string): Promise<any[]> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.getMultiRoleUsers(resolvedTenantId);
+  }
+
+  async getMultiRoleStats(tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.getMultiRoleStats(resolvedTenantId);
+  }
+
+  async assignMultipleRoles(userId: string, roleIds: string[], overrideConflicts = false, tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.assignMultipleRoles(userId, roleIds, overrideConflicts, resolvedTenantId);
+  }
+
+  async removeUserRole(userId: string, roleId: string, tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.removeUserRole(userId, roleId, resolvedTenantId);
+  }
+
+  async toggleMultiRoleMode(userId: string, enabled: boolean, tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.toggleMultiRoleMode(userId, enabled, resolvedTenantId);
+  }
+
+  async analyzeRoleConflicts(roleIds: string[], tenantId?: string): Promise<any> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return await this.rbacRepository.analyzeRoleConflicts(roleIds, resolvedTenantId);
+  }
 }
 
 

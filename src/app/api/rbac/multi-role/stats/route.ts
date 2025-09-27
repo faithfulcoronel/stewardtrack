@@ -5,17 +5,9 @@ import { RbacService } from '@/services/rbac.service';
 
 export async function GET(_request: NextRequest) {
   try {
-    const _rbacService = container.get<RbacService>(TYPES.RbacService);
+    const rbacService = container.get<RbacService>(TYPES.RbacService);
 
-    // Mock multi-role stats for demonstration
-    const stats = {
-      totalMultiRoleUsers: 12,
-      activeMultiRoleUsers: 8,
-      averageRolesPerUser: 2.4,
-      conflictResolutions: 3,
-      totalRoleAssignments: 29,
-      recentAssignments: 5
-    };
+    const stats = await rbacService.getMultiRoleStats();
 
     return NextResponse.json({
       success: true,
