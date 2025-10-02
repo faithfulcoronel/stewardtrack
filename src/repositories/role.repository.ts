@@ -1,87 +1,45 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { Role } from '@/models/role.model';
-import { NotificationService } from '@/services/NotificationService';
-import { RoleValidator } from '@/validators/role.validator';
-import { handleError } from '@/utils/errorHandler';
-import type { IMenuPermissionRepository } from '@/repositories/menuPermission.repository';
-import type { IRoleMenuItemRepository } from '@/repositories/roleMenuItem.repository';
-import type { IPermissionRepository } from '@/repositories/permission.repository';
-import { TYPES } from '@/lib/types';
 import type { IRoleAdapter } from '@/adapters/role.adapter';
+import type { Role, CreateRoleDto, UpdateRoleDto, RoleWithPermissions } from '@/models/rbac.model';
+import { TYPES } from '@/lib/types';
 
 export interface IRoleRepository extends BaseRepository<Role> {
-  updateRolePermissions(id: string, permissionIds: string[]): Promise<void>;
+  createRole(data: CreateRoleDto, tenantId: string): Promise<Role>;
+  updateRole(id: string, data: UpdateRoleDto, tenantId: string): Promise<Role>;
+  deleteRole(id: string, tenantId: string): Promise<void>;
+  getRoles(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
+  getRole(roleId: string): Promise<Role | null>;
+  getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
 }
 
 @injectable()
-export class RoleRepository
-  extends BaseRepository<Role>
-  implements IRoleRepository
-{
-  constructor(
-    @inject(TYPES.IRoleAdapter) adapter: IRoleAdapter,
-    @inject(TYPES.IPermissionRepository)
-    private permissionRepository: IPermissionRepository,
-    @inject(TYPES.IMenuPermissionRepository)
-    private menuPermissionRepository?: IMenuPermissionRepository,
-    @inject(TYPES.IRoleMenuItemRepository)
-    private roleMenuItemRepository?: IRoleMenuItemRepository
-  ) {
-    super(adapter);
+export class RoleRepository extends BaseRepository<Role> implements IRoleRepository {
+  constructor(@inject(TYPES.IRoleAdapter) private readonly roleAdapter: IRoleAdapter) {
+    super(roleAdapter);
   }
 
-  protected override async beforeCreate(
-    data: Partial<Role>
-  ): Promise<Partial<Role>> {
-    await RoleValidator.validate(data, this, undefined, this.permissionRepository);
-    return this.formatData(data);
+  async createRole(data: CreateRoleDto, tenantId: string): Promise<Role> {
+    return await this.roleAdapter.createRole(data, tenantId);
   }
 
-  protected override async afterCreate(data: Role): Promise<void> {
-    NotificationService.showSuccess(`Role "${data.name}" created successfully`);
+  async updateRole(id: string, data: UpdateRoleDto, tenantId: string): Promise<Role> {
+    return await this.roleAdapter.updateRole(id, data, tenantId);
   }
 
-  protected override async beforeUpdate(
-    id: string,
-    data: Partial<Role>
-  ): Promise<Partial<Role>> {
-    await RoleValidator.validate(data, this, id, this.permissionRepository);
-    return this.formatData(data);
+  async deleteRole(id: string, tenantId: string): Promise<void> {
+    return await this.roleAdapter.deleteRole(id, tenantId);
   }
 
-  protected override async afterUpdate(data: Role): Promise<void> {
-    NotificationService.showSuccess(`Role "${data.name}" updated successfully`);
+  async getRoles(tenantId: string, includeSystem: boolean = true): Promise<Role[]> {
+    return await this.roleAdapter.getRoles(tenantId, includeSystem);
   }
 
-  private formatData(data: Partial<Role>): Partial<Role> {
-    return {
-      ...data,
-      name: data.name?.trim().toLowerCase(),
-      description: data.description?.trim() || null
-    };
+  async getRole(roleId: string): Promise<Role | null> {
+    return await this.roleAdapter.getRole(roleId);
   }
 
-  async updateRolePermissions(id: string, permissionIds: string[]): Promise<void> {
-    try {
-      const { data: menuRows } = await this.menuPermissionRepository!.find({
-        select: 'menu_item_id',
-        filters: {
-          permission_id: { operator: 'isAnyOf', value: permissionIds },
-        },
-      });
-
-      const menuItemIds = Array.from(
-        new Set((menuRows || []).map(m => (m as any).menu_item_id))
-      );
-
-      await this.roleMenuItemRepository!.replaceRoleMenuItems(id, menuItemIds);
-    } catch (error) {
-      throw handleError(error, {
-        context: 'updateRolePermissions',
-        id,
-        permissionIds,
-      });
-    }
+  async getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null> {
+    return await this.roleAdapter.getRoleWithPermissions(id, tenantId);
   }
 }

@@ -1,6 +1,6 @@
 import 'server-only';
 import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, optional } from 'inversify';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -20,8 +20,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   protected defaultSelect: string = '';
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
-  @inject(TYPES.RequestContext)
-  protected context: RequestContext = {} as RequestContext;
+  @inject(TYPES.RequestContext) @optional()
+  protected context?: RequestContext;
 
   protected supabase: SupabaseClient | null = null;
 
@@ -33,7 +33,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   }
 
   protected async getUserId(): Promise<string | undefined> {
-    if (this.context.userId) return this.context.userId;
+    if (this.context?.userId) return this.context.userId;
     const supabase = await this.getSupabaseClient();
     const { data } = await supabase.auth.getUser();
     return data.user?.id;
@@ -54,7 +54,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     const supabase = await this.getSupabaseClient();
     const map = await getUserDisplayNameMap(
       supabase,
-      this.context.tenantId ?? null,
+      this.context?.tenantId ?? null,
       userIds
     );
 
@@ -212,8 +212,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     options: QueryOptions = {}
   ): Promise<{ query: any }> {
     try {
-      const tenantId = this.context.tenantId;
-      const isSuperAdmin = this.context.roles?.includes('super_admin') ?? false;
+      const tenantId = this.context?.tenantId;
+      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -317,8 +317,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     fieldsToRemove: string[] = []
   ): Promise<T> {
     try {
-      const tenantId = this.context.tenantId;
-      const isSuperAdmin = this.context.roles?.includes('super_admin') ?? false;
+      const tenantId = this.context?.tenantId;
+      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -379,8 +379,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     fieldsToRemove: string[] = []
   ): Promise<T> {
     try {
-      const tenantId = this.context.tenantId;
-      const isSuperAdmin = this.context.roles?.includes('super_admin') ?? false;
+      const tenantId = this.context?.tenantId;
+      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -434,8 +434,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
 
   public async delete(id: string): Promise<void> {
     try {
-      const tenantId = this.context.tenantId;
-      const isSuperAdmin = this.context.roles?.includes('super_admin') ?? false;
+      const tenantId = this.context?.tenantId;
+      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -475,7 +475,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     id: string,
     relations: Record<string, string[]>
   ): Promise<void> {
-    const tenantId = this.context.tenantId;
+    const tenantId = this.context?.tenantId;
     const userId = await this.getUserId();
     const supabase = await this.getSupabaseClient();
 

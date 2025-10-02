@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const result = await userMemberLinkService.bulkLinkUsers(
       { links, notes },
-      user.id
+      user.id,
       tenantId
     );
 

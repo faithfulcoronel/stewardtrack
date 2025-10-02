@@ -1,161 +1,75 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { UserRole } from '@/models/userRole.model';
-import type { IUserRoleAdapter } from '@/adapters/userRole.adapter';
+import type { IUserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
+import type {
+  UserRole,
+  AssignRoleDto,
+  Role,
+  UserWithRoles
+} from '@/models/rbac.model';
 import { TYPES } from '@/lib/types';
-import { handleError } from '@/utils/errorHandler';
 
-export interface IUserRoleRepository extends BaseRepository<UserRole> {
-  replaceUserRoles(
-    userId: string,
-    roleIds: string[],
-    tenantId?: string,
-  ): Promise<void>;
-  getRoleDetailsByUser(userId: string): Promise<{ role_id: string; role_name: string }[]>;
-  getAdminRole(userId: string, tenantId: string): Promise<string | null>;
-  getRolesWithPermissions(userId: string): Promise<UserRole[]>;
-  isSuperAdmin(userId?: string): Promise<boolean>;
-  isAdmin(userId: string): Promise<boolean>;
-  getUsersByRole(roleId: string): Promise<UserRole[]>;
+export interface IUserRoleManagementRepository extends BaseRepository<UserRole> {
+  assignRole(data: AssignRoleDto, tenantId: string, assignedBy?: string): Promise<UserRole>;
+  revokeRole(userId: string, roleId: string, tenantId: string): Promise<void>;
+  getUserRoles(userId: string, tenantId: string): Promise<Role[]>;
+  getUsersWithRole(roleId: string, tenantId: string): Promise<any[]>;
+  getUserWithRoles(userId: string, tenantId: string): Promise<UserWithRoles | null>;
+  removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any>;
+  getMultiRoleUsers(tenantId: string): Promise<any[]>;
+  assignMultipleRoles(userId: string, roleIds: string[], tenantId: string): Promise<any>;
+  toggleMultiRoleMode(userId: string, enabled: boolean, tenantId: string): Promise<any>;
+  getUserMultiRoleContext(userId: string, tenantId: string): Promise<any>;
+  getUsers(tenantId: string): Promise<any[]>;
 }
 
 @injectable()
-export class UserRoleRepository
-  extends BaseRepository<UserRole>
-  implements IUserRoleRepository
-{
-  constructor(
-    @inject(TYPES.IUserRoleAdapter)
-    private readonly userRoleAdapter: IUserRoleAdapter,
-  ) {
+export class UserRoleManagementRepository extends BaseRepository<UserRole> implements IUserRoleManagementRepository {
+  constructor(@inject(TYPES.IUserRoleManagementAdapter) private readonly userRoleAdapter: IUserRoleManagementAdapter) {
     super(userRoleAdapter);
   }
 
-  async replaceUserRoles(
-    userId: string,
-    roleIds: string[],
-    tenantId?: string,
-  ): Promise<void> {
-    try {
-      // Validate userId
-      if (!userId || typeof userId !== 'string') {
-        throw new Error('Invalid userId provided');
-      }
-
-      await this.userRoleAdapter.replaceUserRoles(
-        userId,
-        roleIds,
-        tenantId || '',
-      );
-    } catch (error) {
-      throw handleError(error, {
-        context: 'replaceUserRoles',
-        userId,
-        roleIds,
-        tenantId,
-      });
-    }
+  async assignRole(data: AssignRoleDto, tenantId: string, assignedBy?: string): Promise<UserRole> {
+    return await this.userRoleAdapter.assignRole(data, tenantId, assignedBy);
   }
 
-  async getRoleDetailsByUser(userId: string): Promise<{ role_id: string; role_name: string }[]> {
-    try {
-      // Validate userId
-      if (!userId || typeof userId !== 'string') {
-        throw new Error('Invalid userId provided');
-      }
-
-      return await this.userRoleAdapter.getRoleDetailsByUser(userId);
-    } catch (error) {
-      throw handleError(error, {
-        context: 'getRoleDetailsByUser',
-        userId,
-      });
-    }
+  async revokeRole(userId: string, roleId: string, tenantId: string): Promise<void> {
+    return await this.userRoleAdapter.revokeRole(userId, roleId, tenantId);
   }
 
-  async getAdminRole(userId: string, tenantId: string): Promise<string | null> {
-    try {
-      // Validate parameters
-      if (!userId || typeof userId !== 'string') {
-        throw new Error('Invalid userId provided');
-      }
-      if (!tenantId || typeof tenantId !== 'string') {
-        throw new Error('Invalid tenantId provided');
-      }
-
-      return await this.userRoleAdapter.getAdminRole(userId, tenantId);
-    } catch (error) {
-      throw handleError(error, {
-        context: 'getAdminRole',
-        userId,
-        tenantId,
-      });
-    }
+  async getUserRoles(userId: string, tenantId: string): Promise<Role[]> {
+    return await this.userRoleAdapter.getUserRoles(userId, tenantId);
   }
 
-  async getRolesWithPermissions(userId: string): Promise<UserRole[]> {
-    try {
-      // Validate userId
-      if (!userId || typeof userId !== 'string') {
-        throw new Error('Invalid userId provided');
-      }
-
-      const result = await this.userRoleAdapter.getRolesWithPermissions(userId);
-      // Convert the result to UserRole[] format
-      return result as UserRole[];
-    } catch (error) {
-      throw handleError(error, {
-        context: 'getRolesWithPermissions',
-        userId,
-      });
-    }
+  async getUsersWithRole(roleId: string, tenantId: string): Promise<any[]> {
+    return await this.userRoleAdapter.getUsersWithRole(roleId, tenantId);
   }
 
-  async isSuperAdmin(userId?: string): Promise<boolean> {
-    try {
-      // If userId is provided, validate it
-      if (userId !== undefined && (!userId || typeof userId !== 'string')) {
-        throw new Error('Invalid userId provided');
-      }
-
-      return await this.userRoleAdapter.isSuperAdmin();
-    } catch (error) {
-      throw handleError(error, {
-        context: 'isSuperAdmin',
-        userId,
-      });
-    }
+  async getUserWithRoles(userId: string, tenantId: string): Promise<UserWithRoles | null> {
+    return await this.userRoleAdapter.getUserWithRoles(userId, tenantId);
   }
 
-  async isAdmin(userId: string): Promise<boolean> {
-    try {
-      // Validate userId
-      if (!userId || typeof userId !== 'string') {
-        throw new Error('Invalid userId provided');
-      }
-
-      return await this.userRoleAdapter.isAdmin(userId);
-    } catch (error) {
-      throw handleError(error, {
-        context: 'isAdmin',
-        userId,
-      });
-    }
+  async removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any> {
+    return await this.userRoleAdapter.removeUserRole(userId, roleId, tenantId);
   }
 
-  async getUsersByRole(roleId: string): Promise<UserRole[]> {
-    try {
-      // Validate roleId
-      if (!roleId || typeof roleId !== 'string') {
-        throw new Error('Invalid roleId provided');
-      }
+  async getMultiRoleUsers(tenantId: string): Promise<any[]> {
+    return await this.userRoleAdapter.getMultiRoleUsers(tenantId);
+  }
 
-      return await this.userRoleAdapter.getUsersByRole(roleId);
-    } catch (error) {
-      throw handleError(error, {
-        context: 'getUsersByRole',
-        roleId,
-      });
-    }
+  async assignMultipleRoles(userId: string, roleIds: string[], tenantId: string): Promise<any> {
+    return await this.userRoleAdapter.assignMultipleRoles(userId, roleIds, tenantId);
+  }
+
+  async toggleMultiRoleMode(userId: string, enabled: boolean, tenantId: string): Promise<any> {
+    return await this.userRoleAdapter.toggleMultiRoleMode(userId, enabled, tenantId);
+  }
+
+  async getUserMultiRoleContext(userId: string, tenantId: string): Promise<any> {
+    return await this.userRoleAdapter.getUserMultiRoleContext(userId, tenantId);
+  }
+
+  async getUsers(tenantId: string): Promise<any[]> {
+    return await this.userRoleAdapter.getUsers(tenantId);
   }
 }

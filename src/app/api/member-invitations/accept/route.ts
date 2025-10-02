@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const result = await userMemberLinkService.acceptInvitation(
       token,
-      user.id
+      user.id,
       clientIp || undefined,
       userAgent || undefined
     );

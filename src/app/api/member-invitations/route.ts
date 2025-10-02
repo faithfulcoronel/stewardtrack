@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         expires_in_days: expires_in_days || 7,
         notes
       },
-      user.id
+      user.id,
       tenantId
     );
 

@@ -1,58 +1,66 @@
 import 'server-only';
-import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
-import { Permission } from '@/models/permission.model';
-import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
+import type { AuditService } from '@/services/audit.service';
+import type { Permission } from '@/models/rbac.model';
 
-export type IPermissionAdapter = IBaseAdapter<Permission>;
+/**
+ * Permission Adapter - Handles permission queries
+ * Permissions are mostly read-only in the RBAC system
+ */
+export interface IPermissionAdapter extends IBaseAdapter<Permission> {
+  getPermissions(tenantId: string, module?: string): Promise<Permission[]>;
+  getPermission(id: string): Promise<Permission | null>;
+}
 
 @injectable()
-export class PermissionAdapter
-  extends BaseAdapter<Permission>
-  implements IPermissionAdapter
-{
-  constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
+export class PermissionAdapter extends BaseAdapter<Permission> implements IPermissionAdapter {
+  constructor(
+    @inject(TYPES.AuditService) private auditService: AuditService
+  ) {
     super();
   }
 
   protected tableName = 'permissions';
+  protected defaultSelect = `*`;
 
-  protected defaultSelect = `
-    id,
-    code,
-    name,
-    description,
-    module,
-    created_by,
-    updated_by,
-    created_at,
-    updated_at
-  `;
-
-  protected override async onBeforeDelete(id: string): Promise<void> {
+  async getPermissions(tenantId: string, module?: string): Promise<Permission[]> {
     const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase
-      .from('menu_permissions')
-      .select('menu_item_id')
-      .eq('permission_id', id)
-      .limit(1);
-    if (error) throw error;
-    if (data?.length) {
-      throw new Error('Cannot delete permission with assigned menu items');
+    let query = supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId);
+
+    if (module) {
+      query = query.eq('module', module);
     }
+
+    const { data, error } = await query.order('module', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch permissions: ${error.message}`);
+    }
+
+    return data || [];
   }
 
-  protected override async onAfterCreate(data: Permission): Promise<void> {
-    await this.auditService.logAuditEvent('create', 'permission', data.id, data);
-  }
+  async getPermission(id: string): Promise<Permission | null> {
+    const supabase = await this.getSupabaseClient();
 
-  protected override async onAfterUpdate(data: Permission): Promise<void> {
-    await this.auditService.logAuditEvent('update', 'permission', data.id, data);
-  }
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  protected override async onAfterDelete(id: string): Promise<void> {
-    await this.auditService.logAuditEvent('delete', 'permission', id, { id });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw new Error(`Failed to fetch permission: ${error.message}`);
+    }
+
+    return data;
   }
 }

@@ -8,7 +8,10 @@
       "Bash(npm run dev:*)",
       "Bash(find:*)",
       "WebSearch",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

@@ -62,7 +62,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const result = await userMemberLinkService.revokeInvitation(
       params.id,
-      user.id
+      user.id,
       reason,
       tenantId
     );
