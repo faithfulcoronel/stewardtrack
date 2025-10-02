@@ -30,7 +30,8 @@ import {
   Info,
   RefreshCw,
   Code,
-  Layers
+  Layers,
+  Loader2
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import type {
@@ -85,6 +86,11 @@ export function SurfaceBindingManager() {
   const [deletingBinding, setDeletingBinding] = useState<SurfaceBindingWithDetails | null>(null);
   const [newBinding, setNewBinding] = useState<Partial<CreateSurfaceBindingDto>>({});
   const [editBinding, setEditBinding] = useState<Partial<CreateSurfaceBindingDto>>({});
+
+  // Loading states for async operations
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -225,6 +231,7 @@ export function SurfaceBindingManager() {
   };
 
   const createBinding = async (bindingData: CreateSurfaceBindingDto) => {
+    setIsCreating(true);
     try {
       const response = await fetch('/api/rbac/surface-bindings', {
         method: 'POST',
@@ -244,10 +251,13 @@ export function SurfaceBindingManager() {
     } catch (error) {
       console.error('Error creating binding:', error);
       toast.error('Failed to create surface binding');
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const updateBinding = async (bindingId: string, bindingData: Partial<CreateSurfaceBindingDto>) => {
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/rbac/surface-bindings/${bindingId}`, {
         method: 'PUT',
@@ -268,6 +278,8 @@ export function SurfaceBindingManager() {
     } catch (error) {
       console.error('Error updating binding:', error);
       toast.error('Failed to update surface binding');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -290,6 +302,7 @@ export function SurfaceBindingManager() {
   const confirmDeleteBinding = async () => {
     if (!deletingBinding) return;
 
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/rbac/surface-bindings/${deletingBinding.id}`, {
         method: 'DELETE'
@@ -307,6 +320,8 @@ export function SurfaceBindingManager() {
     } catch (error) {
       console.error('Error deleting binding:', error);
       toast.error('Failed to delete surface binding');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -854,7 +869,7 @@ export function SurfaceBindingManager() {
             </Alert>
           </div>
           <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
               Cancel
             </Button>
             <Button
@@ -869,9 +884,16 @@ export function SurfaceBindingManager() {
                 }
                 createBinding(newBinding as CreateSurfaceBindingDto);
               }}
-              disabled={!newBinding.metadata_blueprint_id || (!newBinding.role_id && !newBinding.bundle_id)}
+              disabled={!newBinding.metadata_blueprint_id || (!newBinding.role_id && !newBinding.bundle_id) || isCreating}
             >
-              Create Binding
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Binding'
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -971,7 +993,7 @@ export function SurfaceBindingManager() {
             </Alert>
           </div>
           <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isUpdating}>
               Cancel
             </Button>
             <Button
@@ -988,9 +1010,16 @@ export function SurfaceBindingManager() {
                   updateBinding(editingBinding.id, editBinding);
                 }
               }}
-              disabled={!editBinding.metadata_blueprint_id || (!editBinding.role_id && !editBinding.bundle_id)}
+              disabled={!editBinding.metadata_blueprint_id || (!editBinding.role_id && !editBinding.bundle_id) || isUpdating}
             >
-              Update Binding
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Binding'
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -1046,6 +1075,7 @@ export function SurfaceBindingManager() {
                 setShowDeleteDialog(false);
                 setDeletingBinding(null);
               }}
+              disabled={isDeleting}
             >
               Cancel
             </Button>
@@ -1053,9 +1083,19 @@ export function SurfaceBindingManager() {
               variant="destructive"
               onClick={confirmDeleteBinding}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Binding
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Binding
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

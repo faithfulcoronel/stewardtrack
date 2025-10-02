@@ -31,7 +31,8 @@ import {
   UserPlus,
   HelpCircle,
   Layout,
-  Layers
+  Layers,
+  Loader2
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import type { Role, PermissionBundle, CreateRoleDto, CreatePermissionBundleDto } from '@/models/rbac.model';
@@ -68,6 +69,14 @@ export function RoleExplorer() {
   const [isSimpleView, setIsSimpleView] = useState(false);
   const [churchSize, setChurchSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [scopeCategories, setScopeCategories] = useState<string[]>(['all']);
+
+  // Loading states for async operations
+  const [isCreatingRole, setIsCreatingRole] = useState(false);
+  const [isCreatingBundle, setIsCreatingBundle] = useState(false);
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+  const [isUpdatingBundle, setIsUpdatingBundle] = useState(false);
+  const [deletingRoleId, setDeletingRoleId] = useState<string | null>(null);
+  const [deletingBundleId, setDeletingBundleId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -194,6 +203,7 @@ export function RoleExplorer() {
   };
 
   const handleCreateRole = async (data: CreateRoleDto) => {
+    setIsCreatingRole(true);
     try {
       const response = await fetch('/api/rbac/roles', {
         method: 'POST',
@@ -213,10 +223,13 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error creating role:', error);
       toast.error('Failed to create role');
+    } finally {
+      setIsCreatingRole(false);
     }
   };
 
   const handleCreateBundle = async (data: CreatePermissionBundleDto) => {
+    setIsCreatingBundle(true);
     try {
       const response = await fetch('/api/rbac/bundles', {
         method: 'POST',
@@ -236,12 +249,15 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error creating bundle:', error);
       toast.error('Failed to create bundle');
+    } finally {
+      setIsCreatingBundle(false);
     }
   };
 
   const handleDeleteRole = async (roleId: string) => {
     if (!confirm('Are you sure you want to delete this role?')) return;
 
+    setDeletingRoleId(roleId);
     try {
       const response = await fetch(`/api/rbac/roles/${roleId}`, {
         method: 'DELETE'
@@ -258,12 +274,15 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error deleting role:', error);
       toast.error('Failed to delete role');
+    } finally {
+      setDeletingRoleId(null);
     }
   };
 
   const handleDeleteBundle = async (bundleId: string) => {
     if (!confirm('Are you sure you want to delete this bundle?')) return;
 
+    setDeletingBundleId(bundleId);
     try {
       const response = await fetch(`/api/rbac/bundles/${bundleId}`, {
         method: 'DELETE'
@@ -280,6 +299,8 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error deleting bundle:', error);
       toast.error('Failed to delete bundle');
+    } finally {
+      setDeletingBundleId(null);
     }
   };
 
@@ -296,6 +317,7 @@ export function RoleExplorer() {
   const handleUpdateRole = async (data: CreateRoleDto) => {
     if (!editingRole) return;
 
+    setIsUpdatingRole(true);
     try {
       const response = await fetch(`/api/rbac/roles/${editingRole.id}`, {
         method: 'PUT',
@@ -316,6 +338,8 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Failed to update role');
+    } finally {
+      setIsUpdatingRole(false);
     }
   };
 
@@ -332,6 +356,7 @@ export function RoleExplorer() {
   const handleUpdateBundle = async (data: CreatePermissionBundleDto) => {
     if (!editingBundle) return;
 
+    setIsUpdatingBundle(true);
     try {
       const response = await fetch(`/api/rbac/bundles/${editingBundle.id}`, {
         method: 'PUT',
@@ -352,6 +377,8 @@ export function RoleExplorer() {
     } catch (error) {
       console.error('Error updating bundle:', error);
       toast.error('Failed to update bundle');
+    } finally {
+      setIsUpdatingBundle(false);
     }
   };
 
@@ -626,12 +653,14 @@ export function RoleExplorer() {
               open={isCreateRoleOpen}
               onOpenChange={setIsCreateRoleOpen}
               onSubmit={handleCreateRole}
+              isCreating={isCreatingRole}
             />
 
             <CreateBundleDialog
               open={isCreateBundleOpen}
               onOpenChange={setIsCreateBundleOpen}
               onSubmit={handleCreateBundle}
+              isCreating={isCreatingBundle}
             />
           </div>
         </div>
@@ -760,8 +789,13 @@ export function RoleExplorer() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleDeleteRole(role.id)}
+                                    disabled={deletingRoleId === role.id}
                                   >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                    {deletingRoleId === role.id ? (
+                                      <Loader2 className="h-4 w-4 text-red-600 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="h-4 w-4 text-red-600" />
+                                    )}
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -915,8 +949,13 @@ export function RoleExplorer() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleDeleteBundle(bundle.id)}
+                                    disabled={deletingBundleId === bundle.id}
                                   >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                    {deletingBundleId === bundle.id ? (
+                                      <Loader2 className="h-4 w-4 text-red-600 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="h-4 w-4 text-red-600" />
+                                    )}
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -972,6 +1011,7 @@ export function RoleExplorer() {
         open={isEditRoleOpen}
         onOpenChange={setIsEditRoleOpen}
         onSubmit={handleUpdateRole}
+        isUpdating={isUpdatingRole}
       />
 
       {/* Edit Bundle Dialog */}
@@ -980,6 +1020,7 @@ export function RoleExplorer() {
         open={isEditBundleOpen}
         onOpenChange={setIsEditBundleOpen}
         onSubmit={handleUpdateBundle}
+        isUpdating={isUpdatingBundle}
       />
     </div>
   );
@@ -989,11 +1030,13 @@ export function RoleExplorer() {
 function CreateRoleDialog({
   open,
   onOpenChange,
-  onSubmit
+  onSubmit,
+  isCreating
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateRoleDto) => Promise<void>;
+  isCreating: boolean;
 }) {
   const [formData, setFormData] = useState<CreateRoleDto>({
     name: '',
@@ -1068,10 +1111,19 @@ function CreateRoleDialog({
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button type="submit">Create Role</Button>
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Role'
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -1466,12 +1518,14 @@ function EditRoleDialog({
   role,
   open,
   onOpenChange,
-  onSubmit
+  onSubmit,
+  isUpdating
 }: {
   role: RoleWithStats | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateRoleDto) => Promise<void>;
+  isUpdating: boolean;
 }) {
   const [formData, setFormData] = useState<CreateRoleDto>({
     name: '',
@@ -1570,10 +1624,19 @@ function EditRoleDialog({
           )}
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button type="submit">Update Role</Button>
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Role'
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -1586,12 +1649,14 @@ function EditBundleDialog({
   bundle,
   open,
   onOpenChange,
-  onSubmit
+  onSubmit,
+  isUpdating
 }: {
   bundle: BundleWithStats | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreatePermissionBundleDto) => Promise<void>;
+  isUpdating: boolean;
 }) {
   const [formData, setFormData] = useState<CreatePermissionBundleDto>({
     name: '',
@@ -1684,10 +1749,19 @@ function EditBundleDialog({
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button type="submit">Update Bundle</Button>
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Bundle'
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -1699,11 +1773,13 @@ function EditBundleDialog({
 function CreateBundleDialog({
   open,
   onOpenChange,
-  onSubmit
+  onSubmit,
+  isCreating
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreatePermissionBundleDto) => Promise<void>;
+  isCreating: boolean;
 }) {
   const [formData, setFormData] = useState<CreatePermissionBundleDto>({
     name: '',
@@ -1778,10 +1854,19 @@ function CreateBundleDialog({
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button type="submit">Create Bundle</Button>
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Bundle'
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>

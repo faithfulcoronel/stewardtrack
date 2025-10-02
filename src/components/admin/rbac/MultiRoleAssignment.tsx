@@ -37,9 +37,10 @@ import {
   UserCheck,
   Zap,
   Globe,
-  Key
+  Key,
+  Loader2
 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import type {
   Role,
   UserWithRoles,
@@ -100,6 +101,11 @@ export function MultiRoleAssignment() {
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Loading states for async operations
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [removingRoleId, setRemovingRoleId] = useState<string | null>(null);
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
+
   useEffect(() => {
     loadMultiRoleData();
   }, []);
@@ -157,6 +163,7 @@ export function MultiRoleAssignment() {
   };
 
   const assignMultipleRoles = async (userId: string, roleIds: string[], validateConflicts = true) => {
+    setIsAssigning(true);
     try {
       if (validateConflicts) {
         const conflicts = await analyzeRoleConflicts(roleIds);
@@ -191,10 +198,13 @@ export function MultiRoleAssignment() {
     } catch (error) {
       console.error('Error assigning roles:', error);
       toast.error('Failed to assign multiple roles');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
   const removeRole = async (userId: string, roleId: string) => {
+    setRemovingRoleId(roleId);
     try {
       const response = await fetch('/api/rbac/multi-role/remove', {
         method: 'POST',
@@ -215,10 +225,13 @@ export function MultiRoleAssignment() {
     } catch (error) {
       console.error('Error removing role:', error);
       toast.error('Failed to remove role');
+    } finally {
+      setRemovingRoleId(null);
     }
   };
 
   const toggleMultiRoleMode = async (userId: string, enabled: boolean) => {
+    setTogglingUserId(userId);
     try {
       const response = await fetch('/api/rbac/multi-role/toggle', {
         method: 'POST',
@@ -239,6 +252,8 @@ export function MultiRoleAssignment() {
     } catch (error) {
       console.error('Error toggling multi-role mode:', error);
       toast.error('Failed to toggle multi-role mode');
+    } finally {
+      setTogglingUserId(null);
     }
   };
 
@@ -341,7 +356,7 @@ export function MultiRoleAssignment() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Roles Per User</p>
-                <p className="text-3xl font-bold text-green-600">{stats.averageRolesPerUser.toFixed(1)}</p>
+                <p className="text-3xl font-bold text-green-600">{(stats.averageRolesPerUser || 0).toFixed(1)}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <Layers className="h-6 w-6 text-green-600" />
@@ -528,9 +543,17 @@ export function MultiRoleAssignment() {
                           <Switch
                             checked={user.is_multi_role_enabled}
                             onCheckedChange={(checked) => toggleMultiRoleMode(user.id, checked)}
+                            disabled={togglingUserId === user.id}
                           />
                           <span className="text-sm">
-                            {user.is_multi_role_enabled ? 'Enabled' : 'Disabled'}
+                            {togglingUserId === user.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 inline mr-1 animate-spin" />
+                                Toggling...
+                              </>
+                            ) : (
+                              user.is_multi_role_enabled ? 'Enabled' : 'Disabled'
+                            )}
                           </span>
                         </div>
                       </TableCell>
@@ -780,7 +803,7 @@ export function MultiRoleAssignment() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAssignDialog(false)}>
+            <Button variant="outline" onClick={() => setShowAssignDialog(false)} disabled={isAssigning}>
               Cancel
             </Button>
             <Button
@@ -789,10 +812,19 @@ export function MultiRoleAssignment() {
                   assignMultipleRoles(selectedUser.id, selectedRoles);
                 }
               }}
-              disabled={selectedRoles.length === 0 || !selectedUser}
+              disabled={selectedRoles.length === 0 || !selectedUser || isAssigning}
             >
-              <Save className="h-4 w-4 mr-2" />
-              Assign Roles
+              {isAssigning ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Assign Roles
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -833,7 +865,7 @@ export function MultiRoleAssignment() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConflictDialog(false)}>
+            <Button variant="outline" onClick={() => setShowConflictDialog(false)} disabled={isAssigning}>
               Cancel Assignment
             </Button>
             <Button
@@ -844,9 +876,19 @@ export function MultiRoleAssignment() {
                   setShowConflictDialog(false);
                 }
               }}
+              disabled={isAssigning}
             >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Override & Assign
+              {isAssigning ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Override & Assign
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -12,6 +12,7 @@ export interface IRoleAdapter extends IBaseAdapter<Role> {
   getRoles(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
   getRole(roleId: string): Promise<Role | null>;
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
+  getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
 }
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
@@ -220,5 +221,51 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
     };
 
     return this.enrichRole(roleRecord) as RoleWithPermissions;
+  }
+
+  async getRoleStatistics(tenantId: string, includeSystem = true): Promise<Role[]> {
+    const supabase = await this.getSupabaseClient();
+
+    // Get roles
+    let roleQuery = supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null);
+
+    if (!includeSystem) {
+      roleQuery = roleQuery.neq('scope', 'system');
+    }
+
+    const { data: rolesData, error: rolesError } = await roleQuery.order('name');
+
+    if (rolesError) {
+      throw new Error(`Failed to fetch role statistics: ${rolesError.message}`);
+    }
+
+    const roles = this.enrichRoleList(rolesData) as Role[];
+
+    // Get user counts and bundle counts for each role
+    for (const role of roles) {
+      // Get user count for this role
+      const { count: userCount } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role_id', role.id)
+        .eq('tenant_id', tenantId);
+
+      (role as any).user_count = userCount || 0;
+
+      // Get bundle count for this role
+      const { count: bundleCount } = await supabase
+        .from('role_bundles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role_id', role.id)
+        .eq('tenant_id', tenantId);
+
+      (role as any).bundle_count = bundleCount || 0;
+    }
+
+    return roles;
   }
 }

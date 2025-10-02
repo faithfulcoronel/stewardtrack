@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, Building, ChevronRight, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Shield, Users, Building, ChevronRight, Plus, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
 
 interface DelegationPermission {
   id: string;
@@ -48,6 +48,11 @@ export function DelegationPermissionManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Loading states for async operations
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDelegationPermissions();
@@ -107,6 +112,7 @@ export function DelegationPermissionManager() {
   };
 
   const createDelegationPermission = async (permissionData: any) => {
+    setIsCreating(true);
     try {
       const response = await fetch('/api/rbac/delegation/permissions', {
         method: 'POST',
@@ -120,10 +126,13 @@ export function DelegationPermissionManager() {
       }
     } catch (error) {
       console.error('Error creating delegation permission:', error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const updateDelegationPermission = async (id: string, permissionData: any) => {
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/rbac/delegation/permissions/${id}`, {
         method: 'PUT',
@@ -138,10 +147,13 @@ export function DelegationPermissionManager() {
       }
     } catch (error) {
       console.error('Error updating delegation permission:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const revokeDelegationPermission = async (id: string) => {
+    setDeletingId(id);
     try {
       const response = await fetch(`/api/rbac/delegation/permissions/${id}`, {
         method: 'DELETE'
@@ -152,6 +164,8 @@ export function DelegationPermissionManager() {
       }
     } catch (error) {
       console.error('Error revoking delegation permission:', error);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -204,6 +218,7 @@ export function DelegationPermissionManager() {
               scopes={availableScopes}
               onSubmit={createDelegationPermission}
               onCancel={() => setIsCreateDialogOpen(false)}
+              isSubmitting={isCreating}
             />
           </DialogContent>
         </Dialog>
@@ -256,8 +271,13 @@ export function DelegationPermissionManager() {
                         variant="outline"
                         size="sm"
                         onClick={() => revokeDelegationPermission(delegation.id)}
+                        disabled={deletingId === delegation.id}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deletingId === delegation.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -379,6 +399,7 @@ export function DelegationPermissionManager() {
                 setIsEditDialogOpen(false);
                 setSelectedDelegation(null);
               }}
+              isSubmitting={isUpdating}
             />
           </DialogContent>
         </Dialog>
@@ -394,6 +415,7 @@ interface DelegationPermissionFormProps {
   initialData?: DelegationPermission;
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 function DelegationPermissionForm({
@@ -402,7 +424,8 @@ function DelegationPermissionForm({
   scopes,
   initialData,
   onSubmit,
-  onCancel
+  onCancel,
+  isSubmitting = false
 }: DelegationPermissionFormProps) {
   const [formData, setFormData] = useState({
     delegatee_id: initialData?.delegatee_id || '',
@@ -567,11 +590,18 @@ function DelegationPermissionForm({
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit">
-          {initialData ? 'Update' : 'Create'} Delegation
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {initialData ? 'Updating...' : 'Creating...'}
+            </>
+          ) : (
+            `${initialData ? 'Update' : 'Create'} Delegation`
+          )}
         </Button>
       </div>
     </form>

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   ArrowRight,
   ArrowLeft,
@@ -27,7 +28,9 @@ import {
   Shield,
   Settings,
   Plus,
-  Trash2
+  Trash2,
+  Loader2,
+  HelpCircle
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import type { Permission, CreatePermissionBundleDto } from '@/models/rbac.model';
@@ -144,6 +147,7 @@ export function BundleComposer() {
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [validation, setValidation] = useState<ValidationResult>({ isValid: true, warnings: [], suggestions: [] });
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [churchSize, setChurchSize] = useState<'small' | 'medium' | 'large'>('medium');
 
   useEffect(() => {
@@ -275,9 +279,8 @@ export function BundleComposer() {
       return;
     }
 
+    setIsCreating(true);
     try {
-      setIsLoading(true);
-
       const response = await fetch('/api/rbac/bundles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -309,7 +312,7 @@ export function BundleComposer() {
       console.error('Error creating bundle:', error);
       toast.error('Failed to create permission bundle');
     } finally {
-      setIsLoading(false);
+      setIsCreating(false);
     }
   };
 
@@ -744,18 +747,19 @@ export function BundleComposer() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {renderProgressBar()}
+    <TooltipProvider>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {renderProgressBar()}
 
-      <div className="min-h-[600px]">
-        {currentStep === 0 && renderTemplateStep()}
-        {currentStep === 1 && renderBasicInfoStep()}
-        {currentStep === 2 && renderPermissionsStep()}
-        {currentStep === 3 && renderReviewStep()}
-      </div>
+        <div className="min-h-[600px]">
+          {currentStep === 0 && renderTemplateStep()}
+          {currentStep === 1 && renderBasicInfoStep()}
+          {currentStep === 2 && renderPermissionsStep()}
+          {currentStep === 3 && renderReviewStep()}
+        </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-6 border-t">
+        {/* Navigation */}
+        <div className="flex items-center justify-between pt-6 border-t">
         <Button
           variant="outline"
           onClick={prevStep}
@@ -783,13 +787,23 @@ export function BundleComposer() {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={!validation.isValid || selectedPermissions.size === 0 || isLoading}
+            disabled={!validation.isValid || selectedPermissions.size === 0 || isCreating}
           >
-            {isLoading ? 'Creating...' : 'Create Bundle'}
-            <Check className="h-4 w-4 ml-2" />
+            {isCreating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                Create Bundle
+                <Check className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         )}
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

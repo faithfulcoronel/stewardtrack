@@ -8,7 +8,6 @@ import type { IRbacAuditRepository } from '@/repositories/rbacAudit.repository';
 import type { ISurfaceBindingRepository } from '@/repositories/surfaceBinding.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type {
   Role,
   PermissionBundle
@@ -70,83 +69,39 @@ export class RbacStatisticsService {
       throw new Error('No tenant context available');
     }
 
-    const supabase = await createSupabaseServerClient();
-
-    // Get all statistics in parallel
+    // Use repository methods to get counts
     const [
-      { count: totalRoles },
-      { count: totalBundles },
-      { count: totalUsers },
-      { count: activeUsers },
-      { count: surfaceBindings },
-      { count: systemRoles },
-      { count: customBundles }
+      allRoles,
+      allBundles,
+      systemRoles,
+      customBundles,
+      recentLogs
     ] = await Promise.all([
-      // Total roles
-      supabase
-        .from('roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId)
-        .is('deleted_at', null),
-
-      // Total bundles
-      supabase
-        .from('permission_bundles')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId),
-
-      // Total users in tenant
-      supabase
-        .from('tenant_users')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId),
-
-      // Active users (users with roles)
-      supabase
-        .from('user_roles')
-        .select('user_id', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId),
-
-      // Surface bindings
-      supabase
-        .from('rbac_surface_bindings')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId)
-        .eq('is_active', true),
-
-      // System roles
-      supabase
-        .from('roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId)
-        .eq('scope', 'system')
-        .is('deleted_at', null),
-
-      // Custom bundles (non-template bundles)
-      supabase
-        .from('permission_bundles')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', effectiveTenantId)
-        .eq('is_template', false)
+      this.roleRepository.getRoles(effectiveTenantId, true),
+      this.bundleRepository.getPermissionBundles(effectiveTenantId),
+      this.roleRepository.getRoles(effectiveTenantId, true).then(roles => roles.filter(r => r.scope === 'system')),
+      this.bundleRepository.getPermissionBundles(effectiveTenantId).then(bundles => bundles.filter(b => b.is_template === false)),
+      this.auditRepository.getAuditLogs(effectiveTenantId, 100, 0)
     ]);
 
-    // Get recent audit logs
-    const recentLogs = await this.auditRepository.getAuditLogs(effectiveTenantId, 100, 0);
-    const recentChanges = recentLogs.length;
+    // For user counts and surface bindings, we need to call the adapters through repositories
+    // Since these don't have dedicated methods yet, we'll get counts using the existing methods
+    const users = await this.userRoleRepository.getUsers(effectiveTenantId);
+    const surfaceBindings = await this.surfaceBindingRepository.getSurfaceBindings(effectiveTenantId);
 
-    // Placeholder for future approval workflow
-    const pendingApprovals = 0;
+    // Count active users (users with at least one role)
+    const usersWithRoles = new Set(users.map((u: any) => u.id));
 
     return {
-      totalRoles: totalRoles || 0,
-      totalBundles: totalBundles || 0,
-      totalUsers: totalUsers || 0,
-      activeUsers: activeUsers || 0,
-      surfaceBindings: surfaceBindings || 0,
-      systemRoles: systemRoles || 0,
-      customBundles: customBundles || 0,
-      recentChanges,
-      pendingApprovals
+      totalRoles: allRoles.length,
+      totalBundles: allBundles.length,
+      totalUsers: users.length,
+      activeUsers: usersWithRoles.size,
+      surfaceBindings: surfaceBindings.length,
+      systemRoles: systemRoles.length,
+      customBundles: customBundles.length,
+      recentChanges: recentLogs.length,
+      pendingApprovals: 0
     };
   }
 

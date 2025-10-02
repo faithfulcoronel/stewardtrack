@@ -373,31 +373,53 @@ export class PublishingAdapter extends BaseAdapter<any> implements IPublishingAd
     const supabase = await this.getSupabaseClient();
 
     try {
-      const { data, error } = await supabase
-        .rpc('get_multi_role_stats', { target_tenant_id: tenantId });
+      // Get total users in tenant
+      const { count: totalUsers, error: usersError } = await supabase
+        .from('tenant_users')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId);
 
-      if (error) {
-        console.error('Error fetching multi-role stats:', error);
-        throw new Error('Failed to fetch multi-role stats');
+      if (usersError) {
+        console.error('Error fetching total users:', usersError);
+        throw new Error(`Failed to fetch total users: ${usersError.message}`);
       }
 
-      return data || {
-        total_users: 0,
-        users_with_multiple_roles: 0,
-        avg_roles_per_user: 0,
-        max_roles_per_user: 0,
-        potential_conflicts: 0
+      // Get users with their role counts
+      const { data: userRoleCounts, error: roleCountsError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('tenant_id', tenantId);
+
+      if (roleCountsError) {
+        console.error('Error fetching user role counts:', roleCountsError);
+        throw new Error(`Failed to fetch user role counts: ${roleCountsError.message}`);
+      }
+
+      // Calculate statistics
+      const roleCountMap = new Map<string, number>();
+      userRoleCounts?.forEach((ur) => {
+        const count = roleCountMap.get(ur.user_id) || 0;
+        roleCountMap.set(ur.user_id, count + 1);
+      });
+
+      const usersWithMultipleRoles = Array.from(roleCountMap.values()).filter(count => count > 1).length;
+      const totalRoleAssignments = userRoleCounts?.length || 0;
+      const maxRolesPerUser = roleCountMap.size > 0 ? Math.max(...Array.from(roleCountMap.values())) : 0;
+      const avgRolesPerUser = totalUsers && totalUsers > 0 ? totalRoleAssignments / totalUsers : 0;
+
+      // Potential conflicts: users with 3+ roles
+      const potentialConflicts = Array.from(roleCountMap.values()).filter(count => count >= 3).length;
+
+      return {
+        total_users: totalUsers || 0,
+        users_with_multiple_roles: usersWithMultipleRoles,
+        avg_roles_per_user: parseFloat(avgRolesPerUser.toFixed(2)),
+        max_roles_per_user: maxRolesPerUser,
+        potential_conflicts: potentialConflicts
       };
     } catch (error) {
       console.error('Error in getMultiRoleStats:', error);
-      // Return mock data for development
-      return {
-        total_users: 125,
-        users_with_multiple_roles: 23,
-        avg_roles_per_user: 1.8,
-        max_roles_per_user: 4,
-        potential_conflicts: 2
-      };
+      throw error;
     }
   }
 

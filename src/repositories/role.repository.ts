@@ -11,6 +11,7 @@ export interface IRoleRepository extends BaseRepository<Role> {
   getRoles(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
   getRole(roleId: string): Promise<Role | null>;
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
+  getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
 }
 
 @injectable()
@@ -41,5 +42,9 @@ export class RoleRepository extends BaseRepository<Role> implements IRoleReposit
 
   async getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null> {
     return await this.roleAdapter.getRoleWithPermissions(id, tenantId);
+  }
+
+  async getRoleStatistics(tenantId: string, includeSystem: boolean = true): Promise<Role[]> {
+    return await this.roleAdapter.getRoleStatistics(tenantId, includeSystem);
   }
 }

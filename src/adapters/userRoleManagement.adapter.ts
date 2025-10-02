@@ -254,11 +254,14 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
           return {
             id: ur.id,
             user_id: ur.user_id,
-            email: userInfo.email,
-            first_name: userInfo.first_name,
-            last_name: userInfo.last_name,
             assigned_at: ur.assigned_at,
-            assigned_by: ur.assigned_by
+            assigned_by: ur.assigned_by,
+            user: {
+              id: userInfo.id,
+              email: userInfo.email,
+              first_name: userInfo.first_name,
+              last_name: userInfo.last_name
+            }
           };
         })
         .filter(Boolean);

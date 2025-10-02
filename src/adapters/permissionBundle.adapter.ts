@@ -41,10 +41,17 @@ export class PermissionBundleAdapter extends BaseAdapter<PermissionBundle> imple
     const supabase = await this.getSupabaseClient();
     const { permission_ids, ...bundleData } = data;
 
+    // Auto-generate code from name if not provided
+    const code = bundleData.code || bundleData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
     const { data: result, error } = await supabase
       .from('permission_bundles')
       .insert({
         ...bundleData,
+        code,
         tenant_id: tenantId,
         is_template: bundleData.is_template || false
       })

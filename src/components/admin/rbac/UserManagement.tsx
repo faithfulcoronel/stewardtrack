@@ -32,7 +32,8 @@ import {
   RefreshCw,
   UserCheck,
   UserX,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { LinkUserForm } from '../user-member-link/LinkUserForm';
 import { AuditTrail } from '../user-member-link/AuditTrail';
@@ -106,6 +107,11 @@ export function UserManagement() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [preselectedUserForLinking, setPreselectedUserForLinking] = useState<any>(null);
 
+  // Loading states for async operations
+  const [isSendingInvitations, setIsSendingInvitations] = useState(false);
+  const [unlinkingUserId, setUnlinkingUserId] = useState<string | null>(null);
+  const [resendingInvitationId, setResendingInvitationId] = useState<string | null>(null);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -164,6 +170,7 @@ export function UserManagement() {
   const handleUnlinkUser = async (userId: string) => {
     if (!confirm('Are you sure you want to unlink this user from their member profile?')) return;
 
+    setUnlinkingUserId(userId);
     try {
       const response = await fetch('/api/user-member-link/unlink', {
         method: 'POST',
@@ -181,6 +188,8 @@ export function UserManagement() {
     } catch (error) {
       console.error('Error unlinking user:', error);
       toast.error('Failed to unlink user');
+    } finally {
+      setUnlinkingUserId(null);
     }
   };
 
@@ -190,6 +199,7 @@ export function UserManagement() {
       return;
     }
 
+    setIsSendingInvitations(true);
     try {
       const response = await fetch('/api/user-member-link/invitations/bulk', {
         method: 'POST',
@@ -212,10 +222,13 @@ export function UserManagement() {
     } catch (error) {
       console.error('Error sending invitations:', error);
       toast.error('Failed to send invitations');
+    } finally {
+      setIsSendingInvitations(false);
     }
   };
 
   const handleResendInvitation = async (invitationId: string) => {
+    setResendingInvitationId(invitationId);
     try {
       const response = await fetch(`/api/user-member-link/invitations/${invitationId}/resend`, {
         method: 'POST'
@@ -231,6 +244,8 @@ export function UserManagement() {
     } catch (error) {
       console.error('Error resending invitation:', error);
       toast.error('Failed to resend invitation');
+    } finally {
+      setResendingInvitationId(null);
     }
   };
 
@@ -495,8 +510,13 @@ export function UserManagement() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleUnlinkUser(user.id)}
+                              disabled={unlinkingUserId === user.id}
                             >
-                              <Unlink className="h-4 w-4" />
+                              {unlinkingUserId === user.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Unlink className="h-4 w-4" />
+                              )}
                             </Button>
                           ) : (
                             <Button
@@ -618,12 +638,21 @@ export function UserManagement() {
                     </div>
 
                     <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+                      <Button variant="outline" onClick={() => setShowInviteDialog(false)} disabled={isSendingInvitations}>
                         Cancel
                       </Button>
-                      <Button onClick={handleSendInvitations} disabled={selectedMembers.length === 0}>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send {selectedMembers.length} Invitation{selectedMembers.length !== 1 ? 's' : ''}
+                      <Button onClick={handleSendInvitations} disabled={selectedMembers.length === 0 || isSendingInvitations}>
+                        {isSendingInvitations ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send {selectedMembers.length} Invitation{selectedMembers.length !== 1 ? 's' : ''}
+                          </>
+                        )}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -722,8 +751,13 @@ export function UserManagement() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleResendInvitation(invitation.id)}
+                              disabled={resendingInvitationId === invitation.id}
                             >
-                              <RefreshCw className="h-4 w-4" />
+                              {resendingInvitationId === invitation.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
                             </Button>
                           )}
                           <Button
