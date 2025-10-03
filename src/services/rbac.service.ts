@@ -402,9 +402,7 @@ export class RbacService {
   }
 
   async getUsers(tenantId?: string): Promise<any[]> {
-    // This would need to be implemented by a user service
-    // For now, return empty array
-    return [];
+    return this.coreService.getUsers(tenantId);
   }
 
   // ==================== PHASE E - OPERATIONAL DASHBOARDS & AUTOMATION ====================

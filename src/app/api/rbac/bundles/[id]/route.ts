@@ -12,11 +12,12 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
     const tenantId = searchParams.get('tenantId') || undefined;
 
-    const bundle = await rbacService.getBundleWithPermissions(params.id, tenantId);
+    const bundle = await rbacService.getBundleWithPermissions(id, tenantId);
 
     if (!bundle) {
       return NextResponse.json(
@@ -46,10 +47,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body: UpdatePermissionBundleDto = await request.json();
 
-    const bundle = await rbacService.updatePermissionBundle(params.id, body);
+    const bundle = await rbacService.updatePermissionBundle(id, body);
 
     return NextResponse.json({
       success: true,
@@ -69,9 +71,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const rbacService = container.get<RbacService>(TYPES.RbacService);
 
-    await rbacService.deletePermissionBundle(params.id);
+    await rbacService.deletePermissionBundle(id);
 
     return NextResponse.json({
       success: true,

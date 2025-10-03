@@ -81,7 +81,8 @@ interface MultiRoleStats {
 }
 
 export function MultiRoleAssignment() {
-  const [users, setUsers] = useState<MultiRoleUser[]>([]);
+  const [users, setUsers] = useState<MultiRoleUser[]>([]); // Multi-role users for display
+  const [allUsers, setAllUsers] = useState<any[]>([]); // All tenant users for assignment dropdown
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
   const [selectedUser, setSelectedUser] = useState<MultiRoleUser | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -113,19 +114,27 @@ export function MultiRoleAssignment() {
   const loadMultiRoleData = async () => {
     try {
       setIsLoading(true);
-      const [usersRes, rolesRes, statsRes] = await Promise.all([
+      const [usersRes, allUsersRes, rolesRes, statsRes] = await Promise.all([
         fetch('/api/rbac/multi-role/users'),
+        fetch('/api/rbac/users'), // All tenant users
         fetch('/api/rbac/roles?delegatable=true'),
         fetch('/api/rbac/multi-role/stats')
       ]);
 
-      const [usersData, rolesData, statsData] = await Promise.all([
+      const [usersData, allUsersData, rolesData, statsData] = await Promise.all([
         usersRes.json(),
+        allUsersRes.json(),
         rolesRes.json(),
         statsRes.json()
       ]);
 
       if (usersData.success) setUsers(usersData.data);
+      if (allUsersData.success) {
+        console.log('All users loaded:', allUsersData.data);
+        setAllUsers(allUsersData.data);
+      } else {
+        console.error('Failed to load all users:', allUsersData.error);
+      }
       if (rolesData.success) setAvailableRoles(rolesData.data);
       if (statsData.success) setStats(statsData.data);
     } catch (error) {
@@ -722,18 +731,98 @@ export function MultiRoleAssignment() {
       </Tabs>
 
       {/* Multi-Role Assignment Dialog */}
-      <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
+      <Dialog
+        open={showAssignDialog}
+        onOpenChange={(open) => {
+          setShowAssignDialog(open);
+          if (!open) {
+            // Reset selections when dialog closes
+            setSelectedUser(null);
+            setSelectedRoles([]);
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Assign Multiple Roles</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* User Selection - show when no user is pre-selected */}
+            {!selectedUser && (
+              <div>
+                <Label>Select User</Label>
+                <Select
+                  onValueChange={(userId) => {
+                    // Find user in allUsers list
+                    const user = allUsers.find(u => u.id === userId);
+                    if (user) {
+                      // Convert to MultiRoleUser format
+                      const multiRoleUser: MultiRoleUser = {
+                        id: user.id,
+                        email: user.email,
+                        first_name: user.first_name || user.user_metadata?.first_name || '',
+                        last_name: user.last_name || user.user_metadata?.last_name || '',
+                        primary_role: user.roles?.[0] || null,
+                        secondary_roles: user.roles?.slice(1) || [],
+                        effective_permissions: [],
+                        campus_assignments: [],
+                        ministry_assignments: [],
+                        is_multi_role_enabled: (user.roles?.length || 0) > 1
+                      };
+                      setSelectedUser(multiRoleUser);
+                      // Pre-populate with current roles
+                      setSelectedRoles((user.roles || []).map((r: any) => r.id).filter(Boolean));
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Choose a user to assign roles..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allUsers.length > 0 ? (
+                      allUsers.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {user.first_name || user.user_metadata?.first_name || ''}{' '}
+                              {user.last_name || user.user_metadata?.last_name || ''}
+                            </span>
+                            <span className="text-sm text-gray-500">({user.email})</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-sm text-gray-500">
+                        No users available
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Selected User Display - show when user is selected */}
             {selectedUser && (
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium text-blue-900">
-                  {selectedUser.first_name} {selectedUser.last_name}
-                </h3>
-                <p className="text-sm text-blue-700">{selectedUser.email}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-blue-900">
+                      {selectedUser.first_name} {selectedUser.last_name}
+                    </h3>
+                    <p className="text-sm text-blue-700">{selectedUser.email}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setSelectedRoles([]);
+                    }}
+                  >
+                    <Minus className="h-4 w-4 mr-1" />
+                    Change User
+                  </Button>
+                </div>
               </div>
             )}
 

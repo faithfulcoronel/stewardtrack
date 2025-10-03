@@ -52,16 +52,32 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const name =
-    (user.user_metadata?.full_name as string | undefined) ??
-    (user.email ? user.email.split("@")[0] : "Admin");
+  // Try to get linked member information
+  const { data: memberData } = await supabase
+    .from("members")
+    .select("first_name, last_name")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  // Determine display name: member name > user metadata > username from email
+  let displayName: string;
+  if (memberData?.first_name || memberData?.last_name) {
+    displayName = [memberData.first_name, memberData.last_name].filter(Boolean).join(" ");
+  } else if (user.user_metadata?.full_name) {
+    displayName = user.user_metadata.full_name as string;
+  } else if (user.email) {
+    displayName = user.email.split("@")[0];
+  } else {
+    displayName = "Admin";
+  }
+
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null;
   const planLabel = (user.user_metadata?.plan as string | undefined) ?? "Pro";
 
   return (
     <AdminLayoutShell
       sections={NAV_SECTIONS}
-      name={name}
+      name={displayName}
       email={user.email ?? ""}
       avatarUrl={avatarUrl}
       planLabel={planLabel}

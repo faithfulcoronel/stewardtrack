@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -50,6 +51,7 @@ interface BundleWithStats extends PermissionBundle {
 export function RoleExplorer() {
   const [roles, setRoles] = useState<RoleWithStats[]>([]);
   const [bundles, setBundles] = useState<BundleWithStats[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<RoleWithStats[]>([]);
   const [filteredBundles, setFilteredBundles] = useState<BundleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +69,6 @@ export function RoleExplorer() {
   const [editingRole, setEditingRole] = useState<RoleWithStats | null>(null);
   const [editingBundle, setEditingBundle] = useState<BundleWithStats | null>(null);
   const [isSimpleView, setIsSimpleView] = useState(false);
-  const [churchSize, setChurchSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [scopeCategories, setScopeCategories] = useState<string[]>(['all']);
 
   // Loading states for async operations
@@ -89,14 +90,16 @@ export function RoleExplorer() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [rolesRes, bundlesRes] = await Promise.all([
+      const [rolesRes, bundlesRes, permissionsRes] = await Promise.all([
         fetch(`/api/rbac/roles?includeSystem=${showSystemRoles}&includeStats=true`),
-        fetch('/api/rbac/bundles?includeStats=true')
+        fetch('/api/rbac/bundles?includeStats=true'),
+        fetch('/api/rbac/permissions')
       ]);
 
-      const [rolesData, bundlesData] = await Promise.all([
+      const [rolesData, bundlesData, permissionsData] = await Promise.all([
         rolesRes.json(),
-        bundlesRes.json()
+        bundlesRes.json(),
+        permissionsRes.json()
       ]);
 
       if (rolesData.success) {
@@ -105,6 +108,10 @@ export function RoleExplorer() {
 
       if (bundlesData.success) {
         setBundles(bundlesData.data);
+      }
+
+      if (permissionsData.success) {
+        setPermissions(permissionsData.data);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -179,28 +186,6 @@ export function RoleExplorer() {
     }
   };
 
-  const getChurchSizeRecommendations = () => {
-    switch (churchSize) {
-      case 'small':
-        return {
-          maxRoles: 8,
-          recommendedScopes: ['ministry', 'campus'],
-          tip: 'Small churches benefit from simple role structures with ministry-focused permissions'
-        };
-      case 'large':
-        return {
-          maxRoles: 25,
-          recommendedScopes: ['system', 'tenant', 'campus', 'ministry'],
-          tip: 'Large churches need comprehensive role hierarchies across all organizational levels'
-        };
-      default:
-        return {
-          maxRoles: 15,
-          recommendedScopes: ['tenant', 'campus', 'ministry'],
-          tip: 'Medium churches work well with campus and ministry-level role separation'
-        };
-    }
-  };
 
   const handleCreateRole = async (data: CreateRoleDto) => {
     setIsCreatingRole(true);
@@ -398,53 +383,6 @@ export function RoleExplorer() {
 
   return (
     <div className="space-y-6">
-      {/* Church Size Selection */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Church className="h-5 w-5" />
-            Church Context
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Select your church size to get tailored role recommendations and interface simplification</p>
-              </TooltipContent>
-            </Tooltip>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['small', 'medium', 'large'].map((size) => (
-              <Button
-                key={size}
-                variant={churchSize === size ? 'default' : 'outline'}
-                className="h-auto p-4 flex flex-col items-center space-y-2"
-                onClick={() => setChurchSize(size as any)}
-              >
-                {size === 'small' && <Church className="h-6 w-6" />}
-                {size === 'medium' && <Building className="h-6 w-6" />}
-                {size === 'large' && <Globe className="h-6 w-6" />}
-                <div className="text-center">
-                  <p className="font-medium capitalize">{size} Church</p>
-                  <p className="text-xs opacity-75">
-                    {size === 'small' && 'Under 200 members'}
-                    {size === 'medium' && '200-1000 members'}
-                    {size === 'large' && '1000+ members'}
-                  </p>
-                </div>
-              </Button>
-            ))}
-          </div>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Tip:</strong> {getChurchSizeRecommendations().tip}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -661,6 +599,7 @@ export function RoleExplorer() {
               onOpenChange={setIsCreateBundleOpen}
               onSubmit={handleCreateBundle}
               isCreating={isCreatingBundle}
+              availablePermissions={permissions}
             />
           </div>
         </div>
@@ -1021,6 +960,7 @@ export function RoleExplorer() {
         onOpenChange={setIsEditBundleOpen}
         onSubmit={handleUpdateBundle}
         isUpdating={isUpdatingBundle}
+        availablePermissions={permissions}
       />
     </div>
   );
@@ -1650,20 +1590,24 @@ function EditBundleDialog({
   open,
   onOpenChange,
   onSubmit,
-  isUpdating
+  isUpdating,
+  availablePermissions
 }: {
   bundle: BundleWithStats | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreatePermissionBundleDto) => Promise<void>;
   isUpdating: boolean;
+  availablePermissions: Permission[];
 }) {
   const [formData, setFormData] = useState<CreatePermissionBundleDto>({
     name: '',
     description: '',
     scope: 'tenant',
-    is_template: false
+    is_template: false,
+    permission_ids: []
   });
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
 
   useEffect(() => {
     if (bundle) {
@@ -1672,10 +1616,30 @@ function EditBundleDialog({
         description: bundle.description || '',
         scope: bundle.scope,
         is_template: bundle.is_template || false,
-        metadata_key: bundle.metadata_key || undefined
+        metadata_key: bundle.metadata_key || undefined,
+        permission_ids: []
       });
+      // Load bundle permissions
+      loadBundlePermissions(bundle.id);
     }
   }, [bundle]);
+
+  const loadBundlePermissions = async (bundleId: string) => {
+    try {
+      setLoadingPermissions(true);
+      const response = await fetch(`/api/rbac/bundles/${bundleId}/permissions`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const permissionIds = result.data.map((p: Permission) => p.id);
+        setFormData(prev => ({ ...prev, permission_ids: permissionIds }));
+      }
+    } catch (error) {
+      console.error('Error loading bundle permissions:', error);
+    } finally {
+      setLoadingPermissions(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1686,7 +1650,7 @@ function EditBundleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Bundle: {bundle.name}</DialogTitle>
         </DialogHeader>
@@ -1727,6 +1691,52 @@ function EditBundleDialog({
                 <SelectItem value="ministry">Ministry</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label className="mb-2 block">Select Permissions</Label>
+            {loadingPermissions ? (
+              <div className="border rounded-md p-4 text-center">
+                <Spinner className="mx-auto" />
+                <p className="text-sm text-gray-500 mt-2">Loading permissions...</p>
+              </div>
+            ) : (
+              <div className="border rounded-md p-4 max-h-64 overflow-y-auto space-y-2">
+                {availablePermissions.length > 0 ? (
+                  availablePermissions.map((permission) => (
+                    <div key={permission.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-permission-${permission.id}`}
+                        checked={formData.permission_ids?.includes(permission.id) || false}
+                        onCheckedChange={(checked) => {
+                          const currentIds = formData.permission_ids || [];
+                          if (checked) {
+                            setFormData({ ...formData, permission_ids: [...currentIds, permission.id] });
+                          } else {
+                            setFormData({ ...formData, permission_ids: currentIds.filter(id => id !== permission.id) });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`edit-permission-${permission.id}`} className="text-sm font-normal cursor-pointer flex-1">
+                        <div>
+                          <span className="font-medium">{permission.name}</span>
+                          {permission.description && (
+                            <span className="text-xs text-gray-500 block">{permission.description}</span>
+                          )}
+                        </div>
+                      </Label>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No permissions available</p>
+                )}
+              </div>
+            )}
+            {formData.permission_ids && formData.permission_ids.length > 0 && (
+              <p className="text-xs text-gray-600 mt-1">
+                {formData.permission_ids.length} permission(s) selected
+              </p>
+            )}
           </div>
 
           <div>
@@ -1774,18 +1784,21 @@ function CreateBundleDialog({
   open,
   onOpenChange,
   onSubmit,
-  isCreating
+  isCreating,
+  availablePermissions
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreatePermissionBundleDto) => Promise<void>;
   isCreating: boolean;
+  availablePermissions: Permission[];
 }) {
   const [formData, setFormData] = useState<CreatePermissionBundleDto>({
     name: '',
     description: '',
     scope: 'tenant',
-    is_template: false
+    is_template: false,
+    permission_ids: []
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1801,7 +1814,7 @@ function CreateBundleDialog({
           Create Bundle
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Permission Bundle</DialogTitle>
         </DialogHeader>
@@ -1842,6 +1855,45 @@ function CreateBundleDialog({
                 <SelectItem value="ministry">Ministry</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label className="mb-2 block">Select Permissions</Label>
+            <div className="border rounded-md p-4 max-h-64 overflow-y-auto space-y-2">
+              {availablePermissions.length > 0 ? (
+                availablePermissions.map((permission) => (
+                  <div key={permission.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`permission-${permission.id}`}
+                      checked={formData.permission_ids?.includes(permission.id) || false}
+                      onCheckedChange={(checked) => {
+                        const currentIds = formData.permission_ids || [];
+                        if (checked) {
+                          setFormData({ ...formData, permission_ids: [...currentIds, permission.id] });
+                        } else {
+                          setFormData({ ...formData, permission_ids: currentIds.filter(id => id !== permission.id) });
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`permission-${permission.id}`} className="text-sm font-normal cursor-pointer flex-1">
+                      <div>
+                        <span className="font-medium">{permission.name}</span>
+                        {permission.description && (
+                          <span className="text-xs text-gray-500 block">{permission.description}</span>
+                        )}
+                      </div>
+                    </Label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No permissions available</p>
+              )}
+            </div>
+            {formData.permission_ids && formData.permission_ids.length > 0 && (
+              <p className="text-xs text-gray-600 mt-1">
+                {formData.permission_ids.length} permission(s) selected
+              </p>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">

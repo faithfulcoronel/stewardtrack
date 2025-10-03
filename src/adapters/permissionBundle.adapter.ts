@@ -72,10 +72,12 @@ export class PermissionBundleAdapter extends BaseAdapter<PermissionBundle> imple
 
   async updatePermissionBundle(id: string, data: UpdatePermissionBundleDto, tenantId: string): Promise<PermissionBundle> {
     const supabase = await this.getSupabaseClient();
+    const { permission_ids, ...bundleData } = data;
+
     const { data: result, error } = await supabase
       .from('permission_bundles')
       .update({
-        ...data,
+        ...bundleData,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -85,6 +87,21 @@ export class PermissionBundleAdapter extends BaseAdapter<PermissionBundle> imple
 
     if (error) {
       throw new Error(`Failed to update permission bundle: ${error.message}`);
+    }
+
+    // Update permissions if provided
+    if (permission_ids !== undefined) {
+      // Remove all existing permissions
+      await supabase
+        .from('bundle_permissions')
+        .delete()
+        .eq('bundle_id', id)
+        .eq('tenant_id', tenantId);
+
+      // Add new permissions
+      if (permission_ids.length > 0) {
+        await this.addPermissionsToBundle(id, permission_ids, tenantId);
+      }
     }
 
     return result;

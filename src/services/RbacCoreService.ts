@@ -437,6 +437,18 @@ export class RbacCoreService {
   // ==================== MULTI-ROLE METHODS ====================
 
   /**
+   * Retrieves all users in the tenant with their role assignments
+   */
+  async getUsers(tenantId?: string): Promise<any[]> {
+    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    if (!effectiveTenantId) {
+      throw new Error('No tenant context available');
+    }
+
+    return await this.userRoleRepository.getUsers(effectiveTenantId);
+  }
+
+  /**
    * Retrieves all users with multiple role assignments
    */
   async getMultiRoleUsers(tenantId?: string): Promise<any[]> {

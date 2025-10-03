@@ -359,6 +359,64 @@ COMMENT ON COLUMN permission_bundles.is_template IS 'Indicates if this bundle is
 
 ---
 
+## Next.js 15 Specific Patterns
+
+### Dynamic Route Parameters
+
+**CRITICAL**: In Next.js 15, dynamic route parameters (`params`) must be awaited before accessing their properties.
+
+#### Wrong (Next.js 14 style)
+```typescript
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const role = await rbacService.updateRole(params.id, body); // ❌ ERROR
+}
+```
+
+#### Correct (Next.js 15)
+```typescript
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  // Await params first
+  const { id } = await params;
+
+  const role = await rbacService.updateRole(id, body); // ✅ CORRECT
+}
+```
+
+#### Pattern for All Dynamic Routes
+```typescript
+interface RouteParams {
+  params: {
+    id: string;
+    // ... other params
+  };
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params; // Always await first
+  // ... use id
+}
+
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params; // Always await first
+  // ... use id
+}
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params; // Always await first
+  // ... use id
+}
+```
+
+**Error Message to Watch For**:
+```
+Error: Route "/api/..." used `params.id`.
+`params` should be awaited before using its properties.
+```
+
+**Why**: Next.js 15 made params async to support streaming and better performance. This is a breaking change from Next.js 14.
+
+---
+
 ## UI/UX Best Practices
 
 ### Button Loading States
@@ -777,6 +835,7 @@ await this.auditService.log({
 - Filter all queries by tenant_id
 - Document complex logic with comments
 - Use TypeScript types consistently
+- **Await dynamic route params in Next.js 15** (e.g., `const { id } = await params;`)
 
 ### ❌ DON'T
 

@@ -16,7 +16,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { searchParams } = new URL(request.url);
     const tenantId = searchParams.get('tenantId') || undefined;
 
-    const role = await rbacService.getRoleWithPermissions(params.id, tenantId);
+    // Await params for Next.js 15 compatibility
+    const { id } = await params;
+
+    const role = await rbacService.getRoleWithPermissions(id, tenantId);
 
     if (!role) {
       return NextResponse.json(
@@ -49,7 +52,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body: UpdateRoleDto = await request.json();
 
-    const role = await rbacService.updateRole(params.id, body);
+    // Await params for Next.js 15 compatibility
+    const { id } = await params;
+
+    const role = await rbacService.updateRole(id, body);
 
     return NextResponse.json({
       success: true,
@@ -71,7 +77,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
 
-    await rbacService.deleteRole(params.id);
+    // Await params for Next.js 15 compatibility
+    const { id } = await params;
+
+    await rbacService.deleteRole(id);
 
     return NextResponse.json({
       success: true,

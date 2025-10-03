@@ -111,6 +111,9 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
     if (data.scope !== undefined) {
       updatePayload.scope = this.normalizeRoleScope(data.scope);
     }
+    if (data.is_delegatable !== undefined) {
+      updatePayload.is_delegatable = data.is_delegatable;
+    }
 
     const { data: result, error } = await supabase
       .from(this.tableName)

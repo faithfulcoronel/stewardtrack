@@ -378,45 +378,58 @@ export function BundleComposer() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Church Size Context</CardTitle>
+          <CardTitle>Church Context</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">Medium churches work well with campus and ministry-level separation</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              variant={churchSize === 'small' ? 'default' : 'outline'}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+            <button
+              type="button"
+              className={`h-auto p-4 flex flex-col items-center space-y-2 rounded-md border-2 transition-colors ${
+                churchSize === 'small'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card hover:bg-accent hover:text-accent-foreground'
+              }`}
               onClick={() => setChurchSize('small')}
             >
               <Church className="h-6 w-6" />
               <div className="text-center">
                 <p className="font-medium">Small Church</p>
-                <p className="text-xs opacity-75">Under 200 members</p>
+                <p className={`text-xs ${churchSize === 'small' ? 'text-primary/80' : 'text-muted-foreground'}`}>Under 200 members</p>
               </div>
-            </Button>
+            </button>
 
-            <Button
-              variant={churchSize === 'medium' ? 'default' : 'outline'}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+            <button
+              type="button"
+              className={`h-auto p-4 flex flex-col items-center space-y-2 rounded-md border-2 transition-colors ${
+                churchSize === 'medium'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card hover:bg-accent hover:text-accent-foreground'
+              }`}
               onClick={() => setChurchSize('medium')}
             >
               <Building className="h-6 w-6" />
               <div className="text-center">
                 <p className="font-medium">Medium Church</p>
-                <p className="text-xs opacity-75">200-1000 members</p>
+                <p className={`text-xs ${churchSize === 'medium' ? 'text-primary/80' : 'text-muted-foreground'}`}>200-1000 members</p>
               </div>
-            </Button>
+            </button>
 
-            <Button
-              variant={churchSize === 'large' ? 'default' : 'outline'}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+            <button
+              type="button"
+              className={`h-auto p-4 flex flex-col items-center space-y-2 rounded-md border-2 transition-colors ${
+                churchSize === 'large'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card hover:bg-accent hover:text-accent-foreground'
+              }`}
               onClick={() => setChurchSize('large')}
             >
               <Globe className="h-6 w-6" />
               <div className="text-center">
-                <p className="font-medium">Large/Multi-site</p>
-                <p className="text-xs opacity-75">1000+ members</p>
+                <p className="font-medium">Large Church</p>
+                <p className={`text-xs ${churchSize === 'large' ? 'text-primary/80' : 'text-muted-foreground'}`}>1000+ members</p>
               </div>
-            </Button>
+            </button>
           </div>
         </CardContent>
       </Card>
