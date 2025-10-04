@@ -38,11 +38,13 @@ The **Licensing Studio** helps you manage your church software pricing plans and
 - Creating feature packages for different tiers
 
 ### 3️⃣ License Assignments
-**What it does**: See which churches have which plans
+**What it does**: Assign plans to churches and view license history
 
 **When to use**:
+- Manually assigning licenses to new churches
+- Upgrading/downgrading church subscriptions
 - Checking a church's subscription
-- Viewing active licenses
+- Viewing assignment history
 
 ### 4️⃣ Analytics
 **What it does**: Show usage statistics and trends
@@ -100,7 +102,24 @@ The **Licensing Studio** helps you manage your church software pricing plans and
 8. Click **"Save"**
 9. ✅ Done! Your bundle is ready
 
-### ✅ Task 3: Check Your Analytics (1 minute)
+### ✅ Task 3: Assign a License to a Church (2 minutes)
+
+**Goal**: Manually assign a Professional plan to a church
+
+**Steps**:
+1. Go to **License Assignments** tab
+2. Click **"Assign New License"** (blue button, top right)
+3. **Step 1 - Select Church & Offering**:
+   - Church: Choose any church from dropdown
+   - Offering: Select "Professional Plan"
+   - Click **"Next"**
+4. **Step 2 - Review & Confirm**:
+   - Review features being added (green checkmarks)
+   - Add note: "Quick start guide test assignment"
+   - Click **"Assign License"**
+5. ✅ Done! The church now has the Professional plan
+
+### ✅ Bonus Task: Check Your Analytics (1 minute)
 
 **Goal**: See how many churches are using each plan
 
@@ -124,9 +143,19 @@ Product Offerings Tab → Create Offering Button → Fill Form → Create
 Feature Bundles Tab → Create Bundle Button → Fill Form → Create → Add Features
 ```
 
+### 🎯 Assign License to Church
+```
+License Assignments Tab → Assign New License → Select Church & Offering → Review → Confirm
+```
+
 ### 👀 View Church Licenses
 ```
 License Assignments Tab → See the table
+```
+
+### 📜 View Assignment History
+```
+License Assignments Tab → Click ">" arrow next to church → View timeline
 ```
 
 ### 📊 Check Statistics
@@ -172,6 +201,9 @@ Find it in the table → Click trash icon → Confirm → Done
 |-------------|----------------|-------------------|
 | Create a pricing plan | Product Offerings | Create Offering |
 | Group features | Feature Bundles | Create Bundle |
+| Assign a license | License Assignments | Assign New License |
+| Upgrade a church | License Assignments | Assign New License |
+| View assignment history | License Assignments | ">" arrow (expand row) |
 | See church licenses | License Assignments | (just view table) |
 | View usage stats | Analytics | (just view dashboard) |
 | Edit a plan | Product Offerings | Pencil icon (✏️) |

@@ -43,6 +43,7 @@ import { LicensePlanRepository } from '@/repositories/licensePlan.repository';
 import { ProductOfferingRepository } from '@/repositories/productOffering.repository';
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import { SurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
+import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 
 // Repository Interfaces
 import type { IRoleRepository } from '@/repositories/role.repository';
@@ -62,6 +63,7 @@ import type { ILicensePlanRepository } from '@/repositories/licensePlan.reposito
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
+import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 
 // Adapters
 import { RoleAdapter } from '@/adapters/role.adapter';
@@ -81,6 +83,7 @@ import { LicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import { SurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
+import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 
 // Adapter Interfaces
 import type { IRoleAdapter } from '@/adapters/role.adapter';
@@ -100,6 +103,7 @@ import type { ILicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import type { ISurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
+import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 
 const container = new Container();
 
@@ -197,6 +201,10 @@ container
   .bind<ISurfaceLicenseBindingRepository>(TYPES.ISurfaceLicenseBindingRepository)
   .to(SurfaceLicenseBindingRepository)
   .inRequestScope();
+container
+  .bind<ILicenseAssignmentRepository>(TYPES.ILicenseAssignmentRepository)
+  .to(LicenseAssignmentRepository)
+  .inRequestScope();
 
 // ==================== RBAC ADAPTERS ====================
 container.bind<IRoleAdapter>(TYPES.IRoleAdapter).to(RoleAdapter).inRequestScope();
@@ -230,6 +238,10 @@ container
 container
   .bind<ISurfaceLicenseBindingAdapter>(TYPES.ISurfaceLicenseBindingAdapter)
   .to(SurfaceLicenseBindingAdapter)
+  .inRequestScope();
+container
+  .bind<ILicenseAssignmentAdapter>(TYPES.ILicenseAssignmentAdapter)
+  .to(LicenseAssignmentAdapter)
   .inRequestScope();
 
 // ==================== USER MEMBER LINK SERVICES ====================

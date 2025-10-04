@@ -4,6 +4,7 @@ import { TYPES } from '@/lib/types';
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
+import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
   ProductOffering,
@@ -24,6 +25,13 @@ import type {
   UpdateSurfaceLicenseBindingDto,
   UpdateRbacSurfaceLicenseBindingDto,
 } from '@/models/surfaceLicenseBinding.model';
+import type {
+  TenantForAssignment,
+  AssignmentResult,
+  CreateLicenseAssignmentDto,
+  LicenseHistoryEntry,
+  FeatureChangeSummary,
+} from '@/models/licenseAssignment.model';
 
 /**
  * LicensingService
@@ -46,7 +54,9 @@ export class LicensingService {
     @inject(TYPES.ILicenseFeatureBundleRepository)
     private licenseFeatureBundleRepository: ILicenseFeatureBundleRepository,
     @inject(TYPES.ISurfaceLicenseBindingRepository)
-    private surfaceLicenseBindingRepository: ISurfaceLicenseBindingRepository
+    private surfaceLicenseBindingRepository: ISurfaceLicenseBindingRepository,
+    @inject(TYPES.ILicenseAssignmentRepository)
+    private licenseAssignmentRepository: ILicenseAssignmentRepository
   ) {}
 
   /**
@@ -344,6 +354,88 @@ export class LicensingService {
       console.log(`Provisioned ${featureGrants.length} features for tenant ${tenantId} from offering ${offeringId}`);
     } catch (error) {
       console.error('Error provisioning tenant license:', error);
+      throw error;
+    }
+  }
+
+  // ==================== MANUAL LICENSE ASSIGNMENT METHODS ====================
+
+  /**
+   * Assigns a product offering to a tenant manually
+   * This is used by product owners to assign/change licenses in Licensing Studio
+   *
+   * @param tenantId - The tenant to assign the license to
+   * @param offeringId - The product offering to assign
+   * @param assignedBy - The user performing the assignment
+   * @param notes - Optional notes about the assignment
+   */
+  async assignLicenseToTenant(
+    tenantId: string,
+    offeringId: string,
+    assignedBy: string,
+    notes?: string
+  ): Promise<AssignmentResult> {
+    try {
+      const data: CreateLicenseAssignmentDto = {
+        tenant_id: tenantId,
+        offering_id: offeringId,
+        assigned_by: assignedBy,
+        notes,
+      };
+
+      return await this.licenseAssignmentRepository.assignLicenseToTenant(data);
+    } catch (error) {
+      console.error('Error assigning license to tenant:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets all tenants for license assignment selection
+   * Returns tenants with their current license information
+   */
+  async getTenantsForAssignment(): Promise<TenantForAssignment[]> {
+    try {
+      return await this.licenseAssignmentRepository.getTenantsForAssignment();
+    } catch (error) {
+      console.error('Error getting tenants for assignment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets the license assignment history for a tenant
+   * Shows all previous assignments and changes
+   *
+   * @param tenantId - The tenant to get history for
+   */
+  async getTenantLicenseHistory(tenantId: string): Promise<LicenseHistoryEntry[]> {
+    try {
+      return await this.licenseAssignmentRepository.getTenantLicenseHistory(tenantId);
+    } catch (error) {
+      console.error('Error getting tenant license history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets a preview of feature changes for a potential assignment
+   * Shows which features will be added, removed, and kept
+   *
+   * @param tenantId - The tenant
+   * @param newOfferingId - The new offering being considered
+   */
+  async getFeatureChangeSummary(
+    tenantId: string,
+    newOfferingId: string
+  ): Promise<FeatureChangeSummary> {
+    try {
+      return await this.licenseAssignmentRepository.getFeatureChangeSummary(
+        tenantId,
+        newOfferingId
+      );
+    } catch (error) {
+      console.error('Error getting feature change summary:', error);
       throw error;
     }
   }

@@ -6,16 +6,129 @@
 
 ## Table of Contents
 
-1. [Launching a New Product Tier](#workflow-1-launching-a-new-product-tier)
-2. [Adding Premium Features](#workflow-2-adding-premium-features)
-3. [Migrating Churches to New Plans](#workflow-3-migrating-churches-to-new-plans)
-4. [Running a Limited-Time Promotion](#workflow-4-running-a-limited-time-promotion)
-5. [Decommissioning an Old Plan](#workflow-5-decommissioning-an-old-plan)
-6. [Monthly Reporting](#workflow-6-monthly-reporting)
+1. [Manually Assigning Licenses to New Churches](#workflow-1-manually-assigning-licenses-to-new-churches)
+2. [Launching a New Product Tier](#workflow-2-launching-a-new-product-tier)
+3. [Adding Premium Features](#workflow-3-adding-premium-features)
+4. [Migrating Churches to New Plans](#workflow-4-migrating-churches-to-new-plans)
+5. [Running a Limited-Time Promotion](#workflow-5-running-a-limited-time-promotion)
+6. [Decommissioning an Old Plan](#workflow-6-decommissioning-an-old-plan)
+7. [Monthly Reporting](#workflow-7-monthly-reporting)
 
 ---
 
-## Workflow 1: Launching a New Product Tier
+## Workflow 1: Manually Assigning Licenses to New Churches
+
+### Scenario
+A new church has signed up and you need to manually assign them the Professional Plan with a promotional discount noted in the system.
+
+### Timeline: ~5 minutes per church
+
+### Steps
+
+#### Part 1: Gather Information (1 min)
+
+1. **Confirm Church Details**
+   - Church name and organization
+   - Desired plan/tier
+   - Any special notes (promotion, discount, trial period)
+   - Contact person
+
+2. **Verify Church Exists in System**
+   - Go to License Assignments tab
+   - Look for the church in the table
+   - If not found, church may need to be created first
+
+#### Part 2: Assign the License (3 min)
+
+3. **Open Assignment Wizard**
+   - Click **"Assign New License"** button (top right)
+   - Two-step wizard appears
+
+4. **Step 1: Select Church & Offering**
+   - **Church Dropdown**:
+     - Type church name to search
+     - Select the correct church
+     - Note: Shows current plan if any
+
+   - **Offering Dropdown**:
+     - Select "Professional Plan" (or desired tier)
+     - See plan details: price, features, limits
+     - Click **"Next"**
+
+5. **Step 2: Review & Confirm**
+   - **Review Feature Changes**:
+     - ✅ Green checkmarks = Features being granted
+     - ❌ Red X marks = Features being removed (if changing plans)
+     - 📝 Gray = Features staying the same
+
+   - **Add Assignment Note**:
+     ```
+     Example notes:
+     - "New church signup - Professional tier with 20% promotional discount"
+     - "Initial license assignment - Standard pricing"
+     - "Requested upgrade from sales team - Quote #12345"
+     ```
+
+   - Click **"Assign License"**
+
+6. **Confirm Success**
+   - Success message appears
+   - Church row updates with new offering
+   - Features are immediately available to church users
+
+#### Part 3: Follow-Up (1 min)
+
+7. **Verify Assignment**
+   - Find the church in the table
+   - Confirm "Current Offering" column shows correct plan
+   - Expand the row (click ">" arrow) to view history
+   - Verify assignment appears with your email and note
+
+8. **Notify Church Admin** (optional)
+   - Send welcome email
+   - Include login instructions
+   - Highlight key features they now have access to
+
+### Common Variations
+
+**Scenario A: Upgrading an Existing Church**
+- Same steps, but Step 2 will show:
+  - Features being added (upgrade)
+  - Features staying the same
+  - Note: "Upgrade from Starter to Professional - requested by pastor"
+
+**Scenario B: Downgrading a Church**
+- Same steps, but Step 2 will show:
+  - Features being removed (red X marks)
+  - Features staying the same
+  - ⚠️ Important: Add clear note explaining downgrade reason
+  - Example note: "Downgrade to Starter - church requested due to budget"
+
+**Scenario C: Trial Assignment**
+- Assign trial plan
+- Note: "30-day trial - expires [date]"
+- Set calendar reminder to follow up before expiration
+
+### Success Criteria
+- ✅ Church appears in License Assignments table with correct offering
+- ✅ Assignment history shows your action with timestamp
+- ✅ Church admin can access features immediately
+- ✅ Assignment note clearly documents the reason
+
+### Troubleshooting
+
+**Problem**: Church not in dropdown
+- **Solution**: Church may need to be created in system first
+
+**Problem**: Feature changes not loading
+- **Solution**: Wait 2-3 seconds, or click Back then Next again
+
+**Problem**: Assignment fails
+- **Solution**: Check error message, verify church and offering exist, try again
+
+---
+
+## Workflow 2: Launching a New Product Tier
 
 ### Scenario
 You want to launch a "Growth Plan" between Starter and Professional at $49/month.
@@ -95,7 +208,7 @@ You want to launch a "Growth Plan" between Starter and Professional at $49/month
 
 ---
 
-## Workflow 2: Adding Premium Features
+## Workflow 3: Adding Premium Features
 
 ### Scenario
 You've developed "Advanced Reporting" and want to add it to Professional and Enterprise plans only.
@@ -161,7 +274,7 @@ You've developed "Advanced Reporting" and want to add it to Professional and Ent
 
 ---
 
-## Workflow 3: Migrating Churches to New Plans
+## Workflow 4: Migrating Churches to New Plans
 
 ### Scenario
 You're discontinuing "Basic Plan" ($19/month) and moving churches to "Starter Plan" ($29/month).
@@ -217,26 +330,43 @@ You're discontinuing "Basic Plan" ($19/month) and moving churches to "Starter Pl
 #### Part 3: Execute Migration (30 min)
 
 7. **Day 30: Perform Migration**
-   - **Option A: Automatic** (if system supports)
-     - Run migration script
-     - System updates all churches at once
 
-   - **Option B: Manual** (current method)
-     - For each church:
-       - Update subscription_tier in database
-       - Verify features granted
-       - Send confirmation email
+   **Using the Manual License Assignment Feature:**
+
+   For each church on the Basic Plan:
+
+   a. **Go to License Assignments Tab**
+
+   b. **Click "Assign New License"**
+
+   c. **Step 1 - Select Church & Offering:**
+      - Church: Select the church from dropdown
+      - Offering: Select "Starter Plan"
+      - Click "Next"
+
+   d. **Step 2 - Review & Confirm:**
+      - Review features being added (should show new features in green)
+      - Add note: "Migration from Basic Plan - 30 day notice provided"
+      - Click "Assign License"
+
+   e. **Send Confirmation Email** to church admin
+
+   f. **Repeat for all churches** (or batch process if many churches)
+
+   **Pro Tip:** Keep a checklist of churches to track migration progress.
 
 8. **Verify Migration**
-   - Check License Assignments
-   - Confirm all show "Starter Plan"
-   - Test feature access for sample churches
+   - Check License Assignments tab
+   - Confirm all previously Basic Plan churches now show "Starter Plan"
+   - Expand a few church rows to view assignment history
+   - Test feature access for 2-3 sample churches
 
 9. **Deactivate Old Plan**
    - Go to Product Offerings
    - Edit "Basic Plan"
    - Uncheck "Is Active"
    - Click Update
+   - The plan is now hidden from new signups but history is preserved
 
 #### Part 4: Post-Migration (as needed)
 
@@ -260,7 +390,7 @@ You're discontinuing "Basic Plan" ($19/month) and moving churches to "Starter Pl
 
 ---
 
-## Workflow 4: Running a Limited-Time Promotion
+## Workflow 5: Running a Limited-Time Promotion
 
 ### Scenario
 Black Friday sale: 50% off Professional Plan for 3 days.
@@ -358,7 +488,7 @@ Black Friday sale: 50% off Professional Plan for 3 days.
 
 ---
 
-## Workflow 5: Decommissioning an Old Plan
+## Workflow 6: Decommissioning an Old Plan
 
 ### Scenario
 "Legacy Plan" is outdated and you want to remove it entirely.
@@ -463,7 +593,7 @@ Black Friday sale: 50% off Professional Plan for 3 days.
 
 ---
 
-## Workflow 6: Monthly Reporting
+## Workflow 7: Monthly Reporting
 
 ### Scenario
 It's the first of the month and you need to generate reports for management.

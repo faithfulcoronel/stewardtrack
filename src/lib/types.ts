@@ -46,6 +46,7 @@ export const TYPES = {
   IProductOfferingAdapter: Symbol.for('IProductOfferingAdapter'),
   ILicenseFeatureBundleAdapter: Symbol.for('ILicenseFeatureBundleAdapter'),
   ISurfaceLicenseBindingAdapter: Symbol.for('ISurfaceLicenseBindingAdapter'),
+  ILicenseAssignmentAdapter: Symbol.for('ILicenseAssignmentAdapter'),
 
   // RBAC Repositories
   IRoleRepository: Symbol.for('IRoleRepository'),
@@ -63,6 +64,7 @@ export const TYPES = {
   IProductOfferingRepository: Symbol.for('IProductOfferingRepository'),
   ILicenseFeatureBundleRepository: Symbol.for('ILicenseFeatureBundleRepository'),
   ISurfaceLicenseBindingRepository: Symbol.for('ISurfaceLicenseBindingRepository'),
+  ILicenseAssignmentRepository: Symbol.for('ILicenseAssignmentRepository'),
 
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),

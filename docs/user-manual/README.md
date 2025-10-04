@@ -10,7 +10,7 @@ Welcome to the StewardTrack User Documentation! This folder contains comprehensi
 
 Comprehensive guides for managing your church software licensing system:
 
-#### 1. [Licensing Studio User Guide](./licensing-studio-user-guide.md) 📖
+#### 1. [Licensing Studio User Guide](./licensing/licensing-studio-user-guide.md) 📖
 **Best for**: Complete reference and detailed explanations
 - **Length**: Comprehensive (50+ pages)
 - **Audience**: Product owners, administrators, first-time users
@@ -18,11 +18,11 @@ Comprehensive guides for managing your church software licensing system:
   - Introduction to Licensing Studio
   - Product Offerings Management
   - Feature Bundles Management
-  - License Assignments
+  - **License Assignments (Updated with manual assignment wizard!)**
   - Analytics Dashboard
-  - Common Tasks
-  - Troubleshooting
-  - FAQ
+  - Common Tasks (includes manual assignment examples)
+  - Troubleshooting (includes assignment errors)
+  - FAQ (includes assignment questions)
 
 **When to use**:
 - First time using Licensing Studio
@@ -30,26 +30,27 @@ Comprehensive guides for managing your church software licensing system:
 - Troubleshooting specific issues
 - Reference for advanced features
 
-#### 2. [Quick Start Guide](./licensing-studio-quick-start.md) 🚀
+#### 2. [Quick Start Guide](./licensing/licensing-studio-quick-start.md) 🚀
 **Best for**: Getting started fast
 - **Length**: Quick read (5-10 minutes)
 - **Audience**: Busy users who need to start immediately
 - **Contents**:
   - 5-minute overview
-  - Your first 3 tasks
-  - Cheat sheet
-  - Quick reference table
+  - Your first 3 tasks (includes manual license assignment!)
+  - Cheat sheet (updated with assignment actions)
+  - Quick reference table (includes upgrade/history viewing)
 
 **When to use**:
 - First time user who needs to get started fast
 - Quick reference for common actions
 - Sharing with new team members
 
-#### 3. [Licensing Workflows](./licensing-workflows.md) 🔄
+#### 3. [Licensing Workflows](./licensing/licensing-workflows.md) 🔄
 **Best for**: Step-by-step scenarios
 - **Length**: Task-focused (6 complete workflows)
 - **Audience**: Users working on specific business scenarios
 - **Contents**:
+  - **NEW!** Manually assigning licenses to churches
   - Launching a new product tier
   - Adding premium features
   - Migrating churches to new plans
@@ -68,25 +69,31 @@ Comprehensive guides for managing your church software licensing system:
 ## 🎯 Which Guide Should I Use?
 
 ### I'm brand new to Licensing Studio
-👉 Start with: [Quick Start Guide](./licensing-studio-quick-start.md)
+👉 Start with: [Quick Start Guide](./licensing/licensing-studio-quick-start.md)
 - Complete your first 3 tasks
 - Get comfortable with the interface
 - Then move to the full User Guide for deeper understanding
 
 ### I need to create a pricing plan
-👉 Use: [User Guide - Product Offerings](./licensing-studio-user-guide.md#product-offerings-management)
+👉 Use: [User Guide - Product Offerings](./licensing/licensing-studio-user-guide.md#product-offerings-management)
+
+### I need to assign a license to a church
+👉 Use: [User Guide - License Assignments](./licensing/licensing-studio-user-guide.md#license-assignments)
+- Step-by-step wizard instructions
+- Upgrade/downgrade procedures
+- Viewing assignment history
 - Step-by-step instructions
 - Best practices
 - Examples
 
 ### I'm launching a new tier or running a promotion
-👉 Use: [Licensing Workflows](./licensing-workflows.md)
+👉 Use: [Licensing Workflows](./licensing/licensing-workflows.md)
 - Complete end-to-end workflow
 - Timeline estimates
 - Success criteria
 
 ### Something's not working
-👉 Use: [User Guide - Troubleshooting](./licensing-studio-user-guide.md#troubleshooting)
+👉 Use: [User Guide - Troubleshooting](./licensing/licensing-studio-user-guide.md#troubleshooting)
 - Common issues and solutions
 - Error messages explained
 - When to contact support
@@ -107,35 +114,42 @@ docs/user-manual/
 ├── README.md (this file)
 │   └── Overview and navigation guide
 │
-├── licensing-studio-user-guide.md
-│   └── Complete reference manual
-│       ├── Introduction
-│       ├── Getting Started
-│       ├── Product Offerings Management
-│       ├── Feature Bundles Management
-│       ├── License Assignments
-│       ├── Analytics Dashboard
-│       ├── Common Tasks
-│       ├── Troubleshooting
-│       ├── FAQ
-│       └── Support
-│
-├── licensing-studio-quick-start.md
-│   └── 5-minute beginner guide
-│       ├── What is This?
-│       ├── The 4 Main Tabs
-│       ├── Your First 3 Tasks
-│       ├── Cheat Sheet
-│       └── Next Steps
-│
-└── licensing-workflows.md
-    └── Real-world scenarios
-        ├── Launching New Product Tier
-        ├── Adding Premium Features
-        ├── Migrating Churches
-        ├── Running Promotions
-        ├── Decommissioning Plans
-        └── Monthly Reporting
+└── licensing/
+    │
+    ├── licensing-studio-user-guide.md
+    │   └── Complete reference manual
+    │       ├── Introduction
+    │       ├── Getting Started
+    │       ├── Product Offerings Management
+    │       ├── Feature Bundles Management
+    │       ├── License Assignments ⭐ UPDATED
+    │       │   ├── Manual assignment wizard
+    │       │   ├── Viewing history
+    │       │   ├── Upgrade/downgrade procedures
+    │       │   └── Best practices
+    │       ├── Analytics Dashboard
+    │       ├── Common Tasks ⭐ UPDATED
+    │       ├── Troubleshooting ⭐ UPDATED
+    │       ├── FAQ ⭐ UPDATED
+    │       └── Support
+    │
+    ├── licensing-studio-quick-start.md ⭐ UPDATED
+    │   └── 5-minute beginner guide
+    │       ├── What is This?
+    │       ├── The 4 Main Tabs
+    │       ├── Your First 3 Tasks (includes manual assignment)
+    │       ├── Cheat Sheet (includes assignment actions)
+    │       └── Next Steps
+    │
+    └── licensing-workflows.md ⭐ UPDATED
+        └── Real-world scenarios
+            ├── ⭐ NEW: Manually Assigning Licenses
+            ├── Launching New Product Tier
+            ├── Adding Premium Features
+            ├── Migrating Churches (updated with wizard steps)
+            ├── Running Promotions
+            ├── Decommissioning Plans
+            └── Monthly Reporting
 ```
 
 ---
@@ -182,9 +196,9 @@ docs/user-manual/
 
 ### Self-Service Resources
 
-1. **Check the FAQ** - [User Guide FAQ Section](./licensing-studio-user-guide.md#faq)
+1. **Check the FAQ** - [User Guide FAQ Section](./licensing/licensing-studio-user-guide.md#faq)
 2. **Search the User Guide** - Use Ctrl+F to find keywords
-3. **Try Troubleshooting** - [Troubleshooting Section](./licensing-studio-user-guide.md#troubleshooting)
+3. **Try Troubleshooting** - [Troubleshooting Section](./licensing/licensing-studio-user-guide.md#troubleshooting)
 4. **Review Workflows** - See if there's a matching scenario
 
 ### Contact Support
@@ -211,6 +225,7 @@ docs/user-manual/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | Oct 4, 2025 | **Updated**: Added manual license assignment feature documentation across all guides. Reorganized into licensing/ folder. |
 | 1.0 | Oct 4, 2025 | Initial release - Full user guide, Quick start, and Workflows |
 
 ### Requesting Updates
@@ -329,7 +344,20 @@ If you find:
 
 **Ready to get started?** 🚀
 
-👉 Begin with the [Quick Start Guide](./licensing-studio-quick-start.md)
+👉 Begin with the [Quick Start Guide](./licensing/licensing-studio-quick-start.md)
+
+### 🆕 What's New in v1.1
+
+**Manual License Assignment is Now Available!**
+
+You can now manually assign licenses to churches using our intuitive two-step wizard:
+- ✅ Assign licenses to new churches
+- ✅ Upgrade or downgrade existing subscriptions
+- ✅ View complete assignment history with audit trail
+- ✅ See exactly which features will be added or removed
+- ✅ Add notes to document the business reason
+
+👉 [Learn how to assign licenses](./licensing/licensing-studio-user-guide.md#assigning-a-license-manually)
 
 ---
 

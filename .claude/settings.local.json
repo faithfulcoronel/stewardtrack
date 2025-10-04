@@ -13,7 +13,8 @@
       "Bash(wc:*)",
       "Bash(npm install:*)",
       "Bash(cat:*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []

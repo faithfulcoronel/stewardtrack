@@ -305,39 +305,109 @@ When you assign a license:
 3. The church users can access those features
 4. The license remains active until changed or expired
 
-### Assigning a License (Future Feature)
+### Assigning a License Manually
 
-**Note**: Currently, licenses are assigned automatically during church signup. Manual assignment UI is coming soon!
+You can now manually assign licenses to churches using the built-in wizard! This is perfect for:
+- Setting up new churches
+- Upgrading/downgrading subscriptions
+- Handling special promotions or trials
 
-**Temporary Workaround:**
-1. Use the database admin panel
-2. Update the `tenants` table
-3. Set the `subscription_tier` to the desired tier
-4. Features will be granted automatically
+**Step-by-step guide:**
+
+1. **Open the Assignment Dialog**
+   - Click on the **"License Assignments"** tab
+   - Click the **"Assign New License"** button (top right)
+   - A two-step wizard will appear
+
+2. **Step 1: Select Church & Offering**
+   - **Choose a Church**: Use the dropdown to select the church (tenant)
+     - Shows church name and current plan
+     - Search by typing to filter results
+   - **Choose an Offering**: Select the new product offering
+     - See plan details, price, and feature count
+     - Current plan is highlighted
+   - Click **"Next"** to continue
+
+3. **Step 2: Review & Confirm**
+   - **Review the Changes**: See what will happen:
+     - ✅ **Features Added**: New features being granted
+     - ❌ **Features Removed**: Features being revoked (if downgrading)
+     - 📝 **Unchanged Features**: Features staying the same
+   - **Add Notes** (optional): Document why you're making this change
+     - Example: "Promotional upgrade" or "Requested by pastor"
+   - Click **"Assign License"** to confirm
+
+4. **Confirmation**
+   - You'll see a success message
+   - The church's license is updated immediately
+   - All features are granted/revoked automatically
+   - Assignment is logged in the history
+
+**What Happens When You Assign:**
+- The church's subscription is updated to the new offering
+- Features from the old offering (if any) that aren't in the new offering are revoked
+- New features from the new offering are granted immediately
+- The assignment is recorded with timestamp, who did it, and notes
+- The church's users can access new features right away
+
+### Viewing Assignment History
+
+Every license change is tracked for audit purposes:
+
+1. **Expand a Church Row**
+   - Click the **">"** arrow next to any church in the table
+   - The row expands to show the history panel
+
+2. **View the Timeline**
+   - See all assignment changes in chronological order (newest first)
+   - Each entry shows:
+     - 📅 **Date & Time**: When the change was made
+     - 👤 **Assigned By**: Who made the change (email)
+     - 📦 **From → To**: Old offering → New offering
+     - 📝 **Notes**: Any comments left during assignment
+
+3. **Understanding the Timeline**
+   - **Initial assignments** show no "From" offering
+   - **Upgrades** show tier progression (e.g., Starter → Professional)
+   - **Downgrades** show tier regression (e.g., Enterprise → Professional)
+   - **Re-assignments** to same tier are also tracked
 
 ### Checking a Church's License Status
 
 1. Go to **License Assignments** tab
 2. Find the church in the table
-3. Look at the "Active Features" column
-   - Shows the count of granted features
-4. Look at the "Status" column
-   - ✅ Green = Active subscription
-   - ❌ Red = Inactive or expired
+3. Review the information:
+   - **Church Name**: The tenant organization
+   - **Current Offering**: The active product offering
+   - **Tier**: Starter, Professional, Enterprise, etc.
+   - **Active Features**: Count of currently granted features
+   - **Last Assignment**: When the license was last changed
+   - **Status**: Active or Inactive subscription
 
 ### Upgrading/Downgrading a License
 
-To change a church's plan:
+Use the manual assignment wizard (see "Assigning a License Manually" above):
 
-**Current Method** (until UI is complete):
-1. Contact support or use database admin
-2. Update the church's subscription tier
-3. Features will automatically adjust
+**To Upgrade:**
+1. Click **"Assign New License"**
+2. Select the church
+3. Choose a higher-tier offering
+4. Review the new features being added
+5. Confirm the assignment
 
-**Coming Soon:**
-- One-click upgrade/downgrade buttons
-- Subscription change history
-- Prorated billing calculations
+**To Downgrade:**
+1. Click **"Assign New License"**
+2. Select the church
+3. Choose a lower-tier offering
+4. ⚠️ **Important**: Review features that will be removed
+5. Add a note explaining the downgrade
+6. Confirm the assignment
+
+**Best Practices:**
+- Always review the feature changes before confirming
+- Add notes to document business reasons
+- Check the assignment history to understand past changes
+- Communicate with the church before making changes
 
 ---
 
@@ -490,7 +560,57 @@ Future features will include:
 5. Click **"Update"**
 6. ✅ Done! New signups won't see it, but existing customers keep their subscription
 
-### Task 5: View Subscription Distribution
+### Task 5: Manually Assign a License to a New Church
+
+**Scenario**: A new church signed up and needs to be assigned the Professional Plan.
+
+**Steps:**
+1. Go to **License Assignments** tab
+2. Click **"Assign New License"** button
+3. **Step 1 - Select Church & Offering:**
+   - Church dropdown: Select "First Baptist Church"
+   - Offering dropdown: Select "Professional Plan"
+   - Click **"Next"**
+4. **Step 2 - Review & Confirm:**
+   - Review the features being added
+   - Add note: "New church signup - Professional tier"
+   - Click **"Assign License"**
+5. ✅ Done! The church now has access to all Professional features
+
+### Task 6: Upgrade a Church from Starter to Professional
+
+**Scenario**: A church wants to upgrade to get advanced features.
+
+**Steps:**
+1. Go to **License Assignments** tab
+2. Click **"Assign New License"** button
+3. **Step 1:**
+   - Select the church from dropdown
+   - Select "Professional Plan"
+   - Click **"Next"**
+4. **Step 2:**
+   - Review new features being granted (✅ green)
+   - Review features staying the same (📝 gray)
+   - Add note: "Requested upgrade for advanced reporting"
+   - Click **"Assign License"**
+5. ✅ Done! The church is upgraded and can access new features immediately
+
+### Task 7: View a Church's License History
+
+**Scenario**: You want to see all license changes for a specific church.
+
+**Steps:**
+1. Go to **License Assignments** tab
+2. Find the church in the table
+3. Click the **">"** arrow on the left to expand the row
+4. View the timeline showing:
+   - All past assignments
+   - Who made each change
+   - When changes occurred
+   - Notes left during assignment
+5. ✅ Done! You can see the complete audit trail
+
+### Task 8: View Subscription Distribution
 
 **Scenario**: Your boss asks "How many churches are on each plan?"
 
@@ -543,6 +663,60 @@ Future features will include:
 - For System bundles: Contact a super admin
 - For bundles in use: Remove from offerings first, then delete
 - For permissions: Request admin access from your manager
+
+### Problem: License Assignment Wizard Not Opening
+
+**Symptoms**: Clicking "Assign New License" does nothing.
+
+**Solutions:**
+1. **Check permissions** - Ensure you have "Licensing Admin" role
+2. **Refresh the page** - Press F5 or Ctrl+R
+3. **Clear browser cache** - Try Ctrl+Shift+Delete
+4. **Check browser console** - Press F12, look for JavaScript errors
+5. **Try different browser** - Switch to Chrome/Firefox/Edge
+
+### Problem: Can't See Feature Changes in Step 2
+
+**Symptoms**: The review step shows "Loading..." or is empty.
+
+**Solutions:**
+1. **Wait a moment** - Feature comparison may take 2-3 seconds
+2. **Check your connection** - Slow internet may delay loading
+3. **Go back and retry** - Click "Back" then "Next" again
+4. **Refresh and restart** - Close dialog and start over
+
+### Problem: Assignment Fails with Error Message
+
+**Symptoms**: Clicking "Assign License" shows an error.
+
+**Common Errors:**
+1. **"Tenant not found"**
+   - The church may have been deleted
+   - Refresh the page and try again
+
+2. **"Offering not found"**
+   - The product offering may have been deleted
+   - Choose a different active offering
+
+3. **"Permission denied"**
+   - You need "Licensing Admin" role
+   - Contact your system administrator
+
+4. **"Database error"**
+   - Server may be experiencing issues
+   - Wait 1 minute and retry
+   - Contact support if persists
+
+### Problem: History Panel Shows No Data
+
+**Symptoms**: Expanding a church row shows "No assignment history".
+
+**Causes:**
+1. **First-time assignment** - Church has never been manually assigned a license
+2. **Automatic assignment** - Church was assigned during signup (not logged in history)
+3. **Data not loaded** - Wait a moment and collapse/expand again
+
+**Note**: Only manual assignments made through the wizard are tracked in history. Automatic assignments during church signup are not included.
 
 ### Problem: Analytics Not Updating
 
@@ -620,6 +794,49 @@ A: Yes! Create an offering with `type: trial` and set a trial period duration.
 
 **Q: What about annual vs monthly billing?**
 A: You can create separate offerings for each billing cycle or use the "Billing Cycle" option when creating an offering.
+
+### License Assignment Questions
+
+**Q: Can I manually assign licenses to churches?**
+A: Yes! Use the "Assign New License" button in the License Assignments tab to open the assignment wizard.
+
+**Q: What happens when I upgrade a church's license?**
+A:
+- The church is assigned to the new higher-tier offering
+- New features from the higher tier are granted immediately
+- Existing features are kept
+- The change is logged in the assignment history
+
+**Q: What happens when I downgrade a church?**
+A:
+- The church is assigned to the new lower-tier offering
+- Features not in the lower tier are revoked immediately
+- Remaining features are kept
+- You should add a note explaining the downgrade
+- ⚠️ The church will lose access to removed features right away
+
+**Q: Can I see who made changes to a church's license?**
+A: Yes! Expand the church's row in the License Assignments tab to view the complete history with timestamps, who made each change, and any notes left.
+
+**Q: Why doesn't the history panel show the initial license assignment?**
+A: The history only tracks manual assignments made through the wizard. Automatic assignments during church signup are not included in the history.
+
+**Q: Can I undo a license assignment?**
+A: There's no "undo" button, but you can simply assign a different license. Each assignment is tracked in the history, so you can always see what the previous offering was.
+
+**Q: What should I write in the assignment notes?**
+A: Include the business reason for the change, such as:
+- "New church signup - Professional tier"
+- "Requested upgrade for advanced reporting"
+- "Promotional trial for 3 months"
+- "Downgrade due to payment issues"
+- "Migration from old billing system"
+
+**Q: How long does it take for feature changes to take effect?**
+A: Immediately! As soon as you confirm the assignment, features are granted/revoked and the church's users can (or cannot) access them right away.
+
+**Q: Can a church have multiple licenses?**
+A: No, each church (tenant) can only have one active product offering at a time. Assigning a new license replaces the previous one.
 
 ---
 
