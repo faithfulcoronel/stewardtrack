@@ -76,9 +76,31 @@ export default async function AdminLayout({
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null;
   const planLabel = (user.user_metadata?.plan as string | undefined) ?? "Pro";
 
+  // Get user's admin role to filter navigation items
+  const { data: adminRoleData } = await supabase.rpc('get_user_admin_role');
+  const adminRole = adminRoleData as 'super_admin' | 'tenant_admin' | 'staff' | 'member' | null;
+
+  // Filter navigation sections based on admin role
+  // Only super_admin can see Licensing Studio
+  const filteredSections = NAV_SECTIONS.map(section => {
+    if (section.label === 'Administration') {
+      return {
+        ...section,
+        items: section.items.filter(item => {
+          // Filter out Licensing Studio if user is not super_admin
+          if (item.title === 'Licensing Studio' && adminRole !== 'super_admin') {
+            return false;
+          }
+          return true;
+        })
+      };
+    }
+    return section;
+  });
+
   return (
     <AdminLayoutShell
-      sections={NAV_SECTIONS}
+      sections={filteredSections}
       name={displayName}
       email={user.email ?? ""}
       avatarUrl={avatarUrl}

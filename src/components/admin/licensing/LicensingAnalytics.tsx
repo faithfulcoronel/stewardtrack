@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, TrendingUp, Users, Package, Award, DollarSign, Activity } from 'lucide-react';
+import { Loader2, TrendingUp, Users, Package, Award, DollarSign, Activity, History, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LicensingSummary {
@@ -25,6 +25,21 @@ interface LicensingSummary {
     tier: string;
     revenue: number;
   }[];
+  manualAssignments?: {
+    total: number;
+    last30Days: number;
+    byTier: {
+      tier: string;
+      count: number;
+    }[];
+    recent: {
+      assignment_id: string;
+      assigned_at: string;
+      tenant_name: string;
+      offering_name: string;
+      offering_tier: string;
+    }[];
+  };
 }
 
 export function LicensingAnalytics() {
@@ -39,7 +54,7 @@ export function LicensingAnalytics() {
 
   async function loadMetrics() {
     try {
-      const response = await fetch('/api/licensing/summary');
+      const response = await fetch('/api/licensing/analytics');
       const result = await response.json();
 
       if (result.success) {
@@ -254,6 +269,89 @@ export function LicensingAnalytics() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Manual License Assignments */}
+      {metrics.manualAssignments && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Manual License Assignments
+              </CardTitle>
+              <CardDescription>License assignments performed by administrators</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">Total Assignments</div>
+                    <div className="text-2xl font-bold">{metrics.manualAssignments.total}</div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">Last 30 Days</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {metrics.manualAssignments.last30Days}
+                    </div>
+                  </div>
+                </div>
+
+                {metrics.manualAssignments.byTier && metrics.manualAssignments.byTier.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-gray-700">Assignments by Tier (Last 30 Days)</div>
+                    {metrics.manualAssignments.byTier.map((item) => (
+                      <div key={item.tier} className="flex items-center justify-between">
+                        <Badge variant="outline" className={getTierColor(item.tier)}>
+                          {item.tier}
+                        </Badge>
+                        <span className="text-sm text-gray-600">{item.count} assignments</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Recent Assignment Activity
+              </CardTitle>
+              <CardDescription>Latest 10 license assignments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {metrics.manualAssignments.recent && metrics.manualAssignments.recent.length > 0 ? (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {metrics.manualAssignments.recent.map((assignment) => (
+                    <div key={assignment.assignment_id} className="border-b pb-3 last:border-b-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{assignment.tenant_name}</div>
+                          <div className="text-xs text-gray-500">
+                            {assignment.offering_name}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={getTierColor(assignment.offering_tier)}>
+                          {assignment.offering_tier}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {new Date(assignment.assigned_at).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">No recent assignment activity</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Auto-refresh indicator */}
