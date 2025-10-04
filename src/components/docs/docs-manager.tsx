@@ -224,15 +224,15 @@ export function DocsManager({ tree, files, initialPath }: DocsManagerProps) {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <div className="rounded-xl border bg-card shadow-sm">
+    <div className="grid gap-6 lg:grid-cols-[320px_1fr] lg:items-start">
+      <div className="rounded-xl border bg-card shadow-sm lg:sticky lg:top-24 lg:flex lg:flex-col">
         <div className="border-b px-5 py-4">
           <h2 className="text-lg font-semibold">Documentation explorer</h2>
           <p className="text-sm text-muted-foreground">
             Browse the Markdown files stored in the project’s docs directory.
           </p>
         </div>
-        <ScrollArea className="h-[60vh] lg:h-[75vh]">
+        <ScrollArea className="h-[60vh] lg:flex-1 lg:h-auto lg:max-h-[calc(100vh-13rem)]">
           <div className="space-y-1 p-3">
             {tree.length > 0 ? (
               tree.map((node) => (
