@@ -784,6 +784,199 @@ const { data } = await supabase
 
 ---
 
+## Row Level Security (RLS) and Database Functions
+
+### When to Use SECURITY DEFINER Functions
+
+When building features that need to bypass RLS for super admins (like licensing management), use PostgreSQL functions with `SECURITY DEFINER`:
+
+#### Problem: RLS Blocks Super Admin Access
+
+```typescript
+// ❌ This will fail - RLS blocks access to all tenants
+const { data } = await supabase
+  .from('tenants')
+  .select('*'); // RLS policy: USING (has_tenant_access(id))
+```
+
+#### Solution: SECURITY DEFINER Function
+
+```sql
+-- Create function that bypasses RLS but checks roles internally
+CREATE FUNCTION get_all_tenants_for_management()
+RETURNS TABLE (...)
+LANGUAGE plpgsql
+SECURITY DEFINER  -- Function runs with owner's privileges
+SET search_path = public
+AS $$
+BEGIN
+  -- Check role INSIDE the function
+  IF get_user_admin_role() != 'super_admin' THEN
+    RAISE EXCEPTION 'Access denied. Only super admins can access this function.';
+  END IF;
+
+  -- Return data - RLS is bypassed because of SECURITY DEFINER
+  RETURN QUERY
+  SELECT * FROM tenants ORDER BY name;
+END;
+$$;
+```
+
+### Avoiding Ambiguous Column References
+
+**CRITICAL**: When creating PostgreSQL functions with RETURNS TABLE, column names in the return table can conflict with table columns, causing "column reference is ambiguous" errors.
+
+#### Problem: Ambiguous Columns
+
+```sql
+-- ❌ WRONG - Creates ambiguity
+CREATE FUNCTION assign_license(p_tenant_id uuid)
+RETURNS TABLE (
+  tenant_id uuid,      -- Same name as tenants.tenant_id
+  offering_id uuid     -- Same name as license_assignments.offering_id
+)
+AS $$
+BEGIN
+  DELETE FROM tenant_feature_grants
+  WHERE tenant_id = p_tenant_id;  -- ERROR: ambiguous!
+
+  RETURN QUERY
+  SELECT
+    p_tenant_id,
+    p_offering_id;
+END;
+$$;
+```
+
+#### Solution: Use Different Return Column Names
+
+```sql
+-- ✅ CORRECT - Use distinct names with prefix
+CREATE FUNCTION assign_license(p_tenant_id uuid, p_offering_id uuid)
+RETURNS TABLE (
+  result_tenant_id uuid,      -- Different from table columns
+  result_offering_id uuid,    -- Different from table columns
+  result_assigned_at timestamptz
+)
+AS $$
+BEGIN
+  -- Use table aliases everywhere
+  DELETE FROM tenant_feature_grants tfg
+  WHERE tfg.tenant_id = p_tenant_id  -- Fully qualified
+    AND tfg.feature_id = v_feature_id;
+
+  -- Update with alias
+  UPDATE tenants t
+  SET offering_id = p_offering_id
+  WHERE t.id = p_tenant_id;  -- Fully qualified
+
+  -- Return with explicit mapping
+  RETURN QUERY
+  SELECT
+    p_tenant_id AS result_tenant_id,
+    p_offering_id AS result_offering_id,
+    now() AS result_assigned_at;
+END;
+$$;
+```
+
+#### Adapter Mapping for Result Columns
+
+```typescript
+// Map database result columns to interface
+const dbResult = result[0] as any;
+const mappedResult: AssignmentResult = {
+  tenant_id: dbResult.result_tenant_id,
+  offering_id: dbResult.result_offering_id,
+  assigned_at: dbResult.result_assigned_at,
+};
+```
+
+### Best Practices for Database Functions
+
+1. **Always use table aliases** in DELETE, UPDATE, and SELECT statements
+2. **Use SECURITY DEFINER** for functions that need RLS bypass
+3. **Check user roles INSIDE the function** for security
+4. **Prefix return column names** with `result_` to avoid ambiguity
+5. **Fully qualify all column references** with table/alias names
+6. **Set search_path explicitly** to `public` for security
+7. **Use STABLE** for read-only functions that don't modify data
+8. **Grant EXECUTE carefully** - only to authenticated users who need access
+
+### Example: Complete RLS-Bypass Function
+
+```sql
+CREATE FUNCTION get_feature_change_summary(
+  p_tenant_id uuid,
+  p_new_offering_id uuid
+)
+RETURNS json
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_current_offering_id uuid;
+  v_result json;
+BEGIN
+  -- 1. Check authorization
+  IF get_user_admin_role() != 'super_admin' THEN
+    RAISE EXCEPTION 'Access denied. Only super admins can access this function.';
+  END IF;
+
+  -- 2. Get data (RLS bypassed)
+  SELECT t.subscription_offering_id INTO v_current_offering_id
+  FROM tenants t  -- Use alias
+  WHERE t.id = p_tenant_id;
+
+  -- 3. Build result
+  v_result := json_build_object(
+    'currentOfferingId', v_current_offering_id,
+    'newOfferingId', p_new_offering_id
+  );
+
+  RETURN v_result;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_feature_change_summary(uuid, uuid) TO authenticated;
+
+-- Add documentation
+COMMENT ON FUNCTION get_feature_change_summary IS 'Returns feature change summary. Only accessible by super_admins.';
+```
+
+### ON CONFLICT and Unique Constraints
+
+When inserting data with complex unique constraints, check for existence first instead of using ON CONFLICT:
+
+```sql
+-- ❌ WRONG - Complex ON CONFLICT that doesn't match index
+INSERT INTO tenant_feature_grants (tenant_id, feature_id, grant_source)
+VALUES (p_tenant_id, v_feature_id, 'direct')
+ON CONFLICT (tenant_id, feature_id) DO NOTHING;  -- Doesn't match actual constraint!
+
+-- Actual unique index has 5 columns:
+-- (tenant_id, feature_id, grant_source, COALESCE(package_id, '...'), COALESCE(source_reference, ''))
+
+-- ✅ CORRECT - Check existence first
+SELECT EXISTS (
+  SELECT 1 FROM tenant_feature_grants tfg
+  WHERE tfg.tenant_id = p_tenant_id
+    AND tfg.feature_id = v_feature_id
+    AND tfg.grant_source = 'direct'
+) INTO v_exists;
+
+IF NOT v_exists THEN
+  INSERT INTO tenant_feature_grants (...) VALUES (...);
+ELSE
+  UPDATE tenant_feature_grants SET ... WHERE ...;
+END IF;
+```
+
+---
+
 ## Security Considerations
 
 ### Tenant Isolation

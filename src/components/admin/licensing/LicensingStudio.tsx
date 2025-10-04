@@ -20,19 +20,6 @@ export function LicensingStudio() {
             Manage product offerings, feature bundles, and tenant licenses
           </p>
         </div>
-        <div className="flex gap-2">
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="p-4">
-              <div className="flex items-center gap-3">
-                <Award className="h-8 w-8 text-blue-600" />
-                <div>
-                  <CardTitle className="text-sm">Product Owner</CardTitle>
-                  <CardDescription className="text-xs">License Management</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
       </div>
 
       {/* Main Tabs */}

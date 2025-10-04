@@ -101,6 +101,18 @@ export class LicenseAssignmentAdapter
       throw new Error('No assignment result returned');
     }
 
+    // Map database result columns (with result_ prefix) to interface
+    const dbResult = result[0] as any;
+    const assignmentResult: AssignmentResult = {
+      assignment_id: dbResult.result_assignment_id,
+      tenant_id: dbResult.result_tenant_id,
+      offering_id: dbResult.result_offering_id,
+      previous_offering_id: dbResult.result_previous_offering_id,
+      assigned_at: dbResult.result_assigned_at,
+      features_granted: dbResult.result_features_granted,
+      features_revoked: dbResult.result_features_revoked,
+    };
+
     // Log the assignment
     await this.auditService.logAuditEvent(
       'assign_license',
@@ -113,7 +125,7 @@ export class LicenseAssignmentAdapter
       }
     );
 
-    return result[0] as AssignmentResult;
+    return assignmentResult;
   }
 
   /**
@@ -157,78 +169,38 @@ export class LicenseAssignmentAdapter
   ): Promise<FeatureChangeSummary> {
     const supabase = await this.getSupabaseClient();
 
-    // Get current offering for the tenant
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('subscription_offering_id')
-      .eq('id', tenantId)
-      .single();
+    // Call the database function that handles RLS properly
+    const { data, error } = await supabase.rpc('get_feature_change_summary', {
+      p_tenant_id: tenantId,
+      p_new_offering_id: newOfferingId,
+    });
 
-    if (tenantError) {
-      throw new Error(`Failed to get tenant: ${tenantError.message}`);
+    if (error) {
+      throw new Error(`Failed to get feature change summary: ${error.message}`);
     }
 
-    const currentOfferingId = tenant?.subscription_offering_id;
-
-    // Get features from new offering
-    const { data: newFeatures, error: newError } = await supabase
-      .from('product_offering_features')
-      .select(`
-        feature_id,
-        feature_catalog (
-          id,
-          name,
-          description
-        )
-      `)
-      .eq('offering_id', newOfferingId);
-
-    if (newError) {
-      throw new Error(`Failed to get new offering features: ${newError.message}`);
+    if (!data) {
+      throw new Error('No data returned from feature change summary');
     }
 
-    const newFeatureIds = (newFeatures || []).map((f: any) => f.feature_id);
+    // Parse the JSON response
+    const result = data as {
+      currentOfferingId: string | null;
+      newOfferingId: string;
+      newFeatures: Array<{ id: string; name: string; description: string }>;
+      currentFeatures: Array<{ id: string; name: string; description: string }>;
+    };
+
+    // Build feature maps for comparison
+    const newFeatureIds = result.newFeatures.map((f) => f.id);
+    const currentFeatureIds = result.currentFeatures.map((f) => f.id);
+
     const newFeatureMap = new Map(
-      (newFeatures || []).map((f: any) => [
-        f.feature_id,
-        {
-          id: f.feature_catalog.id,
-          name: f.feature_catalog.name,
-          description: f.feature_catalog.description,
-        },
-      ])
+      result.newFeatures.map((f) => [f.id, f])
     );
-
-    // Get features from current offering (if exists)
-    let currentFeatureIds: string[] = [];
-    const currentFeatureMap = new Map();
-
-    if (currentOfferingId) {
-      const { data: currentFeatures, error: currentError } = await supabase
-        .from('product_offering_features')
-        .select(`
-          feature_id,
-          feature_catalog (
-            id,
-            name,
-            description
-          )
-        `)
-        .eq('offering_id', currentOfferingId);
-
-      if (currentError) {
-        throw new Error(`Failed to get current offering features: ${currentError.message}`);
-      }
-
-      currentFeatureIds = (currentFeatures || []).map((f: any) => f.feature_id);
-      (currentFeatures || []).forEach((f: any) => {
-        currentFeatureMap.set(f.feature_id, {
-          id: f.feature_catalog.id,
-          name: f.feature_catalog.name,
-          description: f.feature_catalog.description,
-        });
-      });
-    }
+    const currentFeatureMap = new Map(
+      result.currentFeatures.map((f) => [f.id, f])
+    );
 
     // Calculate differences
     const features_to_add = newFeatureIds
