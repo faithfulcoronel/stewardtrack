@@ -11,6 +11,10 @@ export interface MetadataEvaluationContext {
   roles?: string[] | null; // Support for multiple roles
   featureFlags?: Record<string, boolean> | null | undefined;
   searchParams?: Record<string, string | string[] | undefined>;
+  // License context (added in Phase 2)
+  licenseFeatures?: string[] | null; // Active license features for tenant
+  licensedSurfaces?: string[] | null; // Surfaces available under license
+  licenseTier?: string | null; // Current license tier (e.g., 'basic', 'professional', 'enterprise')
 }
 
 export interface DataScope {
@@ -28,6 +32,10 @@ interface ExpressionScope {
   role: string;
   roles: string[];
   actions: ActionScope;
+  // License context for expressions
+  licenseFeatures: string[];
+  licensedSurfaces: string[];
+  licenseTier: string;
 }
 
 type ExpressionEvaluator = (scope: ExpressionScope) => unknown;
@@ -154,6 +162,10 @@ export function evaluateMetadataProp(
 ): unknown {
   const role = context.role ?? "guest";
   const roles = context.roles ?? [role];
+  const licenseFeatures = context.licenseFeatures ?? [];
+  const licensedSurfaces = context.licensedSurfaces ?? [];
+  const licenseTier = context.licenseTier ?? "basic";
+
   switch (prop.kind) {
     case "static":
       return prop.value;
@@ -170,6 +182,9 @@ export function evaluateMetadataProp(
         role,
         roles,
         actions,
+        licenseFeatures,
+        licensedSurfaces,
+        licenseTier,
       };
       try {
         return evaluateExpression(prop.expression, scope);
@@ -208,6 +223,9 @@ function compileExpression(expression: string): ExpressionEvaluator {
       "role",
       "roles",
       "actions",
+      "licenseFeatures",
+      "licensedSurfaces",
+      "licenseTier",
       `"use strict"; return (${expression});`,
     ) as (
       data: DataScope,
@@ -216,9 +234,22 @@ function compileExpression(expression: string): ExpressionEvaluator {
       role: string,
       roles: string[],
       actions: ActionScope,
+      licenseFeatures: string[],
+      licensedSurfaces: string[],
+      licenseTier: string,
     ) => unknown;
 
-    return (scope) => compiled(scope.data, scope.flags, scope.params, scope.role, scope.roles, scope.actions);
+    return (scope) => compiled(
+      scope.data,
+      scope.flags,
+      scope.params,
+      scope.role,
+      scope.roles,
+      scope.actions,
+      scope.licenseFeatures,
+      scope.licensedSurfaces,
+      scope.licenseTier
+    );
   } catch (error) {
     const err = toError(error);
     console.error(`Failed to compile expression ${expression}`, err);

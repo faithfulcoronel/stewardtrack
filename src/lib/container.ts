@@ -15,6 +15,8 @@ import { UserMemberLinkService } from '@/services/UserMemberLinkService';
 import { SupabaseAuditService, type AuditService } from '@/services/AuditService';
 import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 import { LicensingService } from '@/services/LicensingService';
+import { UserRoleService } from '@/services/UserRoleService';
+import { SidebarService } from '@/services/SidebarService';
 
 // Repositories
 import { RbacRepository } from '@/repositories/rbac.repository';
@@ -122,6 +124,18 @@ container
 container
   .bind<LicensingService>(TYPES.LicensingService)
   .to(LicensingService)
+  .inRequestScope();
+
+// ==================== USER ROLE SERVICE ====================
+container
+  .bind<UserRoleService>(TYPES.UserRoleService)
+  .to(UserRoleService)
+  .inRequestScope();
+
+// ==================== SIDEBAR SERVICE ====================
+container
+  .bind<SidebarService>(TYPES.SidebarService)
+  .to(SidebarService)
   .inRequestScope();
 
 // ==================== RBAC REPOSITORIES ====================

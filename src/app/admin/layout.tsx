@@ -31,7 +31,8 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "Administration",
     items: [
       { title: "Security", href: "/admin/security", icon: "security" },
-      { title: "RBAC Management", href: "/admin/security/rbac", icon: "shield" },
+      { title: "RBAC Management", href: "/admin/security/rbac", icon: "security" },
+      { title: "Licensing Studio", href: "/admin/licensing", icon: "projects" },
       { title: "Settings", href: "/admin/settings", icon: "settings" },
     ],
   },
@@ -87,4 +88,3 @@ export default async function AdminLayout({
     </AdminLayoutShell>
   );
 }
-

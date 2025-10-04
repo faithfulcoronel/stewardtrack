@@ -17,6 +17,12 @@ export const TYPES = {
   // Licensing Services
   LicensingService: Symbol.for('LicensingService'),
 
+  // User Role Service
+  UserRoleService: Symbol.for('UserRoleService'),
+
+  // Sidebar Service
+  SidebarService: Symbol.for('SidebarService'),
+
   // RBAC Adapters
   IRoleAdapter: Symbol.for('IRoleAdapter'),
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),
