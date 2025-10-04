@@ -14,7 +14,8 @@ import {
   Wallet,
   Briefcase,
   Blocks,
-  Layers
+  Layers,
+  BookOpen
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export const ADMIN_NAV_ICONS = {
   projects: Briefcase,
   uiBlocks: Blocks,
   modules: Layers,
+  docs: BookOpen,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
 type IconKey = keyof typeof ADMIN_NAV_ICONS;
