@@ -2,7 +2,7 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
 import { TYPES } from '@/lib/types';
-import type { AuditService } from '@/services/audit.service';
+import type { AuditService } from '@/services/AuditService';
 import type { Role, CreateRoleDto, UpdateRoleDto, RoleWithPermissions } from '@/models/rbac.model';
 
 export interface IRoleAdapter extends IBaseAdapter<Role> {
