@@ -1,5 +1,5 @@
 import 'server-only';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * License Audit Query Helpers
@@ -62,7 +62,7 @@ export async function getLicenseChangeHistory(
     limit?: number;
   } = {}
 ): Promise<LicenseChangeRecord[]> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from('rbac_audit_log')
@@ -109,7 +109,7 @@ export async function getUserRoleHistory(
   userId: string,
   tenantId?: string
 ): Promise<RoleAssignmentHistory[]> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from('rbac_audit_log')
@@ -180,7 +180,7 @@ export async function getFeatureGrantHistory(
     limit?: number;
   } = {}
 ): Promise<FeatureGrantHistory[]> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from('rbac_audit_log')
@@ -263,7 +263,7 @@ export async function getComplianceReport(
   security_events: number;
   high_impact_changes: LicenseChangeRecord[];
 }> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   // Get all license changes
   const license_changes = await getLicenseChangeHistory(tenantId, {
@@ -324,7 +324,7 @@ export async function getUserAccessLog(
     limit?: number;
   } = {}
 ): Promise<LicenseChangeRecord[]> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from('rbac_audit_log')
@@ -373,7 +373,7 @@ export async function getLicensingDriftReport(
     users_affected: number;
   }>;
 }> {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase.rpc('get_licensing_drift_report', {
     p_tenant_id: tenantId,

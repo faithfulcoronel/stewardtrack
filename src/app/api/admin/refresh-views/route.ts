@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/admin/refresh-views
@@ -20,7 +20,7 @@ import { createClient } from '@/utils/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     // Check admin authorization
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check admin authorization
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

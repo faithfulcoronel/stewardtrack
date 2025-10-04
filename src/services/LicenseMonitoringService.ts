@@ -1,7 +1,7 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { AuditService } from './AuditService';
 
 /**
@@ -86,7 +86,7 @@ export class LicenseMonitoringService {
    * Get license utilization metrics for all tenants
    */
   async getLicenseUtilization(): Promise<LicenseUtilization[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase.rpc('get_license_utilization_metrics');
 
@@ -110,7 +110,7 @@ export class LicenseMonitoringService {
    * Get feature adoption metrics across all tenants
    */
   async getFeatureAdoption(): Promise<FeatureAdoption[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase.rpc('get_feature_adoption_metrics');
 
@@ -238,7 +238,7 @@ export class LicenseMonitoringService {
    * Detect RBAC surfaces that require licenses but tenant doesn't have them
    */
   private async detectRbacLicenseMismatches(): Promise<LicenseAnomaly[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const anomalies: LicenseAnomaly[] = [];
 
     const { data, error } = await supabase.rpc('detect_rbac_license_mismatches');
@@ -271,7 +271,7 @@ export class LicenseMonitoringService {
    * Detect tenants with abandoned onboarding processes
    */
   private async detectOnboardingAbandonment(): Promise<LicenseAnomaly[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const anomalies: LicenseAnomaly[] = [];
 
     // Get onboarding progress for incomplete tenants
@@ -319,7 +319,7 @@ export class LicenseMonitoringService {
    * Get onboarding metrics
    */
   async getOnboardingMetrics(): Promise<OnboardingMetrics> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data: allProgress } = await supabase
       .from('onboarding_progress')
@@ -375,7 +375,7 @@ export class LicenseMonitoringService {
    * Get comprehensive system health metrics
    */
   async getSystemHealthMetrics(): Promise<SystemHealthMetrics> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     // Get subscription metrics
     const { data: subscriptions } = await supabase

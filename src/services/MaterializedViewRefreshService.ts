@@ -2,7 +2,7 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from './AuditService';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * MaterializedViewRefreshService
@@ -63,7 +63,7 @@ export class MaterializedViewRefreshService {
     let rowCount: number | null = null;
 
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
 
       // Try concurrent refresh first (doesn't lock the view)
       try {
@@ -140,7 +140,7 @@ export class MaterializedViewRefreshService {
     let rowCount: number | null = null;
 
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
 
       // Try concurrent refresh first
       try {
@@ -217,7 +217,7 @@ export class MaterializedViewRefreshService {
     let rowCount: number | null = null;
 
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
 
       // Use the safe refresh function that's already implemented
       const { data, error: rpcError } = await supabase.rpc('refresh_tenant_user_effective_permissions_safe');
@@ -296,7 +296,7 @@ export class MaterializedViewRefreshService {
    * Gets the refresh history for a specific view
    */
   async getRefreshHistory(viewName: string, limit: number = 50): Promise<RefreshJobRecord[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('materialized_view_refresh_jobs')
@@ -317,7 +317,7 @@ export class MaterializedViewRefreshService {
    * Gets the latest refresh metrics for all views
    */
   async getLatestRefreshMetrics(): Promise<RefreshJobRecord[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('materialized_view_refresh_jobs')
@@ -380,7 +380,7 @@ export class MaterializedViewRefreshService {
    */
   private async logRefreshOperation(metrics: RefreshMetrics): Promise<void> {
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
 
       const { data: { user } } = await supabase.auth.getUser();
 

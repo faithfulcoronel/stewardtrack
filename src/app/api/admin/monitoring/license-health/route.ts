@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/admin/monitoring/license-health
@@ -18,7 +18,7 @@ import { createClient } from '@/utils/supabase/server';
 export async function GET(request: NextRequest) {
   try {
     // Check admin authorization
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

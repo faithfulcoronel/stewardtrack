@@ -1,6 +1,6 @@
 import 'server-only';
 import { injectable } from 'inversify';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * LicenseValidationService
@@ -78,7 +78,7 @@ export class LicenseValidationService {
    * Validate all tenants
    */
   async validateAllTenants(): Promise<ValidationReport[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data: tenants } = await supabase
       .from('tenants')
@@ -99,7 +99,7 @@ export class LicenseValidationService {
    * Check for expired licenses
    */
   private async checkExpiredLicenses(tenantId: string): Promise<ValidationIssue[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const issues: ValidationIssue[] = [];
 
     const { data } = await supabase
@@ -137,7 +137,7 @@ export class LicenseValidationService {
    * Check for overlapping feature grants
    */
   private async checkOverlappingGrants(tenantId: string): Promise<ValidationIssue[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const issues: ValidationIssue[] = [];
 
     // Find features granted multiple times
@@ -177,7 +177,7 @@ export class LicenseValidationService {
    * Check for RBAC surfaces that require licenses but tenant doesn't have them
    */
   private async checkMissingLicenses(tenantId: string): Promise<ValidationIssue[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const issues: ValidationIssue[] = [];
 
     const { data } = await supabase.rpc('detect_rbac_license_mismatches', {
@@ -207,7 +207,7 @@ export class LicenseValidationService {
    * Check for orphaned permissions (permissions assigned but no role bindings)
    */
   private async checkOrphanedPermissions(tenantId: string): Promise<ValidationIssue[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const issues: ValidationIssue[] = [];
 
     // Find permissions not linked to any role
@@ -243,7 +243,7 @@ export class LicenseValidationService {
    * Check for invalid surface license bindings
    */
   private async checkInvalidBindings(tenantId: string): Promise<ValidationIssue[]> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const issues: ValidationIssue[] = [];
 
     // Find surface bindings with invalid bundle references

@@ -1,6 +1,6 @@
 import 'server-only';
 import { injectable } from 'inversify';
-import { createClient } from '@/utils/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * MetricsService
@@ -40,7 +40,7 @@ export class MetricsService {
    */
   async recordMetric(metric: PerformanceMetric): Promise<void> {
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
 
       await supabase.from('performance_metrics').insert({
         metric_name: metric.metric_name,
@@ -110,7 +110,7 @@ export class MetricsService {
       tenantId?: string;
     } = {}
   ): Promise<LatencyPercentiles> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     let query = supabase
       .from('performance_metrics')
@@ -192,7 +192,7 @@ export class MetricsService {
    * Clean up old metrics (retention policy)
    */
   async cleanupOldMetrics(retentionDays: number = 90): Promise<number> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
