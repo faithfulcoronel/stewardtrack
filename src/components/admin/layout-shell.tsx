@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Bell, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { AdminMobileNav } from "./mobile-nav";
@@ -31,6 +32,7 @@ export function AdminLayoutShell({
   logoutAction,
 }: AdminLayoutShellProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
   return (
     <div
@@ -65,6 +67,32 @@ export function AdminLayoutShell({
                 placeholder="Search projects, users..."
                 className="hidden h-11 w-44 rounded-full border border-border/60 bg-muted/20 px-4 text-sm sm:block md:w-60"
               />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="flex-none rounded-full border border-border/60 text-muted-foreground"
+                    aria-pressed={isCanvasExpanded}
+                    aria-label={
+                      isCanvasExpanded
+                        ? "Collapse main content width"
+                        : "Expand main content to full width"
+                    }
+                    onClick={() => setIsCanvasExpanded((prev) => !prev)}
+                  >
+                    {isCanvasExpanded ? (
+                      <Minimize2 className="size-4" />
+                    ) : (
+                      <Maximize2 className="size-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isCanvasExpanded ? "Exit full-width" : "Full-width canvas"}
+                </TooltipContent>
+              </Tooltip>
               <Button
                 variant="ghost"
                 size="icon"
@@ -83,7 +111,14 @@ export function AdminLayoutShell({
           </div>
         </header>
         <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <div
+            className={cn(
+              "w-full transition-all duration-300",
+              isCanvasExpanded ? "max-w-none" : "mx-auto max-w-6xl"
+            )}
+          >
+            {children}
+          </div>
         </main>
       </div>
     </div>
