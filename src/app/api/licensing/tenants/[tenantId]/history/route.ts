@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { LicensingService } from '@/services/LicensingService';
-import { getServerSession } from '@/lib/authUtils';
+import { authUtils } from '@/utils/authUtils';
 
 /**
  * GET /api/licensing/tenants/[tenantId]/history
@@ -23,8 +23,8 @@ export async function GET(
 ) {
   try {
     // Verify user is authenticated
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const user = await authUtils.getUser();
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
