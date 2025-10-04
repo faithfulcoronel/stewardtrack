@@ -1,7 +1,8 @@
 -- Migration: Create Tenant License Summary Materialized View
 -- Created: 2025-10-04
 -- Description: Creates a materialized view that summarizes tenant licensing state for performance optimization
---              Combines data from tenants, tenant_feature_grants, product_offerings, and v_effective_surface_access
+--              Combines data from tenants, tenant_feature_grants, and v_effective_surface_access
+-- Note: Uses existing subscription_tier column from tenants table (not product_offerings FK yet)
 
 -- =====================================================================================
 -- MATERIALIZED VIEW: v_tenant_license_summary
@@ -36,12 +37,12 @@ SELECT
     ARRAY[]::text[]
   ) AS licensed_surface_ids,
 
-  -- Product offering information
-  po.id AS offering_id,
-  po.name AS offering_name,
-  po.tier AS offering_tier,
-  po.description AS offering_description,
-  po.is_active AS offering_is_active,
+  -- Tenant subscription information (using existing subscription_tier column)
+  NULL::uuid AS offering_id,
+  NULL::text AS offering_name,
+  t.subscription_tier AS offering_tier,
+  NULL::text AS offering_description,
+  CASE WHEN t.subscription_status = 'active' THEN true ELSE false END AS offering_is_active,
 
   -- Metadata for tracking
   COUNT(DISTINCT tgf.feature_id) AS feature_count,
@@ -50,31 +51,25 @@ SELECT
 
 FROM tenants t
 
--- Join with product offerings (tenant's subscription)
-LEFT JOIN product_offerings po ON po.id = t.subscription_offering_id
-
--- Join with active tenant feature grants
+-- Join with active tenant feature grants (active = between starts_at and expires_at)
 LEFT JOIN tenant_feature_grants tgf ON tgf.tenant_id = t.id
-  AND tgf.is_active = true
-  AND (tgf.expires_at IS NULL OR tgf.expires_at > NOW())
+  AND (tgf.starts_at IS NULL OR tgf.starts_at <= CURRENT_DATE)
+  AND (tgf.expires_at IS NULL OR tgf.expires_at >= CURRENT_DATE)
 
 -- Join with feature catalog to get feature codes
 LEFT JOIN feature_catalog fc ON fc.id = tgf.feature_id
 
--- Join with effective surface access view
+-- Join with effective surface access view (if exists)
 LEFT JOIN v_effective_surface_access vesa ON vesa.tenant_id = t.id
 
--- Only include active tenants
-WHERE t.deleted_at IS NULL
+-- Only include active tenants (check if deleted_at column exists)
+WHERE t.status = 'active'
 
 GROUP BY
   t.id,
   t.name,
-  po.id,
-  po.name,
-  po.tier,
-  po.description,
-  po.is_active;
+  t.subscription_tier,
+  t.subscription_status;
 
 -- =====================================================================================
 -- INDEXES

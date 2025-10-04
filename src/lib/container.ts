@@ -15,6 +15,10 @@ import { UserMemberLinkService } from '@/services/UserMemberLinkService';
 import { SupabaseAuditService, type AuditService } from '@/services/AuditService';
 import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 import { LicensingService } from '@/services/LicensingService';
+import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
+import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
+import { LicenseValidationService } from '@/services/LicenseValidationService';
+import { MetricsService } from '@/services/MetricsService';
 import { UserRoleService } from '@/services/UserRoleService';
 import { SidebarService } from '@/services/SidebarService';
 
@@ -124,6 +128,27 @@ container
 container
   .bind<LicensingService>(TYPES.LicensingService)
   .to(LicensingService)
+  .inRequestScope();
+
+// ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
+container
+  .bind<MaterializedViewRefreshService>(TYPES.MaterializedViewRefreshService)
+  .to(MaterializedViewRefreshService)
+  .inRequestScope();
+
+container
+  .bind<LicenseMonitoringService>(TYPES.LicenseMonitoringService)
+  .to(LicenseMonitoringService)
+  .inRequestScope();
+
+container
+  .bind<LicenseValidationService>(TYPES.LicenseValidationService)
+  .to(LicenseValidationService)
+  .inRequestScope();
+
+container
+  .bind<MetricsService>(TYPES.MetricsService)
+  .to(MetricsService)
   .inRequestScope();
 
 // ==================== USER ROLE SERVICE ====================

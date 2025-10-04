@@ -96,6 +96,20 @@
     font-family: var(--font-family-body);
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
+    /* Improved text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection styles */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
   }
   
   /* Improve touch targets on mobile */
@@ -381,11 +395,30 @@
   .text-responsive-3xl {
     font-size: 1.875rem;
   }
-  
+
   @media (min-width: 768px) {
     .text-responsive-3xl {
       font-size: 2.5rem;
     }
+  }
+
+  /* Marketing page utilities */
+  .glass {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20;
+  }
+
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -524,6 +557,8 @@ html {
   font-family: var(--font-family-body);
   /* Better mobile scrolling */
   -webkit-overflow-scrolling: touch;
+  /* Smooth scroll behavior for anchor links */
+  scroll-behavior: smooth;
 }
 
 /* Mobile viewport fix */

@@ -17,6 +17,12 @@ export const TYPES = {
   // Licensing Services
   LicensingService: Symbol.for('LicensingService'),
 
+  // Phase 5 Optimization & Monitoring Services
+  MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),
+  LicenseMonitoringService: Symbol.for('LicenseMonitoringService'),
+  LicenseValidationService: Symbol.for('LicenseValidationService'),
+  MetricsService: Symbol.for('MetricsService'),
+
   // User Role Service
   UserRoleService: Symbol.for('UserRoleService'),
 

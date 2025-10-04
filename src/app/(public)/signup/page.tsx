@@ -102,12 +102,18 @@ export default function SignupPage() {
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
+      {/* Hero Section */}
+      <div className="text-center mb-12 space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm mb-4">
+          <span className="size-2 rounded-full bg-primary animate-pulse" />
+          14-Day Free Trial • No Credit Card Required
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-foreground">
           Choose Your Plan
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Start managing your church more effectively today
+          Start managing your church more effectively today. Join 500+ churches already saving time.
         </p>
       </div>
 
@@ -218,10 +224,69 @@ export default function SignupPage() {
         </div>
       )}
 
-      <div className="mt-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          All plans include 30-day money-back guarantee. No credit card required for trial.
-        </p>
+      <div className="mt-12 space-y-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            All plans include 30-day money-back guarantee. No credit card required for trial.
+          </p>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex flex-wrap justify-center gap-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="rounded-full bg-primary/10 p-1.5">
+              <Check className="size-3 text-primary" />
+            </div>
+            <span>Cancel Anytime</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="rounded-full bg-primary/10 p-1.5">
+              <Check className="size-3 text-primary" />
+            </div>
+            <span>Instant Setup</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="rounded-full bg-primary/10 p-1.5">
+              <Check className="size-3 text-primary" />
+            </div>
+            <span>Secure & Private</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="rounded-full bg-primary/10 p-1.5">
+              <Check className="size-3 text-primary" />
+            </div>
+            <span>24/7 Support</span>
+          </div>
+        </div>
+
+        {/* FAQ Callout */}
+        <div className="mx-auto max-w-2xl rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur-sm">
+          <h3 className="text-center font-semibold text-foreground mb-4">
+            Questions? We're Here to Help
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/#faq"
+              className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              View FAQ
+            </a>
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <a
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              Contact Sales
+            </a>
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <a
+              href="/demo"
+              className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              Schedule Demo
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );
