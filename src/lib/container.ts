@@ -13,6 +13,7 @@ import { RbacPublishingService } from '@/services/RbacPublishingService';
 import { RbacStatisticsService } from '@/services/RbacStatisticsService';
 import { UserMemberLinkService } from '@/services/UserMemberLinkService';
 import { SupabaseAuditService, type AuditService } from '@/services/AuditService';
+import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 
 // Repositories
 import { RbacRepository } from '@/repositories/rbac.repository';
@@ -29,6 +30,9 @@ import { RbacAuditRepository } from '@/repositories/rbacAudit.repository';
 import { PublishingRepository } from '@/repositories/publishing.repository';
 import { UserMemberLinkRepository } from '@/repositories/userMemberLink.repository';
 import { MemberInvitationRepository } from '@/repositories/memberInvitation.repository';
+import { LicenseRepository } from '@/repositories/license.repository';
+import { LicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
+import { LicensePlanRepository } from '@/repositories/licensePlan.repository';
 
 // Repository Interfaces
 import type { IRoleRepository } from '@/repositories/role.repository';
@@ -42,6 +46,9 @@ import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeature
 import type { IDelegationRepository } from '@/repositories/delegation.repository';
 import type { IRbacAuditRepository } from '@/repositories/rbacAudit.repository';
 import type { IPublishingRepository } from '@/repositories/publishing.repository';
+import type { ILicenseRepository } from '@/repositories/license.repository';
+import type { ILicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
+import type { ILicensePlanRepository } from '@/repositories/licensePlan.repository';
 
 // Adapters
 import { RoleAdapter } from '@/adapters/role.adapter';
@@ -55,6 +62,9 @@ import { TenantFeatureGrantAdapter } from '@/adapters/tenantFeatureGrant.adapter
 import { DelegationAdapter } from '@/adapters/delegation.adapter';
 import { RbacAuditAdapter } from '@/adapters/rbacAudit.adapter';
 import { PublishingAdapter } from '@/adapters/publishing.adapter';
+import { LicenseAdapter } from '@/adapters/license.adapter';
+import { LicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
+import { LicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 
 // Adapter Interfaces
 import type { IRoleAdapter } from '@/adapters/role.adapter';
@@ -68,6 +78,9 @@ import type { ITenantFeatureGrantAdapter } from '@/adapters/tenantFeatureGrant.a
 import type { IDelegationAdapter } from '@/adapters/delegation.adapter';
 import type { IRbacAuditAdapter } from '@/adapters/rbacAudit.adapter';
 import type { IPublishingAdapter } from '@/adapters/publishing.adapter';
+import type { ILicenseAdapter } from '@/adapters/license.adapter';
+import type { ILicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
+import type { ILicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 
 const container = new Container();
 
@@ -87,6 +100,12 @@ container.bind<RbacAuditService>(TYPES.RbacAuditService).to(RbacAuditService).in
 container.bind<RbacPublishingService>(TYPES.RbacPublishingService).to(RbacPublishingService).inRequestScope();
 container.bind<RbacStatisticsService>(TYPES.RbacStatisticsService).to(RbacStatisticsService).inRequestScope();
 
+// ==================== LICENSE SERVICES ====================
+container
+  .bind<LicenseFeatureService>(TYPES.LicenseFeatureService)
+  .to(LicenseFeatureService)
+  .inRequestScope();
+
 // ==================== RBAC REPOSITORIES ====================
 // Legacy RBAC Repository (will be phased out)
 container.bind<RbacRepository>(TYPES.RbacRepository).to(RbacRepository).inRequestScope();
@@ -103,6 +122,12 @@ container.bind<ITenantFeatureGrantRepository>(TYPES.ITenantFeatureGrantRepositor
 container.bind<IDelegationRepository>(TYPES.IDelegationRepository).to(DelegationRepository).inRequestScope();
 container.bind<IRbacAuditRepository>(TYPES.IRbacAuditRepository).to(RbacAuditRepository).inRequestScope();
 container.bind<IPublishingRepository>(TYPES.IPublishingRepository).to(PublishingRepository).inRequestScope();
+container.bind<ILicenseRepository>(TYPES.ILicenseRepository).to(LicenseRepository).inRequestScope();
+container
+  .bind<ILicenseFeatureRepository>(TYPES.ILicenseFeatureRepository)
+  .to(LicenseFeatureRepository)
+  .inRequestScope();
+container.bind<ILicensePlanRepository>(TYPES.ILicensePlanRepository).to(LicensePlanRepository).inRequestScope();
 
 // ==================== RBAC ADAPTERS ====================
 container.bind<IRoleAdapter>(TYPES.IRoleAdapter).to(RoleAdapter).inRequestScope();
@@ -116,6 +141,15 @@ container.bind<ITenantFeatureGrantAdapter>(TYPES.ITenantFeatureGrantAdapter).to(
 container.bind<IDelegationAdapter>(TYPES.IDelegationAdapter).to(DelegationAdapter).inRequestScope();
 container.bind<IRbacAuditAdapter>(TYPES.IRbacAuditAdapter).to(RbacAuditAdapter).inRequestScope();
 container.bind<IPublishingAdapter>(TYPES.IPublishingAdapter).to(PublishingAdapter).inRequestScope();
+container.bind<ILicenseAdapter>(TYPES.ILicenseAdapter).to(LicenseAdapter).inRequestScope();
+container
+  .bind<ILicenseFeatureAdapter>(TYPES.ILicenseFeatureAdapter)
+  .to(LicenseFeatureAdapter)
+  .inRequestScope();
+container
+  .bind<ILicensePlanAdapter>(TYPES.ILicensePlanAdapter)
+  .to(LicensePlanAdapter)
+  .inRequestScope();
 
 // ==================== USER MEMBER LINK SERVICES ====================
 container.bind<UserMemberLinkService>(TYPES.UserMemberLinkService).to(UserMemberLinkService).inRequestScope();

@@ -84,6 +84,7 @@ export const TYPES = {
   ILicenseFeatureAdapter: Symbol.for('ILicenseFeatureAdapter'),
   ILicenseFeatureRepository: Symbol.for('ILicenseFeatureRepository'),
   ILicensePlanAdapter: Symbol.for('ILicensePlanAdapter'),
+  ILicensePlanRepository: Symbol.for('ILicensePlanRepository'),
   ILicenseRepository: Symbol.for('ILicenseRepository'),
   IMemberAdapter: Symbol.for('IMemberAdapter'),
   IMemberRepository: Symbol.for('IMemberRepository'),
