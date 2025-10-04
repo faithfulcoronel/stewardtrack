@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Church, Twitter, Linkedin, Facebook, Mail } from "lucide-react";
 
 import { signOut } from "@/lib/auth/actions";
@@ -22,8 +23,15 @@ export default async function PublicLayout({
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-lg font-bold text-foreground transition-opacity hover:opacity-80">
-            <div className="rounded-lg bg-primary/10 p-1.5">
-              <Church className="size-5 text-primary" />
+            <div className="p-1.5">
+              <Image
+                  src="/logo_square.svg"
+                  alt="StewardTrack Logo"
+                  width={40}
+                  height={40}
+                  className="h-5 w-5 sm:h-8 sm:w-8"
+                  priority
+              />
             </div>
             <span>StewardTrack</span>
           </Link>
@@ -119,8 +127,15 @@ export default async function PublicLayout({
             {/* Brand Column */}
             <div className="lg:col-span-1">
               <Link href="/" className="flex items-center gap-2 text-lg font-bold text-foreground mb-4">
-                <div className="rounded-lg bg-primary/10 p-1.5">
-                  <Church className="size-5 text-primary" />
+                <div className="p-1.5">
+                  <Image
+                      src="/logo_square.svg"
+                      alt="StewardTrack Logo"
+                      width={40}
+                      height={40}
+                      className="h-5 w-5 sm:h-8 sm:w-8"
+                      priority
+                  />
                 </div>
                 <span>StewardTrack</span>
               </Link>
