@@ -1,0 +1,76 @@
+import { injectable, inject } from 'inversify';
+import { BaseRepository } from '@/repositories/base.repository';
+import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter';
+import type {
+  ProductOffering,
+  ProductOfferingWithFeatures,
+  CreateProductOfferingDto,
+  UpdateProductOfferingDto,
+} from '@/models/productOffering.model';
+import { TYPES } from '@/lib/types';
+
+export interface IProductOfferingRepository extends BaseRepository<ProductOffering> {
+  createOffering(data: CreateProductOfferingDto): Promise<ProductOffering>;
+  updateOffering(id: string, data: UpdateProductOfferingDto): Promise<ProductOffering>;
+  deleteOffering(id: string): Promise<void>;
+  getOffering(id: string): Promise<ProductOffering | null>;
+  getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null>;
+  getActiveOfferings(): Promise<ProductOffering[]>;
+  getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
+  addFeatureToOffering(offeringId: string, featureId: string, isRequired?: boolean): Promise<void>;
+  removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
+}
+
+@injectable()
+export class ProductOfferingRepository
+  extends BaseRepository<ProductOffering>
+  implements IProductOfferingRepository
+{
+  constructor(
+    @inject(TYPES.IProductOfferingAdapter)
+    private readonly productOfferingAdapter: IProductOfferingAdapter
+  ) {
+    super(productOfferingAdapter);
+  }
+
+  async createOffering(data: CreateProductOfferingDto): Promise<ProductOffering> {
+    const offering = await this.productOfferingAdapter.create(data);
+    return offering;
+  }
+
+  async updateOffering(id: string, data: UpdateProductOfferingDto): Promise<ProductOffering> {
+    const offering = await this.productOfferingAdapter.update(id, data);
+    if (!offering) {
+      throw new Error(`Product offering with id ${id} not found`);
+    }
+    return offering;
+  }
+
+  async deleteOffering(id: string): Promise<void> {
+    await this.productOfferingAdapter.delete(id);
+  }
+
+  async getOffering(id: string): Promise<ProductOffering | null> {
+    return await this.productOfferingAdapter.findById(id);
+  }
+
+  async getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null> {
+    return await this.productOfferingAdapter.getOfferingWithFeatures(id);
+  }
+
+  async getActiveOfferings(): Promise<ProductOffering[]> {
+    return await this.productOfferingAdapter.getActiveOfferings();
+  }
+
+  async getOfferingsByTier(tier: string): Promise<ProductOffering[]> {
+    return await this.productOfferingAdapter.getOfferingsByTier(tier);
+  }
+
+  async addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean = true): Promise<void> {
+    await this.productOfferingAdapter.addFeatureToOffering(offeringId, featureId, isRequired);
+  }
+
+  async removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void> {
+    await this.productOfferingAdapter.removeFeatureFromOffering(offeringId, featureId);
+  }
+}

@@ -4,6 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 import { TenantService } from '@/services/TenantService';
+import { LicensingService } from '@/services/LicensingService';
+import { UserRoleService } from '@/services/UserRoleService';
 
 interface SidebarItem {
   name: string;
@@ -11,6 +13,8 @@ interface SidebarItem {
   icon: string | null;
   section?: string;
   submenu?: SidebarItem[];
+  locked?: boolean; // Indicates if item is locked due to licensing
+  lockReason?: string; // Reason why item is locked
 }
 
 const DEFAULT_SECTION = 'General';
@@ -24,6 +28,10 @@ export class SidebarService {
     private licenseFeatureService: LicenseFeatureService,
     @inject(TYPES.TenantService)
     private tenantService: TenantService,
+    @inject(TYPES.LicensingService)
+    private licensingService: LicensingService,
+    @inject(TYPES.UserRoleService)
+    private userRoleService: UserRoleService,
   ) {}
 
   async getMenuItems(roleIds: string[]): Promise<SidebarItem[]> {

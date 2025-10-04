@@ -14,6 +14,9 @@ export const TYPES = {
   RbacPublishingService: Symbol.for('RbacPublishingService'),
   RbacStatisticsService: Symbol.for('RbacStatisticsService'),
 
+  // Licensing Services
+  LicensingService: Symbol.for('LicensingService'),
+
   // RBAC Adapters
   IRoleAdapter: Symbol.for('IRoleAdapter'),
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),
@@ -27,6 +30,11 @@ export const TYPES = {
   IRbacAuditAdapter: Symbol.for('IRbacAuditAdapter'),
   IPublishingAdapter: Symbol.for('IPublishingAdapter'),
 
+  // Licensing Adapters
+  IProductOfferingAdapter: Symbol.for('IProductOfferingAdapter'),
+  ILicenseFeatureBundleAdapter: Symbol.for('ILicenseFeatureBundleAdapter'),
+  ISurfaceLicenseBindingAdapter: Symbol.for('ISurfaceLicenseBindingAdapter'),
+
   // RBAC Repositories
   IRoleRepository: Symbol.for('IRoleRepository'),
   IPermissionRepository: Symbol.for('IPermissionRepository'),
@@ -38,6 +46,11 @@ export const TYPES = {
   IDelegationRepository: Symbol.for('IDelegationRepository'),
   IRbacAuditRepository: Symbol.for('IRbacAuditRepository'),
   IPublishingRepository: Symbol.for('IPublishingRepository'),
+
+  // Licensing Repositories
+  IProductOfferingRepository: Symbol.for('IProductOfferingRepository'),
+  ILicenseFeatureBundleRepository: Symbol.for('ILicenseFeatureBundleRepository'),
+  ISurfaceLicenseBindingRepository: Symbol.for('ISurfaceLicenseBindingRepository'),
 
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),
