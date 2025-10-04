@@ -294,4 +294,57 @@ export class LicensingService {
       effective_access: effectiveAccess,
     };
   }
+
+  // ==================== TENANT PROVISIONING METHODS ====================
+
+  /**
+   * Provisions a tenant license by granting all features from a product offering
+   * This is called during tenant onboarding/registration
+   *
+   * @param tenantId - The tenant to provision
+   * @param offeringId - The product offering to grant features from
+   */
+  async provisionTenantLicense(tenantId: string, offeringId: string): Promise<void> {
+    try {
+      // Get the offering with all its features
+      const offering = await this.getProductOfferingWithFeatures(offeringId);
+
+      if (!offering) {
+        throw new Error(`Product offering ${offeringId} not found`);
+      }
+
+      if (!offering.features || offering.features.length === 0) {
+        console.warn(`Product offering ${offeringId} has no features to grant`);
+        return;
+      }
+
+      // Import the repository here to avoid circular dependency
+      const { container } = await import('@/lib/container');
+      const { TYPES } = await import('@/lib/types');
+      const tenantFeatureGrantRepo = container.get<any>(TYPES.ITenantFeatureGrantRepository);
+
+      // Grant each feature to the tenant
+      const featureGrants = offering.features.map(feature => ({
+        tenant_id: tenantId,
+        feature_id: feature.id,
+        granted_at: new Date().toISOString(),
+        is_active: true,
+      }));
+
+      // Use the repository to create grants
+      for (const grant of featureGrants) {
+        try {
+          await tenantFeatureGrantRepo.create(grant);
+        } catch (error) {
+          // Log but continue if grant already exists
+          console.warn(`Feature grant may already exist for feature ${grant.feature_id}:`, error);
+        }
+      }
+
+      console.log(`Provisioned ${featureGrants.length} features for tenant ${tenantId} from offering ${offeringId}`);
+    } catch (error) {
+      console.error('Error provisioning tenant license:', error);
+      throw error;
+    }
+  }
 }
