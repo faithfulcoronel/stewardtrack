@@ -33,6 +33,7 @@ export interface CreateLicenseFeatureBundleDto {
   is_system?: boolean;
   sort_order?: number;
   metadata?: Record<string, any>;
+  feature_ids?: string[];
 }
 
 export interface UpdateLicenseFeatureBundleDto {
@@ -43,6 +44,7 @@ export interface UpdateLicenseFeatureBundleDto {
   is_active?: boolean;
   sort_order?: number;
   metadata?: Record<string, any>;
+  feature_ids?: string[];
 }
 
 export interface LicenseFeatureBundleWithFeatures extends LicenseFeatureBundle {

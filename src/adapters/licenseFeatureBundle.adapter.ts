@@ -48,6 +48,47 @@ export class LicenseFeatureBundleAdapter
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
+  // Override create to handle global table (no tenant_id column)
+  async create(data: Partial<LicenseFeatureBundle>): Promise<LicenseFeatureBundle> {
+    try {
+      // Check admin role directly from database
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can create feature bundles.');
+      }
+
+      // Run pre-create hook
+      const processedData = await this.onBeforeCreate(data);
+
+      // Create record (no tenant_id for global tables)
+      const userId = await this.getUserId();
+      const { data: created, error: createError } = await supabase
+        .from(this.tableName)
+        .insert({
+          ...processedData,
+          created_by: userId,
+          updated_by: userId,
+        })
+        .select()
+        .single();
+
+      if (createError || !created) {
+        throw new Error(createError?.message || 'Create failed');
+      }
+
+      const result = created as LicenseFeatureBundle;
+
+      // Run post-create hook
+      await this.onAfterCreate(result);
+
+      return result;
+    } catch (error: any) {
+      throw new Error(`Failed to create license feature bundle: ${error.message}`);
+    }
+  }
+
   async getBundleWithFeatures(bundleId: string): Promise<LicenseFeatureBundleWithFeatures | null> {
     const supabase = await this.getSupabaseClient();
 
@@ -236,6 +277,100 @@ export class LicenseFeatureBundleAdapter
       feature_id: featureId,
       display_order: displayOrder,
     });
+  }
+
+  // Override update to handle global table (no tenant_id column)
+  async update(id: string, data: Partial<LicenseFeatureBundle>, fieldsToRemove?: string[]): Promise<LicenseFeatureBundle> {
+    try {
+      // Check admin role directly from database
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can update feature bundles.');
+      }
+
+      // Run pre-update hook
+      let processedData = await this.onBeforeUpdate(id, data);
+
+      // Remove specified fields
+      if (fieldsToRemove) {
+        processedData = this.sanitizeData(processedData, fieldsToRemove);
+      }
+
+      // Update record (no tenant_id filter for global tables)
+      const userId = await this.getUserId();
+      const { data: updated, error: updateError } = await supabase
+        .from(this.tableName)
+        .update({
+          ...processedData,
+          updated_by: userId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .is('deleted_at', null)
+        .select()
+        .single();
+
+      if (updateError || !updated) {
+        throw new Error(updateError?.message || 'Update failed');
+      }
+
+      const result = updated as LicenseFeatureBundle;
+
+      // Run post-update hook
+      await this.onAfterUpdate(result);
+
+      return result;
+    } catch (error: any) {
+      throw new Error(`Failed to update license feature bundle: ${error.message}`);
+    }
+  }
+
+  // Override delete to handle global table (no tenant_id column)
+  async delete(id: string): Promise<void> {
+    try {
+      // Check admin role directly from database
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can delete feature bundles.');
+      }
+
+      // Run pre-delete hook
+      await this.onBeforeDelete(id);
+
+      const userId = await this.getUserId();
+
+      // Soft delete (no tenant_id filter for global tables)
+      const { error: deleteError } = await supabase
+        .from(this.tableName)
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_by: userId,
+        })
+        .eq('id', id)
+        .is('deleted_at', null);
+
+      if (deleteError) {
+        throw new Error(deleteError.message);
+      }
+
+      // Run post-delete hook
+      await this.onAfterDelete(id);
+    } catch (error: any) {
+      throw new Error(`Failed to delete license feature bundle: ${error.message}`);
+    }
+  }
+
+  // Helper method from BaseAdapter needed for sanitizeData
+  protected sanitizeData(data: Partial<LicenseFeatureBundle>, fieldsToRemove: string[]): Partial<LicenseFeatureBundle> {
+    const sanitized = { ...data };
+    for (const field of fieldsToRemove) {
+      delete (sanitized as any)[field];
+    }
+    return sanitized;
   }
 
   protected override async onAfterCreate(data: LicenseFeatureBundle): Promise<void> {

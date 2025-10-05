@@ -25,7 +25,7 @@ export function FeatureBundlesManager() {
   async function loadBundles() {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/licensing/feature-bundles');
+      const response = await fetch('/api/licensing/feature-bundles?withFeatures=true');
       const result = await response.json();
 
       if (result.success) {

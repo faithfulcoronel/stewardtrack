@@ -977,24 +977,246 @@ END IF;
 
 ---
 
+## Global Tables and Adapter Overrides
+
+### When Tables Don't Have tenant_id
+
+Some tables are **global resources** that don't belong to any specific tenant (e.g., `license_feature_bundles`, `feature_catalog`, `product_offerings`). These tables:
+
+- Have **no `tenant_id` column**
+- Are managed by **super_admin users only**
+- Require **overriding BaseAdapter methods**
+
+#### Problem: BaseAdapter Assumes tenant_id Exists
+
+The `BaseAdapter` base class automatically filters by `tenant_id` in `create`, `update`, and `delete` methods:
+
+```typescript
+// BaseAdapter.update() - Line 408
+.eq('id', id)
+.eq('tenant_id', tenantId)  // ❌ Fails for global tables!
+```
+
+This causes errors like:
+```
+Error [TenantContextError]: No tenant context found
+```
+
+#### Solution: Override Methods in Adapter
+
+For global tables, override the `create`, `update`, and `delete` methods to:
+1. **Check `super_admin` role directly from database** - REQUIRED before any operation
+2. **Omit `tenant_id` filter from queries** - ONLY for super_admin operations on global tables
+
+**CRITICAL SECURITY RULE**:
+- ✅ Global tables (no `tenant_id` column): Skip tenant filter ONLY if user is `super_admin`
+- ❌ All other tables: ALWAYS filter by `tenant_id` regardless of user role
+- ❌ Non-super_admin users: MUST NEVER access global tables or bypass tenant filtering
+
+**Example: License Feature Bundle Adapter**
+
+```typescript
+@injectable()
+export class LicenseFeatureBundleAdapter extends BaseAdapter<LicenseFeatureBundle> {
+  protected tableName = 'license_feature_bundles';
+
+  // Override create to handle global table
+  async create(data: Partial<LicenseFeatureBundle>): Promise<LicenseFeatureBundle> {
+    try {
+      // Check admin role directly from database (not context)
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can create feature bundles.');
+      }
+
+      // Run pre-create hook
+      const processedData = await this.onBeforeCreate(data);
+
+      // Create record (NO tenant_id filter)
+      const userId = await this.getUserId();
+      const { data: created, error: createError } = await supabase
+        .from(this.tableName)
+        .insert({
+          ...processedData,
+          created_by: userId,
+          updated_by: userId,
+        })
+        .select()
+        .single();
+
+      if (createError || !created) {
+        throw new Error(createError?.message || 'Create failed');
+      }
+
+      const result = created as LicenseFeatureBundle;
+      await this.onAfterCreate(result);
+
+      return result;
+    } catch (error: any) {
+      throw new Error(`Failed to create: ${error.message}`);
+    }
+  }
+
+  // Override update to handle global table
+  async update(id: string, data: Partial<LicenseFeatureBundle>, fieldsToRemove?: string[]): Promise<LicenseFeatureBundle> {
+    try {
+      // Check admin role directly from database
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can update feature bundles.');
+      }
+
+      let processedData = await this.onBeforeUpdate(id, data);
+
+      if (fieldsToRemove) {
+        processedData = this.sanitizeData(processedData, fieldsToRemove);
+      }
+
+      // Update record (NO tenant_id filter)
+      const userId = await this.getUserId();
+      const { data: updated, error: updateError } = await supabase
+        .from(this.tableName)
+        .update({
+          ...processedData,
+          updated_by: userId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .is('deleted_at', null)
+        .select()
+        .single();
+
+      if (updateError || !updated) {
+        throw new Error(updateError?.message || 'Update failed');
+      }
+
+      const result = updated as LicenseFeatureBundle;
+      await this.onAfterUpdate(result);
+
+      return result;
+    } catch (error: any) {
+      throw new Error(`Failed to update: ${error.message}`);
+    }
+  }
+
+  // Override delete to handle global table
+  async delete(id: string): Promise<void> {
+    try {
+      // Check admin role directly from database
+      const supabase = await this.getSupabaseClient();
+      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+      if (adminRole !== 'super_admin') {
+        throw new Error('Access denied. Only super admins can delete feature bundles.');
+      }
+
+      await this.onBeforeDelete(id);
+
+      const userId = await this.getUserId();
+
+      // Soft delete (NO tenant_id filter)
+      const { error: deleteError } = await supabase
+        .from(this.tableName)
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_by: userId,
+        })
+        .eq('id', id)
+        .is('deleted_at', null);
+
+      if (deleteError) {
+        throw new Error(deleteError.message);
+      }
+
+      await this.onAfterDelete(id);
+    } catch (error: any) {
+      throw new Error(`Failed to delete: ${error.message}`);
+    }
+  }
+
+  // Helper method needed for sanitizeData
+  protected sanitizeData(data: Partial<LicenseFeatureBundle>, fieldsToRemove: string[]): Partial<LicenseFeatureBundle> {
+    const sanitized = { ...data };
+    for (const field of fieldsToRemove) {
+      delete (sanitized as any)[field];
+    }
+    return sanitized;
+  }
+}
+```
+
+### Key Points for Global Tables
+
+1. **Check role directly**: Use `supabase.rpc('get_user_admin_role')` instead of `this.context?.roles`
+   - Context may not be properly populated
+   - Direct database check is more reliable
+
+2. **No tenant_id filter**: Omit `.eq('tenant_id', tenantId)` from queries
+   - Global tables don't have this column
+   - Filtering by it causes SQL errors
+   - **ONLY applicable for super_admin on global tables**
+
+3. **Super admin only**: Enforce `adminRole !== 'super_admin'` check **BEFORE any operation**
+   - Global resources should only be managed by super admins
+   - Reject all other roles early with clear error message
+   - **This check is mandatory - NEVER skip it**
+
+4. **Maintain hooks**: Still call `onBeforeCreate`, `onAfterCreate`, etc.
+   - Allows audit logging to work correctly
+   - Preserves lifecycle behavior
+
+5. **Override all CRUD methods**: Create, update, and delete all need overrides
+   - Base adapter assumes tenant context for all operations
+   - Each method must handle global table differently
+
+### Security Warning
+
+**NEVER** omit `tenant_id` filtering unless:
+1. ✅ The table is a global table (no `tenant_id` column exists)
+2. ✅ The user has been verified as `super_admin` via `get_user_admin_role()`
+3. ✅ You have overridden the adapter methods with explicit role checks
+
+**Violating this rule creates security vulnerabilities** where users could access data from other tenants!
+
+### When to Use This Pattern
+
+Override adapter methods when:
+- ✅ Table has no `tenant_id` column
+- ✅ Resource is managed globally by super admins
+- ✅ Examples: `license_feature_bundles`, `feature_catalog`, `product_offerings`
+
+Don't override when:
+- ❌ Table has `tenant_id` column
+- ❌ Resource belongs to specific tenants
+- ❌ Examples: `roles`, `permissions`, `members`, `tenants`
+
+---
+
 ## Security Considerations
 
 ### Tenant Isolation
 
-**CRITICAL**: Always filter by tenant_id
+**CRITICAL**: Always filter by tenant_id for tenant-scoped tables
 
 ```typescript
-// Every query must include tenant filter
+// Every query must include tenant filter (for tenant-scoped tables)
 const { data } = await supabase
   .from(this.tableName)
   .select('*')
-  .eq('tenant_id', tenantId); // REQUIRED
+  .eq('tenant_id', tenantId); // REQUIRED for tenant tables
 ```
+
+**EXCEPTION**: Global tables (see "Global Tables and Adapter Overrides" section above)
 
 ### Row Level Security (RLS)
 
 - All tables have RLS policies
-- Policies use `check_tenant_access(tenant_id)` function
+- Policies use `check_tenant_access(tenant_id)` function for tenant-scoped tables
+- For global tables, use SECURITY DEFINER functions with internal role checks
 - Never bypass RLS in application code
 - Trust database-level security
 
@@ -1073,5 +1295,5 @@ Remember: **Services NEVER call Supabase directly** - this is the most critical 
 
 ---
 
-**Last Updated**: 2025-10-03
-**Session Reference**: RBAC Refactoring and Implementation
+**Last Updated**: 2025-10-05
+**Session Reference**: Licensing Studio Implementation and Global Tables Pattern

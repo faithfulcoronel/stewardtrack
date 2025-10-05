@@ -66,7 +66,19 @@ export async function POST(request: NextRequest) {
     const body: CreateLicenseFeatureBundleDto = await request.json();
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
 
-    const bundle = await licensingService.createLicenseFeatureBundle(body);
+    const { feature_ids, ...bundleData } = body;
+    const bundle = await licensingService.createLicenseFeatureBundle(bundleData);
+
+    // Add features to the bundle if feature_ids are provided
+    if (feature_ids && feature_ids.length > 0) {
+      for (let i = 0; i < feature_ids.length; i++) {
+        await licensingService.addFeatureToBundle(bundle.id, {
+          feature_id: feature_ids[i],
+          is_required: true,
+          display_order: i,
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

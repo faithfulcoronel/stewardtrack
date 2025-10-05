@@ -66,7 +66,37 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body: UpdateLicenseFeatureBundleDto = await request.json();
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
 
-    const bundle = await licensingService.updateLicenseFeatureBundle(id, body);
+    const { feature_ids, ...bundleData } = body;
+    const bundle = await licensingService.updateLicenseFeatureBundle(id, bundleData);
+
+    // Update features if feature_ids are provided
+    if (feature_ids !== undefined) {
+      // Get current bundle features
+      const bundleWithFeatures = await licensingService.getLicenseFeatureBundleWithFeatures(id);
+      const currentFeatureIds = bundleWithFeatures?.features?.map(f => f.id) || [];
+
+      // Remove features that are no longer selected
+      for (const featureId of currentFeatureIds) {
+        if (!feature_ids.includes(featureId)) {
+          await licensingService.removeFeatureFromBundle(id, featureId);
+        }
+      }
+
+      // Add new features
+      for (let i = 0; i < feature_ids.length; i++) {
+        const featureId = feature_ids[i];
+        if (!currentFeatureIds.includes(featureId)) {
+          await licensingService.addFeatureToBundle(id, {
+            feature_id: featureId,
+            is_required: true,
+            display_order: i,
+          });
+        } else {
+          // Update display order for existing features
+          await licensingService.updateFeatureOrderInBundle(id, featureId, i);
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,
