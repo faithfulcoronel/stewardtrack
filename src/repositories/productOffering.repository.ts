@@ -4,6 +4,8 @@ import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter
 import type {
   ProductOffering,
   ProductOfferingWithFeatures,
+  ProductOfferingWithBundles,
+  ProductOfferingComplete,
   CreateProductOfferingDto,
   UpdateProductOfferingDto,
 } from '@/models/productOffering.model';
@@ -19,6 +21,11 @@ export interface IProductOfferingRepository extends BaseRepository<ProductOfferi
   getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
   addFeatureToOffering(offeringId: string, featureId: string, isRequired?: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
+  addBundleToOffering(offeringId: string, bundleId: string, isRequired?: boolean, displayOrder?: number): Promise<void>;
+  removeBundleFromOffering(offeringId: string, bundleId: string): Promise<void>;
+  getOfferingBundles(offeringId: string): Promise<Array<{ id: string; code: string; name: string; bundle_type: string; category: string; is_required: boolean; display_order: number; feature_count: number }>>;
+  getOfferingWithBundles(offeringId: string): Promise<ProductOfferingWithBundles | null>;
+  getOfferingComplete(offeringId: string): Promise<ProductOfferingComplete | null>;
 }
 
 @injectable()
@@ -72,5 +79,25 @@ export class ProductOfferingRepository
 
   async removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void> {
     await this.productOfferingAdapter.removeFeatureFromOffering(offeringId, featureId);
+  }
+
+  async addBundleToOffering(offeringId: string, bundleId: string, isRequired: boolean = true, displayOrder?: number): Promise<void> {
+    await this.productOfferingAdapter.addBundleToOffering(offeringId, bundleId, isRequired, displayOrder);
+  }
+
+  async removeBundleFromOffering(offeringId: string, bundleId: string): Promise<void> {
+    await this.productOfferingAdapter.removeBundleFromOffering(offeringId, bundleId);
+  }
+
+  async getOfferingBundles(offeringId: string): Promise<Array<{ id: string; code: string; name: string; bundle_type: string; category: string; is_required: boolean; display_order: number; feature_count: number }>> {
+    return await this.productOfferingAdapter.getOfferingBundles(offeringId);
+  }
+
+  async getOfferingWithBundles(offeringId: string): Promise<ProductOfferingWithBundles | null> {
+    return await this.productOfferingAdapter.getOfferingWithBundles(offeringId);
+  }
+
+  async getOfferingComplete(offeringId: string): Promise<ProductOfferingComplete | null> {
+    return await this.productOfferingAdapter.getOfferingComplete(offeringId);
   }
 }

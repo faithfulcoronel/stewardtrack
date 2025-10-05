@@ -14,7 +14,8 @@
       "Bash(npm install:*)",
       "Bash(cat:*)",
       "Bash(xargs sed:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\licensing\\product-offerings\")"
     ],
     "deny": [],
     "ask": []

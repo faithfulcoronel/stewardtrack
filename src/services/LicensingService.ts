@@ -135,6 +135,41 @@ export class LicensingService {
     await this.productOfferingRepository.removeFeatureFromOffering(offeringId, featureId);
   }
 
+  /**
+   * Adds a bundle to a product offering
+   */
+  async addBundleToOffering(offeringId: string, bundleId: string, isRequired: boolean = true, displayOrder?: number): Promise<void> {
+    await this.productOfferingRepository.addBundleToOffering(offeringId, bundleId, isRequired, displayOrder);
+  }
+
+  /**
+   * Removes a bundle from a product offering
+   */
+  async removeBundleFromOffering(offeringId: string, bundleId: string): Promise<void> {
+    await this.productOfferingRepository.removeBundleFromOffering(offeringId, bundleId);
+  }
+
+  /**
+   * Gets bundles for a product offering
+   */
+  async getOfferingBundles(offeringId: string): Promise<Array<{ id: string; code: string; name: string; bundle_type: string; category: string; is_required: boolean; display_order: number; feature_count: number }>> {
+    return await this.productOfferingRepository.getOfferingBundles(offeringId);
+  }
+
+  /**
+   * Gets a product offering with its bundles
+   */
+  async getProductOfferingWithBundles(offeringId: string): Promise<any> {
+    return await this.productOfferingRepository.getOfferingWithBundles(offeringId);
+  }
+
+  /**
+   * Gets a complete product offering with bundles and features
+   */
+  async getProductOfferingComplete(offeringId: string): Promise<any> {
+    return await this.productOfferingRepository.getOfferingComplete(offeringId);
+  }
+
   // ==================== LICENSE FEATURE BUNDLE METHODS ====================
 
   /**
@@ -311,32 +346,41 @@ export class LicensingService {
    * Provisions a tenant license by granting all features from a product offering
    * This is called during tenant onboarding/registration
    *
+   * Now uses the database function get_offering_all_features() to retrieve features
+   * from both bundles and direct assignments
+   *
    * @param tenantId - The tenant to provision
    * @param offeringId - The product offering to grant features from
    */
   async provisionTenantLicense(tenantId: string, offeringId: string): Promise<void> {
     try {
-      // Get the offering with all its features
-      const offering = await this.getProductOfferingWithFeatures(offeringId);
-
-      if (!offering) {
-        throw new Error(`Product offering ${offeringId} not found`);
-      }
-
-      if (!offering.features || offering.features.length === 0) {
-        console.warn(`Product offering ${offeringId} has no features to grant`);
-        return;
-      }
-
       // Import the repository here to avoid circular dependency
       const { container } = await import('@/lib/container');
       const { TYPES } = await import('@/lib/types');
       const tenantFeatureGrantRepo = container.get<any>(TYPES.ITenantFeatureGrantRepository);
 
+      // Get adapter to access Supabase directly
+      const productOfferingAdapter = container.get<any>(TYPES.IProductOfferingAdapter);
+      const supabase = await productOfferingAdapter.getSupabaseClient();
+
+      // Use the database function to get ALL features (from bundles + direct assignments)
+      const { data: features, error } = await supabase.rpc('get_offering_all_features', {
+        p_offering_id: offeringId,
+      });
+
+      if (error) {
+        throw new Error(`Failed to get offering features: ${error.message}`);
+      }
+
+      if (!features || features.length === 0) {
+        console.warn(`Product offering ${offeringId} has no features to grant`);
+        return;
+      }
+
       // Grant each feature to the tenant
-      const featureGrants = offering.features.map(feature => ({
+      const featureGrants = features.map((feature: any) => ({
         tenant_id: tenantId,
-        feature_id: feature.id,
+        feature_id: feature.feature_id,
         granted_at: new Date().toISOString(),
         is_active: true,
       }));
@@ -351,7 +395,7 @@ export class LicensingService {
         }
       }
 
-      console.log(`Provisioned ${featureGrants.length} features for tenant ${tenantId} from offering ${offeringId}`);
+      console.log(`Provisioned ${featureGrants.length} features for tenant ${tenantId} from offering ${offeringId} (including bundle features)`);
     } catch (error) {
       console.error('Error provisioning tenant license:', error);
       throw error;

@@ -7,15 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable, DataTableColumn } from '@/components/ui/datatable';
 import { Plus, Loader2, Pencil, Trash2, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProductOffering } from '@/models/productOffering.model';
-import { CreateOfferingDialog } from './CreateOfferingDialog';
-import { EditOfferingDialog } from './EditOfferingDialog';
+import { ProductOffering, ProductOfferingComplete } from '@/models/productOffering.model';
+import { OfferingFormDialog } from './OfferingFormDialog';
 
 export function ProductOfferingsManager() {
-  const [offerings, setOfferings] = useState<ProductOffering[]>([]);
+  const [offerings, setOfferings] = useState<ProductOfferingComplete[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingOffering, setEditingOffering] = useState<ProductOffering | null>(null);
+  const [editingOffering, setEditingOffering] = useState<ProductOfferingComplete | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export function ProductOfferingsManager() {
   async function loadOfferings() {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/licensing/product-offerings');
+      const response = await fetch('/api/licensing/product-offerings?complete=true');
       const result = await response.json();
 
       if (result.success) {
@@ -95,7 +94,7 @@ export function ProductOfferingsManager() {
     }
   }
 
-  const columns: DataTableColumn<ProductOffering>[] = [
+  const columns: DataTableColumn<ProductOfferingComplete>[] = [
     {
       id: 'name',
       header: 'Name',
@@ -133,6 +132,21 @@ export function ProductOfferingsManager() {
         <Badge variant="secondary" className="capitalize">
           {row.offering_type}
         </Badge>
+      ),
+    },
+    {
+      id: 'features',
+      header: 'Features',
+      align: 'center',
+      sortable: true,
+      getSortValue: (row) => row.feature_count || 0,
+      renderCell: (row) => (
+        <div className="text-center">
+          <div className="font-medium">{row.feature_count || 0}</div>
+          <div className="text-xs text-gray-500">
+            {row.bundle_count || 0} {row.bundle_count === 1 ? 'bundle' : 'bundles'}
+          </div>
+        </div>
       ),
     },
     {
@@ -268,14 +282,16 @@ export function ProductOfferingsManager() {
         </CardContent>
       </Card>
 
-      <CreateOfferingDialog
+      <OfferingFormDialog
+        mode="create"
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSuccess={loadOfferings}
       />
 
       {editingOffering && (
-        <EditOfferingDialog
+        <OfferingFormDialog
+          mode="edit"
           offering={editingOffering}
           open={!!editingOffering}
           onOpenChange={(open) => !open && setEditingOffering(null)}

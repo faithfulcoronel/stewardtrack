@@ -1151,7 +1151,9 @@ export class LicenseFeatureBundleAdapter extends BaseAdapter<LicenseFeatureBundl
 
 ### Key Points for Global Tables
 
-1. **Check role directly**: Use `supabase.rpc('get_user_admin_role')` instead of `this.context?.roles`
+1. **Check role directly**: Use the centralized `checkSuperAdmin()` utility or call `supabase.rpc('get_user_admin_role')`
+   - **For API routes**: Use `checkSuperAdmin()` from `@/utils/authUtils`
+   - **For adapters**: Call `supabase.rpc('get_user_admin_role')` directly
    - Context may not be properly populated
    - Direct database check is more reliable
 
@@ -1173,11 +1175,52 @@ export class LicenseFeatureBundleAdapter extends BaseAdapter<LicenseFeatureBundl
    - Base adapter assumes tenant context for all operations
    - Each method must handle global table differently
 
+### Centralized Super Admin Check Utility
+
+**File**: `src/utils/authUtils.ts`
+
+For **API routes and endpoints**, use the centralized `checkSuperAdmin()` utility function:
+
+```typescript
+import { checkSuperAdmin } from '@/utils/authUtils';
+
+export async function POST(request: NextRequest) {
+  // Check super admin authorization
+  const { isAuthorized, user } = await checkSuperAdmin();
+
+  if (!isAuthorized) {
+    return NextResponse.json(
+      { success: false, error: 'Access denied. Only super admins can perform this operation.' },
+      { status: 403 }
+    );
+  }
+
+  // Proceed with operation...
+}
+```
+
+**Benefits of centralized utility**:
+- ✅ Single source of truth for super admin checks
+- ✅ Consistent error handling
+- ✅ Easier to maintain and update
+- ✅ Returns both authorization status and user object
+- ✅ Still calls `get_user_admin_role()` database function (not cached)
+
+**For adapters**, continue to call the database function directly inline:
+```typescript
+const supabase = await this.getSupabaseClient();
+const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+if (adminRole !== 'super_admin') {
+  throw new Error('Access denied. Only super admins can update feature bundles.');
+}
+```
+
 ### Security Warning
 
 **NEVER** omit `tenant_id` filtering unless:
 1. ✅ The table is a global table (no `tenant_id` column exists)
-2. ✅ The user has been verified as `super_admin` via `get_user_admin_role()`
+2. ✅ The user has been verified as `super_admin` via `checkSuperAdmin()` or `get_user_admin_role()`
 3. ✅ You have overridden the adapter methods with explicit role checks
 
 **Violating this rule creates security vulnerabilities** where users could access data from other tenants!
@@ -1193,6 +1236,103 @@ Don't override when:
 - ❌ Table has `tenant_id` column
 - ❌ Resource belongs to specific tenants
 - ❌ Examples: `roles`, `permissions`, `members`, `tenants`
+
+---
+
+## Authentication and Authorization
+
+### Super Admin Authentication Utility
+
+**Location**: `src/utils/authUtils.ts`
+
+The `checkSuperAdmin()` utility provides a centralized way to verify super admin access in API routes and endpoints.
+
+#### Function Signature
+
+```typescript
+async function checkSuperAdmin(): Promise<{
+  isAuthorized: boolean;
+  user: any | null
+}>
+```
+
+#### Usage in API Routes
+
+```typescript
+import { checkSuperAdmin } from '@/utils/authUtils';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  // Verify super admin access
+  const { isAuthorized, user } = await checkSuperAdmin();
+
+  if (!isAuthorized) {
+    return NextResponse.json(
+      { success: false, error: 'Access denied. Only super admins can perform this operation.' },
+      { status: 403 }
+    );
+  }
+
+  // User is super admin - proceed with operation
+  const body = await request.json();
+  // ... rest of handler
+}
+```
+
+#### Implementation Details
+
+```typescript
+// src/utils/authUtils.ts
+export const authUtils = {
+  getUser: async () => {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    return error || !user ? null : user;
+  },
+
+  checkSuperAdmin: async (): Promise<{ isAuthorized: boolean; user: any | null }> => {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return { isAuthorized: false, user: null };
+    }
+
+    // Check admin role using database function
+    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+
+    return {
+      isAuthorized: adminRole === 'super_admin',
+      user
+    };
+  }
+};
+
+// Export as named function for convenience
+export async function checkSuperAdmin() {
+  return authUtils.checkSuperAdmin();
+}
+```
+
+#### Key Points
+
+1. **Always use for API routes** that require super admin access
+2. **Not cached** - calls `get_user_admin_role()` database function on every check
+3. **Returns both** authorization status and user object
+4. **Consistent error responses** - use 403 status for unauthorized access
+5. **Single source of truth** - all super admin checks go through this utility
+
+#### When to Use
+
+✅ **Use `checkSuperAdmin()` for**:
+- API route handlers that require super admin access
+- Endpoints that manage global resources (offerings, bundles, features)
+- Any operation that bypasses tenant filtering
+
+❌ **Don't use in**:
+- Adapters (use inline `supabase.rpc('get_user_admin_role')` instead)
+- Client-side code (server-only utility)
+- Operations that should be tenant-scoped
 
 ---
 

@@ -60,6 +60,22 @@ export interface UpdateProductOfferingDto {
   metadata?: Record<string, any>;
 }
 
+export interface ProductOfferingBundle {
+  id: string;
+  offering_id: string;
+  bundle_id: string;
+  is_required: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssignBundleToOfferingDto {
+  bundle_id: string;
+  is_required?: boolean;
+  display_order?: number;
+}
+
 export interface ProductOfferingWithFeatures extends ProductOffering {
   features?: Array<{
     id: string;
@@ -68,4 +84,39 @@ export interface ProductOfferingWithFeatures extends ProductOffering {
     category: string;
     is_required: boolean;
   }>;
+}
+
+export interface ProductOfferingWithBundles extends ProductOffering {
+  bundles?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    bundle_type: string;
+    category: string;
+    is_required: boolean;
+    display_order: number;
+    feature_count: number;
+  }>;
+}
+
+export interface ProductOfferingComplete extends ProductOffering {
+  bundles?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    bundle_type: string;
+    category: string;
+    is_required: boolean;
+    display_order: number;
+    feature_count: number;
+  }>;
+  features?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    category: string;
+    is_required: boolean;
+  }>;
+  bundle_count?: number;
+  feature_count?: number;
 }

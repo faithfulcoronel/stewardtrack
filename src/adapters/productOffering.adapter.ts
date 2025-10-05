@@ -2,7 +2,7 @@ import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
-import { ProductOffering, ProductOfferingWithFeatures } from '@/models/productOffering.model';
+import { ProductOffering, ProductOfferingWithFeatures, ProductOfferingWithBundles, ProductOfferingComplete } from '@/models/productOffering.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
 
@@ -13,6 +13,12 @@ export interface IProductOfferingAdapter extends IBaseAdapter<ProductOffering> {
   addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
   getOfferingFeatures(offeringId: string): Promise<Array<{ id: string; code: string; name: string; category: string; is_required: boolean }>>;
+  getAllOfferingFeatures(offeringId: string): Promise<Array<{ id: string; code: string; name: string; category: string; source: string; source_id: string; is_required: boolean }>>;
+  addBundleToOffering(offeringId: string, bundleId: string, isRequired: boolean, displayOrder?: number): Promise<void>;
+  removeBundleFromOffering(offeringId: string, bundleId: string): Promise<void>;
+  getOfferingBundles(offeringId: string): Promise<Array<{ id: string; code: string; name: string; bundle_type: string; category: string; is_required: boolean; display_order: number; feature_count: number }>>;
+  getOfferingWithBundles(offeringId: string): Promise<ProductOfferingWithBundles | null>;
+  getOfferingComplete(offeringId: string): Promise<ProductOfferingComplete | null>;
 }
 
 @injectable()
@@ -182,6 +188,194 @@ export class ProductOfferingAdapter
       category: item.feature_catalog.category,
       is_required: item.is_required,
     }));
+  }
+
+  async addBundleToOffering(offeringId: string, bundleId: string, isRequired: boolean = true, displayOrder?: number): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    // Calculate display_order if not provided
+    let finalDisplayOrder = displayOrder;
+    if (finalDisplayOrder === undefined) {
+      const { data: maxOrderData } = await supabase
+        .from('product_offering_bundles')
+        .select('display_order')
+        .eq('offering_id', offeringId)
+        .order('display_order', { ascending: false })
+        .limit(1)
+        .single();
+
+      finalDisplayOrder = maxOrderData ? (maxOrderData.display_order || 0) + 1 : 0;
+    }
+
+    const { error } = await supabase
+      .from('product_offering_bundles')
+      .insert({
+        offering_id: offeringId,
+        bundle_id: bundleId,
+        is_required: isRequired,
+        display_order: finalDisplayOrder,
+      });
+
+    if (error) {
+      throw new Error(`Failed to add bundle to offering: ${error.message}`);
+    }
+
+    await this.auditService.logAuditEvent('create', 'product_offering_bundles', offeringId, {
+      offering_id: offeringId,
+      bundle_id: bundleId,
+      is_required: isRequired,
+      display_order: finalDisplayOrder,
+    });
+  }
+
+  async removeBundleFromOffering(offeringId: string, bundleId: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    const { error } = await supabase
+      .from('product_offering_bundles')
+      .delete()
+      .eq('offering_id', offeringId)
+      .eq('bundle_id', bundleId);
+
+    if (error) {
+      throw new Error(`Failed to remove bundle from offering: ${error.message}`);
+    }
+
+    await this.auditService.logAuditEvent('delete', 'product_offering_bundles', offeringId, {
+      offering_id: offeringId,
+      bundle_id: bundleId,
+    });
+  }
+
+  async getOfferingBundles(offeringId: string): Promise<Array<{ id: string; code: string; name: string; bundle_type: string; category: string; is_required: boolean; display_order: number; feature_count: number }>> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('product_offering_bundles')
+      .select(`
+        bundle_id,
+        is_required,
+        display_order,
+        license_feature_bundles (
+          id,
+          code,
+          name,
+          bundle_type,
+          category
+        )
+      `)
+      .eq('offering_id', offeringId)
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to get offering bundles: ${error.message}`);
+    }
+
+    // Get feature counts for each bundle
+    const bundlesWithCounts = await Promise.all(
+      (data || []).map(async (item: any) => {
+        const bundle = item.license_feature_bundles;
+
+        const { count } = await supabase
+          .from('license_feature_bundle_items')
+          .select('*', { count: 'exact', head: true })
+          .eq('bundle_id', bundle.id);
+
+        return {
+          id: bundle.id,
+          code: bundle.code,
+          name: bundle.name,
+          bundle_type: bundle.bundle_type,
+          category: bundle.category,
+          is_required: item.is_required,
+          display_order: item.display_order,
+          feature_count: count || 0,
+        };
+      })
+    );
+
+    return bundlesWithCounts;
+  }
+
+  async getOfferingWithBundles(offeringId: string): Promise<ProductOfferingWithBundles | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data: offering, error: offeringError } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', offeringId)
+      .is('deleted_at', null)
+      .single();
+
+    if (offeringError) {
+      throw new Error(`Failed to get product offering: ${offeringError.message}`);
+    }
+
+    if (!offering) {
+      return null;
+    }
+
+    const bundles = await this.getOfferingBundles(offeringId);
+
+    return {
+      ...offering,
+      bundles,
+    };
+  }
+
+  async getAllOfferingFeatures(offeringId: string): Promise<Array<{ id: string; code: string; name: string; category: string; source: string; source_id: string; is_required: boolean }>> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_offering_all_features', {
+      p_offering_id: offeringId,
+    });
+
+    if (error) {
+      throw new Error(`Failed to get all offering features: ${error.message}`);
+    }
+
+    return (data || []).map((item: any) => ({
+      id: item.feature_id,
+      code: item.feature_code,
+      name: item.feature_name,
+      category: item.feature_category,
+      source: item.source,
+      source_id: item.source_id,
+      is_required: item.is_required,
+    }));
+  }
+
+  async getOfferingComplete(offeringId: string): Promise<ProductOfferingComplete | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data: offering, error: offeringError } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', offeringId)
+      .is('deleted_at', null)
+      .single();
+
+    if (offeringError) {
+      throw new Error(`Failed to get product offering: ${offeringError.message}`);
+    }
+
+    if (!offering) {
+      return null;
+    }
+
+    const [bundles, directFeatures, allFeatures] = await Promise.all([
+      this.getOfferingBundles(offeringId),
+      this.getOfferingFeatures(offeringId),
+      this.getAllOfferingFeatures(offeringId),
+    ]);
+
+    return {
+      ...offering,
+      bundles,
+      features: directFeatures,
+      bundle_count: bundles.length,
+      feature_count: allFeatures.length,
+    };
   }
 
   protected override async onAfterCreate(data: ProductOffering): Promise<void> {
