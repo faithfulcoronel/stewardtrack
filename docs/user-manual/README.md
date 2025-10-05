@@ -6,6 +6,25 @@ Welcome to the StewardTrack User Documentation! This folder contains comprehensi
 
 ## 📚 Available Guides
 
+### Feature Launch & Operations
+
+Step-by-step manuals that connect product delivery with licensing and RBAC:
+
+#### 1. [Feature Launch Manual](./feature-launch-user-manual.md) 🛫
+**Best for**: Cross-functional teams preparing a new capability for go-live
+- **Length**: Medium (20-minute read)
+- **Audience**: Product owners, developers, licensing ops, RBAC admins
+- **Contents**:
+  - Lifecycle overview from idea to launch
+  - Metadata authoring checklist
+  - Licensing Studio configuration steps
+  - RBAC alignment and launch readiness
+
+**When to use**:
+- Planning a brand-new feature or major enhancement
+- Coordinating work between product, licensing, and security teams
+- Auditing whether a feature is ready for deployment
+
 ### Licensing Studio Documentation
 
 Comprehensive guides for managing your church software licensing system:
