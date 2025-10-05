@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,22 @@ import { toast } from 'sonner';
 import { ProductOfferingComplete, CreateProductOfferingDto } from '@/models/productOffering.model';
 import { LicenseFeatureBundleWithFeatures } from '@/models/licenseFeatureBundle.model';
 import { LicenseFeature } from '@/models/licenseFeature.model';
+
+const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
+  code: '',
+  name: '',
+  description: '',
+  offering_type: 'subscription',
+  tier: 'starter',
+  billing_cycle: 'monthly',
+  base_price: 0,
+  currency: 'USD',
+  max_users: null,
+  max_tenants: 1,
+  is_active: true,
+  is_featured: false,
+  sort_order: 0,
+};
 
 interface OfferingFormDialogProps {
   mode: 'create' | 'edit';
@@ -41,64 +57,46 @@ export function OfferingFormDialog({
   const [bundleSearch, setBundleSearch] = useState('');
   const [featureSearch, setFeatureSearch] = useState('');
 
-  const initialFormData: CreateProductOfferingDto = {
-    code: '',
-    name: '',
-    description: '',
-    offering_type: 'subscription',
-    tier: 'starter',
-    billing_cycle: 'monthly',
-    base_price: 0,
-    currency: 'USD',
-    max_users: null,
-    max_tenants: 1,
-    is_active: true,
-    is_featured: false,
-    sort_order: 0,
-  };
+  const [formData, setFormData] = useState<CreateProductOfferingDto>(() => ({
+    ...DEFAULT_FORM_DATA,
+  }));
 
-  const [formData, setFormData] = useState<CreateProductOfferingDto>(initialFormData);
+  const offeringId = offering?.id ?? null;
+  const hasInitializedRef = useRef(false);
+  const previousOfferingIdRef = useRef<string | null>(null);
 
-  // Initialize/reset form data based on mode
-  useEffect(() => {
-    if (open) {
-      if (mode === 'edit' && offering) {
-        // Pre-populate form data for edit mode
-        setFormData({
-          code: offering.code,
-          name: offering.name,
-          description: offering.description,
-          offering_type: offering.offering_type,
-          tier: offering.tier,
-          billing_cycle: offering.billing_cycle,
-          base_price: offering.base_price,
-          currency: offering.currency,
-          max_users: offering.max_users,
-          max_tenants: offering.max_tenants,
-          is_active: offering.is_active,
-          is_featured: offering.is_featured,
-          sort_order: offering.sort_order,
-        });
+  const clearSelections = useCallback(() => {
+    setSelectedBundleIds([]);
+    setSelectedFeatureIds([]);
+    setBundleSearch('');
+    setFeatureSearch('');
+  }, []);
 
-        // Load existing bundles and features
-        loadOfferingBundles();
-        loadOfferingFeatures();
-      } else {
-        // Reset to initial state for create mode
-        setFormData(initialFormData);
-        setSelectedBundleIds([]);
-        setSelectedFeatureIds([]);
-        setBundleSearch('');
-        setFeatureSearch('');
-      }
+  const resetFormState = useCallback(() => {
+    setFormData({ ...DEFAULT_FORM_DATA });
+    clearSelections();
+  }, [clearSelections]);
 
-      // Load available bundles and features
-      loadBundles();
-      loadFeatures();
-    }
-  }, [open, mode, offering]);
+  const applyOfferingToForm = useCallback((current: ProductOfferingComplete) => {
+    setFormData({
+      code: current.code,
+      name: current.name,
+      description: current.description,
+      offering_type: current.offering_type,
+      tier: current.tier,
+      billing_cycle: current.billing_cycle,
+      base_price: current.base_price,
+      currency: current.currency,
+      max_users: current.max_users,
+      max_tenants: current.max_tenants,
+      is_active: current.is_active,
+      is_featured: current.is_featured,
+      sort_order: current.sort_order,
+    });
+    clearSelections();
+  }, [clearSelections]);
 
-  async function loadBundles() {
+  const loadBundles = useCallback(async () => {
     setIsLoadingBundles(true);
     try {
       const response = await fetch('/api/licensing/feature-bundles?withFeatures=true');
@@ -115,9 +113,9 @@ export function OfferingFormDialog({
     } finally {
       setIsLoadingBundles(false);
     }
-  }
+  }, []);
 
-  async function loadFeatures() {
+  const loadFeatures = useCallback(async () => {
     setIsLoadingFeatures(true);
     try {
       const response = await fetch('/api/licensing/features');
@@ -134,13 +132,15 @@ export function OfferingFormDialog({
     } finally {
       setIsLoadingFeatures(false);
     }
-  }
+  }, []);
 
-  async function loadOfferingBundles() {
-    if (!offering) return;
+  const loadOfferingBundles = useCallback(async () => {
+    if (!offeringId) {
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/licensing/product-offerings/${offering.id}/bundles`);
+      const response = await fetch(`/api/licensing/product-offerings/${offeringId}/bundles`);
       const result = await response.json();
 
       if (result.success) {
@@ -150,13 +150,15 @@ export function OfferingFormDialog({
     } catch (error) {
       console.error('Error loading offering bundles:', error);
     }
-  }
+  }, [offeringId]);
 
-  async function loadOfferingFeatures() {
-    if (!offering) return;
+  const loadOfferingFeatures = useCallback(async () => {
+    if (!offeringId) {
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/licensing/product-offerings/${offering.id}?withFeatures=true`);
+      const response = await fetch(`/api/licensing/product-offerings/${offeringId}?withFeatures=true`);
       const result = await response.json();
 
       if (result.success && result.data.features) {
@@ -166,7 +168,47 @@ export function OfferingFormDialog({
     } catch (error) {
       console.error('Error loading offering features:', error);
     }
-  }
+  }, [offeringId]);
+
+  useEffect(() => {
+    if (!open) {
+      hasInitializedRef.current = false;
+      previousOfferingIdRef.current = null;
+      return;
+    }
+
+    const hasOfferingChanged = previousOfferingIdRef.current !== offeringId;
+    const isFirstOpen = !hasInitializedRef.current;
+
+    if (!isFirstOpen && !hasOfferingChanged) {
+      return;
+    }
+
+    hasInitializedRef.current = true;
+    previousOfferingIdRef.current = offeringId;
+
+    if (mode === 'edit' && offering) {
+      applyOfferingToForm(offering);
+      void loadOfferingBundles();
+      void loadOfferingFeatures();
+    } else {
+      resetFormState();
+    }
+
+    void loadBundles();
+    void loadFeatures();
+  }, [
+    open,
+    mode,
+    offering,
+    offeringId,
+    applyOfferingToForm,
+    resetFormState,
+    loadBundles,
+    loadFeatures,
+    loadOfferingBundles,
+    loadOfferingFeatures,
+  ]);
 
   function toggleBundle(bundleId: string) {
     setSelectedBundleIds(prev =>
@@ -247,7 +289,7 @@ export function OfferingFormDialog({
 
         // Reset form for create mode
         if (mode === 'create') {
-          setFormData(initialFormData);
+          setFormData({ ...DEFAULT_FORM_DATA });
           setSelectedBundleIds([]);
           setSelectedFeatureIds([]);
           setBundleSearch('');
