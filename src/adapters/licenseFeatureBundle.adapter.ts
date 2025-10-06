@@ -111,14 +111,16 @@ export class LicenseFeatureBundleAdapter
       throw new Error('Invalid license feature bundle data received');
     }
 
-    const bundleData = bundle;
+    const bundleData: LicenseFeatureBundle = bundle;
     const features = await this.getBundleFeatures(bundleId);
 
-    return {
+    const bundleWithFeatures: LicenseFeatureBundleWithFeatures = {
       ...bundleData,
       features,
       feature_count: features.length,
     };
+
+    return bundleWithFeatures;
   }
 
   async getActiveBundles(): Promise<LicenseFeatureBundle[]> {
