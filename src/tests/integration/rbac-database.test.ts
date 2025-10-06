@@ -244,7 +244,6 @@ describe('RBAC Database Functions Integration Tests', () => {
 
   describe('Surface Bindings', () => {
     let testMenuItemId: string;
-    let testSurfaceBindingId: string;
 
     beforeEach(async () => {
       if (process.env.NODE_ENV !== 'test') {
@@ -278,7 +277,8 @@ describe('RBAC Database Functions Integration Tests', () => {
           .single();
 
         if (!bindingError) {
-          testSurfaceBindingId = binding.id;
+          // Ensure the binding was created
+          expect(binding.id).toBeDefined();
         }
       }
     });
@@ -385,7 +385,7 @@ describe('RBAC Database Functions Integration Tests', () => {
         return;
       }
 
-      const { data, error } = await supabase.rpc('refresh_tenant_user_effective_permissions_safe');
+      const { data: _data, error } = await supabase.rpc('refresh_tenant_user_effective_permissions_safe');
 
       // Should not error (though may not have permissions in test environment)
       expect(error).toBeNull();

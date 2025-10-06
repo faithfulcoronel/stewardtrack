@@ -298,7 +298,7 @@ export class UserMemberLinkService {
           suggestions.push('Verify that this is the correct member for this user');
         }
       }
-    } catch (error) {
+    } catch {
       // Ignore errors in validation checks
     }
 

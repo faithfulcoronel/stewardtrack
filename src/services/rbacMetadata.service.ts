@@ -9,9 +9,7 @@ import type {
   MetadataSurface,
   RbacSurfaceBinding,
   Permission,
-  CreateSurfaceBindingDto,
-  CreateRbacAuditLogInput,
-  RbacAuditOperation
+  CreateSurfaceBindingDto
 } from '@/models/rbac.model';
 
 @injectable()
