@@ -6,7 +6,9 @@ export interface Permission {
   name: string;
   description?: string;
   module: string;
+  action?: string;
   category: string;
+  scope?: 'system' | 'tenant' | 'campus' | 'ministry';
   is_active: boolean;
   tenant_id: string;
   created_at: string;

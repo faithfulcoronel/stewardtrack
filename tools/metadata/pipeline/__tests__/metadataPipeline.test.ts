@@ -9,6 +9,7 @@ import { XmlSchemaValidator } from '../schemaValidator';
 import { CanonicalTransformer } from '../transformer';
 import { RegistryPublisher } from '../publisher';
 import { validateCanonicalDefinition } from '../validators';
+import type { CanonicalDefinition, ManifestEntry, ManifestFile, PropValue } from '../types';
 
 const tmpPrefix = path.join(os.tmpdir(), 'metadata-pipeline-tests-');
 
@@ -31,14 +32,15 @@ describe('XmlAuthoringLoader', () => {
   });
 
   it('collects xml files recursively and sorts them', async () => {
-    tempDir = await createTempDir();
-    const nestedDir = path.join(tempDir, 'nested');
+    const dir = await createTempDir();
+    tempDir = dir;
+    const nestedDir = path.join(dir, 'nested');
     await fs.mkdir(nestedDir, { recursive: true });
     const files = [
-      path.join(tempDir, 'a.xml'),
+      path.join(dir, 'a.xml'),
       path.join(nestedDir, 'b.xml'),
       path.join(nestedDir, 'c.txt'),
-      path.join(tempDir, 'd.XML'),
+      path.join(dir, 'd.XML'),
     ];
     await fs.writeFile(files[0], '<a />');
     await fs.writeFile(files[1], '<b />');
@@ -61,8 +63,9 @@ describe('XmlSchemaValidator', () => {
   });
 
   it('loads schema once and validates xml content', async () => {
-    tempDir = await createTempDir();
-    const xsdPath = path.join(tempDir, 'schema.xsd');
+    const dir = await createTempDir();
+    tempDir = dir;
+    const xsdPath = path.join(dir, 'schema.xsd');
     await fs.writeFile(
       xsdPath,
       `<?xml version="1.0"?>
@@ -78,16 +81,16 @@ describe('XmlSchemaValidator', () => {
     );
 
     const originalReadFile = fs.readFile;
-    const readFileMock = mock.method(fs, 'readFile', async (...args) => {
-      // @ts-expect-error - forwarding variadic args to original function
-      return await originalReadFile.apply(fs, args);
+    const readFileMock = mock.method(fs, 'readFile', async (...args: Parameters<typeof originalReadFile>) => {
+      return await originalReadFile(...args);
     });
 
     try {
       const validator = new XmlSchemaValidator(xsdPath);
       const xml = `<root><child>Hello</child></root>`;
-      await validator.validate(xml, path.join(tempDir, 'file.xml'));
-      await validator.validate(xml, path.join(tempDir, 'file.xml'));
+      const filePath = path.join(dir, 'file.xml');
+      await validator.validate(xml, filePath);
+      await validator.validate(xml, filePath);
 
       assert.equal(readFileMock.mock.callCount(), 1);
     } finally {
@@ -96,8 +99,9 @@ describe('XmlSchemaValidator', () => {
   });
 
   it('throws with aggregated messages when validation fails', async () => {
-    tempDir = await createTempDir();
-    const xsdPath = path.join(tempDir, 'schema.xsd');
+    const dir = await createTempDir();
+    tempDir = dir;
+    const xsdPath = path.join(dir, 'schema.xsd');
     await fs.writeFile(
       xsdPath,
       `<?xml version="1.0"?>
@@ -115,7 +119,7 @@ describe('XmlSchemaValidator', () => {
 
     const validator = new XmlSchemaValidator(xsdPath);
     await assert.rejects(
-      () => validator.validate('<root><child>Hello</child></root>', path.join(tempDir, 'file.xml')),
+      () => validator.validate('<root><child>Hello</child></root>', path.join(dir, 'file.xml')),
       /XSD validation failed[\s\S]*other/,
     );
   });
@@ -174,25 +178,26 @@ describe('RegistryPublisher', () => {
   });
 
   it('publishes compiled artifacts and latest pointer', async () => {
-    tempDir = await createTempDir();
+    const dir = await createTempDir();
+    tempDir = dir;
     const context = {
       paths: {
-        rootDir: tempDir,
-        authoringDir: path.join(tempDir, 'authoring'),
-        xsdPath: path.join(tempDir, 'schema.xsd'),
-        compiledDir: path.join(tempDir, 'compiled'),
-        latestDir: path.join(tempDir, 'latest'),
-        manifestPath: path.join(tempDir, 'manifest.json'),
+        rootDir: dir,
+        authoringDir: path.join(dir, 'authoring'),
+        xsdPath: path.join(dir, 'schema.xsd'),
+        compiledDir: path.join(dir, 'compiled'),
+        latestDir: path.join(dir, 'latest'),
+        manifestPath: path.join(dir, 'manifest.json'),
       },
     };
 
     const publisher = new RegistryPublisher(context);
-    const manifest = { generatedAt: new Date().toISOString(), entries: {} as Record<string, unknown> };
-    const definition = {
+    const manifest: ManifestFile = { generatedAt: new Date().toISOString(), entries: {} };
+    const definition: CanonicalDefinition = {
       schemaVersion: '1.0.0',
       contentVersion: '1.0.1',
       checksum: 'abc123',
-      kind: 'overlay' as const,
+      kind: 'overlay',
       layer: {
         module: 'core',
         route: 'home',
@@ -225,15 +230,16 @@ describe('RegistryPublisher', () => {
   });
 
   it('does not downgrade latest pointer when older versions publish', async () => {
-    tempDir = await createTempDir();
+    const dir = await createTempDir();
+    tempDir = dir;
     const context = {
       paths: {
-        rootDir: tempDir,
-        authoringDir: path.join(tempDir, 'authoring'),
-        xsdPath: path.join(tempDir, 'schema.xsd'),
-        compiledDir: path.join(tempDir, 'compiled'),
-        latestDir: path.join(tempDir, 'latest'),
-        manifestPath: path.join(tempDir, 'manifest.json'),
+        rootDir: dir,
+        authoringDir: path.join(dir, 'authoring'),
+        xsdPath: path.join(dir, 'schema.xsd'),
+        compiledDir: path.join(dir, 'compiled'),
+        latestDir: path.join(dir, 'latest'),
+        manifestPath: path.join(dir, 'manifest.json'),
       },
     };
 
@@ -259,12 +265,12 @@ describe('RegistryPublisher', () => {
     };
     await fs.writeFile(pointerPath, JSON.stringify(existingPointer, null, 2));
 
-    const manifest = { generatedAt: new Date().toISOString(), entries: {} };
-    const olderDefinition = {
+    const manifest: ManifestFile = { generatedAt: new Date().toISOString(), entries: {} };
+    const olderDefinition: CanonicalDefinition = {
       schemaVersion: '1.0.0',
       contentVersion: '1.5.0',
       checksum: 'abc123',
-      kind: 'blueprint' as const,
+      kind: 'blueprint',
       layer: {
         module: 'core',
         route: 'home',
@@ -284,15 +290,16 @@ describe('RegistryPublisher', () => {
   });
 
   it('loads default manifest when file is missing and persists sorted entries', async () => {
-    tempDir = await createTempDir();
+    const dir = await createTempDir();
+    tempDir = dir;
     const context = {
       paths: {
-        rootDir: tempDir,
-        authoringDir: path.join(tempDir, 'authoring'),
-        xsdPath: path.join(tempDir, 'schema.xsd'),
-        compiledDir: path.join(tempDir, 'compiled'),
-        latestDir: path.join(tempDir, 'latest'),
-        manifestPath: path.join(tempDir, 'manifest.json'),
+        rootDir: dir,
+        authoringDir: path.join(dir, 'authoring'),
+        xsdPath: path.join(dir, 'schema.xsd'),
+        compiledDir: path.join(dir, 'compiled'),
+        latestDir: path.join(dir, 'latest'),
+        manifestPath: path.join(dir, 'manifest.json'),
       },
     };
 
@@ -300,15 +307,44 @@ describe('RegistryPublisher', () => {
     const manifest = await publisher.loadManifest();
     assert.deepEqual(manifest.entries, {});
 
-    const payload = {
+    const payload: ManifestFile = {
       generatedAt: new Date().toISOString(),
       entries: {
-        b: { key: 'b', kind: 'blueprint' as const, schemaVersion: '1.0.0', contentVersion: '1.0.0', checksum: '1', layer: {
-          module: 'm', route: 'r', tenant: 'global', role: null, variant: null, locale: null,
-        }, sourcePath: 's', compiledPath: 'c' },
-        a: { key: 'a', kind: 'overlay' as const, schemaVersion: '1.0.0', contentVersion: '1.0.0', checksum: '1', layer: {
-          module: 'm', route: 'r', tenant: 'global', role: null, variant: null, locale: null,
-        }, sourcePath: 's', compiledPath: 'c', dependsOn: ['root'] },
+        b: {
+          key: 'b',
+          kind: 'blueprint',
+          schemaVersion: '1.0.0',
+          contentVersion: '1.0.0',
+          checksum: '1',
+          layer: {
+            module: 'm',
+            route: 'r',
+            tenant: 'global',
+            role: null,
+            variant: null,
+            locale: null,
+          },
+          sourcePath: 's',
+          compiledPath: 'c',
+        } satisfies ManifestEntry,
+        a: {
+          key: 'a',
+          kind: 'overlay',
+          schemaVersion: '1.0.0',
+          contentVersion: '1.0.0',
+          checksum: '1',
+          layer: {
+            module: 'm',
+            route: 'r',
+            tenant: 'global',
+            role: null,
+            variant: null,
+            locale: null,
+          },
+          sourcePath: 's',
+          compiledPath: 'c',
+          dependsOn: ['root'],
+        } satisfies ManifestEntry,
       },
     };
 
@@ -325,7 +361,7 @@ describe('validateCanonicalDefinition', () => {
     schemaVersion: '1.0.0',
     contentVersion: '1.0.0',
     checksum: 'hash',
-    kind: 'blueprint' as const,
+    kind: 'blueprint',
     layer: {
       module: 'core',
       route: 'home',
@@ -361,7 +397,7 @@ describe('validateCanonicalDefinition', () => {
       ],
     },
     sourcePath: 'authoring/home.xml',
-  };
+  } satisfies CanonicalDefinition;
 
   it('rejects invalid semantic versions and missing metadata', () => {
     const invalid = {
@@ -410,7 +446,10 @@ describe('validateCanonicalDefinition', () => {
                 id: 'hero',
                 type: 'hero',
                 props: {
-                  title: { kind: 'binding', source: 'missing' },
+                  title: {
+                    kind: 'binding',
+                    source: 'missing',
+                  } satisfies PropValue,
                 },
               },
             ],
