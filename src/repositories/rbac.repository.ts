@@ -1454,12 +1454,18 @@ export class RbacRepository extends BaseRepository {
           email: user?.email,
           first_name: metadata.first_name || metadata.firstName || '',
           last_name: metadata.last_name || metadata.lastName || '',
-          delegated_permissions: userDelegations.map(dp => ({
-            id: dp.id,
-            scope_type: dp.scope_type,
-            scope_name: dp.delegation_scopes?.name || 'Unknown',
-            permissions: dp.permissions || []
-          }))
+          delegated_permissions: userDelegations.map(dp => {
+            const scopeRecord = Array.isArray(dp.delegation_scopes)
+              ? dp.delegation_scopes[0]
+              : dp.delegation_scopes;
+
+            return {
+              id: dp.id,
+              scope_type: dp.scope_type,
+              scope_name: scopeRecord?.name || 'Unknown',
+              permissions: dp.permissions || []
+            };
+          })
         };
       });
     } catch (error) {
@@ -1668,6 +1674,10 @@ export class RbacRepository extends BaseRepository {
 
       // Transform data to expected format
       return data.map(dp => {
+        const scopeRecord = Array.isArray(dp.delegation_scopes)
+          ? dp.delegation_scopes[0]
+          : dp.delegation_scopes;
+
         const delegatorUser = userMap.get(dp.delegator_id);
         const delegateeUser = userMap.get(dp.delegatee_id);
 
@@ -1682,7 +1692,7 @@ export class RbacRepository extends BaseRepository {
           delegatee_name: `${delegateeMeta.first_name || delegateeMeta.firstName || ''} ${delegateeMeta.last_name || delegateeMeta.lastName || ''}`.trim() || delegateeUser?.email || 'Unknown',
           scope_type: dp.scope_type,
           scope_id: dp.scope_id,
-          scope_name: dp.delegation_scopes?.name || 'Unknown',
+          scope_name: scopeRecord?.name || 'Unknown',
           permissions: dp.permissions || [],
           restrictions: dp.restrictions || [],
           expiry_date: dp.expiry_date,
