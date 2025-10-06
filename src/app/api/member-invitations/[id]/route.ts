@@ -6,9 +6,9 @@ import { authUtils } from '@/utils/authUtils';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/member-invitations/[id] - Get specific invitation
@@ -25,8 +25,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const userMemberLinkService = container.get<UserMemberLinkService>(TYPES.UserMemberLinkService);
+    const { id } = await params;
 
-    const invitation = await userMemberLinkService.getInvitationById(params.id, tenantId);
+    const invitation = await userMemberLinkService.getInvitationById(id, tenantId);
 
     if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
@@ -59,9 +60,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { reason } = body;
 
     const userMemberLinkService = container.get<UserMemberLinkService>(TYPES.UserMemberLinkService);
+    const { id } = await params;
 
     const result = await userMemberLinkService.revokeInvitation(
-      params.id,
+      id,
       user.id,
       reason,
       tenantId

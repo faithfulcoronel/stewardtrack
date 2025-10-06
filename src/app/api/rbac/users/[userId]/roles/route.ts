@@ -5,9 +5,9 @@ import { RbacService } from '@/services/rbac.service';
 import { AssignRoleDto } from '@/models/rbac.model';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -16,7 +16,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { searchParams } = new URL(request.url);
     const tenantId = searchParams.get('tenantId') || undefined;
 
-    const userWithRoles = await rbacService.getUserWithRoles(params.userId, tenantId);
+    const { userId } = await params;
+
+    const userWithRoles = await rbacService.getUserWithRoles(userId, tenantId);
 
     if (!userWithRoles) {
       return NextResponse.json(
@@ -59,8 +61,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const { userId } = await params;
+
     const assignRoleDto: AssignRoleDto = {
-      user_id: params.userId,
+      user_id: userId,
       role_id: body.role_id,
       expires_at: body.expires_at
     };
