@@ -1,7 +1,9 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
+export type AuditAction = 'create' | 'update' | 'delete' | 'assign_license';
+
 export async function logAuditEvent(
-  action: 'create' | 'update' | 'delete',
+  action: AuditAction,
   entityType: string,
   entityId: string,
   changes: Record<string, unknown>
