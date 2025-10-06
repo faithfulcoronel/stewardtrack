@@ -29,7 +29,7 @@ export function TestimonialCard({ quote, author, index = 0 }: TestimonialCardPro
 
       <div className="relative space-y-6">
         <p className="text-base leading-relaxed text-foreground">
-          "{quote}"
+          “{quote}”
         </p>
 
         <div className="flex items-center gap-4">

@@ -33,7 +33,7 @@ export default function WelcomeStep({
             Welcome to StewardTrack!
           </h2>
           <p className="text-muted-foreground text-lg">
-            Let's get your church management system set up in just a few minutes
+            Let’s get your church management system set up in just a few minutes
           </p>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function WelcomeStep({
               Set Up Your Team
             </h3>
             <p className="text-sm text-muted-foreground">
-              Configure roles and permissions to match your church's organizational structure
+              Configure roles and permissions to match your church’s organizational structure
             </p>
           </div>
         </div>

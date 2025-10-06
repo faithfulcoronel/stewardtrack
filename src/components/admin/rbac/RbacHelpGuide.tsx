@@ -444,7 +444,7 @@ export function RbacHelpGuide() {
                 <div className="flex items-start gap-3">
                   <CheckCircle className="h-4 w-4 text-green-600 mt-1" />
                   <div>
-                    <p className="font-medium">Give only what's needed</p>
+                    <p className="font-medium">Give only what’s needed</p>
                     <p className="text-sm text-gray-600">People should only access what they need for their role</p>
                   </div>
                 </div>
@@ -584,7 +584,7 @@ export function RbacHelpGuide() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-semibold text-blue-700">Someone can't access what they need</h4>
+                  <h4 className="font-semibold text-blue-700">Someone can’t access what they need</h4>
                   <p className="text-sm text-gray-600 mt-1">
                     Check their role and permissions. They might need additional access for their current tasks.
                   </p>

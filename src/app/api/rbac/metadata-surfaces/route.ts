@@ -7,12 +7,12 @@ export async function GET(request: NextRequest) {
   try {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
-    const module = searchParams.get('module') || undefined;
+    const moduleParam = searchParams.get('module') || undefined;
     const phase = searchParams.get('phase') || undefined;
     const surfaceType = searchParams.get('surface_type') || undefined;
 
     const surfaces = await rbacService.getMetadataSurfaces({
-      module,
+      module: moduleParam,
       phase,
       surface_type: surfaceType
     });

@@ -62,7 +62,7 @@ export default function CompleteStep({
 
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            You're All Set!
+            You’re All Set!
           </h2>
           <p className="text-muted-foreground text-lg">
             Your church management system is ready to use
@@ -75,7 +75,7 @@ export default function CompleteStep({
           Welcome to your church management journey!
         </h3>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          You can now access all the features included in your plan. Let's explore what you can do next.
+          You can now access all the features included in your plan. Let’s explore what you can do next.
         </p>
       </div>
 

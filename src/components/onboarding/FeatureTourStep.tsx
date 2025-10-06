@@ -105,7 +105,7 @@ export default function FeatureTourStep({
               Your Available Features
             </h3>
             <p className="text-sm text-muted-foreground">
-              Here's what you can do with your subscription plan
+              Here’s what you can do with your subscription plan
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function FeatureTourStep({
           <CardHeader>
             <CardTitle className="text-base">No features available</CardTitle>
             <CardDescription>
-              Your subscription plan doesn't have any features configured yet.
+              Your subscription plan doesn’t have any features configured yet.
               Please contact support if this seems incorrect.
             </CardDescription>
           </CardHeader>
@@ -184,7 +184,7 @@ export default function FeatureTourStep({
               Saving...
             </>
           ) : (
-            'Continue'
+            <>Continue</>
           )}
         </Button>
       </div>
