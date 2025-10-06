@@ -4,15 +4,15 @@ import { TYPES } from '@/lib/types';
 import { UserMemberLinkService } from '@/services/UserMemberLinkService';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function POST(request: Request, context: RouteContext) {
   try {
     const userMemberLinkService = container.get<UserMemberLinkService>(TYPES.UserMemberLinkService);
-    const { id: invitationId } = context.params;
+    const { id: invitationId } = await context.params;
 
     // Check if invitation exists and get its current status
     const invitation = await userMemberLinkService.getInvitationById(invitationId);
