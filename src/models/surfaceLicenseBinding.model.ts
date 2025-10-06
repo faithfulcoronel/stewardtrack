@@ -17,7 +17,8 @@ export interface RbacSurfaceLicenseBinding {
   enforces_license: boolean;
 }
 
-export interface EffectiveSurfaceAccess {
+export interface EffectiveSurfaceAccess extends BaseModel {
+  id: string;
   tenant_id: string;
   role_id?: string | null;
   bundle_id?: string | null;

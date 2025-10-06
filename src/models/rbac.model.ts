@@ -19,7 +19,7 @@ export interface Role extends BaseModel {
   name: string;
   description?: string;
   metadata_key?: string;
-  scope: 'system' | 'tenant' | 'campus' | 'ministry';
+  scope: 'system' | 'tenant' | 'campus' | 'ministry' | 'delegated';
   is_system: boolean;
   is_delegatable: boolean;
   tenant_id: string;
@@ -182,6 +182,7 @@ export interface UpdateRoleDto {
 
 export interface CreatePermissionBundleDto {
   name: string;
+  code?: string;
   description?: string;
   metadata_key?: string;
   scope: 'system' | 'tenant' | 'campus' | 'ministry';
@@ -191,10 +192,12 @@ export interface CreatePermissionBundleDto {
 
 export interface UpdatePermissionBundleDto {
   name?: string;
+  code?: string;
   description?: string;
   metadata_key?: string;
   scope?: 'system' | 'tenant' | 'campus' | 'ministry';
   is_template?: boolean;
+  permission_ids?: string[];
 }
 
 export interface AssignRoleDto {

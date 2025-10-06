@@ -59,7 +59,7 @@ export class SurfaceLicenseBindingAdapter
       throw new Error(`Failed to get effective surface access: ${error.message}`);
     }
 
-    return data || [];
+    return mapEffectiveSurfaceAccess(data);
   }
 
   async checkSurfaceAccess(userId: string, tenantId: string, surfaceId: string): Promise<SurfaceAccessResult> {
@@ -91,21 +91,24 @@ export class SurfaceLicenseBindingAdapter
       throw new Error(`Failed to get access details: ${detailsError.message}`);
     }
 
-    const hasRbacAccess = canAccess || false;
-    const hasLicenseAccess = accessDetails?.has_required_features && accessDetails?.has_required_bundle;
-    const missingFeatures = accessDetails?.surface_required_features?.filter((feature: string) => {
-      return !accessDetails?.has_required_features;
-    }) || [];
+    const normalizedDetails = accessDetails ? toEffectiveSurfaceAccess(accessDetails) : null;
+
+    const missingFeatures =
+      normalizedDetails && !normalizedDetails.has_required_features
+        ? normalizedDetails.surface_required_features
+        : undefined;
 
     return {
       can_access: canAccess,
-      has_rbac_access: hasRbacAccess,
-      has_license_access: hasLicenseAccess || false,
-      missing_features: missingFeatures.length > 0 ? missingFeatures : undefined,
-      missing_bundles: accessDetails && !accessDetails.has_required_bundle && accessDetails.surface_required_bundle_id
-        ? [accessDetails.surface_required_bundle_id]
-        : undefined,
-      required_tier: accessDetails?.license_tier_min || undefined,
+      has_rbac_access: Boolean(canAccess),
+      has_license_access:
+        (normalizedDetails?.has_required_features ?? false) && (normalizedDetails?.has_required_bundle ?? false),
+      missing_features: missingFeatures && missingFeatures.length > 0 ? missingFeatures : undefined,
+      missing_bundles:
+        normalizedDetails && !normalizedDetails.has_required_bundle && normalizedDetails.surface_required_bundle_id
+          ? [normalizedDetails.surface_required_bundle_id]
+          : undefined,
+      required_tier: normalizedDetails?.license_tier_min ?? undefined,
     };
   }
 
@@ -196,7 +199,7 @@ export class SurfaceLicenseBindingAdapter
 
     const { data, error } = await supabase
       .from(this.tableName)
-      .select('surface_id')
+      .select('tenant_id, surface_id, has_required_features, has_required_bundle')
       .eq('tenant_id', tenantId)
       .eq('has_required_features', true)
       .eq('has_required_bundle', true);
@@ -205,7 +208,13 @@ export class SurfaceLicenseBindingAdapter
       throw new Error(`Failed to get tenant licensed surfaces: ${error.message}`);
     }
 
-    return Array.from(new Set((data || []).map((item: any) => item.surface_id).filter(Boolean)));
+    const records = mapEffectiveSurfaceAccess(data);
+    const surfaceIds = records
+      .filter(record => record.has_required_features && record.has_required_bundle)
+      .map(record => record.surface_id)
+      .filter((value): value is string => typeof value === 'string' && value.length > 0);
+
+    return Array.from(new Set(surfaceIds));
   }
 
   protected override async onAfterCreate(data: EffectiveSurfaceAccess): Promise<void> {
@@ -219,4 +228,57 @@ export class SurfaceLicenseBindingAdapter
   protected override async onAfterDelete(id: string): Promise<void> {
     // This is a view, so no create/update/delete operations
   }
+}
+
+function mapEffectiveSurfaceAccess(data: unknown[] | null): EffectiveSurfaceAccess[] {
+  if (!data?.length) {
+    return [];
+  }
+
+  return data.map(toEffectiveSurfaceAccess);
+}
+
+function toEffectiveSurfaceAccess(value: unknown): EffectiveSurfaceAccess {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Invalid effective surface access record received');
+  }
+
+  const record = value as Record<string, unknown>;
+  const tenantId = typeof record.tenant_id === 'string' ? record.tenant_id : undefined;
+
+  if (!tenantId) {
+    throw new Error('Effective surface access records must include a tenant identifier');
+  }
+
+  const surfaceId = typeof record.surface_id === 'string' ? record.surface_id : null;
+  const roleId = typeof record.role_id === 'string' ? record.role_id : null;
+  const bundleId = typeof record.bundle_id === 'string' ? record.bundle_id : null;
+
+  const surfaceRequiredFeatures = Array.isArray(record.surface_required_features)
+    ? record.surface_required_features.filter((feature): feature is string => typeof feature === 'string')
+    : undefined;
+
+  const idComponents = [tenantId, roleId ?? 'role', surfaceId ?? 'surface', bundleId ?? 'bundle'];
+
+  return {
+    id: idComponents.join(':'),
+    tenant_id: tenantId,
+    role_id: roleId,
+    bundle_id: bundleId,
+    menu_item_id: typeof record.menu_item_id === 'string' ? record.menu_item_id : null,
+    metadata_blueprint_id: typeof record.metadata_blueprint_id === 'string' ? record.metadata_blueprint_id : null,
+    surface_id: surfaceId,
+    surface_title: typeof record.surface_title === 'string' ? record.surface_title : null,
+    surface_route: typeof record.surface_route === 'string' ? record.surface_route : null,
+    surface_feature_code: typeof record.surface_feature_code === 'string' ? record.surface_feature_code : null,
+    required_license_bundle_id:
+      typeof record.required_license_bundle_id === 'string' ? record.required_license_bundle_id : null,
+    enforces_license: Boolean(record.enforces_license),
+    surface_required_bundle_id:
+      typeof record.surface_required_bundle_id === 'string' ? record.surface_required_bundle_id : null,
+    surface_required_features: surfaceRequiredFeatures,
+    license_tier_min: typeof record.license_tier_min === 'string' ? record.license_tier_min : null,
+    has_required_features: Boolean(record.has_required_features),
+    has_required_bundle: Boolean(record.has_required_bundle),
+  };
 }

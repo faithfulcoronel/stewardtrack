@@ -48,6 +48,7 @@ export interface LinkingResult {
 
 // Extended member model with user information
 export interface MemberWithUser extends Member {
+  linked_at?: string;
   user?: {
     id: string;
     email: string;

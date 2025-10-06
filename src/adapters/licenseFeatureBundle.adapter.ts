@@ -49,7 +49,13 @@ export class LicenseFeatureBundleAdapter
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
   // Override create to handle global table (no tenant_id column)
-  async create(data: Partial<LicenseFeatureBundle>): Promise<LicenseFeatureBundle> {
+  async create(
+    data: Partial<LicenseFeatureBundle>,
+    relations?: Record<string, string[]>,
+    fieldsToRemove?: string[]
+  ): Promise<LicenseFeatureBundle> {
+    void relations;
+
     try {
       // Check admin role directly from database
       const supabase = await this.getSupabaseClient();
@@ -60,7 +66,11 @@ export class LicenseFeatureBundleAdapter
       }
 
       // Run pre-create hook
-      const processedData = await this.onBeforeCreate(data);
+      let processedData = await this.onBeforeCreate(data);
+
+      if (fieldsToRemove?.length) {
+        processedData = omitFields(processedData, fieldsToRemove);
+      }
 
       // Create record (no tenant_id for global tables)
       const userId = await this.getUserId();
@@ -138,7 +148,7 @@ export class LicenseFeatureBundleAdapter
       throw new Error(`Failed to get active license feature bundles: ${error.message}`);
     }
 
-    return data || [];
+    return mapLicenseFeatureBundles(data);
   }
 
   async getBundlesByCategory(category: string): Promise<LicenseFeatureBundle[]> {
@@ -156,7 +166,7 @@ export class LicenseFeatureBundleAdapter
       throw new Error(`Failed to get license feature bundles by category: ${error.message}`);
     }
 
-    return data || [];
+    return mapLicenseFeatureBundles(data);
   }
 
   async getBundlesByType(bundleType: string): Promise<LicenseFeatureBundle[]> {
@@ -174,7 +184,7 @@ export class LicenseFeatureBundleAdapter
       throw new Error(`Failed to get license feature bundles by type: ${error.message}`);
     }
 
-    return data || [];
+    return mapLicenseFeatureBundles(data);
   }
 
   async addFeatureToBundle(bundleId: string, featureId: string, isRequired: boolean = true, displayOrder?: number): Promise<void> {
@@ -287,7 +297,14 @@ export class LicenseFeatureBundleAdapter
   }
 
   // Override update to handle global table (no tenant_id column)
-  async update(id: string, data: Partial<LicenseFeatureBundle>, fieldsToRemove?: string[]): Promise<LicenseFeatureBundle> {
+  async update(
+    id: string,
+    data: Partial<LicenseFeatureBundle>,
+    relations?: Record<string, string[]>,
+    fieldsToRemove?: string[]
+  ): Promise<LicenseFeatureBundle> {
+    void relations;
+
     try {
       // Check admin role directly from database
       const supabase = await this.getSupabaseClient();
@@ -301,8 +318,8 @@ export class LicenseFeatureBundleAdapter
       let processedData = await this.onBeforeUpdate(id, data);
 
       // Remove specified fields
-      if (fieldsToRemove) {
-        processedData = this.sanitizeData(processedData, fieldsToRemove);
+      if (fieldsToRemove?.length) {
+        processedData = omitFields(processedData, fieldsToRemove);
       }
 
       // Update record (no tenant_id filter for global tables)
@@ -393,6 +410,19 @@ export class LicenseFeatureBundleAdapter
   }
 }
 
+function mapLicenseFeatureBundles(data: unknown[] | null): LicenseFeatureBundle[] {
+  if (!data?.length) {
+    return [];
+  }
+
+  return data.reduce<LicenseFeatureBundle[]>((acc, item) => {
+    if (isLicenseFeatureBundle(item)) {
+      acc.push(item);
+    }
+    return acc;
+  }, []);
+}
+
 function isLicenseFeatureBundle(value: unknown): value is LicenseFeatureBundle {
   if (!value || typeof value !== 'object') {
     return false;
@@ -409,4 +439,18 @@ function isLicenseFeatureBundle(value: unknown): value is LicenseFeatureBundle {
     typeof bundle.is_active === 'boolean' &&
     typeof bundle.is_system === 'boolean'
   );
+}
+
+function omitFields<T extends Record<string, unknown>>(data: T, fieldsToRemove: string[]): T {
+  if (!fieldsToRemove.length) {
+    return data;
+  }
+
+  const sanitized = { ...data } as Record<string, unknown>;
+
+  for (const field of fieldsToRemove) {
+    delete sanitized[field];
+  }
+
+  return sanitized as T;
 }
