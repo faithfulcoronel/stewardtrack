@@ -486,7 +486,7 @@ export class RbacService {
     return this.publishingService.getMultiRoleStats(tenantId);
   }
 
-  async toggleMultiRoleMode(userId: string, enabled: boolean, tenantId?: string): Promise<any> {
+  async toggleMultiRoleMode(userId: string, enabled: boolean, _tenantId?: string): Promise<any> {
     // This would need implementation in core service
     // For now, return placeholder
     return { success: true, enabled };

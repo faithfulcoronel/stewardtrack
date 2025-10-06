@@ -232,7 +232,7 @@ export class SidebarService {
     }
 
     // Get both accessible and locked surfaces
-    const [accessibleSurfaces, lockedSurfaces] = await Promise.all([
+    const [_accessibleSurfaces, lockedSurfaces] = await Promise.all([
       this.userRoleService.getUserAccessibleSurfaces(userId, tenant.id),
       this.userRoleService.getLockedSurfaces(userId, tenant.id),
     ]);

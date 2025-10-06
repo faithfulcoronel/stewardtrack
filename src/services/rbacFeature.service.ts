@@ -6,9 +6,7 @@ import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeature
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
   FeatureCatalog,
-  TenantFeatureGrant,
-  CreateRbacAuditLogInput,
-  RbacAuditOperation
+  TenantFeatureGrant
 } from '@/models/rbac.model';
 
 @injectable()
