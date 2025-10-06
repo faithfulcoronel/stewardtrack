@@ -107,7 +107,11 @@ export class LicenseFeatureBundleAdapter
       return null;
     }
 
-    const bundleData = bundle as LicenseFeatureBundle;
+    if (!isLicenseFeatureBundle(bundle)) {
+      throw new Error('Invalid license feature bundle data received');
+    }
+
+    const bundleData = bundle;
     const features = await this.getBundleFeatures(bundleId);
 
     return {
@@ -385,4 +389,22 @@ export class LicenseFeatureBundleAdapter
   protected override async onAfterDelete(id: string): Promise<void> {
     await this.auditService.logAuditEvent('delete', this.tableName, id, { id });
   }
+}
+
+function isLicenseFeatureBundle(value: unknown): value is LicenseFeatureBundle {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const bundle = value as Partial<LicenseFeatureBundle>;
+
+  return (
+    typeof bundle.id === 'string' &&
+    typeof bundle.code === 'string' &&
+    typeof bundle.name === 'string' &&
+    typeof bundle.bundle_type === 'string' &&
+    typeof bundle.category === 'string' &&
+    typeof bundle.is_active === 'boolean' &&
+    typeof bundle.is_system === 'boolean'
+  );
 }
