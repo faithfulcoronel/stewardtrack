@@ -79,7 +79,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
       }
 
       const data = await response.json();
-      setUserResults(data.data || []);
+      setUserResults(Array.isArray(data.data) ? (data.data as UserSearchResult[]) : []);
     } catch (err) {
       console.error('Error loading users:', err);
       setError('Failed to load users');
@@ -103,7 +103,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
       }
 
       const data = await response.json();
-      setUserResults(data.results || []);
+      setUserResults(Array.isArray(data.results) ? (data.results as UserSearchResult[]) : []);
     } catch (err) {
       console.error('Error searching users:', err);
       setError('Failed to search users');
@@ -127,7 +127,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
       }
 
       const data = await response.json();
-      setMemberResults(data.results || []);
+      setMemberResults(Array.isArray(data.results) ? (data.results as MemberSearchResult[]) : []);
     } catch (err) {
       console.error('Error searching members:', err);
       setError('Failed to search members');
@@ -316,7 +316,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
                       )}
                     </CommandEmpty>
                     <CommandGroup>
-                      {userResults.map((user) => (
+                      {userResults.map((user: UserSearchResult) => (
                         <CommandItem
                           key={user.id}
                           value={`${user.email} ${user.first_name} ${user.last_name}`}
@@ -398,7 +398,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
 
               {memberResults.length > 0 && (
                 <div className="border rounded-md p-2 space-y-2 max-h-48 overflow-y-auto">
-                  {memberResults.map((member) => (
+                  {memberResults.map((member: MemberSearchResult) => (
                     <div
                       key={member.id}
                       className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
@@ -513,7 +513,7 @@ export function LinkUserForm({ onSuccess, preselectedUser }: LinkUserFormProps) 
         <div className="flex gap-3">
           <Button
             onClick={handleLinkUser}
-            disabled={!selectedUser || !selectedMember || linking || (validation && !validation.isValid)}
+            disabled={!selectedUser || !selectedMember || linking || (validation?.isValid === false)}
             className="flex-1"
           >
             {linking ? (

@@ -75,11 +75,13 @@ export class ProductOfferingAdapter
       return null;
     }
 
+    const normalizedOffering = toProductOffering(offering);
     const features = await this.getOfferingFeatures(offeringId);
 
     return {
-      ...offering,
+      ...normalizedOffering,
       features,
+      feature_count: features.length,
     };
   }
 
@@ -98,7 +100,7 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get active product offerings: ${error.message}`);
     }
 
-    return data || [];
+    return mapProductOfferings(data);
   }
 
   async getOfferingsByTier(tier: string): Promise<ProductOffering[]> {
@@ -116,7 +118,7 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get product offerings by tier: ${error.message}`);
     }
 
-    return data || [];
+    return mapProductOfferings(data);
   }
 
   async addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean = true): Promise<void> {
@@ -315,10 +317,11 @@ export class ProductOfferingAdapter
       return null;
     }
 
+    const normalizedOffering = toProductOffering(offering);
     const bundles = await this.getOfferingBundles(offeringId);
 
     return {
-      ...offering,
+      ...normalizedOffering,
       bundles,
     };
   }
@@ -363,6 +366,8 @@ export class ProductOfferingAdapter
       return null;
     }
 
+    const normalizedOffering = toProductOffering(offering);
+
     const [bundles, directFeatures, allFeatures] = await Promise.all([
       this.getOfferingBundles(offeringId),
       this.getOfferingFeatures(offeringId),
@@ -370,7 +375,7 @@ export class ProductOfferingAdapter
     ]);
 
     return {
-      ...offering,
+      ...normalizedOffering,
       bundles,
       features: directFeatures,
       bundle_count: bundles.length,
@@ -389,4 +394,47 @@ export class ProductOfferingAdapter
   protected override async onAfterDelete(id: string): Promise<void> {
     await this.auditService.logAuditEvent('delete', this.tableName, id, { id });
   }
+}
+
+function mapProductOfferings(data: unknown[] | null): ProductOffering[] {
+  if (!data?.length) {
+    return [];
+  }
+
+  return data.map(toProductOffering);
+}
+
+function toProductOffering(value: unknown): ProductOffering {
+  if (!isProductOffering(value)) {
+    throw new Error('Invalid product offering data received');
+  }
+
+  return {
+    ...value,
+    description: value.description ?? null,
+    billing_cycle: value.billing_cycle ?? null,
+    base_price: value.base_price ?? null,
+    max_users: value.max_users ?? null,
+    metadata: value.metadata ?? undefined,
+    deleted_at: value.deleted_at ?? null,
+  };
+}
+
+function isProductOffering(value: unknown): value is ProductOffering {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const record = value as Partial<ProductOffering>;
+
+  return (
+    typeof record.id === 'string' &&
+    typeof record.code === 'string' &&
+    typeof record.name === 'string' &&
+    typeof record.offering_type === 'string' &&
+    typeof record.tier === 'string' &&
+    typeof record.is_active === 'boolean' &&
+    typeof record.is_featured === 'boolean' &&
+    typeof record.sort_order === 'number'
+  );
 }

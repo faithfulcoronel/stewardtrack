@@ -31,6 +31,120 @@ export interface IUserRoleManagementAdapter extends IBaseAdapter<UserRole> {
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
 
+type BasicUserProfile = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+};
+
+type AuthUserProfile = {
+  id: string;
+  email: unknown;
+  raw_user_meta_data?: Record<string, unknown> | null;
+};
+
+type MemberUserProfile = {
+  user_id?: unknown;
+  member?: {
+    preferred_name?: unknown;
+    first_name?: unknown;
+    last_name?: unknown;
+    email?: unknown;
+  } | null;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toBasicUserProfile = (profile: AuthUserProfile | MemberUserProfile | Record<string, unknown>): BasicUserProfile | null => {
+  if ('id' in profile) {
+    const authProfile = profile as AuthUserProfile;
+    if (typeof authProfile.id !== 'string') {
+      return null;
+    }
+
+    const email = typeof authProfile.email === 'string' ? authProfile.email : null;
+    if (!email) {
+      return null;
+    }
+
+    const meta = authProfile.raw_user_meta_data ?? null;
+    const firstName =
+      (meta && isRecord(meta) && typeof meta.first_name === 'string' && meta.first_name) ||
+      (meta && isRecord(meta) && typeof meta.firstName === 'string' && meta.firstName) ||
+      '';
+    const lastName =
+      (meta && isRecord(meta) && typeof meta.last_name === 'string' && meta.last_name) ||
+      (meta && isRecord(meta) && typeof meta.lastName === 'string' && meta.lastName) ||
+      '';
+
+    return {
+      id: authProfile.id,
+      email,
+      first_name: firstName,
+      last_name: lastName,
+    };
+  }
+
+  if ('user_id' in profile) {
+    const memberProfile = profile as MemberUserProfile;
+    if (typeof memberProfile.user_id !== 'string') {
+      return null;
+    }
+
+    const member = memberProfile.member;
+    const email = member && typeof member.email === 'string' ? member.email : null;
+    if (!email) {
+      return null;
+    }
+
+    const firstName =
+      (member && typeof member.preferred_name === 'string' && member.preferred_name) ||
+      (member && typeof member.first_name === 'string' && member.first_name) ||
+      '';
+    const lastName = (member && typeof member.last_name === 'string' && member.last_name) || '';
+
+    return {
+      id: memberProfile.user_id,
+      email,
+      first_name: firstName,
+      last_name: lastName,
+    };
+  }
+
+  if (typeof (profile as any).id === 'string' && typeof (profile as any).email === 'string') {
+    const fallback = profile as Record<string, unknown> & { id: string; email: string };
+    return {
+      id: fallback.id,
+      email: fallback.email,
+      first_name: typeof fallback.first_name === 'string' ? fallback.first_name : '',
+      last_name: typeof fallback.last_name === 'string' ? fallback.last_name : '',
+    };
+  }
+
+  return null;
+};
+
+const mergeUserProfiles = (
+  primary: BasicUserProfile[],
+  secondary: BasicUserProfile[]
+): BasicUserProfile[] => {
+  const profiles = new Map<string, BasicUserProfile>();
+
+  primary.forEach(profile => {
+    profiles.set(profile.id, profile);
+  });
+
+  secondary.forEach(profile => {
+    if (!profiles.has(profile.id)) {
+      profiles.set(profile.id, profile);
+    }
+  });
+
+  return Array.from(profiles.values());
+};
+
 @injectable()
 export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements IUserRoleManagementAdapter {
   constructor(
@@ -152,11 +266,19 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       return null;
     }
 
+    const profile = toBasicUserProfile((userData.user ?? {}) as Record<string, unknown>);
+    if (!profile) {
+      return null;
+    }
+
     const roles = await this.getUserRoles(userId, tenantId);
     const effectivePermissions = await this.getUserEffectivePermissions(userId, tenantId);
 
     return {
-      ...userData.user,
+      id: profile.id,
+      email: profile.email,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
       roles,
       effective_permissions: effectivePermissions
     };
@@ -182,27 +304,41 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
         return [];
       }
 
-      if (!userRolesData || userRolesData.length === 0) {
+      if (!Array.isArray(userRolesData) || userRolesData.length === 0) {
         return [];
       }
 
-      const userIds = userRolesData.map(ur => ur.user_id);
+      const userRoleRows = userRolesData
+        .map(row => ({
+          id: typeof row.id === 'string' ? row.id : String(row.id ?? ''),
+          user_id: typeof row.user_id === 'string' ? row.user_id : null,
+          assigned_at: typeof row.assigned_at === 'string' ? row.assigned_at : null,
+          assigned_by: typeof row.assigned_by === 'string' ? row.assigned_by : null,
+        }))
+        .filter((row): row is { id: string; user_id: string; assigned_at: string | null; assigned_by: string | null } =>
+          typeof row.user_id === 'string' && row.user_id.length > 0
+        );
+
+      if (userRoleRows.length === 0) {
+        return [];
+      }
+
+      const userIds = userRoleRows.map(ur => ur.user_id);
 
       // Get user information using the same approach as getMultiRoleUsers
-      let usersInfo: any[] = [];
+      let usersInfo: BasicUserProfile[] = [];
 
       // Try to get from auth.users using RPC function first
       try {
         const { data: authUsersData, error: authUsersError } = await supabase
           .rpc('get_user_profiles', { user_ids: userIds });
 
-        if (!authUsersError && authUsersData && authUsersData.length > 0) {
-          usersInfo = authUsersData.map(user => ({
-            id: user.id,
-            email: user.email,
-            first_name: user.raw_user_meta_data?.first_name || user.raw_user_meta_data?.firstName || '',
-            last_name: user.raw_user_meta_data?.last_name || user.raw_user_meta_data?.lastName || ''
-          }));
+        if (!authUsersError && Array.isArray(authUsersData)) {
+          const parsedProfiles = authUsersData
+            .map(profile => toBasicUserProfile(profile as AuthUserProfile))
+            .filter((profile): profile is BasicUserProfile => profile !== null);
+
+          usersInfo = mergeUserProfiles(usersInfo, parsedProfiles);
         }
       } catch (authError) {
         console.warn('Could not access auth.users via RPC:', authError);
@@ -228,17 +364,12 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
             .eq('tenant_id', tenantId)
             .in('user_id', missingUserIds);
 
-          if (!memberError && tenantUsersWithMember) {
-            const memberUsersInfo = tenantUsersWithMember
-              .filter(tu => tu.member && tu.member.email)
-              .map(tu => ({
-                id: tu.user_id,
-                email: tu.member!.email,
-                first_name: tu.member!.preferred_name || tu.member!.first_name || '',
-                last_name: tu.member!.last_name || ''
-              }));
+          if (!memberError && Array.isArray(tenantUsersWithMember)) {
+            const memberProfiles = tenantUsersWithMember
+              .map(profile => toBasicUserProfile(profile as MemberUserProfile))
+              .filter((profile): profile is BasicUserProfile => profile !== null);
 
-            usersInfo = [...usersInfo, ...memberUsersInfo];
+            usersInfo = mergeUserProfiles(usersInfo, memberProfiles);
           }
         } catch (memberError) {
           console.warn('Could not access member data:', memberError);
@@ -246,7 +377,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       }
 
       // Combine user role data with user information
-      return userRolesData
+      return userRoleRows
         .map(ur => {
           const userInfo = usersInfo.find(u => u.id === ur.user_id);
           if (!userInfo) return null;
@@ -264,7 +395,13 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
             }
           };
         })
-        .filter(Boolean);
+        .filter((value): value is {
+          id: string;
+          user_id: string;
+          assigned_at: string | null;
+          assigned_by: string | null;
+          user: BasicUserProfile;
+        } => Boolean(value));
     } catch (error) {
       console.error('Error in getUsersWithRole:', error);
       return [];
@@ -313,11 +450,17 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
         return [];
       }
 
-      if (!tenantUsersData || tenantUsersData.length === 0) {
+      if (!Array.isArray(tenantUsersData) || tenantUsersData.length === 0) {
         return [];
       }
 
-      const userIds = tenantUsersData.map(tu => tu.user_id);
+      const userIds = tenantUsersData
+        .map(tu => (typeof tu.user_id === 'string' ? tu.user_id : null))
+        .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
+      if (userIds.length === 0) {
+        return [];
+      }
 
       // Query user roles for these users
       const { data: userRolesData, error: userRolesError } = await supabase
@@ -340,20 +483,20 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       }
 
       // Get user information by trying multiple sources in priority order
-      let usersInfo: any[] = [];
+      let usersInfo: BasicUserProfile[] = [];
 
       // Strategy 1: Try to get from auth.users using RPC function
       try {
         const { data: authUsersData, error: authUsersError } = await supabase
           .rpc('get_user_profiles', { user_ids: userIds });
 
-        if (!authUsersError && authUsersData && authUsersData.length > 0) {
-          usersInfo = authUsersData.map(user => ({
-            id: user.id,
-            email: user.email,
-            user_metadata: user.raw_user_meta_data || {}
-          }));
-          console.log(`Successfully fetched ${usersInfo.length} users from auth.users via RPC`);
+        if (!authUsersError && Array.isArray(authUsersData)) {
+          const parsedProfiles = authUsersData
+            .map(profile => toBasicUserProfile(profile as AuthUserProfile))
+            .filter((profile): profile is BasicUserProfile => profile !== null);
+
+          usersInfo = mergeUserProfiles(usersInfo, parsedProfiles);
+          console.log(`Successfully fetched ${parsedProfiles.length} users from auth.users via RPC`);
         } else if (authUsersError) {
           console.warn('Error accessing auth.users via RPC:', authUsersError);
         }
@@ -383,20 +526,13 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
             .eq('tenant_id', tenantId)
             .in('user_id', missingUserIds);
 
-          if (!memberError && tenantUsersWithMember) {
-            const memberUsersInfo = tenantUsersWithMember
-              .filter(tu => tu.member && tu.member.email)
-              .map(tu => ({
-                id: tu.user_id,
-                email: tu.member!.email,
-                user_metadata: {
-                  first_name: tu.member!.preferred_name || tu.member!.first_name || '',
-                  last_name: tu.member!.last_name || ''
-                }
-              }));
+          if (!memberError && Array.isArray(tenantUsersWithMember)) {
+            const memberProfiles = tenantUsersWithMember
+              .map(profile => toBasicUserProfile(profile as MemberUserProfile))
+              .filter((profile): profile is BasicUserProfile => profile !== null);
 
-            usersInfo = [...usersInfo, ...memberUsersInfo];
-            console.log(`Successfully fetched ${memberUsersInfo.length} additional users from member data`);
+            usersInfo = mergeUserProfiles(usersInfo, memberProfiles);
+            console.log(`Successfully fetched ${memberProfiles.length} additional users from member data`);
           }
         } catch (memberError) {
           console.warn('Could not access member data:', memberError);
@@ -426,8 +562,8 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
           return {
             id: userId,
             email: userInfo.email,
-            first_name: userInfo.user_metadata?.first_name || userInfo.user_metadata?.firstName || '',
-            last_name: userInfo.user_metadata?.last_name || userInfo.user_metadata?.lastName || '',
+            first_name: userInfo.first_name,
+            last_name: userInfo.last_name,
             roles: userRoles.map(ur => this.enrichRole(ur.roles)),
             role_count: userRoles.length
           };
@@ -638,7 +774,27 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
         console.error('Error fetching user roles:', userRolesError);
       }
 
-      const userRoles = (userRolesData || []) as UserRoleRow[];
+      const userRoles: UserRoleRow[] = Array.isArray(userRolesData)
+        ? userRolesData
+            .map(row => {
+              if (!row || typeof row !== 'object') {
+                return null;
+              }
+
+              const record = row as Record<string, unknown>;
+              const userId = typeof record.user_id === 'string' ? record.user_id : null;
+
+              if (!userId) {
+                return null;
+              }
+
+              return {
+                user_id: userId,
+                roles: (record.roles as RoleRow | null) ?? null,
+              };
+            })
+            .filter((value): value is UserRoleRow => value !== null)
+        : [];
       const rolesByUserId = new Map<string, RoleRow[]>();
 
       userRoles.forEach(ur => {

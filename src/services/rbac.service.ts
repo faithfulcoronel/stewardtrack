@@ -34,6 +34,7 @@ import {
   AssignRoleDto,
   CreateSurfaceBindingDto,
   RbacAuditLog,
+  CreateRbacAuditLogInput,
   DelegatedContext,
   MultiRoleContext
 } from '@/models/rbac.model';
@@ -249,6 +250,10 @@ export class RbacService {
 
   async getAuditLogs(tenantId?: string, limit = 100, offset = 0): Promise<RbacAuditLog[]> {
     return this.auditService.getAuditLogs(tenantId, limit, offset);
+  }
+
+  async createAuditLog(log: CreateRbacAuditLogInput): Promise<void> {
+    await this.auditService.createAuditLog(log);
   }
 
   // ==================== DELEGATED ACCESS (RbacDelegationService) ====================
