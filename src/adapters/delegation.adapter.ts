@@ -180,13 +180,13 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
 
       // Transform data to expected format
       return (usersData || []).map(tu => {
-        const user = tu.users;
-        const metadata = user?.user_metadata || {};
+        const userRecord = Array.isArray(tu.users) ? tu.users[0] : tu.users;
+        const metadata = (userRecord?.user_metadata as Record<string, any>) || {};
         const userDelegations = delegationsData.filter(d => d.delegatee_id === tu.user_id);
 
         return {
-          id: user?.id,
-          email: user?.email,
+          id: userRecord?.id,
+          email: userRecord?.email,
           first_name: metadata.first_name || metadata.firstName || '',
           last_name: metadata.last_name || metadata.lastName || '',
           delegated_permissions: userDelegations.map(dp => ({
