@@ -4,15 +4,15 @@ import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     jobId: string;
-  };
+  }>;
 };
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const tenantId = request.nextUrl.searchParams.get('tenantId') ?? undefined;
-    const { jobId } = context.params;
+    const { jobId } = await context.params;
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const job = await rbacService.cancelPublishingJob(jobId, tenantId);
 
