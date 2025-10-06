@@ -44,6 +44,35 @@ export interface ILicenseAssignmentAdapter extends IBaseAdapter<LicenseAssignmen
   getAssignmentWithDetails(assignmentId: string): Promise<LicenseAssignmentWithDetails | null>;
 }
 
+type LicenseAssignmentDetailsRecord = LicenseAssignment & {
+  product_offerings?: {
+    name?: string | null;
+    tier?: string | null;
+  } | null;
+  previous_offering?: {
+    name?: string | null;
+  } | null;
+  assigned_by_user?: {
+    email?: string | null;
+  } | null;
+};
+
+const isLicenseAssignmentDetailsRecord = (
+  value: unknown
+): value is LicenseAssignmentDetailsRecord => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const record = value as Partial<LicenseAssignmentDetailsRecord>;
+
+  return (
+    typeof record.id === 'string' &&
+    typeof record.tenant_id === 'string' &&
+    typeof record.offering_id === 'string'
+  );
+};
+
 @injectable()
 export class LicenseAssignmentAdapter
   extends BaseAdapter<LicenseAssignment>
@@ -257,6 +286,10 @@ export class LicenseAssignmentAdapter
 
     if (!data) {
       return null;
+    }
+
+    if (!isLicenseAssignmentDetailsRecord(data)) {
+      throw new Error('Failed to parse assignment details from Supabase response');
     }
 
     return {
