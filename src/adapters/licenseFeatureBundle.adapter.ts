@@ -107,10 +107,11 @@ export class LicenseFeatureBundleAdapter
       return null;
     }
 
+    const bundleData = bundle as LicenseFeatureBundle;
     const features = await this.getBundleFeatures(bundleId);
 
     return {
-      ...bundle,
+      ...bundleData,
       features,
       feature_count: features.length,
     };
