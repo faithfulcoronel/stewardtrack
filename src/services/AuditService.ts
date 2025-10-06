@@ -1,10 +1,10 @@
 import 'server-only';
 import { injectable } from 'inversify';
-import { logAuditEvent } from '@/utils/auditLogger';
+import { logAuditEvent, type AuditAction } from '@/utils/auditLogger';
 
 export interface AuditService {
   logAuditEvent(
-    action: 'create' | 'update' | 'delete',
+    action: AuditAction,
     entityType: string,
     entityId: string,
     changes: Record<string, any>
@@ -14,7 +14,7 @@ export interface AuditService {
 @injectable()
 export class SupabaseAuditService implements AuditService {
   async logAuditEvent(
-    action: 'create' | 'update' | 'delete',
+    action: AuditAction,
     entityType: string,
     entityId: string,
     changes: Record<string, any>
