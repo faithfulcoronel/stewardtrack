@@ -237,7 +237,7 @@ export function DelegatedConsole() {
         <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">No Delegation Permissions</h2>
         <p className="text-gray-600 mb-4">
-          You don't have delegation permissions to manage users in any scope.
+          You don&rsquo;t have delegation permissions to manage users in any scope.
         </p>
         <p className="text-sm text-gray-500">
           Contact your administrator to request delegation access for campus or ministry management.

@@ -603,14 +603,14 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       const userIds = tenantUsers.map(tu => tu.user_id);
 
       // Fetch auth.users data via RPC
-      const authUsersMap = new Map<string, AuthUserRow>();
+      const authUsersById = new Map<string, AuthUserRow>();
       try {
         const { data: authUsersData, error: authUsersError } = await supabase
           .rpc('get_user_profiles', { user_ids: userIds });
 
         if (!authUsersError && authUsersData) {
           authUsersData.forEach((user: AuthUserRow) => {
-            authUsersMap.set(user.id, user);
+            authUsersById.set(user.id, user);
           });
         }
       } catch (authError) {
@@ -649,7 +649,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
 
       // Build final user list
       return tenantUsers.map(tu => {
-        const authUser = authUsersMap.get(tu.user_id);
+        const authUser = authUsersById.get(tu.user_id);
         const roles = rolesByUserId.get(tu.user_id) || [];
 
         // Try to get email from multiple sources

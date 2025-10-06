@@ -594,7 +594,9 @@ export function BundleComposer() {
               <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              <p>Permissions are organized by module. Select individual permissions or use 'Select All' for entire modules.</p>
+              <p>
+                Permissions are organized by module. Select individual permissions or use &lsquo;Select All&rsquo; for entire modules.
+              </p>
             </TooltipContent>
           </Tooltip>
         </div>

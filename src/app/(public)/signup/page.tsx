@@ -263,7 +263,7 @@ export default function SignupPage() {
         {/* FAQ Callout */}
         <div className="mx-auto max-w-2xl rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur-sm">
           <h3 className="text-center font-semibold text-foreground mb-4">
-            Questions? We&rsquo;re Here to Help
+            Questions? We&apos;re Here to Help
           </h3>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
