@@ -603,7 +603,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       const userIds = tenantUsers.map(tu => tu.user_id);
 
       // Fetch auth.users data via RPC
-      let authUsersMap = new Map<string, AuthUserRow>();
+      const authUsersMap = new Map<string, AuthUserRow>();
       try {
         const { data: authUsersData, error: authUsersError } = await supabase
           .rpc('get_user_profiles', { user_ids: userIds });

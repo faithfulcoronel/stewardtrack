@@ -139,7 +139,7 @@ export default function LoginPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  "StewardTrack has saved our church 10+ hours per week on administrative tasks."
+                  &ldquo;StewardTrack has saved our church 10+ hours per week on administrative tasks.&rdquo;
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   - Pastor Michael J., Grace Community Church

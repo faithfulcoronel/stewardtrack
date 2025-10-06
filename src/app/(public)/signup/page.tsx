@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -262,29 +263,29 @@ export default function SignupPage() {
         {/* FAQ Callout */}
         <div className="mx-auto max-w-2xl rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur-sm">
           <h3 className="text-center font-semibold text-foreground mb-4">
-            Questions? We're Here to Help
+            Questions? We&rsquo;re Here to Help
           </h3>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            <Link
               href="/#faq"
               className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               View FAQ
-            </a>
+            </Link>
             <span className="hidden sm:inline text-muted-foreground">•</span>
-            <a
+            <Link
               href="/contact"
               className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               Contact Sales
-            </a>
+            </Link>
             <span className="hidden sm:inline text-muted-foreground">•</span>
-            <a
+            <Link
               href="/demo"
               className="inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               Schedule Demo
-            </a>
+            </Link>
           </div>
         </div>
       </div>
