@@ -239,7 +239,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
                   <h3 className="font-semibold mb-2">🎯 Action Buttons</h3>
                   <p className="text-sm text-gray-600">
                     Each card has a button that takes you to the management area for that feature.
-                    Look for &quot;Manage Roles&quot;, &quot;Manage Bundles&quot;, etc.
+                    Look for “Manage Roles”, “Manage Bundles”, etc.
                   </p>
                 </CardContent>
               </Card>
@@ -248,7 +248,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
             <Alert className="border-yellow-200 bg-yellow-50">
               <Star className="h-4 w-4" />
               <AlertDescription>
-                <strong>Pro Tip:</strong> Use the "Help Guide" button in the top-right corner anytime you need detailed explanations or step-by-step instructions.
+                <strong>Pro Tip:</strong> Use the “Help Guide” button in the top-right corner anytime you need detailed explanations or step-by-step instructions.
               </AlertDescription>
             </Alert>
           </div>
@@ -266,7 +266,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
                 <div>
                   <h3 className="font-semibold mb-1">Review Current Setup</h3>
                   <p className="text-sm text-gray-600">
-                    Look at the Overview tab to see what's already configured. The system comes with basic roles and permissions.
+                    Look at the Overview tab to see what’s already configured. The system comes with basic roles and permissions.
                   </p>
                 </div>
               </div>
@@ -302,7 +302,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
                 <div>
                   <h3 className="font-semibold mb-1">Gradually Add Others</h3>
                   <p className="text-sm text-gray-600">
-                    Once you're comfortable, add other staff members one by one. Take your time!
+                    Once you’re comfortable, add other staff members one by one. Take your time!
                   </p>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Remember:</strong> You can always undo changes. It's better to start with less access and add more as needed.
+                <strong>Remember:</strong> You can always undo changes. It’s better to start with less access and add more as needed.
               </AlertDescription>
             </Alert>
           </div>
@@ -387,7 +387,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
               <Lightbulb className="h-4 w-4" />
               <AlertDescription>
                 <strong>Take your time!</strong> RBAC is powerful but can seem complex at first.
-                Don't hesitate to use the help resources whenever you need them.
+                Don’t hesitate to use the help resources whenever you need them.
               </AlertDescription>
             </Alert>
           </div>
@@ -400,7 +400,7 @@ export function RbacOnboarding({ isOpen, onClose, onComplete }: RbacOnboardingPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" widthMode='content'>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" widthMode="content">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />

@@ -105,7 +105,7 @@ export default function RBACSetupStep({
               Your Team Roles
             </h3>
             <p className="text-sm text-muted-foreground">
-              We've set up default roles for your church. You can customize these later.
+              We’ve set up default roles for your church. You can customize these later.
             </p>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function RBACSetupStep({
                 <div className="bg-primary/5 border border-primary/20 rounded-md p-3">
                   <p className="text-xs text-muted-foreground">
                     You have been automatically assigned this role as the church administrator.
-                    This gives you full access to manage your church's account.
+                    This gives you full access to manage your church’s account.
                   </p>
                 </div>
               </CardContent>
@@ -153,7 +153,7 @@ export default function RBACSetupStep({
       </div>
 
       <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-        <h4 className="text-sm font-semibold text-foreground">What's next?</h4>
+        <h4 className="text-sm font-semibold text-foreground">What’s next?</h4>
         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
           <li>Invite team members and assign them roles</li>
           <li>Customize role permissions from the RBAC settings</li>
@@ -172,7 +172,7 @@ export default function RBACSetupStep({
               Saving...
             </>
           ) : (
-            'Continue'
+            <>Continue</>
           )}
         </Button>
       </div>

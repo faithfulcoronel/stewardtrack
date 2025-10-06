@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
-    const module = searchParams.get('module') || undefined;
+    const moduleParam = searchParams.get('module') || undefined;
     const tenantId = searchParams.get('tenantId') || undefined;
     const groupByModule = searchParams.get('groupByModule') === 'true';
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const permissions = await rbacService.getPermissions(tenantId, module);
+    const permissions = await rbacService.getPermissions(tenantId, moduleParam);
 
     return NextResponse.json({
       success: true,
