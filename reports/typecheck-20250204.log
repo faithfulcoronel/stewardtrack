@@ -1,0 +1,250 @@
+jest.config.ts(1,29): error TS2307: Cannot find module 'jest' or its corresponding type declarations.
+src/adapters/licenseFeatureBundle.adapter.ts(392,13): error TS2416: Property 'sanitizeData' in type 'LicenseFeatureBundleAdapter' is not assignable to the same property in base type 'BaseAdapter<LicenseFeatureBundle>'.
+  Type '(data: Partial<LicenseFeatureBundle>, fieldsToRemove: string[]) => Partial<LicenseFeatureBundle>' is not assignable to type '<D extends Record<string, unknown>>(data: D, fieldsToRemove: string[]) => D'.
+    Type 'Partial<LicenseFeatureBundle>' is not assignable to type 'D'.
+      'Partial<LicenseFeatureBundle>' is assignable to the constraint of type 'D', but 'D' could be instantiated with a different subtype of constraint 'Record<string, unknown>'.
+src/adapters/memberProfile.adapter.ts(282,12): error TS2352: Conversion of type '{ id: any; tenant_id: any; first_name: any; last_name: any; preferred_name: any; email: any; contact_number: any; address: any; envelope_number: any; household_id: any; membership_date: any; birthday: any; ... 54 more ...; household: { ...; }[]; }[]' to type 'MemberRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: any; tenant_id: any; first_name: any; last_name: any; preferred_name: any; email: any; contact_number: any; address: any; envelope_number: any; household_id: any; membership_date: any; birthday: any; ... 54 more ...; household: { ...; }[]; }' is not comparable to type 'MemberRow'.
+    Types of property 'household' are incompatible.
+      Property 'id' is missing in type '{ id: any; name: any; envelope_number: any; address_street: any; address_city: any; address_state: any; address_postal_code: any; member_names: any; notes: any; }[]' but required in type 'MemberHousehold'.
+src/adapters/productOffering.adapter.ts(84,7): error TS2353: Object literal may only specify known properties, and 'feature_count' does not exist in type 'ProductOfferingWithFeatures'.
+src/adapters/publishing.adapter.ts(127,27): error TS2339: Property 'toUpperCase' does not exist on type 'never'.
+src/adapters/rbac/role.adapter.ts(58,33): error TS2339: Property 'getTenantId' does not exist on type 'RoleAdapter'.
+src/adapters/rbac/role.adapter.ts(109,33): error TS2339: Property 'getTenantId' does not exist on type 'RoleAdapter'.
+src/adapters/rbacAudit.adapter.ts(12,57): error TS2344: Type 'RbacAuditLog' does not satisfy the constraint 'BaseModel'.
+  Types of property 'tenant_id' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/adapters/rbacAudit.adapter.ts(121,51): error TS2344: Type 'RbacAuditLog' does not satisfy the constraint 'BaseModel'.
+  Types of property 'tenant_id' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/adapters/userRoleManagement.adapter.ts(269,40): error TS2352: Conversion of type '{ id: any; email: any; first_name: any; last_name: any; }[]' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type '{ id: any; email: any; first_name: any; last_name: any; }[]'.
+src/app/admin/members/metadata.ts(34,7): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '{ value: { role: string; tenant: string | null; locale: string; featureFlags: Record<string, boolean>; }; }' is not assignable to parameter of type 'Attributes & MetadataClientProviderProps'.
+      Property 'children' is missing in type '{ value: { role: string; tenant: string | null; locale: string; featureFlags: Record<string, boolean>; }; }' but required in type 'MetadataClientProviderProps'.
+src/app/admin/settings/metadata.ts(34,7): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '{ value: { role: string; tenant: string | null; locale: string; featureFlags: Record<string, boolean>; }; }' is not assignable to parameter of type 'Attributes & MetadataClientProviderProps'.
+      Property 'children' is missing in type '{ value: { role: string; tenant: string | null; locale: string; featureFlags: Record<string, boolean>; }; }' but required in type 'MetadataClientProviderProps'.
+src/app/api/auth/register/route.ts(172,53): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/api/auth/register/route.ts(180,29): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/api/auth/register/route.ts(188,43): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/app/api/licensing/product-offerings/[id]/features/route.ts(43,13): error TS18047: 'offering' is possibly 'null'.
+src/app/api/licensing/product-offerings/[id]/route.ts(142,34): error TS18047: 'currentOffering' is possibly 'null'.
+src/app/api/metadata/actions/route.ts(25,10): error TS2554: Expected 2-3 arguments, but got 1.
+src/app/api/metadata/actions/route.ts(83,7): error TS2322: Type 'Record<string | number | symbol, unknown>' is not assignable to type 'Record<string, string | string[] | undefined>'.
+  'string' index signatures are incompatible.
+    Type 'unknown' is not assignable to type 'string | string[] | undefined'.
+src/app/api/onboarding/complete/route.ts(93,26): error TS2339: Property 'log' does not exist on type 'AuditService'.
+src/app/api/rbac/check-access/route.ts(95,38): error TS2339: Property 'hasAccess' does not exist on type 'SurfaceAccessResult'.
+src/app/api/rbac/check-access/route.ts(194,38): error TS2339: Property 'hasAccess' does not exist on type 'SurfaceAccessResult'.
+src/app/api/tenant/update/route.ts(105,26): error TS2339: Property 'log' does not exist on type 'AuditService'.
+src/components/admin/rbac/DelegateAccessDashboard.tsx(198,19): error TS2345: Argument of type '(prev: { delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }) => { scope_type: "campus" | "ministry" | "department"; ... 4 more ...; notes: string; }' is not assignable to parameter of type 'SetStateAction<{ delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }>'.
+  Type '(prev: { delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }) => { scope_type: "campus" | "ministry" | "department"; ... 4 more ...; notes: string; }' is not assignable to type '(prevState: { delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }) => { delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }'.
+    Call signature return types '{ scope_type: "campus" | "ministry" | "department"; scope_name: string; permissions: never[]; delegatee_name: string; expires_at: string; notes: string; }' and '{ delegatee_name: string; scope_type: "ministry"; scope_name: string; permissions: string[]; expires_at: string; notes: string; }' are incompatible.
+      The types of 'scope_type' are incompatible between these types.
+        Type '"campus" | "ministry" | "department"' is not assignable to type '"ministry"'.
+          Type '"campus"' is not assignable to type '"ministry"'.
+src/components/admin/rbac/MultiRoleAssignment.tsx(179,56): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/components/admin/rbac/RbacAuditDashboard.tsx(593,76): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/components/admin/rbac/RbacAuditDashboard.tsx(650,86): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/components/admin/rbac/RoleExplorer.tsx(1635,9): error TS2322: Type '"system" | "tenant" | "campus" | "ministry" | "delegated"' is not assignable to type '"system" | "tenant" | "campus" | "ministry"'.
+  Type '"delegated"' is not assignable to type '"system" | "tenant" | "campus" | "ministry"'.
+src/components/admin/rbac/VisualBindingEditor.tsx(83,17): error TS2339: Property 'name' does not exist on type 'Role | PermissionBundle | MetadataSurface | FeatureCatalog'.
+  Property 'name' does not exist on type 'MetadataSurface'.
+src/components/admin/user-member-link/LinkUserForm.tsx(332,45): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/docs/docs-manager.tsx(120,6): error TS2322: Type '{ ref?: Ref<HTMLOListElement | HTMLUListElement> | undefined; key?: Key | null | undefined; defaultChecked?: boolean | undefined; ... 277 more ...; className: string; }' is not assignable to type 'DetailedHTMLProps<OlHTMLAttributes<HTMLOListElement>, HTMLOListElement>'.
+  Type '{ ref?: Ref<HTMLOListElement | HTMLUListElement> | undefined; key?: Key | null | undefined; defaultChecked?: boolean | undefined; ... 277 more ...; className: string; }' is not assignable to type 'ClassAttributes<HTMLOListElement>'.
+    Types of property 'ref' are incompatible.
+      Type 'Ref<HTMLOListElement | HTMLUListElement> | undefined' is not assignable to type 'Ref<HTMLOListElement> | undefined'.
+        Type 'RefObject<HTMLOListElement | HTMLUListElement | null>' is not assignable to type 'Ref<HTMLOListElement> | undefined'.
+          Type 'RefObject<HTMLOListElement | HTMLUListElement | null>' is not assignable to type 'RefObject<HTMLOListElement | null>'.
+            Type 'HTMLOListElement | HTMLUListElement | null' is not assignable to type 'HTMLOListElement | null'.
+              Type 'HTMLUListElement' is missing the following properties from type 'HTMLOListElement': reversed, start
+src/components/docs/docs-manager.tsx(275,46): error TS2322: Type '() => void | Transformer<Root, Root>' is not assignable to type 'Pluggable'.
+  Type '() => void | Transformer<Root, Root>' is not assignable to type 'Plugin<any[], any, any>'.
+    Type 'void | Transformer<Root, Root>' is not assignable to type 'void | Transformer<any, any> | undefined'.
+      Type 'Transformer<Root, Root>' is not assignable to type 'void | Transformer<any, any> | undefined'.
+        Type 'Transformer<Root, Root>' is not assignable to type 'Transformer<any, any>'.
+          Types of parameters 'file' and 'file' are incompatible.
+            Type 'import("/workspace/stewardtrack/node_modules/vfile/lib/index").VFile' is not assignable to type 'import("/workspace/stewardtrack/node_modules/remark-slug/node_modules/vfile/lib/index").VFile'.
+              Types of property 'messages' are incompatible.
+                Type 'import("/workspace/stewardtrack/node_modules/vfile-message/lib/index").VFileMessage[]' is not assignable to type 'import("/workspace/stewardtrack/node_modules/remark-slug/node_modules/vfile-message/lib/index").VFileMessage[]'.
+                  Property 'position' is missing in type 'import("/workspace/stewardtrack/node_modules/vfile-message/lib/index").VFileMessage' but required in type 'import("/workspace/stewardtrack/node_modules/remark-slug/node_modules/vfile-message/lib/index").VFileMessage'.
+src/components/dynamic/admin/AdminDataGridSection.tsx(639,5): error TS2322: Type 'number | boolean' is not assignable to type 'string | number | null'.
+  Type 'false' is not assignable to type 'string | number | null'.
+src/components/dynamic/admin/AdminFormSection.tsx(130,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+src/components/dynamic/admin/AdminMemberWorkspace.tsx(620,47): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+src/components/dynamic/admin/AdminMemberWorkspace.tsx(943,48): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+src/components/ui/calendar.tsx(50,5): error TS2339: Property 'selected' does not exist on type '{ mode: "single"; required?: false | undefined; modifiersClassNames?: ModifiersClassNames | undefined; style?: CSSProperties | undefined; ... 66 more ...; onSelect?: OnSelectHandler<...> | undefined; } | ... 5 more ... | { ...; }'.
+src/components/ui/calendar.tsx(421,6): error TS2322: Type '{ month: Date; defaultMonth: Date | undefined; onMonthChange: (next: Date) => void; startMonth: Date | undefined; fromMonth: Date | undefined; fromYear: number | undefined; ... 70 more ...; onSelect?: OnSelectHandler<...> | undefined; } | ... 5 more ... | { ...; }' is not assignable to type 'IntrinsicAttributes & DayPickerProps'.
+  Type '{ month: Date; defaultMonth: Date | undefined; onMonthChange: (next: Date) => void; startMonth: Date | undefined; fromMonth: Date | undefined; fromYear: number | undefined; ... 70 more ...; onSelect?: OnSelectHandler<...> | undefined; }' is not assignable to type 'IntrinsicAttributes & DayPickerProps'.
+    Property 'selected' is missing in type '{ month: Date; defaultMonth: Date | undefined; onMonthChange: (next: Date) => void; startMonth: Date | undefined; fromMonth: Date | undefined; fromYear: number | undefined; ... 70 more ...; onSelect?: OnSelectHandler<...> | undefined; }' but required in type 'PropsSingleRequired'.
+src/lib/audit/licenseAuditQueries.ts(224,9): error TS2552: Cannot find name 'tenant_id'. Did you mean 'tenantId'?
+src/lib/audit/licenseAuditQueries.ts(236,9): error TS2552: Cannot find name 'tenant_id'. Did you mean 'tenantId'?
+src/lib/cache/licenseCache.ts(66,45): error TS2307: Cannot find module 'redis' or its corresponding type declarations.
+src/lib/container.ts(172,57): error TS2345: Argument of type 'typeof RbacRepository' is not assignable to parameter of type 'Newable<RbacRepository>'.
+  Type 'typeof RbacRepository' provides no match for the signature 'new (...args: any[]): RbacRepository'.
+src/lib/container.ts(249,77): error TS2345: Argument of type 'typeof UserMemberLinkRepository' is not assignable to parameter of type 'Newable<UserMemberLinkRepository>'.
+  Type 'typeof UserMemberLinkRepository' provides no match for the signature 'new (...args: any[]): UserMemberLinkRepository'.
+src/lib/container.ts(250,81): error TS2345: Argument of type 'typeof MemberInvitationRepository' is not assignable to parameter of type 'Newable<MemberInvitationRepository>'.
+  Type 'typeof MemberInvitationRepository' provides no match for the signature 'new (...args: any[]): MemberInvitationRepository'.
+src/lib/metadata/actions/admin-community/manage-member/lookupCreate.ts(31,34): error TS2339: Property 'errors' does not exist on type 'ZodError<{ lookupId: string; name: string; code: string; }>'.
+src/lib/metadata/actions/admin-community/manage-member/mapper.ts(186,7): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/lib/metadata/actions/admin-community/manage-member/mapper.ts(194,7): error TS2322: Type '"single" | "married" | "widowed" | "divorced" | "engaged" | null' is not assignable to type '"single" | "married" | "widowed" | "divorced" | "engaged" | undefined'.
+  Type 'null' is not assignable to type '"single" | "married" | "widowed" | "divorced" | "engaged" | undefined'.
+src/lib/metadata/actions/admin-community/manage-member/mapper.ts(405,7): error TS2322: Type 'Partial<MemberHousehold>' is not assignable to type 'MemberHousehold'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/lib/metadata/actions/admin-community/manage-member/mapper.ts(407,7): error TS2322: Type '{ id: null; }' is not assignable to type 'MemberHousehold'.
+  Types of property 'id' are incompatible.
+    Type 'null' is not assignable to type 'string'.
+src/lib/metadata/actions/admin-community/manage-member/mapper.ts(407,29): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/lib/metadata/actions/admin-community/manage-member/resourceFactory.ts(39,35): error TS2345: Argument of type 'MembershipStageRepository' is not assignable to parameter of type '{ findAll: (options?: unknown) => Promise<{ data?: MembershipStage[] | null | undefined; }>; }'.
+  Types of property 'findAll' are incompatible.
+    Type '(options?: Omit<QueryOptions, "pagination">) => Promise<{ data: MembershipStage[]; count: number | null; }>' is not assignable to type '(options?: unknown) => Promise<{ data?: MembershipStage[] | null | undefined; }>'.
+      Types of parameters 'options' and 'options' are incompatible.
+        Type 'unknown' is not assignable to type 'Omit<QueryOptions, "pagination"> | undefined'.
+src/lib/metadata/actions/admin-community/manage-member/resourceFactory.ts(40,35): error TS2345: Argument of type 'MembershipTypeRepository' is not assignable to parameter of type '{ findAll: (options?: unknown) => Promise<{ data?: MembershipType[] | null | undefined; }>; }'.
+  Types of property 'findAll' are incompatible.
+    Type '(options?: Omit<QueryOptions, "pagination">) => Promise<{ data: MembershipType[]; count: number | null; }>' is not assignable to type '(options?: unknown) => Promise<{ data?: MembershipType[] | null | undefined; }>'.
+      Types of parameters 'options' and 'options' are incompatible.
+        Type 'unknown' is not assignable to type 'Omit<QueryOptions, "pagination"> | undefined'.
+src/lib/metadata/actions/admin-community/manage-member/resourceFactory.ts(41,35): error TS2345: Argument of type 'MembershipCenterRepository' is not assignable to parameter of type '{ findAll: (options?: unknown) => Promise<{ data?: MembershipCenter[] | null | undefined; }>; }'.
+  Types of property 'findAll' are incompatible.
+    Type '(options?: Omit<QueryOptions, "pagination">) => Promise<{ data: MembershipCenter[]; count: number | null; }>' is not assignable to type '(options?: unknown) => Promise<{ data?: MembershipCenter[] | null | undefined; }>'.
+      Types of parameters 'options' and 'options' are incompatible.
+        Type 'unknown' is not assignable to type 'Omit<QueryOptions, "pagination"> | undefined'.
+src/lib/metadata/components/admin.tsx(26,57): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: Props, context?: any): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<...> | Promise<...> | Component<...> | null | undefined', gave the following error.
+    Type 'Props' is not assignable to type 'IntrinsicAttributes & Props'.
+      Type 'Props' is not assignable to type 'IntrinsicAttributes'.
+  Overload 2 of 2, '(props: Props): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...> | null | undefined', gave the following error.
+    Type 'Props' is not assignable to type 'IntrinsicAttributes & Props'.
+      Type 'Props' is not assignable to type 'IntrinsicAttributes'.
+src/lib/metadata/evaluation.ts(110,11): error TS2561: Object literal may only specify known properties, but 'roles' does not exist in type 'ServiceDataSourceRequest'. Did you mean to write 'role'?
+src/lib/metadata/services/admin-community.ts(1319,3): error TS2739: Type '{ id: string; fullName: string; photoUrl: string | null; preferredName: string | null; stage: string; statusVariant: string; center: string | null; membershipType: string; joinDate: string | null; ... 13 more ...; timeline: { ...; }[]; }' is missing the following properties from type 'MemberProfileRecord': contact_number, first_name, last_name, email, profile_picture_url
+src/lib/metadata/services/admin-community.ts(1384,5): error TS1360: Type '{ id: string; fullName: string; photoUrl: string | null; preferredName: string | null; stage: string; statusVariant: string; center: string | null; membershipType: string; joinDate: string | null; ... 13 more ...; timeline: { ...; }[]; }' does not satisfy the expected type 'MemberProfileRecord'.
+  Type '{ id: string; fullName: string; photoUrl: string | null; preferredName: string | null; stage: string; statusVariant: string; center: string | null; membershipType: string; joinDate: string | null; ... 13 more ...; timeline: { ...; }[]; }' is missing the following properties from type 'MemberProfileRecord': contact_number, first_name, last_name, email, profile_picture_url
+src/lib/metadata/services/admin-community/membershipLookups.ts(102,3): error TS2322: Type 'MembershipStageService' is not assignable to type 'LookupServiceInstance<StageRecord>'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<MembershipStage>' is not assignable to type 'Promise<Record<string, unknown>>'.
+      Type 'MembershipStage' is not assignable to type 'Record<string, unknown>'.
+        Index signature for type 'string' is missing in type 'MembershipStage'.
+src/lib/metadata/services/admin-community/membershipLookups.ts(112,3): error TS2322: Type 'MembershipTypeService' is not assignable to type 'LookupServiceInstance<TypeRecord>'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<MembershipType>' is not assignable to type 'Promise<Record<string, unknown>>'.
+      Type 'MembershipType' is not assignable to type 'Record<string, unknown>'.
+        Index signature for type 'string' is missing in type 'MembershipType'.
+src/lib/metadata/services/admin-community/membershipLookups.ts(122,3): error TS2322: Type 'MembershipCenterService' is not assignable to type 'LookupServiceInstance<CenterRecord>'.
+  The types returned by 'create(...)' are incompatible between these types.
+    Type 'Promise<MembershipCenter>' is not assignable to type 'Promise<Record<string, unknown>>'.
+      Type 'MembershipCenter' is not assignable to type 'Record<string, unknown>'.
+        Index signature for type 'string' is missing in type 'MembershipCenter'.
+src/lib/metadata/services/admin-community/membershipLookups.ts(160,5): error TS2322: Type '(records: CenterRecord[]) => CenterRecord[]' is not assignable to type '(records: LookupRecord[]) => LookupRecord[]'.
+  Types of parameters 'records' and 'records' are incompatible.
+    Type 'LookupRecord[]' is not assignable to type 'CenterRecord[]'.
+      Type 'LookupRecord' is missing the following properties from type 'CenterRecord': sort_order, is_primary
+src/lib/rbac/permissionHelpers.ts(125,36): error TS2339: Property 'hasAccess' does not exist on type 'SurfaceAccessResult'.
+src/lib/supabase/server.ts(25,11): error TS2339: Property 'url' does not exist on type 'EnvConfig'.
+src/lib/supabase/server.ts(25,16): error TS2339: Property 'anonKey' does not exist on type 'EnvConfig'.
+src/lib/types.ts(154,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(155,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(156,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(160,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(163,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(174,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/lib/types.ts(175,3): error TS1117: An object literal cannot have multiple properties with the same name.
+src/repositories/licenseFeatureBundle.repository.ts(57,51): error TS2339: Property 'findById' does not exist on type 'ILicenseFeatureBundleAdapter'.
+src/repositories/memberInvitation.repository.ts(17,2): error TS1238: Unable to resolve signature of class decorator when called as an expression.
+  Argument of type 'typeof MemberInvitationRepository' is not assignable to parameter of type 'abstract new (...args: any) => unknown'.
+    Type 'typeof MemberInvitationRepository' provides no match for the signature 'new (...args: any): unknown'.
+src/repositories/memberInvitation.repository.ts(18,49): error TS2314: Generic type 'BaseRepository<T>' requires 1 type argument(s).
+src/repositories/memberInvitation.repository.ts(515,34): error TS2339: Property 'raw' does not exist on type 'SupabaseClient<any, "public", "public", any, any>'.
+src/repositories/productOffering.repository.ts(61,46): error TS2339: Property 'findById' does not exist on type 'IProductOfferingAdapter'.
+src/repositories/rbac.repository.ts(137,2): error TS1238: Unable to resolve signature of class decorator when called as an expression.
+  Argument of type 'typeof RbacRepository' is not assignable to parameter of type 'abstract new (...args: any) => unknown'.
+    Type 'typeof RbacRepository' provides no match for the signature 'new (...args: any): unknown'.
+src/repositories/rbac.repository.ts(138,37): error TS2314: Generic type 'BaseRepository<T>' requires 1 type argument(s).
+src/repositories/rbac.repository.ts(166,63): error TS2339: Property 'scope' does not exist on type 'Partial<RoleFlagFields>'.
+src/repositories/rbac.repository.ts(551,5): error TS2739: Type '{ roles: Role[]; effective_permissions: Permission[]; length: number; toString(): string; toLocaleString(): string; toLocaleString(locales: string | string[], options?: (NumberFormatOptions & DateTimeFormatOptions) | undefined): string; ... 37 more ...; [Symbol.unscopables]: { ...; }; }' is missing the following properties from type 'UserWithRoles': id, email
+src/repositories/rbac.repository.ts(593,41): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/repositories/rbac.repository.ts(626,52): error TS2339: Property 'email' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(629,35): error TS2339: Property 'email' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(630,40): error TS2339: Property 'preferred_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(630,69): error TS2339: Property 'first_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(631,39): error TS2339: Property 'last_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(701,30): error TS2339: Property 'id' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(702,32): error TS2339: Property 'name' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(703,34): error TS2339: Property 'action' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(704,34): error TS2339: Property 'module' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(705,39): error TS2339: Property 'description' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(706,33): error TS2339: Property 'scope' does not exist on type '{ id: any; name: any; action: any; module: any; description: any; scope: any; }[]'.
+src/repositories/rbac.repository.ts(1449,32): error TS2339: Property 'user_metadata' does not exist on type '{ id: any; email: any; user_metadata: any; }[]'.
+src/repositories/rbac.repository.ts(1453,21): error TS2339: Property 'id' does not exist on type '{ id: any; email: any; user_metadata: any; }[]'.
+src/repositories/rbac.repository.ts(1454,24): error TS2339: Property 'email' does not exist on type '{ id: any; email: any; user_metadata: any; }[]'.
+src/repositories/rbac.repository.ts(1991,25): error TS2352: Conversion of type '{ user_id: any; roles: { id: any; name: any; description: any; scope: any; metadata_key: any; is_system: any; is_delegatable: any; }[]; }[]' to type 'UserRoleRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ user_id: any; roles: { id: any; name: any; description: any; scope: any; metadata_key: any; is_system: any; is_delegatable: any; }[]; }' is not comparable to type 'UserRoleRow'.
+    Types of property 'roles' are incompatible.
+      Type '{ id: any; name: any; description: any; scope: any; metadata_key: any; is_system: any; is_delegatable: any; }[]' is not comparable to type 'RoleRow'.
+        Type '{ id: any; name: any; description: any; scope: any; metadata_key: any; is_system: any; is_delegatable: any; }[]' is missing the following properties from type '{ id: string; name: string; scope?: string | null | undefined; description?: string | null | undefined; metadata_key?: string | null | undefined; is_system?: boolean | null | undefined; is_delegatable?: boolean | ... 1 more ... | undefined; }': id, name
+src/repositories/rbac.repository.ts(2265,27): error TS2339: Property 'toUpperCase' does not exist on type 'never'.
+src/repositories/rbac.repository.ts(2653,41): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/repositories/rbac.repository.ts(2690,52): error TS2339: Property 'email' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(2693,35): error TS2339: Property 'email' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(2695,42): error TS2339: Property 'preferred_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(2695,71): error TS2339: Property 'first_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(2696,41): error TS2339: Property 'last_name' does not exist on type '{ preferred_name: any; first_name: any; last_name: any; email: any; }[]'.
+src/repositories/rbac.repository.ts(2869,33): error TS2339: Property 'scope' does not exist on type '{ scope: any; }[]'.
+src/repositories/rbacAudit.repository.ts(10,62): error TS2344: Type 'RbacAuditLog' does not satisfy the constraint 'BaseModel'.
+  Types of property 'tenant_id' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/repositories/rbacAudit.repository.ts(24,57): error TS2344: Type 'RbacAuditLog' does not satisfy the constraint 'BaseModel'.
+  Types of property 'tenant_id' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/repositories/userMemberLink.repository.ts(21,2): error TS1238: Unable to resolve signature of class decorator when called as an expression.
+  Argument of type 'typeof UserMemberLinkRepository' is not assignable to parameter of type 'abstract new (...args: any) => unknown'.
+    Type 'typeof UserMemberLinkRepository' provides no match for the signature 'new (...args: any): unknown'.
+src/repositories/userMemberLink.repository.ts(22,47): error TS2314: Generic type 'BaseRepository<T>' requires 1 type argument(s).
+src/repositories/userMemberLink.repository.ts(283,40): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/repositories/userMemberLink.repository.ts(292,37): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/repositories/userMemberLink.repository.ts(294,37): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/repositories/userMemberLink.repository.ts(612,27): error TS2339: Property 'raw_user_meta_data' does not exist on type '{ id: any; email: any; raw_user_meta_data: any; last_sign_in_at: any; created_at: any; }[]'.
+src/repositories/userMemberLink.repository.ts(615,16): error TS2339: Property 'id' does not exist on type '{ id: any; email: any; raw_user_meta_data: any; last_sign_in_at: any; created_at: any; }[]'.
+src/repositories/userMemberLink.repository.ts(616,19): error TS2339: Property 'email' does not exist on type '{ id: any; email: any; raw_user_meta_data: any; last_sign_in_at: any; created_at: any; }[]'.
+src/repositories/userMemberLink.repository.ts(619,29): error TS2339: Property 'last_sign_in_at' does not exist on type '{ id: any; email: any; raw_user_meta_data: any; last_sign_in_at: any; created_at: any; }[]'.
+src/repositories/userMemberLink.repository.ts(620,24): error TS2339: Property 'created_at' does not exist on type '{ id: any; email: any; raw_user_meta_data: any; last_sign_in_at: any; created_at: any; }[]'.
+src/scripts/healLicenseIssues.ts(18,25): error TS2307: Cannot find module 'commander' or its corresponding type declarations.
+src/scripts/healLicenseIssues.ts(445,18): error TS7006: Parameter 'options' implicitly has an 'any' type.
+src/services/RbacDelegationService.ts(80,5): error TS2322: Type 'boolean | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'.
+src/services/RbacRegistryService.ts(4,15): error TS2305: Module '"@/repositories/userRole.repository"' has no exported member 'IUserRoleRepository'.
+src/services/RbacRegistryService.ts(63,64): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/services/RbacRegistryService.ts(111,66): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/services/UserRoleService.ts(4,15): error TS2305: Module '"@/repositories/userRole.repository"' has no exported member 'IUserRoleRepository'.
+src/services/UserRoleService.ts(195,28): error TS2339: Property 'hasAccess' does not exist on type 'SurfaceAccessResult'.
+src/services/rbac.service.ts(256,29): error TS2339: Property 'createAuditLog' does not exist on type 'RbacAuditService'.
+src/services/rbac.service.ts(291,7): error TS2322: Type 'Permission[]' is not assignable to type 'string[]'.
+  Type 'Permission' is not assignable to type 'string'.
+src/services/rbac.service.ts(292,7): error TS2322: Type 'TenantFeatureGrant[]' is not assignable to type 'string[]'.
+  Type 'TenantFeatureGrant' is not assignable to type 'string'.
+src/services/rbacMetadata.service.ts(47,7): error TS2322: Type 'CreateSurfaceBindingDto' is not assignable to type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'CreateSurfaceBindingDto'.
+src/services/rbacMetadata.service.ts(73,7): error TS2322: Type 'RbacSurfaceBinding' is not assignable to type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'RbacSurfaceBinding'.
+src/services/rbacMetadata.service.ts(74,7): error TS2322: Type 'RbacSurfaceBinding' is not assignable to type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'RbacSurfaceBinding'.
+src/services/rbacMetadata.service.ts(101,7): error TS2322: Type 'RbacSurfaceBinding' is not assignable to type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'RbacSurfaceBinding'.
