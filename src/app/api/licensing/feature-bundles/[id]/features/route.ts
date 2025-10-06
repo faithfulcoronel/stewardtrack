@@ -3,20 +3,20 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
  * GET /api/licensing/feature-bundles/[id]/features
  * Retrieves features for a specific license feature bundle
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     // Await params in Next.js 15
-    const { id } = await params;
+    const { id } = await context.params;
 
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
 
