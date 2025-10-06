@@ -119,7 +119,7 @@ export default function OnboardingPage() {
             Welcome to StewardTrack
           </h1>
           <p className="text-muted-foreground">
-            Let&rsquo;s get your church management system set up
+            Let&apos;s get your church management system set up
           </p>
         </div>
 

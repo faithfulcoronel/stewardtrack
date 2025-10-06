@@ -137,14 +137,15 @@ export default function LoginPage() {
               <div className="rounded-full bg-primary/10 p-2">
                 <CheckCircle2 className="size-5 text-primary" />
               </div>
-              <div className="flex-1">
+              <blockquote className="flex-1">
                 <p className="text-sm font-medium text-foreground">
                   &ldquo;StewardTrack has saved our church 10+ hours per week on administrative tasks.&rdquo;
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  - Pastor Michael J., Grace Community Church
-                </p>
-              </div>
+                <footer className="mt-2 text-xs text-muted-foreground">
+                  <span aria-hidden="true">&mdash;</span>{' '}
+                  Pastor Michael J., Grace Community Church
+                </footer>
+              </blockquote>
             </div>
           </motion.div>
         </motion.div>
