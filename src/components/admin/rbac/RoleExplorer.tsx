@@ -36,7 +36,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import type { Role, PermissionBundle, CreateRoleDto, CreatePermissionBundleDto } from '@/models/rbac.model';
+import type { Role, PermissionBundle, Permission, CreateRoleDto, CreatePermissionBundleDto } from '@/models/rbac.model';
 
 interface RoleWithStats extends Role {
   user_count: number;
@@ -48,6 +48,138 @@ interface BundleWithStats extends PermissionBundle {
   permission_count: number;
 }
 
+const ROLE_SCOPE_FILTERS = ['all', 'system', 'tenant', 'campus', 'ministry'] as const;
+type ScopeFilter = (typeof ROLE_SCOPE_FILTERS)[number];
+
+const QUICK_SCOPE_FILTERS: ScopeFilter[] = ['system', 'tenant', 'campus', 'ministry'];
+
+const ROLE_CREATION_SCOPES = ['tenant', 'campus', 'ministry'] as const;
+type RoleCreationScope = (typeof ROLE_CREATION_SCOPES)[number];
+
+const BUNDLE_SCOPE_VALUES = ['tenant', 'campus', 'ministry'] as const;
+type BundleScope = (typeof BUNDLE_SCOPE_VALUES)[number];
+
+interface RoleUserAssignment {
+  id: string;
+  user_id: string;
+  assigned_at: string | null;
+  assigned_by: string | null;
+  user: {
+    id: string;
+    email: string;
+    first_name?: string | null;
+    last_name?: string | null;
+  };
+}
+
+type ApiSuccess<T> = { success: true; data: T };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isScopeFilter = (value: string): value is ScopeFilter =>
+  ROLE_SCOPE_FILTERS.includes(value as ScopeFilter);
+
+const isRoleCreationScope = (value: string): value is RoleCreationScope =>
+  ROLE_CREATION_SCOPES.includes(value as RoleCreationScope);
+
+const isBundleScope = (value: string): value is BundleScope =>
+  BUNDLE_SCOPE_VALUES.includes(value as BundleScope);
+
+const isApiSuccessResponse = <T,>(
+  value: unknown,
+  predicate: (data: unknown) => data is T,
+): value is ApiSuccess<T> => {
+  if (!isRecord(value) || value.success !== true || !('data' in value)) {
+    return false;
+  }
+  return predicate((value as { data: unknown }).data);
+};
+
+const isRoleWithStats = (value: unknown): value is RoleWithStats => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.scope === 'string' &&
+    typeof value.user_count === 'number' &&
+    typeof value.bundle_count === 'number'
+  );
+};
+
+const isRoleWithStatsArray = (value: unknown): value is RoleWithStats[] =>
+  Array.isArray(value) && value.every(isRoleWithStats);
+
+const isBundleWithStats = (value: unknown): value is BundleWithStats => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.scope === 'string' &&
+    typeof value.role_count === 'number' &&
+    typeof value.permission_count === 'number'
+  );
+};
+
+const isBundleWithStatsArray = (value: unknown): value is BundleWithStats[] =>
+  Array.isArray(value) && value.every(isBundleWithStats);
+
+const isPermissionRecord = (value: unknown): value is Permission => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.id === 'string' &&
+    typeof value.code === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.module === 'string' &&
+    typeof value.category === 'string' &&
+    typeof value.is_active === 'boolean' &&
+    typeof value.tenant_id === 'string' &&
+    typeof value.created_at === 'string' &&
+    typeof value.updated_at === 'string'
+  );
+};
+
+const isPermissionArray = (value: unknown): value is Permission[] =>
+  Array.isArray(value) && value.every(isPermissionRecord);
+
+const isRoleUserAssignment = (value: unknown): value is RoleUserAssignment => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const user = (value as Record<string, unknown>).user;
+  if (!isRecord(user)) {
+    return false;
+  }
+  const assignedBy = (value as Record<string, unknown>).assigned_by;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.user_id === 'string' &&
+    (value.assigned_at === null || typeof value.assigned_at === 'string') &&
+    (assignedBy === null || assignedBy === undefined || typeof assignedBy === 'string') &&
+    typeof user.id === 'string' &&
+    typeof user.email === 'string' &&
+    (user.first_name === undefined || user.first_name === null || typeof user.first_name === 'string') &&
+    (user.last_name === undefined || user.last_name === null || typeof user.last_name === 'string')
+  );
+};
+
+const isRoleUserAssignmentArray = (value: unknown): value is RoleUserAssignment[] =>
+  Array.isArray(value) && value.every(isRoleUserAssignment);
+
+const formatDate = (value?: string | null): string => {
+  if (!value) {
+    return 'Unknown';
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? 'Unknown' : parsed.toLocaleDateString();
+};
+
 export function RoleExplorer() {
   const [roles, setRoles] = useState<RoleWithStats[]>([]);
   const [bundles, setBundles] = useState<BundleWithStats[]>([]);
@@ -56,7 +188,7 @@ export function RoleExplorer() {
   const [filteredBundles, setFilteredBundles] = useState<BundleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [scopeFilter, setScopeFilter] = useState<string>('all');
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all');
   const [showSystemRoles, setShowSystemRoles] = useState(true);
   const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false);
   const [isCreateBundleOpen, setIsCreateBundleOpen] = useState(false);
@@ -69,7 +201,7 @@ export function RoleExplorer() {
   const [editingRole, setEditingRole] = useState<RoleWithStats | null>(null);
   const [editingBundle, setEditingBundle] = useState<BundleWithStats | null>(null);
   const [isSimpleView, setIsSimpleView] = useState(false);
-  const [scopeCategories, setScopeCategories] = useState<string[]>(['all']);
+  const [scopeCategories, setScopeCategories] = useState<ScopeFilter[]>(['all']);
 
   // Loading states for async operations
   const [isCreatingRole, setIsCreatingRole] = useState(false);
@@ -87,6 +219,12 @@ export function RoleExplorer() {
     filterData();
   }, [roles, bundles, searchTerm, scopeFilter]);
 
+  const handleScopeFilterChange = (value: string) => {
+    if (isScopeFilter(value)) {
+      setScopeFilter(value);
+    }
+  };
+
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -96,22 +234,28 @@ export function RoleExplorer() {
         fetch('/api/rbac/permissions')
       ]);
 
-      const [rolesData, bundlesData, permissionsData] = await Promise.all([
-        rolesRes.json(),
-        bundlesRes.json(),
-        permissionsRes.json()
+      const [rolesPayload, bundlesPayload, permissionsPayload] = await Promise.all([
+        rolesRes.json() as Promise<unknown>,
+        bundlesRes.json() as Promise<unknown>,
+        permissionsRes.json() as Promise<unknown>
       ]);
 
-      if (rolesData.success) {
-        setRoles(rolesData.data);
+      if (isApiSuccessResponse<RoleWithStats[]>(rolesPayload, isRoleWithStatsArray)) {
+        setRoles(rolesPayload.data);
+      } else {
+        setRoles([]);
       }
 
-      if (bundlesData.success) {
-        setBundles(bundlesData.data);
+      if (isApiSuccessResponse<BundleWithStats[]>(bundlesPayload, isBundleWithStatsArray)) {
+        setBundles(bundlesPayload.data);
+      } else {
+        setBundles([]);
       }
 
-      if (permissionsData.success) {
-        setPermissions(permissionsData.data);
+      if (isApiSuccessResponse<Permission[]>(permissionsPayload, isPermissionArray)) {
+        setPermissions(permissionsPayload.data);
+      } else {
+        setPermissions([]);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -490,7 +634,7 @@ export function RoleExplorer() {
                       </TooltipContent>
                     </Tooltip>
                   </Label>
-                  <Select value={scopeFilter} onValueChange={setScopeFilter}>
+                  <Select value={scopeFilter} onValueChange={handleScopeFilterChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -554,7 +698,7 @@ export function RoleExplorer() {
             {!isSimpleView && (
               <div className="flex flex-wrap gap-2">
                 <span className="text-sm text-gray-600 mr-2">Quick Filters:</span>
-                {['system', 'tenant', 'campus', 'ministry'].map((scope) => {
+                {QUICK_SCOPE_FILTERS.map((scope) => {
                   const isActive = scopeFilter === scope;
                   return (
                     <Button
@@ -1028,7 +1172,11 @@ function CreateRoleDialog({
             <Label htmlFor="role-scope">Scope</Label>
             <Select
               value={formData.scope}
-              onValueChange={(value: any) => setFormData({ ...formData, scope: value })}
+              onValueChange={(value) => {
+                if (isRoleCreationScope(value)) {
+                  setFormData({ ...formData, scope: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -1103,7 +1251,7 @@ function ViewRoleDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [usersWithRole, setUsersWithRole] = useState<any[]>([]);
+  const [usersWithRole, setUsersWithRole] = useState<RoleUserAssignment[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   useEffect(() => {
@@ -1116,12 +1264,16 @@ function ViewRoleDialog({
     try {
       setIsLoadingUsers(true);
       const response = await fetch(`/api/rbac/roles/${roleId}/users`);
-      const result = await response.json();
+      const result: unknown = await response.json();
 
-      if (result.success) {
-        setUsersWithRole(result.data || []);
+      if (isApiSuccessResponse<RoleUserAssignment[]>(result, isRoleUserAssignmentArray)) {
+        setUsersWithRole(result.data);
       } else {
-        console.error('Failed to load users for role:', result.error);
+        if (isRecord(result) && 'error' in result) {
+          console.error('Failed to load users for role:', (result as { error?: unknown }).error);
+        } else {
+          console.error('Failed to load users for role:', result);
+        }
         setUsersWithRole([]);
       }
     } catch (error) {
@@ -1208,10 +1360,7 @@ function ViewRoleDialog({
                           {userRole.user?.email || 'No email available'}
                         </TableCell>
                         <TableCell className="py-2 text-sm text-gray-500">
-                          {userRole.assigned_at
-                            ? new Date(userRole.assigned_at).toLocaleDateString()
-                            : 'Unknown'
-                          }
+                          {formatDate(userRole.assigned_at ?? undefined)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1250,11 +1399,11 @@ function ViewRoleDialog({
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
             <div>
               <Label>Created</Label>
-              <p>{new Date(role.created_at).toLocaleDateString()}</p>
+              <p>{formatDate(role.created_at)}</p>
             </div>
             <div>
               <Label>Updated</Label>
-              <p>{new Date(role.updated_at).toLocaleDateString()}</p>
+              <p>{formatDate(role.updated_at)}</p>
             </div>
           </div>
         </div>
@@ -1273,7 +1422,7 @@ function ViewBundleDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [bundlePermissions, setBundlePermissions] = useState<any[]>([]);
+  const [bundlePermissions, setBundlePermissions] = useState<Permission[]>([]);
   const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
 
   useEffect(() => {
@@ -1286,12 +1435,16 @@ function ViewBundleDialog({
     try {
       setIsLoadingPermissions(true);
       const response = await fetch(`/api/rbac/bundles/${bundleId}/permissions`);
-      const result = await response.json();
+      const result: unknown = await response.json();
 
-      if (result.success) {
-        setBundlePermissions(result.data || []);
+      if (isApiSuccessResponse<Permission[]>(result, isPermissionArray)) {
+        setBundlePermissions(result.data);
       } else {
-        console.error('Failed to load permissions for bundle:', result.error);
+        if (isRecord(result) && 'error' in result) {
+          console.error('Failed to load permissions for bundle:', (result as { error?: unknown }).error);
+        } else {
+          console.error('Failed to load permissions for bundle:', result);
+        }
         setBundlePermissions([]);
       }
     } catch (error) {
@@ -1402,7 +1555,7 @@ function ViewBundleDialog({
                         </TableCell>
                         <TableCell className="py-2 text-gray-600">
                           <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                            {permission.action}
+                            {permission.action ?? permission.code}
                           </code>
                         </TableCell>
                         <TableCell className="py-2 text-sm text-gray-600">
@@ -1440,11 +1593,11 @@ function ViewBundleDialog({
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
             <div>
               <Label>Created</Label>
-              <p>{new Date(bundle.created_at).toLocaleDateString()}</p>
+              <p>{formatDate(bundle.created_at)}</p>
             </div>
             <div>
               <Label>Updated</Label>
-              <p>{new Date(bundle.updated_at).toLocaleDateString()}</p>
+              <p>{formatDate(bundle.updated_at)}</p>
             </div>
           </div>
         </div>
@@ -1525,7 +1678,11 @@ function EditRoleDialog({
             <Label htmlFor="edit-role-scope">Scope</Label>
             <Select
               value={formData.scope}
-              onValueChange={(value: any) => setFormData({ ...formData, scope: value })}
+              onValueChange={(value) => {
+                if (isRoleCreationScope(value)) {
+                  setFormData({ ...formData, scope: value });
+                }
+              }}
               disabled={role.is_system}
             >
               <SelectTrigger>
@@ -1628,10 +1785,10 @@ function EditBundleDialog({
     try {
       setLoadingPermissions(true);
       const response = await fetch(`/api/rbac/bundles/${bundleId}/permissions`);
-      const result = await response.json();
+      const result: unknown = await response.json();
 
-      if (result.success && result.data) {
-        const permissionIds = result.data.map((p: Permission) => p.id);
+      if (isApiSuccessResponse<Permission[]>(result, isPermissionArray)) {
+        const permissionIds = result.data.map((permission) => permission.id);
         setFormData(prev => ({ ...prev, permission_ids: permissionIds }));
       }
     } catch (error) {
@@ -1680,7 +1837,11 @@ function EditBundleDialog({
             <Label htmlFor="edit-bundle-scope">Scope</Label>
             <Select
               value={formData.scope}
-              onValueChange={(value: any) => setFormData({ ...formData, scope: value })}
+              onValueChange={(value) => {
+                if (isBundleScope(value)) {
+                  setFormData({ ...formData, scope: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -1844,7 +2005,11 @@ function CreateBundleDialog({
             <Label htmlFor="bundle-scope">Scope</Label>
             <Select
               value={formData.scope}
-              onValueChange={(value: any) => setFormData({ ...formData, scope: value })}
+              onValueChange={(value) => {
+                if (isBundleScope(value)) {
+                  setFormData({ ...formData, scope: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />

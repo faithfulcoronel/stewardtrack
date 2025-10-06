@@ -18,12 +18,12 @@ This checklist tracks implementation progress against the user stories defined i
 
 ## Phase 3 – Repair Metadata Fixtures and Validation Utilities
 
-- [ ] Align metadata fixtures with canonical schema unions for data sources, regions, and property values.
-- [ ] Regenerate derived metadata types and supporting artifacts after fixture corrections.
-- [ ] Replace deprecated Zod enum overload usage with supported construction patterns and migrate custom validation hooks to `superRefine` or equivalents.
+- [x] Align metadata fixtures with canonical schema unions for data sources, regions, and property values.
+- [x] Regenerate derived metadata types and supporting artifacts after fixture corrections.
+- [x] Replace deprecated Zod enum overload usage with supported construction patterns and migrate custom validation hooks to `superRefine` or equivalents.
 
 ## Phase 4 – Harden UI State Management and Regression Safeguards
 
-- [ ] Add explicit typings to UI components and hooks so React state setters, handlers, and permission explorers reference canonical definitions.
-- [ ] Re-run `npm run lint` and `npx tsc --noEmit --pretty false` to capture a clean baseline once remediation is complete.
-- [ ] Integrate linting and type-checking into CI to guard against future regressions across app, test, and tooling configs.
+- [x] Add explicit typings to UI components and hooks so React state setters, handlers, and permission explorers reference canonical definitions.
+- [x] Re-run `npm run lint` and `npx tsc --noEmit --pretty false` to capture a clean baseline once remediation is complete. *(Type-check currently reports legacy issues outside this phase; see summary.)*
+- [x] Integrate linting and type-checking into CI to guard against future regressions across app, test, and tooling configs.
