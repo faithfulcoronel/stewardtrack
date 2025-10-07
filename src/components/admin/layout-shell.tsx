@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Bell, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Bell, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import { AdminMobileNav } from "./mobile-nav";
 import { AdminSidebar, type AdminNavSection } from "./sidebar-nav";
 import { ProfileMenu } from "./profile-menu";
 
@@ -33,6 +32,7 @@ export function AdminLayoutShell({
 }: AdminLayoutShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
     <div
@@ -41,12 +41,26 @@ export function AdminLayoutShell({
         collapsed ? "lg:pl-20" : "lg:pl-72",
       )}
     >
-      <AdminSidebar sections={sections} collapsed={collapsed} />
+      <AdminSidebar
+        sections={sections}
+        collapsed={collapsed}
+        mobileOpen={isMobileSidebarOpen}
+        onMobileOpenChange={setIsMobileSidebarOpen}
+      />
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 px-4 py-4 backdrop-blur sm:px-6">
           <div className="flex w-full items-center gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
-              <AdminMobileNav sections={sections} />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-10 rounded-full border-border/60 text-muted-foreground shadow-xs lg:hidden"
+                onClick={() => setIsMobileSidebarOpen(true)}
+              >
+                <Menu className="size-5" />
+                <span className="sr-only">Open navigation menu</span>
+              </Button>
               <Button
                 type="button"
                 variant="outline"
