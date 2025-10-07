@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { readTenantSession, writeTenantSession } from "@/lib/tenant/session-cache";
+import { resolveTenantForUser } from "@/lib/tenant/tenant-resolver";
 
 export interface MembershipContext {
   role: string;
@@ -26,8 +27,12 @@ export async function getMembershipContext(): Promise<MembershipContext> {
   const currentSessionId = (session?.access_token as string | undefined) ?? null;
   const cachedTenant = await readTenantSession();
 
-  if (!tenant && cachedTenant.sessionId && cachedTenant.sessionId === currentSessionId) {
-    tenant = cachedTenant.tenant;
+  const cachedTenantMatchesSession =
+    cachedTenant.tenant &&
+    (!cachedTenant.sessionId || !currentSessionId || cachedTenant.sessionId === currentSessionId);
+
+  if (!tenant && cachedTenantMatchesSession) {
+    tenant = cachedTenant.tenant?.trim() ?? null;
   }
 
   if (!tenant) {
@@ -49,6 +54,23 @@ export async function getMembershipContext(): Promise<MembershipContext> {
       if (process.env.NODE_ENV !== "test") {
         console.error("Failed to resolve tenant for membership metadata context", error);
       }
+    }
+  }
+
+  if (!tenant) {
+    const { tenant: assignmentTenant, error: assignmentError } = await resolveTenantForUser(
+      supabase,
+      user?.id ?? null
+    );
+
+    tenant = assignmentTenant;
+
+    if (!tenant && assignmentError && process.env.NODE_ENV !== "test") {
+      console.error("Failed to resolve tenant from assignments for membership context", assignmentError);
+    }
+
+    if (tenant && currentSessionId) {
+      await writeTenantSession(tenant, currentSessionId);
     }
   }
 
