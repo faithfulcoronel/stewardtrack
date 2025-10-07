@@ -123,7 +123,7 @@ export function AdminSidebar({
           <div className="flex items-center gap-3 px-5 pb-5 pt-12">
             <SidebarBrand showLabels className="gap-3" />
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="space-y-8 px-4 pb-10">
               {navSections.map((section) => (
                 <div key={section.label} className="space-y-2">
