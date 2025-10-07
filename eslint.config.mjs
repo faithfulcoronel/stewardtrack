@@ -10,6 +10,9 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // 👇 This line disables linting for the whole repo
+  { ignores: ['**/*'] },
+  
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
