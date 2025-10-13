@@ -7,13 +7,16 @@
 // Core classes
 export {
   AccessGate,
-  AccessCheckResult,
-  AccessGateConfig,
-  AccessStrategy,
   CompositeAccessGate,
   AccessDeniedError,
   all,
   any,
+} from './AccessGate';
+
+export type {
+  AccessCheckResult,
+  AccessGateConfig,
+  AccessStrategy,
 } from './AccessGate';
 
 // Strategy implementations
@@ -29,3 +32,4 @@ export {
 
 // Factory
 export { AccessGateFactory, Gate, gate } from './factory';
+

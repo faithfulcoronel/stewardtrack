@@ -29,6 +29,11 @@ export const TYPES = {
   // Sidebar Service
   SidebarService: Symbol.for('SidebarService'),
 
+  // Menu Services
+  MenuAccessService: Symbol.for('MenuAccessService'),
+  MenuRenderingService: Symbol.for('MenuRenderingService'),
+  MenuManagementService: Symbol.for('MenuManagementService'),
+
   // RBAC Adapters
   IRoleAdapter: Symbol.for('IRoleAdapter'),
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),

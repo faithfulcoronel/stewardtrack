@@ -21,6 +21,9 @@ import { LicenseValidationService } from '@/services/LicenseValidationService';
 import { MetricsService } from '@/services/MetricsService';
 import { UserRoleService } from '@/services/UserRoleService';
 import { SidebarService } from '@/services/SidebarService';
+import { MenuAccessService } from '@/services/MenuAccessService';
+import { MenuRenderingService } from '@/services/MenuRenderingService';
+import { MenuManagementService } from '@/services/MenuManagementService';
 
 // Repositories
 import { RbacRepository } from '@/repositories/rbac.repository';
@@ -44,6 +47,7 @@ import { ProductOfferingRepository } from '@/repositories/productOffering.reposi
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import { SurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
+import { MenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Repository Interfaces
 import type { IRoleRepository } from '@/repositories/role.repository';
@@ -64,6 +68,7 @@ import type { IProductOfferingRepository } from '@/repositories/productOffering.
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
+import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Adapters
 import { RoleAdapter } from '@/adapters/role.adapter';
@@ -84,6 +89,7 @@ import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import { SurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
+import { MenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 // Adapter Interfaces
 import type { IRoleAdapter } from '@/adapters/role.adapter';
@@ -104,6 +110,7 @@ import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter
 import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import type { ISurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
+import type { IMenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 const container = new Container();
 
@@ -167,6 +174,22 @@ container
   .to(SidebarService)
   .inRequestScope();
 
+// ==================== MENU SERVICES ====================
+container
+  .bind<MenuAccessService>(TYPES.MenuAccessService)
+  .to(MenuAccessService)
+  .inRequestScope();
+
+container
+  .bind<MenuRenderingService>(TYPES.MenuRenderingService)
+  .to(MenuRenderingService)
+  .inRequestScope();
+
+container
+  .bind<MenuManagementService>(TYPES.MenuManagementService)
+  .to(MenuManagementService)
+  .inRequestScope();
+
 // ==================== RBAC REPOSITORIES ====================
 // Legacy RBAC Repository (will be phased out)
 container.bind<RbacRepository>(TYPES.RbacRepository).to(RbacRepository).inRequestScope();
@@ -206,6 +229,12 @@ container
   .to(LicenseAssignmentRepository)
   .inRequestScope();
 
+// ==================== MENU REPOSITORIES ====================
+container
+  .bind<IMenuItemRepository>(TYPES.IMenuItemRepository)
+  .to(MenuItemRepository)
+  .inRequestScope();
+
 // ==================== RBAC ADAPTERS ====================
 container.bind<IRoleAdapter>(TYPES.IRoleAdapter).to(RoleAdapter).inRequestScope();
 container.bind<IPermissionAdapter>(TYPES.IPermissionAdapter).to(PermissionAdapter).inRequestScope();
@@ -242,6 +271,12 @@ container
 container
   .bind<ILicenseAssignmentAdapter>(TYPES.ILicenseAssignmentAdapter)
   .to(LicenseAssignmentAdapter)
+  .inRequestScope();
+
+// ==================== MENU ADAPTERS ====================
+container
+  .bind<IMenuItemAdapter>(TYPES.IMenuItemAdapter)
+  .to(MenuItemAdapter)
   .inRequestScope();
 
 // ==================== USER MEMBER LINK SERVICES ====================

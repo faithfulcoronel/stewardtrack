@@ -12,4 +12,10 @@ export interface MenuItem extends BaseModel {
   section: string | null;
   permission_key: string;
   feature_key: string | null;
+  surface_id: string | null;
+  badge_text: string | null;
+  badge_variant: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | null;
+  description: string | null;
+  is_visible: boolean;
+  metadata: Record<string, any>;
 }

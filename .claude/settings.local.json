@@ -17,7 +17,11 @@
       "Bash(git mv:*)",
       "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\licensing\\product-offerings\")",
       "Bash(dir /B /S \"C:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\")",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(dir /B /S \"C:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\admin\")",
+      "Bash(cmd /c:*)",
+      "Read(//c/**)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

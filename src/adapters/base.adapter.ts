@@ -12,7 +12,9 @@ import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
 import type { FilterCondition, QueryOptions } from '@/lib/repository/query';
 import type { RequestContext } from '@/lib/server/context';
 import { handleError, TenantContextError } from '@/utils/errorHandler';
+import { checkSuperAdmin } from '@/lib/rbac/permissionHelpers';
 import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
+import { Console } from 'console';
 
 @injectable()
 export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
@@ -213,9 +215,11 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<{ query: any }> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
+      const isSuperAdmin = await checkSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
+        console.log("TenantId is " + tenantId);
+        console.log("IsSuperAdmin is " + isSuperAdmin);
         throw new TenantContextError('No tenant context found');
       }
 
@@ -318,7 +322,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<T> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
+      const isSuperAdmin = await checkSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -380,7 +384,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<T> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
+      const isSuperAdmin = await checkSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -435,7 +439,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   public async delete(id: string): Promise<void> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = this.context?.roles?.includes('super_admin') ?? false;
+      const isSuperAdmin = await checkSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
