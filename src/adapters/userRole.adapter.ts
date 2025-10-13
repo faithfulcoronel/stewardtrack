@@ -120,10 +120,14 @@ export class UserRoleAdapter
     return data || [];
   }
 
+  /**
+   * @deprecated Use checkSuperAdmin() from @/lib/rbac/permissionHelpers instead
+   * This method now delegates to the centralized helper
+   */
   public async isSuperAdmin(): Promise<boolean> {
-    const supabase = await this.getSupabaseClient();
-    const { data } = await supabase.rpc('is_super_admin');
-    return data === true;
+    // Import dynamically to avoid circular dependency
+    const { checkSuperAdmin } = await import('@/lib/rbac/permissionHelpers');
+    return await checkSuperAdmin();
   }
 
   public async isAdmin(userId: string): Promise<boolean> {

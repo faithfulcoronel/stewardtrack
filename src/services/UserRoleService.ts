@@ -5,6 +5,7 @@ import type { IUserRoleRepository } from '@/repositories/userRole.repository';
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { LicensingService } from '@/services/LicensingService';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { checkSuperAdmin as checkSuperAdminHelper } from '@/lib/rbac/permissionHelpers';
 
 @injectable()
 export class UserRoleService {
@@ -152,13 +153,17 @@ export class UserRoleService {
     }
   }
 
-  async isSuperAdmin(userId?: string): Promise<boolean> {
+  /**
+   * Check if current user is a super admin
+   * Uses the centralized permissionHelpers.checkSuperAdmin() method
+   * which calls get_user_admin_role RPC
+   *
+   * @deprecated userId parameter is ignored. Use permissionHelpers.checkSuperAdmin() directly
+   */
+  async isSuperAdmin(_userId?: string): Promise<boolean> {
     try {
-      if (userId) {
-        return await this.repo.isSuperAdmin(userId);
-      } else {
-        return await (this.repo as any).adapter.isSuperAdmin();
-      }
+      // Use centralized helper that calls get_user_admin_role RPC
+      return await checkSuperAdminHelper();
     } catch (error) {
       console.error('Error checking super admin:', error);
       return false;

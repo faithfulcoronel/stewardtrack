@@ -15,7 +15,9 @@
       "Bash(cat:*)",
       "Bash(xargs sed:*)",
       "Bash(git mv:*)",
-      "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\licensing\\product-offerings\")"
+      "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\licensing\\product-offerings\")",
+      "Bash(dir /B /S \"C:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\")",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

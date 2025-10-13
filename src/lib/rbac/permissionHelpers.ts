@@ -12,6 +12,37 @@ import { TYPES } from '@/lib/types';
 import type { UserRoleService } from '@/services/UserRoleService';
 import type { LicensingService } from '@/services/LicensingService';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+/**
+ * CENTRAL METHOD: Get user's admin role using Supabase RPC
+ * This is the ONLY place where we call the database RPC function.
+ * All other methods should use this function.
+ *
+ * @returns Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null>
+ *
+ * @example
+ * const adminRole = await getUserAdminRole();
+ * if (adminRole === 'super_admin') {
+ *   // Super admin logic
+ * }
+ */
+export async function getUserAdminRole(): Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: adminRoleData, error } = await supabase.rpc('get_user_admin_role');
+
+    if (error) {
+      console.error('[getUserAdminRole] RPC error:', error);
+      return null;
+    }
+
+    return adminRoleData as 'super_admin' | 'tenant_admin' | 'staff' | 'member' | null;
+  } catch (error) {
+    console.error('[getUserAdminRole] Error:', error);
+    return null;
+  }
+}
 
 /**
  * Checks if a user can access a specific surface based on RBAC + licensing
@@ -241,18 +272,21 @@ export async function getUserRoles(
 }
 
 /**
- * Checks if user is a super admin
+ * Checks if the current user is a super admin
+ * Uses the central getUserAdminRole() method
  *
- * @param userId - Optional user ID (uses current user if not provided)
+ * NOTE: This is the ONLY role that should be checked using this method.
+ * All other access control should be validated using RBAC configuration.
+ *
  * @returns Promise<boolean> - True if user is super admin
  *
  * @example
- * const isSuperAdmin = await checkSuperAdmin(userId);
+ * const isSuperAdmin = await checkSuperAdmin();
  * if (isSuperAdmin) {
- *   showAdminPanel();
+ *   // Super admin only features
  * }
  */
-export async function checkSuperAdmin(userId?: string): Promise<boolean> {
-  const userRoleService = container.get<UserRoleService>(TYPES.UserRoleService);
-  return await userRoleService.isSuperAdmin(userId);
+export async function checkSuperAdmin(): Promise<boolean> {
+  const adminRole = await getUserAdminRole();
+  return adminRole === 'super_admin';
 }

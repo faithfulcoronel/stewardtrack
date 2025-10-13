@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { checkSuperAdmin as checkSuperAdminHelper } from '@/lib/rbac/permissionHelpers';
 
 export const authUtils = {
   getUser: async () => {
@@ -17,20 +18,23 @@ export const authUtils = {
     }
   },
 
+  /**
+   * Check if current user is a super admin
+   * Uses the centralized permissionHelpers method
+   */
   checkSuperAdmin: async (): Promise<{ isAuthorized: boolean; user: any | null }> => {
     try {
-      const supabase = await createSupabaseServerClient();
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const user = await authUtils.getUser();
 
-      if (error || !user) {
+      if (!user) {
         return { isAuthorized: false, user: null };
       }
 
-      // Check admin role using database function
-      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+      // Use centralized permission helper
+      const isSuperAdmin = await checkSuperAdminHelper();
 
       return {
-        isAuthorized: adminRole === 'super_admin',
+        isAuthorized: isSuperAdmin,
         user
       };
     } catch (error) {
