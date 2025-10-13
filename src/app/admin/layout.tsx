@@ -226,10 +226,10 @@ async function filterSectionsWithAccessGate(
         hasAccess = await gate.allows(userId, tenantId);
       }
       // RBAC Management - requires permission
-      //else if (item.href.includes('/rbac')) {
-      //  const gate = Gate.withPermission('rbac:manage');
-      //  hasAccess = await gate.allows(userId, tenantId);
-      //}
+      else if (item.href.includes('/rbac')) {
+        const gate = Gate.rbacAdmin();
+        hasAccess = await gate.allows(userId, tenantId);
+      }
       // Security - requires permission
       else if (item.href.includes('/security')) {
         const gate = Gate.withPermission('security:read');

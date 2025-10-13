@@ -6,7 +6,7 @@
 
 import 'server-only';
 import { AccessGate, AccessCheckResult, AccessGateConfig } from './AccessGate';
-import { checkSurfaceAccess, hasPermission, hasAllPermissions, hasAnyPermission, checkSuperAdmin } from '@/lib/rbac/permissionHelpers';
+import { checkSurfaceAccess, hasPermission, hasAllPermissions, hasAnyPermission, checkSuperAdmin, checkTenantAdmin } from '@/lib/rbac/permissionHelpers';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
@@ -218,6 +218,42 @@ export class SuperAdminGate extends AccessGate {
       return {
         allowed: false,
         reason: error instanceof Error ? error.message : 'Super admin check failed',
+      };
+    }
+  }
+}
+
+/**
+ * Tenant Admin Gate - Checks if user is a tenant admin
+ * Uses the centralized getUserAdminRole() method
+ */
+export class TenantAdminGate extends AccessGate {
+  async check(userId: string): Promise<AccessCheckResult> {
+    try {
+      if (!userId) {
+        return {
+          allowed: false,
+          reason: 'No user ID provided',
+          redirectTo: this.config.fallbackPath || '/unauthorized',
+        };
+      }
+
+      const isTenantAdmin = await checkTenantAdmin();
+
+      if (!isTenantAdmin) {
+        return {
+          allowed: false,
+          reason: 'Tenant admin access required',
+          redirectTo: this.config.fallbackPath || '/unauthorized',
+        };
+      }
+
+      return { allowed: true };
+    } catch (error) {
+      console.error('[TenantAdminGate] Error:', error);
+      return {
+        allowed: false,
+        reason: error instanceof Error ? error.message : 'Tenant admin check failed',
       };
     }
   }

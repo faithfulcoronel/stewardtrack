@@ -231,9 +231,9 @@ export default async function PageName() {
 - [x] `/admin/members/manage/page.tsx` - `Gate.withPermission('members:write')`
 - [x] `/admin/members/manage/lookup-new/page.tsx` - `Gate.withPermission('members:write')`
 - [x] `/admin/members/[memberId]/page.tsx` - `Gate.withPermission('members:read')`
-- [x] `/admin/security/rbac/page.tsx` - `Gate.withPermission('rbac:manage')`
-- [x] `/admin/security/rbac/**/page.tsx` (all subpages) - `Gate.withPermission('rbac:manage')`
-- [x] `/admin/rbac/**/page.tsx` (all delegation pages) - `Gate.withPermission('rbac:manage')`
+- [x] `/admin/security/rbac/page.tsx` - `Gate.rbacAdmin()`
+- [x] `/admin/security/rbac/**/page.tsx` (all subpages) - `Gate.rbacAdmin()`
+- [x] `/admin/rbac/**/page.tsx` (all delegation pages) - `Gate.rbacAdmin()`
 
 ### ðŸŸ¢ Medium Priority - Role Required
 

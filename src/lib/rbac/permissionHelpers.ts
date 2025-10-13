@@ -290,3 +290,12 @@ export async function checkSuperAdmin(): Promise<boolean> {
   const adminRole = await getUserAdminRole();
   return adminRole === 'super_admin';
 }
+
+/**
+ * Checks if the current user is a tenant admin
+ * Uses the central getUserAdminRole() method
+ */
+export async function checkTenantAdmin(): Promise<boolean> {
+  const adminRole = await getUserAdminRole();
+  return adminRole === 'tenant_admin';
+}

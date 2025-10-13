@@ -5,13 +5,14 @@
  * with simple, fluent API
  */
 
-import { AccessGateConfig } from './AccessGate';
+import { AccessGateConfig, CompositeAccessGate } from './AccessGate';
 import {
   SurfaceAccessGate,
   PermissionGate,
   LicenseGate,
   RoleGate,
   SuperAdminGate,
+  TenantAdminGate,
   AuthenticatedGate,
   CustomGate,
 } from './strategies';
@@ -94,6 +95,34 @@ export class AccessGateFactory {
   static superAdminOnly(config?: AccessGateConfig) {
     return new SuperAdminGate(config);
   }
+
+  /**
+   * Create a gate that checks for tenant admin
+   */
+  static tenantAdminOnly(config?: AccessGateConfig) {
+    return new TenantAdminGate(config);
+  }
+
+  /**
+   * Create a gate that grants RBAC access to super admins, tenant admins, or users
+   * with the explicit rbac:manage permission.
+   */
+  static rbacAdmin(config: AccessGateConfig = {}) {
+    const fallbackPath = config.fallbackPath ?? '/unauthorized?reason=rbac_manage_required';
+
+    const gates = [
+      AccessGateFactory.superAdminOnly({ fallbackPath }),
+      AccessGateFactory.tenantAdminOnly({ fallbackPath }),
+      AccessGateFactory.withPermission('rbac:manage', 'all', { fallbackPath }),
+    ];
+
+    return new CompositeAccessGate(gates, {
+      ...config,
+      fallbackPath,
+      requireAll: false,
+    });
+  }
+
 
   /**
    * Create a gate that checks authentication

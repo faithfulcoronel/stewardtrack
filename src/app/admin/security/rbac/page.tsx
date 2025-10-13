@@ -3,7 +3,7 @@
  *
  * Central hub for managing roles, permissions, and access control.
  *
- * SECURITY: Protected by AccessGate requiring rbac:manage permission.
+ * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or rbac:manage permission.
  */
 
 import { Metadata } from 'next';
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function RbacDashboardPage() {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission('rbac:manage', 'all', {
+  const gate = Gate.rbacAdmin({
     fallbackPath: '/unauthorized?reason=rbac_manage_required',
   });
 
