@@ -13,9 +13,11 @@ import type {
 
 /**
  * UserRoleManagement Adapter - Handles user-role assignments and multi-role functionality
- * Extracted from rbac.repository.ts for Phase 1 RBAC refactoring
+ * Consolidated adapter that combines user role management and RBAC permission checks
+ * This is the single source of truth for user role operations
  */
 export interface IUserRoleManagementAdapter extends IBaseAdapter<UserRole> {
+  // Role assignment operations
   assignRole(data: AssignRoleDto, tenantId: string, assignedBy?: string): Promise<UserRole>;
   revokeRole(userId: string, roleId: string, tenantId: string): Promise<void>;
   getUserRoles(userId: string, tenantId: string): Promise<Role[]>;
@@ -27,6 +29,24 @@ export interface IUserRoleManagementAdapter extends IBaseAdapter<UserRole> {
   toggleMultiRoleMode(userId: string, enabled: boolean, tenantId: string): Promise<any>;
   getUserMultiRoleContext(userId: string, tenantId: string): Promise<any>;
   getUsers(tenantId: string): Promise<any[]>;
+
+  // RBAC permission checks (merged from userRole.adapter)
+  getRoleDetailsByUser(userId: string, tenantId?: string): Promise<{ role_id: string; role_name: string }[]>;
+  getAdminRole(userId: string, tenantId: string): Promise<string | null>;
+  getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]>;
+  isSuperAdmin(): Promise<boolean>;
+  isAdmin(userId: string): Promise<boolean>;
+  canUser(permission: string, tenantId?: string): Promise<boolean>;
+  canUserFast(permission: string, tenantId?: string): Promise<boolean>;
+  canUserAny(permissions: string[], tenantId?: string): Promise<boolean>;
+  canUserAll(permissions: string[], tenantId?: string): Promise<boolean>;
+  getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]>;
+  getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]>;
+  replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
+  getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
+  getUsersByRole(roleId: string): Promise<UserRole[]>;
+  getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
+  getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]>;
 }
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
@@ -691,77 +711,6 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     }
   }
 
-  private async getUserEffectivePermissions(userId: string, tenantId: string): Promise<Permission[]> {
-    const supabase = await this.getSupabaseClient();
-
-    try {
-      // Get all role IDs for this user
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', userId)
-        .eq('tenant_id', tenantId);
-
-      if (rolesError || !userRoles || userRoles.length === 0) {
-        return [];
-      }
-
-      const roleIds = userRoles.map(ur => ur.role_id);
-
-      // Get direct permissions from roles
-      const { data: rolePermissions, error: permissionsError } = await supabase
-        .from('role_permissions')
-        .select(`
-          permissions (*)
-        `)
-        .in('role_id', roleIds)
-        .eq('tenant_id', tenantId);
-
-      if (permissionsError) {
-        console.error('Error fetching role permissions:', permissionsError);
-        return [];
-      }
-
-      // Get permissions from bundles
-      const { data: roleBundles, error: bundlesError } = await supabase
-        .from('role_bundles')
-        .select('bundle_id')
-        .in('role_id', roleIds)
-        .eq('tenant_id', tenantId);
-
-      let bundlePermissions: any[] = [];
-      if (!bundlesError && roleBundles && roleBundles.length > 0) {
-        const bundleIds = roleBundles.map(rb => rb.bundle_id);
-
-        const { data: bundlePerms, error: bundlePermsError } = await supabase
-          .from('bundle_permissions')
-          .select(`
-            permissions (*)
-          `)
-          .in('bundle_id', bundleIds)
-          .eq('tenant_id', tenantId);
-
-        if (!bundlePermsError && bundlePerms) {
-          bundlePermissions = bundlePerms;
-        }
-      }
-
-      // Combine and deduplicate permissions
-      const allPermissions = [
-        ...(rolePermissions?.map((rp: any) => rp.permissions) || []),
-        ...(bundlePermissions?.map((bp: any) => bp.permissions) || [])
-      ];
-
-      const uniquePermissions = Array.from(
-        new Map(allPermissions.map(p => [p.id, p])).values()
-      );
-
-      return uniquePermissions;
-    } catch (error) {
-      console.error('Error fetching effective permissions:', error);
-      return [];
-    }
-  }
 
   private async getRoleIdsByTenant(tenantId: string): Promise<string[]> {
     const supabase = await this.getSupabaseClient();
@@ -777,5 +726,269 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     }
 
     return (data || []).map(role => role.id);
+  }
+
+  // ========================================
+  // RBAC Permission Methods (merged from userRole.adapter.ts)
+  // ========================================
+
+  async getRoleDetailsByUser(
+    userId: string,
+    tenantId?: string
+  ): Promise<{ role_id: string; role_name: string }[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getRoleDetailsByUser');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_roles', {
+      user_id: userId,
+      tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return (data || []) as { role_id: string; role_name: string }[];
+  }
+
+  async getAdminRole(
+    userId: string,
+    tenantId: string
+  ): Promise<string | null> {
+    // Validate parameters
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getAdminRole');
+    }
+    if (!tenantId || typeof tenantId !== 'string') {
+      throw new Error('Invalid tenantId provided to getAdminRole');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from('tenant_users')
+      .select('admin_role')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .single();
+    if (error) throw error;
+    return (data as any)?.admin_role || null;
+  }
+
+  async getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getRolesWithPermissions');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc(
+      'get_user_roles_with_permissions',
+      {
+        target_user_id: userId,
+        target_tenant_id: tenantId || null
+      }
+    );
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * @deprecated Use checkSuperAdmin() from @/lib/rbac/permissionHelpers instead
+   * This method now delegates to the centralized helper
+   */
+  async isSuperAdmin(): Promise<boolean> {
+    // Import dynamically to avoid circular dependency
+    const { checkSuperAdmin } = await import('@/lib/rbac/permissionHelpers');
+    return await checkSuperAdmin();
+  }
+
+  async isAdmin(userId: string): Promise<boolean> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to isAdmin');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('is_admin', {
+      user_id: userId,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async canUser(permission: string, tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user', {
+      required_permission: permission,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async canUserFast(permission: string, tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_fast', {
+      required_permission: permission,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async canUserAny(permissions: string[], tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_any', {
+      required_permissions: permissions,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async canUserAll(permissions: string[], tenantId?: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('can_user_all', {
+      required_permissions: permissions,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  /**
+   * Get user effective permissions using the RBAC database functions
+   * This method respects all RBAC configurations including role permissions,
+   * permission bundles, and delegation rules
+   */
+  async getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserEffectivePermissions');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_effective_permissions', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserRoleMetadataKeys');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_role_metadata_keys', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserAccessibleMenuItems');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_menu_with_metadata', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getUserAccessibleMetadataSurfaces');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_accessible_metadata_surfaces', {
+      target_user_id: userId,
+      target_tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async replaceUserRoles(
+    userId: string,
+    roleIds: string[],
+    tenantId: string,
+  ): Promise<void> {
+    // Validate parameters
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to replaceUserRoles');
+    }
+    if (!tenantId || typeof tenantId !== 'string') {
+      throw new Error('Invalid tenantId provided to replaceUserRoles');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { error: deleteError } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId);
+    if (deleteError) throw deleteError;
+
+    if (roleIds.length) {
+      const currentUser = (await supabase.auth.getUser()).data.user?.id;
+      const rows = roleIds.map((rid) => ({
+        user_id: userId,
+        role_id: rid,
+        tenant_id: tenantId,
+        created_by: currentUser,
+        created_at: new Date().toISOString(),
+      }));
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert(rows);
+      if (insertError) throw insertError;
+    }
+  }
+
+  async getRolesByUser(userId: string, tenantId?: string): Promise<string[]> {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getRolesByUser');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase.rpc('get_user_roles', {
+      user_id: userId,
+      tenant_id: tenantId || null,
+    });
+    if (error) throw error;
+    return (data || []).map((r: any) => r.role_name);
+  }
+
+  async getUsersByRole(roleId: string): Promise<UserRole[]> {
+    // Validate roleId
+    if (!roleId || typeof roleId !== 'string') {
+      throw new Error('Invalid roleId provided to getUsersByRole');
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('role_id', roleId);
+    if (error) throw error;
+
+    // Properly handle the data type conversion
+    if (!data) return [];
+
+    // Convert to unknown first, then to UserRole[] to satisfy TypeScript
+    return (data as unknown) as UserRole[];
   }
 }

@@ -9,7 +9,13 @@ import type {
 } from '@/models/rbac.model';
 import { TYPES } from '@/lib/types';
 
+/**
+ * Unified User Role Management Repository
+ * Consolidates all user role operations and RBAC permission checks
+ * This is the single source of truth for user role operations
+ */
 export interface IUserRoleManagementRepository extends BaseRepository<UserRole> {
+  // Role assignment operations
   assignRole(data: AssignRoleDto, tenantId: string, assignedBy?: string): Promise<UserRole>;
   revokeRole(userId: string, roleId: string, tenantId: string): Promise<void>;
   getUserRoles(userId: string, tenantId: string): Promise<Role[]>;
@@ -21,6 +27,24 @@ export interface IUserRoleManagementRepository extends BaseRepository<UserRole> 
   toggleMultiRoleMode(userId: string, enabled: boolean, tenantId: string): Promise<any>;
   getUserMultiRoleContext(userId: string, tenantId: string): Promise<any>;
   getUsers(tenantId: string): Promise<any[]>;
+
+  // RBAC permission checks (merged from userRole.adapter)
+  getRoleDetailsByUser(userId: string, tenantId?: string): Promise<{ role_id: string; role_name: string }[]>;
+  getAdminRole(userId: string, tenantId: string): Promise<string | null>;
+  getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]>;
+  isSuperAdmin(): Promise<boolean>;
+  isAdmin(userId: string): Promise<boolean>;
+  canUser(permission: string, tenantId?: string): Promise<boolean>;
+  canUserFast(permission: string, tenantId?: string): Promise<boolean>;
+  canUserAny(permissions: string[], tenantId?: string): Promise<boolean>;
+  canUserAll(permissions: string[], tenantId?: string): Promise<boolean>;
+  getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]>;
+  getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]>;
+  replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
+  getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
+  getUsersByRole(roleId: string): Promise<UserRole[]>;
+  getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
+  getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]>;
 }
 
 @injectable()
@@ -71,5 +95,73 @@ export class UserRoleManagementRepository extends BaseRepository<UserRole> imple
 
   async getUsers(tenantId: string): Promise<any[]> {
     return await this.userRoleAdapter.getUsers(tenantId);
+  }
+
+  // ========================================
+  // RBAC Permission Methods
+  // ========================================
+
+  async getRoleDetailsByUser(userId: string, tenantId?: string): Promise<{ role_id: string; role_name: string }[]> {
+    return await this.userRoleAdapter.getRoleDetailsByUser(userId, tenantId);
+  }
+
+  async getAdminRole(userId: string, tenantId: string): Promise<string | null> {
+    return await this.userRoleAdapter.getAdminRole(userId, tenantId);
+  }
+
+  async getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]> {
+    return await this.userRoleAdapter.getRolesWithPermissions(userId, tenantId);
+  }
+
+  async isSuperAdmin(): Promise<boolean> {
+    return await this.userRoleAdapter.isSuperAdmin();
+  }
+
+  async isAdmin(userId: string): Promise<boolean> {
+    return await this.userRoleAdapter.isAdmin(userId);
+  }
+
+  async canUser(permission: string, tenantId?: string): Promise<boolean> {
+    return await this.userRoleAdapter.canUser(permission, tenantId);
+  }
+
+  async canUserFast(permission: string, tenantId?: string): Promise<boolean> {
+    return await this.userRoleAdapter.canUserFast(permission, tenantId);
+  }
+
+  async canUserAny(permissions: string[], tenantId?: string): Promise<boolean> {
+    return await this.userRoleAdapter.canUserAny(permissions, tenantId);
+  }
+
+  async canUserAll(permissions: string[], tenantId?: string): Promise<boolean> {
+    return await this.userRoleAdapter.canUserAll(permissions, tenantId);
+  }
+
+  async getUserEffectivePermissions(userId: string, tenantId?: string): Promise<any[]> {
+    return await this.userRoleAdapter.getUserEffectivePermissions(userId, tenantId);
+  }
+
+  async getUserRoleMetadataKeys(userId: string, tenantId?: string): Promise<string[]> {
+    return await this.userRoleAdapter.getUserRoleMetadataKeys(userId, tenantId);
+  }
+
+  async replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void> {
+    return await this.userRoleAdapter.replaceUserRoles(userId, roleIds, tenantId);
+  }
+
+  async getRolesByUser(userId: string, tenantId?: string): Promise<string[]> {
+    return await this.userRoleAdapter.getRolesByUser(userId, tenantId);
+  }
+
+  async getUsersByRole(roleId: string): Promise<UserRole[]> {
+    return await this.userRoleAdapter.getUsersByRole(roleId);
+  }
+
+  async getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]> {
+    return await this.userRoleAdapter.getUserAccessibleMenuItems(userId, tenantId);
+  }
+
+  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
+    return await this.userRoleAdapter.getUserAccessibleMetadataSurfaces(userId, tenantId);
   }
 }

@@ -174,8 +174,8 @@ export const TYPES = {
   ITenantAdapter: Symbol.for('ITenantAdapter'),
   ITenantRepository: Symbol.for('ITenantRepository'),
   IUiModuleRepository: Symbol.for('IUiModuleRepository'),
-  IUserRoleAdapter: Symbol.for('IUserRoleAdapter'),
-  IUserRoleRepository: Symbol.for('IUserRoleRepository'),
+  // NOTE: IUserRoleAdapter and IUserRoleRepository are deprecated
+  // Use IUserRoleManagementAdapter and IUserRoleManagementRepository instead
   IUserRoleManagementAdapter: Symbol.for('IUserRoleManagementAdapter'),
   IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
   IncomeExpenseTransactionService: Symbol.for('IncomeExpenseTransactionService'),

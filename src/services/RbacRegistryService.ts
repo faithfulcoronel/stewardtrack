@@ -1,7 +1,7 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import type { IUserRoleRepository } from '@/repositories/userRole.repository';
+import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 export interface RoleMetadataMapping {
@@ -26,8 +26,8 @@ export class RbacRegistryService {
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   constructor(
-    @inject(TYPES.IUserRoleRepository)
-    private userRoleRepo: IUserRoleRepository
+    @inject(TYPES.IUserRoleManagementRepository)
+    private userRoleRepo: IUserRoleManagementRepository
   ) {}
 
   async getRoleMetadataMappings(tenantId?: string): Promise<RoleMetadataMapping[]> {
@@ -133,8 +133,8 @@ export class RbacRegistryService {
     }
 
     try {
-      // Use the enhanced adapter method
-      return await (this.userRoleRepo as any).adapter.getUserRoleMetadataKeys(userId, effectiveTenantId);
+      // Use the repository method which respects RBAC configuration
+      return await this.userRoleRepo.getUserRoleMetadataKeys(userId, effectiveTenantId);
     } catch (error) {
       console.error('Error getting user metadata keys:', error);
       return [];
