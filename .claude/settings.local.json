@@ -21,7 +21,8 @@
       "Bash(dir /B /S \"C:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\admin\")",
       "Bash(cmd /c:*)",
       "Read(//c/**)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dir \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\rbac\\delegation\")"
     ],
     "deny": [],
     "ask": []

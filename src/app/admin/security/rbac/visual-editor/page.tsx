@@ -1,4 +1,15 @@
+/**
+ * RBAC Visual Binding Editor Page
+ *
+ * Interactive tool for mapping roles, surfaces, and feature licenses.
+ *
+ * SECURITY: Protected by AccessGate requiring rbac:manage permission.
+ */
+
 import { Metadata } from 'next';
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import { VisualBindingEditor } from '@/components/admin/rbac/VisualBindingEditor';
 
 export const metadata: Metadata = {
@@ -6,10 +17,18 @@ export const metadata: Metadata = {
   description: 'Create and manage connections between UI surfaces, roles, bundles, and feature licenses',
 };
 
-export default function VisualEditorPage() {
+export default async function VisualEditorPage() {
+  const userId = await getCurrentUserId();
+  const tenantId = await getCurrentTenantId();
+  const gate = Gate.withPermission('rbac:manage', 'all', {
+    fallbackPath: '/unauthorized?reason=rbac_manage_required',
+  });
+
   return (
-    <div className="container mx-auto px-4 py-6">
-      <VisualBindingEditor />
-    </div>
+    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
+      <div className="container mx-auto px-4 py-6">
+        <VisualBindingEditor />
+      </div>
+    </ProtectedPage>
   );
 }

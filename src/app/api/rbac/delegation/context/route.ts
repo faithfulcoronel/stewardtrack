@@ -2,15 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
+/**
+ * GET /api/rbac/delegation/context
+ *
+ * Returns the current user's delegation context including:
+ * - Delegation scope (campus/ministry)
+ * - Allowed roles and bundles
+ * - Scope IDs they can manage
+ *
+ * Requires: Authenticated user with delegation permissions
+ */
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate user
+    const auth = await getAuthenticatedUser();
+    if (auth.error) return auth.error;
+
+    const { user } = auth;
+
+    // Get RBAC service - it handles tenant context internally
     const rbacService = container.get<RbacService>(TYPES.RbacService);
-
-    // In a real implementation, this would come from the authenticated user context
-    const userId = request.headers.get('x-user-id') || 'current-user-id';
-
-    const delegatedContext = await rbacService.getDelegatedContext(userId);
+    const delegatedContext = await rbacService.getDelegatedContext(user.id);
 
     if (!delegatedContext) {
       return NextResponse.json({

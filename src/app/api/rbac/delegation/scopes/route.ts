@@ -2,13 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
+/**
+ * GET /api/rbac/delegation/scopes
+ *
+ * Returns the scopes (campuses or ministries) that the user can manage.
+ * Each scope includes:
+ * - id: Scope identifier
+ * - name: Display name
+ * - type: 'campus' or 'ministry'
+ * - user_count: Number of users in this scope
+ * - role_count: Number of active roles in this scope
+ *
+ * Requires: Authenticated user with delegation permissions
+ */
 export async function GET(request: NextRequest) {
   try {
-    const rbacService = container.get<RbacService>(TYPES.RbacService);
-    const userId = request.headers.get('x-user-id') || 'current-user-id';
+    // Authenticate user
+    const auth = await getAuthenticatedUser();
+    if (auth.error) return auth.error;
 
-    const scopes = await rbacService.getDelegationScopes(userId);
+    const { user } = auth;
+
+    // Get RBAC service - it handles tenant context internally
+    const rbacService = container.get<RbacService>(TYPES.RbacService);
+    const scopes = await rbacService.getDelegationScopes(user.id);
 
     return NextResponse.json({
       success: true,

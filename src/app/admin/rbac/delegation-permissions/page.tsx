@@ -1,4 +1,15 @@
+/**
+ * Delegation Permissions Management Page
+ *
+ * Configure delegation rules and access control policies.
+ *
+ * SECURITY: Protected by AccessGate requiring rbac:manage permission.
+ */
+
 import { Metadata } from 'next';
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import { DelegationPermissionManager } from '@/components/admin/rbac/DelegationPermissionManager';
 
 export const metadata: Metadata = {
@@ -6,10 +17,18 @@ export const metadata: Metadata = {
   description: 'Manage delegation permissions and access controls'
 };
 
-export default function DelegationPermissionsPage() {
+export default async function DelegationPermissionsPage() {
+  const userId = await getCurrentUserId();
+  const tenantId = await getCurrentTenantId();
+  const gate = Gate.withPermission('rbac:manage', 'all', {
+    fallbackPath: '/unauthorized?reason=rbac_manage_required',
+  });
+
   return (
-    <div className="container mx-auto py-6">
-      <DelegationPermissionManager />
-    </div>
+    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
+      <div className="container mx-auto py-6">
+        <DelegationPermissionManager />
+      </div>
+    </ProtectedPage>
   );
 }

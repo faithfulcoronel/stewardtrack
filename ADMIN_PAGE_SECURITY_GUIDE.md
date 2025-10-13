@@ -1,8 +1,10 @@
-# Admin Page Security Guide
+﻿# Admin Page Security - Quick Reference
+
+> ðŸ“– **Full Documentation**: See [docs/access/ACCESS_GATE_GUIDE.md](docs/access/ACCESS_GATE_GUIDE.md) for comprehensive Access Gate System documentation.
 
 ## Overview
 
-This guide explains how to protect admin pages from unauthorized access using the `ProtectedAdminPage` component with AccessGate integration.
+This is a quick reference for protecting admin pages. Use the existing `ProtectedPage` component from the Access Gate System.
 
 ## The Problem
 
@@ -10,7 +12,7 @@ This guide explains how to protect admin pages from unauthorized access using th
 
 ### Example Security Lapse:
 ```typescript
-// ❌ INSECURE - Only hides menu item
+// âŒ INSECURE - Only hides menu item
 if (user.role !== 'super_admin') {
   // Don't show "Licensing Studio" in menu
 }
@@ -20,33 +22,41 @@ if (user.role !== 'super_admin') {
 
 ## The Solution
 
-Wrap **every protected page** with `ProtectedAdminPage` component that checks AccessGate on the server before rendering.
+Use the **Access Gate System** with `ProtectedPage` component (server-side protection):
 
-### Example Secure Page:
 ```typescript
-// ✅ SECURE - Server-side protection
-import { ProtectedAdminPage } from '@/components/access-gate/ProtectedAdminPage';
+// âœ… SECURE - Server-side protection
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
 
 export default async function LicensingPage() {
+  const userId = await getCurrentUserId();
+  const gate = Gate.superAdminOnly();
+
   return (
-    <ProtectedAdminPage superAdminOnly requireTenant={false}>
+    <ProtectedPage gate={gate} userId={userId}>
       <LicensingStudioContent />
-    </ProtectedAdminPage>
+    </ProtectedPage>
   );
 }
 ```
 
-## Protection Patterns
+## Quick Patterns
 
-### 1. Super Admin Only Pages
-
-Use for: Licensing Studio, Menu Builder, System Settings
+### Super Admin Only
 
 ```typescript
-<ProtectedAdminPage superAdminOnly requireTenant={false}>
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+
+const gate = Gate.superAdminOnly();
+
+<ProtectedPage gate={gate} userId={userId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 ```
+
+**Use for:** Licensing Studio, Menu Builder
 
 **Pages that need this:**
 - `/admin/licensing` - Licensing Studio
@@ -58,55 +68,87 @@ Use for: Licensing Studio, Menu Builder, System Settings
 Use for: Members, Finance, Reports, etc.
 
 ```typescript
-<ProtectedAdminPage permission="members:read">
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+
+// Single permission
+const gate = Gate.withPermission('members:read');
+
+<ProtectedPage gate={gate} userId={userId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 
 // Multiple permissions (all required)
-<ProtectedAdminPage permission={['members:read', 'members:write']} permissionMode="all">
+const allGate = all(
+  Gate.withPermission('members:read'),
+  Gate.withPermission('members:write')
+);
+
+<ProtectedPage gate={allGate} userId={userId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 
 // Multiple permissions (any one required)
-<ProtectedAdminPage permission={['members:read', 'members:write']} permissionMode="any">
+const anyGate = any(
+  Gate.withPermission('members:read'),
+  Gate.withPermission('members:write')
+);
+
+<ProtectedPage gate={anyGate} userId={userId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 ```
 
 **Permission Mappings:**
-- `/admin/members/**` → `members:read` or `members:write`
-- `/admin/financial-overview` → `finance:read`
-- `/admin/expenses` → `finance:read`
-- `/admin/reports` → `reports:read`
-- `/admin/security/rbac/**` → `rbac:manage`
+- `/admin/members/**` â†’ `members:read` or `members:write`
+- `/admin/financial-overview` â†’ `finance:read`
+- `/admin/expenses` â†’ `finance:read`
+- `/admin/reports` â†’ `reports:read`
+- `/admin/security/rbac/**` â†’ `rbac:manage`
 
 ### 3. Role-Based Protection
 
 Use for: Settings, Admin-only pages
 
 ```typescript
-<ProtectedAdminPage role="tenant_admin">
+import { Gate, any } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+
+// Single role
+const gate = Gate.withRole('tenant_admin');
+
+<ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 
 // Multiple roles (any one required)
-<ProtectedAdminPage role={['tenant_admin', 'campus_pastor']} roleMode="any">
+const anyRoleGate = any(
+  Gate.withRole('tenant_admin'),
+  Gate.withRole('campus_pastor')
+);
+
+<ProtectedPage gate={anyRoleGate} userId={userId} tenantId={tenantId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 ```
 
 **Role Mappings:**
-- `/admin/settings` → `tenant_admin`
-- Delegation pages → `tenant_admin`
+- `/admin/settings` â†’ `tenant_admin`
+- Delegation pages â†’ `tenant_admin`
 
 ### 4. Surface-Based Protection
 
 Use for: Metadata-driven pages with surface bindings
 
 ```typescript
-<ProtectedAdminPage surfaceId="member-management">
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+
+const gate = Gate.withSurface('member-management');
+
+<ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 ```
 
 ### 5. Custom Gate Protection
@@ -115,25 +157,28 @@ Use for: Complex access logic
 
 ```typescript
 import { Gate, all, any } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
 
+// Complex multi-condition gate
 const complexGate = all(
   Gate.withPermission('finance:read'),
   Gate.withLicense('advanced-reports')
 );
 
-<ProtectedAdminPage gate={complexGate}>
+<ProtectedPage gate={complexGate} userId={userId} tenantId={tenantId}>
   {children}
-</ProtectedAdminPage>
+</ProtectedPage>
 ```
 
 ## Page Protection Checklist
 
 ### All Admin Pages Must:
 
-- [ ] Import `ProtectedAdminPage` from `@/components/access-gate/ProtectedAdminPage`
-- [ ] Wrap the entire page content in `<ProtectedAdminPage>`
-- [ ] Specify appropriate access control (superAdminOnly, permission, role, or surfaceId)
-- [ ] Set `requireTenant={false}` for super admin-only pages
+- [ ] Import `Gate` from `@/lib/access-gate`
+- [ ] Import `ProtectedPage` from `@/components/access-gate`
+- [ ] Create appropriate gate based on access requirements
+- [ ] Get userId (and tenantId if needed) using server-side utilities
+- [ ] Wrap the entire page content in `<ProtectedPage>`
 - [ ] Add security comment in file header documenting protection level
 
 ### Example Template:
@@ -144,10 +189,12 @@ const complexGate = all(
  *
  * [Description]
  *
- * SECURITY: Protected by ProtectedAdminPage with [protection type]
+ * SECURITY: Protected by AccessGate with [protection type]
  */
 
-import { ProtectedAdminPage } from '@/components/access-gate/ProtectedAdminPage';
+import { Gate } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+import { getCurrentUserId, getCurrentTenantId } from '@/lib/server/context';
 import { PageContent } from '@/components/...';
 
 export const metadata = {
@@ -156,129 +203,62 @@ export const metadata = {
 };
 
 export default async function PageName() {
+  const userId = await getCurrentUserId();
+  const tenantId = await getCurrentTenantId(); // Only if needed
+
+  const gate = Gate.withPermission('members:read'); // Or other gate type
+
   return (
-    <ProtectedAdminPage [protection props]>
+    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
       <PageContent />
-    </ProtectedAdminPage>
+    </ProtectedPage>
   );
 }
 ```
 
 ## Page Inventory & Required Protection
 
-### 🔴 Critical - Super Admin Only (requireTenant: false)
+### ðŸ”´ Critical - Super Admin Only
 
-- [ ] `/admin/licensing/page.tsx` - `superAdminOnly`
-- [ ] `/admin/menu-builder/page.tsx` - `superAdminOnly` ✅ **DONE**
-- [ ] `/admin/settings/page.tsx` (system settings) - `superAdminOnly`
+- [x] `/admin/licensing/page.tsx` - `Gate.superAdminOnly()`
+- [x] `/admin/menu-builder/page.tsx` - `Gate.superAdminOnly()` âœ… **DONE**
+- [x] `/admin/settings/page.tsx` (system settings) - `Gate.superAdminOnly()`
 
-### 🟡 High Priority - Permission Required
+### ðŸŸ¡ High Priority - Permission Required
 
-- [ ] `/admin/members/page.tsx` - `permission="members:read"`
-- [ ] `/admin/members/list/page.tsx` - `permission="members:read"`
-- [ ] `/admin/members/manage/page.tsx` - `permission="members:write"`
-- [ ] `/admin/members/manage/lookup-new/page.tsx` - `permission="members:write"`
-- [ ] `/admin/members/[memberId]/page.tsx` - `permission="members:read"`
-- [ ] `/admin/security/rbac/page.tsx` - `permission="rbac:manage"`
-- [ ] `/admin/security/rbac/**/page.tsx` (all subpages) - `permission="rbac:manage"`
-- [ ] `/admin/rbac/**/page.tsx` (all delegation pages) - `permission="rbac:manage"`
+- [x] `/admin/members/page.tsx` - `Gate.withPermission('members:read')`
+- [x] `/admin/members/list/page.tsx` - `Gate.withPermission('members:read')`
+- [x] `/admin/members/manage/page.tsx` - `Gate.withPermission('members:write')`
+- [x] `/admin/members/manage/lookup-new/page.tsx` - `Gate.withPermission('members:write')`
+- [x] `/admin/members/[memberId]/page.tsx` - `Gate.withPermission('members:read')`
+- [x] `/admin/security/rbac/page.tsx` - `Gate.withPermission('rbac:manage')`
+- [x] `/admin/security/rbac/**/page.tsx` (all subpages) - `Gate.withPermission('rbac:manage')`
+- [x] `/admin/rbac/**/page.tsx` (all delegation pages) - `Gate.withPermission('rbac:manage')`
 
-### 🟢 Medium Priority - Role Required
+### ðŸŸ¢ Medium Priority - Role Required
 
-- [ ] `/admin/settings/page.tsx` (tenant settings) - `role="tenant_admin"`
+- [x] `/admin/settings/page.tsx` (tenant settings) - `Gate.withRole('tenant_admin')`
 
-### ⚪ Low Priority - General Access
+### âšª Low Priority - General Access
 
-- [ ] `/admin/page.tsx` - Dashboard (authenticated only)
-- [ ] `/admin/docs/page.tsx` - Documentation (authenticated only)
-- [ ] `/admin/modules/page.tsx` - Modules (authenticated only)
-- [ ] `/admin/ui-blocks/**/page.tsx` - UI blocks (authenticated only)
+- [x] `/admin/page.tsx` - Dashboard (authenticated only - use basic gate)
+- [x] `/admin/docs/page.tsx` - Documentation (authenticated only - use basic gate)
+- [x] `/admin/modules/page.tsx` - Modules (authenticated only - use basic gate)
+- [x] `/admin/ui-blocks/**/page.tsx` - UI blocks (authenticated only - use basic gate)
 
-## Preset Components
-
-For common patterns, use preset components:
-
-```typescript
-import {
-  SuperAdminPage,
-  TenantAdminPage,
-  MembersProtectedPage,
-  FinanceProtectedPage,
-  RBACProtectedPage
-} from '@/components/access-gate/ProtectedAdminPage';
-
-// Super admin page
-<SuperAdminPage>{children}</SuperAdminPage>
-
-// Tenant admin page
-<TenantAdminPage>{children}</TenantAdminPage>
-
-// Members page
-<MembersProtectedPage>{children}</MembersProtectedPage>
-
-// Finance page
-<FinanceProtectedPage>{children}</FinanceProtectedPage>
-
-// RBAC page
-<RBACProtectedPage>{children}</RBACProtectedPage>
-```
-
-## Testing Security
-
-### Manual Testing Checklist:
-
-1. **Test as Super Admin:**
-   - ✅ Can access `/admin/licensing`
-   - ✅ Can access `/admin/menu-builder`
-   - ❌ Cannot access `/admin/members` (should redirect)
-   - ❌ Cannot access `/admin/financial-overview` (should redirect)
-
-2. **Test as Tenant Admin:**
-   - ❌ Cannot access `/admin/licensing` (should redirect)
-   - ❌ Cannot access `/admin/menu-builder` (should redirect)
-   - ✅ Can access `/admin/settings`
-   - Access to other pages depends on permissions
-
-3. **Test as Staff (with limited permissions):**
-   - ❌ Cannot access super admin pages
-   - ✅ Can access pages matching their permissions
-   - ❌ Cannot access pages outside their permissions
-
-### Automated Testing:
-
-```typescript
-// Test file: __tests__/admin-security.test.ts
-
-describe('Admin Page Security', () => {
-  it('redirects non-super-admin from licensing page', async () => {
-    // Mock user without super admin role
-    const response = await fetch('/admin/licensing');
-    expect(response.status).toBe(302); // Redirect
-    expect(response.headers.get('location')).toContain('unauthorized');
-  });
-
-  it('allows super admin to access licensing page', async () => {
-    // Mock super admin user
-    const response = await fetch('/admin/licensing');
-    expect(response.status).toBe(200);
-  });
-
-  // ... more tests
-});
-```
 
 ## Security Best Practices
 
-### ✅ DO:
+### âœ… DO:
 
-- Always use `ProtectedAdminPage` for sensitive pages
+- Always use `ProtectedPage` for sensitive pages
 - Use most restrictive access level needed
 - Document security requirements in page comments
 - Test access with different user roles
-- Use preset components for common patterns
+- Create shared wrappers or layouts for recurring gate patterns
 - Redirect to meaningful error pages (`/unauthorized?reason=...`)
 
-### ❌ DON'T:
+### âŒ DON'T:
 
 - Rely only on menu hiding for security
 - Use client-side checks for authorization
@@ -309,18 +289,18 @@ export default async function MembersPage() {
 
 ```typescript
 // After - SECURE
-import { ProtectedAdminPage } from '@/components/access-gate/ProtectedAdminPage';
+import { ProtectedPage } from '@/components/access-gate/ProtectedPage';
 
 export default async function MembersPage() {
   return (
-    <ProtectedAdminPage permission="members:read">
+    <ProtectedPage permission="members:read">
       <MembersContent />
-    </ProtectedAdminPage>
+    </ProtectedPage>
   );
 }
 ```
 
-**Note:** `ProtectedAdminPage` handles authentication automatically - no need for manual auth checks!
+**Note:** `ProtectedPage` handles authentication automatically - no need for manual auth checks!
 
 ## Common Issues
 
@@ -330,7 +310,7 @@ export default async function MembersPage() {
 
 **Solution:** Set `requireTenant={false}` for super admin pages:
 ```typescript
-<ProtectedAdminPage superAdminOnly requireTenant={false}>
+<ProtectedPage superAdminOnly requireTenant={false}>
 ```
 
 ### Issue: Infinite redirect loop
@@ -339,7 +319,7 @@ export default async function MembersPage() {
 
 **Solution:** Use `/unauthorized` (which should not be protected) or provide custom redirect:
 ```typescript
-<ProtectedAdminPage
+<ProtectedPage
   permission="members:read"
   redirectTo="/admin?error=permission_denied"
 >
@@ -375,7 +355,7 @@ LIMIT 100;
 ## Next Steps
 
 1. **Audit all admin pages** - Review every page.tsx file in `/admin` directory
-2. **Add protection** - Wrap unprotected pages with `ProtectedAdminPage`
+2. **Add protection** - Wrap unprotected pages with `ProtectedPage`
 3. **Document** - Add security comments to page headers
 4. **Test** - Verify access with different user roles
 5. **Monitor** - Check audit logs for unauthorized access attempts
@@ -383,6 +363,6 @@ LIMIT 100;
 ## Questions?
 
 Refer to:
-- `src/components/access-gate/ProtectedAdminPage.tsx` - Component implementation
+- `src/components/access-gate/ProtectedPage.tsx` - Component implementation
 - `src/lib/access-gate/` - AccessGate system documentation
 - `docs/access/ACCESS_GATE_GUIDE.md` - Comprehensive AccessGate guide

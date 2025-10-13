@@ -1,4 +1,15 @@
+/**
+ * Member Profile Page
+ *
+ * Detailed profile view combining engagement, giving, and serving history.
+ *
+ * SECURITY: Protected by AccessGate requiring members:read or members:write permission.
+ */
+
 import type { Metadata } from "next";
+import { Gate } from "@/lib/access-gate";
+import { ProtectedPage } from "@/components/access-gate";
+import { getCurrentTenantId, getCurrentUserId } from "@/lib/server/context";
 
 import { renderMembershipPage, type PageSearchParams } from "../metadata";
 
@@ -18,6 +29,12 @@ export const metadata: Metadata = {
 };
 
 export default async function MemberProfilePage({ params, searchParams }: PageProps) {
+  const userId = await getCurrentUserId();
+  const tenantId = await getCurrentTenantId();
+  const gate = Gate.withPermission(["members:read", "members:write"], "any", {
+    fallbackPath: "/unauthorized?reason=members_access",
+  });
+
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     Promise.resolve(params),
     Promise.resolve(searchParams),
@@ -30,5 +47,9 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
 
   const { content } = await renderMembershipPage("members/profile", aggregatedSearchParams);
 
-  return <div className="space-y-10">{content}</div>;
+  return (
+    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
+      <div className="space-y-10">{content}</div>
+    </ProtectedPage>
+  );
 }

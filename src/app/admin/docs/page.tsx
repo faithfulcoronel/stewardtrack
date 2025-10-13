@@ -1,9 +1,20 @@
+/**
+ * Documentation Hub Page
+ *
+ * Exposes internal documentation within the admin console.
+ *
+ * SECURITY: Protected by AccessGate requiring authentication.
+ */
+
 import fs from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import path from "node:path";
 
 import type { Metadata } from "next";
 
+import { Gate } from "@/lib/access-gate";
+import { ProtectedPage } from "@/components/access-gate";
+import { getCurrentUserId } from "@/lib/server/context";
 import { DocsManager } from "@/components/docs/docs-manager";
 
 export const metadata: Metadata = {
@@ -26,18 +37,22 @@ type DocsData = {
 const DOCS_ROOT = path.join(process.cwd(), "docs");
 
 export default async function DocumentationPage() {
+  const userId = await getCurrentUserId();
+  const gate = Gate.authenticated({ fallbackPath: "/login" });
   const data = await readDocsDirectory();
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold">Documentation hub</h1>
-        <p className="text-sm text-muted-foreground">
-          Access StewardTrack’s internal documentation directly from the admin console.
-        </p>
+    <ProtectedPage gate={gate} userId={userId}>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold">Documentation hub</h1>
+          <p className="text-sm text-muted-foreground">
+            Access StewardTrack's internal documentation directly from the admin console.
+          </p>
+        </div>
+        <DocsManager tree={data.tree} files={data.files} initialPath={data.initialPath} />
       </div>
-      <DocsManager tree={data.tree} files={data.files} initialPath={data.initialPath} />
-    </div>
+    </ProtectedPage>
   );
 }
 
