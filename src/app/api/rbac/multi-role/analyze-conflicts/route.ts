@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
+import { getCurrentTenantId } from '@/lib/server/context';
 
 export async function POST(request: NextRequest) {
   try {
+    await getCurrentTenantId(); // Validate tenant access
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body = await request.json();
 

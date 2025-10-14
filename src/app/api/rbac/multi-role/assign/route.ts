@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
+import { getCurrentTenantId } from '@/lib/server/context';
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = await getCurrentTenantId();
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body = await request.json();
 
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await rbacService.assignMultipleRoles(user_id, role_ids, override_conflicts);
+    const result = await rbacService.assignMultipleRoles(user_id, role_ids, override_conflicts, tenantId);
 
     return NextResponse.json({
       success: true,

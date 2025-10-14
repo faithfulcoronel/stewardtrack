@@ -783,11 +783,13 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     const { data, error } = await supabase.rpc(
       'get_user_roles_with_permissions',
       {
-        target_user_id: userId,
-        target_tenant_id: tenantId || null
+        target_user_id: userId
       }
     );
-    if (error) throw error;
+    if (error) {
+      console.error('Error getting user role codes:', error);
+      throw error;
+    }
     return data || [];
   }
 

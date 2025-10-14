@@ -82,17 +82,50 @@ export function DelegatedConsole() {
     scopeCount: 0,
     recentChanges: 0
   });
-  const [selectedScope, setSelectedScope] = useState<DelegationScope | null>(null);
   const [selectedUser, setSelectedUser] = useState<DelegatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [scopeFilter, setScopeFilter] = useState<string>('all');
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [selectedScopeId, setSelectedScopeId] = useState<string>('');
+  const [isAssigning, setIsAssigning] = useState(false);
+  const closeAssignDialog = () => {
+    setShowAssignDialog(false);
+    setSelectedUser(null);
+    setSelectedRoleId('');
+    setSelectedScopeId('');
+    setIsAssigning(false);
+  };
+
+  const openAssignDialog = (user?: DelegatedUser | null) => {
+    setSelectedUser(user ?? null);
+    const inferredScopeId = user?.campus_id ?? user?.ministry_id ?? '';
+    if (inferredScopeId) {
+      setSelectedScopeId(inferredScopeId);
+    } else if (scopes.length === 1) {
+      setSelectedScopeId(scopes[0].id);
+    } else {
+      setSelectedScopeId('');
+    }
+    setSelectedRoleId('');
+    setShowAssignDialog(true);
+  };
 
   useEffect(() => {
     loadDelegatedData();
   }, []);
+
+  useEffect(() => {
+    if (!showAssignDialog) {
+      return;
+    }
+
+    if (!selectedScopeId && scopes.length === 1) {
+      setSelectedScopeId(scopes[0].id);
+    }
+  }, [showAssignDialog, scopes, selectedScopeId]);
 
   const loadDelegatedData = async () => {
     try {
@@ -150,14 +183,17 @@ export function DelegatedConsole() {
       const result = await response.json();
       if (result.success) {
         toast.success('Role assigned successfully');
-        loadDelegatedData();
-        setShowAssignDialog(false);
+        await loadDelegatedData();
+        closeAssignDialog();
+        return true;
       } else {
         toast.error(result.error || 'Failed to assign role');
+        return false;
       }
     } catch (error) {
       console.error('Error assigning role:', error);
       toast.error('Failed to assign role');
+      return false;
     }
   };
 
@@ -182,6 +218,28 @@ export function DelegatedConsole() {
     } catch (error) {
       console.error('Error revoking role:', error);
       toast.error('Failed to revoke role');
+    }
+  };
+
+  const handleAssignRole = async () => {
+    if (!selectedUser) {
+      toast.error('Select a user to assign a role');
+      return;
+    }
+    if (!selectedRoleId) {
+      toast.error('Select a role to assign');
+      return;
+    }
+    if (!selectedScopeId && scopes.length > 1) {
+      toast.error('Select a scope for this assignment');
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      await assignRoleToUser(selectedUser.id, selectedRoleId, selectedScopeId || undefined);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -273,7 +331,7 @@ export function DelegatedConsole() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={() => setShowAssignDialog(true)}>
+          <Button onClick={() => openAssignDialog()}>
             <UserPlus className="h-4 w-4 mr-2" />
             Assign Role
           </Button>
@@ -445,10 +503,7 @@ export function DelegatedConsole() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowAssignDialog(true);
-                            }}
+                            onClick={() => openAssignDialog(user)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -553,7 +608,16 @@ export function DelegatedConsole() {
       </Tabs>
 
       {/* Role Assignment Dialog */}
-      <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
+      <Dialog
+        open={showAssignDialog}
+        onOpenChange={(open) => {
+          if (open) {
+            setShowAssignDialog(true);
+          } else {
+            closeAssignDialog();
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Assign Role to User</DialogTitle>
@@ -569,8 +633,21 @@ export function DelegatedConsole() {
             <div>
               <Label>Select User</Label>
               <Select value={selectedUser?.id || ''} onValueChange={(value) => {
-                const user = delegatedUsers.find(u => u.id === value);
-                setSelectedUser(user || null);
+                const user = delegatedUsers.find(u => u.id === value) || null;
+                setSelectedUser(user);
+                if (user) {
+                  const inferred = user.campus_id ?? user.ministry_id ?? '';
+                  if (inferred) {
+                    setSelectedScopeId(inferred);
+                  } else if (scopes.length === 1) {
+                    setSelectedScopeId(scopes[0].id);
+                  } else {
+                    setSelectedScopeId('');
+                  }
+                } else {
+                  setSelectedScopeId('');
+                }
+                setSelectedRoleId('');
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a user..." />
@@ -587,28 +664,48 @@ export function DelegatedConsole() {
 
             <div>
               <Label>Select Role</Label>
-              <Select>
+              <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a role..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableRoles.filter(role => role.is_delegatable).map(role => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name} ({role.scope})
-                    </SelectItem>
-                  ))}
+                  {availableRoles
+                    .filter(role => role.is_delegatable)
+                    .map(role => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name} ({role.scope})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {scopes.length > 1 && (
+              <div>
+                <Label>Select Scope</Label>
+                <Select value={selectedScopeId} onValueChange={setSelectedScopeId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a scope..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scopes.map(scope => (
+                      <SelectItem key={scope.id} value={scope.id}>
+                        {scope.name} ({scope.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowAssignDialog(false)}>
+            <Button variant="outline" onClick={closeAssignDialog}>
               Cancel
             </Button>
-            <Button>
+            <Button onClick={handleAssignRole} disabled={isAssigning}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Assign Role
+              {isAssigning ? 'Assigning...' : 'Assign Role'}
             </Button>
           </div>
         </DialogContent>

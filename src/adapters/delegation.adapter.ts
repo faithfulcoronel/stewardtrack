@@ -6,7 +6,8 @@ import type { AuditService } from '@/services/AuditService';
 import type {
   DelegatedContext,
   UserWithRoles,
-  Role
+  Role,
+  Permission
 } from '@/models/rbac.model';
 
 export interface IDelegationAdapter extends IBaseAdapter<any> {
@@ -54,22 +55,148 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
   protected tableName = 'delegation_permissions';
   protected defaultSelect = `*`;
 
+  private roleCache = new Map<string, Role[]>();
+
+  private mapRoleScope(rawScope: string | null | undefined, fallbackScope?: DelegatedContext['scope']): Role['scope'] {
+    if (rawScope === 'system' || rawScope === 'tenant' || rawScope === 'campus' || rawScope === 'ministry') {
+      return rawScope;
+    }
+
+    if (rawScope === 'delegated' && fallbackScope) {
+      return fallbackScope;
+    }
+
+    return fallbackScope ?? 'tenant';
+  }
+
+  private async loadDelegatableRoles(context: DelegatedContext, scopeOverride?: DelegatedContext['scope']): Promise<Role[]> {
+    const targetScope = scopeOverride ?? context.scope;
+    const cacheKey = `${context.tenant_id}:${targetScope ?? 'all'}`;
+    if (this.roleCache.has(cacheKey)) {
+      return this.roleCache.get(cacheKey)!;
+    }
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from('roles')
+      .select('id, tenant_id, name, description, scope, metadata_key, is_system, is_delegatable, is_active, created_at, updated_at, deleted_at')
+      .eq('tenant_id', context.tenant_id);
+
+    if (error) {
+      throw new Error(`Failed to load delegatable roles: ${error.message}`);
+    }
+
+    const normalized = (data ?? [])
+      .filter(role => Boolean(role.is_delegatable ?? false))
+      .filter(role => (role.is_active ?? true) && !role.deleted_at)
+      .map<Role>((role) => ({
+        id: role.id,
+        tenant_id: role.tenant_id,
+        name: role.name,
+        description: role.description ?? undefined,
+        metadata_key: role.metadata_key ?? undefined,
+        scope: this.mapRoleScope(role.scope, targetScope),
+        is_system: role.is_system ?? false,
+        is_delegatable: role.is_delegatable ?? false,
+        created_at: role.created_at,
+        updated_at: role.updated_at
+      }))
+      .filter(role => !targetScope || role.scope === targetScope);
+
+    this.roleCache.set(cacheKey, normalized);
+    return normalized;
+  }
+
+  private async fetchDelegationScopes(context: DelegatedContext) {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from('delegation_scopes')
+      .select('id, name, type, parent_id, is_active')
+      .eq('tenant_id', context.tenant_id)
+      .eq('is_active', true);
+
+    if (error) {
+      throw new Error(`Failed to load delegation scopes: ${error.message}`);
+    }
+
+    return data ?? [];
+  }
+
+  private filterScopesForContext(context: DelegatedContext, scopes: Array<{ id: string; type: string; parent_id?: string | null }>) {
+    return scopes.filter(scope => {
+      if (context.scope === 'campus') {
+        if (!context.scope_id) {
+          return scope.type === 'campus' || scope.type === 'ministry';
+        }
+
+        if (scope.type === 'campus') {
+          return scope.id === context.scope_id;
+        }
+
+        if (scope.type === 'ministry') {
+          return scope.parent_id === context.scope_id;
+        }
+
+        return false;
+      }
+
+      if (context.scope === 'ministry') {
+        return context.scope_id ? scope.id === context.scope_id : scope.type === 'ministry';
+      }
+
+      return false;
+    });
+  }
+
   async getDelegatedContext(userId: string, tenantId: string): Promise<DelegatedContext | null> {
     if (!userId || !tenantId) {
       return null;
     }
 
-    // Temporary mock until Supabase RPC (get_delegated_context) is provisioned.
-    const mockDelegatedContext: DelegatedContext = {
-      user_id: userId,
-      tenant_id: tenantId,
-      scope: 'campus',
-      scope_id: 'campus-1',
-      allowed_roles: ['role-1', 'role-2', 'role-3'],
-      allowed_bundles: ['bundle-1', 'bundle-2']
+    const normalizeScope = (scope?: string | null): 'campus' | 'ministry' => {
+      if (scope === 'ministry' || scope === 'department' || scope === 'program') {
+        return 'ministry';
+      }
+      return 'campus';
     };
 
-    return mockDelegatedContext;
+    try {
+      const supabase = await this.getSupabaseClient();
+      const { data, error } = await supabase
+        .from('delegation_permissions')
+        .select('scope_type, scope_id')
+        .eq('tenant_id', tenantId)
+        .eq('delegatee_id', userId)
+        .eq('is_active', true);
+
+      if (error) {
+        throw new Error(`Failed to load delegation context: ${error.message}`);
+      }
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      const prioritized = data.find(entry => entry.scope_type === 'campus') ?? data[0];
+      const resolvedScope = normalizeScope(prioritized.scope_type);
+
+      const context: DelegatedContext = {
+        user_id: userId,
+        tenant_id: tenantId,
+        scope: resolvedScope,
+        scope_id: prioritized.scope_id ?? undefined,
+        allowed_roles: [],
+        allowed_bundles: []
+      };
+
+      const allowedRoles = await this.loadDelegatableRoles(context, resolvedScope);
+      context.allowed_roles = allowedRoles.map(role => role.id);
+
+      return context;
+    } catch (error) {
+      console.error('[DelegationAdapter] Error resolving delegated context:', error);
+      return null;
+    }
   }
 
   async getUsersInDelegatedScope(delegatedContext: DelegatedContext): Promise<UserWithRoles[]> {
@@ -89,162 +216,157 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
     return data || [];
   }
 
-  async getDelegationScopes(delegatedContext: any): Promise<any[]> {
-    const supabase = await this.getSupabaseClient();
-
-    // Mock implementation - in reality this would query campus/ministry tables
-    const mockScopes = [
-      {
-        id: 'campus-1',
-        name: 'Main Campus',
-        type: 'campus',
-        user_count: 45,
-        role_count: 8
-      },
-      {
-        id: 'ministry-1',
-        name: 'Youth Ministry',
-        type: 'ministry',
-        user_count: 15,
-        role_count: 4,
-        parent_id: 'campus-1'
-      },
-      {
-        id: 'ministry-2',
-        name: 'Worship Ministry',
-        type: 'ministry',
-        user_count: 12,
-        role_count: 3,
-        parent_id: 'campus-1'
-      }
-    ];
-
-    return mockScopes.filter(scope =>
-      delegatedContext.scope === 'campus' ||
-      (delegatedContext.scope === 'ministry' && scope.type === 'ministry')
-    );
-  }
-
-  async getDelegatedUsers(delegatedContext: any): Promise<any[]> {
-    const supabase = await this.getSupabaseClient();
-
+  async getDelegationScopes(delegatedContext: DelegatedContext): Promise<any[]> {
     try {
-      // Query delegation permissions first
-      const { data: delegationsData, error: delegationsError } = await supabase
-        .from('delegation_permissions')
-        .select(`
-          id,
-          delegatee_id,
-          scope_type,
-          scope_id,
-          permissions,
-          is_active,
-          delegation_scopes:scope_id (
-            name,
-            type
-          )
-        `)
-        .eq('tenant_id', delegatedContext.tenant_id)
-        .eq('is_active', true);
+      const [rawScopes, delegatedUsers, delegatableRoles] = await Promise.all([
+        this.fetchDelegationScopes(delegatedContext),
+        this.getDelegatedUsers(delegatedContext),
+        this.getDelegationRoles(delegatedContext)
+      ]);
 
-      if (delegationsError) {
-        console.error('Error fetching delegations:', delegationsError);
+      if (!rawScopes.length) {
         return [];
       }
 
-      if (!delegationsData || delegationsData.length === 0) {
-        return [];
-      }
+      const relevantScopes = this.filterScopesForContext(delegatedContext, rawScopes);
 
-      // Get unique delegatee IDs
-      const delegateeIds = [...new Set(delegationsData.map(d => d.delegatee_id))];
-
-      // Query tenant users for these delegatees
-      const { data: usersData, error: usersError } = await supabase
-        .from('tenant_users')
-        .select(`
-          user_id,
-          users:user_id (
-            id,
-            email,
-            user_metadata
-          )
-        `)
-        .eq('tenant_id', delegatedContext.tenant_id)
-        .in('user_id', delegateeIds);
-
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-        return [];
-      }
-
-      // Transform data to expected format
-      return (usersData || []).map(tu => {
-        const user = tu.users;
-        const metadata = user?.user_metadata || {};
-        const userDelegations = delegationsData.filter(d => d.delegatee_id === tu.user_id);
+      return relevantScopes.map(scope => {
+        const roleCount = delegatableRoles.filter(role => role.scope === scope.type).length;
+        const userCount = delegatedUsers.filter(user => {
+          const effectiveScope = user.effective_scope ?? delegatedContext.scope;
+          if (scope.type === 'campus') {
+            return effectiveScope === 'campus';
+          }
+          if (scope.type === 'ministry') {
+            return effectiveScope === 'ministry';
+          }
+          return false;
+        }).length;
 
         return {
-          id: user?.id,
-          email: user?.email,
-          first_name: metadata.first_name || metadata.firstName || '',
-          last_name: metadata.last_name || metadata.lastName || '',
-          delegated_permissions: userDelegations.map(dp => ({
-            id: dp.id,
-            scope_type: dp.scope_type,
-            scope_name: dp.delegation_scopes?.name || 'Unknown',
-            permissions: dp.permissions || []
-          }))
+          id: scope.id,
+          name: scope.name,
+          type: scope.type,
+          parent_id: scope.parent_id,
+          user_count: userCount,
+          role_count: roleCount
         };
       });
     } catch (error) {
-      console.error('Error in getDelegatedUsers:', error);
+      console.error('[DelegationAdapter] Error loading delegation scopes:', error);
+      return [];
+    }
+  }
+
+  async getDelegatedUsers(delegatedContext: DelegatedContext): Promise<any[]> {
+    try {
+      let roleCatalog = await this.loadDelegatableRoles(delegatedContext);
+      const allowedRoleIds = delegatedContext.allowed_roles?.length
+        ? delegatedContext.allowed_roles
+        : roleCatalog.map(role => role.id);
+
+      if (!allowedRoleIds.length) {
+        return [];
+      }
+
+      if (delegatedContext.allowed_roles?.length) {
+        roleCatalog = roleCatalog.filter(role => allowedRoleIds.includes(role.id));
+      }
+
+      const supabase = await this.getSupabaseClient();
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('id, user_id, role_id, assigned_at, is_active, roles:role_id (id, tenant_id, name, description, scope, metadata_key, is_system, is_delegatable, created_at, updated_at), users:user_id (id, email, user_metadata)')
+        .eq('tenant_id', delegatedContext.tenant_id)
+        .eq('is_active', true)
+        .in('role_id', allowedRoleIds)
+        .order('assigned_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch delegated users: ${error.message}`);
+      }
+
+      const roleMap = new Map(roleCatalog.map(role => [role.id, role]));
+      const userMap = new Map<string, any>();
+
+      for (const record of data ?? []) {
+        const userRecord = record.users;
+        if (!userRecord) {
+          continue;
+        }
+
+        const roleFromCatalog = roleMap.get(record.role_id);
+        let normalizedRole: Role | null = null;
+
+        if (roleFromCatalog) {
+          normalizedRole = roleFromCatalog;
+        } else if (record.roles) {
+          normalizedRole = {
+            id: record.roles.id,
+            tenant_id: record.roles.tenant_id,
+            name: record.roles.name,
+            description: record.roles.description ?? undefined,
+            metadata_key: record.roles.metadata_key ?? undefined,
+            scope: this.mapRoleScope(record.roles.scope, delegatedContext.scope),
+            is_system: record.roles.is_system ?? false,
+            is_delegatable: record.roles.is_delegatable ?? false,
+            created_at: record.roles.created_at,
+            updated_at: record.roles.updated_at
+          } as Role;
+        }
+
+        const metadata = userRecord.user_metadata ?? {};
+        const existing = userMap.get(userRecord.id);
+        const baseUser = existing ?? {
+          id: userRecord.id,
+          email: userRecord.email ?? '',
+          first_name: metadata.first_name ?? metadata.firstName ?? '',
+          last_name: metadata.last_name ?? metadata.lastName ?? '',
+          roles: [] as Role[],
+          effective_permissions: [] as Permission[],
+          delegated_roles: [] as Role[],
+          effective_scope: delegatedContext.scope,
+          campus_id: delegatedContext.scope === 'campus' ? delegatedContext.scope_id : undefined,
+          ministry_id: delegatedContext.scope === 'ministry' ? delegatedContext.scope_id : undefined
+        };
+
+        if (normalizedRole) {
+          const hasRole = baseUser.delegated_roles.some(role => role.id === normalizedRole!.id);
+          if (!hasRole) {
+            baseUser.delegated_roles = [...baseUser.delegated_roles, normalizedRole];
+            baseUser.roles = [...baseUser.roles, normalizedRole];
+          }
+
+          if (normalizedRole.scope === 'campus' || normalizedRole.scope === 'ministry') {
+            baseUser.effective_scope = normalizedRole.scope;
+          }
+        }
+
+        userMap.set(userRecord.id, baseUser);
+      }
+
+      return Array.from(userMap.values()).sort((a, b) => {
+        const aName = (a.first_name || a.email || '').toLowerCase();
+        const bName = (b.first_name || b.email || '').toLowerCase();
+        return aName.localeCompare(bName);
+      });
+    } catch (error) {
+      console.error('[DelegationAdapter] Error fetching delegated users:', error);
       return [];
     }
   }
 
   async getDelegationRoles(delegatedContext: DelegatedContext): Promise<Role[]> {
-    const now = new Date().toISOString();
-
-    const mockRoles: Role[] = [
-      {
-        id: 'role-1',
-        tenant_id: delegatedContext.tenant_id,
-        name: 'Campus Volunteer Coordinator',
-        description: 'Coordinates volunteers within the delegated campus scope.',
-        scope: 'campus',
-        is_system: false,
-        is_delegatable: true,
-        created_at: now,
-        updated_at: now
-      },
-      {
-        id: 'role-2',
-        tenant_id: delegatedContext.tenant_id,
-        name: 'Youth Ministry Lead',
-        description: 'Manages youth ministry operations and volunteer onboarding.',
-        scope: 'ministry',
-        is_system: false,
-        is_delegatable: true,
-        created_at: now,
-        updated_at: now
-      },
-      {
-        id: 'role-3',
-        tenant_id: delegatedContext.tenant_id,
-        name: 'Campus Care Team',
-        description: 'Handles pastoral care follow-up for the delegated campus.',
-        scope: 'campus',
-        is_system: false,
-        is_delegatable: false,
-        created_at: now,
-        updated_at: now
+    try {
+      const roles = await this.loadDelegatableRoles(delegatedContext);
+      if (delegatedContext.allowed_roles?.length) {
+        return roles.filter(role => delegatedContext.allowed_roles.includes(role.id));
       }
-    ];
-
-    return mockRoles.filter(role =>
-      delegatedContext.allowed_roles.includes(role.id)
-    );
+      return roles;
+    } catch (error) {
+      console.error('[DelegationAdapter] Error fetching delegation roles:', error);
+      return [];
+    }
   }
 
   async getDelegationStats(delegatedContext: DelegatedContext): Promise<{
@@ -255,18 +377,42 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
     scopeCount: number;
     recentChanges: number;
   }> {
-    const users = await this.getDelegatedUsers(delegatedContext);
-    const roles = await this.getDelegationRoles(delegatedContext);
-    const scopes = await this.getDelegationScopes(delegatedContext);
+    try {
+      const [users, roles, rawScopes] = await Promise.all([
+        this.getDelegatedUsers(delegatedContext),
+        this.getDelegationRoles(delegatedContext),
+        this.fetchDelegationScopes(delegatedContext)
+      ]);
 
-    return {
-      totalUsers: users.length,
-      activeUsers: users.filter(u => u.delegated_permissions?.length > 0).length,
-      totalRoles: roles.length,
-      delegatableRoles: roles.filter(r => r.is_delegatable).length,
-      scopeCount: scopes.length,
-      recentChanges: 0 // Would need to query audit logs
-    };
+      const filteredScopes = this.filterScopesForContext(delegatedContext, rawScopes);
+
+      const supabase = await this.getSupabaseClient();
+      const thirtyDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString();
+      const { count: recentCount } = await supabase
+        .from('user_roles')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', delegatedContext.tenant_id)
+        .gte('updated_at', thirtyDaysAgo);
+
+      return {
+        totalUsers: users.length,
+        activeUsers: users.filter(u => u.delegated_roles.length > 0).length,
+        totalRoles: roles.length,
+        delegatableRoles: roles.filter(r => r.is_delegatable).length,
+        scopeCount: filteredScopes.length,
+        recentChanges: recentCount ?? 0
+      };
+    } catch (error) {
+      console.error('[DelegationAdapter] Error building delegation stats:', error);
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        totalRoles: 0,
+        delegatableRoles: 0,
+        scopeCount: 0,
+        recentChanges: 0
+      };
+    }
   }
 
   async assignDelegatedRole(params: {
@@ -276,20 +422,42 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
     scopeId?: string;
     context: DelegatedContext;
   }): Promise<{ success: boolean; assignment: any }> {
-    const assignment: any = {
-      id: 'delegated-assignment-' + Date.now().toString(),
-      user_id: params.delegateeId,
-      role_id: params.roleId,
-      tenant_id: params.context.tenant_id,
-      assigned_by: params.delegatorId,
-      assigned_at: new Date().toISOString(),
-      scope_id: params.scopeId ?? params.context.scope_id ?? null
-    };
+    const { delegatorId, delegateeId, roleId, scopeId, context } = params;
 
-    return {
-      success: true,
-      assignment
-    };
+    try {
+      const supabase = await this.getSupabaseClient();
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('user_roles')
+        .upsert({
+          tenant_id: context.tenant_id,
+          user_id: delegateeId,
+          role_id: roleId,
+          assigned_by: delegatorId,
+          assigned_at: now,
+          is_active: true,
+          updated_at: now
+        }, { onConflict: 'tenant_id,user_id,role_id' })
+        .select('id, tenant_id, user_id, role_id, assigned_at, assigned_by, is_active, expires_at, updated_at')
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to assign delegated role: ${error.message}`);
+      }
+
+      const assignment = {
+        ...data,
+        scope_id: scopeId ?? context.scope_id ?? null
+      };
+
+      return {
+        success: true,
+        assignment
+      };
+    } catch (error) {
+      console.error('[DelegationAdapter] Error assigning delegated role:', error);
+      throw error;
+    }
   }
 
   async revokeDelegatedRole(params: {
@@ -298,8 +466,29 @@ export class DelegationAdapter extends BaseAdapter<any> implements IDelegationAd
     roleId: string;
     context: DelegatedContext;
   }): Promise<{ success: boolean }> {
-    void params;
-    return { success: true };
+    const { delegateeId, roleId, context } = params;
+
+    try {
+      const supabase = await this.getSupabaseClient();
+      const { error } = await supabase
+        .from('user_roles')
+        .update({
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('tenant_id', context.tenant_id)
+        .eq('user_id', delegateeId)
+        .eq('role_id', roleId);
+
+      if (error) {
+        throw new Error(`Failed to revoke delegated role: ${error.message}`);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('[DelegationAdapter] Error revoking delegated role:', error);
+      throw error;
+    }
   }
 
   async getDelegationPermissions(tenantId: string): Promise<any[]> {

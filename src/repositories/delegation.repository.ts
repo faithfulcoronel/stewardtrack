@@ -12,7 +12,7 @@ export interface IDelegationRepository extends BaseRepository<any> {
   getDelegatedContext(userId: string, tenantId: string): Promise<DelegatedContext | null>;
   getUsersInDelegatedScope(delegatedContext: DelegatedContext): Promise<UserWithRoles[]>;
   getDelegationScopes(delegatedContext: any): Promise<any[]>;
-  getDelegatedUsers(delegatedContext: any): Promise<any[]>;
+  getDelegatedUsers(delegatedContext: DelegatedContext): Promise<any[]>;
   getDelegationRoles(delegatedContext: DelegatedContext): Promise<Role[]>;
   getDelegationStats(delegatedContext: DelegatedContext): Promise<{
     totalUsers: number;
@@ -60,7 +60,7 @@ export class DelegationRepository extends BaseRepository<any> implements IDelega
     return await this.delegationAdapter.getDelegationScopes(delegatedContext);
   }
 
-  async getDelegatedUsers(delegatedContext: any): Promise<any[]> {
+  async getDelegatedUsers(delegatedContext: DelegatedContext): Promise<any[]> {
     return await this.delegationAdapter.getDelegatedUsers(delegatedContext);
   }
 
@@ -118,3 +118,4 @@ export class DelegationRepository extends BaseRepository<any> implements IDelega
     return await this.delegationAdapter.getPermissionTemplates(tenantId);
   }
 }
+

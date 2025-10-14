@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
+import { getCurrentTenantId } from '@/lib/server/context';
 
 export async function GET(_request: NextRequest) {
   try {
+    const tenantId = await getCurrentTenantId();
     const rbacService = container.get<RbacService>(TYPES.RbacService);
 
-    const users = await rbacService.getUsers();
+    const users = await rbacService.getUsers(tenantId);
 
     return NextResponse.json({
       success: true,

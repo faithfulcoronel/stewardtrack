@@ -3,15 +3,17 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
 import { CreateRoleDto } from '@/models/rbac.model';
+import { getCurrentTenantId } from '@/lib/server/context';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentTenantId = await getCurrentTenantId();
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const { searchParams } = new URL(request.url);
     const includeSystem = searchParams.get('includeSystem') === 'true';
     const includeStats = searchParams.get('includeStats') === 'true';
     const delegatable = searchParams.get('delegatable') === 'true';
-    const tenantId = searchParams.get('tenantId') || undefined;
+    const tenantId = searchParams.get('tenantId') || currentTenantId;
 
     let roles;
     if (includeStats) {
@@ -50,6 +52,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = await getCurrentTenantId();
     const rbacService = container.get<RbacService>(TYPES.RbacService);
     const body: CreateRoleDto = await request.json();
 
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const role = await rbacService.createRole(body);
+    const role = await rbacService.createRole(body, tenantId);
 
     return NextResponse.json({
       success: true,

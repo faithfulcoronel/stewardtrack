@@ -294,7 +294,22 @@ export function MultiRoleAssignment() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  // Transform allUsers to MultiRoleUser format for display
+  const transformedUsers: MultiRoleUser[] = allUsers.map(user => ({
+    id: user.id,
+    email: user.email,
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    primary_role: user.roles && user.roles.length > 0 ? user.roles[0] : undefined,
+    secondary_roles: user.roles && user.roles.length > 1 ? user.roles.slice(1) : [],
+    effective_permissions: [],
+    multi_role_context: undefined,
+    campus_assignments: [],
+    ministry_assignments: [],
+    is_multi_role_enabled: user.roles && user.roles.length > 1
+  }));
+
+  const filteredUsers = transformedUsers.filter(user => {
     if (searchTerm && !user.email?.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())) {
