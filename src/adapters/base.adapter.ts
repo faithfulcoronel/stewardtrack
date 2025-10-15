@@ -12,9 +12,7 @@ import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
 import type { FilterCondition, QueryOptions } from '@/lib/repository/query';
 import type { RequestContext } from '@/lib/server/context';
 import { handleError, TenantContextError } from '@/utils/errorHandler';
-import { checkSuperAdmin } from '@/lib/rbac/permissionHelpers';
 import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
-import { Console } from 'console';
 
 @injectable()
 export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
@@ -39,6 +37,23 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     const supabase = await this.getSupabaseClient();
     const { data } = await supabase.auth.getUser();
     return data.user?.id;
+  }
+
+  protected async isSuperAdmin(): Promise<boolean> {
+    try {
+      const supabase = await this.getSupabaseClient();
+      const { data, error } = await supabase.rpc('get_user_admin_role');
+
+      if (error) {
+        console.error('[BaseAdapter] get_user_admin_role RPC error:', error);
+        return false;
+      }
+
+      return (data as string | null) === 'super_admin';
+    } catch (error) {
+      console.error('[BaseAdapter] Error checking super admin status:', error);
+      return false;
+    }
   }
 
   protected async attachUserNames<U extends { created_by?: string | null; updated_by?: string | null }>(
@@ -215,7 +230,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<{ query: any }> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = await checkSuperAdmin();
+      const isSuperAdmin = await this.isSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         console.log("TenantId is " + tenantId);
@@ -322,7 +337,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<T> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = await checkSuperAdmin();
+      const isSuperAdmin = await this.isSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -384,7 +399,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   ): Promise<T> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = await checkSuperAdmin();
+      const isSuperAdmin = await this.isSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
@@ -439,7 +454,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
   public async delete(id: string): Promise<void> {
     try {
       const tenantId = this.context?.tenantId;
-      const isSuperAdmin = await checkSuperAdmin();
+      const isSuperAdmin = await this.isSuperAdmin();
 
       if (!tenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
