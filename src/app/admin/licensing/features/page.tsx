@@ -61,7 +61,7 @@ const formatTier = (tier?: string) => {
 
   if (!trimmed) {
     return {
-      className: "bg-gray-100",
+      className: "bg-gray-100 text-gray-800",
       label: "Unknown",
     };
   }
@@ -69,10 +69,11 @@ const formatTier = (tier?: string) => {
   const normalized = trimmed.toLowerCase();
 
   return {
-    className: TIER_COLORS[normalized] || "bg-gray-100",
+    className: TIER_COLORS[normalized] || "bg-gray-100 text-gray-800",
     label: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
   };
 };
+
 export default function FeaturesListPage() {
   const router = useRouter();
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -155,12 +156,12 @@ export default function FeaturesListPage() {
   };
 
   const uniqueModules = Array.from(
-  new Set(
-    features
-      .map((f) => f.module?.trim())
-      .filter((module): module is string => Boolean(module))
-  )
-).sort();
+    new Set(
+      features
+        .map((f) => f.module?.trim())
+        .filter((module): module is string => Boolean(module))
+    )
+  ).sort();
 
   return (
     <div className="container mx-auto py-6">
@@ -253,76 +254,77 @@ export default function FeaturesListPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredFeatures.map((feature) => (
-                    <TableRow key={feature.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{feature.name}</p>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs">{feature.surface_id}</code>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="capitalize">
-                          {feature.module}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={TIER_COLORS[feature.tier] || 'bg-gray-100'}
-                        >
-                          {feature.tier.charAt(0).toUpperCase() + feature.tier.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {feature.is_active ? (
-                          <Badge variant="default">Active</Badge>
-                        ) : (
-                          <Badge variant="secondary">Inactive</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                router.push(`/admin/licensing/features/${feature.id}`)
-                              }
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                router.push(
-                                  `/admin/licensing/features/${feature.id}/permissions`
-                                )
-                              }
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Manage Permissions
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(feature.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredFeatures.map((feature) => {
+                    const { className: tierClassName, label: tierLabel } =
+                      formatTier(feature.tier);
+
+                    return (
+                      <TableRow key={feature.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{feature.name}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {feature.description}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs">{feature.surface_id}</code>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {feature.module}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={tierClassName}>{tierLabel}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {feature.is_active ? (
+                            <Badge variant="default">Active</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inactive</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(`/admin/licensing/features/${feature.id}`)
+                                }
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(
+                                    `/admin/licensing/features/${feature.id}/permissions`
+                                  )
+                                }
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Manage Permissions
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(feature.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -339,7 +341,3 @@ export default function FeaturesListPage() {
     </div>
   );
 }
-
-
-
-

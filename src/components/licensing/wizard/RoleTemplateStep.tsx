@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -53,23 +53,41 @@ export function RoleTemplateStep({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Initialize role templates if empty
-  if (Object.keys(data.roleTemplates).length === 0 && data.permissions.length > 0) {
-    const initialTemplates: Record<string, any[]> = {};
-    data.permissions.forEach((perm) => {
-      // Extract action from permission code
-      const action = perm.permission_code.split(':')[1] || '';
+  useEffect(() => {
+    if (data.permissions.length === 0) {
+      return;
+    }
 
-      // Auto-assign roles based on action
-      initialTemplates[perm.permission_code] = STANDARD_ROLES.filter((role) =>
-        role.defaultFor.includes(action) || (perm.is_required && role.key === 'tenant_admin')
+    const nextTemplates: WizardData['roleTemplates'] = { ...data.roleTemplates };
+    let hasChanges = false;
+
+    data.permissions.forEach((permission) => {
+      const existingTemplates = nextTemplates[permission.permission_code];
+      if (Array.isArray(existingTemplates)) {
+        return;
+      }
+
+      const [, action = ''] = permission.permission_code.split(':');
+
+      const assignments = STANDARD_ROLES.filter((role) =>
+        role.defaultFor.includes(action) ||
+        (permission.is_required && role.key === 'tenant_admin')
       ).map((role) => ({
         role_key: role.key,
         is_recommended: true,
-        reason: role.key === 'tenant_admin' ? 'Admins need full access' : undefined,
+        ...(role.key === 'tenant_admin'
+          ? { reason: 'Admins need full access' }
+          : {}),
       }));
+
+      nextTemplates[permission.permission_code] = assignments;
+      hasChanges = true;
     });
-    onUpdate({ roleTemplates: initialTemplates });
-  }
+
+    if (hasChanges) {
+      onUpdate({ roleTemplates: nextTemplates });
+    }
+  }, [data.permissions, data.roleTemplates, onUpdate]);
 
   const toggleRole = (permissionCode: string, roleKey: string) => {
     const currentTemplates = data.roleTemplates[permissionCode] || [];

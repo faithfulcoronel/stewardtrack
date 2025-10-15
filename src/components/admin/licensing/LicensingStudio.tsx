@@ -3,11 +3,12 @@
 import React from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Package, Users, BarChart3 } from 'lucide-react';
+import { Award, Package, Users, BarChart3, Shield } from 'lucide-react';
 import { ProductOfferingsManager } from './ProductOfferingsManager';
 import { FeatureBundlesManager } from './FeatureBundlesManager';
 import { LicenseAssignmentsManager } from './LicenseAssignmentsManager';
 import { LicensingAnalytics } from './LicensingAnalytics';
+import { FeaturesManager } from './FeaturesManager';
 
 export function LicensingStudio() {
   return (
@@ -24,10 +25,14 @@ export function LicensingStudio() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="offerings" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="offerings" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Product Offerings
+          </TabsTrigger>
+          <TabsTrigger value="features" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Features
           </TabsTrigger>
           <TabsTrigger value="bundles" className="flex items-center gap-2">
             <Award className="h-4 w-4" />
@@ -45,6 +50,10 @@ export function LicensingStudio() {
 
         <TabsContent value="offerings">
           <ProductOfferingsManager />
+        </TabsContent>
+
+        <TabsContent value="features">
+          <FeaturesManager />
         </TabsContent>
 
         <TabsContent value="bundles">
