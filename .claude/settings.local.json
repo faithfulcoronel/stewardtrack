@@ -26,7 +26,8 @@
       "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\")",
       "Bash(npm run lint)",
       "Bash(1)",
-      "Bash(timeout 30 npm run dev:*)"
+      "Bash(timeout 30 npm run dev:*)",
+      "Bash(timeout 20 npm run dev)"
     ],
     "deny": [],
     "ask": []
