@@ -15,13 +15,20 @@ import { toast } from 'sonner';
 import { ProductOfferingComplete, CreateProductOfferingDto } from '@/models/productOffering.model';
 import { LicenseFeatureBundleWithFeatures } from '@/models/licenseFeatureBundle.model';
 import { LicenseFeature } from '@/models/licenseFeature.model';
+import {
+  LicenseTier,
+  LicenseTierLabels,
+  ProductOfferingType,
+  ProductOfferingTypeLabels,
+  getEnumValues,
+} from '@/enums/licensing.enums';
 
 const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   code: '',
   name: '',
   description: '',
   offering_type: 'subscription',
-  tier: 'starter',
+  tier: LicenseTier.ESSENTIAL,
   billing_cycle: 'monthly',
   base_price: 0,
   currency: 'USD',
@@ -365,10 +372,11 @@ export function OfferingFormDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="subscription">Subscription</SelectItem>
-                    <SelectItem value="one-time">One-Time</SelectItem>
-                    <SelectItem value="trial">Trial</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                    {getEnumValues(ProductOfferingType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {ProductOfferingTypeLabels[type as ProductOfferingType]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -383,10 +391,11 @@ export function OfferingFormDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="starter">Starter</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
+                    {getEnumValues(LicenseTier).map((tier) => (
+                      <SelectItem key={tier} value={tier}>
+                        {LicenseTierLabels[tier as LicenseTier]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

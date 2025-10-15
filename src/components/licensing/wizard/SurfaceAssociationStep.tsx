@@ -14,6 +14,13 @@ import {
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { WizardData } from '../FeaturePermissionWizard';
+import {
+  SurfaceType,
+  SurfaceTypeLabels,
+  FeatureModule,
+  FeatureModuleLabels,
+  getEnumValues,
+} from '@/enums/licensing.enums';
 
 interface SurfaceAssociationStepProps {
   data: WizardData;
@@ -22,26 +29,18 @@ interface SurfaceAssociationStepProps {
   onBack: () => void;
 }
 
-const SURFACE_TYPES = [
-  { value: 'page', label: 'Page', description: 'Full page view' },
-  { value: 'dashboard', label: 'Dashboard', description: 'Dashboard with widgets' },
-  { value: 'wizard', label: 'Wizard', description: 'Multi-step wizard' },
-  { value: 'manager', label: 'Manager', description: 'CRUD management interface' },
-  { value: 'console', label: 'Console', description: 'Admin console view' },
-  { value: 'audit', label: 'Audit', description: 'Audit/log viewer' },
-  { value: 'overlay', label: 'Overlay', description: 'Modal or overlay' },
-];
-
-const MODULES = [
-  { value: 'members', label: 'Members' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'events', label: 'Events' },
-  { value: 'communications', label: 'Communications' },
-  { value: 'reporting', label: 'Reporting' },
-  { value: 'admin', label: 'Administration' },
-  { value: 'rbac', label: 'RBAC' },
-  { value: 'licensing', label: 'Licensing' },
-];
+const SURFACE_TYPE_DESCRIPTIONS: Record<SurfaceType, string> = {
+  [SurfaceType.PAGE]: 'Full page view',
+  [SurfaceType.DASHBOARD]: 'Dashboard with widgets',
+  [SurfaceType.WIZARD]: 'Multi-step wizard',
+  [SurfaceType.DIALOG]: 'Modal or dialog',
+  [SurfaceType.PANEL]: 'Side panel',
+  [SurfaceType.WIDGET]: 'Dashboard widget',
+  [SurfaceType.REPORT]: 'Report view',
+  [SurfaceType.FORM]: 'Form interface',
+  [SurfaceType.LIST]: 'List view',
+  [SurfaceType.DETAIL]: 'Detail view',
+};
 
 export function SurfaceAssociationStep({
   data,
@@ -115,9 +114,9 @@ export function SurfaceAssociationStep({
             <SelectValue placeholder="Select a module" />
           </SelectTrigger>
           <SelectContent>
-            {MODULES.map((mod) => (
-              <SelectItem key={mod.value} value={mod.value}>
-                {mod.label}
+            {getEnumValues(FeatureModule).map((mod) => (
+              <SelectItem key={mod} value={mod}>
+                {FeatureModuleLabels[mod as FeatureModule]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -143,12 +142,12 @@ export function SurfaceAssociationStep({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {SURFACE_TYPES.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
+            {getEnumValues(SurfaceType).map((type) => (
+              <SelectItem key={type} value={type}>
                 <div className="flex flex-col">
-                  <span className="font-medium">{type.label}</span>
+                  <span className="font-medium">{SurfaceTypeLabels[type as SurfaceType]}</span>
                   <span className="text-xs text-muted-foreground">
-                    {type.description}
+                    {SURFACE_TYPE_DESCRIPTIONS[type as SurfaceType]}
                   </span>
                 </div>
               </SelectItem>

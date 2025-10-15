@@ -81,7 +81,7 @@ export default function CreateFeaturePage() {
   };
 
   const handleCancel = () => {
-    router.push('/admin/licensing/features');
+    router.push('/admin/licensing');
   };
 
   return (

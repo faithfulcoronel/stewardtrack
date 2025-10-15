@@ -1,12 +1,13 @@
 import { BaseModel } from '@/models/base.model';
+import { LicenseTier, ProductOfferingType } from '@/enums/licensing.enums';
 
 export interface ProductOffering extends BaseModel {
   id: string;
   code: string;
   name: string;
   description?: string | null;
-  offering_type: 'subscription' | 'one-time' | 'trial' | 'enterprise';
-  tier: 'starter' | 'professional' | 'enterprise' | 'custom';
+  offering_type: ProductOfferingType | string;
+  tier: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   base_price?: number | null;
   currency?: string;
@@ -31,8 +32,8 @@ export interface CreateProductOfferingDto {
   code: string;
   name: string;
   description?: string | null;
-  offering_type: 'subscription' | 'one-time' | 'trial' | 'enterprise';
-  tier: 'starter' | 'professional' | 'enterprise' | 'custom';
+  offering_type: ProductOfferingType | string;
+  tier: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   base_price?: number | null;
   currency?: string;
@@ -47,8 +48,8 @@ export interface CreateProductOfferingDto {
 export interface UpdateProductOfferingDto {
   name?: string;
   description?: string | null;
-  offering_type?: 'subscription' | 'one-time' | 'trial' | 'enterprise';
-  tier?: 'starter' | 'professional' | 'enterprise' | 'custom';
+  offering_type?: ProductOfferingType | string;
+  tier?: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   base_price?: number | null;
   currency?: string;

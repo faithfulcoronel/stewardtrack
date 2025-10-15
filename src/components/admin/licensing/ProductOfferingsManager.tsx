@@ -9,6 +9,7 @@ import { Plus, Loader2, Pencil, Trash2, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductOffering, ProductOfferingComplete } from '@/models/productOffering.model';
 import { OfferingFormDialog } from './OfferingFormDialog';
+import { LicenseTier, LicenseTierColors, LicenseTierLabels } from '@/enums/licensing.enums';
 
 export function ProductOfferingsManager() {
   const [offerings, setOfferings] = useState<ProductOfferingComplete[]>([]);
@@ -66,32 +67,20 @@ export function ProductOfferingsManager() {
     }
   }
 
-  function getTierVariant(tier: string) {
-    switch (tier) {
-      case 'starter':
-        return 'default';
-      case 'professional':
-        return 'secondary';
-      case 'enterprise':
-        return 'outline';
-      default:
-        return 'default';
+  function getTierColor(tier: string) {
+    const normalizedTier = tier.toLowerCase() as LicenseTier;
+    if (normalizedTier in LicenseTierColors) {
+      return LicenseTierColors[normalizedTier];
     }
+    return 'bg-gray-100 text-gray-800';
   }
 
-  function getTierColor(tier: string) {
-    switch (tier) {
-      case 'starter':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'professional':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'enterprise':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'custom':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+  function getTierLabel(tier: string) {
+    const normalizedTier = tier.toLowerCase() as LicenseTier;
+    if (normalizedTier in LicenseTierLabels) {
+      return LicenseTierLabels[normalizedTier];
     }
+    return tier.charAt(0).toUpperCase() + tier.slice(1);
   }
 
   const columns: DataTableColumn<ProductOfferingComplete>[] = [
@@ -118,7 +107,7 @@ export function ProductOfferingsManager() {
       getSortValue: (row) => row.tier,
       renderCell: (row) => (
         <Badge variant="outline" className={getTierColor(row.tier)}>
-          {row.tier}
+          {getTierLabel(row.tier)}
         </Badge>
       ),
     },

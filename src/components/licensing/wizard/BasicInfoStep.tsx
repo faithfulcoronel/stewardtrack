@@ -14,6 +14,13 @@ import {
 } from '@/components/ui/select';
 import { ChevronRight } from 'lucide-react';
 import type { WizardData } from '../FeaturePermissionWizard';
+import {
+  LicenseTier,
+  LicenseTierLabels,
+  FeatureCategory,
+  FeatureCategoryLabels,
+  getEnumValues,
+} from '@/enums/licensing.enums';
 
 interface BasicInfoStepProps {
   data: WizardData;
@@ -21,22 +28,12 @@ interface BasicInfoStepProps {
   onNext: () => void;
 }
 
-const LICENSE_TIERS = [
-  { value: 'essential', label: 'Essential', description: 'Basic features for small churches' },
-  { value: 'professional', label: 'Professional', description: 'Advanced features for growing churches' },
-  { value: 'enterprise', label: 'Enterprise', description: 'Full features for large organizations' },
-  { value: 'premium', label: 'Premium', description: 'Premium features and support' },
-];
-
-const CATEGORIES = [
-  { value: 'membership', label: 'Membership' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'events', label: 'Events' },
-  { value: 'communications', label: 'Communications' },
-  { value: 'reporting', label: 'Reporting' },
-  { value: 'administration', label: 'Administration' },
-  { value: 'other', label: 'Other' },
-];
+const LICENSE_TIER_DESCRIPTIONS: Record<LicenseTier, string> = {
+  [LicenseTier.ESSENTIAL]: 'Basic features for small churches',
+  [LicenseTier.PROFESSIONAL]: 'Advanced features for growing churches',
+  [LicenseTier.ENTERPRISE]: 'Full features for large organizations',
+  [LicenseTier.PREMIUM]: 'Premium features and support',
+};
 
 export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -122,9 +119,9 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
-            {CATEGORIES.map((cat) => (
-              <SelectItem key={cat.value} value={cat.value}>
-                {cat.label}
+            {getEnumValues(FeatureCategory).map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {FeatureCategoryLabels[cat as FeatureCategory]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -150,12 +147,12 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {LICENSE_TIERS.map((tier) => (
-              <SelectItem key={tier.value} value={tier.value}>
+            {getEnumValues(LicenseTier).map((tier) => (
+              <SelectItem key={tier} value={tier}>
                 <div className="flex flex-col">
-                  <span className="font-medium">{tier.label}</span>
+                  <span className="font-medium">{LicenseTierLabels[tier as LicenseTier]}</span>
                   <span className="text-xs text-muted-foreground">
-                    {tier.description}
+                    {LICENSE_TIER_DESCRIPTIONS[tier as LicenseTier]}
                   </span>
                 </div>
               </SelectItem>
