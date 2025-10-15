@@ -23,7 +23,10 @@
       "Read(//c/**)",
       "Bash(powershell:*)",
       "Bash(dir \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\\rbac\\delegation\")",
-      "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\")"
+      "Bash(dir /B /S \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\app\\api\")",
+      "Bash(npm run lint)",
+      "Bash(1)",
+      "Bash(timeout 30 npm run dev:*)"
     ],
     "deny": [],
     "ask": []

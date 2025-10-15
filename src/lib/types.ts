@@ -16,6 +16,8 @@ export const TYPES = {
 
   // Licensing Services
   LicensingService: Symbol.for('LicensingService'),
+  PermissionValidationService: Symbol.for('PermissionValidationService'),
+  FeaturePermissionService: Symbol.for('FeaturePermissionService'),
 
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),
@@ -52,10 +54,13 @@ export const TYPES = {
   ILicenseFeatureBundleAdapter: Symbol.for('ILicenseFeatureBundleAdapter'),
   ISurfaceLicenseBindingAdapter: Symbol.for('ISurfaceLicenseBindingAdapter'),
   ILicenseAssignmentAdapter: Symbol.for('ILicenseAssignmentAdapter'),
+  IFeaturePermissionAdapter: Symbol.for('IFeaturePermissionAdapter'),
+  IPermissionRoleTemplateAdapter: Symbol.for('IPermissionRoleTemplateAdapter'),
 
   // RBAC Repositories
   IRoleRepository: Symbol.for('IRoleRepository'),
   IPermissionRepository: Symbol.for('IPermissionRepository'),
+  IPermissionBundleRepository: Symbol.for('IPermissionBundleRepository'),
   IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
   IMetadataSurfaceRepository: Symbol.for('IMetadataSurfaceRepository'),
   ISurfaceBindingRepository: Symbol.for('ISurfaceBindingRepository'),
@@ -70,6 +75,8 @@ export const TYPES = {
   ILicenseFeatureBundleRepository: Symbol.for('ILicenseFeatureBundleRepository'),
   ISurfaceLicenseBindingRepository: Symbol.for('ISurfaceLicenseBindingRepository'),
   ILicenseAssignmentRepository: Symbol.for('ILicenseAssignmentRepository'),
+  IFeaturePermissionRepository: Symbol.for('IFeaturePermissionRepository'),
+  IPermissionRoleTemplateRepository: Symbol.for('IPermissionRoleTemplateRepository'),
 
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),
@@ -156,16 +163,10 @@ export const TYPES = {
   IOfferingBatchAdapter: Symbol.for('IOfferingBatchAdapter'),
   IOpeningBalanceRepository: Symbol.for('IOpeningBalanceRepository'),
   IOpeningBalanceAdapter: Symbol.for('IOpeningBalanceAdapter'),
-  IPermissionAdapter: Symbol.for('IPermissionAdapter'),
-  IPermissionRepository: Symbol.for('IPermissionRepository'),
-  IPermissionBundleAdapter: Symbol.for('IPermissionBundleAdapter'),
-  IPermissionBundleRepository: Symbol.for('IPermissionBundleRepository'),
   IRelationshipTypeAdapter: Symbol.for('IRelationshipTypeAdapter'),
   IRelationshipTypeRepository: Symbol.for('IRelationshipTypeRepository'),
-  IRoleAdapter: Symbol.for('IRoleAdapter'),
   IRoleMenuItemAdapter: Symbol.for('IRoleMenuItemAdapter'),
   IRoleMenuItemRepository: Symbol.for('IRoleMenuItemRepository'),
-  IRoleRepository: Symbol.for('IRoleRepository'),
   ISettingAdapter: Symbol.for('ISettingAdapter'),
   ISettingRepository: Symbol.for('ISettingRepository'),
   ISourceRecentTransactionAdapter: Symbol.for('ISourceRecentTransactionAdapter'),
@@ -174,10 +175,6 @@ export const TYPES = {
   ITenantAdapter: Symbol.for('ITenantAdapter'),
   ITenantRepository: Symbol.for('ITenantRepository'),
   IUiModuleRepository: Symbol.for('IUiModuleRepository'),
-  // NOTE: IUserRoleAdapter and IUserRoleRepository are deprecated
-  // Use IUserRoleManagementAdapter and IUserRoleManagementRepository instead
-  IUserRoleManagementAdapter: Symbol.for('IUserRoleManagementAdapter'),
-  IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
   IncomeExpenseTransactionService: Symbol.for('IncomeExpenseTransactionService'),
   LicenseFeatureService: Symbol.for('LicenseFeatureService'),
   MemberProfileService: Symbol.for('MemberProfileService'),

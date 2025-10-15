@@ -15,6 +15,8 @@ import { UserMemberLinkService } from '@/services/UserMemberLinkService';
 import { SupabaseAuditService, type AuditService } from '@/services/AuditService';
 import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 import { LicensingService } from '@/services/LicensingService';
+import { PermissionValidationService } from '@/services/PermissionValidationService';
+import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
@@ -47,6 +49,8 @@ import { ProductOfferingRepository } from '@/repositories/productOffering.reposi
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import { SurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
+import { FeaturePermissionRepository } from '@/repositories/featurePermission.repository';
+import { PermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
 import { MenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Repository Interfaces
@@ -68,6 +72,8 @@ import type { IProductOfferingRepository } from '@/repositories/productOffering.
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
+import type { IFeaturePermissionRepository } from '@/repositories/featurePermission.repository';
+import type { IPermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
 import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Adapters
@@ -89,6 +95,8 @@ import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import { SurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
+import { FeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
+import { PermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
 import { MenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 // Adapter Interfaces
@@ -110,6 +118,8 @@ import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter
 import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import type { ISurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
+import type { IFeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
+import type { IPermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
 import type { IMenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 const container = new Container();
@@ -139,6 +149,16 @@ container
 container
   .bind<LicensingService>(TYPES.LicensingService)
   .to(LicensingService)
+  .inRequestScope();
+
+container
+  .bind<PermissionValidationService>(TYPES.PermissionValidationService)
+  .to(PermissionValidationService)
+  .inRequestScope();
+
+container
+  .bind<FeaturePermissionService>(TYPES.FeaturePermissionService)
+  .to(FeaturePermissionService)
   .inRequestScope();
 
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
@@ -228,6 +248,14 @@ container
   .bind<ILicenseAssignmentRepository>(TYPES.ILicenseAssignmentRepository)
   .to(LicenseAssignmentRepository)
   .inRequestScope();
+container
+  .bind<IFeaturePermissionRepository>(TYPES.IFeaturePermissionRepository)
+  .to(FeaturePermissionRepository)
+  .inRequestScope();
+container
+  .bind<IPermissionRoleTemplateRepository>(TYPES.IPermissionRoleTemplateRepository)
+  .to(PermissionRoleTemplateRepository)
+  .inRequestScope();
 
 // ==================== MENU REPOSITORIES ====================
 container
@@ -271,6 +299,14 @@ container
 container
   .bind<ILicenseAssignmentAdapter>(TYPES.ILicenseAssignmentAdapter)
   .to(LicenseAssignmentAdapter)
+  .inRequestScope();
+container
+  .bind<IFeaturePermissionAdapter>(TYPES.IFeaturePermissionAdapter)
+  .to(FeaturePermissionAdapter)
+  .inRequestScope();
+container
+  .bind<IPermissionRoleTemplateAdapter>(TYPES.IPermissionRoleTemplateAdapter)
+  .to(PermissionRoleTemplateAdapter)
   .inRequestScope();
 
 // ==================== MENU ADAPTERS ====================
