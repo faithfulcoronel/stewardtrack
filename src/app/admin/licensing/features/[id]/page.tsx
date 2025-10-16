@@ -17,6 +17,12 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  LicenseTier,
+  LicenseTierLabels,
+  LicenseTierColors,
+} from '@/enums/licensing.enums';
+import { EditFeatureDialog } from '@/components/admin/licensing/EditFeatureDialog';
 
 interface Feature {
   id: string;
@@ -49,13 +55,6 @@ interface Permission {
   }>;
 }
 
-const TIER_COLORS: Record<string, string> = {
-  essential: 'bg-gray-100 text-gray-800',
-  professional: 'bg-blue-100 text-blue-800',
-  enterprise: 'bg-purple-100 text-purple-800',
-  premium: 'bg-amber-100 text-amber-800',
-};
-
 const DEFAULT_TIER_BADGE = 'bg-gray-100 text-gray-600';
 const DEFAULT_TIER_LABEL = 'Not set';
 
@@ -64,14 +63,14 @@ const getTierPresentation = (tier?: string | null) => {
     return { className: DEFAULT_TIER_BADGE, label: DEFAULT_TIER_LABEL };
   }
 
-  const normalizedTier = tier.trim().toLowerCase();
+  const normalizedTier = tier.trim().toLowerCase() as LicenseTier;
 
   if (!normalizedTier) {
     return { className: DEFAULT_TIER_BADGE, label: DEFAULT_TIER_LABEL };
   }
 
-  const className = TIER_COLORS[normalizedTier] || 'bg-gray-100 text-gray-800';
-  const label = normalizedTier.charAt(0).toUpperCase() + normalizedTier.slice(1);
+  const className = LicenseTierColors[normalizedTier] || 'bg-gray-100 text-gray-800';
+  const label = LicenseTierLabels[normalizedTier] || tier.charAt(0).toUpperCase() + tier.slice(1);
 
   return { className, label };
 };
@@ -94,6 +93,7 @@ export default function FeatureDetailsPage({
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
 
   useEffect(() => {
     fetchFeatureDetails();
@@ -130,6 +130,11 @@ export default function FeatureDetailsPage({
     } catch (err) {
       console.error('Error fetching permissions:', err);
     }
+  };
+
+  const handleEdit = () => {
+    if (!feature) return;
+    setEditingFeature(feature);
   };
 
   const handleDelete = async () => {
@@ -205,6 +210,10 @@ export default function FeatureDetailsPage({
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Feature
+          </Button>
           <Button
             variant="outline"
             onClick={() =>
@@ -385,6 +394,14 @@ export default function FeatureDetailsPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Feature Dialog */}
+      <EditFeatureDialog
+        feature={editingFeature}
+        open={!!editingFeature}
+        onOpenChange={(open) => !open && setEditingFeature(null)}
+        onSuccess={fetchFeatureDetails}
+      />
     </div>
   );
 }
