@@ -129,11 +129,17 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
         code: offering.code,
         name: offering.name,
         description: offering.description ?? '',
-        offering_type: offering.offering_type,
-        tier: offering.tier,
-        billing_cycle: offering.billing_cycle ?? null,
+        offering_type: (typeof offering.offering_type === 'string'
+          ? offering.offering_type.toLowerCase()
+          : ProductOfferingType.SUBSCRIPTION) as CreateProductOfferingDto['offering_type'],
+        tier: (typeof offering.tier === 'string'
+          ? (offering.tier.toLowerCase() as CreateProductOfferingDto['tier'])
+          : LicenseTier.ESSENTIAL),
+        billing_cycle: typeof offering.billing_cycle === 'string'
+          ? offering.billing_cycle.toLowerCase() as CreateProductOfferingDto['billing_cycle']
+          : null,
         base_price: offering.base_price ?? null,
-        currency: offering.currency ?? 'USD',
+        currency: (offering.currency ?? 'USD')?.toUpperCase(),
         max_users: offering.max_users ?? null,
         max_tenants: offering.max_tenants ?? null,
         is_active: offering.is_active,
