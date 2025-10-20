@@ -1,30 +1,140 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
-import type { CreateProductOfferingDto, UpdateProductOfferingDto } from '@/models/productOffering.model';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type {
+  CreateProductOfferingDto,
+  ProductOfferingWithFeatures,
+  ProductOfferingWithBundles,
+  ProductOfferingComplete,
+} from '@/models/productOffering.model';
+
+const PUBLIC_PRODUCT_OFFERINGS_RPC = 'get_public_product_offerings';
+
+type PublicProductOfferingRow = Record<string, any>;
+
+function normalizeCount(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function parseBooleanParam(value: string | null): boolean {
+  return value === 'true';
+}
+
+async function getPublicProductOfferings(
+  supabase: SupabaseClient,
+  options: { includeFeatures: boolean; includeBundles: boolean; tier: string | null }
+) {
+  const { includeFeatures, includeBundles, tier } = options;
+
+  const { data, error } = await supabase.rpc(PUBLIC_PRODUCT_OFFERINGS_RPC, {
+    include_features: includeFeatures,
+    include_bundles: includeBundles,
+    target_tier: tier,
+  });
+
+  if (error) {
+    throw new Error(`Failed to load public product offerings: ${error.message}`);
+  }
+
+  const rows = Array.isArray(data) ? (data as PublicProductOfferingRow[]) : [];
+
+  return rows.map((row) => ({
+    ...row,
+    features: Array.isArray(row?.features) ? row.features : [],
+    bundles: Array.isArray(row?.bundles) ? row.bundles : [],
+    feature_count: normalizeCount(row?.feature_count),
+    bundle_count: normalizeCount(row?.bundle_count),
+  }));
+}
+
+async function enrichOfferingsForAuthenticatedRequest(
+  licensingService: LicensingService,
+  offerings: ProductOfferingWithFeatures[],
+  options: { includeFeatures: boolean; includeBundles: boolean; complete: boolean }
+): Promise<Array<ProductOfferingWithFeatures | ProductOfferingWithBundles | ProductOfferingComplete>> {
+  const { includeFeatures, includeBundles, complete } = options;
+
+  if (!offerings.length || (!includeFeatures && !includeBundles && !complete)) {
+    return offerings;
+  }
+
+  const enriched = await Promise.all(
+    offerings.map(async (offering) => {
+      if (complete) {
+        return (await licensingService.getProductOfferingComplete(offering.id)) as ProductOfferingComplete;
+      }
+      if (includeBundles) {
+        return (await licensingService.getProductOfferingWithBundles(offering.id)) as ProductOfferingWithBundles;
+      }
+      if (includeFeatures) {
+        return (await licensingService.getProductOfferingWithFeatures(offering.id)) as ProductOfferingWithFeatures;
+      }
+      return offering;
+    })
+  );
+
+  return enriched;
+}
 
 /**
  * GET /api/licensing/product-offerings
- * Retrieves all active product offerings
+ * Retrieves product offerings for both authenticated and unauthenticated flows.
  *
  * Query params:
  * - tier: Filter by tier
  * - withFeatures: Include individual features
  * - withBundles: Include bundles
- * - complete: Include both bundles and features
+ * - complete: Include both bundles and features, plus counts
  */
 export async function GET(request: NextRequest) {
   try {
-    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+    const supabase = await createSupabaseServerClient();
 
     const { searchParams } = new URL(request.url);
     const tier = searchParams.get('tier');
-    const withFeatures = searchParams.get('withFeatures') === 'true';
-    const withBundles = searchParams.get('withBundles') === 'true';
-    const complete = searchParams.get('complete') === 'true';
+    const withFeatures = parseBooleanParam(searchParams.get('withFeatures'));
+    const withBundles = parseBooleanParam(searchParams.get('withBundles'));
+    const complete = parseBooleanParam(searchParams.get('complete'));
 
-    let offerings;
+    const includeFeatures = complete || withFeatures;
+    const includeBundles = complete || withBundles;
+
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error('Error retrieving Supabase session for product offerings route:', sessionError);
+    }
+
+    const isAuthenticated = !!sessionData?.session;
+
+    if (!isAuthenticated) {
+      const publicOfferings = await getPublicProductOfferings(supabase, {
+        includeFeatures,
+        includeBundles,
+        tier,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: publicOfferings,
+      });
+    }
+
+    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+
+    let offerings: ProductOfferingWithFeatures[];
 
     if (tier) {
       offerings = await licensingService.getProductOfferingsByTier(tier);
@@ -32,30 +142,15 @@ export async function GET(request: NextRequest) {
       offerings = await licensingService.getActiveProductOfferings();
     }
 
-    // Optionally enrich with features, bundles, or both
-    if ((withFeatures || withBundles || complete) && offerings.length > 0) {
-      const enrichedOfferings = await Promise.all(
-        offerings.map(async (offering) => {
-          if (complete) {
-            return await licensingService.getProductOfferingComplete(offering.id);
-          } else if (withBundles) {
-            return await licensingService.getProductOfferingWithBundles(offering.id);
-          } else if (withFeatures) {
-            return await licensingService.getProductOfferingWithFeatures(offering.id);
-          }
-          return offering;
-        })
-      );
-
-      return NextResponse.json({
-        success: true,
-        data: enrichedOfferings,
-      });
-    }
+    const enrichedOfferings = await enrichOfferingsForAuthenticatedRequest(licensingService, offerings, {
+      includeFeatures,
+      includeBundles,
+      complete,
+    });
 
     return NextResponse.json({
       success: true,
-      data: offerings,
+      data: enrichedOfferings,
     });
   } catch (error) {
     console.error('Error fetching product offerings:', error);
@@ -113,10 +208,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: offering,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data: offering,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating product offering:', error);
     return NextResponse.json(
