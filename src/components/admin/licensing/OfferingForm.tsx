@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +63,8 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   const [isLoadingFeatures, setIsLoadingFeatures] = useState(false);
   const [isLoadingOffering, setIsLoadingOffering] = useState(mode === 'edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const bundleBulkUpdateCounter = useRef(0);
+  const featureBulkUpdateCounter = useRef(0);
 
   const loadBundles = useCallback(async () => {
     setIsLoadingBundles(true);
@@ -253,49 +255,79 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   };
 
   const toggleBundle = (bundleId: string) => {
-    setSelectedBundleIds((previous) =>
-      previous.includes(bundleId) ? previous.filter((id) => id !== bundleId) : [...previous, bundleId]
-    );
+    const isSelected = selectedBundleIds.includes(bundleId);
+    setBundleSelection(bundleId, !isSelected);
   };
 
   const setBundleSelection = (bundleId: string, checked: boolean) => {
-    setSelectedBundleIds((previous) => {
-      const isSelected = previous.includes(bundleId);
-      if (checked && !isSelected) {
-        return [...previous, bundleId];
-      }
-      if (!checked && isSelected) {
-        return previous.filter((id) => id !== bundleId);
-      }
-      return previous;
-    });
-  };
-
-  const toggleFeature = (featureId: string) => {
-    setSelectedFeatureIds((previous) =>
-      previous.includes(featureId) ? previous.filter((id) => id !== featureId) : [...previous, featureId]
-    );
-  };
-
-  const setFeatureSelection = (featureId: string, checked: boolean) => {
-    setSelectedFeatureIds((previous) => {
-      const isSelected = previous.includes(featureId);
-      if (checked && !isSelected) {
-        return [...previous, featureId];
-      }
-      if (!checked && isSelected) {
-        return previous.filter((id) => id !== featureId);
-      }
-      return previous;
-    });
-  };
-
-  const selectVisibleBundles = () => {
-    if (filteredBundleIds.length === 0) {
+    if (bundleBulkUpdateCounter.current > 0) {
       return;
     }
 
     setSelectedBundleIds((previous) => {
+      const isSelected = previous.includes(bundleId);
+      if (checked) {
+        if (isSelected) {
+          return previous;
+        }
+        return [...previous, bundleId];
+      }
+
+      if (!isSelected) {
+        return previous;
+      }
+      return previous.filter((id) => id !== bundleId);
+    });
+  };
+
+  const toggleFeature = (featureId: string) => {
+    const isSelected = selectedFeatureIds.includes(featureId);
+    setFeatureSelection(featureId, !isSelected);
+  };
+
+  const setFeatureSelection = (featureId: string, checked: boolean) => {
+    if (featureBulkUpdateCounter.current > 0) {
+      return;
+    }
+
+    setSelectedFeatureIds((previous) => {
+      const isSelected = previous.includes(featureId);
+      if (checked) {
+        if (isSelected) {
+          return previous;
+        }
+        return [...previous, featureId];
+      }
+
+      if (!isSelected) {
+        return previous;
+      }
+      return previous.filter((id) => id !== featureId);
+    });
+  };
+
+  const runBundleBulkUpdate = (updater: (current: string[]) => string[]) => {
+    bundleBulkUpdateCounter.current += 1;
+    setSelectedBundleIds((previous) => updater(previous));
+    setTimeout(() => {
+      bundleBulkUpdateCounter.current = Math.max(0, bundleBulkUpdateCounter.current - 1);
+    }, 0);
+  };
+
+  const runFeatureBulkUpdate = (updater: (current: string[]) => string[]) => {
+    featureBulkUpdateCounter.current += 1;
+    setSelectedFeatureIds((previous) => updater(previous));
+    setTimeout(() => {
+      featureBulkUpdateCounter.current = Math.max(0, featureBulkUpdateCounter.current - 1);
+    }, 0);
+  };
+
+  const selectVisibleBundles = () => {
+    if (filteredBundleIds.length === 0 || allVisibleBundlesSelected) {
+      return;
+    }
+
+    runBundleBulkUpdate((previous) => {
       const additions = filteredBundleIds.filter((id) => !previous.includes(id));
       if (additions.length === 0) {
         return previous;
@@ -305,22 +337,22 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   };
 
   const clearVisibleBundles = () => {
-    if (filteredBundleIds.length === 0) {
+    if (filteredBundleIds.length === 0 || !anyVisibleBundleSelected) {
       return;
     }
 
-    setSelectedBundleIds((previous) => {
+    runBundleBulkUpdate((previous) => {
       const next = previous.filter((id) => !filteredBundleIds.includes(id));
       return next.length === previous.length ? previous : next;
     });
   };
 
   const selectVisibleFeatures = () => {
-    if (filteredFeatureIds.length === 0) {
+    if (filteredFeatureIds.length === 0 || allVisibleFeaturesSelected) {
       return;
     }
 
-    setSelectedFeatureIds((previous) => {
+    runFeatureBulkUpdate((previous) => {
       const additions = filteredFeatureIds.filter((id) => !previous.includes(id));
       if (additions.length === 0) {
         return previous;
@@ -330,11 +362,11 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   };
 
   const clearVisibleFeatures = () => {
-    if (filteredFeatureIds.length === 0) {
+    if (filteredFeatureIds.length === 0 || !anyVisibleFeatureSelected) {
       return;
     }
 
-    setSelectedFeatureIds((previous) => {
+    runFeatureBulkUpdate((previous) => {
       const next = previous.filter((id) => !filteredFeatureIds.includes(id));
       return next.length === previous.length ? previous : next;
     });
