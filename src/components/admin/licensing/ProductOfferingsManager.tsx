@@ -1,22 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, DataTableColumn } from '@/components/ui/datatable';
 import { Plus, Loader2, Pencil, Trash2, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProductOffering, ProductOfferingComplete } from '@/models/productOffering.model';
-import { OfferingFormDialog } from './OfferingFormDialog';
+import { ProductOfferingComplete } from '@/models/productOffering.model';
 import { LicenseTier, LicenseTierColors, LicenseTierLabels } from '@/enums/licensing.enums';
 
 export function ProductOfferingsManager() {
   const [offerings, setOfferings] = useState<ProductOfferingComplete[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingOffering, setEditingOffering] = useState<ProductOfferingComplete | null>(null);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadOfferings();
@@ -202,7 +201,7 @@ export function ProductOfferingsManager() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setEditingOffering(row)}
+            onClick={() => router.push(`/admin/licensing/offerings/${row.id}/edit`)}
             title="Edit offering"
           >
             <Pencil className="h-4 w-4" />
@@ -246,7 +245,7 @@ export function ProductOfferingsManager() {
                 Manage subscription plans and pricing tiers
               </CardDescription>
             </div>
-            <Button onClick={() => setCreateDialogOpen(true)}>
+            <Button onClick={() => router.push('/admin/licensing/offerings/new')}>
               <Plus className="h-4 w-4 mr-2" />
               Create Offering
             </Button>
@@ -271,22 +270,6 @@ export function ProductOfferingsManager() {
         </CardContent>
       </Card>
 
-      <OfferingFormDialog
-        mode="create"
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSuccess={loadOfferings}
-      />
-
-      {editingOffering && (
-        <OfferingFormDialog
-          mode="edit"
-          offering={editingOffering}
-          open={!!editingOffering}
-          onOpenChange={(open) => !open && setEditingOffering(null)}
-          onSuccess={loadOfferings}
-        />
-      )}
     </>
   );
 }
