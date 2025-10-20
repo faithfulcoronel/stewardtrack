@@ -212,6 +212,16 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     }, {});
   }, [filteredFeatures]);
 
+  const filteredBundleIds = useMemo(() => filteredBundles.map((bundle) => bundle.id), [filteredBundles]);
+  const filteredFeatureIds = useMemo(() => filteredFeatures.map((feature) => feature.id), [filteredFeatures]);
+
+  const allVisibleBundlesSelected =
+    filteredBundleIds.length > 0 && filteredBundleIds.every((id) => selectedBundleIds.includes(id));
+  const anyVisibleBundleSelected = filteredBundleIds.some((id) => selectedBundleIds.includes(id));
+  const allVisibleFeaturesSelected =
+    filteredFeatureIds.length > 0 && filteredFeatureIds.every((id) => selectedFeatureIds.includes(id));
+  const anyVisibleFeatureSelected = filteredFeatureIds.some((id) => selectedFeatureIds.includes(id));
+
   const handleFieldChange = <Key extends keyof CreateProductOfferingDto>(
     field: Key,
     value: CreateProductOfferingDto[Key]
@@ -252,6 +262,46 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     setSelectedFeatureIds((previous) =>
       previous.includes(featureId) ? previous.filter((id) => id !== featureId) : [...previous, featureId]
     );
+  };
+
+  const selectVisibleBundles = () => {
+    if (filteredBundleIds.length === 0) {
+      return;
+    }
+
+    setSelectedBundleIds((previous) => {
+      const next = new Set(previous);
+      filteredBundleIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  };
+
+  const clearVisibleBundles = () => {
+    if (filteredBundleIds.length === 0) {
+      return;
+    }
+
+    setSelectedBundleIds((previous) => previous.filter((id) => !filteredBundleIds.includes(id)));
+  };
+
+  const selectVisibleFeatures = () => {
+    if (filteredFeatureIds.length === 0) {
+      return;
+    }
+
+    setSelectedFeatureIds((previous) => {
+      const next = new Set(previous);
+      filteredFeatureIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  };
+
+  const clearVisibleFeatures = () => {
+    if (filteredFeatureIds.length === 0) {
+      return;
+    }
+
+    setSelectedFeatureIds((previous) => previous.filter((id) => !filteredFeatureIds.includes(id)));
   };
 
   const handleCancel = () => {
@@ -515,7 +565,27 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                   <Label className="text-sm font-medium">
                     Feature Bundles ({selectedBundleIds.length} selected)
                   </Label>
-                  {isLoadingBundles && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  <div className="flex items-center gap-2">
+                    {isLoadingBundles && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={selectVisibleBundles}
+                      disabled={isLoadingBundles || filteredBundleIds.length === 0 || allVisibleBundlesSelected}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearVisibleBundles}
+                      disabled={isLoadingBundles || filteredBundleIds.length === 0 || !anyVisibleBundleSelected}
+                    >
+                      Unselect all
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="relative">
@@ -580,7 +650,27 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                   <Label className="text-sm font-medium">
                     Individual Features ({selectedFeatureIds.length} selected)
                   </Label>
-                  {isLoadingFeatures && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  <div className="flex items-center gap-2">
+                    {isLoadingFeatures && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={selectVisibleFeatures}
+                      disabled={isLoadingFeatures || filteredFeatureIds.length === 0 || allVisibleFeaturesSelected}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearVisibleFeatures}
+                      disabled={isLoadingFeatures || filteredFeatureIds.length === 0 || !anyVisibleFeatureSelected}
+                    >
+                      Unselect all
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="relative">
