@@ -18,9 +18,11 @@ import {
   SurfaceType,
   SurfaceTypeLabels,
   FeatureModule,
-  FeatureModuleLabels,
-  getEnumValues,
+  FeatureModuleLabels
 } from '@/enums/licensing.enums';
+import {
+  getEnumValues
+} from '@/enums/helpers';
 
 interface SurfaceAssociationStepProps {
   data: WizardData;

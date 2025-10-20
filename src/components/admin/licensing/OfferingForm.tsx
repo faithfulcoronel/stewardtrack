@@ -258,10 +258,36 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     );
   };
 
+  const setBundleSelection = (bundleId: string, checked: boolean) => {
+    setSelectedBundleIds((previous) => {
+      const isSelected = previous.includes(bundleId);
+      if (checked && !isSelected) {
+        return [...previous, bundleId];
+      }
+      if (!checked && isSelected) {
+        return previous.filter((id) => id !== bundleId);
+      }
+      return previous;
+    });
+  };
+
   const toggleFeature = (featureId: string) => {
     setSelectedFeatureIds((previous) =>
       previous.includes(featureId) ? previous.filter((id) => id !== featureId) : [...previous, featureId]
     );
+  };
+
+  const setFeatureSelection = (featureId: string, checked: boolean) => {
+    setSelectedFeatureIds((previous) => {
+      const isSelected = previous.includes(featureId);
+      if (checked && !isSelected) {
+        return [...previous, featureId];
+      }
+      if (!checked && isSelected) {
+        return previous.filter((id) => id !== featureId);
+      }
+      return previous;
+    });
   };
 
   const selectVisibleBundles = () => {
@@ -270,9 +296,11 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     }
 
     setSelectedBundleIds((previous) => {
-      const next = new Set(previous);
-      filteredBundleIds.forEach((id) => next.add(id));
-      return Array.from(next);
+      const additions = filteredBundleIds.filter((id) => !previous.includes(id));
+      if (additions.length === 0) {
+        return previous;
+      }
+      return [...previous, ...additions];
     });
   };
 
@@ -281,7 +309,10 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
       return;
     }
 
-    setSelectedBundleIds((previous) => previous.filter((id) => !filteredBundleIds.includes(id)));
+    setSelectedBundleIds((previous) => {
+      const next = previous.filter((id) => !filteredBundleIds.includes(id));
+      return next.length === previous.length ? previous : next;
+    });
   };
 
   const selectVisibleFeatures = () => {
@@ -290,9 +321,11 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     }
 
     setSelectedFeatureIds((previous) => {
-      const next = new Set(previous);
-      filteredFeatureIds.forEach((id) => next.add(id));
-      return Array.from(next);
+      const additions = filteredFeatureIds.filter((id) => !previous.includes(id));
+      if (additions.length === 0) {
+        return previous;
+      }
+      return [...previous, ...additions];
     });
   };
 
@@ -301,7 +334,10 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
       return;
     }
 
-    setSelectedFeatureIds((previous) => previous.filter((id) => !filteredFeatureIds.includes(id)));
+    setSelectedFeatureIds((previous) => {
+      const next = previous.filter((id) => !filteredFeatureIds.includes(id));
+      return next.length === previous.length ? previous : next;
+    });
   };
 
   const handleCancel = () => {
@@ -612,7 +648,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                             >
                               <Checkbox
                                 checked={selectedBundleIds.includes(bundle.id)}
-                                onCheckedChange={() => toggleBundle(bundle.id)}
+                                onCheckedChange={(checked) => setBundleSelection(bundle.id, checked === true)}
                                 onClick={(event) => event.stopPropagation()}
                               />
                               <div className="flex-1 min-w-0">
@@ -697,7 +733,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                             >
                               <Checkbox
                                 checked={selectedFeatureIds.includes(feature.id)}
-                                onCheckedChange={() => toggleFeature(feature.id)}
+                                onCheckedChange={(checked) => setFeatureSelection(feature.id, checked === true)}
                                 onClick={(event) => event.stopPropagation()}
                               />
                               <div className="flex-1 min-w-0">

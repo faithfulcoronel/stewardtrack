@@ -18,9 +18,11 @@ import {
   LicenseTier,
   LicenseTierLabels,
   FeatureCategory,
-  FeatureCategoryLabels,
-  getEnumValues,
+  FeatureCategoryLabels
 } from '@/enums/licensing.enums';
+import {
+  getEnumValues
+} from '@/enums/helpers';
 
 interface BasicInfoStepProps {
   data: WizardData;
