@@ -391,12 +391,18 @@ export default function ManagePermissionsPage({
                     <div>
                       <span className="text-xs text-muted-foreground">Default roles:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {permission.role_templates.map((template) => (
-                          <Badge key={template.id} variant="outline" className="text-xs">
-                            {STANDARD_ROLES.find((r) => r.key === template.role_key)?.label ||
-                              template.role_key}
-                          </Badge>
-                        ))}
+                        {(permission.role_templates || []).length > 0 ? (
+                          permission.role_templates.map((template, idx) => (
+                            <Badge key={`${permission.id}-${template.role_key}-${idx}`} variant="outline" className="text-xs">
+                              {STANDARD_ROLES.find((r) => r.key === template.role_key)?.label ||
+                                template.role_key}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">
+                            No default roles assigned
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +9,12 @@ import { DataTable, DataTableColumn } from '@/components/ui/datatable';
 import { Plus, Loader2, Pencil, Trash2, Package2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { LicenseFeatureBundleWithFeatures } from '@/models/licenseFeatureBundle.model';
-import { CreateBundleDialog } from './CreateBundleDialog';
-import { EditBundleDialog } from './EditBundleDialog';
 
 export function FeatureBundlesManager() {
+  const router = useRouter();
   const [bundles, setBundles] = useState<LicenseFeatureBundleWithFeatures[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingBundle, setEditingBundle] = useState<LicenseFeatureBundleWithFeatures | null>(null);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     loadBundles();
@@ -164,7 +162,7 @@ export function FeatureBundlesManager() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setEditingBundle(row)}
+            onClick={() => router.push(`/admin/licensing/feature-bundles/${row.id}`)}
             title="Edit bundle"
           >
             <Pencil className="h-4 w-4" />
@@ -208,7 +206,7 @@ export function FeatureBundlesManager() {
                 Manage reusable feature collections for product offerings
               </CardDescription>
             </div>
-            <Button onClick={() => setCreateDialogOpen(true)}>
+            <Button onClick={() => router.push('/admin/licensing/feature-bundles/new')}>
               <Plus className="h-4 w-4 mr-2" />
               Create Bundle
             </Button>
@@ -233,20 +231,6 @@ export function FeatureBundlesManager() {
         </CardContent>
       </Card>
 
-      <CreateBundleDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSuccess={loadBundles}
-      />
-
-      {editingBundle && (
-        <EditBundleDialog
-          bundle={editingBundle}
-          open={!!editingBundle}
-          onOpenChange={(open) => !open && setEditingBundle(null)}
-          onSuccess={loadBundles}
-        />
-      )}
     </>
   );
 }

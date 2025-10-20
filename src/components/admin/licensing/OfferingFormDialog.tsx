@@ -19,9 +19,11 @@ import {
   LicenseTier,
   LicenseTierLabels,
   ProductOfferingType,
-  ProductOfferingTypeLabels,
-  getEnumValues,
+  ProductOfferingTypeLabels
 } from '@/enums/licensing.enums';
+import {
+  getEnumValues
+} from '@/enums/helpers';
 
 const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   code: '',

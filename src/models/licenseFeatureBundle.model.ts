@@ -1,11 +1,12 @@
 import { BaseModel } from '@/models/base.model';
+import { BundleType } from '@/enums';
 
 export interface LicenseFeatureBundle extends BaseModel {
   id: string;
   code: string;
   name: string;
   description?: string | null;
-  bundle_type: 'core' | 'add-on' | 'module' | 'custom';
+  bundle_type: BundleType;
   category: string;
   is_active: boolean;
   is_system: boolean;
@@ -27,7 +28,7 @@ export interface CreateLicenseFeatureBundleDto {
   code: string;
   name: string;
   description?: string | null;
-  bundle_type: 'core' | 'add-on' | 'module' | 'custom';
+  bundle_type: BundleType;
   category?: string;
   is_active?: boolean;
   is_system?: boolean;
@@ -39,7 +40,7 @@ export interface CreateLicenseFeatureBundleDto {
 export interface UpdateLicenseFeatureBundleDto {
   name?: string;
   description?: string | null;
-  bundle_type?: 'core' | 'add-on' | 'module' | 'custom';
+  bundle_type?: BundleType;
   category?: string;
   is_active?: boolean;
   sort_order?: number;

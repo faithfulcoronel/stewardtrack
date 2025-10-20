@@ -30,8 +30,11 @@ import {
   FeatureModuleLabels,
   SurfaceType,
   SurfaceTypeLabels,
-  getEnumValues,
 } from '@/enums/licensing.enums';
+
+import {
+  getEnumValues
+} from '@/enums/helpers';
 
 interface Feature {
   id: string;

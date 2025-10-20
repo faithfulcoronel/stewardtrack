@@ -128,6 +128,39 @@ export const FeatureModuleLabels: Record<FeatureModule, string> = {
 };
 
 /**
+ * Bundle type for license feature bundles
+ * Matches the database check constraint: bundle_type IN ('core', 'add-on', 'module', 'custom')
+ *
+ * @see supabase/migrations/20251218001009_create_license_feature_bundles.sql
+ */
+export enum BundleType {
+  CORE = 'core',
+  ADD_ON = 'add-on',
+  MODULE = 'module',
+  CUSTOM = 'custom',
+}
+
+/**
+ * Display labels for bundle types
+ */
+export const BundleTypeLabels: Record<BundleType, string> = {
+  [BundleType.CORE]: 'Core',
+  [BundleType.ADD_ON]: 'Add-On',
+  [BundleType.MODULE]: 'Module',
+  [BundleType.CUSTOM]: 'Custom',
+};
+
+/**
+ * Bundle type descriptions
+ */
+export const BundleTypeDescriptions: Record<BundleType, string> = {
+  [BundleType.CORE]: 'Essential platform features required for all deployments',
+  [BundleType.ADD_ON]: 'Optional enhancement features that extend functionality',
+  [BundleType.MODULE]: 'Functional area groupings for specific domains',
+  [BundleType.CUSTOM]: 'Tenant-specific custom feature bundles',
+};
+
+/**
  * Surface types - UI component types for metadata system
  */
 export enum SurfaceType {
@@ -158,20 +191,3 @@ export const SurfaceTypeLabels: Record<SurfaceType, string> = {
   [SurfaceType.LIST]: 'List',
   [SurfaceType.DETAIL]: 'Detail',
 };
-
-/**
- * Helper function to get all enum values as array
- */
-export function getEnumValues<T extends Record<string, string>>(enumObj: T): T[keyof T][] {
-  return Object.values(enumObj);
-}
-
-/**
- * Helper function to validate if a value is a valid enum member
- */
-export function isValidEnumValue<T extends Record<string, string>>(
-  enumObj: T,
-  value: unknown
-): value is T[keyof T] {
-  return typeof value === 'string' && Object.values(enumObj).includes(value as T[keyof T]);
-}

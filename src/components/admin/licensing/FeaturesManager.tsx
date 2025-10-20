@@ -39,9 +39,13 @@ import {
 import {
   LicenseTier,
   LicenseTierLabels,
-  LicenseTierColors,
-  getEnumValues,
+  LicenseTierColors
 } from '@/enums/licensing.enums';
+import {
+  getEnumValues
+} from '@/enums/helpers';
+
+
 import { EditFeatureDialog } from './EditFeatureDialog';
 
 interface Feature {

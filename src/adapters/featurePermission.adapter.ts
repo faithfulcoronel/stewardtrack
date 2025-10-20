@@ -220,7 +220,7 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
 
   /**
    * Get feature permissions with default role templates
-   * Calls database function
+   * Calls database function and maps result to expected format
    */
   async getWithTemplates(featureId: string): Promise<DbFeaturePermissionWithTemplates[]> {
     try {
@@ -234,7 +234,19 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
         throw new Error(error.message);
       }
 
-      return (data || []) as DbFeaturePermissionWithTemplates[];
+      // Map database result to expected format
+      const mapped = (data || []).map((row: any) => ({
+        id: row.result_permission_id,
+        permission_code: row.result_permission_code,
+        display_name: row.result_display_name,
+        description: row.result_description,
+        category: row.result_category,
+        action: row.result_action,
+        is_required: row.result_is_required,
+        role_templates: row.result_default_roles || []
+      }));
+
+      return mapped as any;
     } catch (error: any) {
       throw new Error(`Failed to get permissions with templates: ${error.message}`);
     }

@@ -54,7 +54,7 @@ export class LicenseFeatureBundleRepository
   }
 
   async getBundle(id: string): Promise<LicenseFeatureBundle | null> {
-    return await this.licenseFeatureBundleAdapter.findById(id);
+    return await this.licenseFeatureBundleAdapter.fetchById(id);
   }
 
   async getBundleWithFeatures(id: string): Promise<LicenseFeatureBundleWithFeatures | null> {
