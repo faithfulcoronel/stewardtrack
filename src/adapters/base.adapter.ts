@@ -354,18 +354,22 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Create record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
+      const hasTenantContext = tenantId !== undefined && tenantId !== null;
+      const record: Record<string, unknown> = {
+        ...processedData,
+        created_by: userId,
+        updated_by: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (hasTenantContext) {
+        record.tenant_id = tenantId;
+      }
+
       const { data: created, error: createError } = await supabase
         .from(this.tableName)
-        .insert([
-          {
-            ...processedData,
-            tenant_id: tenantId,
-            created_by: userId,
-            updated_by: userId,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
+        .insert([record])
         .select()
         .single();
 
@@ -416,15 +420,22 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Update record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
-      const { data: updated, error: updateError } = await supabase
+      const hasTenantContext = tenantId !== undefined && tenantId !== null;
+
+      let updateQuery = supabase
         .from(this.tableName)
         .update({
           ...processedData,
           updated_by: userId,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id)
-        .eq('tenant_id', tenantId)
+        .eq('id', id);
+
+      if (hasTenantContext) {
+        updateQuery = updateQuery.eq('tenant_id', tenantId);
+      }
+
+      const { data: updated, error: updateError } = await updateQuery
         .select()
         .single();
 
@@ -466,14 +477,21 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Soft delete the record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
-      const { error } = await supabase
+      const hasTenantContext = tenantId !== undefined && tenantId !== null;
+
+      let deleteQuery = supabase
         .from(this.tableName)
         .update({
           deleted_at: new Date().toISOString(),
           updated_by: userId
         })
-        .eq('id', id)
-        .eq('tenant_id', tenantId);
+        .eq('id', id);
+
+      if (hasTenantContext) {
+        deleteQuery = deleteQuery.eq('tenant_id', tenantId);
+      }
+
+      const { error } = await deleteQuery;
 
       if (error) {
         handleSupabaseError(error);
@@ -495,6 +513,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     relations: Record<string, string[]>
   ): Promise<void> {
     const tenantId = this.context?.tenantId;
+    const hasTenantContext = tenantId !== undefined && tenantId !== null;
     const userId = await this.getUserId();
     const supabase = await this.getSupabaseClient();
 
@@ -506,30 +525,48 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
 
       try {
         if (relationConfig.type === 'many-to-many' && relationConfig.joinTable) {
-          await supabase
+          let deleteQuery = supabase
             .from(relationConfig.joinTable)
             .delete()
-            .eq(relationConfig.foreignKey, id)
-            .eq('tenant_id', tenantId);
+            .eq(relationConfig.foreignKey, id);
 
-            const relationData = relationIds.map(relationId => ({
+          if (hasTenantContext) {
+            deleteQuery = deleteQuery.eq('tenant_id', tenantId);
+          }
+
+          const { error: deleteError } = await deleteQuery;
+          if (deleteError) throw deleteError;
+
+          const relationData = relationIds.map(relationId => {
+            const payload: Record<string, unknown> = {
               [relationConfig.foreignKey]: id,
               [relationConfig.joinForeignKey!]: relationId,
-              tenant_id: tenantId,
               created_by: userId,
               created_at: new Date().toISOString()
-            }));
+            };
+
+            if (hasTenantContext) {
+              payload.tenant_id = tenantId;
+            }
+
+            return payload;
+          });
           const { error } = await supabase
             .from(relationConfig.joinTable)
             .insert(relationData);
 
           if (error) throw error;
         } else {
-          const { error } = await supabase
+          let relationQuery = supabase
             .from(relationConfig.table)
             .update({ [relationConfig.foreignKey]: id })
-            .in('id', relationIds)
-            .eq('tenant_id', tenantId);
+            .in('id', relationIds);
+
+          if (hasTenantContext) {
+            relationQuery = relationQuery.eq('tenant_id', tenantId);
+          }
+
+          const { error } = await relationQuery;
 
           if (error) throw error;
         }
