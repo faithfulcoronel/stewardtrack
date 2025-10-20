@@ -13,6 +13,7 @@ export interface IRoleAdapter extends IBaseAdapter<Role> {
   getRole(roleId: string): Promise<Role | null>;
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
   getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
+  findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null>;
 }
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
@@ -270,5 +271,23 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
     }
 
     return roles;
+  }
+
+  async findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('metadata_key', metadataKey)
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find role by metadata_key: ${error.message}`);
+    }
+
+    return this.enrichRole(data) as Role | null;
   }
 }

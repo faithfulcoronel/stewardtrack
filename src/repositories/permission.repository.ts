@@ -7,6 +7,8 @@ import { TYPES } from '@/lib/types';
 export interface IPermissionRepository extends BaseRepository<Permission> {
   getPermissions(tenantId: string, module?: string): Promise<Permission[]>;
   getPermission(id: string): Promise<Permission | null>;
+  findByCode(tenantId: string, code: string): Promise<Permission | null>;
+  getByTenantId(tenantId: string): Promise<Permission[]>;
 }
 
 @injectable()
@@ -21,5 +23,13 @@ export class PermissionRepository extends BaseRepository<Permission> implements 
 
   async getPermission(id: string): Promise<Permission | null> {
     return await this.permissionAdapter.getPermission(id);
+  }
+
+  async findByCode(tenantId: string, code: string): Promise<Permission | null> {
+    return await this.permissionAdapter.findByCode(tenantId, code);
+  }
+
+  async getByTenantId(tenantId: string): Promise<Permission[]> {
+    return await this.permissionAdapter.getByTenantId(tenantId);
   }
 }

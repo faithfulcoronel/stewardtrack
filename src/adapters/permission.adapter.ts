@@ -12,6 +12,8 @@ import type { Permission } from '@/models/rbac.model';
 export interface IPermissionAdapter extends IBaseAdapter<Permission> {
   getPermissions(tenantId: string, module?: string): Promise<Permission[]>;
   getPermission(id: string): Promise<Permission | null>;
+  findByCode(tenantId: string, code: string): Promise<Permission | null>;
+  getByTenantId(tenantId: string): Promise<Permission[]>;
 }
 
 @injectable()
@@ -62,5 +64,38 @@ export class PermissionAdapter extends BaseAdapter<Permission> implements IPermi
     }
 
     return data;
+  }
+
+  async findByCode(tenantId: string, code: string): Promise<Permission | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('code', code)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find permission by code: ${error.message}`);
+    }
+
+    return data;
+  }
+
+  async getByTenantId(tenantId: string): Promise<Permission[]> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('code', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to get permissions by tenant: ${error.message}`);
+    }
+
+    return data || [];
   }
 }

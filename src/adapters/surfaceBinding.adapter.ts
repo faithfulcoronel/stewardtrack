@@ -11,6 +11,7 @@ export interface ISurfaceBindingAdapter extends IBaseAdapter<RbacSurfaceBinding>
   deleteSurfaceBinding(id: string, tenantId: string): Promise<void>;
   getSurfaceBindings(tenantId: string): Promise<RbacSurfaceBinding[]>;
   getSurfaceBinding(id: string, tenantId: string): Promise<RbacSurfaceBinding | null>;
+  findBySurfaceId(tenantId: string, surfaceId: string): Promise<RbacSurfaceBinding | null>;
 }
 
 @injectable()
@@ -129,6 +130,23 @@ export class SurfaceBindingAdapter extends BaseAdapter<RbacSurfaceBinding> imple
       }
 
       throw new Error(`Failed to fetch surface binding: ${error.message}`);
+    }
+
+    return data ?? null;
+  }
+
+  async findBySurfaceId(tenantId: string, surfaceId: string): Promise<RbacSurfaceBinding | null> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('surface_id', surfaceId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find surface binding by surface_id: ${error.message}`);
     }
 
     return data ?? null;

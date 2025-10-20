@@ -18,6 +18,7 @@ export const TYPES = {
   LicensingService: Symbol.for('LicensingService'),
   PermissionValidationService: Symbol.for('PermissionValidationService'),
   FeaturePermissionService: Symbol.for('FeaturePermissionService'),
+  PermissionDeploymentService: Symbol.for('PermissionDeploymentService'),
 
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),
@@ -39,6 +40,7 @@ export const TYPES = {
   // RBAC Adapters
   IRoleAdapter: Symbol.for('IRoleAdapter'),
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),
+  IRolePermissionAdapter: Symbol.for('IRolePermissionAdapter'),
   IUserRoleManagementAdapter: Symbol.for('IUserRoleManagementAdapter'),
   IPermissionBundleAdapter: Symbol.for('IPermissionBundleAdapter'),
   IMetadataSurfaceAdapter: Symbol.for('IMetadataSurfaceAdapter'),
@@ -62,8 +64,10 @@ export const TYPES = {
   IPermissionRepository: Symbol.for('IPermissionRepository'),
   IPermissionBundleRepository: Symbol.for('IPermissionBundleRepository'),
   IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
+  IRolePermissionRepository: Symbol.for('IRolePermissionRepository'),
   IMetadataSurfaceRepository: Symbol.for('IMetadataSurfaceRepository'),
   ISurfaceBindingRepository: Symbol.for('ISurfaceBindingRepository'),
+  IRbacSurfaceBindingRepository: Symbol.for('IRbacSurfaceBindingRepository'),
   IFeatureCatalogRepository: Symbol.for('IFeatureCatalogRepository'),
   ITenantFeatureGrantRepository: Symbol.for('ITenantFeatureGrantRepository'),
   IDelegationRepository: Symbol.for('IDelegationRepository'),

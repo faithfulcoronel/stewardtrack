@@ -12,6 +12,7 @@ export interface IRoleRepository extends BaseRepository<Role> {
   getRole(roleId: string): Promise<Role | null>;
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
   getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
+  findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null>;
 }
 
 @injectable()
@@ -46,5 +47,9 @@ export class RoleRepository extends BaseRepository<Role> implements IRoleReposit
 
   async getRoleStatistics(tenantId: string, includeSystem: boolean = true): Promise<Role[]> {
     return await this.roleAdapter.getRoleStatistics(tenantId, includeSystem);
+  }
+
+  async findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null> {
+    return await this.roleAdapter.findByMetadataKey(tenantId, metadataKey);
   }
 }

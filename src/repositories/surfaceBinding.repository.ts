@@ -10,6 +10,7 @@ export interface ISurfaceBindingRepository extends BaseRepository<RbacSurfaceBin
   deleteSurfaceBinding(id: string, tenantId: string): Promise<void>;
   getSurfaceBindings(tenantId: string): Promise<RbacSurfaceBinding[]>;
   getSurfaceBinding(id: string, tenantId: string): Promise<RbacSurfaceBinding | null>;
+  findBySurfaceId(tenantId: string, surfaceId: string): Promise<RbacSurfaceBinding | null>;
 }
 
 @injectable()
@@ -38,5 +39,9 @@ export class SurfaceBindingRepository extends BaseRepository<RbacSurfaceBinding>
 
   async getSurfaceBinding(id: string, tenantId: string): Promise<RbacSurfaceBinding | null> {
     return await this.surfaceBindingAdapter.getSurfaceBinding(id, tenantId);
+  }
+
+  async findBySurfaceId(tenantId: string, surfaceId: string): Promise<RbacSurfaceBinding | null> {
+    return await this.surfaceBindingAdapter.findBySurfaceId(tenantId, surfaceId);
   }
 }

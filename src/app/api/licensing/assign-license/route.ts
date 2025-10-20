@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { LicensingService } from '@/services/LicensingService';
+import type { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { authUtils } from '@/utils/authUtils';
 
 /**
@@ -56,9 +57,32 @@ export async function POST(request: Request) {
       notes
     );
 
+    // ⭐ AUTO-SYNC: Deploy permissions for newly licensed features
+    try {
+      const permissionDeploymentService = container.get<PermissionDeploymentService>(
+        TYPES.PermissionDeploymentService
+      );
+
+      const deploymentSummary = await permissionDeploymentService.syncTenantPermissions(tenantId);
+
+      console.log(`Permission sync for tenant ${tenantId} after license assignment:`, {
+        totalFeatures: deploymentSummary.totalFeatures,
+        permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
+        roleAssignments: deploymentSummary.totalRoleAssignments,
+        surfaceBindings: deploymentSummary.totalSurfaceBindings,
+      });
+
+      if (deploymentSummary.errors.length > 0) {
+        console.warn('Permission sync warnings:', deploymentSummary.errors);
+      }
+    } catch (syncError) {
+      console.error('Failed to sync permissions after license assignment:', syncError);
+      // Non-fatal - license assignment still succeeded
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'License assigned successfully',
+      message: 'License assigned successfully and permissions synchronized',
       data: result,
     });
   } catch (error) {

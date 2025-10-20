@@ -17,6 +17,7 @@ import { LicenseFeatureService } from '@/services/LicenseFeatureService';
 import { LicensingService } from '@/services/LicensingService';
 import { PermissionValidationService } from '@/services/PermissionValidationService';
 import { FeaturePermissionService } from '@/services/FeaturePermissionService';
+import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
@@ -31,6 +32,7 @@ import { MenuManagementService } from '@/services/MenuManagementService';
 import { RbacRepository } from '@/repositories/rbac.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
+import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
 import { PermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import { UserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { MetadataSurfaceRepository } from '@/repositories/metadataSurface.repository';
@@ -56,6 +58,7 @@ import { MenuItemRepository } from '@/repositories/menuItem.repository';
 // Repository Interfaces
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
+import type { IRolePermissionRepository } from '@/repositories/rolePermission.repository';
 import type { IPermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import type { IMetadataSurfaceRepository } from '@/repositories/metadataSurface.repository';
@@ -79,6 +82,7 @@ import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 // Adapters
 import { RoleAdapter } from '@/adapters/role.adapter';
 import { PermissionAdapter } from '@/adapters/permission.adapter';
+import { RolePermissionAdapter } from '@/adapters/rolePermission.adapter';
 import { UserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
 import { PermissionBundleAdapter } from '@/adapters/permissionBundle.adapter';
 import { MetadataSurfaceAdapter } from '@/adapters/metadataSurface.adapter';
@@ -102,6 +106,7 @@ import { MenuItemAdapter } from '@/adapters/menuItem.adapter';
 // Adapter Interfaces
 import type { IRoleAdapter } from '@/adapters/role.adapter';
 import type { IPermissionAdapter } from '@/adapters/permission.adapter';
+import type { IRolePermissionAdapter } from '@/adapters/rolePermission.adapter';
 import type { IUserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
 import type { IPermissionBundleAdapter } from '@/adapters/permissionBundle.adapter';
 import type { IMetadataSurfaceAdapter } from '@/adapters/metadataSurface.adapter';
@@ -161,6 +166,11 @@ container
   .to(FeaturePermissionService)
   .inRequestScope();
 
+container
+  .bind<PermissionDeploymentService>(TYPES.PermissionDeploymentService)
+  .to(PermissionDeploymentService)
+  .inRequestScope();
+
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
 container
   .bind<MaterializedViewRefreshService>(TYPES.MaterializedViewRefreshService)
@@ -217,10 +227,12 @@ container.bind<RbacRepository>(TYPES.RbacRepository).to(RbacRepository).inReques
 // Specialized RBAC Repositories
 container.bind<IRoleRepository>(TYPES.IRoleRepository).to(RoleRepository).inRequestScope();
 container.bind<IPermissionRepository>(TYPES.IPermissionRepository).to(PermissionRepository).inRequestScope();
+container.bind<IRolePermissionRepository>(TYPES.IRolePermissionRepository).to(RolePermissionRepository).inRequestScope();
 container.bind<IPermissionBundleRepository>(TYPES.IPermissionBundleRepository).to(PermissionBundleRepository).inRequestScope();
 container.bind<IUserRoleManagementRepository>(TYPES.IUserRoleManagementRepository).to(UserRoleManagementRepository).inRequestScope();
 container.bind<IMetadataSurfaceRepository>(TYPES.IMetadataSurfaceRepository).to(MetadataSurfaceRepository).inRequestScope();
 container.bind<ISurfaceBindingRepository>(TYPES.ISurfaceBindingRepository).to(SurfaceBindingRepository).inRequestScope();
+container.bind<ISurfaceBindingRepository>(TYPES.IRbacSurfaceBindingRepository).to(SurfaceBindingRepository).inRequestScope();
 container.bind<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository).to(FeatureCatalogRepository).inRequestScope();
 container.bind<ITenantFeatureGrantRepository>(TYPES.ITenantFeatureGrantRepository).to(TenantFeatureGrantRepository).inRequestScope();
 container.bind<IDelegationRepository>(TYPES.IDelegationRepository).to(DelegationRepository).inRequestScope();
@@ -266,6 +278,7 @@ container
 // ==================== RBAC ADAPTERS ====================
 container.bind<IRoleAdapter>(TYPES.IRoleAdapter).to(RoleAdapter).inRequestScope();
 container.bind<IPermissionAdapter>(TYPES.IPermissionAdapter).to(PermissionAdapter).inRequestScope();
+container.bind<IRolePermissionAdapter>(TYPES.IRolePermissionAdapter).to(RolePermissionAdapter).inRequestScope();
 container.bind<IUserRoleManagementAdapter>(TYPES.IUserRoleManagementAdapter).to(UserRoleManagementAdapter).inRequestScope();
 container.bind<IPermissionBundleAdapter>(TYPES.IPermissionBundleAdapter).to(PermissionBundleAdapter).inRequestScope();
 container.bind<IMetadataSurfaceAdapter>(TYPES.IMetadataSurfaceAdapter).to(MetadataSurfaceAdapter).inRequestScope();

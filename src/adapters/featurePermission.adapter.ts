@@ -14,6 +14,7 @@ import { injectable } from 'inversify';
 import { BaseAdapter } from './base.adapter';
 import type {
   FeaturePermission,
+  PermissionRoleTemplate,
   CreateFeaturePermissionDto,
   UpdateFeaturePermissionDto,
   DbFeaturePermissionWithTemplates
@@ -24,6 +25,7 @@ export interface IFeaturePermissionAdapter extends IBaseAdapter<FeaturePermissio
   getByFeatureId(featureId: string): Promise<FeaturePermission[]>;
   getByCode(permissionCode: string): Promise<FeaturePermission | null>;
   getWithTemplates(featureId: string): Promise<DbFeaturePermissionWithTemplates[]>;
+  getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
   isPermissionCodeAvailable(permissionCode: string, excludeFeatureId?: string): Promise<boolean>;
 }
 
@@ -249,6 +251,29 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
       return mapped as any;
     } catch (error: any) {
       throw new Error(`Failed to get permissions with templates: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get role templates for a specific feature permission
+   */
+  async getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
+    try {
+      const supabase = await this.getSupabaseClient();
+
+      const { data, error } = await supabase
+        .from('permission_role_templates')
+        .select('*')
+        .eq('feature_permission_id', featurePermissionId)
+        .order('role_key');
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return (data || []) as PermissionRoleTemplate[];
+    } catch (error: any) {
+      throw new Error(`Failed to get role templates: ${error.message}`);
     }
   }
 

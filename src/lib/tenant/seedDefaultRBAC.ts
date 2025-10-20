@@ -2,16 +2,22 @@ import 'server-only';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
- * Seeds default RBAC roles and permissions for a new tenant
+ * Seeds default RBAC roles for a new tenant
  *
  * This function creates the essential roles needed for church management:
- * - Tenant Admin: Full administrative access
- * - Staff: Extended access for staff members
- * - Volunteer: Limited access for volunteers
- * - Member: Basic access for church members
+ * - Tenant Admin: Full administrative access (metadata_key: role_tenant_admin)
+ * - Staff: Extended access for staff members (metadata_key: role_staff)
+ * - Volunteer: Limited access for volunteers (metadata_key: role_volunteer)
+ * - Member: Basic access for church members (metadata_key: role_member)
+ *
+ * IMPORTANT: Each role has a metadata_key that links it to permission role templates.
+ * The PermissionDeploymentService uses these keys to automatically assign permissions
+ * when licensed features are deployed.
+ *
+ * All default roles have is_system=true, meaning they cannot be deleted by users.
  *
  * @param tenantId - The tenant ID to seed roles for
- * @param offeringTier - The product offering tier (affects permissions granted)
+ * @param offeringTier - The product offering tier (for logging/future use)
  */
 export async function seedDefaultRBAC(
   tenantId: string,
@@ -21,13 +27,16 @@ export async function seedDefaultRBAC(
     const supabase = await createSupabaseServerClient();
 
     // Define default roles for a church organization
+    // IMPORTANT: metadata_key links tenant roles to permission role templates
+    // Format: role_{role_code} (e.g., role_tenant_admin)
     const defaultRoles = [
       {
         code: 'tenant_admin',
         name: 'Tenant Administrator',
         description: 'Full administrative access to all church management features',
         scope: 'tenant' as const,
-        is_system: false,
+        metadata_key: 'role_tenant_admin',  // ⭐ Links to permission templates
+        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: false,
         tenant_id: tenantId,
       },
@@ -36,7 +45,8 @@ export async function seedDefaultRBAC(
         name: 'Staff Member',
         description: 'Extended access for church staff members',
         scope: 'tenant' as const,
-        is_system: false,
+        metadata_key: 'role_staff',          // ⭐ Links to permission templates
+        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: true,
         tenant_id: tenantId,
       },
@@ -45,7 +55,8 @@ export async function seedDefaultRBAC(
         name: 'Volunteer',
         description: 'Limited access for church volunteers',
         scope: 'tenant' as const,
-        is_system: false,
+        metadata_key: 'role_volunteer',      // ⭐ Links to permission templates
+        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: true,
         tenant_id: tenantId,
       },
@@ -54,7 +65,8 @@ export async function seedDefaultRBAC(
         name: 'Church Member',
         description: 'Basic access for church members',
         scope: 'tenant' as const,
-        is_system: false,
+        metadata_key: 'role_member',         // ⭐ Links to permission templates
+        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: false,
         tenant_id: tenantId,
       },
@@ -71,18 +83,13 @@ export async function seedDefaultRBAC(
     }
 
     console.log(`Created ${createdRoles?.length || 0} default roles for tenant ${tenantId}`);
+    console.log('Roles created with metadata_key linking to permission templates');
+    console.log('PermissionDeploymentService will auto-assign permissions based on licensed features');
 
-    // Optionally assign default permissions based on tier
-    // For now, we'll rely on the RBAC admin UI for permission assignment
-    // In the future, you could add permission bundles here based on tier:
-    // - Starter: Basic permissions
-    // - Professional: Advanced permissions
-    // - Enterprise: Full permissions
-
-    if (offeringTier === 'professional' || offeringTier === 'enterprise') {
-      // Grant additional permissions for higher tiers
-      console.log(`Enhanced permissions available for ${offeringTier} tier`);
-    }
+    // NOTE: Permissions are now automatically deployed by PermissionDeploymentService
+    // after this function completes. No need to manually assign permissions here.
+    // The tier information is used during license provisioning to determine which
+    // features are granted, and those features automatically deploy their permissions.
 
     return;
   } catch (error) {

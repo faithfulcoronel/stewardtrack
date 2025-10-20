@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
+import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 
 interface RegistrationRequest {
@@ -25,7 +26,8 @@ interface RegistrationRequest {
  * 4. Provision license features based on selected offering
  * 5. Seed default RBAC roles for the tenant
  * 6. Assign tenant admin role to the user
- * 7. Log in the user automatically
+ * 7. Deploy permissions from licensed features to tenant RBAC
+ * 8. Log in the user automatically
  */
 export async function POST(request: NextRequest) {
   let userId: string | null = null;
@@ -191,7 +193,31 @@ export async function POST(request: NextRequest) {
       // Non-fatal error, continue
     }
 
-    // ===== STEP 9: Return success =====
+    // ===== STEP 9: Deploy permissions from licensed features =====
+    try {
+      const permissionDeploymentService = container.get<PermissionDeploymentService>(
+        TYPES.PermissionDeploymentService
+      );
+
+      const deploymentSummary = await permissionDeploymentService.deployAllFeaturePermissions(tenantId);
+
+      console.log(`Permission deployment for tenant ${tenantId}:`, {
+        totalFeatures: deploymentSummary.totalFeatures,
+        successfulDeployments: deploymentSummary.successfulDeployments,
+        permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
+        roleAssignments: deploymentSummary.totalRoleAssignments,
+        surfaceBindings: deploymentSummary.totalSurfaceBindings,
+      });
+
+      if (deploymentSummary.errors.length > 0) {
+        console.warn('Permission deployment errors:', deploymentSummary.errors);
+      }
+    } catch (error) {
+      console.error('Failed to deploy permissions:', error);
+      // Non-fatal error - tenant still created successfully
+    }
+
+    // ===== STEP 10: Return success =====
     return NextResponse.json({
       success: true,
       data: {

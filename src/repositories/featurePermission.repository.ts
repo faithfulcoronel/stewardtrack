@@ -13,6 +13,7 @@ import { BaseRepository } from './base.repository';
 import { TYPES } from '@/lib/types';
 import type {
   FeaturePermission,
+  PermissionRoleTemplate,
   CreateFeaturePermissionDto,
   UpdateFeaturePermissionDto,
   DbFeaturePermissionWithTemplates
@@ -27,6 +28,7 @@ export interface IFeaturePermissionRepository {
   getByFeatureId(featureId: string): Promise<FeaturePermission[]>;
   getByCode(permissionCode: string): Promise<FeaturePermission | null>;
   getWithTemplates(featureId: string): Promise<DbFeaturePermissionWithTemplates[]>;
+  getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
   isPermissionCodeAvailable(permissionCode: string, excludeFeatureId?: string): Promise<boolean>;
   deleteByFeatureId(featureId: string): Promise<void>;
 }
@@ -87,6 +89,13 @@ export class FeaturePermissionRepository extends BaseRepository<FeaturePermissio
    */
   async getWithTemplates(featureId: string): Promise<DbFeaturePermissionWithTemplates[]> {
     return await this.adapter.getWithTemplates(featureId);
+  }
+
+  /**
+   * Get role templates for a specific feature permission
+   */
+  async getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
+    return await this.adapter.getRoleTemplates(featurePermissionId);
   }
 
   /**
