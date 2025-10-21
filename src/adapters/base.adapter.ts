@@ -339,7 +339,10 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
-      if (!tenantId && !isSuperAdmin) {
+      // Check if data already has tenant_id (e.g., during registration)
+      const dataTenantId = (data as any).tenant_id;
+
+      if (!tenantId && !dataTenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
       }
 

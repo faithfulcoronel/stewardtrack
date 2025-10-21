@@ -34,6 +34,29 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
   protected tableName = 'feature_catalog';
   protected defaultSelect = `*`;
 
+  /**
+   * Override fetchById to bypass tenant filtering
+   * feature_catalog is a global/system table with no tenant_id column
+   */
+  async fetchById(id: string): Promise<FeatureCatalog | null> {
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Not found
+        return null;
+      }
+      throw new Error(`Failed to fetch feature by ID: ${error.message}`);
+    }
+
+    return data || null;
+  }
+
   async getFeatureCatalog(): Promise<FeatureCatalog[]> {
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase

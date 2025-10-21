@@ -7,6 +7,7 @@ import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
+import { seedDefaultPermissionBundles } from '@/lib/tenant/seedDefaultPermissionBundles';
 
 interface RegistrationRequest {
   email: string;
@@ -259,7 +260,16 @@ export async function POST(request: NextRequest) {
       // Non-fatal error - tenant still created successfully
     }
 
-    // ===== STEP 10: Return success =====
+    // ===== STEP 10: Seed permission bundles =====
+    try {
+      await seedDefaultPermissionBundles(tenantId, offering.tier);
+      console.log(`Successfully seeded permission bundles for tenant ${tenantId}`);
+    } catch (error) {
+      console.error('Failed to seed permission bundles:', error);
+      // Non-fatal error - tenant still created successfully
+    }
+
+    // ===== STEP 11: Return success =====
     return NextResponse.json({
       success: true,
       data: {

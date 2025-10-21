@@ -11,6 +11,7 @@ export interface IFeatureCatalogRepository extends BaseRepository<FeatureCatalog
     phase?: string;
     is_active?: boolean;
   }): Promise<FeatureCatalog[]>;
+  getById(id: string): Promise<FeatureCatalog | null>;
   createFeature(data: {
     code: string;
     name: string;
@@ -40,6 +41,10 @@ export class FeatureCatalogRepository extends BaseRepository<FeatureCatalog> imp
     is_active?: boolean;
   }): Promise<FeatureCatalog[]> {
     return await this.featureCatalogAdapter.getFeatures(filters);
+  }
+
+  async getById(id: string): Promise<FeatureCatalog | null> {
+    return await this.findById(id);
   }
 
   async createFeature(data: {

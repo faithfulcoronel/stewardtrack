@@ -465,25 +465,71 @@ export class LicensingService {
         return;
       }
 
-      // Grant each feature to the tenant
-      const featureGrants = features.map((feature: any) => ({
-        tenant_id: tenantId,
-        feature_id: feature.feature_id,
-        granted_at: new Date().toISOString(),
-        is_active: true,
-      }));
+      // ENTERPRISE SOLUTION: De-duplicate features in-memory before insertion
+      // The unique index includes COALESCE expressions that can't be matched via Supabase API
+      // Index: (tenant_id, feature_id, grant_source, COALESCE(package_id, '00...'), COALESCE(source_reference, ''))
+      // So we handle deduplication at the application layer for robustness and idempotency
 
-      // Use the repository to create grants
-      for (const grant of featureGrants) {
-        try {
-          await tenantFeatureGrantRepo.create(grant);
-        } catch (error) {
-          // Log but continue if grant already exists
-          console.warn(`Feature grant may already exist for feature ${grant.feature_id}:`, error);
+      // Step 1: Query existing grants for this tenant to avoid conflicts
+      const { data: existingGrants, error: queryError } = await supabase
+        .from('tenant_feature_grants')
+        .select('feature_id, grant_source, package_id, source_reference')
+        .eq('tenant_id', tenantId);
+
+      if (queryError) {
+        throw new Error(`Failed to query existing feature grants: ${queryError.message}`);
+      }
+
+      // Step 2: Create a unique key for each existing grant (matching the unique index logic)
+      const existingGrantKeys = new Set(
+        (existingGrants || []).map((grant: any) =>
+          `${grant.feature_id}|${grant.grant_source}|${grant.package_id || ''}|${grant.source_reference || ''}`
+        )
+      );
+
+      // Step 3: Build grants to insert, deduplicating by the unique constraint
+      const grantsMap = new Map<string, any>();
+
+      for (const feature of features) {
+        const packageId = feature.package_id || null;
+        const sourceRef = `offering_${offeringId}`;
+        const uniqueKey = `${feature.feature_id}|package|${packageId || ''}|${sourceRef}`;
+
+        // Skip if already exists in database
+        if (existingGrantKeys.has(uniqueKey)) {
+          continue;
+        }
+
+        // De-duplicate within the current batch (e.g., feature in multiple bundles)
+        if (!grantsMap.has(uniqueKey)) {
+          grantsMap.set(uniqueKey, {
+            tenant_id: tenantId,
+            feature_id: feature.feature_id,
+            grant_source: 'package' as const,
+            package_id: packageId,
+            source_reference: sourceRef,
+            starts_at: new Date().toISOString().split('T')[0], // Date only (YYYY-MM-DD)
+          });
         }
       }
 
-      console.log(`Provisioned ${featureGrants.length} features for tenant ${tenantId} from offering ${offeringId} (including bundle features)`);
+      const featureGrants = Array.from(grantsMap.values());
+
+      // Step 4: Insert only new grants (idempotent - safe to retry)
+      if (featureGrants.length > 0) {
+        const { error: insertError } = await supabase
+          .from('tenant_feature_grants')
+          .insert(featureGrants);
+
+        if (insertError) {
+          console.error('Error inserting tenant feature grants:', insertError);
+          throw new Error(`Failed to provision feature grants: ${insertError.message}`);
+        }
+
+        console.log(`Provisioned ${featureGrants.length} new feature grants for tenant ${tenantId} from offering ${offeringId}`);
+      } else {
+        console.log(`All ${features.length} features already granted to tenant ${tenantId} - skipping duplicates (idempotent)`);
+      }
     } catch (error) {
       console.error('Error provisioning tenant license:', error);
       throw error;

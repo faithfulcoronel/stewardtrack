@@ -15,11 +15,7 @@ import {
   Link2,
   Settings,
   Eye,
-  Edit,
-  Trash2,
-  Plus,
   Search,
-  Filter,
   Shield,
   Globe,
   Building,
@@ -30,8 +26,7 @@ import {
   Info,
   RefreshCw,
   Code,
-  Layers,
-  Loader2
+  Layers
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import type {
@@ -39,8 +34,7 @@ import type {
   MetadataSurface,
   Role,
   PermissionBundle,
-  FeatureCatalog,
-  CreateSurfaceBindingDto
+  FeatureCatalog
 } from '@/models/rbac.model';
 
 interface SurfaceBindingWithDetails extends RbacSurfaceBinding {
@@ -79,18 +73,6 @@ export function SurfaceBindingManager() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedBinding, setSelectedBinding] = useState<SurfaceBindingWithDetails | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [editingBinding, setEditingBinding] = useState<SurfaceBindingWithDetails | null>(null);
-  const [deletingBinding, setDeletingBinding] = useState<SurfaceBindingWithDetails | null>(null);
-  const [newBinding, setNewBinding] = useState<Partial<CreateSurfaceBindingDto>>({});
-  const [editBinding, setEditBinding] = useState<Partial<CreateSurfaceBindingDto>>({});
-
-  // Loading states for async operations
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -230,100 +212,6 @@ export function SurfaceBindingManager() {
     }
   };
 
-  const createBinding = async (bindingData: CreateSurfaceBindingDto) => {
-    setIsCreating(true);
-    try {
-      const response = await fetch('/api/rbac/surface-bindings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bindingData)
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success('Surface binding created successfully');
-        loadData();
-        setShowCreateDialog(false);
-        setNewBinding({});
-      } else {
-        toast.error(result.error || 'Failed to create surface binding');
-      }
-    } catch (error) {
-      console.error('Error creating binding:', error);
-      toast.error('Failed to create surface binding');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const updateBinding = async (bindingId: string, bindingData: Partial<CreateSurfaceBindingDto>) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/rbac/surface-bindings/${bindingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bindingData)
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success('Surface binding updated successfully');
-        loadData();
-        setShowEditDialog(false);
-        setEditingBinding(null);
-        setEditBinding({});
-      } else {
-        toast.error(result.error || 'Failed to update surface binding');
-      }
-    } catch (error) {
-      console.error('Error updating binding:', error);
-      toast.error('Failed to update surface binding');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleEditBinding = (binding: SurfaceBindingWithDetails) => {
-    setEditingBinding(binding);
-    setEditBinding({
-      metadata_blueprint_id: binding.metadata_blueprint_id,
-      role_id: binding.role_id,
-      bundle_id: binding.bundle_id,
-      required_feature_code: binding.required_feature_code
-    });
-    setShowEditDialog(true);
-  };
-
-  const handleDeleteBinding = (binding: SurfaceBindingWithDetails) => {
-    setDeletingBinding(binding);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDeleteBinding = async () => {
-    if (!deletingBinding) return;
-
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/rbac/surface-bindings/${deletingBinding.id}`, {
-        method: 'DELETE'
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success('Surface binding deleted successfully');
-        loadData();
-        setShowDeleteDialog(false);
-        setDeletingBinding(null);
-      } else {
-        toast.error(result.error || 'Failed to delete surface binding');
-      }
-    } catch (error) {
-      console.error('Error deleting binding:', error);
-      toast.error('Failed to delete surface binding');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -352,7 +240,7 @@ export function SurfaceBindingManager() {
             Surface Binding Manager
           </h1>
           <p className="text-gray-600">
-            Manage metadata surface connections to roles, bundles, and feature licensing
+            View metadata surface connections to roles, bundles, and feature licensing (auto-provisioned)
           </p>
         </div>
         <div className="flex gap-2">
@@ -360,12 +248,17 @@ export function SurfaceBindingManager() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Binding
-          </Button>
         </div>
       </div>
+
+      {/* Info Alert - Surface bindings are auto-provisioned */}
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <strong>Auto-Provisioned:</strong> Surface bindings are automatically created when features are licensed to your tenant.
+          Manual creation and editing have been disabled to maintain consistency with your license configuration.
+        </AlertDescription>
+      </Alert>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -612,22 +505,9 @@ export function SurfaceBindingManager() {
                             size="sm"
                             variant="outline"
                             onClick={() => setSelectedBinding(binding)}
+                            title="View details"
                           >
                             <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditBinding(binding)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteBinding(binding)}
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -774,332 +654,6 @@ export function SurfaceBindingManager() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Create Binding Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create Surface Binding</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="surface">Surface</Label>
-              <Select
-                value={newBinding.metadata_blueprint_id || ''}
-                onValueChange={(value) => setNewBinding({...newBinding, metadata_blueprint_id: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a surface..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {surfaces.map(surface => (
-                    <SelectItem key={surface.id} value={surface.id}>
-                      {surface.title || surface.blueprint_path} ({surface.module})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="role">Role (Optional)</Label>
-              <Select
-                value={newBinding.role_id || 'none'}
-                onValueChange={(value) => setNewBinding({...newBinding, role_id: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No role</SelectItem>
-                  {roles.map(role => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name} ({role.scope})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="bundle">Bundle (Optional)</Label>
-              <Select
-                value={newBinding.bundle_id || 'none'}
-                onValueChange={(value) => setNewBinding({...newBinding, bundle_id: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a bundle..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No bundle</SelectItem>
-                  {bundles.map(bundle => (
-                    <SelectItem key={bundle.id} value={bundle.id}>
-                      {bundle.name} ({bundle.scope})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="feature">Feature Code (Optional)</Label>
-              <Select
-                value={newBinding.required_feature_code || 'none'}
-                onValueChange={(value) => setNewBinding({...newBinding, required_feature_code: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a feature..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No feature requirement</SelectItem>
-                  {features.map(feature => (
-                    <SelectItem key={feature.id} value={feature.code}>
-                      {feature.name} ({feature.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                You must specify either a role or bundle (or both). Feature codes are optional and control license-based access.
-              </AlertDescription>
-            </Alert>
-          </div>
-          <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (!newBinding.metadata_blueprint_id) {
-                  toast.error('Please select a surface');
-                  return;
-                }
-                if (!newBinding.role_id && !newBinding.bundle_id) {
-                  toast.error('Please select either a role or bundle');
-                  return;
-                }
-                createBinding(newBinding as CreateSurfaceBindingDto);
-              }}
-              disabled={!newBinding.metadata_blueprint_id || (!newBinding.role_id && !newBinding.bundle_id) || isCreating}
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Binding'
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Binding Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Surface Binding</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-surface">Surface</Label>
-              <Select
-                value={editBinding.metadata_blueprint_id || ''}
-                onValueChange={(value) => setEditBinding({...editBinding, metadata_blueprint_id: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a surface..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {surfaces.map(surface => (
-                    <SelectItem key={surface.id} value={surface.id}>
-                      {surface.title || surface.blueprint_path} ({surface.module})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-role">Role (Optional)</Label>
-              <Select
-                value={editBinding.role_id || 'none'}
-                onValueChange={(value) => setEditBinding({...editBinding, role_id: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No role</SelectItem>
-                  {roles.map(role => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name} ({role.scope})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-bundle">Bundle (Optional)</Label>
-              <Select
-                value={editBinding.bundle_id || 'none'}
-                onValueChange={(value) => setEditBinding({...editBinding, bundle_id: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a bundle..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No bundle</SelectItem>
-                  {bundles.map(bundle => (
-                    <SelectItem key={bundle.id} value={bundle.id}>
-                      {bundle.name} ({bundle.scope})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-feature">Feature Code (Optional)</Label>
-              <Select
-                value={editBinding.required_feature_code || 'none'}
-                onValueChange={(value) => setEditBinding({...editBinding, required_feature_code: value === 'none' ? undefined : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a feature..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No feature requirement</SelectItem>
-                  {features.map(feature => (
-                    <SelectItem key={feature.id} value={feature.code}>
-                      {feature.name} ({feature.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                You must specify either a role or bundle (or both). Feature codes are optional and control license-based access.
-              </AlertDescription>
-            </Alert>
-          </div>
-          <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isUpdating}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (!editBinding.metadata_blueprint_id) {
-                  toast.error('Please select a surface');
-                  return;
-                }
-                if (!editBinding.role_id && !editBinding.bundle_id) {
-                  toast.error('Please select either a role or bundle');
-                  return;
-                }
-                if (editingBinding) {
-                  updateBinding(editingBinding.id, editBinding);
-                }
-              }}
-              disabled={!editBinding.metadata_blueprint_id || (!editBinding.role_id && !editBinding.bundle_id) || isUpdating}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                'Update Binding'
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
-              Confirm Deletion
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
-                <strong>Warning:</strong> This action cannot be undone. The surface binding will be permanently deleted.
-              </AlertDescription>
-            </Alert>
-
-            {deletingBinding && (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">You are about to delete the following surface binding:</p>
-                <div className="p-3 bg-gray-50 rounded-lg border">
-                  <div className="text-sm">
-                    <p className="font-medium">
-                      Surface: {deletingBinding.surface?.title || deletingBinding.surface?.blueprint_path || 'Unknown'}
-                    </p>
-                    {deletingBinding.role && (
-                      <p>Role: {deletingBinding.role.name} ({deletingBinding.role.scope})</p>
-                    )}
-                    {deletingBinding.bundle && (
-                      <p>Bundle: {deletingBinding.bundle.name} ({deletingBinding.bundle.scope})</p>
-                    )}
-                    {deletingBinding.required_feature_code && (
-                      <p>Feature: {deletingBinding.required_feature_code}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <p className="text-sm text-gray-600">
-              Are you sure you want to proceed with this deletion?
-            </p>
-          </div>
-          <div className="flex justify-end gap-2 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDeleteDialog(false);
-                setDeletingBinding(null);
-              }}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteBinding}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Binding
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Binding Detail Dialog */}
       {selectedBinding && (
