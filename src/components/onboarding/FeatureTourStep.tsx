@@ -25,11 +25,23 @@ interface Feature {
   description?: string;
 }
 
+interface Bundle {
+  id: string;
+  code: string;
+  name: string;
+  bundle_type: string;
+  category: string;
+  description?: string;
+  features: Feature[];
+  feature_count: number;
+}
+
 export default function FeatureTourStep({
   onNext,
   isSaving,
 }: FeatureTourStepProps) {
-  const [features, setFeatures] = useState<Feature[]>([]);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [individualFeatures, setIndividualFeatures] = useState<Feature[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -42,23 +54,15 @@ export default function FeatureTourStep({
       const result = await response.json();
 
       if (result.success && result.data) {
-        // Get features from licensed bundles
-        const allFeatures: Feature[] = [];
-        if (result.data.licensed_bundles) {
-          result.data.licensed_bundles.forEach((bundle: any) => {
-            if (bundle.features) {
-              allFeatures.push(...bundle.features);
-            }
-          });
+        // Get bundles with features
+        if (Array.isArray(result.data.licensed_bundles)) {
+          setBundles(result.data.licensed_bundles);
         }
 
-        // Remove duplicates
-        const uniqueFeatures = allFeatures.filter(
-          (feature, index, self) =>
-            index === self.findIndex((f) => f.id === feature.id)
-        );
-
-        setFeatures(uniqueFeatures);
+        // Get individual features (those granted directly, not through bundles)
+        if (Array.isArray(result.data.licensed_features)) {
+          setIndividualFeatures(result.data.licensed_features);
+        }
       }
     } catch (error) {
       console.error('Error loading features:', error);
@@ -72,6 +76,17 @@ export default function FeatureTourStep({
     await onNext({ feature_tour_data: { tour_viewed: true } });
   }
 
+  function groupBundlesByType(bundles: Bundle[]): Record<string, Bundle[]> {
+    return bundles.reduce((acc, bundle) => {
+      const type = bundle.bundle_type || 'Other';
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(bundle);
+      return acc;
+    }, {} as Record<string, Bundle[]>);
+  }
+
   function groupFeaturesByCategory(features: Feature[]): Record<string, Feature[]> {
     return features.reduce((acc, feature) => {
       const category = feature.category || 'General';
@@ -83,7 +98,8 @@ export default function FeatureTourStep({
     }, {} as Record<string, Feature[]>);
   }
 
-  const categorizedFeatures = groupFeaturesByCategory(features);
+  const bundlesByType = groupBundlesByType(bundles);
+  const featuresByCategory = groupFeaturesByCategory(individualFeatures);
 
   if (isLoading) {
     return (
@@ -92,6 +108,8 @@ export default function FeatureTourStep({
       </div>
     );
   }
+
+  const hasContent = bundles.length > 0 || individualFeatures.length > 0;
 
   return (
     <div className="space-y-6">
@@ -111,7 +129,7 @@ export default function FeatureTourStep({
         </div>
       </div>
 
-      {Object.keys(categorizedFeatures).length === 0 ? (
+      {!hasContent ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">No features available</CardTitle>
@@ -123,42 +141,130 @@ export default function FeatureTourStep({
         </Card>
       ) : (
         <div className="space-y-6">
-          {Object.entries(categorizedFeatures).map(([category, categoryFeatures]) => (
-            <div key={category} className="space-y-3">
+          {/* Feature Bundles Section */}
+          {Object.keys(bundlesByType).length > 0 && (
+            <div className="space-y-4">
+              {Object.entries(bundlesByType).map(([type, typeBundles]) => (
+                <div key={type} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-base font-semibold text-foreground capitalize">
+                      {type.replace(/_/g, ' ')}
+                    </h4>
+                    <Badge variant="secondary" className="text-xs">
+                      {typeBundles.length} {typeBundles.length === 1 ? 'bundle' : 'bundles'}
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-3">
+                    {typeBundles.map((bundle) => (
+                      <Card key={bundle.id} className="border-l-4 border-l-primary/50">
+                        <CardHeader className="py-4">
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                <Check className="h-4 w-4 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <CardTitle className="text-base font-semibold">
+                                    {bundle.name}
+                                  </CardTitle>
+                                  <Badge variant="outline" className="text-xs">
+                                    {bundle.code}
+                                  </Badge>
+                                  {bundle.feature_count > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {bundle.feature_count} {bundle.feature_count === 1 ? 'feature' : 'features'}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {bundle.description && (
+                                  <CardDescription className="text-sm">
+                                    {bundle.description}
+                                  </CardDescription>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Bundle Features */}
+                            {bundle.features && bundle.features.length > 0 && (
+                              <div className="ml-11 space-y-2 border-l-2 border-muted pl-4">
+                                {bundle.features.map((feature) => (
+                                  <div key={feature.id} className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-foreground">
+                                        {feature.name}
+                                      </span>
+                                      <Badge variant="outline" className="text-xs">
+                                        {feature.code}
+                                      </Badge>
+                                    </div>
+                                    {feature.description && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {feature.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Individual Features Section */}
+          {Object.keys(featuresByCategory).length > 0 && (
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-semibold text-foreground">
-                  {category}
+                <h4 className="text-base font-semibold text-foreground">
+                  Additional Features
                 </h4>
-                <Badge variant="secondary" className="text-xs">
-                  {categoryFeatures.length}
-                </Badge>
               </div>
 
-              <div className="grid gap-3">
-                {categoryFeatures.map((feature) => (
-                  <Card key={feature.id} className="border-l-4 border-l-primary/50">
-                    <CardHeader className="py-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <Check className="h-3 w-3 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-sm font-medium">
-                            {feature.name}
-                          </CardTitle>
-                          {feature.description && (
-                            <CardDescription className="text-xs mt-1">
-                              {feature.description}
-                            </CardDescription>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-              </div>
+              {Object.entries(featuresByCategory).map(([category, categoryFeatures]) => (
+                <div key={category} className="space-y-3">
+                  <h5 className="text-sm font-semibold text-muted-foreground capitalize">
+                    {category.replace(/_/g, ' ')}
+                  </h5>
+
+                  <div className="grid gap-3">
+                    {categoryFeatures.map((feature) => (
+                      <Card key={feature.id} className="border-l-4 border-l-primary/50">
+                        <CardHeader className="py-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                              <Check className="h-3 w-3 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <CardTitle className="text-sm font-medium">
+                                  {feature.name}
+                                </CardTitle>
+                                <Badge variant="outline" className="text-xs">
+                                  {feature.code}
+                                </Badge>
+                              </div>
+                              {feature.description && (
+                                <CardDescription className="text-xs">
+                                  {feature.description}
+                                </CardDescription>
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 

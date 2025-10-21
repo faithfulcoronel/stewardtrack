@@ -201,6 +201,7 @@ export async function POST(request: NextRequest) {
         tenant_id: tenantId,
         user_id: userId,
         role: 'admin', // This is the simple role field
+        admin_role: 'tenant_admin', // Set admin_role for first user
         created_by: userId,
       });
 

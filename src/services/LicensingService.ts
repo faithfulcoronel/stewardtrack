@@ -5,6 +5,7 @@ import type { IProductOfferingRepository } from '@/repositories/productOffering.
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
+import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
   ProductOffering,
@@ -32,6 +33,30 @@ import type {
   LicenseHistoryEntry,
   FeatureChangeSummary,
 } from '@/models/licenseAssignment.model';
+import type { TenantFeatureGrant } from '@/models/rbac.model';
+
+interface TenantFeatureGrantWithFeature extends TenantFeatureGrant {
+  feature?: {
+    id: string;
+    code: string;
+    name: string;
+    category?: string | null;
+    description?: string | null;
+    tier?: string | null;
+  };
+}
+
+interface LicensedFeatureSummary {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  description?: string;
+  tier?: string | null;
+  grant_source: TenantFeatureGrant['grant_source'];
+  starts_at?: string;
+  expires_at?: string;
+}
 
 /**
  * LicensingService
@@ -55,6 +80,8 @@ export class LicensingService {
     private licenseFeatureBundleRepository: ILicenseFeatureBundleRepository,
     @inject(TYPES.ISurfaceLicenseBindingRepository)
     private surfaceLicenseBindingRepository: ISurfaceLicenseBindingRepository,
+    @inject(TYPES.ITenantFeatureGrantRepository)
+    private tenantFeatureGrantRepository: ITenantFeatureGrantRepository,
     @inject(TYPES.ILicenseAssignmentRepository)
     private licenseAssignmentRepository: ILicenseAssignmentRepository
   ) {}
@@ -318,26 +345,87 @@ export class LicensingService {
   async getTenantLicensingSummary(tenantId?: string): Promise<{
     tenant_id: string;
     active_offerings: ProductOffering[];
-    licensed_bundles: LicenseFeatureBundle[];
+    licensed_bundles: LicenseFeatureBundleWithFeatures[];
+    licensed_features: LicensedFeatureSummary[];
     accessible_surfaces: string[];
     effective_access: EffectiveSurfaceAccess[];
   }> {
     const effectiveTenantId = await this.resolveTenantId(tenantId);
 
-    const [activeOfferings, licensedBundles, accessibleSurfaces, effectiveAccess] = await Promise.all([
+    const [
+      activeOfferings,
+      activeBundles,
+      accessibleSurfaces,
+      effectiveAccess,
+      tenantFeatureGrants,
+    ] = await Promise.all([
       this.getActiveProductOfferings(),
       this.getActiveLicenseFeatureBundles(),
       this.getTenantLicensedSurfaces(effectiveTenantId),
       this.getEffectiveSurfaceAccess(effectiveTenantId),
+      this.tenantFeatureGrantRepository.getTenantFeatureGrants(effectiveTenantId),
     ]);
+
+    // Get bundles with their features
+    const licensedBundles = await Promise.all(
+      activeBundles.map(bundle => this.getLicenseFeatureBundleWithFeatures(bundle.id))
+    );
+
+    // Filter out any null results
+    const validBundles = licensedBundles.filter((b): b is LicenseFeatureBundleWithFeatures => b !== null);
+
+    const licensedFeatures = this.mapTenantFeatureGrantsToLicensedFeatures(
+      tenantFeatureGrants
+    );
 
     return {
       tenant_id: effectiveTenantId,
       active_offerings: activeOfferings,
-      licensed_bundles: licensedBundles,
+      licensed_bundles: validBundles,
+      licensed_features: licensedFeatures,
       accessible_surfaces: accessibleSurfaces,
       effective_access: effectiveAccess,
     };
+  }
+
+  private mapTenantFeatureGrantsToLicensedFeatures(
+    grants: TenantFeatureGrant[]
+  ): LicensedFeatureSummary[] {
+    const featuresById = new Map<string, LicensedFeatureSummary>();
+
+    for (const grant of grants as TenantFeatureGrantWithFeature[]) {
+      const feature = grant.feature;
+      if (!feature || !feature.id) {
+        continue;
+      }
+
+      const existing = featuresById.get(feature.id);
+      if (existing) {
+        if (!existing.starts_at && grant.starts_at) {
+          existing.starts_at = grant.starts_at;
+        }
+        if (!existing.expires_at && grant.expires_at) {
+          existing.expires_at = grant.expires_at;
+        }
+        continue;
+      }
+
+      featuresById.set(feature.id, {
+        id: feature.id,
+        code: feature.code,
+        name: feature.name,
+        category: feature.category ?? 'General',
+        description: feature.description ?? undefined,
+        tier: feature.tier ?? null,
+        grant_source: grant.grant_source,
+        starts_at: grant.starts_at ?? undefined,
+        expires_at: grant.expires_at ?? undefined,
+      });
+    }
+
+    return Array.from(featuresById.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
   }
 
   // ==================== TENANT PROVISIONING METHODS ====================
