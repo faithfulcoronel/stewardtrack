@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { tenantUtils } from '@/utils/tenantUtils';
+import type { Tenant } from '@/models/tenant.model';
 
 /**
  * GET /api/tenant/current
@@ -27,36 +27,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get tenant ID
-    const tenantId = await tenantUtils.getTenantId();
-    if (!tenantId) {
+    // Fetch tenant data via RPC to avoid ambiguous column issues
+    const { data: tenantData, error: tenantError } = await supabase.rpc('get_current_tenant');
+
+    if (tenantError) {
+      throw new Error(`Failed to fetch tenant: ${tenantError.message}`);
+    }
+
+    const tenantResult = Array.isArray(tenantData) ? tenantData[0] : tenantData;
+    const tenant = tenantResult as Tenant | undefined;
+
+    if (!tenant) {
       return NextResponse.json(
         {
           success: false,
           error: 'No tenant context available',
         },
         { status: 400 }
-      );
-    }
-
-    // Fetch tenant data
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('id', tenantId)
-      .single();
-
-    if (tenantError) {
-      throw new Error(`Failed to fetch tenant: ${tenantError.message}`);
-    }
-
-    if (!tenant) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Tenant not found',
-        },
-        { status: 404 }
       );
     }
 

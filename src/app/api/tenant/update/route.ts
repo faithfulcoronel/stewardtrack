@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { tenantUtils } from '@/utils/tenantUtils';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
+import type { Tenant } from '@/models/tenant.model';
 
 interface UpdateTenantRequest {
   address?: string;
@@ -41,9 +41,17 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Get tenant ID
-    const tenantId = await tenantUtils.getTenantId();
-    if (!tenantId) {
+    // Fetch current tenant via RPC to avoid ambiguous column issues
+    const { data: tenantData, error: fetchError } = await supabase.rpc('get_current_tenant');
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch tenant: ${fetchError.message}`);
+    }
+
+    const currentTenantResult = Array.isArray(tenantData) ? tenantData[0] : tenantData;
+    const currentTenant = currentTenantResult as Tenant | undefined;
+
+    if (!currentTenant) {
       return NextResponse.json(
         {
           success: false,
@@ -53,16 +61,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Fetch current tenant data for audit trail
-    const { data: currentTenant, error: fetchError } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('id', tenantId)
-      .single();
-
-    if (fetchError) {
-      throw new Error(`Failed to fetch tenant: ${fetchError.message}`);
-    }
+    const tenantId = currentTenant.id;
 
     // Build update object (only include provided fields)
     const updates: Record<string, any> = {
@@ -76,15 +75,32 @@ export async function PUT(request: NextRequest) {
     if (logo_url !== undefined) updates.logo_url = logo_url;
 
     // Update tenant
-    const { data: updatedTenant, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('tenants')
       .update(updates)
-      .eq('id', tenantId)
-      .select()
-      .single();
+      .eq('id', tenantId);
 
     if (updateError) {
       throw new Error(`Failed to update tenant: ${updateError.message}`);
+    }
+
+    const { data: updatedTenantData, error: refreshError } = await supabase.rpc('get_current_tenant');
+
+    if (refreshError) {
+      throw new Error(`Failed to fetch updated tenant: ${refreshError.message}`);
+    }
+
+    const updatedTenantResult = Array.isArray(updatedTenantData) ? updatedTenantData[0] : updatedTenantData;
+    const updatedTenant = updatedTenantResult as Tenant | undefined;
+
+    if (!updatedTenant) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Tenant not found after update',
+        },
+        { status: 404 }
+      );
     }
 
     // Log update in audit trail
@@ -92,12 +108,17 @@ export async function PUT(request: NextRequest) {
       const auditService = container.get<AuditService>(TYPES.AuditService);
 
       // Calculate what changed
+      const original = currentTenant as Record<string, unknown>;
+      const updatedRecord = updatedTenant as Record<string, unknown>;
       const changes: Record<string, any> = {};
+
       Object.keys(updates).forEach((key) => {
-        if (key !== 'updated_at' && currentTenant[key] !== updates[key]) {
+        if (key === 'updated_at') return;
+
+        if (original[key] !== updatedRecord[key]) {
           changes[key] = {
-            old: currentTenant[key],
-            new: updates[key],
+            old: original[key],
+            new: updatedRecord[key],
           };
         }
       });

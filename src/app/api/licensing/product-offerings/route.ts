@@ -34,14 +34,15 @@ function parseBooleanParam(value: string | null): boolean {
 
 async function getPublicProductOfferings(
   supabase: SupabaseClient,
-  options: { includeFeatures: boolean; includeBundles: boolean; tier: string | null }
+  options: { includeFeatures: boolean; includeBundles: boolean; tier: string | null; targetId?: string | null }
 ) {
-  const { includeFeatures, includeBundles, tier } = options;
+  const { includeFeatures, includeBundles, tier, targetId } = options;
 
   const { data, error } = await supabase.rpc(PUBLIC_PRODUCT_OFFERINGS_RPC, {
     include_features: includeFeatures,
     include_bundles: includeBundles,
     target_tier: tier,
+    target_id: targetId ?? null,
   });
 
   if (error) {
@@ -124,6 +125,7 @@ export async function GET(request: NextRequest) {
         includeFeatures,
         includeBundles,
         tier,
+        targetId: null,
       });
 
       return NextResponse.json({

@@ -58,7 +58,7 @@ export class ProductOfferingRepository
   }
 
   async getOffering(id: string): Promise<ProductOffering | null> {
-    return await this.productOfferingAdapter.findById(id);
+    return await this.findById(id);
   }
 
   async getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null> {

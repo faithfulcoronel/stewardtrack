@@ -1,5 +1,7 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
@@ -14,6 +16,44 @@ interface RegistrationRequest {
   firstName: string;
   lastName: string;
   offeringId: string;
+}
+
+const PUBLIC_PRODUCT_OFFERINGS_RPC = 'get_public_product_offerings';
+
+interface PublicProductOffering {
+  id: string;
+  tier: string;
+  offering_type: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  base_price?: number | null;
+  billing_cycle?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+async function getPublicOfferingForSignup(
+  supabase: SupabaseClient,
+  offeringId: string
+): Promise<PublicProductOffering | null> {
+  const { data, error } = await supabase.rpc(PUBLIC_PRODUCT_OFFERINGS_RPC, {
+    include_features: false,
+    include_bundles: false,
+    target_tier: null,
+    target_id: offeringId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to load product offering: ${error.message}`);
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return null;
+  }
+
+  const [offering] = data as PublicProductOffering[];
+
+  return offering ?? null;
 }
 
 /**
@@ -60,6 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createSupabaseServerClient();
+    const serviceSupabase = await getSupabaseServiceClient();
 
     // ===== STEP 1: Create auth user =====
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -84,8 +125,7 @@ export async function POST(request: NextRequest) {
     userId = authData.user.id;
 
     // ===== STEP 2: Get offering details to determine tier =====
-    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
-    const offering = await licensingService.getProductOffering(offeringId);
+    const offering = await getPublicOfferingForSignup(supabase, offeringId);
 
     if (!offering) {
       throw new Error('Selected product offering not found');
@@ -112,7 +152,7 @@ export async function POST(request: NextRequest) {
       finalSubdomain = `${subdomain}-${Math.floor(Math.random() * 10000)}`;
     }
 
-    const { data: tenant, error: tenantError } = await supabase
+    const { data: tenant, error: tenantError } = await serviceSupabase
       .from('tenants')
       .insert({
         name: churchName,
@@ -125,7 +165,7 @@ export async function POST(request: NextRequest) {
         status: 'active',
         created_by: userId,
       })
-      .select()
+      .select('id')
       .single();
 
     if (tenantError) {
@@ -139,7 +179,7 @@ export async function POST(request: NextRequest) {
     tenantId = tenant.id;
 
     // ===== STEP 4: Create user profile =====
-    const { error: profileError } = await supabase
+    const { error: profileError } = await serviceSupabase
       .from('profiles')
       .upsert({
         id: userId,
@@ -155,7 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ===== STEP 5: Create tenant_users junction =====
-    const { error: tenantUserError } = await supabase
+    const { error: tenantUserError } = await serviceSupabase
       .from('tenant_users')
       .insert({
         tenant_id: tenantId,
@@ -171,6 +211,7 @@ export async function POST(request: NextRequest) {
 
     // ===== STEP 6: Provision license features =====
     try {
+      const licensingService = container.get<LicensingService>(TYPES.LicensingService);
       await licensingService.provisionTenantLicense(tenantId, offeringId);
     } catch (error) {
       console.error('Failed to provision license features:', error);
@@ -234,10 +275,9 @@ export async function POST(request: NextRequest) {
     // Attempt cleanup if we created records
     if (userId && tenantId) {
       try {
-        const supabase = await createSupabaseServerClient();
-
         // Delete tenant (will cascade to related records)
-        await supabase.from('tenants').delete().eq('id', tenantId);
+        const serviceSupabase = await getSupabaseServiceClient();
+        await serviceSupabase.from('tenants').delete().eq('id', tenantId);
 
         // Delete auth user (Supabase admin API would be needed for this)
         // For now, we'll leave the auth user as is
