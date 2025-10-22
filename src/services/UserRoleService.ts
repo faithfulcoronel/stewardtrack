@@ -175,20 +175,6 @@ export class UserRoleService {
   }
 
   /**
-   * Get metadata surfaces accessible to user based on RBAC permissions
-   * Uses RBAC configuration from database via repository
-   */
-  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
-    try {
-      const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-      return await this.repo.getUserAccessibleMetadataSurfaces(userId, effectiveTenantId);
-    } catch (error) {
-      console.error('Error getting user accessible metadata surfaces:', error);
-      return [];
-    }
-  }
-
-  /**
    * Check if current user is a super admin
    * Uses the centralized permissionHelpers.checkSuperAdmin() method
    * which calls get_user_admin_role RPC
@@ -202,100 +188,6 @@ export class UserRoleService {
     } catch (error) {
       console.error('Error checking super admin:', error);
       return false;
-    }
-  }
-
-  /**
-   * Checks if a user can access a surface based on BOTH RBAC permissions AND license state
-   * This is the primary method for enforcing combined permission + licensing checks
-   *
-   * @param userId - User ID to check access for
-   * @param surfaceId - Surface/metadata ID to check
-   * @param tenantId - Optional tenant ID (defaults to current tenant)
-   * @returns Promise<boolean> - True if user has both RBAC permission AND license access
-   */
-  async canAccessSurfaceWithLicense(userId: string, surfaceId: string, tenantId?: string): Promise<boolean> {
-    try {
-      const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-      if (!effectiveTenantId) {
-        console.warn('No tenant context for surface access check');
-        return false;
-      }
-
-      // First check RBAC permission via metadata surfaces
-      const accessibleSurfaces = await this.getUserAccessibleMetadataSurfaces(userId, effectiveTenantId);
-      const hasRbacPermission = accessibleSurfaces.some((surface: any) => surface.id === surfaceId);
-
-      if (!hasRbacPermission) {
-        return false;
-      }
-
-      // Then check licensing
-      const licenseResult = await this.licensingService.checkSurfaceAccess(userId, surfaceId, effectiveTenantId);
-      return licenseResult.hasAccess;
-    } catch (error) {
-      console.error('Error checking surface access with license:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Gets all surfaces that a user can access based on RBAC + licensing
-   * Returns only the surface IDs that pass both checks
-   *
-   * @param userId - User ID to get accessible surfaces for
-   * @param tenantId - Optional tenant ID (defaults to current tenant)
-   * @returns Promise<string[]> - Array of accessible surface IDs
-   */
-  async getUserAccessibleSurfaces(userId: string, tenantId?: string): Promise<string[]> {
-    try {
-      const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-      if (!effectiveTenantId) {
-        return [];
-      }
-
-      // Get RBAC-accessible surfaces
-      const rbacSurfaces = await this.getUserAccessibleMetadataSurfaces(userId, effectiveTenantId);
-      const rbacSurfaceIds = rbacSurfaces.map((surface: any) => surface.id);
-
-      // Get license-accessible surfaces
-      const licensedSurfaces = await this.licensingService.getTenantLicensedSurfaces(effectiveTenantId);
-
-      // Return intersection of both sets (surfaces that have both RBAC and license)
-      return rbacSurfaceIds.filter(surfaceId => licensedSurfaces.includes(surfaceId));
-    } catch (error) {
-      console.error('Error getting user accessible surfaces:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Gets surfaces that user has RBAC permission for but are locked due to licensing
-   * Useful for showing "upgrade to unlock" UI elements
-   *
-   * @param userId - User ID to check
-   * @param tenantId - Optional tenant ID (defaults to current tenant)
-   * @returns Promise<string[]> - Array of surface IDs locked by licensing
-   */
-  async getLockedSurfaces(userId: string, tenantId?: string): Promise<string[]> {
-    try {
-      const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-      if (!effectiveTenantId) {
-        return [];
-      }
-
-      // Get RBAC-accessible surfaces
-      const rbacSurfaces = await this.getUserAccessibleMetadataSurfaces(userId, effectiveTenantId);
-      const rbacSurfaceIds = rbacSurfaces.map((surface: any) => surface.id);
-
-      // Get license-accessible surfaces
-      const licensedSurfaces = await this.licensingService.getTenantLicensedSurfaces(effectiveTenantId);
-
-      // Return surfaces that have RBAC but NOT license
-      return rbacSurfaceIds.filter(surfaceId => !licensedSurfaces.includes(surfaceId));
-    } catch (error) {
-      console.error('Error getting locked surfaces:', error);
-      return [];
     }
   }
 

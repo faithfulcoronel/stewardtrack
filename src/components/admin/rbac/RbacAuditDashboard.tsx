@@ -11,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MaterializedViewMonitoringDashboard } from './MaterializedViewMonitoringDashboard';
-import { MetadataPublishingDashboard } from './MetadataPublishingDashboard';
 import {
   Shield,
   AlertTriangle,
@@ -73,8 +71,6 @@ export function RbacAuditDashboard() {
   const [impactFilter, setImpactFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [_selectedLog, setSelectedLog] = useState<RbacAuditLog | null>(null);
-  const [showMaterializedViewDashboard, setShowMaterializedViewDashboard] = useState(false);
-  const [showMetadataPublishingDashboard, setShowMetadataPublishingDashboard] = useState(false);
   const [showComplianceDashboard, setShowComplianceDashboard] = useState(false);
   const [healthMetrics, setHealthMetrics] = useState<any>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
@@ -219,13 +215,6 @@ export function RbacAuditDashboard() {
     setShowComplianceDashboard(true);
   };
 
-  const openMaterializedViewDashboard = () => {
-    setShowMaterializedViewDashboard(true);
-  };
-
-  const openMetadataPublishingDashboard = () => {
-    setShowMetadataPublishingDashboard(true);
-  };
 
   const calculateStats = (logs: RbacAuditLog[]) => {
     const today = new Date().toDateString();
@@ -814,91 +803,6 @@ export function RbacAuditDashboard() {
                     </CardContent>
                   </Card>
 
-                  {/* Platform Engineer Dashboard */}
-                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <Database className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">Materialized Views</h4>
-                          <p className="text-sm text-gray-600">Performance & sync monitoring</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Data Lag</span>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            {healthMetrics?.materializedViews?.lagMinutes || 5} min
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Success Rate</span>
-                          <span className="font-medium text-green-600">
-                            {healthMetrics?.materializedViews?.successRate || 99.2}%
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Avg Refresh Time</span>
-                          <span className="font-medium">
-                            {healthMetrics?.materializedViews?.avgRefreshTime || '1.2s'}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-4"
-                        onClick={openMaterializedViewDashboard}
-                      >
-                        View Monitoring Dashboard
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Release Manager Dashboard */}
-                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-purple-100 rounded-full">
-                          <Settings className="h-6 w-6 text-purple-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">Publishing Controls</h4>
-                          <p className="text-sm text-gray-600">Metadata compilation & deployment</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Pending Changes</span>
-                          <span className="font-medium text-orange-600">
-                            {healthMetrics?.publishing?.pendingChanges || 0}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Last Publish</span>
-                          <span className="font-medium">
-                            {healthMetrics?.publishing?.lastPublish || '2h ago'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Compiler Status</span>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Ready
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-4"
-                        onClick={openMetadataPublishingDashboard}
-                      >
-                        Access Publishing Controls
-                      </Button>
-                    </CardContent>
-                  </Card>
                 </div>
 
                 {/* Enhanced System Health Checks */}
@@ -1064,23 +968,6 @@ export function RbacAuditDashboard() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showMaterializedViewDashboard} onOpenChange={setShowMaterializedViewDashboard}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" widthMode="content">
-          <DialogHeader>
-            <DialogTitle>Materialized View Monitoring</DialogTitle>
-          </DialogHeader>
-          <MaterializedViewMonitoringDashboard />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showMetadataPublishingDashboard} onOpenChange={setShowMetadataPublishingDashboard}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" widthMode="content">
-          <DialogHeader>
-            <DialogTitle>Metadata Publishing Controls</DialogTitle>
-          </DialogHeader>
-          <MetadataPublishingDashboard />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

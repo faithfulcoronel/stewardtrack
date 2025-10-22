@@ -24,9 +24,6 @@ export default function CreateFeaturePage() {
           description: data.description,
           tier: data.tier,
           category: data.category,
-          surface_id: data.surface_id,
-          surface_type: data.surface_type,
-          module: data.module,
           is_active: true,
         }),
       });

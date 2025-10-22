@@ -35,7 +35,6 @@ const mockUserRoleRepository = {
     getUserEffectivePermissions: jest.fn(),
     getUserRoleMetadataKeys: jest.fn(),
     getUserAccessibleMenuItems: jest.fn(),
-    getUserAccessibleMetadataSurfaces: jest.fn(),
     getAdminRole: jest.fn(),
   },
   getRolesWithPermissions: jest.fn(),
@@ -182,25 +181,6 @@ describe('Enhanced RBAC System', () => {
       expect(mockUserRoleRepository.adapter.getUserAccessibleMenuItems).toHaveBeenCalledWith(userId, 'test-tenant-id');
     });
 
-    it('should get user accessible metadata surfaces', async () => {
-      const userId = 'test-user-id';
-      const expectedSurfaces = [
-        {
-          metadata_surface_id: 'admin-security/rbac-dashboard',
-          module: 'admin-security',
-          route: '/admin/security/rbac',
-          surface_type: 'dashboard',
-          phase: 'foundation',
-        },
-      ];
-
-      mockUserRoleRepository.adapter.getUserAccessibleMetadataSurfaces.mockResolvedValue(expectedSurfaces);
-
-      const result = await userRoleService.getUserAccessibleMetadataSurfaces(userId);
-
-      expect(result).toEqual(expectedSurfaces);
-      expect(mockUserRoleRepository.adapter.getUserAccessibleMetadataSurfaces).toHaveBeenCalledWith(userId, 'test-tenant-id');
-    });
   });
 
   describe('RbacRegistryService', () => {

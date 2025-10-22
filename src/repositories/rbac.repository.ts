@@ -18,9 +18,6 @@ import {
   PermissionBundle,
   Permission,
   UserRole,
-  MetadataSurface,
-  MetadataSurfaceOverlay,
-  RbacSurfaceBinding,
   FeatureCatalog,
   TenantFeatureGrant,
   RoleWithPermissions,
@@ -31,7 +28,6 @@ import {
   CreatePermissionBundleDto,
   UpdatePermissionBundleDto,
   AssignRoleDto,
-  CreateSurfaceBindingDto,
   RbacAuditLog,
   CreateRbacAuditLogInput,
   RbacAuditOperation,
@@ -750,164 +746,6 @@ export class RbacRepository extends BaseRepository {
     return data || [];
   }
 
-  // Surface Binding management
-  async createSurfaceBinding(data: CreateSurfaceBindingDto, tenantId: string): Promise<RbacSurfaceBinding> {
-    const supabase = await this.getSupabaseClient();
-    const { data: result, error } = await supabase
-      .from('rbac_surface_bindings')
-      .insert({
-        ...data,
-        tenant_id: tenantId,
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to create surface binding: ${error.message}`);
-    }
-
-    return result;
-  }
-
-  async updateSurfaceBinding(
-    id: string,
-    data: Partial<CreateSurfaceBindingDto>,
-    tenantId: string
-  ): Promise<RbacSurfaceBinding> {
-    const supabase = await this.getSupabaseClient();
-    const { data: result, error } = await supabase
-      .from('rbac_surface_bindings')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to update surface binding: ${error.message}`);
-    }
-
-    if (!result) {
-      throw new Error('Surface binding not found');
-    }
-
-    return result;
-  }
-
-  async deleteSurfaceBinding(id: string, tenantId: string): Promise<void> {
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase
-      .from('rbac_surface_bindings')
-      .delete()
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
-      .select('id')
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to delete surface binding: ${error.message}`);
-    }
-
-    if (!data) {
-      throw new Error('Surface binding not found');
-    }
-  }
-
-  async getSurfaceBindings(tenantId: string): Promise<RbacSurfaceBinding[]> {
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase
-      .from('rbac_surface_bindings')
-      .select(`
-        *,
-        role:roles (id, name),
-        bundle:permission_bundles (id, name)
-      `)
-      .eq('tenant_id', tenantId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to fetch surface bindings: ${error.message}`);
-    }
-
-    return data || [];
-  }
-
-  async getSurfaceBinding(id: string, tenantId: string): Promise<RbacSurfaceBinding | null> {
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase
-      .from('rbac_surface_bindings')
-      .select('*')
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-
-      throw new Error(`Failed to fetch surface binding: ${error.message}`);
-    }
-
-    return data ?? null;
-  }
-
-  // Metadata Surface management
-  async getMetadataSurfaces(
-    _tenantId: string,
-    filters?: {
-      module?: string;
-      phase?: string;
-      surface_type?: string;
-    }
-  ): Promise<MetadataSurface[]> {
-    const supabase = await this.getSupabaseClient();
-
-    let query = supabase
-      .from('metadata_surfaces')
-      .select('*');
-
-    if (filters?.module) {
-      query = query.eq('module', filters.module);
-    }
-
-    if (filters?.phase) {
-      query = query.eq('phase', filters.phase);
-    }
-
-    if (filters?.surface_type) {
-      query = query.eq('surface_type', filters.surface_type);
-    }
-
-    const { data, error } = await query.order('module', { ascending: true }).order('title', { ascending: true });
-
-    if (error) {
-      throw new Error(`Failed to fetch metadata surfaces: ${error.message}`);
-    }
-
-    return data || [];
-  }
-
-  async getMetadataSurfaceOverlays(surfaceId: string): Promise<MetadataSurfaceOverlay[]> {
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase
-      .from('metadata_surface_overlays')
-      .select('*')
-      .eq('surface_id', surfaceId)
-      .order('persona');
-
-    if (error) {
-      throw new Error(`Failed to fetch surface overlays: ${error.message}`);
-    }
-
-    return data || [];
-  }
-
   // Feature management
   async getFeatureCatalog(): Promise<FeatureCatalog[]> {
     const supabase = await this.getSupabaseClient();
@@ -1254,42 +1092,6 @@ export class RbacRepository extends BaseRepository {
       systemRoles: systemRoles || 0,
       customBundles: customBundles || 0
     };
-  }
-
-  async createMetadataSurface(surfaceData: {
-    module: string;
-    route?: string;
-    blueprint_path: string;
-    surface_type: string;
-    phase: string;
-    title?: string;
-    description?: string;
-    feature_code?: string;
-    rbac_role_keys?: string[];
-    rbac_bundle_keys?: string[];
-    default_menu_code?: string;
-    supports_mobile: boolean;
-    supports_desktop: boolean;
-    is_system: boolean;
-  }): Promise<MetadataSurface> {
-    const supabase = await this.getSupabaseClient();
-
-    const { data, error } = await supabase
-      .from('metadata_surfaces')
-      .insert({
-        ...surfaceData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating metadata surface:', error);
-      throw new Error(`Failed to create metadata surface: ${error.message}`);
-    }
-
-    return data;
   }
 
   // Feature Catalog Management

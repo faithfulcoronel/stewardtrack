@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { BasicInfoStep } from './wizard/BasicInfoStep';
-import { SurfaceAssociationStep } from './wizard/SurfaceAssociationStep';
 import { PermissionDefinitionStep } from './wizard/PermissionDefinitionStep';
 import { RoleTemplateStep } from './wizard/RoleTemplateStep';
 import { ReviewStep } from './wizard/ReviewStep';
@@ -18,12 +17,7 @@ export interface WizardData {
   tier: 'essential' | 'professional' | 'enterprise' | 'premium';
   category: string;
 
-  // Step 2: Surface Association
-  surface_id: string;
-  surface_type: 'page' | 'dashboard' | 'wizard' | 'manager' | 'console' | 'audit' | 'overlay';
-  module: string;
-
-  // Step 3: Permissions
+  // Step 2: Permissions
   permissions: Array<{
     permission_code: string;
     display_name: string;
@@ -32,7 +26,7 @@ export interface WizardData {
     display_order: number;
   }>;
 
-  // Step 4: Role Templates (per permission)
+  // Step 3: Role Templates (per permission)
   roleTemplates: Record<string, Array<{
     role_key: string;
     is_recommended: boolean;
@@ -42,10 +36,9 @@ export interface WizardData {
 
 const STEPS = [
   { id: 1, name: 'Basic Info', description: 'Feature details and tier' },
-  { id: 2, name: 'Surface', description: 'Associate with metadata surface' },
-  { id: 3, name: 'Permissions', description: 'Define permission codes' },
-  { id: 4, name: 'Role Templates', description: 'Assign default roles' },
-  { id: 5, name: 'Review', description: 'Review and create' },
+  { id: 2, name: 'Permissions', description: 'Define permission codes' },
+  { id: 3, name: 'Role Templates', description: 'Assign default roles' },
+  { id: 4, name: 'Review', description: 'Review and create' },
 ];
 
 interface FeaturePermissionWizardProps {
@@ -66,9 +59,6 @@ export function FeaturePermissionWizard({
     description: '',
     tier: 'professional',
     category: '',
-    surface_id: '',
-    surface_type: 'page',
-    module: '',
     permissions: [],
     roleTemplates: {},
     ...initialData,
@@ -115,7 +105,7 @@ export function FeaturePermissionWizard({
         );
       case 2:
         return (
-          <SurfaceAssociationStep
+          <PermissionDefinitionStep
             data={wizardData}
             onUpdate={updateWizardData}
             onNext={handleNext}
@@ -124,15 +114,6 @@ export function FeaturePermissionWizard({
         );
       case 3:
         return (
-          <PermissionDefinitionStep
-            data={wizardData}
-            onUpdate={updateWizardData}
-            onNext={handleNext}
-            onBack={handleBack}
-          />
-        );
-      case 4:
-        return (
           <RoleTemplateStep
             data={wizardData}
             onUpdate={updateWizardData}
@@ -140,7 +121,7 @@ export function FeaturePermissionWizard({
             onBack={handleBack}
           />
         );
-      case 5:
+      case 4:
         return (
           <ReviewStep
             data={wizardData}
@@ -160,7 +141,7 @@ export function FeaturePermissionWizard({
         <CardHeader>
           <CardTitle>Create Feature with Permissions</CardTitle>
           <CardDescription>
-            Define a new feature with surface association and permission structure
+            Define a new feature with permission structure and role templates
           </CardDescription>
         </CardHeader>
         <CardContent>

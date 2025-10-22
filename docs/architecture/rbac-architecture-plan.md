@@ -1,5 +1,9 @@
 # RBAC Architecture Research and Implementation Plan
 
+> **📋 UPDATE (2025-10-22):** This document reflects the original architecture planning. The **surface bindings layer has been eliminated** as part of a simplification refactoring. The system now uses a direct **Features → Permissions → Roles** architecture. See [`docs/SURFACE_ELIMINATION_COMPLETE.md`](../SURFACE_ELIMINATION_COMPLETE.md) for details on the completed refactoring.
+>
+> **Current Architecture:** Features are mapped directly to permissions via `feature_permissions` table, eliminating the intermediate `rbac_surface_bindings` and `metadata_surfaces` tables.
+
 ## 1. Current-State Findings
 
 ### 1.1 Database and Security Model
@@ -21,12 +25,15 @@
 - Authoring guidance already treats RBAC as a declarative metadata concern, requiring overlays and components to align with canonical identifiers, but there is no registry translating database role IDs to metadata-friendly keys.【F:docs/metadata-architecture.md†L1-L104】
 
 ## 2. Target Architecture Overview
-1. **Scoped permission vocabulary** – Elevate roles and permissions with explicit `scope` metadata (`system`, `tenant`, `delegated`) and introduce reusable `permission_actions` + `permission_bundles` to standardize capability definitions across congregations.
-2. **Deterministic tenant resolution** – Replace the implicit `can_user(text)` signature with a tenant-aware variant and companion helpers/materialized views so Supabase policies and services can perform fast, explicit lookups.
-3. **Unified surface bindings** – Consolidate navigation and metadata associations into a single `rbac_surface_bindings` table, enabling shared keys between database roles, menu items, and metadata overlay identifiers.
-4. **License-aware gating** – Bind license features directly to permission bundles or surface bindings so unlicensed capabilities never appear, even if RBAC grants are present.
-5. **Metadata alignment** – Extend the runtime to evaluate RBAC against arrays of role/bundle keys and maintain a registry that maps database identifiers to metadata tokens.
-6. **Operational rigor** – Provide migration scripts, refresh triggers, and audit hooks that keep materialized views current and ensure RBAC changes trigger metadata recompilation and monitoring.
+
+> **✅ IMPLEMENTATION STATUS:** The architecture has been simplified from the original plan. Items marked with ✅ are complete, items marked with ⚠️ have been superseded by the simplified architecture.
+
+1. **Scoped permission vocabulary** – ✅ Roles and permissions support explicit `scope` metadata. Permission bundles are implemented for reusable capability definitions.
+2. **Deterministic tenant resolution** – ✅ Tenant-aware permission checks implemented via tenant context resolution in services.
+3. **~~Unified surface bindings~~** – ⚠️ **SUPERSEDED**: Instead of `rbac_surface_bindings`, the system now uses direct **feature-to-permission mappings** via `feature_permissions` table. This eliminates the surface layer entirely.
+4. **License-aware gating** – ✅ License features are bound to permissions through the `feature_catalog` and `feature_permissions` tables.
+5. **Metadata alignment** – ✅ Metadata runtime evaluates RBAC using role-based access checks without requiring surface bindings.
+6. **Operational rigor** – ✅ Migration scripts, audit logging, and monitoring are in place.
 
 ## 3. Step-by-Step Implementation Plan
 

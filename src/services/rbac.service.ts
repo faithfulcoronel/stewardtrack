@@ -2,7 +2,6 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import { RbacCoreService } from '@/services/RbacCoreService';
-import { RbacMetadataService } from '@/services/rbacMetadata.service';
 import { RbacFeatureService } from '@/services/rbacFeature.service';
 import { RbacDelegationService } from '@/services/RbacDelegationService';
 import { RbacAuditService } from '@/services/RbacAuditService';
@@ -20,8 +19,6 @@ import {
   PermissionBundle,
   Permission,
   UserRole,
-  MetadataSurface,
-  RbacSurfaceBinding,
   FeatureCatalog,
   TenantFeatureGrant,
   RoleWithPermissions,
@@ -32,7 +29,6 @@ import {
   CreatePermissionBundleDto,
   UpdatePermissionBundleDto,
   AssignRoleDto,
-  CreateSurfaceBindingDto,
   RbacAuditLog,
   DelegatedContext,
   MultiRoleContext
@@ -56,7 +52,6 @@ import {
 export class RbacService {
   constructor(
     @inject(TYPES.RbacCoreService) private coreService: RbacCoreService,
-    @inject(TYPES.RbacMetadataService) private metadataService: RbacMetadataService,
     @inject(TYPES.RbacFeatureService) private featureService: RbacFeatureService,
     @inject(TYPES.RbacDelegationService) private delegationService: RbacDelegationService,
     @inject(TYPES.RbacAuditService) private auditService: RbacAuditService,
@@ -157,60 +152,6 @@ export class RbacService {
     return this.coreService.getPermissions(tenantId, module);
   }
 
-  // ==================== SURFACE BINDING MANAGEMENT (RbacMetadataService) ====================
-
-  async createSurfaceBinding(data: CreateSurfaceBindingDto, tenantId?: string): Promise<RbacSurfaceBinding> {
-    return this.metadataService.createSurfaceBinding(data, tenantId);
-  }
-
-  async updateSurfaceBinding(id: string, data: Partial<CreateSurfaceBindingDto>, tenantId?: string): Promise<RbacSurfaceBinding> {
-    return this.metadataService.updateSurfaceBinding(id, data, tenantId);
-  }
-
-  async deleteSurfaceBinding(id: string, tenantId?: string): Promise<void> {
-    return this.metadataService.deleteSurfaceBinding(id, tenantId);
-  }
-
-  async getSurfaceBindings(tenantId?: string): Promise<RbacSurfaceBinding[]> {
-    return this.metadataService.getSurfaceBindings(tenantId);
-  }
-
-  // ==================== METADATA SURFACE MANAGEMENT (RbacMetadataService) ====================
-
-  async getMetadataSurfaces(
-    filters?: {
-      module?: string;
-      phase?: string;
-      surface_type?: string;
-    },
-    tenantId?: string
-  ): Promise<MetadataSurface[]> {
-    return this.metadataService.getMetadataSurfaces(filters, tenantId);
-  }
-
-  async getMetadataSurfacesByPhase(phase: string, tenantId?: string): Promise<MetadataSurface[]> {
-    return this.metadataService.getMetadataSurfacesByPhase(phase, tenantId);
-  }
-
-  async createMetadataSurface(data: {
-    module: string;
-    route?: string;
-    blueprint_path: string;
-    surface_type: string;
-    phase: string;
-    title?: string;
-    description?: string;
-    feature_code?: string;
-    rbac_role_keys?: string[];
-    rbac_bundle_keys?: string[];
-    default_menu_code?: string;
-    supports_mobile: boolean;
-    supports_desktop: boolean;
-    is_system: boolean;
-  }): Promise<MetadataSurface> {
-    return this.metadataService.createMetadataSurface(data);
-  }
-
   // ==================== FEATURE MANAGEMENT (RbacFeatureService) ====================
 
   async getFeatureCatalog(): Promise<FeatureCatalog[]> {
@@ -288,13 +229,7 @@ export class RbacService {
     };
   }
 
-  // ==================== METADATA-DRIVEN ROLE/BUNDLE RESOLUTION (RbacMetadataService) ====================
-
-  async resolveMetadataKeys(userId: string, tenantId?: string): Promise<string[]> {
-    return this.metadataService.resolveMetadataKeys(userId, tenantId);
-  }
-
-  // ==================== BUNDLE COMPOSITION WIZARD SUPPORT (RbacCoreService/RbacMetadataService) ====================
+  // ==================== BUNDLE COMPOSITION WIZARD SUPPORT (RbacCoreService) ====================
 
   async getPermissionsByModule(tenantId?: string): Promise<Record<string, Permission[]>> {
     return this.coreService.getPermissionsByModule(tenantId);
@@ -319,7 +254,6 @@ export class RbacService {
     totalBundles: number;
     totalUsers: number;
     activeUsers: number;
-    surfaceBindings: number;
     systemRoles: number;
     customBundles: number;
     recentChanges: number;

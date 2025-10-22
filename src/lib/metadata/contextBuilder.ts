@@ -62,7 +62,7 @@ export async function buildMetadataContext(
 
     // Fetch licensing information
     const licensingSummary = await licensingService.getTenantLicensingSummary(effectiveTenantId);
-    const licensedSurfaces = await licensingService.getTenantLicensedSurfaces(effectiveTenantId);
+    const licensedSurfaces: string[] = []; // Surface bindings removed
 
     // Extract license features from active bundles
     const licenseFeatures: string[] = [];
@@ -163,7 +163,7 @@ export async function enhanceContextWithLicensing(
 
   try {
     const licensingSummary = await licensingService.getTenantLicensingSummary(effectiveTenantId);
-    const licensedSurfaces = await licensingService.getTenantLicensedSurfaces(effectiveTenantId);
+    const licensedSurfaces: string[] = []; // Surface bindings removed
 
     const licenseFeatures: string[] = [];
     for (const bundle of licensingSummary.licensed_bundles) {

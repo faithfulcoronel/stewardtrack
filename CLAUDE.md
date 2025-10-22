@@ -88,8 +88,7 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 
 **Key Services:**
 - `src/services/RbacCoreService.ts` → Core role/permission operations
-- `src/services/RbacMetadataService.ts` → Metadata surface bindings (UI → permission mappings)
-- `src/services/RbacFeatureService.ts` → Feature flag grants
+- `src/services/RbacFeatureService.ts` → Feature flag grants and license feature management
 - `src/services/RbacDelegationService.ts` → Delegation workflows
 - `src/services/RbacPublishingService.ts` → Compile/publish RBAC state changes
 
@@ -208,7 +207,7 @@ tools/
 - `licenses`, `license_features`, `tenant_feature_grants` → Licensing
 - `product_offerings` → Pricing plans
 - `onboarding_progress` → Signup wizard state
-- `metadata_surfaces`, `surface_bindings` → Metadata RBAC
+- `feature_catalog`, `feature_permissions` → Feature-to-permission mappings
 - `delegations`, `delegation_permissions` → Temporary access
 
 **Migrations:** 100+ files in `supabase/migrations/` (applied sequentially by timestamp)
@@ -256,7 +255,7 @@ RESEND_FROM_EMAIL                      # Sender email address
 ### Modifying RBAC
 - Roles/permissions are seeded in `src/lib/tenant/seedDefaultRBAC.ts` during registration
 - Permission bundles defined in database (manageable via admin UI)
-- Metadata surfaces bound to permissions via `surface_bindings` table
+- Features mapped to permissions via `feature_permissions` table for fine-grained access control
 
 ## Testing
 
@@ -290,7 +289,7 @@ RESEND_FROM_EMAIL                      # Sender email address
 ## Key Concepts
 
 **Metadata Overlays:** Tenant/role/variant-specific XML patches applied on top of base blueprints (merged by ID)
-**Surface Bindings:** Metadata UI elements bound to permissions (e.g., "finance_dashboard" requires `finance:read`)
+**Feature Permissions:** Features mapped to specific permissions for fine-grained access control (e.g., "advanced_reporting" feature requires `reports:advanced` permission)
 **Delegation:** Temporary role assignments with subset of delegator's permissions
 **Feature Flags:** License-based feature gating (checked in metadata evaluation)
 **Request Scope:** DI container creates new service instances per request (stateless)

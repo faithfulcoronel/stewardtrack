@@ -5,7 +5,6 @@ import { TYPES } from './types';
 import { RbacService } from '@/services/rbac.service';
 import { RbacRegistryService } from '@/services/RbacRegistryService';
 import { RbacCoreService } from '@/services/RbacCoreService';
-import { RbacMetadataService } from '@/services/rbacMetadata.service';
 import { RbacFeatureService } from '@/services/rbacFeature.service';
 import { RbacDelegationService } from '@/services/RbacDelegationService';
 import { RbacAuditService } from '@/services/RbacAuditService';
@@ -35,8 +34,6 @@ import { PermissionRepository } from '@/repositories/permission.repository';
 import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
 import { PermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import { UserRoleManagementRepository } from '@/repositories/userRole.repository';
-import { MetadataSurfaceRepository } from '@/repositories/metadataSurface.repository';
-import { SurfaceBindingRepository } from '@/repositories/surfaceBinding.repository';
 import { FeatureCatalogRepository } from '@/repositories/featureCatalog.repository';
 import { TenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
 import { DelegationRepository } from '@/repositories/delegation.repository';
@@ -49,7 +46,6 @@ import { LicenseFeatureRepository } from '@/repositories/licenseFeature.reposito
 import { LicensePlanRepository } from '@/repositories/licensePlan.repository';
 import { ProductOfferingRepository } from '@/repositories/productOffering.repository';
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
-import { SurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import { FeaturePermissionRepository } from '@/repositories/featurePermission.repository';
 import { PermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
@@ -61,8 +57,6 @@ import type { IPermissionRepository } from '@/repositories/permission.repository
 import type { IRolePermissionRepository } from '@/repositories/rolePermission.repository';
 import type { IPermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
-import type { IMetadataSurfaceRepository } from '@/repositories/metadataSurface.repository';
-import type { ISurfaceBindingRepository } from '@/repositories/surfaceBinding.repository';
 import type { IFeatureCatalogRepository } from '@/repositories/featureCatalog.repository';
 import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
 import type { IDelegationRepository } from '@/repositories/delegation.repository';
@@ -73,7 +67,6 @@ import type { ILicenseFeatureRepository } from '@/repositories/licenseFeature.re
 import type { ILicensePlanRepository } from '@/repositories/licensePlan.repository';
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
-import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import type { IFeaturePermissionRepository } from '@/repositories/featurePermission.repository';
 import type { IPermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
@@ -85,8 +78,6 @@ import { PermissionAdapter } from '@/adapters/permission.adapter';
 import { RolePermissionAdapter } from '@/adapters/rolePermission.adapter';
 import { UserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
 import { PermissionBundleAdapter } from '@/adapters/permissionBundle.adapter';
-import { MetadataSurfaceAdapter } from '@/adapters/metadataSurface.adapter';
-import { SurfaceBindingAdapter } from '@/adapters/surfaceBinding.adapter';
 import { FeatureCatalogAdapter } from '@/adapters/featureCatalog.adapter';
 import { TenantFeatureGrantAdapter } from '@/adapters/tenantFeatureGrant.adapter';
 import { DelegationAdapter } from '@/adapters/delegation.adapter';
@@ -97,7 +88,6 @@ import { LicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
 import { LicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
-import { SurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 import { FeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
 import { PermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
@@ -109,8 +99,6 @@ import type { IPermissionAdapter } from '@/adapters/permission.adapter';
 import type { IRolePermissionAdapter } from '@/adapters/rolePermission.adapter';
 import type { IUserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
 import type { IPermissionBundleAdapter } from '@/adapters/permissionBundle.adapter';
-import type { IMetadataSurfaceAdapter } from '@/adapters/metadataSurface.adapter';
-import type { ISurfaceBindingAdapter } from '@/adapters/surfaceBinding.adapter';
 import type { IFeatureCatalogAdapter } from '@/adapters/featureCatalog.adapter';
 import type { ITenantFeatureGrantAdapter } from '@/adapters/tenantFeatureGrant.adapter';
 import type { IDelegationAdapter } from '@/adapters/delegation.adapter';
@@ -121,7 +109,6 @@ import type { ILicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
 import type { ILicensePlanAdapter } from '@/adapters/licensePlan.adapter';
 import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
-import type { ISurfaceLicenseBindingAdapter } from '@/adapters/surfaceLicenseBinding.adapter';
 import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 import type { IFeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
 import type { IPermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
@@ -138,7 +125,6 @@ container.bind<RbacRegistryService>(TYPES.RbacRegistryService).to(RbacRegistrySe
 
 // RBAC Specialized Services
 container.bind<RbacCoreService>(TYPES.RbacCoreService).to(RbacCoreService).inRequestScope();
-container.bind<RbacMetadataService>(TYPES.RbacMetadataService).to(RbacMetadataService).inRequestScope();
 container.bind<RbacFeatureService>(TYPES.RbacFeatureService).to(RbacFeatureService).inRequestScope();
 container.bind<RbacDelegationService>(TYPES.RbacDelegationService).to(RbacDelegationService).inRequestScope();
 container.bind<RbacAuditService>(TYPES.RbacAuditService).to(RbacAuditService).inRequestScope();
@@ -230,9 +216,6 @@ container.bind<IPermissionRepository>(TYPES.IPermissionRepository).to(Permission
 container.bind<IRolePermissionRepository>(TYPES.IRolePermissionRepository).to(RolePermissionRepository).inRequestScope();
 container.bind<IPermissionBundleRepository>(TYPES.IPermissionBundleRepository).to(PermissionBundleRepository).inRequestScope();
 container.bind<IUserRoleManagementRepository>(TYPES.IUserRoleManagementRepository).to(UserRoleManagementRepository).inRequestScope();
-container.bind<IMetadataSurfaceRepository>(TYPES.IMetadataSurfaceRepository).to(MetadataSurfaceRepository).inRequestScope();
-container.bind<ISurfaceBindingRepository>(TYPES.ISurfaceBindingRepository).to(SurfaceBindingRepository).inRequestScope();
-container.bind<ISurfaceBindingRepository>(TYPES.IRbacSurfaceBindingRepository).to(SurfaceBindingRepository).inRequestScope();
 container.bind<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository).to(FeatureCatalogRepository).inRequestScope();
 container.bind<ITenantFeatureGrantRepository>(TYPES.ITenantFeatureGrantRepository).to(TenantFeatureGrantRepository).inRequestScope();
 container.bind<IDelegationRepository>(TYPES.IDelegationRepository).to(DelegationRepository).inRequestScope();
@@ -251,10 +234,6 @@ container
 container
   .bind<ILicenseFeatureBundleRepository>(TYPES.ILicenseFeatureBundleRepository)
   .to(LicenseFeatureBundleRepository)
-  .inRequestScope();
-container
-  .bind<ISurfaceLicenseBindingRepository>(TYPES.ISurfaceLicenseBindingRepository)
-  .to(SurfaceLicenseBindingRepository)
   .inRequestScope();
 container
   .bind<ILicenseAssignmentRepository>(TYPES.ILicenseAssignmentRepository)
@@ -281,8 +260,6 @@ container.bind<IPermissionAdapter>(TYPES.IPermissionAdapter).to(PermissionAdapte
 container.bind<IRolePermissionAdapter>(TYPES.IRolePermissionAdapter).to(RolePermissionAdapter).inRequestScope();
 container.bind<IUserRoleManagementAdapter>(TYPES.IUserRoleManagementAdapter).to(UserRoleManagementAdapter).inRequestScope();
 container.bind<IPermissionBundleAdapter>(TYPES.IPermissionBundleAdapter).to(PermissionBundleAdapter).inRequestScope();
-container.bind<IMetadataSurfaceAdapter>(TYPES.IMetadataSurfaceAdapter).to(MetadataSurfaceAdapter).inRequestScope();
-container.bind<ISurfaceBindingAdapter>(TYPES.ISurfaceBindingAdapter).to(SurfaceBindingAdapter).inRequestScope();
 container.bind<IFeatureCatalogAdapter>(TYPES.IFeatureCatalogAdapter).to(FeatureCatalogAdapter).inRequestScope();
 container.bind<ITenantFeatureGrantAdapter>(TYPES.ITenantFeatureGrantAdapter).to(TenantFeatureGrantAdapter).inRequestScope();
 container.bind<IDelegationAdapter>(TYPES.IDelegationAdapter).to(DelegationAdapter).inRequestScope();
@@ -304,10 +281,6 @@ container
 container
   .bind<ILicenseFeatureBundleAdapter>(TYPES.ILicenseFeatureBundleAdapter)
   .to(LicenseFeatureBundleAdapter)
-  .inRequestScope();
-container
-  .bind<ISurfaceLicenseBindingAdapter>(TYPES.ISurfaceLicenseBindingAdapter)
-  .to(SurfaceLicenseBindingAdapter)
   .inRequestScope();
 container
   .bind<ILicenseAssignmentAdapter>(TYPES.ILicenseAssignmentAdapter)

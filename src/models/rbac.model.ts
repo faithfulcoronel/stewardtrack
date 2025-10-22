@@ -82,57 +82,6 @@ export interface UserRole extends BaseModel {
   expires_at?: string;
 }
 
-export interface MetadataSurface {
-  id: string;
-  module: string;
-  route?: string;
-  blueprint_path: string;
-  surface_type: 'page' | 'dashboard' | 'wizard' | 'manager' | 'console' | 'audit' | 'overlay';
-  phase: 'foundation' | 'role-management' | 'surface-binding' | 'delegated' | 'operations' | 'legacy';
-  title?: string;
-  description?: string;
-  feature_code?: string;
-  rbac_role_keys?: string[];
-  rbac_bundle_keys?: string[];
-  default_menu_code?: string;
-  supports_mobile: boolean;
-  supports_desktop: boolean;
-  is_system: boolean;
-  created_by?: string;
-  updated_by?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MetadataSurfaceOverlay {
-  id: string;
-  surface_id: string;
-  persona: string;
-  overlay_path: string;
-  description?: string;
-  scope: 'tenant' | 'campus' | 'global';
-  is_template: boolean;
-  created_by?: string;
-  updated_by?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RbacSurfaceBinding {
-  id: string;
-  tenant_id: string;
-  role_id?: string;
-  bundle_id?: string;
-  menu_item_id?: string;
-  metadata_blueprint_id?: string;
-  required_feature_code?: string;
-  is_active: boolean;
-  created_by?: string;
-  updated_by?: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface FeatureCatalog {
   id: string;
   code: string;
@@ -201,14 +150,6 @@ export interface AssignRoleDto {
   user_id: string;
   role_id: string;
   expires_at?: string;
-}
-
-export interface CreateSurfaceBindingDto {
-  role_id?: string;
-  bundle_id?: string;
-  menu_item_id?: string;
-  metadata_blueprint_id?: string;
-  required_feature_code?: string;
 }
 
 // View models for UI components

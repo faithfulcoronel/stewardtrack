@@ -85,24 +85,6 @@ export class MenuItemAccessGate extends AccessGate {
 
       const hasRoleAccess = roleMenuItems && roleMenuItems.length > 0;
 
-      // If surface_id exists, check surface bindings
-      const surfaceId = metadata?.surface_id;
-      if (surfaceId) {
-        const accessibleSurfaces = await this.userRoleService.getUserAccessibleSurfaces(
-          userId,
-          tenantId
-        );
-
-        if (!accessibleSurfaces.includes(surfaceId)) {
-          return {
-            allowed: false,
-            reason: 'Insufficient permissions for this menu item',
-            requiresUpgrade: true,
-            missingPermissions: ['surface_access'],
-          };
-        }
-      }
-
       // Check feature licensing if feature_key exists
       const featureKey = menuItem.feature_key;
       if (featureKey) {
@@ -119,8 +101,8 @@ export class MenuItemAccessGate extends AccessGate {
         }
       }
 
-      // If no surface_id, require role-based access
-      if (!surfaceId && !hasRoleAccess) {
+      // Require role-based access
+      if (!hasRoleAccess) {
         return {
           allowed: false,
           reason: 'Insufficient role permissions for this menu item',

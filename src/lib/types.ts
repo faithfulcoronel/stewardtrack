@@ -7,7 +7,6 @@ export const TYPES = {
 
   // RBAC Specialized Services
   RbacCoreService: Symbol.for('RbacCoreService'),
-  RbacMetadataService: Symbol.for('RbacMetadataService'),
   RbacFeatureService: Symbol.for('RbacFeatureService'),
   RbacDelegationService: Symbol.for('RbacDelegationService'),
   RbacAuditService: Symbol.for('RbacAuditService'),
@@ -43,8 +42,6 @@ export const TYPES = {
   IRolePermissionAdapter: Symbol.for('IRolePermissionAdapter'),
   IUserRoleManagementAdapter: Symbol.for('IUserRoleManagementAdapter'),
   IPermissionBundleAdapter: Symbol.for('IPermissionBundleAdapter'),
-  IMetadataSurfaceAdapter: Symbol.for('IMetadataSurfaceAdapter'),
-  ISurfaceBindingAdapter: Symbol.for('ISurfaceBindingAdapter'),
   IFeatureCatalogAdapter: Symbol.for('IFeatureCatalogAdapter'),
   ITenantFeatureGrantAdapter: Symbol.for('ITenantFeatureGrantAdapter'),
   IDelegationAdapter: Symbol.for('IDelegationAdapter'),
@@ -54,7 +51,6 @@ export const TYPES = {
   // Licensing Adapters
   IProductOfferingAdapter: Symbol.for('IProductOfferingAdapter'),
   ILicenseFeatureBundleAdapter: Symbol.for('ILicenseFeatureBundleAdapter'),
-  ISurfaceLicenseBindingAdapter: Symbol.for('ISurfaceLicenseBindingAdapter'),
   ILicenseAssignmentAdapter: Symbol.for('ILicenseAssignmentAdapter'),
   IFeaturePermissionAdapter: Symbol.for('IFeaturePermissionAdapter'),
   IPermissionRoleTemplateAdapter: Symbol.for('IPermissionRoleTemplateAdapter'),
@@ -65,9 +61,6 @@ export const TYPES = {
   IPermissionBundleRepository: Symbol.for('IPermissionBundleRepository'),
   IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
   IRolePermissionRepository: Symbol.for('IRolePermissionRepository'),
-  IMetadataSurfaceRepository: Symbol.for('IMetadataSurfaceRepository'),
-  ISurfaceBindingRepository: Symbol.for('ISurfaceBindingRepository'),
-  IRbacSurfaceBindingRepository: Symbol.for('IRbacSurfaceBindingRepository'),
   IFeatureCatalogRepository: Symbol.for('IFeatureCatalogRepository'),
   ITenantFeatureGrantRepository: Symbol.for('ITenantFeatureGrantRepository'),
   IDelegationRepository: Symbol.for('IDelegationRepository'),
@@ -77,7 +70,6 @@ export const TYPES = {
   // Licensing Repositories
   IProductOfferingRepository: Symbol.for('IProductOfferingRepository'),
   ILicenseFeatureBundleRepository: Symbol.for('ILicenseFeatureBundleRepository'),
-  ISurfaceLicenseBindingRepository: Symbol.for('ISurfaceLicenseBindingRepository'),
   ILicenseAssignmentRepository: Symbol.for('ILicenseAssignmentRepository'),
   IFeaturePermissionRepository: Symbol.for('IFeaturePermissionRepository'),
   IPermissionRoleTemplateRepository: Symbol.for('IPermissionRoleTemplateRepository'),

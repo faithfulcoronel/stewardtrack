@@ -22,16 +22,6 @@ const TIER_LABELS: Record<string, string> = {
   premium: 'Premium',
 };
 
-const SURFACE_TYPE_LABELS: Record<string, string> = {
-  page: 'Page',
-  dashboard: 'Dashboard',
-  wizard: 'Wizard',
-  manager: 'Manager',
-  console: 'Console',
-  audit: 'Audit',
-  overlay: 'Overlay',
-};
-
 const ROLE_LABELS: Record<string, string> = {
   tenant_admin: 'Tenant Admin',
   staff: 'Staff',
@@ -80,27 +70,6 @@ export function ReviewStep({
             <div>
               <span className="text-sm text-muted-foreground">License Tier:</span>
               <Badge variant="secondary">{TIER_LABELS[data.tier]}</Badge>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Surface Association */}
-      <Card className="p-4">
-        <h3 className="font-semibold mb-4">Surface Association</h3>
-        <div className="space-y-3">
-          <div>
-            <span className="text-sm text-muted-foreground">Surface ID:</span>
-            <p className="font-mono text-sm">{data.surface_id}</p>
-          </div>
-          <div className="flex gap-4">
-            <div>
-              <span className="text-sm text-muted-foreground">Module:</span>
-              <p className="font-medium capitalize">{data.module}</p>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Surface Type:</span>
-              <Badge>{SURFACE_TYPE_LABELS[data.surface_type]}</Badge>
             </div>
           </div>
         </div>

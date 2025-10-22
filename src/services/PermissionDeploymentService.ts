@@ -6,8 +6,7 @@
  * This service bridges the gap between Licensing Studio and RBAC by:
  * 1. Converting feature grants → tenant permissions
  * 2. Applying permission role templates to actual tenant roles
- * 3. Creating surface bindings for features with surface_id
- * 4. Synchronizing permissions when licenses change
+ * 3. Synchronizing permissions when licenses change
  *
  * KEY CONCEPT: Licensing Studio defines WHAT features/permissions exist globally.
  *              This service deploys them TO SPECIFIC TENANTS based on their license.
@@ -19,12 +18,11 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { FeaturePermission, PermissionRoleTemplate } from '@/models/featurePermission.model';
-import type { Permission, Role, RbacSurfaceBinding } from '@/models/rbac.model';
+import type { Permission, Role } from '@/models/rbac.model';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IRolePermissionRepository } from '@/repositories/rolePermission.repository';
 import type { IFeaturePermissionRepository } from '@/repositories/featurePermission.repository';
-import type { ISurfaceBindingRepository } from '@/repositories/surfaceBinding.repository';
 import type { IFeatureCatalogRepository } from '@/repositories/featureCatalog.repository';
 import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
 
@@ -85,9 +83,6 @@ export class PermissionDeploymentService {
 
     @inject(TYPES.IFeaturePermissionRepository)
     private featurePermissionRepository: IFeaturePermissionRepository,
-
-    @inject(TYPES.ISurfaceBindingRepository)
-    private surfaceBindingRepository: ISurfaceBindingRepository,
 
     @inject(TYPES.IFeatureCatalogRepository)
     private featureCatalogRepository: IFeatureCatalogRepository,
@@ -225,24 +220,7 @@ export class PermissionDeploymentService {
         }
       }
 
-      // 4. Create surface binding if feature has surface_id
-      if (feature.surface_id && !options.skipSurfaceBindings) {
-        const bindingResult = await this.createSurfaceBinding(
-          tenantId,
-          feature.surface_id,
-          featureId,
-          featurePermissions,
-          options
-        );
-
-        if (bindingResult.created) {
-          result.surfaceBindingsCreated++;
-        }
-
-        if (bindingResult.error) {
-          result.errors.push(bindingResult.error);
-        }
-      }
+      // Surface bindings removed - using direct feature-based access control
 
       result.success = result.errors.length === 0;
     } catch (error: any) {
@@ -416,54 +394,6 @@ export class PermissionDeploymentService {
    * Create surface binding for a feature's surface
    * Links the metadata surface to the feature's permissions
    */
-  private async createSurfaceBinding(
-    tenantId: string,
-    surfaceId: string,
-    featureId: string,
-    featurePermissions: FeaturePermission[],
-    options: DeploymentOptions
-  ): Promise<{ created: boolean; error?: string }> {
-    try {
-      // 1. Check if binding already exists
-      const existing = await this.surfaceBindingRepository.findBySurfaceId(
-        tenantId,
-        surfaceId
-      );
-
-      if (existing) {
-        return { created: false };
-      }
-
-      // 2. Get the feature code for binding
-      const feature = await this.featureCatalogRepository.getById(featureId);
-
-      if (!feature) {
-        return { created: false, error: `Feature ${featureId} not found` };
-      }
-
-      // 3. Create surface binding
-      if (!options.dryRun) {
-        await this.surfaceBindingRepository.createSurfaceBinding({
-          tenant_id: tenantId,
-          surface_id: surfaceId,
-          required_feature_code: feature.code,
-          is_active: true,
-        }, tenantId);
-
-        return { created: true };
-      } else {
-        console.log(
-          `[DRY RUN] Would create surface binding for surface ${surfaceId} requiring feature ${feature.code}`
-        );
-        return { created: false };
-      }
-    } catch (error: any) {
-      return {
-        created: false,
-        error: `Failed to create surface binding: ${error.message}`,
-      };
-    }
-  }
 
   /**
    * Remove permissions for features that are NO LONGER licensed

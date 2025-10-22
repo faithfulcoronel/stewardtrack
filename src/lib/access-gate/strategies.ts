@@ -6,7 +6,7 @@
 
 import 'server-only';
 import { AccessGate, AccessCheckResult, AccessGateConfig } from './AccessGate';
-import { checkSurfaceAccess, hasPermission, hasAllPermissions, hasAnyPermission, checkSuperAdmin, checkTenantAdmin } from '@/lib/rbac/permissionHelpers';
+import { hasPermission, hasAllPermissions, hasAnyPermission, checkSuperAdmin, checkTenantAdmin } from '@/lib/rbac/permissionHelpers';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
@@ -14,7 +14,8 @@ import { UserRoleService } from '@/services/UserRoleService';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 /**
- * Surface Access Gate - Checks RBAC + Licensing for a specific surface
+ * Surface Access Gate - DEPRECATED
+ * @deprecated Surface-based access control has been removed. Use PermissionGate or FeatureGate instead.
  */
 export class SurfaceAccessGate extends AccessGate {
   constructor(
@@ -24,25 +25,13 @@ export class SurfaceAccessGate extends AccessGate {
     super(config);
   }
 
-  async check(userId: string, tenantId?: string): Promise<AccessCheckResult> {
-    try {
-      const hasAccess = await checkSurfaceAccess(userId, this.surfaceId, tenantId);
-
-      if (!hasAccess) {
-        return {
-          allowed: false,
-          reason: `Access denied to surface: ${this.surfaceId}`,
-          redirectTo: this.config.fallbackPath || '/unauthorized',
-        };
-      }
-
-      return { allowed: true };
-    } catch (error) {
-      return {
-        allowed: false,
-        reason: error instanceof Error ? error.message : 'Access check failed',
-      };
-    }
+  async check(_userId: string, _tenantId?: string): Promise<AccessCheckResult> {
+    console.warn(`SurfaceAccessGate is deprecated. Surface ID: ${this.surfaceId}`);
+    return {
+      allowed: false,
+      reason: 'Surface-based access control has been removed. Use permission-based or feature-based access control.',
+      redirectTo: this.config.fallbackPath || '/unauthorized',
+    };
   }
 }
 

@@ -5,7 +5,6 @@ import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IPermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import type { IPublishingRepository } from '@/repositories/publishing.repository';
 import type { IRbacAuditRepository } from '@/repositories/rbacAudit.repository';
-import type { ISurfaceBindingRepository } from '@/repositories/surfaceBinding.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
@@ -24,8 +23,6 @@ export class RbacStatisticsService {
     private publishingRepository: IPublishingRepository,
     @inject(TYPES.IRbacAuditRepository)
     private auditRepository: IRbacAuditRepository,
-    @inject(TYPES.ISurfaceBindingRepository)
-    private surfaceBindingRepository: ISurfaceBindingRepository,
     @inject(TYPES.IUserRoleManagementRepository)
     private userRoleRepository: IUserRoleManagementRepository
   ) {}
@@ -58,7 +55,6 @@ export class RbacStatisticsService {
     totalBundles: number;
     totalUsers: number;
     activeUsers: number;
-    surfaceBindings: number;
     systemRoles: number;
     customBundles: number;
     recentChanges: number;
@@ -84,10 +80,8 @@ export class RbacStatisticsService {
       this.auditRepository.getAuditLogs(effectiveTenantId, 100, 0)
     ]);
 
-    // For user counts and surface bindings, we need to call the adapters through repositories
-    // Since these don't have dedicated methods yet, we'll get counts using the existing methods
+    // Get user counts
     const users = await this.userRoleRepository.getUsers(effectiveTenantId);
-    const surfaceBindings = await this.surfaceBindingRepository.getSurfaceBindings(effectiveTenantId);
 
     // Count active users (users with at least one role)
     const usersWithRoles = new Set(users.map((u: any) => u.id));
@@ -97,7 +91,6 @@ export class RbacStatisticsService {
       totalBundles: allBundles.length,
       totalUsers: users.length,
       activeUsers: usersWithRoles.size,
-      surfaceBindings: surfaceBindings.length,
       systemRoles: systemRoles.length,
       customBundles: customBundles.length,
       recentChanges: recentLogs.length,

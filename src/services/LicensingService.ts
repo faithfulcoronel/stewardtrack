@@ -3,7 +3,6 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
-import type { ISurfaceLicenseBindingRepository } from '@/repositories/surfaceLicenseBinding.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
@@ -20,12 +19,6 @@ import type {
   UpdateLicenseFeatureBundleDto,
   AssignFeatureToBundleDto,
 } from '@/models/licenseFeatureBundle.model';
-import type {
-  EffectiveSurfaceAccess,
-  SurfaceAccessResult,
-  UpdateSurfaceLicenseBindingDto,
-  UpdateRbacSurfaceLicenseBindingDto,
-} from '@/models/surfaceLicenseBinding.model';
 import type {
   TenantForAssignment,
   AssignmentResult,
@@ -78,8 +71,6 @@ export class LicensingService {
     private productOfferingRepository: IProductOfferingRepository,
     @inject(TYPES.ILicenseFeatureBundleRepository)
     private licenseFeatureBundleRepository: ILicenseFeatureBundleRepository,
-    @inject(TYPES.ISurfaceLicenseBindingRepository)
-    private surfaceLicenseBindingRepository: ISurfaceLicenseBindingRepository,
     @inject(TYPES.ITenantFeatureGrantRepository)
     private tenantFeatureGrantRepository: ITenantFeatureGrantRepository,
     @inject(TYPES.ILicenseAssignmentRepository)
@@ -278,61 +269,6 @@ export class LicensingService {
 
   // ==================== SURFACE LICENSE BINDING METHODS ====================
 
-  /**
-   * Gets effective surface access for a tenant (combining RBAC + licensing)
-   */
-  async getEffectiveSurfaceAccess(tenantId?: string): Promise<EffectiveSurfaceAccess[]> {
-    const effectiveTenantId = await this.resolveTenantId(tenantId);
-    return await this.surfaceLicenseBindingRepository.getEffectiveSurfaceAccess(effectiveTenantId);
-  }
-
-  /**
-   * Checks if a user can access a specific surface (RBAC + licensing)
-   */
-  async checkSurfaceAccess(userId: string, surfaceId: string, tenantId?: string): Promise<SurfaceAccessResult> {
-    const effectiveTenantId = await this.resolveTenantId(tenantId);
-    return await this.surfaceLicenseBindingRepository.checkSurfaceAccess(userId, effectiveTenantId, surfaceId);
-  }
-
-  /**
-   * Updates license requirements for a metadata surface
-   */
-  async updateSurfaceLicenseRequirement(surfaceId: string, data: UpdateSurfaceLicenseBindingDto): Promise<void> {
-    await this.surfaceLicenseBindingRepository.updateSurfaceLicenseRequirement(surfaceId, data);
-  }
-
-  /**
-   * Updates license requirements for an RBAC surface binding
-   */
-  async updateRbacBindingLicenseRequirement(
-    roleId: string,
-    surfaceId: string,
-    data: UpdateRbacSurfaceLicenseBindingDto,
-    tenantId?: string
-  ): Promise<void> {
-    const effectiveTenantId = await this.resolveTenantId(tenantId);
-    await this.surfaceLicenseBindingRepository.updateRbacBindingLicenseRequirement(
-      effectiveTenantId,
-      roleId,
-      surfaceId,
-      data
-    );
-  }
-
-  /**
-   * Gets all surfaces that require a specific license bundle
-   */
-  async getSurfacesByLicenseBundle(bundleId: string): Promise<Array<{ surface_id: string; surface_title: string; surface_route: string }>> {
-    return await this.surfaceLicenseBindingRepository.getSurfacesByLicenseBundle(bundleId);
-  }
-
-  /**
-   * Gets all surfaces that a tenant has licenses for
-   */
-  async getTenantLicensedSurfaces(tenantId?: string): Promise<string[]> {
-    const effectiveTenantId = await this.resolveTenantId(tenantId);
-    return await this.surfaceLicenseBindingRepository.getTenantLicensedSurfaces(effectiveTenantId);
-  }
 
   // ==================== CONVENIENCE METHODS ====================
 
@@ -348,21 +284,17 @@ export class LicensingService {
     licensed_bundles: LicenseFeatureBundleWithFeatures[];
     licensed_features: LicensedFeatureSummary[];
     accessible_surfaces: string[];
-    effective_access: EffectiveSurfaceAccess[];
+    effective_access: any[];
   }> {
     const effectiveTenantId = await this.resolveTenantId(tenantId);
 
     const [
       activeOfferings,
       activeBundles,
-      accessibleSurfaces,
-      effectiveAccess,
       tenantFeatureGrants,
     ] = await Promise.all([
       this.getActiveProductOfferings(),
       this.getActiveLicenseFeatureBundles(),
-      this.getTenantLicensedSurfaces(effectiveTenantId),
-      this.getEffectiveSurfaceAccess(effectiveTenantId),
       this.tenantFeatureGrantRepository.getTenantFeatureGrants(effectiveTenantId),
     ]);
 
@@ -383,8 +315,8 @@ export class LicensingService {
       active_offerings: activeOfferings,
       licensed_bundles: validBundles,
       licensed_features: licensedFeatures,
-      accessible_surfaces: accessibleSurfaces,
-      effective_access: effectiveAccess,
+      accessible_surfaces: [], // Surface bindings removed - always empty
+      effective_access: [], // Surface bindings removed - always empty
     };
   }
 

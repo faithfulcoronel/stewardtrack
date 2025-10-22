@@ -137,9 +137,6 @@ export class SidebarService {
       return [];
     }
 
-    // Get accessible surfaces based on RBAC + licensing
-    const accessibleSurfaces = await this.userRoleService.getUserAccessibleSurfaces(userId, tenant.id);
-
     const { data: items } = await this.menuRepo.findAll({
       select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,surface_id,role_menu_items(role_id)',
       filters: {
@@ -165,11 +162,6 @@ export class SidebarService {
 
       // Check feature licensing
       if (featureKeys.length > 0 && !item.is_system && item.feature_key && !featureKeys.includes(item.feature_key)) {
-        return false;
-      }
-
-      // Check surface licensing if surface_id is present
-      if (item.surface_id && !accessibleSurfaces.includes(item.surface_id)) {
         return false;
       }
 
@@ -231,12 +223,6 @@ export class SidebarService {
       return [];
     }
 
-    // Get both accessible and locked surfaces
-    const [accessibleSurfaces, lockedSurfaces] = await Promise.all([
-      this.userRoleService.getUserAccessibleSurfaces(userId, tenant.id),
-      this.userRoleService.getLockedSurfaces(userId, tenant.id),
-    ]);
-
     const { data: items } = await this.menuRepo.findAll({
       select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,surface_id,role_menu_items(role_id)',
       filters: {
@@ -263,13 +249,12 @@ export class SidebarService {
       }
 
       // Check if locked due to licensing
-      const isLockedBySurface = item.surface_id && lockedSurfaces.includes(item.surface_id);
       const isLockedByFeature = !item.is_system && item.feature_key && !featureKeys.includes(item.feature_key);
 
       return {
         ...item,
-        locked: isLockedBySurface || isLockedByFeature,
-        lockReason: isLockedBySurface ? 'Requires license upgrade' : isLockedByFeature ? 'Feature not available in your plan' : undefined,
+        locked: isLockedByFeature,
+        lockReason: isLockedByFeature ? 'Feature not available in your plan' : undefined,
       };
     }).filter(item => item !== null);
 

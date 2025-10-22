@@ -30,12 +30,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface DashboardStats {
   totalRoles: number;
-  totalBundles: number;
   totalUsers: number;
   activeUsers: number;
-  surfaceBindings: number;
   systemRoles: number;
-  customBundles: number;
   recentChanges: number;
   pendingApprovals: number;
 }
@@ -61,12 +58,9 @@ export function RbacDashboard() {
   const { showOnboarding, setShowOnboarding, completeOnboarding } = useRbacOnboarding();
   const [stats, setStats] = useState<DashboardStats>({
     totalRoles: 0,
-    totalBundles: 0,
     totalUsers: 0,
     activeUsers: 0,
-    surfaceBindings: 0,
     systemRoles: 0,
-    customBundles: 0,
     recentChanges: 0,
     pendingApprovals: 0
   });
@@ -90,13 +84,6 @@ export function RbacDashboard() {
       route: '/admin/security/rbac/roles'
     },
     {
-      phase: 'Phase C',
-      title: 'Surface Binding Integration',
-      status: 'complete',
-      description: 'UI surface binding manager and license integration',
-      route: '/admin/security/rbac/surface-bindings'
-    },
-    {
       phase: 'Phase D',
       title: 'Delegated Consoles & Multi-Role Runtime',
       status: 'complete',
@@ -107,7 +94,7 @@ export function RbacDashboard() {
       phase: 'Phase E',
       title: 'Operational Dashboards',
       status: 'complete',
-      description: 'Audit timelines, materialized view monitoring, and metadata publishing controls',
+      description: 'Audit timelines and activity monitoring',
       route: '/admin/security/rbac/audit'
     }
   ];
@@ -257,8 +244,7 @@ export function RbacDashboard() {
         <CheckCircle className="h-4 w-4 text-green-600" />
         <AlertDescription>
           <span className="text-green-800">
-            RBAC system implementation complete! All phases (A-E) are operational including advanced
-            audit monitoring, materialized view management, and metadata publishing controls.
+            RBAC system is active! Manage user roles, permissions, and audit access across your organization.
           </span>
         </AlertDescription>
       </Alert>
@@ -291,57 +277,7 @@ export function RbacDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <ContextualHelp section="permissions">
-                  <div className="flex items-center gap-2 cursor-help">
-                    <p className="text-sm font-medium text-gray-600">Permission Bundles</p>
-                    <HelpCircle className="h-3 w-3 text-gray-400" />
-                  </div>
-                </ContextualHelp>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalBundles}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <Key className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <Link href="/admin/security/rbac/bundles">
-                <Button variant="outline" size="sm" className="w-full">
-                  Manage Bundles
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <ContextualHelp section="bindings">
-                  <div className="flex items-center gap-2 cursor-help">
-                    <p className="text-sm font-medium text-gray-600">Surface Bindings</p>
-                    <HelpCircle className="h-3 w-3 text-gray-400" />
-                  </div>
-                </ContextualHelp>
-                <p className="text-3xl font-bold text-gray-900">{stats.surfaceBindings}</p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Lock className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <Link href="/admin/security/rbac/surface-bindings">
-                <Button variant="outline" size="sm" className="w-full">
-                  Manage Surfaces
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardContent className="p-6">
@@ -397,15 +333,9 @@ export function RbacDashboard() {
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Permission Bundles</span>
+                  <span className="text-sm text-gray-600">Permission System</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                     Active
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Surface Bindings</span>
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                    Development
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
@@ -555,29 +485,6 @@ export function RbacDashboard() {
               </Card>
             </ContextualHelp>
 
-            <ContextualHelp section="composeBundle">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/bundles">
-                  <CardContent className="p-6 text-center">
-                    <Key className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                    <h3 className="font-semibold mb-1">Compose Bundle</h3>
-                    <p className="text-xs text-gray-600">Create reusable permission sets</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="manageBindings">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/surface-bindings">
-                  <CardContent className="p-6 text-center">
-                    <Lock className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                    <h3 className="font-semibold mb-1">Manage Bindings</h3>
-                    <p className="text-xs text-gray-600">Link roles to UI surfaces</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
 
             <ContextualHelp section="delegatedConsole">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
@@ -663,17 +570,6 @@ export function RbacDashboard() {
               </Card>
             </ContextualHelp>
 
-            <ContextualHelp section="publishingControls">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/publishing">
-                  <CardContent className="p-6 text-center">
-                    <Shield className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                    <h3 className="font-semibold mb-1">Publishing Controls</h3>
-                    <p className="text-xs text-gray-600">Metadata compilation & deployment</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
 
             <ContextualHelp section="systemSettings">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">

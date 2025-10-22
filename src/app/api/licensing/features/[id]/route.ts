@@ -170,9 +170,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         description: body.description,
         tier: body.tier,
         category: body.category,
-        surface_id: body.surface_id,
-        surface_type: body.surface_type,
-        module: body.module,
         is_active: body.is_active,
         updated_at: new Date().toISOString(),
       })

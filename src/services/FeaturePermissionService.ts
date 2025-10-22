@@ -293,7 +293,7 @@ export class FeaturePermissionService {
   }
 
   /**
-   * Generate suggested permissions for a feature based on its surface_id
+   * Generate suggested permissions for a feature based on its code
    * This is a helper for the UI to pre-populate permission suggestions
    */
   async suggestPermissionsForFeature(featureId: string): Promise<
@@ -310,18 +310,13 @@ export class FeaturePermissionService {
       throw new Error(`Feature with ID '${featureId}' not found`);
     }
 
-    // If no surface_id, return basic suggestions
-    if (!feature.surface_id) {
-      return this.getBasicPermissionSuggestions();
-    }
-
-    // Generate suggestions based on surface_id
+    // Generate suggestions based on feature code
     const suggestions = [];
-    const commonActions = this.validationService.getCommonActions();
+    const featureBase = feature.code || feature.category;
 
     // Suggest view/read permission (required)
     suggestions.push({
-      permission_code: this.validationService.suggestPermissionCode(feature.surface_id, 'view'),
+      permission_code: this.validationService.suggestPermissionCode(featureBase, 'view'),
       display_name: 'View',
       description: `View ${feature.name} information`,
       is_required: true,
@@ -330,7 +325,7 @@ export class FeaturePermissionService {
 
     // Suggest manage permission
     suggestions.push({
-      permission_code: this.validationService.suggestPermissionCode(feature.surface_id, 'manage'),
+      permission_code: this.validationService.suggestPermissionCode(featureBase, 'manage'),
       display_name: 'Manage',
       description: `Manage ${feature.name} (create, update, delete)`,
       is_required: false,
@@ -339,7 +334,7 @@ export class FeaturePermissionService {
 
     // Suggest export permission
     suggestions.push({
-      permission_code: this.validationService.suggestPermissionCode(feature.surface_id, 'export'),
+      permission_code: this.validationService.suggestPermissionCode(featureBase, 'export'),
       display_name: 'Export',
       description: `Export ${feature.name} data`,
       is_required: false,
@@ -350,7 +345,7 @@ export class FeaturePermissionService {
   }
 
   /**
-   * Get basic permission suggestions when no surface_id is available
+   * Get basic permission suggestions
    */
   private getBasicPermissionSuggestions(): Array<{
     permission_code: string;
