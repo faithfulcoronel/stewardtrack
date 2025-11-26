@@ -77,20 +77,36 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 
 ### RBAC System
 
-**Architecture:** Multi-layered permission system with roles, permissions, bundles, delegation, and feature flags.
+**Architecture:** Simplified 2-layer permission system (Roles → Permissions) with feature flags, delegation, and multi-role support.
 
 **Core Entities:**
 - **Roles** (`roles` table): Tenant-scoped or system-scoped roles (e.g., `tenant_admin`, `staff`, `volunteer`, `member`)
 - **Permissions** (`permissions` table): Granular access rights (e.g., `members:read`, `finance:write`)
-- **Permission Bundles** (`permission_bundles`, `permission_bundle_permissions`): Reusable permission groups
-- **User Roles** (`user_roles`): Many-to-many (user ↔ role)
-- **Delegation** (`delegations`, `delegation_permissions`): Temporary role assignments with scoped permissions
+- **Role Permissions** (`role_permissions`): Direct mapping of permissions to roles (no bundles)
+- **User Roles** (`user_roles`): Many-to-many (user ↔ role) - supports multiple roles per user
+- **Delegations** (`delegations`): Simplified role-based delegation with scope (Campus/Ministry) and time limits
 
 **Key Services:**
-- `src/services/RbacCoreService.ts` → Core role/permission operations
+- `src/services/RbacCoreService.ts` → Core role/permission operations (bundle methods removed)
 - `src/services/RbacFeatureService.ts` → Feature flag grants and license feature management
-- `src/services/RbacDelegationService.ts` → Delegation workflows
+- `src/services/RbacDelegationService.ts` → Simplified delegation workflows (role + scope model)
 - `src/services/RbacPublishingService.ts` → Compile/publish RBAC state changes
+- `src/services/RbacStatisticsService.ts` → Dashboard statistics (bundle stats removed)
+
+**Role Creation Workflow:**
+- 4-step wizard: Basic Info → Assign Permissions → Link Users → Review & Create
+- Wizard component: `src/components/admin/rbac/RoleCreationWizard.tsx`
+- Direct permission assignment (no permission bundles)
+
+**Delegation Model (Simplified):**
+- Delegation = Assign Role + Scope (Campus/Ministry/Event) + Time Limit
+- No granular permission selection - delegate complete roles only
+- API endpoints: `/api/rbac/delegation/assign-role`, `/api/rbac/delegation/revoke-role`
+
+**Multi-Role Support:**
+- Users can have multiple roles simultaneously
+- Conflict analysis for overlapping permissions
+- UI: `/admin/rbac/multi-role`
 
 **Dependency Injection:** InversifyJS container in `src/lib/container.ts` (use `inRequestScope()` for all services)
 
@@ -203,12 +219,13 @@ tools/
 - `tenant_users` → User ↔ tenant assignments
 - `profiles` → User profile data
 - `members` → Church membership records
-- `roles`, `permissions`, `user_roles`, `permission_bundles` → RBAC
+- `roles`, `permissions`, `user_roles`, `role_permissions` → RBAC (simplified 2-layer)
 - `licenses`, `license_features`, `tenant_feature_grants` → Licensing
+- `license_feature_bundles` → License tier feature groupings (NOT RBAC bundles)
 - `product_offerings` → Pricing plans
 - `onboarding_progress` → Signup wizard state
 - `feature_catalog`, `feature_permissions` → Feature-to-permission mappings
-- `delegations`, `delegation_permissions` → Temporary access
+- `delegations` → Simplified role-based delegation with scopes
 
 **Migrations:** 100+ files in `supabase/migrations/` (applied sequentially by timestamp)
 
@@ -254,8 +271,10 @@ RESEND_FROM_EMAIL                      # Sender email address
 
 ### Modifying RBAC
 - Roles/permissions are seeded in `src/lib/tenant/seedDefaultRBAC.ts` during registration
-- Permission bundles defined in database (manageable via admin UI)
+- Use 4-step Role Creation Wizard at `/admin/security/rbac` → Quick Actions → Create Role
+- Direct permission assignment to roles (no bundles - simplified architecture)
 - Features mapped to permissions via `feature_permissions` table for fine-grained access control
+- Multi-role assignment supported via `/admin/rbac/multi-role`
 
 ## Testing
 

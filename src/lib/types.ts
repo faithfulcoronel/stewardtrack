@@ -41,7 +41,6 @@ export const TYPES = {
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),
   IRolePermissionAdapter: Symbol.for('IRolePermissionAdapter'),
   IUserRoleManagementAdapter: Symbol.for('IUserRoleManagementAdapter'),
-  IPermissionBundleAdapter: Symbol.for('IPermissionBundleAdapter'),
   IFeatureCatalogAdapter: Symbol.for('IFeatureCatalogAdapter'),
   ITenantFeatureGrantAdapter: Symbol.for('ITenantFeatureGrantAdapter'),
   IDelegationAdapter: Symbol.for('IDelegationAdapter'),
@@ -58,7 +57,6 @@ export const TYPES = {
   // RBAC Repositories
   IRoleRepository: Symbol.for('IRoleRepository'),
   IPermissionRepository: Symbol.for('IPermissionRepository'),
-  IPermissionBundleRepository: Symbol.for('IPermissionBundleRepository'),
   IUserRoleManagementRepository: Symbol.for('IUserRoleManagementRepository'),
   IRolePermissionRepository: Symbol.for('IRolePermissionRepository'),
   IFeatureCatalogRepository: Symbol.for('IFeatureCatalogRepository'),

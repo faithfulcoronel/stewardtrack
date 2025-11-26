@@ -24,6 +24,7 @@ import { RbacHelpGuide } from './RbacHelpGuide';
 import { ContextualHelp, QuickTip, HelpDialog, ProcessGuides, ProcessGuide } from './RbacHelper';
 import { RbacOnboarding, useRbacOnboarding } from './RbacOnboarding';
 import { UserManagement } from './UserManagement';
+import { RoleCreationWizard } from './RoleCreationWizard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -46,16 +47,9 @@ interface RecentActivity {
   status: 'success' | 'pending' | 'warning';
 }
 
-interface PhaseStatus {
-  phase: string;
-  title: string;
-  status: 'complete' | 'in_progress' | 'planned';
-  description: string;
-  route?: string;
-}
-
 export function RbacDashboard() {
   const { showOnboarding, setShowOnboarding, completeOnboarding } = useRbacOnboarding();
+  const [showWizard, setShowWizard] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalRoles: 0,
     totalUsers: 0,
@@ -67,37 +61,6 @@ export function RbacDashboard() {
 
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const phaseStatuses: PhaseStatus[] = [
-    {
-      phase: 'Phase A',
-      title: 'Foundation Alignment',
-      status: 'complete',
-      description: 'RBAC dashboard and metadata registry established',
-      route: '/admin/security/rbac'
-    },
-    {
-      phase: 'Phase B',
-      title: 'Role & Bundle Management',
-      status: 'complete',
-      description: 'Role explorer and permission bundle composer',
-      route: '/admin/security/rbac/roles'
-    },
-    {
-      phase: 'Phase D',
-      title: 'Delegated Consoles & Multi-Role Runtime',
-      status: 'complete',
-      description: 'Campus and ministry-scoped access management with multi-role support',
-      route: '/admin/rbac/delegated-console'
-    },
-    {
-      phase: 'Phase E',
-      title: 'Operational Dashboards',
-      status: 'complete',
-      description: 'Audit timelines and activity monitoring',
-      route: '/admin/security/rbac/audit'
-    }
-  ];
 
   useEffect(() => {
     loadDashboardData();
@@ -136,24 +99,6 @@ export function RbacDashboard() {
       console.error('Error loading dashboard data:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const getPhaseStatusColor = (status: string) => {
-    switch (status) {
-      case 'complete': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'planned': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPhaseStatusIcon = (status: string) => {
-    switch (status) {
-      case 'complete': return <CheckCircle className="h-4 w-4" />;
-      case 'in_progress': return <Clock className="h-4 w-4" />;
-      case 'planned': return <Settings className="h-4 w-4" />;
-      default: return <Settings className="h-4 w-4" />;
     }
   };
 
@@ -308,9 +253,8 @@ export function RbacDashboard() {
 
       {/* Main Dashboard Content */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="phases">Implementation Phases</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
           <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="quick-actions">Quick Actions</TabsTrigger>
@@ -366,15 +310,6 @@ export function RbacDashboard() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Custom Bundles</span>
-                    <span>{stats.customBundles} of {stats.totalBundles}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{width: `${stats.totalBundles > 0 ? (stats.customBundles / stats.totalBundles * 100) : 0}%`}}></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
                     <span>Active Users</span>
                     <span>{stats.activeUsers} of {stats.totalUsers}</span>
                   </div>
@@ -385,43 +320,6 @@ export function RbacDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="phases" className="space-y-4">
-          <QuickTip
-            type="tip"
-            title="Implementation Phases"
-            description="Each phase builds on the previous one. Start with Phase A (Foundation) and work your way through. All phases are currently complete and operational."
-          />
-          {phaseStatuses.map((phase) => (
-            <Card key={phase.phase}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${getPhaseStatusColor(phase.status)}`}>
-                      {getPhaseStatusIcon(phase.status)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{phase.phase}: {phase.title}</h3>
-                      <p className="text-sm text-gray-600">{phase.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getPhaseStatusColor(phase.status)}>
-                      {phase.status.replace('_', ' ')}
-                    </Badge>
-                    {phase.route && phase.status !== 'planned' && (
-                      <Link href={phase.route}>
-                        <Button size="sm" variant="outline">
-                          Access
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-4">
@@ -470,21 +368,72 @@ export function RbacDashboard() {
           <QuickTip
             type="info"
             title="Quick Actions"
-            description="Common tasks you might need to do. Each action takes you to the appropriate management area with step-by-step guidance."
+            description="Common tasks for RBAC management. Each action provides access to key management areas."
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <h3 className="text-lg font-semibold text-gray-900">Core Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <ContextualHelp section="createRole">
+              <Card
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setShowWizard(true)}
+              >
+                <CardContent className="p-6 text-center">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                  <h3 className="font-semibold mb-1">Create Role</h3>
+                  <p className="text-xs text-gray-600">Add new role with custom permissions</p>
+                </CardContent>
+              </Card>
+            </ContextualHelp>
+
+            <ContextualHelp section="managePermissions">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <Link href="/admin/security/rbac/roles">
                   <CardContent className="p-6 text-center">
-                    <Users className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                    <h3 className="font-semibold mb-1">Create Role</h3>
-                    <p className="text-xs text-gray-600">Add new role with custom permissions</p>
+                    <Key className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                    <h3 className="font-semibold mb-1">Manage Permissions</h3>
+                    <p className="text-xs text-gray-600">View and edit role permissions</p>
                   </CardContent>
                 </Link>
               </Card>
             </ContextualHelp>
 
+            <ContextualHelp section="viewAudit">
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link href="/admin/security/rbac/audit">
+                  <CardContent className="p-6 text-center">
+                    <Activity className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+                    <h3 className="font-semibold mb-1">Audit Logs</h3>
+                    <p className="text-xs text-gray-600">Review system changes</p>
+                  </CardContent>
+                </Link>
+              </Card>
+            </ContextualHelp>
+
+            <ContextualHelp section="exportData">
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <Lock className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                  <h3 className="font-semibold mb-1">Export Data</h3>
+                  <p className="text-xs text-gray-600">Download roles & permissions</p>
+                </CardContent>
+              </Card>
+            </ContextualHelp>
+          </div>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-6">Advanced Features</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ContextualHelp section="multiRole">
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link href="/admin/rbac/multi-role">
+                  <CardContent className="p-6 text-center">
+                    <UserCheck className="h-8 w-8 mx-auto mb-2 text-indigo-600" />
+                    <h3 className="font-semibold mb-1">Multi-Role Assignment</h3>
+                    <p className="text-xs text-gray-600">Assign multiple roles with conflict analysis</p>
+                  </CardContent>
+                </Link>
+              </Card>
+            </ContextualHelp>
 
             <ContextualHelp section="delegatedConsole">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
@@ -498,86 +447,15 @@ export function RbacDashboard() {
               </Card>
             </ContextualHelp>
 
-            <ContextualHelp section="multiRole">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/rbac/multi-role">
-                  <CardContent className="p-6 text-center">
-                    <UserCheck className="h-8 w-8 mx-auto mb-2 text-indigo-600" />
-                    <h3 className="font-semibold mb-1">Multi-Role Assignment</h3>
-                    <p className="text-xs text-gray-600">Assign multiple roles with conflict analysis</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="delegationPermissions">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/rbac/delegation-permissions">
-                  <CardContent className="p-6 text-center">
-                    <Shield className="h-8 w-8 mx-auto mb-2 text-red-600" />
-                    <h3 className="font-semibold mb-1">Delegation Permissions</h3>
-                    <p className="text-xs text-gray-600">Manage delegation access controls</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="viewAudit">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/audit">
-                  <CardContent className="p-6 text-center">
-                    <Activity className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-                    <h3 className="font-semibold mb-1">View Audit Trail</h3>
-                    <p className="text-xs text-gray-600">Review system changes</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="delegatedConsole">
+            <ContextualHelp section="delegateAccess">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <Link href="/admin/rbac/delegate-access">
                   <CardContent className="p-6 text-center">
-                    <UserCheck className="h-8 w-8 mx-auto mb-2 text-indigo-600" />
+                    <Shield className="h-8 w-8 mx-auto mb-2 text-red-600" />
                     <h3 className="font-semibold mb-1">Delegate Access</h3>
                     <p className="text-xs text-gray-600">Campus & ministry controls</p>
                   </CardContent>
                 </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="visualEditor">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/visual-editor">
-                  <CardContent className="p-6 text-center">
-                    <TrendingUp className="h-8 w-8 mx-auto mb-2 text-cyan-600" />
-                    <h3 className="font-semibold mb-1">Visual Editor</h3>
-                    <p className="text-xs text-gray-600">Drag-and-drop binding editor</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-            <ContextualHelp section="permissionMapper">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link href="/admin/security/rbac/permission-mapper">
-                  <CardContent className="p-6 text-center">
-                    <Key className="h-8 w-8 mx-auto mb-2 text-teal-600" />
-                    <h3 className="font-semibold mb-1">Permission Mapper</h3>
-                    <p className="text-xs text-gray-600">Visualize permission relationships</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            </ContextualHelp>
-
-
-            <ContextualHelp section="systemSettings">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <Settings className="h-8 w-8 mx-auto mb-2 text-gray-600" />
-                  <h3 className="font-semibold mb-1">System Settings</h3>
-                  <p className="text-xs text-gray-600">Configure RBAC behavior</p>
-                </CardContent>
               </Card>
             </ContextualHelp>
           </div>
@@ -589,6 +467,17 @@ export function RbacDashboard() {
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         onComplete={completeOnboarding}
+      />
+
+      {/* Role Creation Wizard */}
+      <RoleCreationWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => {
+          setShowWizard(false);
+          // Refresh stats after role creation
+          fetchStats();
+        }}
       />
     </div>
   );

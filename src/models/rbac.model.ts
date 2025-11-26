@@ -25,15 +25,6 @@ export interface Role extends BaseModel {
   tenant_id: string;
 }
 
-export interface PermissionBundle extends BaseModel {
-  name: string;
-  description?: string;
-  metadata_key?: string;
-  scope: 'system' | 'tenant' | 'campus' | 'ministry';
-  is_template: boolean;
-  tenant_id: string;
-}
-
 export interface PermissionAction {
   id: string;
   code: string;
@@ -53,24 +44,6 @@ export interface RolePermission {
   granted_at: string;
   granted_by?: string;
   tenant_id: string;
-}
-
-export interface RoleBundle {
-  id: string;
-  role_id: string;
-  bundle_id: string;
-  tenant_id: string;
-  created_at: string;
-  created_by?: string;
-}
-
-export interface BundlePermission {
-  id: string;
-  bundle_id: string;
-  permission_id: string;
-  tenant_id: string;
-  created_at: string;
-  created_by?: string;
 }
 
 export interface UserRole extends BaseModel {
@@ -129,23 +102,6 @@ export interface UpdateRoleDto {
   is_delegatable?: boolean;
 }
 
-export interface CreatePermissionBundleDto {
-  name: string;
-  description?: string;
-  metadata_key?: string;
-  scope: 'system' | 'tenant' | 'campus' | 'ministry';
-  is_template?: boolean;
-  permission_ids?: string[];
-}
-
-export interface UpdatePermissionBundleDto {
-  name?: string;
-  description?: string;
-  metadata_key?: string;
-  scope?: 'system' | 'tenant' | 'campus' | 'ministry';
-  is_template?: boolean;
-}
-
 export interface AssignRoleDto {
   user_id: string;
   role_id: string;
@@ -155,13 +111,7 @@ export interface AssignRoleDto {
 // View models for UI components
 export interface RoleWithPermissions extends Role {
   permissions: Permission[];
-  bundles: PermissionBundle[];
   user_count: number;
-}
-
-export interface BundleWithPermissions extends PermissionBundle {
-  permissions: Permission[];
-  role_count: number;
 }
 
 export interface UserWithRoles {
@@ -235,7 +185,6 @@ export interface DelegatedContext {
   scope: 'campus' | 'ministry';
   scope_id?: string;
   allowed_roles: string[];
-  allowed_bundles: string[];
 }
 
 // Multi-role evaluation context
@@ -243,7 +192,6 @@ export interface MultiRoleContext {
   user_id: string;
   tenant_id: string;
   role_keys: string[];
-  bundle_keys: string[];
   effective_permissions: string[];
   feature_grants: string[];
 }

@@ -1,13 +1,15 @@
 # RBAC Documentation Index
 
-**Last Updated:** 2025-10-22
-**Current Architecture:** Features → Permissions → Roles (3-layer simplified model)
+**Last Updated:** 2025-10-23
+**Current Architecture:** Features → Permissions → Roles (2-layer simplified model)
 
 ## Quick Start
 
 For a quick overview of the RBAC system, start here:
 - **Project Instructions:** [`CLAUDE.md`](../CLAUDE.md) - Main project reference with RBAC section
-- **Completion Summary:** [`SURFACE_ELIMINATION_COMPLETE.md`](SURFACE_ELIMINATION_COMPLETE.md) - Recent architecture changes
+- **Migration Guide:** [`RBAC_MIGRATION_GUIDE.md`](RBAC_MIGRATION_GUIDE.md) - Bundle removal and simplification changes ⭐ **Latest**
+- **Simplification Plan:** [`RBAC_SIMPLIFICATION_PLAN.md`](RBAC_SIMPLIFICATION_PLAN.md) - Architecture simplification strategy
+- **Surface Elimination:** [`SURFACE_ELIMINATION_COMPLETE.md`](SURFACE_ELIMINATION_COMPLETE.md) - Previous architecture changes
 
 ## Core Documentation
 
@@ -53,19 +55,20 @@ For a quick overview of the RBAC system, start here:
 
 - **`roles`** - Role definitions (tenant-scoped and system-scoped)
 - **`permissions`** - Granular access rights (e.g., `members:read`, `finance:write`)
-- **`user_roles`** - Many-to-many user-role assignments
-- **`permission_bundles`** - Reusable permission groups
-- **`permission_bundle_permissions`** - Bundle membership
+- **`user_roles`** - Many-to-many user-role assignments (supports multiple roles per user)
+- **`role_permissions`** - Direct permission-to-role mappings (no bundles) ✨ **KEY TABLE**
 - **`feature_catalog`** - Available features with metadata
-- **`feature_permissions`** - Direct feature-to-permission mappings ✨ **KEY TABLE**
+- **`feature_permissions`** - Direct feature-to-permission mappings
 - **`tenant_feature_grants`** - License-based feature access per tenant
-- **`delegations`** - Temporary role assignments
+- **`delegations`** - Simplified role-based delegation with scopes
+- **`license_feature_bundles`** - License tier feature groupings (NOT RBAC bundles)
 
 ### Key Services
 
-- **`RbacCoreService.ts`** - Core role/permission operations
+- **`RbacCoreService.ts`** - Core role/permission operations (bundle methods removed)
 - **`RbacFeatureService.ts`** - Feature flag grants and license feature management
-- **`RbacDelegationService.ts`** - Delegation workflows
+- **`RbacDelegationService.ts`** - Simplified delegation workflows (role + scope model)
+- **`RbacStatisticsService.ts`** - Dashboard statistics (bundle stats removed)
 - **`RbacPublishingService.ts`** - Compile/publish RBAC state changes
 - **`UserRoleService.ts`** - User role management and permission checking
 - **`LicensingService.ts`** - License validation and feature grants
@@ -100,26 +103,44 @@ For a quick overview of the RBAC system, start here:
 
 ### New Simplified Flow
 
-**Before (6 layers):**
+**Original (6 layers):**
 ```
 Feature → Surface → Surface Binding → Bundle → Permission → Role
 ```
 
-**After (3 layers):**
+**After Surface Elimination (3 layers):**
+```
+Feature → Bundle → Permission → Role
+```
+
+**Current (2 layers):**
 ```
 Feature → Permission → Role
 ```
 
 ## Migration from Old Architecture
 
-If you're working with code that references the old architecture:
+### Latest: Bundle Removal (October 2025)
+
+If you're working with code that references RBAC bundles:
+
+1. **Replace bundle references** with direct role-permission assignments
+2. **Use Role Creation Wizard** at `/admin/security/rbac` → Quick Actions → Create Role
+3. **Remove bundle imports** from custom code
+4. **Update delegation logic** to use simplified role + scope model
+
+See [`RBAC_MIGRATION_GUIDE.md`](RBAC_MIGRATION_GUIDE.md) for detailed migration guidance.
+
+### Previous: Surface Elimination
+
+If you're working with code that references surfaces:
 
 1. **Replace surface checks** with direct feature permission checks
 2. **Use `feature_permissions` table** instead of `rbac_surface_bindings`
 3. **Remove surface_id references** from feature creation workflows
 4. **Update access control logic** to check permissions directly
 
-See [`SURFACE_ELIMINATION_COMPLETE.md`](SURFACE_ELIMINATION_COMPLETE.md) for detailed migration guidance.
+See [`SURFACE_ELIMINATION_COMPLETE.md`](SURFACE_ELIMINATION_COMPLETE.md) for surface migration guidance.
 
 ## Archived Documentation
 
@@ -151,8 +172,8 @@ When updating RBAC documentation:
 1. **Update this index** if adding new documentation
 2. **Mark outdated sections** with update notices
 3. **Archive obsolete docs** instead of deleting them
-4. **Reference the current architecture** (3-layer model)
-5. **Avoid referencing** surfaces, surface bindings, or metadata surfaces
+4. **Reference the current architecture** (2-layer model: Feature → Permission → Role)
+5. **Avoid referencing** surfaces, surface bindings, metadata surfaces, or permission bundles
 
 ## Support
 

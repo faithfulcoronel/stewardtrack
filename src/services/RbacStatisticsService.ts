@@ -2,14 +2,12 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IRoleRepository } from '@/repositories/role.repository';
-import type { IPermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import type { IPublishingRepository } from '@/repositories/publishing.repository';
 import type { IRbacAuditRepository } from '@/repositories/rbacAudit.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
-  Role,
-  PermissionBundle
+  Role
 } from '@/models/rbac.model';
 
 @injectable()
@@ -17,8 +15,6 @@ export class RbacStatisticsService {
   constructor(
     @inject(TYPES.IRoleRepository)
     private roleRepository: IRoleRepository,
-    @inject(TYPES.IPermissionBundleRepository)
-    private bundleRepository: IPermissionBundleRepository,
     @inject(TYPES.IPublishingRepository)
     private publishingRepository: IPublishingRepository,
     @inject(TYPES.IRbacAuditRepository)
@@ -41,22 +37,11 @@ export class RbacStatisticsService {
     return await this.roleRepository.getRoleStatistics(effectiveTenantId, includeSystem);
   }
 
-  async getBundleStatistics(tenantId?: string, scopeFilter?: string): Promise<PermissionBundle[]> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    return await this.bundleRepository.getBundleStatistics(effectiveTenantId, scopeFilter);
-  }
-
   async getDashboardStatistics(tenantId?: string): Promise<{
     totalRoles: number;
-    totalBundles: number;
     totalUsers: number;
     activeUsers: number;
     systemRoles: number;
-    customBundles: number;
     recentChanges: number;
     pendingApprovals: number;
   }> {
@@ -68,15 +53,11 @@ export class RbacStatisticsService {
     // Use repository methods to get counts
     const [
       allRoles,
-      allBundles,
       systemRoles,
-      customBundles,
       recentLogs
     ] = await Promise.all([
       this.roleRepository.getRoles(effectiveTenantId, true),
-      this.bundleRepository.getPermissionBundles(effectiveTenantId),
       this.roleRepository.getRoles(effectiveTenantId, true).then(roles => roles.filter(r => r.scope === 'system')),
-      this.bundleRepository.getPermissionBundles(effectiveTenantId).then(bundles => bundles.filter(b => b.is_template === false)),
       this.auditRepository.getAuditLogs(effectiveTenantId, 100, 0)
     ]);
 
@@ -88,11 +69,9 @@ export class RbacStatisticsService {
 
     return {
       totalRoles: allRoles.length,
-      totalBundles: allBundles.length,
       totalUsers: users.length,
       activeUsers: usersWithRoles.size,
       systemRoles: systemRoles.length,
-      customBundles: customBundles.length,
       recentChanges: recentLogs.length,
       pendingApprovals: 0
     };

@@ -16,18 +16,14 @@ import type {
 } from '@/lib/rbac/publishing-store';
 import {
   Role,
-  PermissionBundle,
   Permission,
   UserRole,
   FeatureCatalog,
   TenantFeatureGrant,
   RoleWithPermissions,
-  BundleWithPermissions,
   UserWithRoles,
   CreateRoleDto,
   UpdateRoleDto,
-  CreatePermissionBundleDto,
-  UpdatePermissionBundleDto,
   AssignRoleDto,
   RbacAuditLog,
   DelegatedContext,
@@ -38,8 +34,7 @@ import {
  * RbacService - Facade Pattern
  *
  * This service acts as a facade that delegates to specialized RBAC services:
- * - RbacCoreService: Role, permission bundle, and user-role management
- * - RbacMetadataService: Metadata surfaces and surface bindings
+ * - RbacCoreService: Role, permission, and user-role management
  * - RbacFeatureService: Feature catalog and tenant feature grants
  * - RbacDelegationService: Delegation context and permissions
  * - RbacAuditService: Audit logging and compliance reporting
@@ -84,40 +79,6 @@ export class RbacService {
 
   async getRoleWithPermissions(id: string, tenantId?: string): Promise<RoleWithPermissions | null> {
     return this.coreService.getRoleWithPermissions(id, tenantId);
-  }
-
-  // ==================== PERMISSION BUNDLE MANAGEMENT (RbacCoreService) ====================
-
-  async createPermissionBundle(data: CreatePermissionBundleDto, tenantId?: string): Promise<PermissionBundle> {
-    return this.coreService.createPermissionBundle(data, tenantId);
-  }
-
-  async updatePermissionBundle(id: string, data: UpdatePermissionBundleDto, tenantId?: string): Promise<PermissionBundle> {
-    return this.coreService.updatePermissionBundle(id, data, tenantId);
-  }
-
-  async deletePermissionBundle(id: string, tenantId?: string): Promise<void> {
-    return this.coreService.deletePermissionBundle(id, tenantId);
-  }
-
-  async getPermissionBundles(tenantId?: string, scopeFilter?: string): Promise<PermissionBundle[]> {
-    return this.coreService.getPermissionBundles(tenantId, scopeFilter);
-  }
-
-  async getBundleWithPermissions(id: string, tenantId?: string): Promise<BundleWithPermissions | null> {
-    return this.coreService.getBundleWithPermissions(id, tenantId);
-  }
-
-  async addPermissionsToBundle(bundleId: string, permissionIds: string[], tenantId?: string): Promise<void> {
-    return this.coreService.addPermissionsToBundle(bundleId, permissionIds, tenantId);
-  }
-
-  async removePermissionsFromBundle(bundleId: string, permissionIds: string[], tenantId?: string): Promise<void> {
-    return this.coreService.removePermissionsFromBundle(bundleId, permissionIds, tenantId);
-  }
-
-  async getBundlePermissions(bundleId: string, tenantId?: string): Promise<any[]> {
-    return this.coreService.getBundlePermissions(bundleId, tenantId);
   }
 
   // ==================== USER-ROLE ASSIGNMENT (RbacCoreService) ====================
@@ -223,20 +184,15 @@ export class RbacService {
       user_id: userId,
       tenant_id: effectiveTenantId,
       role_keys: roles.map(r => r.metadata_key).filter(Boolean) as string[],
-      bundle_keys: [], // Would need to aggregate from roles
       effective_permissions: permissions,
       feature_grants: featureGrants
     };
   }
 
-  // ==================== BUNDLE COMPOSITION WIZARD SUPPORT (RbacCoreService) ====================
+  // ==================== ROLE COMPOSITION WIZARD SUPPORT (RbacCoreService) ====================
 
   async getPermissionsByModule(tenantId?: string): Promise<Record<string, Permission[]>> {
     return this.coreService.getPermissionsByModule(tenantId);
-  }
-
-  async validateBundleComposition(permissions: Permission[], scope: string): Promise<{ isValid: boolean; warnings: string[] }> {
-    return this.coreService.validateBundleComposition(permissions, scope);
   }
 
   // ==================== STATISTICS METHODS (RbacStatisticsService) ====================
@@ -245,17 +201,11 @@ export class RbacService {
     return this.statisticsService.getRoleStatistics(tenantId, includeSystem);
   }
 
-  async getBundleStatistics(tenantId?: string, scopeFilter?: string): Promise<PermissionBundle[]> {
-    return this.statisticsService.getBundleStatistics(tenantId, scopeFilter);
-  }
-
   async getDashboardStatistics(tenantId?: string): Promise<{
     totalRoles: number;
-    totalBundles: number;
     totalUsers: number;
     activeUsers: number;
     systemRoles: number;
-    customBundles: number;
     recentChanges: number;
     pendingApprovals: number;
   }> {

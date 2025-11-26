@@ -3,21 +3,16 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
-import type { IPermissionBundleRepository } from '@/repositories/permissionBundle.repository';
 import type { IUserRoleManagementRepository } from '@/repositories/userRole.repository';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
   Role,
   Permission,
-  PermissionBundle,
   UserRole,
   RoleWithPermissions,
-  BundleWithPermissions,
   UserWithRoles,
   CreateRoleDto,
   UpdateRoleDto,
-  CreatePermissionBundleDto,
-  UpdatePermissionBundleDto,
   AssignRoleDto
 } from '@/models/rbac.model';
 
@@ -26,7 +21,6 @@ import type {
  *
  * Orchestrates all core RBAC operations including:
  * - Role management (create, update, delete, query)
- * - Permission bundle management
  * - User-role assignments
  * - Permission queries and effective permission calculation
  * - Multi-role support and conflict analysis
@@ -41,8 +35,6 @@ export class RbacCoreService {
     private roleRepository: IRoleRepository,
     @inject(TYPES.IPermissionRepository)
     private permissionRepository: IPermissionRepository,
-    @inject(TYPES.IPermissionBundleRepository)
-    private bundleRepository: IPermissionBundleRepository,
     @inject(TYPES.IUserRoleManagementRepository)
     private userRoleRepository: IUserRoleManagementRepository
     // TODO: Inject RbacAuditService when it's created
@@ -142,7 +134,7 @@ export class RbacCoreService {
   }
 
   /**
-   * Retrieves a role with its associated permissions and bundles
+   * Retrieves a role with its associated permissions
    */
   async getRoleWithPermissions(id: string, tenantId?: string): Promise<RoleWithPermissions | null> {
     const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
@@ -151,161 +143,6 @@ export class RbacCoreService {
     }
 
     return await this.roleRepository.getRoleWithPermissions(id, effectiveTenantId);
-  }
-
-  // ==================== PERMISSION BUNDLE METHODS ====================
-
-  /**
-   * Creates a new permission bundle
-   */
-  async createPermissionBundle(data: CreatePermissionBundleDto, tenantId?: string): Promise<PermissionBundle> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    const bundle = await this.bundleRepository.createPermissionBundle(data, effectiveTenantId);
-
-    // TODO: Log audit event when RbacAuditService is available
-    // await this.auditService.logAuditEvent({
-    //   tenant_id: effectiveTenantId,
-    //   user_id: 'system',
-    //   action: 'CREATE_BUNDLE',
-    //   resource_type: 'permission_bundle',
-    //   resource_id: bundle.id,
-    //   new_values: data
-    // });
-
-    return bundle;
-  }
-
-  /**
-   * Updates an existing permission bundle
-   */
-  async updatePermissionBundle(id: string, data: UpdatePermissionBundleDto, tenantId?: string): Promise<PermissionBundle> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    const oldBundle = await this.bundleRepository.getBundleWithPermissions(id, effectiveTenantId);
-    const bundle = await this.bundleRepository.updatePermissionBundle(id, data, effectiveTenantId);
-
-    // TODO: Log audit event when RbacAuditService is available
-    // await this.auditService.logAuditEvent({
-    //   tenant_id: effectiveTenantId,
-    //   user_id: 'system',
-    //   action: 'UPDATE_BUNDLE',
-    //   resource_type: 'permission_bundle',
-    //   resource_id: bundle.id,
-    //   old_values: oldBundle,
-    //   new_values: data
-    // });
-
-    return bundle;
-  }
-
-  /**
-   * Deletes a permission bundle
-   */
-  async deletePermissionBundle(id: string, tenantId?: string): Promise<void> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    const bundle = await this.bundleRepository.getBundleWithPermissions(id, effectiveTenantId);
-    await this.bundleRepository.deletePermissionBundle(id, effectiveTenantId);
-
-    // TODO: Log audit event when RbacAuditService is available
-    // await this.auditService.logAuditEvent({
-    //   tenant_id: effectiveTenantId,
-    //   user_id: 'system',
-    //   action: 'DELETE_BUNDLE',
-    //   resource_type: 'permission_bundle',
-    //   resource_id: id,
-    //   old_values: bundle
-    // });
-  }
-
-  /**
-   * Retrieves all permission bundles for a tenant, optionally filtered by scope
-   */
-  async getPermissionBundles(tenantId?: string, scopeFilter?: string): Promise<PermissionBundle[]> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    return await this.bundleRepository.getPermissionBundles(effectiveTenantId, scopeFilter);
-  }
-
-  /**
-   * Retrieves a bundle with its associated permissions
-   */
-  async getBundleWithPermissions(id: string, tenantId?: string): Promise<BundleWithPermissions | null> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    return await this.bundleRepository.getBundleWithPermissions(id, effectiveTenantId);
-  }
-
-  /**
-   * Adds permissions to a bundle
-   */
-  async addPermissionsToBundle(bundleId: string, permissionIds: string[], tenantId?: string): Promise<void> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    await this.bundleRepository.addPermissionsToBundle(bundleId, permissionIds, effectiveTenantId);
-
-    // TODO: Log audit event when RbacAuditService is available
-    // await this.auditService.logAuditEvent({
-    //   tenant_id: effectiveTenantId,
-    //   user_id: 'system',
-    //   action: 'ADD_PERMISSIONS_TO_BUNDLE',
-    //   resource_type: 'permission_bundle',
-    //   resource_id: bundleId,
-    //   new_values: { permission_ids: permissionIds }
-    // });
-  }
-
-  /**
-   * Removes permissions from a bundle
-   */
-  async removePermissionsFromBundle(bundleId: string, permissionIds: string[], tenantId?: string): Promise<void> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    await this.bundleRepository.removePermissionsFromBundle(bundleId, permissionIds, effectiveTenantId);
-
-    // TODO: Log audit event when RbacAuditService is available
-    // await this.auditService.logAuditEvent({
-    //   tenant_id: effectiveTenantId,
-    //   user_id: 'system',
-    //   action: 'REMOVE_PERMISSIONS_FROM_BUNDLE',
-    //   resource_type: 'permission_bundle',
-    //   resource_id: bundleId,
-    //   old_values: { permission_ids: permissionIds }
-    // });
-  }
-
-  /**
-   * Retrieves all permissions in a bundle
-   */
-  async getBundlePermissions(bundleId: string, tenantId?: string): Promise<any[]> {
-    const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
-    if (!effectiveTenantId) {
-      throw new Error('No tenant context available');
-    }
-
-    return await this.bundleRepository.getBundlePermissions(bundleId, effectiveTenantId);
   }
 
   // ==================== USER-ROLE ASSIGNMENT METHODS ====================
@@ -396,7 +233,7 @@ export class RbacCoreService {
 
   /**
    * Calculates and retrieves all effective permissions for a user
-   * This aggregates permissions from all assigned roles and bundles
+   * This aggregates permissions from all assigned roles
    */
   async getUserEffectivePermissions(userId: string, tenantId?: string): Promise<Permission[]> {
     const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
@@ -593,7 +430,7 @@ export class RbacCoreService {
 
   /**
    * Retrieves permissions grouped by module
-   * Useful for permission bundle composition wizards
+   * Useful for role composition wizards
    */
   async getPermissionsByModule(tenantId?: string): Promise<Record<string, Permission[]>> {
     const permissions = await this.getPermissions(tenantId);
@@ -609,32 +446,4 @@ export class RbacCoreService {
     return groupedPermissions;
   }
 
-  /**
-   * Validates the composition of a permission bundle
-   * Checks for scope consistency and potential security issues
-   */
-  async validateBundleComposition(
-    permissions: Permission[],
-    scope: string
-  ): Promise<{ isValid: boolean; warnings: string[] }> {
-    const warnings: string[] = [];
-
-    // Validate scope consistency
-    const moduleScopes = new Set(permissions.map(p => p.module));
-    if (moduleScopes.size > 3 && scope === 'campus') {
-      warnings.push('Large number of modules may indicate overly broad campus access');
-    }
-
-    // Check for conflicting permissions
-    const sensitiveModules = ['admin', 'financial', 'security'];
-    const hasSensitivePerms = permissions.some(p => sensitiveModules.includes(p.module));
-    if (hasSensitivePerms && scope !== 'tenant') {
-      warnings.push('Sensitive permissions should typically be limited to tenant scope');
-    }
-
-    return {
-      isValid: warnings.length === 0,
-      warnings
-    };
-  }
 }
