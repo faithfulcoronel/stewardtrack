@@ -371,7 +371,7 @@ If timeline slips, **in order of priority**:
 
 ---
 
-## Communication & Reporting
+## Communication & Reporting 
 
 ### Weekly Demos
 - **Every Friday at 2pm:** Demo completed work to stakeholders
