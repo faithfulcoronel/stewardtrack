@@ -1,11 +1,11 @@
 # Epic 5: Member & Account Management - Review & Fix
 
 **Release:** Beta - March 2026
-**Timeline:** Week 9 (March 3-9, 2026)
+**Timeline:** Week 6 (February 10-16, 2026)
 **Duration:** 1 week
 **Priority:** P1 (Review & Fix Existing Code)
 **Epic Type:** REVIEW & FIX (Not New Build)
-**Epic Owner:** Full Stack Team
+**Epic Owner:** Full Stack Team + Claude AI Assistance
 **Dependencies:** Epic 1 (JWT Authentication), Epic 3 (RBAC)
 
 ## Epic Overview
