@@ -17,5 +17,7 @@ export interface Account extends BaseModel {
   is_active: boolean;
   notes: string | null;
   member_id: string | null;
+  encrypted_fields?: string[] | null;
+  encryption_key_version?: number | null;
   member?: Member;
 }

@@ -72,6 +72,8 @@ export interface Member extends BaseModel {
   tags?: string[] | null;
   data_steward?: string | null;
   last_review_at?: string | null;
+  encrypted_fields?: string[] | null;
+  encryption_key_version?: number | null;
   membership_type?: {
     id: string;
     name: string;

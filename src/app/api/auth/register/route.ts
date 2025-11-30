@@ -8,6 +8,7 @@ import { LicensingService } from '@/services/LicensingService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { seedDefaultPermissionBundles } from '@/lib/tenant/seedDefaultPermissionBundles';
+import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 
 interface RegistrationRequest {
   email: string;
@@ -179,7 +180,22 @@ export async function POST(request: NextRequest) {
 
     tenantId = tenant.id;
 
-    // ===== STEP 4: Create user profile =====
+    // ===== STEP 4: Generate encryption key for tenant =====
+    try {
+      if (!tenantId) {
+        throw new Error('Tenant ID is required for encryption key generation');
+      }
+
+      const encryptionKeyManager = container.get<EncryptionKeyManager>(TYPES.EncryptionKeyManager);
+      await encryptionKeyManager.generateTenantKey(tenantId);
+      console.log(`Generated encryption key for tenant ${tenantId}`);
+    } catch (error) {
+      console.error('Failed to generate encryption key:', error);
+      // Critical error - tenant won't be able to encrypt PII
+      throw new Error('Failed to initialize tenant encryption');
+    }
+
+    // ===== STEP 5: Create user profile =====
     const { error: profileError } = await serviceSupabase
       .from('profiles')
       .upsert({

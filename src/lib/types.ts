@@ -25,6 +25,11 @@ export const TYPES = {
   LicenseValidationService: Symbol.for('LicenseValidationService'),
   MetricsService: Symbol.for('MetricsService'),
 
+  // Encryption Services
+  EncryptionService: Symbol.for('EncryptionService'),
+  EncryptionKeyManager: Symbol.for('EncryptionKeyManager'),
+  EncryptionStrategy: Symbol.for('EncryptionStrategy'),
+
   // User Role Service
   UserRoleService: Symbol.for('UserRoleService'),
 

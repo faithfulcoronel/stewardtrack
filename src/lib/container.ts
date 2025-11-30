@@ -27,6 +27,12 @@ import { MenuAccessService } from '@/services/MenuAccessService';
 import { MenuRenderingService } from '@/services/MenuRenderingService';
 import { MenuManagementService } from '@/services/MenuManagementService';
 
+// Encryption Services
+import { EncryptionService } from '@/lib/encryption/EncryptionService';
+import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
+import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy';
+import type { IEncryptionStrategy } from '@/lib/encryption/strategies/IEncryptionStrategy';
+
 // Repositories
 import { RbacRepository } from '@/repositories/rbac.repository';
 import { RoleRepository } from '@/repositories/role.repository';
@@ -172,6 +178,25 @@ container
 container
   .bind<MetricsService>(TYPES.MetricsService)
   .to(MetricsService)
+  .inRequestScope();
+
+// ==================== ENCRYPTION SERVICES ====================
+// Bind encryption strategy (singleton for performance)
+container
+  .bind<IEncryptionStrategy>(TYPES.EncryptionStrategy)
+  .to(AES256GCMStrategy)
+  .inSingletonScope();
+
+// Bind key manager (singleton for key caching)
+container
+  .bind<EncryptionKeyManager>(TYPES.EncryptionKeyManager)
+  .to(EncryptionKeyManager)
+  .inSingletonScope();
+
+// Bind encryption service (request scope for tenant isolation)
+container
+  .bind<EncryptionService>(TYPES.EncryptionService)
+  .to(EncryptionService)
   .inRequestScope();
 
 // ==================== USER ROLE SERVICE ====================
