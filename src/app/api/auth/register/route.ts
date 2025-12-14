@@ -9,6 +9,7 @@ import { PermissionDeploymentService } from '@/services/PermissionDeploymentServ
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { seedDefaultPermissionBundles } from '@/lib/tenant/seedDefaultPermissionBundles';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
+import type { IAuthRepository } from '@/repositories/auth.repository';
 
 interface RegistrationRequest {
   email: string;
@@ -300,18 +301,48 @@ export async function POST(request: NextRequest) {
     console.error('Registration error:', error);
 
     // Attempt cleanup if we created records
-    if (userId && tenantId) {
-      try {
-        // Delete tenant (will cascade to related records)
-        const serviceSupabase = await getSupabaseServiceClient();
-        await serviceSupabase.from('tenants').delete().eq('id', tenantId);
+    // Note: We use service client directly here because:
+    // 1. No tenant context exists yet (registration failed mid-process)
+    // 2. This is an admin operation (cleanup/rollback)
+    const cleanupResults: string[] = [];
 
-        // Delete auth user (Supabase admin API would be needed for this)
-        // For now, we'll leave the auth user as is
-        console.warn(`Cleanup: Deleted tenant ${tenantId} but auth user ${userId} remains`);
-      } catch (cleanupError) {
-        console.error('Failed to cleanup after error:', cleanupError);
+    try {
+      const serviceSupabase = await getSupabaseServiceClient();
+
+      // Clean up tenant and related records
+      // Using service client directly because tenant context doesn't exist yet
+      if (tenantId) {
+        const { error: tenantDeleteError } = await serviceSupabase
+          .from('tenants')
+          .delete()
+          .eq('id', tenantId);
+
+        if (tenantDeleteError) {
+          cleanupResults.push(`Failed to delete tenant: ${tenantDeleteError.message}`);
+        } else {
+          cleanupResults.push(`Deleted tenant ${tenantId}`);
+        }
       }
+
+      // Clean up auth user using AuthRepository (follows repository pattern)
+      if (userId) {
+        const authRepository = container.get<IAuthRepository>(TYPES.IAuthRepository);
+        const { error: authDeleteError } = await authRepository.deleteUser(userId);
+
+        if (authDeleteError) {
+          cleanupResults.push(`Failed to delete auth user: ${authDeleteError.message}`);
+        } else {
+          cleanupResults.push(`Deleted auth user ${userId}`);
+        }
+      }
+
+      // Log cleanup results
+      if (cleanupResults.length > 0) {
+        console.log(`Cleanup completed: ${cleanupResults.join(', ')}`);
+      }
+    } catch (cleanupError) {
+      console.error('Failed to cleanup after error:', cleanupError);
+      console.error('Partial cleanup results:', cleanupResults);
     }
 
     return NextResponse.json(

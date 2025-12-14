@@ -1,10 +1,10 @@
 import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
-import { AuthError, AuthResponse, SupabaseClient } from '@supabase/supabase-js';
+import { AuthError, AuthResponse } from '@supabase/supabase-js';
 
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
@@ -12,6 +12,7 @@ interface IAuthAdapter {
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
+  deleteUser(userId: string): Promise<{ error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -23,42 +24,39 @@ interface IAuthAdapter {
 
 @injectable()
 export class AuthAdapter implements IAuthAdapter {
-  // Reuse one browser client instance so auth state listeners observe sign-in events
-  private browserClient: SupabaseClient | null = null;
-
-  private getBrowserClient() {
-    if (!this.browserClient) {
-      this.browserClient = createSupabaseBrowserClient();
-    }
-    return this.browserClient;
-  }
-
-  private async getSupabaseClient() {
-    // Use client-side client for browser operations
-    if (typeof window !== 'undefined') {
-      return this.getBrowserClient();
-    }
-    // Use server-side client for server operations
+  /**
+   * Get server client for user-scoped auth operations
+   * Uses the user's session context from cookies
+   */
+  private async getServerClient() {
     return await createSupabaseServerClient();
   }
 
+  /**
+   * Get service role client for admin operations
+   * Has elevated privileges to bypass RLS and perform admin tasks
+   */
+  private async getServiceClient() {
+    return await getSupabaseServiceClient();
+  }
+
   async signIn(email: string, password: string) {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.signInWithPassword({ email, password });
   }
 
   async resetPasswordForEmail(email: string, redirectTo: string) {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.resetPasswordForEmail(email, { redirectTo });
   }
 
   async updatePassword(password: string) {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.updateUser({ password });
   }
 
   async signUp(email: string, password: string, profile: Record<string, any> = {}) {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.signUp({ email, password, options: { data: profile } });
   }
 
@@ -66,8 +64,14 @@ export class AuthAdapter implements IAuthAdapter {
     return this.signUp(email, password, { first_name: firstName, last_name: lastName });
   }
 
+  async deleteUser(userId: string) {
+    // Admin operation - requires service role
+    const supabase = await this.getServiceClient();
+    return supabase.auth.admin.deleteUser(userId);
+  }
+
   async searchPublicTenants(query: string) {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return await supabase
       .from('public_tenants')
       .select('id, name')
@@ -77,7 +81,8 @@ export class AuthAdapter implements IAuthAdapter {
   }
 
   async completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }) {
-    const supabase = await this.getSupabaseClient();
+    // RPC function - may need service role if it bypasses RLS
+    const supabase = await this.getServiceClient();
     return await supabase.rpc('complete_member_registration', {
       p_user_id: params.userId,
       p_tenant_id: params.tenantId,
@@ -87,7 +92,8 @@ export class AuthAdapter implements IAuthAdapter {
   }
 
   async handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }) {
-    const supabase = await this.getSupabaseClient();
+    // RPC function - may need service role if it bypasses RLS
+    const supabase = await this.getServiceClient();
     return await supabase.rpc('handle_new_tenant_registration', {
       p_user_id: params.userId,
       p_tenant_name: params.churchName,
@@ -100,32 +106,24 @@ export class AuthAdapter implements IAuthAdapter {
   }
 
   async signOut() {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.signOut();
   }
 
   async getUser() {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.getUser();
   }
 
   async refreshSession() {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await this.getServerClient();
     return supabase.auth.refreshSession();
   }
 
-  onAuthStateChange(callback: (event: string, session: any) => void): () => void {
-    // For client-side only
-    if (typeof window !== 'undefined') {
-      const supabase = this.getBrowserClient();
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(callback);
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-
-    // Return no-op for server-side
+  onAuthStateChange(_callback: (event: string, session: any) => void): () => void {
+    // This method is not applicable for server-only adapter
+    // Auth state changes should be handled on the client side
+    console.warn('onAuthStateChange called on server-only AuthAdapter - this is a no-op');
     return () => {};
   }
 }

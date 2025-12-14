@@ -34,6 +34,8 @@ import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy
 import type { IEncryptionStrategy } from '@/lib/encryption/strategies/IEncryptionStrategy';
 
 // Repositories
+import { AuthRepository } from '@/repositories/auth.repository';
+import { TenantRepository } from '@/repositories/tenant.repository';
 import { RbacRepository } from '@/repositories/rbac.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
@@ -57,6 +59,8 @@ import { PermissionRoleTemplateRepository } from '@/repositories/permissionRoleT
 import { MenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Repository Interfaces
+import type { IAuthRepository } from '@/repositories/auth.repository';
+import type { ITenantRepository } from '@/repositories/tenant.repository';
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
 import type { IRolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -77,6 +81,8 @@ import type { IPermissionRoleTemplateRepository } from '@/repositories/permissio
 import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Adapters
+import { AuthAdapter } from '@/adapters/auth.adapter';
+import { TenantAdapter } from '@/adapters/tenant.adapter';
 import { RoleAdapter } from '@/adapters/role.adapter';
 import { PermissionAdapter } from '@/adapters/permission.adapter';
 import { RolePermissionAdapter } from '@/adapters/rolePermission.adapter';
@@ -97,6 +103,8 @@ import { PermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate
 import { MenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 // Adapter Interfaces
+import type { IAuthAdapter } from '@/adapters/auth.adapter';
+import type { ITenantAdapter } from '@/adapters/tenant.adapter';
 import type { IRoleAdapter } from '@/adapters/role.adapter';
 import type { IPermissionAdapter } from '@/adapters/permission.adapter';
 import type { IRolePermissionAdapter } from '@/adapters/rolePermission.adapter';
@@ -227,6 +235,12 @@ container
   .to(MenuManagementService)
   .inRequestScope();
 
+// ==================== AUTH REPOSITORY ====================
+container.bind<IAuthRepository>(TYPES.IAuthRepository).to(AuthRepository).inRequestScope();
+
+// ==================== TENANT REPOSITORY ====================
+container.bind<ITenantRepository>(TYPES.ITenantRepository).to(TenantRepository).inRequestScope();
+
 // ==================== RBAC REPOSITORIES ====================
 // Legacy RBAC Repository (will be phased out)
 container.bind<RbacRepository>(TYPES.RbacRepository).to(RbacRepository).inRequestScope();
@@ -273,6 +287,12 @@ container
   .bind<IMenuItemRepository>(TYPES.IMenuItemRepository)
   .to(MenuItemRepository)
   .inRequestScope();
+
+// ==================== AUTH ADAPTER ====================
+container.bind<IAuthAdapter>(TYPES.IAuthAdapter).to(AuthAdapter).inRequestScope();
+
+// ==================== TENANT ADAPTER ====================
+container.bind<ITenantAdapter>(TYPES.ITenantAdapter).to(TenantAdapter).inRequestScope();
 
 // ==================== RBAC ADAPTERS ====================
 container.bind<IRoleAdapter>(TYPES.IRoleAdapter).to(RoleAdapter).inRequestScope();
