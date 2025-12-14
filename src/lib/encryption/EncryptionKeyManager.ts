@@ -2,7 +2,7 @@ import 'server-only';
 import crypto from 'crypto';
 import { injectable } from 'inversify';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { TenantEncryptionKey } from '@/types/encryption';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 /**
  * Manages encryption keys with hierarchical key derivation
@@ -54,9 +54,12 @@ export class EncryptionKeyManager {
 
   /**
    * Generate a new tenant master key during registration
+   * Uses service role client to bypass RLS during tenant setup
    */
   async generateTenantKey(tenantId: string): Promise<void> {
-    const supabase = await createSupabaseServerClient();
+    // Use service client to bypass RLS - this is called during registration
+    // before the user has proper tenant permissions
+    const supabase = await getSupabaseServiceClient();
 
     // Check if tenant already has a key
     const { data: existing } = await supabase
