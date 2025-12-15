@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
         subscription_end_date: offering.offering_type === 'trial'
           ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
           : null,
+        subscription_offering_id: offeringId, // Link to product offering
         status: 'active',
         created_by: userId,
       })

@@ -33,14 +33,6 @@ export const TYPES = {
   // User Role Service
   UserRoleService: Symbol.for('UserRoleService'),
 
-  // Sidebar Service
-  SidebarService: Symbol.for('SidebarService'),
-
-  // Menu Services
-  MenuAccessService: Symbol.for('MenuAccessService'),
-  MenuRenderingService: Symbol.for('MenuRenderingService'),
-  MenuManagementService: Symbol.for('MenuManagementService'),
-
   // RBAC Adapters
   IRoleAdapter: Symbol.for('IRoleAdapter'),
   IPermissionAdapter: Symbol.for('IPermissionAdapter'),
@@ -152,10 +144,6 @@ export const TYPES = {
   IMemberTimelineEventRepository: Symbol.for('IMemberTimelineEventRepository'),
   IMembershipTypeAdapter: Symbol.for('IMembershipTypeAdapter'),
   IMembershipTypeRepository: Symbol.for('IMembershipTypeRepository'),
-  IMenuItemAdapter: Symbol.for('IMenuItemAdapter'),
-  IMenuItemRepository: Symbol.for('IMenuItemRepository'),
-  IMenuPermissionAdapter: Symbol.for('IMenuPermissionAdapter'),
-  IMenuPermissionRepository: Symbol.for('IMenuPermissionRepository'),
   IMessageAdapter: Symbol.for('IMessageAdapter'),
   IMessageThreadAdapter: Symbol.for('IMessageThreadAdapter'),
   INotificationAdapter: Symbol.for('INotificationAdapter'),
@@ -164,8 +152,6 @@ export const TYPES = {
   IOpeningBalanceAdapter: Symbol.for('IOpeningBalanceAdapter'),
   IRelationshipTypeAdapter: Symbol.for('IRelationshipTypeAdapter'),
   IRelationshipTypeRepository: Symbol.for('IRelationshipTypeRepository'),
-  IRoleMenuItemAdapter: Symbol.for('IRoleMenuItemAdapter'),
-  IRoleMenuItemRepository: Symbol.for('IRoleMenuItemRepository'),
   ISettingAdapter: Symbol.for('ISettingAdapter'),
   ISettingRepository: Symbol.for('ISettingRepository'),
   ISourceRecentTransactionAdapter: Symbol.for('ISourceRecentTransactionAdapter'),

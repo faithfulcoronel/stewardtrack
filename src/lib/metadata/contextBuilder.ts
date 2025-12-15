@@ -47,6 +47,7 @@ export async function buildMetadataContext(
     return {
       role: 'guest',
       roles: ['guest'],
+      permissions: [],
       featureFlags: featureFlags || {},
       searchParams: searchParams || {},
       licenseFeatures: [],
@@ -59,6 +60,9 @@ export async function buildMetadataContext(
     // Fetch user permissions and roles
     const userPermissions = await userRoleService.getUserPermissions(userId, effectiveTenantId);
     const userRoleCodes = await userRoleService.getUserRoleCodes(userId, effectiveTenantId);
+
+    // Extract permission codes from user permissions
+    const permissionCodes = userPermissions.permissions?.map(p => p.code) || [];
 
     // Fetch licensing information
     const licensingSummary = await licensingService.getTenantLicensingSummary(effectiveTenantId);
@@ -85,6 +89,7 @@ export async function buildMetadataContext(
     return {
       role: primaryRole,
       roles: userRoleCodes.length > 0 ? userRoleCodes : ['guest'],
+      permissions: permissionCodes,
       featureFlags: featureFlags || {},
       searchParams: searchParams || {},
       licenseFeatures,
@@ -98,6 +103,7 @@ export async function buildMetadataContext(
     return {
       role: 'guest',
       roles: ['guest'],
+      permissions: [],
       featureFlags: featureFlags || {},
       searchParams: searchParams || {},
       licenseFeatures: [],
@@ -124,6 +130,7 @@ export function buildGuestContext(
   return {
     role: 'guest',
     roles: ['guest'],
+    permissions: [],
     featureFlags: featureFlags || {},
     searchParams: searchParams || {},
     licenseFeatures: [],

@@ -1,15 +1,10 @@
 import { redirect } from "next/navigation";
-import { container } from "@/lib/container";
-import { TYPES } from "@/lib/types";
 import { Gate } from "@/lib/access-gate";
 
 import { type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { AdminLayoutShell } from "@/components/admin/layout-shell";
-import { DynamicAdminLayoutShell } from "@/components/admin/DynamicAdminLayoutShell";
 import { signOut } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { MenuRenderingService } from "@/services/MenuRenderingService";
-import { convertMenuItemsToSections } from "@/lib/menu/menuConverter";
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
@@ -52,7 +47,6 @@ const SUPER_ADMIN_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
       { title: "Licensing Studio", href: "/admin/licensing", icon: "projects" },
-      { title: "Menu Builder", href: "/admin/menu-builder", icon: "modules" },
       { title: "System Settings", href: "/admin/settings", icon: "settings" },
     ],
   },
@@ -130,41 +124,6 @@ export default async function AdminLayout({
 
   const tenantId = tenantUser.tenant_id;
 
-  // Check menu strategy: dynamic or static (default: static)
-  const menuStrategy = process.env.NEXT_PUBLIC_MENU_STRATEGY || 'static';
-
-  if (menuStrategy === 'dynamic') {
-    // Use dynamic menu system with AccessGate filtering
-    try {
-      const menuRenderingService = container.get<MenuRenderingService>(TYPES.MenuRenderingService);
-
-      // Fetch menu items (already filtered by RBAC + licensing)
-      const menuItems = await menuRenderingService.getFlatMenuItems(tenantId, {
-        includeHidden: false,
-        includeSystem: false,
-      });
-
-      // Convert to sections format
-      const dynamicSections = convertMenuItemsToSections(menuItems);
-
-      return (
-        <DynamicAdminLayoutShell
-          sections={dynamicSections}
-          name={displayName}
-          email={user.email ?? ""}
-          avatarUrl={avatarUrl}
-          planLabel={planLabel}
-          logoutAction={signOut}
-        >
-          {children}
-        </DynamicAdminLayoutShell>
-      );
-    } catch (error) {
-      console.error('Error loading dynamic menu, falling back to static:', error);
-      // Fallback to static menu on error
-    }
-  }
-
   // Use static menu system - filter using AccessGate
   const filteredSections = await filterSectionsWithAccessGate(NAV_SECTIONS, user.id, tenantId);
 
@@ -205,14 +164,9 @@ async function filterSectionsWithAccessGate(
         const gate = Gate.superAdminOnly();
         hasAccess = await gate.allows(userId);
       }
-      // Menu Builder - super admin only (not in regular menu, but for consistency)
-      else if (item.title === 'Menu Builder') {
-        const gate = Gate.superAdminOnly();
-        hasAccess = await gate.allows(userId);
-      }
       // Members - requires permission
       else if (item.href.includes('/members')) {
-        const gate = Gate.withPermission('members:read');
+        const gate = Gate.withPermission('members:view');
         hasAccess = await gate.allows(userId, tenantId);
       }
       // Financial pages - requires permission

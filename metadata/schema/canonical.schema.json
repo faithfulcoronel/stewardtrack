@@ -12,7 +12,9 @@
     "kind": { "type": "string", "enum": ["blueprint", "overlay"] },
     "layer": { "$ref": "#/definitions/layer" },
     "page": { "$ref": "#/definitions/page" },
-    "sourcePath": { "type": "string" }
+    "sourcePath": { "type": "string" },
+    "featureCode": { "type": "string" },
+    "requiredPermissions": { "type": "string" }
   },
   "definitions": {
     "layer": {
@@ -63,7 +65,8 @@
         "deny": {
           "type": "array",
           "items": { "type": "string" }
-        }
+        },
+        "requirePermissions": { "type": "string" }
       }
     },
     "dataContractField": {

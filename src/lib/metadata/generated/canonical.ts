@@ -13,6 +13,8 @@ export type CanonicalPageDefinition = {
   layer: Layer;
   page: Page;
   sourcePath?: string;
+  featureCode?: string;
+  requiredPermissions?: string;
 };
 export type PropValue = PropValueStatic | PropValueBinding | PropValueExpression | PropValueAction;
 
@@ -71,6 +73,7 @@ export interface PropValueAction {
 export interface Rbac {
   allow?: string[];
   deny?: string[];
+  requirePermissions?: string;
 }
 export interface DataSource {
   id: string;

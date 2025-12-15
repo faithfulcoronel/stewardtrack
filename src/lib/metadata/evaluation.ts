@@ -9,6 +9,7 @@ import { resolveServiceDataSourceHandler } from "./services";
 export interface MetadataEvaluationContext {
   role?: string | null;
   roles?: string[] | null; // Support for multiple roles
+  permissions?: string[] | null; // User's permission codes for granular access control
   featureFlags?: Record<string, boolean> | null | undefined;
   searchParams?: Record<string, string | string[] | undefined>;
   // License context (added in Phase 2)
@@ -31,6 +32,7 @@ interface ExpressionScope {
   params: Record<string, string | string[] | undefined>;
   role: string;
   roles: string[];
+  permissions: string[]; // User's permission codes for granular access control
   actions: ActionScope;
   // License context for expressions
   licenseFeatures: string[];
@@ -48,11 +50,12 @@ export async function evaluateMetadataDataSources(
 ): Promise<DataScope> {
   const role = context.role ?? "guest";
   const roles = context.roles ?? [role];
+  const permissions = context.permissions ?? [];
   const params = context.searchParams ?? {};
   const results: DataScope = {};
 
   for (const source of sources) {
-    if (!isPermittedWithRoles(source.rbac, role, roles)) {
+    if (!isPermittedWithRoles(source.rbac, role, roles, permissions)) {
       continue;
     }
 
@@ -128,10 +131,11 @@ export async function evaluateMetadataDataSources(
   return results;
 }
 
-export function evaluateMetadataActions(actions: CanonicalAction[], role: string, roles?: string[]): ActionScope {
+export function evaluateMetadataActions(actions: CanonicalAction[], role: string, roles?: string[], permissions?: string[]): ActionScope {
   const effectiveRoles = roles ?? [role];
+  const effectivePermissions = permissions ?? [];
   return actions.reduce<ActionScope>((acc, action) => {
-    if (!isPermittedWithRoles(action.rbac, role, effectiveRoles)) {
+    if (!isPermittedWithRoles(action.rbac, role, effectiveRoles, effectivePermissions)) {
       return acc;
     }
     const config = normalizeRecord(action.config ?? {});
@@ -161,6 +165,7 @@ export function evaluateMetadataProp(
 ): unknown {
   const role = context.role ?? "guest";
   const roles = context.roles ?? [role];
+  const permissions = context.permissions ?? [];
   const licenseFeatures = context.licenseFeatures ?? [];
   const licensedSurfaces = context.licensedSurfaces ?? [];
   const licenseTier = context.licenseTier ?? "basic";
@@ -180,6 +185,7 @@ export function evaluateMetadataProp(
         params: context.searchParams ?? {},
         role,
         roles,
+        permissions,
         actions,
         licenseFeatures,
         licensedSurfaces,
@@ -317,6 +323,7 @@ export function isPermittedWithRoles(
     | CanonicalDataSource["rbac"],
   primaryRole: string,
   roles: string[],
+  permissions?: string[],
 ): boolean {
   if (!rbac) {
     return true;
@@ -333,12 +340,28 @@ export function isPermittedWithRoles(
 
   // If allow list is specified, at least one role must be in it
   if (rbac.allow && rbac.allow.length > 0) {
+    let hasAllowedRole = false;
     for (const role of roles) {
       if (rbac.allow.includes(role)) {
-        return true;
+        hasAllowedRole = true;
+        break;
       }
     }
-    return false;
+    if (!hasAllowedRole) {
+      return false;
+    }
+  }
+
+  // Check permission requirements if specified
+  if (rbac.requirePermissions && permissions) {
+    const requiredPerms = rbac.requirePermissions.split(',').map((p: string) => p.trim());
+    // User must have at least one of the required permissions
+    const hasRequiredPermission = requiredPerms.some((reqPerm: string) =>
+      permissions.includes(reqPerm)
+    );
+    if (!hasRequiredPermission) {
+      return false;
+    }
   }
 
   return true;

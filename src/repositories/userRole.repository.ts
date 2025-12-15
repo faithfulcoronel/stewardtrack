@@ -43,8 +43,9 @@ export interface IUserRoleManagementRepository extends BaseRepository<UserRole> 
   replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
   getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
-  getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
-  getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]>;
+  // Note: getUserAccessibleMenuItems removed - menu/navigation is controlled via static metadata XML
+  // Note: getUserAccessibleMetadataSurfaces removed - metadata access is controlled via
+  // static XML files with featureCode and requiredPermissions attributes, not database
 }
 
 @injectable()
@@ -155,13 +156,5 @@ export class UserRoleManagementRepository extends BaseRepository<UserRole> imple
 
   async getUsersByRole(roleId: string): Promise<UserRole[]> {
     return await this.userRoleAdapter.getUsersByRole(roleId);
-  }
-
-  async getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]> {
-    return await this.userRoleAdapter.getUserAccessibleMenuItems(userId, tenantId);
-  }
-
-  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
-    return await this.userRoleAdapter.getUserAccessibleMetadataSurfaces(userId, tenantId);
   }
 }

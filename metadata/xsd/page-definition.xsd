@@ -42,6 +42,7 @@
   <xs:complexType name="rbacType">
     <xs:attribute name="allow" type="xs:string" use="optional" />
     <xs:attribute name="deny" type="xs:string" use="optional" />
+    <xs:attribute name="requirePermissions" type="xs:string" use="optional" />
   </xs:complexType>
 
   <xs:complexType name="propType">
@@ -239,6 +240,7 @@
       <xs:attribute name="schemaVersion" type="xs:string" use="required" />
       <xs:attribute name="contentVersion" type="xs:string" use="required" />
       <xs:attribute name="featureCode" type="xs:string" use="optional" />
+      <xs:attribute name="requiredPermissions" type="xs:string" use="optional" />
       <xs:attribute name="tenant" type="xs:string" use="optional" />
       <xs:attribute name="role" type="xs:string" use="optional" />
       <xs:attribute name="variant" type="xs:string" use="optional" />

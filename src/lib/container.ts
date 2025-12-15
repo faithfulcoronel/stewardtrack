@@ -22,10 +22,6 @@ import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
 import { MetricsService } from '@/services/MetricsService';
 import { UserRoleService } from '@/services/UserRoleService';
-import { SidebarService } from '@/services/SidebarService';
-import { MenuAccessService } from '@/services/MenuAccessService';
-import { MenuRenderingService } from '@/services/MenuRenderingService';
-import { MenuManagementService } from '@/services/MenuManagementService';
 
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
@@ -56,7 +52,6 @@ import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBun
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import { FeaturePermissionRepository } from '@/repositories/featurePermission.repository';
 import { PermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
-import { MenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Repository Interfaces
 import type { IAuthRepository } from '@/repositories/auth.repository';
@@ -78,7 +73,6 @@ import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeat
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import type { IFeaturePermissionRepository } from '@/repositories/featurePermission.repository';
 import type { IPermissionRoleTemplateRepository } from '@/repositories/permissionRoleTemplate.repository';
-import type { IMenuItemRepository } from '@/repositories/menuItem.repository';
 
 // Adapters
 import { AuthAdapter } from '@/adapters/auth.adapter';
@@ -100,7 +94,6 @@ import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.ada
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 import { FeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
 import { PermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
-import { MenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 // Adapter Interfaces
 import type { IAuthAdapter } from '@/adapters/auth.adapter';
@@ -122,7 +115,6 @@ import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBund
 import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 import type { IFeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
 import type { IPermissionRoleTemplateAdapter } from '@/adapters/permissionRoleTemplate.adapter';
-import type { IMenuItemAdapter } from '@/adapters/menuItem.adapter';
 
 const container = new Container();
 
@@ -213,28 +205,6 @@ container
   .to(UserRoleService)
   .inRequestScope();
 
-// ==================== SIDEBAR SERVICE ====================
-container
-  .bind<SidebarService>(TYPES.SidebarService)
-  .to(SidebarService)
-  .inRequestScope();
-
-// ==================== MENU SERVICES ====================
-container
-  .bind<MenuAccessService>(TYPES.MenuAccessService)
-  .to(MenuAccessService)
-  .inRequestScope();
-
-container
-  .bind<MenuRenderingService>(TYPES.MenuRenderingService)
-  .to(MenuRenderingService)
-  .inRequestScope();
-
-container
-  .bind<MenuManagementService>(TYPES.MenuManagementService)
-  .to(MenuManagementService)
-  .inRequestScope();
-
 // ==================== AUTH REPOSITORY ====================
 container.bind<IAuthRepository>(TYPES.IAuthRepository).to(AuthRepository).inRequestScope();
 
@@ -280,12 +250,6 @@ container
 container
   .bind<IPermissionRoleTemplateRepository>(TYPES.IPermissionRoleTemplateRepository)
   .to(PermissionRoleTemplateRepository)
-  .inRequestScope();
-
-// ==================== MENU REPOSITORIES ====================
-container
-  .bind<IMenuItemRepository>(TYPES.IMenuItemRepository)
-  .to(MenuItemRepository)
   .inRequestScope();
 
 // ==================== AUTH ADAPTER ====================
@@ -335,11 +299,6 @@ container
   .inRequestScope();
 
 // ==================== MENU ADAPTERS ====================
-container
-  .bind<IMenuItemAdapter>(TYPES.IMenuItemAdapter)
-  .to(MenuItemAdapter)
-  .inRequestScope();
-
 // ==================== USER MEMBER LINK SERVICES ====================
 container.bind<UserMemberLinkService>(TYPES.UserMemberLinkService).to(UserMemberLinkService).inRequestScope();
 container.bind<UserMemberLinkRepository>(TYPES.UserMemberLinkRepository).to(UserMemberLinkRepository).inRequestScope();

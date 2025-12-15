@@ -46,7 +46,8 @@ export interface IUserRoleManagementAdapter extends IBaseAdapter<UserRole> {
   getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
   getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
-  getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]>;
+  // Note: getUserAccessibleMetadataSurfaces removed - metadata access is controlled via
+  // static XML files with featureCode and requiredPermissions attributes, not database
 }
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
@@ -892,35 +893,15 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     return data || [];
   }
 
-  async getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]> {
-    // Validate userId
-    if (!userId || typeof userId !== 'string') {
-      throw new Error('Invalid userId provided to getUserAccessibleMenuItems');
-    }
-
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase.rpc('get_user_menu_with_metadata', {
-      target_user_id: userId,
-      target_tenant_id: tenantId || null,
-    });
-    if (error) throw error;
-    return data || [];
-  }
-
-  async getUserAccessibleMetadataSurfaces(userId: string, tenantId?: string): Promise<any[]> {
-    // Validate userId
-    if (!userId || typeof userId !== 'string') {
-      throw new Error('Invalid userId provided to getUserAccessibleMetadataSurfaces');
-    }
-
-    const supabase = await this.getSupabaseClient();
-    const { data, error } = await supabase.rpc('get_user_accessible_metadata_surfaces', {
-      target_user_id: userId,
-      target_tenant_id: tenantId || null,
-    });
-    if (error) throw error;
-    return data || [];
-  }
+  // getUserAccessibleMenuItems REMOVED
+  // getUserAccessibleMetadataSurfaces REMOVED
+  //
+  // Navigation and metadata access are controlled via static XML files with:
+  // - featureCode attribute (license check via tenant_feature_grants)
+  // - requiredPermissions attribute (permission check via user permissions)
+  // - RBAC allow/deny attributes (role check)
+  //
+  // NO database tables should be used for menu/navigation/metadata surfaces.
 
   async replaceUserRoles(
     userId: string,
