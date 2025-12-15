@@ -170,6 +170,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         description: body.description,
         tier: body.tier,
         category: body.category,
+        code: body.code || null,
         is_active: body.is_active,
         updated_at: new Date().toISOString(),
       })

@@ -31,7 +31,8 @@
       "Bash(dir:*)",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\types\\enums.ts\")",
       "Bash(timeout 60 npm run build:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(Select-String -Pattern \"features\\[id\\]|FeaturesManager|EditFeatureDialog\" -Context 2)"
     ],
     "deny": [],
     "ask": []

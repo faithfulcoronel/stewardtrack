@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="members/list" schemaVersion="1.0.0" contentVersion="1.1.0" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="members/list" schemaVersion="1.0.0" contentVersion="1.1.0" featureCode="member-management" locale="en-US">
   <Page id="admin-community-membership-list">
     <Title>Membership directory</Title>
     <Regions>

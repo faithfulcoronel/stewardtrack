@@ -9,9 +9,11 @@ import type {
 } from './generated/canonical';
 import { ResolvedLayer, type LayerRequest } from './registry';
 import { getMetadataRegistry } from './registryProvider';
+import { hasFeatureAccess, type MetadataEvaluationContext } from './evaluation';
 
 export interface ResolveOptions extends LayerRequest {
   featureFlags?: Record<string, boolean>;
+  licenseFeatures?: string[] | null;
 }
 
 export interface ResolvedMetadata {
@@ -19,6 +21,8 @@ export interface ResolvedMetadata {
   layers: ResolvedLayer[];
   cacheKey: string;
   fingerprints: string[];
+  featureCode?: string | null;
+  hasAccess: boolean;
 }
 
 const resolveCached = unstable_cache(
@@ -28,11 +32,23 @@ const resolveCached = unstable_cache(
     const merged = mergeLayers(layers);
     const cacheKey = computeCacheKey(options, merged, layers);
     const fingerprints = layers.map((layer) => `${layer.entry.key}@${layer.entry.contentVersion}`);
+
+    // Get feature code from the base layer (first layer is always the blueprint)
+    const featureCode = layers[0]?.entry.featureCode ?? null;
+
+    // Check if user has access to this feature
+    const evaluationContext: MetadataEvaluationContext = {
+      licenseFeatures: options.licenseFeatures ?? null,
+    };
+    const hasAccess = hasFeatureAccess(featureCode, evaluationContext);
+
     return {
       definition: merged,
       layers,
       cacheKey,
-      fingerprints
+      fingerprints,
+      featureCode,
+      hasAccess,
     };
   },
   ['metadata-resolver'],
@@ -50,7 +66,8 @@ function normalizeOptions(options: ResolveOptions): ResolveOptions {
     role: options.role ?? null,
     variant: options.variant ?? null,
     locale: options.locale ?? null,
-    featureFlags: options.featureFlags ?? {}
+    featureFlags: options.featureFlags ?? {},
+    licenseFeatures: options.licenseFeatures ?? null,
   };
 }
 
@@ -324,6 +341,8 @@ function computeCacheKey(
   hash.update(options.locale ?? 'default');
   hash.update('|');
   hash.update(JSON.stringify(options.featureFlags ?? {}));
+  hash.update('|');
+  hash.update(JSON.stringify(options.licenseFeatures ?? []));
   hash.update('|');
   hash.update(layers.map((layer) => layer.entry.contentVersion).join('+'));
   hash.update('|');

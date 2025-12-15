@@ -16,16 +16,13 @@ interface ProtectedSectionProps {
   // Tenant ID (optional)
   tenantId?: string;
 
-  // Surface ID to check access for
-  surfaceId?: string;
-
-  // Permissions to check (alternative to surfaceId)
+  // Permissions to check
   permissions?: string | string[];
 
   // Permission mode (all or any)
   permissionMode?: 'all' | 'any';
 
-  // Roles to check (alternative to surfaceId/permissions)
+  // Roles to check (alternative to permissions)
   roles?: string | string[];
 
   // Role mode (all or any)
@@ -54,11 +51,6 @@ interface ProtectedSectionProps {
  * ProtectedSection - Simple component for protecting UI sections
  *
  * @example
- * // Protect by surface
- * <ProtectedSection userId={userId} surfaceId="admin-panel">
- *   <AdminPanel />
- * </ProtectedSection>
- *
  * // Protect by permission
  * <ProtectedSection userId={userId} permissions="members.delete">
  *   <DeleteButton />
@@ -68,11 +60,15 @@ interface ProtectedSectionProps {
  * <ProtectedSection userId={userId} roles={['campus-pastor', 'senior-pastor']}>
  *   <CampusManagement />
  * </ProtectedSection>
+ *
+ * // Protect by feature license
+ * <ProtectedSection userId={userId} featureCode="member-management">
+ *   <MemberManagement />
+ * </ProtectedSection>
  */
 export function ProtectedSection({
   userId,
   tenantId,
-  surfaceId,
   permissions,
   permissionMode = 'all',
   roles,
@@ -94,10 +90,7 @@ export function ProtectedSection({
     let endpoint = '/api/access-gate/check';
     let body: any = { userId, tenantId };
 
-    if (surfaceId) {
-      body.surfaceId = surfaceId;
-      body.type = 'surface';
-    } else if (permissions) {
+    if (permissions) {
       body.permissions = Array.isArray(permissions) ? permissions : [permissions];
       body.permissionMode = permissionMode;
       body.type = 'permission';

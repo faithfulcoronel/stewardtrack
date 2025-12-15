@@ -18,7 +18,7 @@ export default async function CreateProductOfferingPage() {
   return (
     <ProtectedPage gate={gate} userId={userId}>
       <div className="container mx-auto px-4 py-6">
-        <OfferingForm mode="create" redirectPath="/admin/licensing" />
+        <OfferingForm mode="create" redirectPath="/admin/licensing?tab=offerings" />
       </div>
     </ProtectedPage>
   );

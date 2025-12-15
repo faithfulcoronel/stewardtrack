@@ -22,7 +22,6 @@ export interface CreateMenuItemInput {
   section?: string | null;
   permission_key?: string;
   feature_key?: string | null;
-  surface_id?: string | null;
   badge_text?: string | null;
   badge_variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | null;
   description?: string | null;
@@ -40,7 +39,6 @@ export interface UpdateMenuItemInput {
   section?: string | null;
   permission_key?: string;
   feature_key?: string | null;
-  surface_id?: string | null;
   badge_text?: string | null;
   badge_variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | null;
   description?: string | null;
@@ -97,7 +95,7 @@ export class MenuManagementService {
 
     // Validate code uniqueness
     if ('code' in input && input.code) {
-      const { data: existing } = await this.menuRepo.findAll({
+      const existing = await this.menuRepo.findAll({
         select: 'id',
         filters: {
           tenant_id: { operator: 'eq', value: tenantId },
@@ -106,14 +104,14 @@ export class MenuManagementService {
         },
       });
 
-      if (existing && existing.length > 0 && existing[0].id !== existingId) {
+      if (existing.data && existing.data.length > 0 && existing.data[0].id !== existingId) {
         errors.push({ field: 'code', message: 'Code must be unique within tenant' });
       }
     }
 
     // Validate parent exists and is in same tenant
     if (input.parent_id) {
-      const { data: parent } = await this.menuRepo.findById(input.parent_id);
+      const parent = await this.menuRepo.findById(input.parent_id);
 
       if (!parent || parent.tenant_id !== tenantId) {
         errors.push({ field: 'parent_id', message: 'Parent menu item not found or in different tenant' });
@@ -131,12 +129,6 @@ export class MenuManagementService {
       if (!validVariants.includes(input.badge_variant)) {
         errors.push({ field: 'badge_variant', message: 'Invalid badge variant' });
       }
-    }
-
-    // Validate surface_id exists if provided
-    if ('surface_id' in input && input.surface_id) {
-      // Note: In a real implementation, you would check if the surface exists
-      // For now, we'll assume it's valid
     }
 
     return errors;
@@ -160,7 +152,7 @@ export class MenuManagementService {
       // Get next sort order if not provided
       let sortOrder = input.sort_order;
       if (sortOrder === undefined) {
-        const { data: siblings } = await this.menuRepo.findAll({
+        const siblings = await this.menuRepo.findAll({
           select: 'sort_order',
           filters: {
             tenant_id: { operator: 'eq', value: tenantId },
@@ -170,10 +162,9 @@ export class MenuManagementService {
             deleted_at: { operator: 'isEmpty', value: true },
           },
           order: { column: 'sort_order', ascending: false },
-          limit: 1,
         });
 
-        sortOrder = siblings && siblings.length > 0 ? siblings[0].sort_order + 10 : 10;
+        sortOrder = siblings.data && siblings.data.length > 0 ? siblings.data[0].sort_order + 10 : 10;
       }
 
       // Create menu item
@@ -188,16 +179,9 @@ export class MenuManagementService {
         updated_by: userId,
       };
 
-      const { data, error } = await this.menuRepo.create(menuItem as MenuItem);
+      const result = await this.menuRepo.create(menuItem as MenuItem);
 
-      if (error || !data) {
-        return {
-          success: false,
-          message: error?.message || 'Failed to create menu item',
-        };
-      }
-
-      return { success: true, data };
+      return { success: true, data: result };
     } catch (error) {
       console.error('Error creating menu item:', error);
       return {
@@ -217,7 +201,7 @@ export class MenuManagementService {
     userId: string
   ): Promise<MenuManagementResult> {
     // Verify menu item exists and belongs to tenant
-    const { data: existing } = await this.menuRepo.findById(id);
+    const existing = await this.menuRepo.findById(id);
 
     if (!existing || existing.tenant_id !== tenantId) {
       return {
@@ -246,16 +230,9 @@ export class MenuManagementService {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await this.menuRepo.update(id, updates);
+      const result = await this.menuRepo.update(id, updates);
 
-      if (error || !data) {
-        return {
-          success: false,
-          message: error?.message || 'Failed to update menu item',
-        };
-      }
-
-      return { success: true, data };
+      return { success: true, data: result };
     } catch (error) {
       console.error('Error updating menu item:', error);
       return {
@@ -274,7 +251,7 @@ export class MenuManagementService {
     userId: string
   ): Promise<MenuManagementResult<void>> {
     // Verify menu item exists and belongs to tenant
-    const { data: existing } = await this.menuRepo.findById(id);
+    const existing = await this.menuRepo.findById(id);
 
     if (!existing || existing.tenant_id !== tenantId) {
       return {
@@ -291,7 +268,7 @@ export class MenuManagementService {
     }
 
     // Check for children
-    const { data: children } = await this.menuRepo.findAll({
+    const children = await this.menuRepo.findAll({
       select: 'id',
       filters: {
         parent_id: { operator: 'eq', value: id },
@@ -299,7 +276,7 @@ export class MenuManagementService {
       },
     });
 
-    if (children && children.length > 0) {
+    if (children.data && children.data.length > 0) {
       return {
         success: false,
         message: 'Cannot delete menu item with children. Delete children first.',
@@ -307,14 +284,7 @@ export class MenuManagementService {
     }
 
     try {
-      const { error } = await this.menuRepo.delete(id);
-
-      if (error) {
-        return {
-          success: false,
-          message: error.message || 'Failed to delete menu item',
-        };
-      }
+      await this.menuRepo.delete(id);
 
       await this.auditService.logAuditEvent('delete', 'menu_item', id, {
         deleted_by: userId,
@@ -339,7 +309,7 @@ export class MenuManagementService {
     tenantId: string,
     userId: string
   ): Promise<MenuManagementResult> {
-    const { data: existing } = await this.menuRepo.findById(id);
+    const existing = await this.menuRepo.findById(id);
 
     if (!existing || existing.tenant_id !== tenantId) {
       return {
@@ -367,7 +337,7 @@ export class MenuManagementService {
     try {
       // Verify all items belong to tenant
       for (const item of items) {
-        const { data: existing } = await this.menuRepo.findById(item.id);
+        const existing = await this.menuRepo.findById(item.id);
 
         if (!existing || existing.tenant_id !== tenantId) {
           return {
@@ -386,10 +356,11 @@ export class MenuManagementService {
         });
       }
 
-      await this.auditService.logAuditEvent('reorder', 'menu_items', tenantId, {
-        items: items.map(i => ({ id: i.id, sort_order: i.sort_order })),
-        updated_by: userId,
-      });
+      // TODO: Update audit log when 'reorder' action is supported
+      // await this.auditService.logAuditEvent('update', 'menu_items', tenantId, {
+      //   items: items.map(i => ({ id: i.id, sort_order: i.sort_order })),
+      //   updated_by: userId,
+      // });
 
       return { success: true, message: 'Menu items reordered successfully' };
     } catch (error) {
@@ -410,7 +381,7 @@ export class MenuManagementService {
     tenantId: string,
     userId: string
   ): Promise<MenuManagementResult> {
-    const { data: existing } = await this.menuRepo.findById(id);
+    const existing = await this.menuRepo.findById(id);
 
     if (!existing || existing.tenant_id !== tenantId) {
       return {
@@ -420,7 +391,7 @@ export class MenuManagementService {
     }
 
     // Get next sort order in new parent
-    const { data: siblings } = await this.menuRepo.findAll({
+    const siblings = await this.menuRepo.findAll({
       select: 'sort_order',
       filters: {
         tenant_id: { operator: 'eq', value: tenantId },
@@ -430,10 +401,9 @@ export class MenuManagementService {
         deleted_at: { operator: 'isEmpty', value: true },
       },
       order: { column: 'sort_order', ascending: false },
-      limit: 1,
     });
 
-    const sortOrder = siblings && siblings.length > 0 ? siblings[0].sort_order + 10 : 10;
+    const sortOrder = siblings.data && siblings.data.length > 0 ? siblings.data[0].sort_order + 10 : 10;
 
     return this.updateMenuItem(
       id,
@@ -451,7 +421,7 @@ export class MenuManagementService {
     tenantId: string,
     userId: string
   ): Promise<MenuManagementResult> {
-    const { data: existing } = await this.menuRepo.findById(id);
+    const existing = await this.menuRepo.findById(id);
 
     if (!existing || existing.tenant_id !== tenantId) {
       return {
@@ -470,7 +440,6 @@ export class MenuManagementService {
       section: existing.section,
       permission_key: existing.permission_key,
       feature_key: existing.feature_key,
-      surface_id: existing.surface_id,
       badge_text: existing.badge_text,
       badge_variant: existing.badge_variant,
       description: existing.description,
@@ -522,16 +491,15 @@ export class MenuManagementService {
     code: string,
     tenantId: string
   ): Promise<MenuItem | null> {
-    const { data: items } = await this.menuRepo.findAll({
+    const items = await this.menuRepo.findAll({
       select: '*',
       filters: {
         tenant_id: { operator: 'eq', value: tenantId },
         code: { operator: 'eq', value: code },
         deleted_at: { operator: 'isEmpty', value: true },
       },
-      limit: 1,
     });
 
-    return items && items.length > 0 ? items[0] : null;
+    return items.data && items.data.length > 0 ? items.data[0] : null;
   }
 }

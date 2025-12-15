@@ -30,16 +30,6 @@ export async function POST(request: NextRequest) {
 
     // Create appropriate gate based on type
     switch (type) {
-      case 'surface':
-        if (!params.surfaceId) {
-          return NextResponse.json(
-            { success: false, error: 'surfaceId is required for surface type' },
-            { status: 400 }
-          );
-        }
-        gate = Gate.forSurface(params.surfaceId);
-        break;
-
       case 'permission':
         if (!params.permissions) {
           return NextResponse.json(

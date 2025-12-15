@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ChevronRight } from 'lucide-react';
-import type { WizardData } from '../FeaturePermissionWizard';
+import type { WizardData, WizardMode } from '../FeaturePermissionWizard';
 import {
   LicenseTier,
   LicenseTierLabels,
@@ -28,6 +28,7 @@ interface BasicInfoStepProps {
   data: WizardData;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
+  mode?: WizardMode;
 }
 
 const LICENSE_TIER_DESCRIPTIONS: Record<LicenseTier, string> = {
@@ -37,8 +38,9 @@ const LICENSE_TIER_DESCRIPTIONS: Record<LicenseTier, string> = {
   [LicenseTier.PREMIUM]: 'Premium features and support',
 };
 
-export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
+export function BasicInfoStep({ data, onUpdate, onNext, mode = 'create' }: BasicInfoStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isReadOnly = mode === 'view';
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -78,6 +80,7 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
           value={data.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           className={errors.name ? 'border-destructive' : ''}
+          disabled={isReadOnly}
         />
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name}</p>
@@ -99,6 +102,7 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
           onChange={(e) => onUpdate({ description: e.target.value })}
           rows={3}
           className={errors.description ? 'border-destructive' : ''}
+          disabled={isReadOnly}
         />
         {errors.description && (
           <p className="text-sm text-destructive">{errors.description}</p>
@@ -116,6 +120,7 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
         <Select
           value={data.category}
           onValueChange={(value) => onUpdate({ category: value })}
+          disabled={isReadOnly}
         >
           <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
             <SelectValue placeholder="Select a category" />
@@ -144,6 +149,7 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
         <Select
           value={data.tier}
           onValueChange={(value: any) => onUpdate({ tier: value })}
+          disabled={isReadOnly}
         >
           <SelectTrigger>
             <SelectValue />
@@ -166,12 +172,38 @@ export function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
         </p>
       </div>
 
-      {/* Next Button */}
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleNext}>
-          Next <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+      {/* Feature Code */}
+      <div className="space-y-2">
+        <Label htmlFor="feature_code">
+          Feature Code
+        </Label>
+        <Input
+          id="feature_code"
+          placeholder="e.g., member-management"
+          value={data.feature_code || ''}
+          onChange={(e) => onUpdate({ feature_code: e.target.value })}
+          disabled={isReadOnly}
+        />
+        <p className="text-sm text-muted-foreground">
+          Unique code for metadata mapping (kebab-case). Leave empty if not mapped to metadata.
+        </p>
       </div>
+
+      {/* Next Button */}
+      {!isReadOnly && (
+        <div className="flex justify-end pt-4">
+          <Button onClick={handleNext}>
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
+      {isReadOnly && (
+        <div className="flex justify-end pt-4">
+          <Button onClick={onNext} variant="outline">
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

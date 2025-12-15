@@ -18,7 +18,6 @@ import {
   Plus,
   Search,
   Eye,
-  Edit,
   Trash2,
   Filter,
   MoreVertical,
@@ -46,16 +45,12 @@ import {
 } from '@/enums/helpers';
 
 
-import { EditFeatureDialog } from './EditFeatureDialog';
-
 interface Feature {
   id: string;
   name: string;
   description: string;
   tier?: string | null;
   category: string;
-  surface_id?: string | null;
-  surface_type?: string | null;
   module?: string | null;
   is_active: boolean;
   created_at: string;
@@ -89,7 +84,6 @@ export function FeaturesManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
 
   useEffect(() => {
     fetchFeatures();
@@ -124,7 +118,7 @@ export function FeaturesManager() {
         (f) =>
           f.name.toLowerCase().includes(term) ||
           f.description.toLowerCase().includes(term) ||
-          f.surface_id?.toLowerCase().includes(term)
+          f.category.toLowerCase().includes(term)
       );
     }
 
@@ -139,10 +133,6 @@ export function FeaturesManager() {
     }
 
     setFilteredFeatures(filtered);
-  };
-
-  const handleEdit = (feature: Feature) => {
-    setEditingFeature(feature);
   };
 
   const handleDelete = async (featureId: string) => {
@@ -182,7 +172,7 @@ export function FeaturesManager() {
           <div>
             <CardTitle>Features with Permissions</CardTitle>
             <CardDescription>
-              Manage features with surface IDs and permission definitions
+              Manage features and their permission definitions
             </CardDescription>
           </div>
           <Button onClick={() => router.push('/admin/licensing/features/create')}>
@@ -258,7 +248,7 @@ export function FeaturesManager() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Surface ID</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Module</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
@@ -281,7 +271,9 @@ export function FeaturesManager() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs">{feature.surface_id || 'N/A'}</code>
+                      <Badge variant="outline" className="capitalize">
+                        {feature.category}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {feature.module ? (
@@ -316,21 +308,7 @@ export function FeaturesManager() {
                             }
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(feature)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Feature
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              router.push(
-                                `/admin/licensing/features/${feature.id}/permissions`
-                              )
-                            }
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Manage Permissions
+                            View & Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(feature.id)}
@@ -357,14 +335,6 @@ export function FeaturesManager() {
           </div>
         )}
       </CardContent>
-
-      {/* Edit Feature Dialog */}
-      <EditFeatureDialog
-        feature={editingFeature}
-        open={!!editingFeature}
-        onOpenChange={(open) => !open && setEditingFeature(null)}
-        onSuccess={fetchFeatures}
-      />
     </Card>
   );
 }

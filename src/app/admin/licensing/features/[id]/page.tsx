@@ -3,26 +3,9 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Shield,
-  Package,
-  Calendar,
-  CheckCircle,
-  XCircle,
-} from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  LicenseTier,
-  LicenseTierLabels,
-  LicenseTierColors,
-} from '@/enums/licensing.enums';
-import { EditFeatureDialog } from '@/components/admin/licensing/EditFeatureDialog';
+import { ArrowLeft, CheckCircle, AlertCircle, Edit, Eye, Trash2 } from 'lucide-react';
+import { FeaturePermissionWizard, type WizardData, type WizardMode } from '@/components/licensing/FeaturePermissionWizard';
 
 interface Feature {
   id: string;
@@ -30,9 +13,8 @@ interface Feature {
   description: string;
   tier?: string | null;
   category: string;
-  surface_id?: string | null;
-  surface_type?: string | null;
   module?: string | null;
+  code?: string | null;  // Database column is 'code', not 'feature_code'
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -43,8 +25,6 @@ interface Permission {
   permission_code: string;
   display_name: string;
   description: string;
-  category: string;
-  action: string;
   is_required: boolean;
   display_order: number;
   role_templates: Array<{
@@ -55,33 +35,6 @@ interface Permission {
   }>;
 }
 
-const DEFAULT_TIER_BADGE = 'bg-gray-100 text-gray-600';
-const DEFAULT_TIER_LABEL = 'Not set';
-
-const getTierPresentation = (tier?: string | null) => {
-  if (!tier) {
-    return { className: DEFAULT_TIER_BADGE, label: DEFAULT_TIER_LABEL };
-  }
-
-  const normalizedTier = tier.trim().toLowerCase() as LicenseTier;
-
-  if (!normalizedTier) {
-    return { className: DEFAULT_TIER_BADGE, label: DEFAULT_TIER_LABEL };
-  }
-
-  const className = LicenseTierColors[normalizedTier] || 'bg-gray-100 text-gray-800';
-  const label = LicenseTierLabels[normalizedTier] || tier.charAt(0).toUpperCase() + tier.slice(1);
-
-  return { className, label };
-};
-
-const ROLE_LABELS: Record<string, string> = {
-  tenant_admin: 'Tenant Admin',
-  staff: 'Staff',
-  volunteer: 'Volunteer',
-  member: 'Member',
-};
-
 export default function FeatureDetailsPage({
   params,
 }: {
@@ -89,27 +42,39 @@ export default function FeatureDetailsPage({
 }) {
   const unwrappedParams = use(params);
   const router = useRouter();
+
+  const [mode, setMode] = useState<WizardMode>('view');
   const [feature, setFeature] = useState<Feature | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchFeatureDetails();
-    fetchPermissions();
+    fetchFeatureData();
   }, [unwrappedParams.id]);
 
-  const fetchFeatureDetails = async () => {
+  const fetchFeatureData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/licensing/features/${unwrappedParams.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFeature(data.data);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to load feature');
+      setError(null);
+
+      // Fetch feature details
+      const featureResponse = await fetch(`/api/licensing/features/${unwrappedParams.id}`);
+      if (!featureResponse.ok) {
+        const errorData = await featureResponse.json();
+        throw new Error(errorData.error || 'Failed to load feature');
+      }
+      const featureData = await featureResponse.json();
+      setFeature(featureData.data);
+
+      // Fetch permissions
+      const permissionsResponse = await fetch(
+        `/api/licensing/features/${unwrappedParams.id}/permissions`
+      );
+      if (permissionsResponse.ok) {
+        const permissionsData = await permissionsResponse.json();
+        setPermissions(permissionsData.data || []);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -118,23 +83,49 @@ export default function FeatureDetailsPage({
     }
   };
 
-  const fetchPermissions = async () => {
+  const handleComplete = async (data: WizardData) => {
     try {
-      const response = await fetch(
-        `/api/licensing/features/${unwrappedParams.id}/permissions`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPermissions(data.data || []);
+      setError(null);
+
+      if (mode === 'edit') {
+        // Update feature
+        const featureResponse = await fetch(`/api/licensing/features/${unwrappedParams.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            description: data.description,
+            tier: data.tier,
+            category: data.category,
+            code: data.feature_code || null,  // Map 'feature_code' from wizard to 'code' for DB
+          }),
+        });
+
+        if (!featureResponse.ok) {
+          const errorData = await featureResponse.json();
+          throw new Error(errorData.error || 'Failed to update feature');
+        }
+
+        // TODO: Update permissions and role templates
+        // This would require additional API endpoints for bulk permission updates
+
+        setSuccess('Feature updated successfully');
+        setMode('view');
+        await fetchFeatureData();
+
+        setTimeout(() => setSuccess(null), 3000);
       }
-    } catch (err) {
-      console.error('Error fetching permissions:', err);
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
     }
   };
 
-  const handleEdit = () => {
-    if (!feature) return;
-    setEditingFeature(feature);
+  const handleCancel = () => {
+    if (mode === 'view') {
+      router.push('/admin/licensing?tab=features');
+    } else {
+      setMode('view');
+    }
   };
 
   const handleDelete = async () => {
@@ -148,14 +139,14 @@ export default function FeatureDetailsPage({
       });
 
       if (response.ok) {
-        router.push('/admin/licensing');
+        router.push('/admin/licensing?tab=features');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete feature');
+        setError(data.error || 'Failed to delete feature');
       }
     } catch (error) {
       console.error('Error deleting feature:', error);
-      alert('An error occurred while deleting the feature');
+      setError('An error occurred while deleting the feature');
     }
   };
 
@@ -169,7 +160,7 @@ export default function FeatureDetailsPage({
     );
   }
 
-  if (error || !feature) {
+  if (error && !feature) {
     return (
       <div className="container mx-auto py-6">
         <Alert variant="destructive">
@@ -177,230 +168,98 @@ export default function FeatureDetailsPage({
         </Alert>
         <Button
           variant="outline"
-          onClick={() => router.push('/admin/licensing')}
+          onClick={() => router.push('/admin/licensing?tab=features')}
           className="mt-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Licensing Studio
+          Back to Features
         </Button>
       </div>
     );
   }
 
-  const { className: tierClassName, label: tierLabel } = getTierPresentation(
-    feature.tier
-  );
+  if (!feature) return null;
+
+  // Prepare wizard data from feature and permissions
+  const wizardData: WizardData = {
+    name: feature.name,
+    description: feature.description,
+    tier: (feature.tier as any) || 'professional',
+    category: feature.category,
+    feature_code: feature.code || '',  // Map 'code' from DB to 'feature_code' for wizard
+    permissions: permissions.map(p => ({
+      permission_code: p.permission_code,
+      display_name: p.display_name,
+      description: p.description,
+      is_required: p.is_required,
+      display_order: p.display_order,
+    })),
+    roleTemplates: permissions.reduce((acc, p) => {
+      acc[p.permission_code] = p.role_templates.map(rt => ({
+        role_key: rt.role_key,
+        is_recommended: rt.is_recommended,
+        reason: rt.reason,
+      }));
+      return acc;
+    }, {} as Record<string, Array<{ role_key: string; is_recommended: boolean; reason?: string }>>),
+  };
 
   return (
-    <div className="container mx-auto py-6 max-w-5xl">
-      {/* Header */}
+    <div className="container mx-auto py-6">
+      {/* Header Actions */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push('/admin/licensing')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{feature.name}</h1>
-            <p className="text-muted-foreground">{feature.description}</p>
-          </div>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push('/admin/licensing?tab=features')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Features
+        </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Feature
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() =>
-              router.push(`/admin/licensing/features/${unwrappedParams.id}/permissions`)
-            }
-          >
-            <Shield className="mr-2 h-4 w-4" />
-            Manage Permissions
-          </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
+          {mode === 'view' && (
+            <>
+              <Button variant="outline" onClick={() => setMode('edit')}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Feature
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </>
+          )}
+          {mode === 'edit' && (
+            <Button variant="outline" onClick={() => setMode('view')}>
+              <Eye className="mr-2 h-4 w-4" />
+              View Mode
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Feature Information */}
-      <div className="grid gap-6">
-        {/* Basic Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Feature Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Category
-                </label>
-                <p className="text-base capitalize">{feature.category}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  License Tier
-                </label>
-                <div className="mt-1">
-                  <Badge className={tierClassName}>{tierLabel}</Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Status
-                </label>
-                <div className="mt-1 flex items-center gap-2">
-                  {feature.is_active ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600">Active</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-400">Inactive</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Created
-                </label>
-                <p className="text-base">
-                  {new Date(feature.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Success/Error Messages */}
+      {success && (
+        <Alert className="mb-6 border-green-500 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        </Alert>
+      )}
 
-        {/* Surface Association Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Surface Association</CardTitle>
-            <CardDescription>Metadata surface configuration</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Surface ID
-                </label>
-                <p className="font-mono text-sm bg-muted p-2 rounded">
-                  {feature.surface_id || 'N/A'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Module
-                </label>
-                <p className="text-base capitalize">{feature.module || 'N/A'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Surface Type
-                </label>
-                <div className="mt-1">
-                  <Badge variant="outline" className="capitalize">
-                    {feature.surface_type || 'N/A'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        {/* Permissions Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Permissions</CardTitle>
-                <CardDescription>
-                  {permissions.length} permission(s) defined
-                </CardDescription>
-              </div>
-              <Button
-                size="sm"
-                onClick={() =>
-                  router.push(`/admin/licensing/features/${unwrappedParams.id}/permissions`)
-                }
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Manage
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {permissions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No permissions defined yet
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {permissions.map((permission, index) => (
-                  <div key={permission.id}>
-                    {index > 0 && <Separator className="my-4" />}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{permission.display_name}</h4>
-                            {permission.is_required && (
-                              <Badge variant="secondary" className="text-xs">
-                                Required
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground font-mono">
-                            {permission.permission_code}
-                          </p>
-                        </div>
-                      </div>
-
-                      {permission.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {permission.description}
-                        </p>
-                      )}
-
-                      {/* Role Templates */}
-                      <div>
-                        <span className="text-xs text-muted-foreground">
-                          Default roles:
-                        </span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {permission.role_templates.map((template) => (
-                            <Badge key={template.id} variant="outline" className="text-xs">
-                              {ROLE_LABELS[template.role_key] || template.role_key}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Edit Feature Dialog */}
-      <EditFeatureDialog
-        feature={editingFeature}
-        open={!!editingFeature}
-        onOpenChange={(open) => !open && setEditingFeature(null)}
-        onSuccess={fetchFeatureDetails}
+      {/* Wizard */}
+      <FeaturePermissionWizard
+        mode={mode}
+        featureId={unwrappedParams.id}
+        initialData={wizardData}
+        onComplete={handleComplete}
+        onCancel={handleCancel}
       />
     </div>
   );

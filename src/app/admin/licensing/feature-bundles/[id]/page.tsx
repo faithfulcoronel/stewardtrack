@@ -70,12 +70,12 @@ export default function BundlePage({ params }: BundlePageProps) {
         loadBundleFeatures();
       } else {
         toast.error('Failed to load bundle');
-        router.push('/admin/licensing');
+        router.push('/admin/licensing?tab=bundles');
       }
     } catch (error) {
       console.error('Error loading bundle:', error);
       toast.error('Failed to load bundle');
-      router.push('/admin/licensing');
+      router.push('/admin/licensing?tab=bundles');
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +160,7 @@ export default function BundlePage({ params }: BundlePageProps) {
             ? 'Feature bundle created successfully'
             : 'Feature bundle updated successfully'
         );
-        router.push('/admin/licensing');
+        router.push('/admin/licensing?tab=bundles');
       } else {
         toast.error(result.error || `Failed to ${isCreateMode ? 'create' : 'update'} bundle`);
       }
@@ -193,9 +193,9 @@ export default function BundlePage({ params }: BundlePageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/admin/licensing')}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/admin/licensing?tab=bundles')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Licensing
+            Back to Bundles
           </Button>
           <div>
             <h1 className="text-3xl font-bold">
@@ -372,7 +372,7 @@ export default function BundlePage({ params }: BundlePageProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/licensing')}
+            onClick={() => router.push('/admin/licensing?tab=bundles')}
             disabled={isSaving}
           >
             Cancel

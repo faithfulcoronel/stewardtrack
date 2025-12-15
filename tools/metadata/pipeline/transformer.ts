@@ -104,6 +104,7 @@ export class CanonicalTransformer {
     const kind = root['@_kind'];
     const schemaVersion = root['@_schemaVersion'];
     const contentVersion = root['@_contentVersion'];
+    const featureCode = root['@_featureCode'] ? String(root['@_featureCode']) : null;
     const layer: CanonicalLayer = {
       module: String(root['@_module'] ?? ''),
       route: String(root['@_route'] ?? ''),
@@ -182,6 +183,7 @@ export class CanonicalTransformer {
       layer,
       page,
       sourcePath: path.relative(this.rootDir, filePath),
+      featureCode,
     };
   }
 

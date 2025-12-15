@@ -22,11 +22,8 @@ import {
  */
 export class AccessGateFactory {
   /**
-   * Create a gate that checks surface access (RBAC + Licensing)
-   *
-   * @example
-   * const gate = AccessGateFactory.forSurface('member-management');
-   * await gate.verify(userId, tenantId);
+   * Create a gate that checks surface access (DEPRECATED)
+   * @deprecated Surface-based access control has been removed. Use withLicense() or withPermission() instead.
    */
   static forSurface(surfaceId: string, config?: AccessGateConfig) {
     return new SurfaceAccessGate(surfaceId, config);

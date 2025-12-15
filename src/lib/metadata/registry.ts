@@ -13,6 +13,7 @@ export interface ManifestEntry {
   layer: CanonicalLayer;
   sourcePath: string;
   compiledPath: string;
+  featureCode?: string | null;
   dependsOn?: string[];
 }
 

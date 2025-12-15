@@ -138,7 +138,7 @@ export class SidebarService {
     }
 
     const { data: items } = await this.menuRepo.findAll({
-      select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,surface_id,role_menu_items(role_id)',
+      select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,role_menu_items(role_id)',
       filters: {
         tenant_id: { operator: 'eq', value: tenant.id },
         deleted_at: { operator: 'isEmpty', value: true },
@@ -224,7 +224,7 @@ export class SidebarService {
     }
 
     const { data: items } = await this.menuRepo.findAll({
-      select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,surface_id,role_menu_items(role_id)',
+      select: 'id,parent_id,code,label,path,icon,sort_order,is_system,section,feature_key,role_menu_items(role_id)',
       filters: {
         tenant_id: { operator: 'eq', value: tenant.id },
         deleted_at: { operator: 'isEmpty', value: true },

@@ -6,13 +6,14 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import type { WizardData } from '../FeaturePermissionWizard';
+import type { WizardData, WizardMode } from '../FeaturePermissionWizard';
 
 interface ReviewStepProps {
   data: WizardData;
   onSubmit: () => Promise<void>;
   onBack: () => void;
   isSubmitting: boolean;
+  mode?: WizardMode;
 }
 
 const TIER_LABELS: Record<string, string> = {
@@ -34,8 +35,17 @@ export function ReviewStep({
   onSubmit,
   onBack,
   isSubmitting,
+  mode = 'create',
 }: ReviewStepProps) {
   const hasRequiredPermission = data.permissions.some((p) => p.is_required);
+  const isReadOnly = mode === 'view';
+
+  const getSubmitButtonText = () => {
+    if (isSubmitting) {
+      return mode === 'edit' ? 'Updating...' : 'Creating...';
+    }
+    return mode === 'edit' ? 'Update Feature' : 'Create Feature';
+  };
 
   return (
     <div className="space-y-6">
@@ -72,6 +82,12 @@ export function ReviewStep({
               <Badge variant="secondary">{TIER_LABELS[data.tier]}</Badge>
             </div>
           </div>
+          {data.feature_code && (
+            <div>
+              <span className="text-sm text-muted-foreground">Feature Code:</span>
+              <p className="font-medium font-mono">{data.feature_code}</p>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -152,8 +168,12 @@ export function ReviewStep({
       <Alert>
         <Check className="h-4 w-4" />
         <AlertDescription>
-          Review all details carefully. Once created, the feature will be available in the
-          licensing catalog and can be assigned to tenants.
+          {mode === 'view'
+            ? 'Feature details and permissions are shown in read-only mode.'
+            : mode === 'edit'
+            ? 'Review all changes carefully. Updates will affect existing tenant assignments.'
+            : 'Review all details carefully. Once created, the feature will be available in the licensing catalog and can be assigned to tenants.'
+          }
         </AlertDescription>
       </Alert>
 
@@ -162,9 +182,11 @@ export function ReviewStep({
         <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={onSubmit} disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Feature'}
-        </Button>
+        {!isReadOnly && (
+          <Button onClick={onSubmit} disabled={isSubmitting}>
+            {getSubmitButtonText()}
+          </Button>
+        )}
       </div>
     </div>
   );

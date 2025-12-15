@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Award, Package, Users, BarChart3, Shield } from 'lucide-react';
@@ -10,7 +11,39 @@ import { LicenseAssignmentsManager } from './LicenseAssignmentsManager';
 import { LicensingAnalytics } from './LicensingAnalytics';
 import { FeaturesManager } from './FeaturesManager';
 
+type TabValue = 'offerings' | 'features' | 'bundles' | 'assignments' | 'analytics';
+
+const VALID_TABS: TabValue[] = ['offerings', 'features', 'bundles', 'assignments', 'analytics'];
+
 export function LicensingStudio() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get tab from URL or default to 'offerings'
+  const tabParam = searchParams.get('tab') as TabValue | null;
+  const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'offerings';
+
+  const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    const newTab = value as TabValue;
+    setActiveTab(newTab);
+
+    // Update URL without page reload
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', newTab);
+    router.push(`/admin/licensing?${params.toString()}`, { scroll: false });
+  };
+
+  // Sync activeTab with URL changes (e.g., browser back/forward)
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') as TabValue | null;
+    if (tabFromUrl && VALID_TABS.includes(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams, activeTab]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -24,7 +57,7 @@ export function LicensingStudio() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs defaultValue="offerings" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="offerings" className="flex items-center gap-2">
             <Package className="h-4 w-4" />

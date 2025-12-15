@@ -107,7 +107,6 @@ export async function evaluateMetadataDataSources(
         const resolved = await handler({
           id: source.id,
           role,
-          roles,
           config,
           params,
         });
@@ -351,4 +350,30 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
+}
+
+/**
+ * Check if user has access to a feature based on license
+ *
+ * @param featureCode - The feature code from metadata
+ * @param context - Evaluation context with license features
+ * @returns true if user has access, false otherwise
+ */
+export function hasFeatureAccess(
+  featureCode: string | null | undefined,
+  context: MetadataEvaluationContext,
+): boolean {
+  // No feature code means public/unrestricted access
+  if (!featureCode) {
+    return true;
+  }
+
+  // Core foundation features are always accessible
+  if (featureCode === 'core-foundation') {
+    return true;
+  }
+
+  // Check if tenant has the required feature
+  const licenseFeatures = context.licenseFeatures ?? [];
+  return licenseFeatures.includes(featureCode);
 }

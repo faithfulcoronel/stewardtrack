@@ -82,6 +82,7 @@ export interface CanonicalDefinition {
   layer: CanonicalLayer;
   page: CanonicalPage;
   sourcePath: string;
+  featureCode?: string | null;
 }
 
 export interface ManifestEntry {
@@ -93,6 +94,7 @@ export interface ManifestEntry {
   layer: CanonicalLayer;
   sourcePath: string;
   compiledPath: string;
+  featureCode?: string | null;
   dependsOn?: string[];
 }
 

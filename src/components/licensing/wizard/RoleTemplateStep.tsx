@@ -8,13 +8,14 @@ import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { WizardData } from '../FeaturePermissionWizard';
+import type { WizardData, WizardMode } from '../FeaturePermissionWizard';
 
 interface RoleTemplateStepProps {
   data: WizardData;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
   onBack: () => void;
+  mode?: WizardMode;
 }
 
 const STANDARD_ROLES = [
@@ -49,8 +50,10 @@ export function RoleTemplateStep({
   onUpdate,
   onNext,
   onBack,
+  mode = 'create',
 }: RoleTemplateStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isReadOnly = mode === 'view';
 
   // Initialize role templates if empty
   useEffect(() => {
@@ -148,8 +151,10 @@ export function RoleTemplateStep({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Assign default roles for each permission. Tenant admins can customize these mappings
-          later for their organization.
+          {isReadOnly
+            ? 'Review the default role assignments for each permission.'
+            : 'Assign default roles for each permission. Tenant admins can customize these mappings later for their organization.'
+          }
         </AlertDescription>
       </Alert>
 
@@ -191,6 +196,7 @@ export function RoleTemplateStep({
                       onCheckedChange={() =>
                         toggleRole(permission.permission_code, role.key)
                       }
+                      disabled={isReadOnly}
                     />
                     <div className="space-y-1 leading-none">
                       <Label
@@ -239,9 +245,15 @@ export function RoleTemplateStep({
         <Button variant="outline" onClick={onBack}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handleNext}>
-          Next <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+        {!isReadOnly ? (
+          <Button onClick={handleNext}>
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        ) : (
+          <Button onClick={onNext} variant="outline">
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

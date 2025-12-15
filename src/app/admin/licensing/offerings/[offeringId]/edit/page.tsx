@@ -25,7 +25,7 @@ export default async function EditProductOfferingPage({ params }: PageParams) {
   return (
     <ProtectedPage gate={gate} userId={userId}>
       <div className="container mx-auto px-4 py-6">
-        <OfferingForm mode="edit" offeringId={offeringId} redirectPath="/admin/licensing" />
+        <OfferingForm mode="edit" offeringId={offeringId} redirectPath="/admin/licensing?tab=offerings" />
       </div>
     </ProtectedPage>
   );

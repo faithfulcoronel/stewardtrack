@@ -16,13 +16,14 @@ import {
 import { ChevronLeft, ChevronRight, Plus, Trash2, Sparkles, GripVertical } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { WizardData } from '../FeaturePermissionWizard';
+import type { WizardData, WizardMode } from '../FeaturePermissionWizard';
 
 interface PermissionDefinitionStepProps {
   data: WizardData;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
   onBack: () => void;
+  mode?: WizardMode;
 }
 
 const COMMON_ACTIONS = ['view', 'create', 'update', 'delete', 'manage', 'export', 'import'];
@@ -32,8 +33,10 @@ export function PermissionDefinitionStep({
   onUpdate,
   onNext,
   onBack,
+  mode = 'create',
 }: PermissionDefinitionStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isReadOnly = mode === 'view';
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -139,10 +142,13 @@ export function PermissionDefinitionStep({
         <div>
           <h3 className="text-lg font-medium">Permission Definitions</h3>
           <p className="text-sm text-muted-foreground">
-            Define the permissions required to access this feature
+            {isReadOnly
+              ? 'Review the permissions required to access this feature'
+              : 'Define the permissions required to access this feature'
+            }
           </p>
         </div>
-        {data.permissions.length === 0 && (
+        {!isReadOnly && data.permissions.length === 0 && (
           <Button variant="outline" size="sm" onClick={addSuggestedPermissions}>
             <Sparkles className="mr-2 h-4 w-4" />
             Use Suggestions
@@ -168,13 +174,15 @@ export function PermissionDefinitionStep({
                     <Badge variant="secondary">Required</Badge>
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removePermission(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!isReadOnly && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removePermission(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
               {/* Permission Code */}
@@ -192,21 +200,24 @@ export function PermissionDefinitionStep({
                     className={
                       errors[`permission_${index}_code`] ? 'border-destructive' : ''
                     }
+                    disabled={isReadOnly}
                   />
-                  <Select
-                    onValueChange={(action) => generatePermissionCode(index, action)}
-                  >
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COMMON_ACTIONS.map((action) => (
-                        <SelectItem key={action} value={action}>
-                          {action}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {!isReadOnly && (
+                    <Select
+                      onValueChange={(action) => generatePermissionCode(index, action)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COMMON_ACTIONS.map((action) => (
+                          <SelectItem key={action} value={action}>
+                            {action}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 {errors[`permission_${index}_code`] && (
                   <p className="text-sm text-destructive">
@@ -232,6 +243,7 @@ export function PermissionDefinitionStep({
                   className={
                     errors[`permission_${index}_name`] ? 'border-destructive' : ''
                   }
+                  disabled={isReadOnly}
                 />
                 {errors[`permission_${index}_name`] && (
                   <p className="text-sm text-destructive">
@@ -250,6 +262,7 @@ export function PermissionDefinitionStep({
                     updatePermission(index, { description: e.target.value })
                   }
                   rows={2}
+                  disabled={isReadOnly}
                 />
               </div>
 
@@ -261,6 +274,7 @@ export function PermissionDefinitionStep({
                   onCheckedChange={(checked) =>
                     updatePermission(index, { is_required: checked })
                   }
+                  disabled={isReadOnly}
                 />
                 <Label htmlFor={`required-${index}`} className="cursor-pointer">
                   Required permission (must be granted to access feature)
@@ -272,10 +286,12 @@ export function PermissionDefinitionStep({
       </div>
 
       {/* Add Permission Button */}
-      <Button variant="outline" onClick={addPermission} className="w-full">
-        <Plus className="mr-2 h-4 w-4" />
-        Add Permission
-      </Button>
+      {!isReadOnly && (
+        <Button variant="outline" onClick={addPermission} className="w-full">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Permission
+        </Button>
+      )}
 
       {/* Format Guide */}
       <div className="bg-muted p-4 rounded-md">
@@ -294,9 +310,15 @@ export function PermissionDefinitionStep({
         <Button variant="outline" onClick={onBack}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handleNext}>
-          Next <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+        {!isReadOnly ? (
+          <Button onClick={handleNext}>
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        ) : (
+          <Button onClick={onNext} variant="outline">
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

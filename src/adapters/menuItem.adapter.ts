@@ -31,7 +31,6 @@ export class MenuItemAdapter
     section,
     permission_key,
     feature_key,
-    surface_id,
     badge_text,
     badge_variant,
     description,

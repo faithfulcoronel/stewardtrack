@@ -22,9 +22,6 @@ interface ProtectedAdminPageProps {
   role?: string | string[];
   roleMode?: 'all' | 'any';
 
-  // Alternative: surface-based access
-  surfaceId?: string;
-
   // Super admin only
   superAdminOnly?: boolean;
 
@@ -54,7 +51,7 @@ interface ProtectedAdminPageProps {
  * </ProtectedAdminPage>
  *
  * @example Custom gate
- * <ProtectedAdminPage gate={Gate.forSurface('member-management')}>
+ * <ProtectedAdminPage gate={Gate.withLicense('member-management')}>
  *   <MemberManagement />
  * </ProtectedAdminPage>
  */
@@ -64,7 +61,6 @@ export async function ProtectedAdminPage({
   permissionMode = 'all',
   role,
   roleMode = 'any',
-  surfaceId,
   superAdminOnly = false,
   children,
   redirectTo,
@@ -108,10 +104,6 @@ export async function ProtectedAdminPage({
     // Super admin check
     const { Gate } = await import('@/lib/access-gate');
     gate = Gate.superAdminOnly();
-  } else if (surfaceId) {
-    // Surface-based check
-    const { Gate } = await import('@/lib/access-gate');
-    gate = Gate.forSurface(surfaceId);
   } else if (permission) {
     // Permission-based check
     const { Gate } = await import('@/lib/access-gate');

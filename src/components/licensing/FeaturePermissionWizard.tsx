@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -16,6 +16,7 @@ export interface WizardData {
   description: string;
   tier: 'essential' | 'professional' | 'enterprise' | 'premium';
   category: string;
+  feature_code?: string;  // NEW: Feature code for metadata mapping
 
   // Step 2: Permissions
   permissions: Array<{
@@ -41,13 +42,19 @@ const STEPS = [
   { id: 4, name: 'Review', description: 'Review and create' },
 ];
 
+export type WizardMode = 'create' | 'edit' | 'view';
+
 interface FeaturePermissionWizardProps {
+  mode?: WizardMode;
+  featureId?: string;
   onComplete: (data: WizardData) => Promise<void>;
   onCancel: () => void;
   initialData?: Partial<WizardData>;
 }
 
 export function FeaturePermissionWizard({
+  mode = 'create',
+  featureId,
   onComplete,
   onCancel,
   initialData,
@@ -59,10 +66,24 @@ export function FeaturePermissionWizard({
     description: '',
     tier: 'professional',
     category: '',
+    feature_code: '',
     permissions: [],
     roleTemplates: {},
     ...initialData,
   });
+
+  const isReadOnly = mode === 'view';
+  const isEditMode = mode === 'edit';
+
+  // Update wizard data when initialData changes (for edit/view modes)
+  useEffect(() => {
+    if (initialData) {
+      setWizardData((prev) => ({
+        ...prev,
+        ...initialData,
+      }));
+    }
+  }, [initialData]);
 
   const updateWizardData = (data: Partial<WizardData>) => {
     setWizardData((prev) => ({ ...prev, ...data }));
@@ -101,6 +122,7 @@ export function FeaturePermissionWizard({
             data={wizardData}
             onUpdate={updateWizardData}
             onNext={handleNext}
+            mode={mode}
           />
         );
       case 2:
@@ -110,6 +132,7 @@ export function FeaturePermissionWizard({
             onUpdate={updateWizardData}
             onNext={handleNext}
             onBack={handleBack}
+            mode={mode}
           />
         );
       case 3:
@@ -119,6 +142,7 @@ export function FeaturePermissionWizard({
             onUpdate={updateWizardData}
             onNext={handleNext}
             onBack={handleBack}
+            mode={mode}
           />
         );
       case 4:
@@ -128,6 +152,7 @@ export function FeaturePermissionWizard({
             onSubmit={handleComplete}
             onBack={handleBack}
             isSubmitting={isSubmitting}
+            mode={mode}
           />
         );
       default:
@@ -135,16 +160,37 @@ export function FeaturePermissionWizard({
     }
   };
 
+  const getWizardTitle = () => {
+    switch (mode) {
+      case 'view':
+        return 'View Feature with Permissions';
+      case 'edit':
+        return 'Edit Feature with Permissions';
+      default:
+        return 'Create Feature with Permissions';
+    }
+  };
+
+  const getWizardDescription = () => {
+    switch (mode) {
+      case 'view':
+        return 'Review feature details, permission structure, and role templates';
+      case 'edit':
+        return 'Update feature with permission structure and role templates';
+      default:
+        return 'Define a new feature with permission structure and role templates';
+    }
+  };
+
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create Feature with Permissions</CardTitle>
-          <CardDescription>
-            Define a new feature with permission structure and role templates
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>{getWizardTitle()}</CardTitle>
+        <CardDescription>
+          {getWizardDescription()}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between mb-2">
@@ -196,14 +242,13 @@ export function FeaturePermissionWizard({
           {/* Step Content */}
           <div className="min-h-[400px]">{renderStep()}</div>
 
-          {/* Cancel Button */}
+          {/* Cancel/Close Button */}
           <div className="mt-6 flex justify-between">
             <Button variant="outline" onClick={onCancel}>
-              Cancel
+              {isReadOnly ? 'Close' : 'Cancel'}
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
   );
 }

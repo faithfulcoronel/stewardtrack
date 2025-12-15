@@ -24,6 +24,7 @@ export default function CreateFeaturePage() {
           description: data.description,
           tier: data.tier,
           category: data.category,
+          code: data.feature_code || null,  // Map 'feature_code' from wizard to 'code' for DB
           is_active: true,
         }),
       });
@@ -69,7 +70,7 @@ export default function CreateFeaturePage() {
 
       // Redirect after a short delay
       setTimeout(() => {
-        router.push('/admin/licensing/features');
+        router.push('/admin/licensing?tab=features');
       }, 2000);
     } catch (err: any) {
       console.error('Error creating feature:', err);
@@ -78,7 +79,7 @@ export default function CreateFeaturePage() {
   };
 
   const handleCancel = () => {
-    router.push('/admin/licensing');
+    router.push('/admin/licensing?tab=features');
   };
 
   return (
