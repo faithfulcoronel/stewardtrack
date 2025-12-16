@@ -162,6 +162,11 @@ export default function ManagePermissionsPage({
   };
 
   const handleSavePermission = async () => {
+    console.log('[CLIENT] handleSavePermission called');
+    console.log('[CLIENT] formData:', formData);
+    console.log('[CLIENT] selectedRoles:', selectedRoles);
+    console.log('[CLIENT] editingPermission:', editingPermission);
+
     try {
       setIsSaving(true);
       setError(null);
@@ -170,9 +175,11 @@ export default function ManagePermissionsPage({
         role_key: role,
         is_recommended: true,
       }));
+      console.log('[CLIENT] roleTemplates:', roleTemplates);
 
       if (editingPermission) {
         // Update existing permission
+        console.log('[CLIENT] Updating existing permission...');
         const updateResponse = await fetch(
           `/api/licensing/features/permissions/${editingPermission.id}`,
           {
@@ -205,35 +212,50 @@ export default function ManagePermissionsPage({
         setSuccess('Permission updated successfully');
       } else {
         // Create new permission
+        console.log('[CLIENT] Creating new permission...');
+        const requestBody = {
+          permission: formData,
+          roleTemplates,
+        };
+        console.log('[CLIENT] POST request body:', JSON.stringify(requestBody, null, 2));
+        console.log('[CLIENT] POST URL:', `/api/licensing/features/${unwrappedParams.id}/permissions`);
+
         const response = await fetch(
           `/api/licensing/features/${unwrappedParams.id}/permissions`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              permission: formData,
-              roleTemplates,
-            }),
+            body: JSON.stringify(requestBody),
           }
         );
 
+        console.log('[CLIENT] POST response status:', response.status);
+        console.log('[CLIENT] POST response ok:', response.ok);
+
         if (!response.ok) {
           const errorData = await response.json();
+          console.error('[CLIENT] POST error response:', errorData);
           throw new Error(errorData.error || 'Failed to create permission');
         }
 
+        const successData = await response.json();
+        console.log('[CLIENT] POST success response:', successData);
         setSuccess('Permission created successfully');
       }
 
       setShowAddDialog(false);
+      console.log('[CLIENT] Fetching updated permissions...');
       fetchPermissions();
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
+      console.error('[CLIENT] Error in handleSavePermission:', err);
+      console.error('[CLIENT] Error stack:', err.stack);
       setError(err.message || 'An error occurred');
     } finally {
       setIsSaving(false);
+      console.log('[CLIENT] handleSavePermission completed');
     }
   };
 
@@ -525,10 +547,16 @@ export default function ManagePermissionsPage({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" onClick={() => {
+              console.log('[CLIENT] Cancel button clicked');
+              setShowAddDialog(false);
+            }}>
               Cancel
             </Button>
-            <Button onClick={handleSavePermission} disabled={isSaving}>
+            <Button onClick={() => {
+              console.log('[CLIENT] Create/Update button clicked!');
+              handleSavePermission();
+            }} disabled={isSaving}>
               {isSaving ? 'Saving...' : editingPermission ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>

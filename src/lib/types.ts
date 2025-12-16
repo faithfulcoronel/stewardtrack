@@ -113,8 +113,8 @@ export const TYPES = {
   ILicenseAdapter: Symbol.for('ILicenseAdapter'),
   ILicenseFeatureAdapter: Symbol.for('ILicenseFeatureAdapter'),
   ILicenseFeatureRepository: Symbol.for('ILicenseFeatureRepository'),
-  ILicensePlanAdapter: Symbol.for('ILicensePlanAdapter'),
-  ILicensePlanRepository: Symbol.for('ILicensePlanRepository'),
+  // ILicensePlanAdapter: REMOVED - feature_packages table dropped (legacy licensing)
+  // ILicensePlanRepository: REMOVED - feature_packages table dropped (legacy licensing)
   ILicenseRepository: Symbol.for('ILicenseRepository'),
   IMemberAdapter: Symbol.for('IMemberAdapter'),
   IMemberRepository: Symbol.for('IMemberRepository'),

@@ -85,10 +85,12 @@ export default function FeatureDetailsPage({
 
   const handleComplete = async (data: WizardData) => {
     try {
+      console.log('[DEBUG PAGE] handleComplete called with data:', JSON.stringify(data, null, 2));
       setError(null);
 
       if (mode === 'edit') {
         // Update feature
+        console.log('[DEBUG PAGE] Updating feature...');
         const featureResponse = await fetch(`/api/licensing/features/${unwrappedParams.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -105,17 +107,97 @@ export default function FeatureDetailsPage({
           const errorData = await featureResponse.json();
           throw new Error(errorData.error || 'Failed to update feature');
         }
+        console.log('[DEBUG PAGE] Feature updated successfully');
 
-        // TODO: Update permissions and role templates
-        // This would require additional API endpoints for bulk permission updates
+        // Update permissions and role templates
+        console.log('[DEBUG PAGE] Processing permissions:', data.permissions.length);
+        for (const permission of data.permissions) {
+          console.log('[DEBUG PAGE] Processing permission:', permission.permission_code);
 
-        setSuccess('Feature updated successfully');
+          // Check if permission already exists
+          const existingPermission = permissions.find(p => p.permission_code === permission.permission_code);
+          const roleTemplates = data.roleTemplates[permission.permission_code] || [];
+
+          if (existingPermission) {
+            // Update existing permission
+            console.log('[DEBUG PAGE] Updating existing permission:', existingPermission.id);
+            const updateResponse = await fetch(
+              `/api/licensing/features/permissions/${existingPermission.id}`,
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  permission: {
+                    display_name: permission.display_name,
+                    description: permission.description,
+                    is_required: permission.is_required,
+                    display_order: permission.display_order,
+                  },
+                  roleTemplates,
+                }),
+              }
+            );
+
+            if (!updateResponse.ok) {
+              const errorData = await updateResponse.json();
+              console.error('[DEBUG PAGE] Failed to update permission:', errorData);
+              throw new Error(errorData.error || `Failed to update permission: ${permission.permission_code}`);
+            }
+            console.log('[DEBUG PAGE] Permission updated successfully:', permission.permission_code);
+          } else {
+            // Create new permission
+            console.log('[DEBUG PAGE] Creating new permission:', permission.permission_code);
+            const createResponse = await fetch(
+              `/api/licensing/features/${unwrappedParams.id}/permissions`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  permission,
+                  roleTemplates,
+                }),
+              }
+            );
+
+            if (!createResponse.ok) {
+              const errorData = await createResponse.json();
+              console.error('[DEBUG PAGE] Failed to create permission:', errorData);
+              throw new Error(errorData.error || `Failed to create permission: ${permission.permission_code}`);
+            }
+            console.log('[DEBUG PAGE] Permission created successfully:', permission.permission_code);
+          }
+        }
+
+        // Delete permissions that were removed
+        const permissionCodesToKeep = data.permissions.map(p => p.permission_code);
+        const permissionsToDelete = permissions.filter(p => !permissionCodesToKeep.includes(p.permission_code));
+
+        console.log('[DEBUG PAGE] Deleting removed permissions:', permissionsToDelete.length);
+        for (const permission of permissionsToDelete) {
+          console.log('[DEBUG PAGE] Deleting permission:', permission.id);
+          const deleteResponse = await fetch(
+            `/api/licensing/features/permissions/${permission.id}`,
+            { method: 'DELETE' }
+          );
+
+          if (!deleteResponse.ok) {
+            const errorData = await deleteResponse.json();
+            console.error('[DEBUG PAGE] Failed to delete permission:', errorData);
+            throw new Error(errorData.error || `Failed to delete permission: ${permission.permission_code}`);
+          }
+          console.log('[DEBUG PAGE] Permission deleted successfully:', permission.permission_code);
+        }
+
+        console.log('[DEBUG PAGE] All permissions processed successfully');
+        setSuccess('Feature and permissions updated successfully');
         setMode('view');
         await fetchFeatureData();
 
         setTimeout(() => setSuccess(null), 3000);
       }
     } catch (err: any) {
+      console.error('[DEBUG PAGE] Error in handleComplete:', err);
+      console.error('[DEBUG PAGE] Error stack:', err.stack);
       setError(err.message || 'An unexpected error occurred');
     }
   };

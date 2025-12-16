@@ -46,7 +46,7 @@ import { UserMemberLinkRepository } from '@/repositories/userMemberLink.reposito
 import { MemberInvitationRepository } from '@/repositories/memberInvitation.repository';
 import { LicenseRepository } from '@/repositories/license.repository';
 import { LicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
-import { LicensePlanRepository } from '@/repositories/licensePlan.repository';
+// LicensePlanRepository removed - feature_packages table dropped (legacy licensing)
 import { ProductOfferingRepository } from '@/repositories/productOffering.repository';
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
@@ -67,7 +67,7 @@ import type { IRbacAuditRepository } from '@/repositories/rbacAudit.repository';
 import type { IPublishingRepository } from '@/repositories/publishing.repository';
 import type { ILicenseRepository } from '@/repositories/license.repository';
 import type { ILicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
-import type { ILicensePlanRepository } from '@/repositories/licensePlan.repository';
+// ILicensePlanRepository removed - feature_packages table dropped (legacy licensing)
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
@@ -88,7 +88,7 @@ import { RbacAuditAdapter } from '@/adapters/rbacAudit.adapter';
 import { PublishingAdapter } from '@/adapters/publishing.adapter';
 import { LicenseAdapter } from '@/adapters/license.adapter';
 import { LicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
-import { LicensePlanAdapter } from '@/adapters/licensePlan.adapter';
+// LicensePlanAdapter removed - feature_packages table dropped (legacy licensing)
 import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
@@ -109,7 +109,7 @@ import type { IRbacAuditAdapter } from '@/adapters/rbacAudit.adapter';
 import type { IPublishingAdapter } from '@/adapters/publishing.adapter';
 import type { ILicenseAdapter } from '@/adapters/license.adapter';
 import type { ILicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
-import type { ILicensePlanAdapter } from '@/adapters/licensePlan.adapter';
+// ILicensePlanAdapter removed - feature_packages table dropped (legacy licensing)
 import type { IProductOfferingAdapter } from '@/adapters/productOffering.adapter';
 import type { ILicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import type { ILicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
@@ -230,7 +230,7 @@ container
   .bind<ILicenseFeatureRepository>(TYPES.ILicenseFeatureRepository)
   .to(LicenseFeatureRepository)
   .inRequestScope();
-container.bind<ILicensePlanRepository>(TYPES.ILicensePlanRepository).to(LicensePlanRepository).inRequestScope();
+// ILicensePlanRepository binding removed - feature_packages table dropped (legacy licensing)
 container
   .bind<IProductOfferingRepository>(TYPES.IProductOfferingRepository)
   .to(ProductOfferingRepository)
@@ -273,10 +273,7 @@ container
   .bind<ILicenseFeatureAdapter>(TYPES.ILicenseFeatureAdapter)
   .to(LicenseFeatureAdapter)
   .inRequestScope();
-container
-  .bind<ILicensePlanAdapter>(TYPES.ILicensePlanAdapter)
-  .to(LicensePlanAdapter)
-  .inRequestScope();
+// ILicensePlanAdapter binding removed - feature_packages table dropped (legacy licensing)
 container
   .bind<IProductOfferingAdapter>(TYPES.IProductOfferingAdapter)
   .to(ProductOfferingAdapter)

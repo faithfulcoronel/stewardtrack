@@ -40,11 +40,16 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
    */
   async create(data: Partial<FeaturePermission>): Promise<FeaturePermission> {
     try {
+      console.log('[DEBUG ADAPTER] create() called with data:', JSON.stringify(data, null, 2));
+
       // Check admin role directly from database
       const supabase = await this.getSupabaseClient();
-      const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+      console.log('[DEBUG ADAPTER] Calling get_user_admin_role RPC...');
+      const { data: adminRole, error: rpcError } = await supabase.rpc('get_user_admin_role');
+      console.log('[DEBUG ADAPTER] get_user_admin_role result:', { adminRole, error: rpcError });
 
       if (adminRole !== 'super_admin') {
+        console.log('[DEBUG ADAPTER] Access denied - role is not super_admin');
         throw new Error('Access denied. Only super admins can create feature permissions.');
       }
 
@@ -53,32 +58,47 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
         const [category, action] = data.permission_code.split(':');
         data.category = category;
         data.action = action;
+        console.log('[DEBUG ADAPTER] Parsed category and action:', { category, action });
       }
 
       // Run pre-create hook
+      console.log('[DEBUG ADAPTER] Running onBeforeCreate hook...');
       const processedData = await this.onBeforeCreate(data);
+      console.log('[DEBUG ADAPTER] Processed data:', JSON.stringify(processedData, null, 2));
 
       // Create record (NO tenant_id filter - this is a global table)
       const userId = await this.getUserId();
+      console.log('[DEBUG ADAPTER] Current userId:', userId);
+
+      const insertData = {
+        ...processedData,
+        created_by: userId,
+        updated_by: userId,
+      };
+      console.log('[DEBUG ADAPTER] Insert data:', JSON.stringify(insertData, null, 2));
+
+      console.log('[DEBUG ADAPTER] Executing INSERT query...');
       const { data: created, error: createError } = await supabase
         .from(this.tableName)
-        .insert({
-          ...processedData,
-          created_by: userId,
-          updated_by: userId,
-        })
+        .insert(insertData)
         .select()
         .single();
 
+      console.log('[DEBUG ADAPTER] Insert result:', { created, error: createError });
+
       if (createError || !created) {
+        console.error('[DEBUG ADAPTER] Insert failed:', createError);
         throw new Error(createError?.message || 'Create failed');
       }
 
       const result = created as FeaturePermission;
+      console.log('[DEBUG ADAPTER] Running onAfterCreate hook...');
       await this.onAfterCreate(result);
+      console.log('[DEBUG ADAPTER] Feature permission created successfully:', result.id);
 
       return result;
     } catch (error: any) {
+      console.error('[DEBUG ADAPTER] Error in create():', error);
       throw new Error(`Failed to create feature permission: ${error.message}`);
     }
   }

@@ -184,8 +184,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     // Check super admin permission
-    const isSuperAdmin = await checkSuperAdmin();
-    if (!isSuperAdmin) {
+    const { isAuthorized } = await checkSuperAdmin();
+    if (!isAuthorized) {
       return NextResponse.json(
         {
           success: false,
