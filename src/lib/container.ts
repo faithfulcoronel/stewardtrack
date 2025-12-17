@@ -29,10 +29,15 @@ import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy';
 import type { IEncryptionStrategy } from '@/lib/encryption/strategies/IEncryptionStrategy';
 
+// Adapters
+import { MemberAdapter, type IMemberAdapter } from '@/adapters/member.adapter';
+import { UserAdapter } from '@/adapters/user.adapter';
+import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapters/memberInvitation.adapter';
+
 // Repositories
+import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
 import { AuthRepository } from '@/repositories/auth.repository';
 import { TenantRepository } from '@/repositories/tenant.repository';
-import { RbacRepository } from '@/repositories/rbac.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
 import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -199,6 +204,19 @@ container
   .to(EncryptionService)
   .inRequestScope();
 
+// ==================== ADAPTERS ====================
+// MemberAdapter now has encryption built-in
+container
+  .bind<MemberAdapter>(TYPES.MemberAdapter)
+  .to(MemberAdapter)
+  .inRequestScope();
+
+// UserAdapter handles auth user queries via RPC
+container
+  .bind<UserAdapter>(TYPES.UserAdapter)
+  .to(UserAdapter)
+  .inRequestScope();
+
 // ==================== USER ROLE SERVICE ====================
 container
   .bind<UserRoleService>(TYPES.UserRoleService)
@@ -212,9 +230,6 @@ container.bind<IAuthRepository>(TYPES.IAuthRepository).to(AuthRepository).inRequ
 container.bind<ITenantRepository>(TYPES.ITenantRepository).to(TenantRepository).inRequestScope();
 
 // ==================== RBAC REPOSITORIES ====================
-// Legacy RBAC Repository (will be phased out)
-container.bind<RbacRepository>(TYPES.RbacRepository).to(RbacRepository).inRequestScope();
-
 // Specialized RBAC Repositories
 container.bind<IRoleRepository>(TYPES.IRoleRepository).to(RoleRepository).inRequestScope();
 container.bind<IPermissionRepository>(TYPES.IPermissionRepository).to(PermissionRepository).inRequestScope();
@@ -296,9 +311,16 @@ container
   .inRequestScope();
 
 // ==================== MENU ADAPTERS ====================
+// ==================== MEMBER ADAPTER & REPOSITORY ====================
+container.bind<IMemberAdapter>(TYPES.IMemberAdapter).to(MemberAdapter).inRequestScope();
+container.bind<IMemberRepository>(TYPES.IMemberRepository).to(MemberRepository).inRequestScope();
+
+// ==================== MEMBER INVITATION ====================
+container.bind<IMemberInvitationAdapter>(TYPES.IMemberInvitationAdapter).to(MemberInvitationAdapter).inRequestScope();
+container.bind<MemberInvitationRepository>(TYPES.MemberInvitationRepository).to(MemberInvitationRepository).inRequestScope();
+
 // ==================== USER MEMBER LINK SERVICES ====================
 container.bind<UserMemberLinkService>(TYPES.UserMemberLinkService).to(UserMemberLinkService).inRequestScope();
 container.bind<UserMemberLinkRepository>(TYPES.UserMemberLinkRepository).to(UserMemberLinkRepository).inRequestScope();
-container.bind<MemberInvitationRepository>(TYPES.MemberInvitationRepository).to(MemberInvitationRepository).inRequestScope();
 
 export { container };

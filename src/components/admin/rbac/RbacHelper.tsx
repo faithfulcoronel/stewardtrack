@@ -15,12 +15,10 @@ import {
   Users,
   Shield,
   Key,
-  Database,
   Settings,
   FileText,
   Eye,
   Lock,
-  UserCheck,
   Star
 } from 'lucide-react';
 
@@ -239,6 +237,24 @@ export const RbacHelpContent = {
     title: "Publishing Controls",
     description: "Manage how RBAC changes are compiled and deployed to your live system. Control when and how access changes take effect.",
     example: "Compile and publish role changes so they become active across all church systems",
+    difficulty: "Advanced" as const
+  },
+  managePermissions: {
+    title: "Manage Permissions",
+    description: "View and edit permissions assigned to roles. Control what actions each role can perform in the system.",
+    example: "Edit the Secretary role to add permission to send messages to members",
+    difficulty: "Medium" as const
+  },
+  exportData: {
+    title: "Export Data",
+    description: "Download roles, permissions, and user assignments for backup or analysis. Export to CSV or JSON formats.",
+    example: "Export all role definitions to review offline or share with leadership",
+    difficulty: "Easy" as const
+  },
+  delegateAccess: {
+    title: "Delegate Access",
+    description: "Assign temporary or scoped access to campus or ministry leaders. Let them manage their areas independently.",
+    example: "Delegate campus admin access to a campus pastor for their location only",
     difficulty: "Advanced" as const
   }
 };

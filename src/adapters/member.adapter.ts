@@ -5,9 +5,11 @@ import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.ad
 import { Member } from '@/models/member.model';
 import { MemberHousehold } from '@/models/memberHousehold.model';
 import type { AuditService } from '@/services/AuditService';
+import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { TYPES } from '@/lib/types';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { FieldValidationError } from '@/utils/errorHandler';
+import { getFieldEncryptionConfig } from '@/utils/encryptionUtils';
 
 export interface IMemberAdapter extends IBaseAdapter<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
@@ -15,13 +17,36 @@ export interface IMemberAdapter extends IBaseAdapter<Member> {
   getCurrentUserMember(): Promise<Member | null>;
 }
 
+/**
+ * Member Adapter with built-in encryption for PII fields
+ *
+ * Encrypted Fields (12 total):
+ * - first_name, last_name, middle_name
+ * - email, contact_number, address
+ * - emergency_contact_name, emergency_contact_phone, emergency_contact_relationship
+ * - physician_name, pastoral_notes
+ * - prayer_requests (array)
+ *
+ * NOT Encrypted (remain as plain database values):
+ * - birthday, anniversary (DATE fields - cannot be encrypted)
+ */
 @injectable()
 export class MemberAdapter
   extends BaseAdapter<Member>
   implements IMemberAdapter
 {
-  constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
+  constructor(
+    @inject(TYPES.AuditService) private auditService: AuditService,
+    @inject(TYPES.EncryptionService) private encryptionService: EncryptionService
+  ) {
     super();
+  }
+
+  /**
+   * Get PII field configuration for members table
+   */
+  private getPIIFields() {
+    return getFieldEncryptionConfig('members');
   }
 
   private async getTenantId() {
@@ -99,7 +124,12 @@ export class MemberAdapter
     updated_at,
     membership_type_id,
     membership_status_id,
-    membership_center_id
+    membership_center_id,
+    encrypted_fields,
+    encryption_key_version,
+    user_id,
+    linked_at,
+    linked_by
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [
@@ -162,23 +192,32 @@ export class MemberAdapter
     const tenantId = await this.getTenantId();
     if (!tenantId) return null;
 
-    const { data: tenantUser } = await supabase
-      .from('tenant_users')
-      .select('member_id')
+    // Query members table directly by user_id (user-member linking)
+    // Use raw query to avoid RLS context issues in layout
+    const { data: member, error } = await supabase
+      .from('members')
+      .select(this.defaultSelect)
       .eq('user_id', user.id)
       .eq('tenant_id', tenantId)
-      .single();
-
-    if (!tenantUser?.member_id) return null;
-
-    const { data: member } = await supabase
-      .from('members')
-      .select('*')
-      .eq('id', tenantUser.member_id)
       .is('deleted_at', null)
-      .single();
+      .maybeSingle();
 
-    return (member as Member) || null;
+    if (error || !member) return null;
+
+    // Cast to any to work with Supabase types
+    const memberData = member as any;
+
+    // Manually decrypt the member data
+    if (memberData.encrypted_fields && (memberData.encrypted_fields as any[]).length > 0) {
+      const decrypted = await this.encryptionService.decryptFields(
+        memberData as Member,
+        tenantId,
+        this.getPIIFields()
+      );
+      return decrypted;
+    }
+
+    return memberData as Member;
   }
 
   private cleanOptionalString(value: unknown): string | null | undefined {
@@ -654,12 +693,67 @@ export class MemberAdapter
       }
     }
 
-    return prepared;
+    // Encrypt PII fields before creating record
+    const tenantId = this.context?.tenantId;
+    if (!tenantId) {
+      throw new Error('[MemberAdapter] Tenant context required for encryption');
+    }
+
+    try {
+      const encrypted = await this.encryptionService.encryptFields(
+        prepared,
+        tenantId,
+        this.getPIIFields()
+      );
+
+      // Track which fields are encrypted
+      encrypted.encrypted_fields = this.getPIIFields().map(f => f.fieldName);
+      encrypted.encryption_key_version = 1; // Will be updated by key manager
+
+      console.log(
+        `[MemberAdapter] Encrypted ${encrypted.encrypted_fields.length} PII fields for new member`
+      );
+
+      return encrypted;
+    } catch (error) {
+      console.error('[MemberAdapter] Encryption failed during create:', error);
+      throw new Error(
+        `Failed to encrypt member data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
   protected override async onAfterCreate(data: Member): Promise<void> {
-    // Log audit event
-    await this.auditService.logAuditEvent('create', 'member', data.id, data);
+    // Decrypt member data before logging to audit (so audit logs show readable values)
+    const tenantId = this.context?.tenantId;
+    if (!tenantId) {
+      // If no tenant context, log encrypted data as fallback
+      await this.auditService.logAuditEvent('create', 'member', data.id, data);
+      return;
+    }
+
+    try {
+      // Check if data has encrypted fields
+      if (!data.encrypted_fields || (data.encrypted_fields as any[]).length === 0) {
+        // No encryption, log as-is
+        await this.auditService.logAuditEvent('create', 'member', data.id, data);
+        return;
+      }
+
+      // Decrypt for audit logging
+      const decrypted = await this.encryptionService.decryptFields(
+        data,
+        tenantId,
+        this.getPIIFields()
+      );
+
+      // Log audit event with decrypted data
+      await this.auditService.logAuditEvent('create', 'member', data.id, decrypted);
+    } catch (error) {
+      console.error('[MemberAdapter] Failed to decrypt for audit logging:', error);
+      // Log encrypted data as fallback
+      await this.auditService.logAuditEvent('create', 'member', data.id, data);
+    }
   }
 
   protected override async onBeforeUpdate(id: string, data: Partial<Member>): Promise<Partial<Member>> {
@@ -688,11 +782,213 @@ export class MemberAdapter
       }
     }
 
-    return prepared;
+    // Encrypt PII fields before updating record
+    const tenantId = this.context?.tenantId;
+    if (!tenantId) {
+      throw new Error('[MemberAdapter] Tenant context required for encryption');
+    }
+
+    try {
+      // Only encrypt fields that are actually being updated
+      const fieldsToEncrypt = this.getPIIFields().filter(
+        field => prepared[field.fieldName as keyof Member] !== undefined
+      );
+
+      if (fieldsToEncrypt.length === 0) {
+        // No PII fields being updated
+        return prepared;
+      }
+
+      // Encrypt the PII fields
+      const encrypted = await this.encryptionService.encryptFields(
+        prepared,
+        tenantId,
+        fieldsToEncrypt
+      );
+
+      // Update encrypted_fields marker to include ALL encrypted field names
+      const allPIIFieldNames = this.getPIIFields().map(f => f.fieldName);
+      encrypted.encrypted_fields = allPIIFieldNames;
+      encrypted.encryption_key_version = 1; // Will be updated by key manager
+
+      console.log(
+        `[MemberAdapter] Encrypted ${fieldsToEncrypt.length} PII fields for member ${id}`
+      );
+
+      return encrypted;
+    } catch (error) {
+      console.error('[MemberAdapter] Encryption failed during update:', error);
+      throw new Error(
+        `Failed to encrypt member data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
   protected override async onAfterUpdate(data: Member): Promise<void> {
-    // Log audit event
-    await this.auditService.logAuditEvent('update', 'member', data.id, data);
+    // Decrypt member data before logging to audit (so audit logs show readable values)
+    const tenantId = this.context?.tenantId;
+    if (!tenantId) {
+      // If no tenant context, log encrypted data as fallback
+      await this.auditService.logAuditEvent('update', 'member', data.id, data);
+      return;
+    }
+
+    try {
+      // Check if data has encrypted fields
+      if (!data.encrypted_fields || (data.encrypted_fields as any[]).length === 0) {
+        // No encryption, log as-is
+        await this.auditService.logAuditEvent('update', 'member', data.id, data);
+        return;
+      }
+
+      // Decrypt for audit logging
+      const decrypted = await this.encryptionService.decryptFields(
+        data,
+        tenantId,
+        this.getPIIFields()
+      );
+
+      // Log audit event with decrypted data
+      await this.auditService.logAuditEvent('update', 'member', data.id, decrypted);
+    } catch (error) {
+      console.error('[MemberAdapter] Failed to decrypt for audit logging:', error);
+      // Log encrypted data as fallback
+      await this.auditService.logAuditEvent('update', 'member', data.id, data);
+    }
+  }
+
+  /**
+   * Decrypt PII fields after fetching members
+   */
+  public override async fetch(
+    options: QueryOptions = {}
+  ): Promise<{ data: Member[]; count: number | null }> {
+    // Fetch encrypted records from parent
+    const result = await super.fetch(options);
+
+    // Get tenant context
+    const tenantId = this.context?.tenantId;
+    console.log(`[MemberAdapter.fetch] Context tenantId: ${tenantId}, Records fetched: ${result.data.length}`);
+
+    if (!tenantId || !result.data.length) {
+      console.log(`[MemberAdapter.fetch] Skipping decryption - ${!tenantId ? 'no tenant context' : 'no records'}`);
+      return result;
+    }
+
+    try {
+      // Log sample of raw data from database before decryption
+      if (result.data.length > 0) {
+        const firstRecord = result.data[0];
+        console.log(`[MemberAdapter.fetch] Sample record BEFORE decryption:`, {
+          id: firstRecord.id,
+          email: firstRecord.email,
+          email_length: firstRecord.email?.length,
+          encrypted_fields: firstRecord.encrypted_fields,
+          encryption_key_version: firstRecord.encryption_key_version
+        });
+      }
+
+      // Decrypt all records in parallel
+      const decrypted = await Promise.all(
+        result.data.map(async (record, index) => {
+          // Check if record has encrypted fields
+          if (!record.encrypted_fields || (record.encrypted_fields as any[]).length === 0) {
+            console.log(`[MemberAdapter.fetch] Record ${index} has no encrypted_fields, skipping decryption`);
+            // Legacy plaintext record or no PII fields
+            return record;
+          }
+
+          console.log(`[MemberAdapter.fetch] Decrypting record ${index} with ${(record.encrypted_fields as any[]).length} encrypted fields`);
+          const decryptedRecord = await this.encryptionService.decryptFields(
+            record,
+            tenantId,
+            this.getPIIFields()
+          );
+
+          console.log(`[MemberAdapter.fetch] Record ${index} AFTER decryption:`, {
+            id: decryptedRecord.id,
+            email: decryptedRecord.email,
+            email_length: decryptedRecord.email?.length
+          });
+
+          return decryptedRecord;
+        })
+      );
+
+      console.log(
+        `[MemberAdapter] Decrypted ${decrypted.length} member records`
+      );
+
+      // Log sample of decrypted data
+      if (decrypted.length > 0) {
+        const firstDecrypted = decrypted[0];
+        console.log(`[MemberAdapter.fetch] Final sample AFTER all decryption:`, {
+          id: firstDecrypted.id,
+          email: firstDecrypted.email,
+          first_name: firstDecrypted.first_name,
+          last_name: firstDecrypted.last_name
+        });
+      }
+
+      return { data: decrypted, count: result.count };
+    } catch (error) {
+      console.error('[MemberAdapter.fetch] Decryption failed during fetch:', error);
+      // Return encrypted data rather than failing completely
+      return result;
+    }
+  }
+
+  /**
+   * Decrypt PII fields after fetching single member
+   */
+  public override async fetchById(
+    id: string,
+    options: Omit<QueryOptions, 'pagination'> = {}
+  ): Promise<Member | null> {
+    // Fetch encrypted record from parent
+    const record = await super.fetchById(id, options);
+
+    if (!record) {
+      return null;
+    }
+
+    // Get tenant context
+    const tenantId = this.context?.tenantId;
+    if (!tenantId) {
+      return record;
+    }
+
+    try {
+      // Check if record has encrypted fields
+      if (!record.encrypted_fields || (record.encrypted_fields as any[]).length === 0) {
+        // Legacy plaintext record or no PII fields
+        return record;
+      }
+
+      const decrypted = await this.encryptionService.decryptFields(
+        record,
+        tenantId,
+        this.getPIIFields()
+      );
+
+      console.log(
+        `[MemberAdapter] Decrypted member ${id}`
+      );
+
+      return decrypted;
+    } catch (error) {
+      console.error(`[MemberAdapter] Decryption failed for member ${id}:`, error);
+      // Return encrypted data rather than failing
+      return record;
+    }
+  }
+
+  /**
+   * Fetch all members (decrypted)
+   */
+  public override async fetchAll(
+    options: Omit<QueryOptions, 'pagination'> = {}
+  ): Promise<{ data: Member[]; count: number | null }> {
+    return this.fetch(options);
   }
 }

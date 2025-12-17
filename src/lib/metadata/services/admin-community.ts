@@ -2,13 +2,13 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 import type { GridColumnConfig } from '@/components/dynamic/admin/AdminDataGridSection';
 
-import { EncryptedMembersDashboardAdapter } from '@/adapters/encrypted/EncryptedMembersDashboardAdapter';
+import { MembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import {
   MembersDashboardRepository,
   type DirectoryMember,
 } from '@/repositories/membersDashboard.repository';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
-import { EncryptedMemberProfileAdapter } from '@/adapters/encrypted/EncryptedMemberProfileAdapter';
+import { MemberProfileAdapter } from '@/adapters/memberProfile.adapter';
 import { MemberProfileRepository } from '@/repositories/memberProfile.repository';
 import {
   MemberProfileService,
@@ -295,7 +295,7 @@ function createMembersDashboardService(): MembersDashboardService {
   const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
 
   // Use EncryptedMembersDashboardAdapter to decrypt PII after fetching
-  const adapter = new EncryptedMembersDashboardAdapter(encryptionService);
+  const adapter = new MembersDashboardAdapter(encryptionService);
   console.log('[admin-community] EncryptedMembersDashboardAdapter instantiated:', adapter.constructor.name);
 
   const repository = new MembersDashboardRepository(adapter);
@@ -311,7 +311,7 @@ function createMemberProfileService(): MemberProfileService {
   const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
 
   // Use EncryptedMemberProfileAdapter to decrypt PII after fetching
-  const adapter = new EncryptedMemberProfileAdapter(encryptionService);
+  const adapter = new MemberProfileAdapter(encryptionService);
   console.log('[admin-community] EncryptedMemberProfileAdapter instantiated:', adapter.constructor.name);
 
   const repository = new MemberProfileRepository(adapter);

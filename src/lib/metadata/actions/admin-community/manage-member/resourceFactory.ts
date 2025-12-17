@@ -1,6 +1,6 @@
 import { SupabaseAuditService } from "@/services/AuditService";
-import { EncryptedMemberAdapter } from "@/adapters/encrypted/EncryptedMemberAdapter";
-import { EncryptedAccountAdapter } from "@/adapters/encrypted/EncryptedAccountAdapter";
+import { MemberAdapter } from "@/adapters/member.adapter";
+import { AccountAdapter } from "@/adapters/account.adapter";
 import { EncryptionService } from "@/lib/encryption/EncryptionService";
 import { EncryptionKeyManager } from "@/lib/encryption/EncryptionKeyManager";
 import { AES256GCMStrategy } from "@/lib/encryption/strategies/AES256GCMStrategy";
@@ -74,13 +74,13 @@ export class MemberManageResourceFactory {
     const keyManager = new EncryptionKeyManager();
     const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
 
-    // Use EncryptedMemberAdapter instead of plain MemberAdapter
-    const memberAdapter = new EncryptedMemberAdapter(encryptionService, auditService);
+    // MemberAdapter has built-in encryption
+    const memberAdapter = new MemberAdapter(auditService, encryptionService);
     this.applyRequestContextToAdapter(memberAdapter, context);
     const memberRepository = new MemberRepository(memberAdapter);
 
-    // Use EncryptedAccountAdapter instead of plain AccountAdapter
-    const accountAdapter = new EncryptedAccountAdapter(auditService, encryptionService);
+    // AccountAdapter has built-in encryption
+    const accountAdapter = new AccountAdapter(auditService, encryptionService);
     this.applyRequestContextToAdapter(accountAdapter, context);
     const accountRepository = new AccountRepository(accountAdapter);
 

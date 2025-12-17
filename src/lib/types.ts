@@ -30,6 +30,10 @@ export const TYPES = {
   EncryptionKeyManager: Symbol.for('EncryptionKeyManager'),
   EncryptionStrategy: Symbol.for('EncryptionStrategy'),
 
+  // Adapters
+  MemberAdapter: Symbol.for('MemberAdapter'),
+  UserAdapter: Symbol.for('UserAdapter'),
+
   // User Role Service
   UserRoleService: Symbol.for('UserRoleService'),
 
@@ -142,6 +146,7 @@ export const TYPES = {
   IMemberTagRepository: Symbol.for('IMemberTagRepository'),
   IMemberTimelineEventAdapter: Symbol.for('IMemberTimelineEventAdapter'),
   IMemberTimelineEventRepository: Symbol.for('IMemberTimelineEventRepository'),
+  IMemberInvitationAdapter: Symbol.for('IMemberInvitationAdapter'),
   IMembershipTypeAdapter: Symbol.for('IMembershipTypeAdapter'),
   IMembershipTypeRepository: Symbol.for('IMembershipTypeRepository'),
   IMessageAdapter: Symbol.for('IMessageAdapter'),

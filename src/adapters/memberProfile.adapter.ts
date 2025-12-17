@@ -1,11 +1,14 @@
 import 'server-only';
 import 'reflect-metadata';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { RequestContext } from '@/lib/server/context';
 import { tenantUtils } from '@/utils/tenantUtils';
+import type { EncryptionService } from '@/lib/encryption/EncryptionService';
+import { TYPES } from '@/lib/types';
+import { getFieldEncryptionConfig } from '@/utils/encryptionUtils';
 import type { MemberHousehold } from '@/models/memberHousehold.model';
 
 export interface MemberRow {
@@ -157,10 +160,24 @@ export interface IMemberProfileAdapter {
   ): Promise<MemberMilestoneRow[]>;
 }
 
+/**
+ * Member Profile Adapter with built-in encryption for PII fields
+ *
+ * Encrypted Fields (12 total):
+ * - first_name, last_name, middle_name (if present)
+ * - email, contact_number, address
+ * - emergency_contact_name, emergency_contact_phone, emergency_contact_relationship
+ * - physician_name, pastoral_notes
+ * - prayer_requests (array)
+ */
 @injectable()
 export class MemberProfileAdapter implements IMemberProfileAdapter {
   private supabase: SupabaseClient | null = null;
   private context: RequestContext = {} as RequestContext;
+
+  constructor(
+    @inject(TYPES.EncryptionService) private encryptionService: EncryptionService
+  ) {}
 
   private async getSupabaseClient(): Promise<SupabaseClient> {
     if (!this.supabase) {
@@ -176,7 +193,74 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
     return this.context?.tenantId ?? (await tenantUtils.getTenantId());
   }
 
+  /**
+   * Get PII field configuration for members table
+   */
+  private getPIIFields() {
+    return getFieldEncryptionConfig('members');
+  }
+
+  /**
+   * Decrypt a single member record
+   */
+  private async decryptMember(member: MemberRow, tenantId: string): Promise<MemberRow> {
+    try {
+      console.log('[MemberProfileAdapter] decryptMember called for member:', {
+        memberId: member.id,
+        tenantId,
+        hasFirstName: !!member.first_name,
+        firstNameSample: member.first_name?.substring(0, 20),
+        hasEncryptedFields: !!(member as any).encrypted_fields,
+        encryptedFields: (member as any).encrypted_fields
+      });
+
+      // Check if record has encrypted fields marker
+      const encrypted_fields = (member as any).encrypted_fields;
+
+      // Check if first_name looks encrypted (format: version.iv.tag.ciphertext)
+      const firstName = member.first_name;
+      const looksEncrypted = firstName && typeof firstName === 'string' &&
+                            firstName.match(/^\d+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+$/);
+
+      console.log('[MemberProfileAdapter] Encryption detection:', {
+        hasMarker: !!(encrypted_fields && encrypted_fields.length > 0),
+        looksEncrypted,
+        firstNameFormat: firstName?.substring(0, 30)
+      });
+
+      if (!looksEncrypted && (!encrypted_fields || encrypted_fields.length === 0)) {
+        // Plaintext record
+        console.log('[MemberProfileAdapter] Plaintext record - returning as-is');
+        return member;
+      }
+
+      // Data is encrypted (either has marker OR looks encrypted)
+      console.log('[MemberProfileAdapter] Attempting decryption for all PII fields');
+
+      // Decrypt PII fields
+      const decrypted = await this.encryptionService.decryptFields(
+        member,
+        tenantId,
+        this.getPIIFields()
+      );
+
+      console.log('[MemberProfileAdapter] Decryption complete:', {
+        memberId: member.id,
+        decryptedFirstName: decrypted.first_name?.substring(0, 20),
+        decryptedLastName: decrypted.last_name?.substring(0, 20)
+      });
+
+      return decrypted;
+    } catch (error) {
+      console.error('[MemberProfileAdapter] Decryption failed:', error);
+      // Return original record rather than failing
+      return member;
+    }
+  }
+
   async fetchMembers({ memberId = null, limit, tenantId }: MemberProfileQueryOptions): Promise<MemberRow[]> {
+    console.log('[MemberProfileAdapter] fetchMembers called with params:', { memberId, limit, tenantId });
+
     const supabase = await this.getSupabaseClient();
     const resolvedTenantId = await this.resolveTenantId(tenantId);
 
@@ -250,6 +334,8 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           last_huddle_at,
           data_steward,
           last_review_at,
+          encrypted_fields,
+          encryption_key_version,
           household:household_id(
             id,
             name,
@@ -279,7 +365,39 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       throw error;
     }
 
-    return (data ?? []) as MemberRow[];
+    const members = (data ?? []) as MemberRow[];
+
+    console.log('[MemberProfileAdapter] Fetched members from DB:', {
+      count: members.length,
+      firstMemberSample: members[0] ? {
+        id: members[0].id,
+        firstNameSample: members[0].first_name?.substring(0, 20),
+        hasEncryptedFields: !!(members[0] as any).encrypted_fields
+      } : null
+    });
+
+    // Get tenant context - try resolvedTenantId first, then fall back to record's tenant_id
+    let effectiveTenantId = resolvedTenantId;
+    if (!effectiveTenantId && members.length > 0) {
+      effectiveTenantId = (members[0] as any).tenant_id;
+      console.log('[MemberProfileAdapter] Using tenant_id from record:', effectiveTenantId);
+    }
+
+    if (!effectiveTenantId || members.length === 0) {
+      console.log('[MemberProfileAdapter] No tenantId or no members - returning as-is');
+      return members;
+    }
+
+    console.log('[MemberProfileAdapter] Starting decryption for', members.length, 'members');
+
+    // Decrypt all members in parallel
+    const decrypted = await Promise.all(
+      members.map((member: MemberRow) => this.decryptMember(member, effectiveTenantId!))
+    );
+
+    console.log('[MemberProfileAdapter] Successfully decrypted', decrypted.length, 'member records');
+
+    return decrypted;
   }
 
   async fetchHouseholdRelationships(

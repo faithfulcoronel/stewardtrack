@@ -39,7 +39,11 @@
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\repositories\\licensePlan.repository.ts\")",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\models\\licensePlan.model.ts\")",
       "Bash(grep:*)",
-      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251216231915_fix_permission_role_templates_rls_policies.sql\")"
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251216231915_fix_permission_role_templates_rls_policies.sql\")",
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMemberAdapter.ts\")",
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMemberProfileAdapter.ts\")",
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMembersDashboardAdapter.ts\")",
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251217225000_add_encryption_to_member_invitations.sql\")"
     ],
     "deny": [],
     "ask": []

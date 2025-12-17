@@ -168,6 +168,10 @@ export function getFieldEncryptionConfig(tableName: string): FieldEncryptionConf
       { fieldName: 'address', required: false },
       { fieldName: 'tax_id', required: false }, // SSN/EIN - HIGHLY SENSITIVE!
       { fieldName: 'notes', required: false }
+    ],
+    member_invitations: [
+      { fieldName: 'email', required: true },
+      { fieldName: 'notes', required: false }
     ]
   };
 

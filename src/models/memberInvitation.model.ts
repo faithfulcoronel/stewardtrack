@@ -28,6 +28,10 @@ export interface MemberInvitation extends BaseModel {
   metadata: Record<string, unknown>;
   notes?: string;
 
+  // Encryption fields
+  encrypted_fields?: string[];
+  encryption_key_version?: number;
+
   // Relations
   member?: Member;
   invited_by_user?: {

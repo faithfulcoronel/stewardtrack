@@ -7,8 +7,7 @@ import type {
   UserRole,
   AssignRoleDto,
   Role,
-  UserWithRoles,
-  Permission
+  UserWithRoles
 } from '@/models/rbac.model';
 
 /**
@@ -169,15 +168,25 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       .eq('tenant_id', tenantId)
       .single();
 
-    if (userError || !userData) {
+    if (userError || !userData || !userData.user) {
       return null;
     }
 
     const roles = await this.getUserRoles(userId, tenantId);
     const effectivePermissions = await this.getUserEffectivePermissions(userId, tenantId);
 
+    // Handle case where user might be an array (shouldn't happen with .single() but type-safe)
+    const user = Array.isArray(userData.user) ? userData.user[0] : userData.user;
+
+    if (!user) {
+      return null;
+    }
+
     return {
-      ...userData.user,
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
       roles,
       effective_permissions: effectivePermissions
     };
@@ -218,7 +227,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
           .rpc('get_user_profiles', { user_ids: userIds });
 
         if (!authUsersError && authUsersData && authUsersData.length > 0) {
-          usersInfo = authUsersData.map(user => ({
+          usersInfo = authUsersData.map((user: any) => ({
             id: user.id,
             email: user.email,
             first_name: user.raw_user_meta_data?.first_name || user.raw_user_meta_data?.firstName || '',
@@ -251,13 +260,19 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
 
           if (!memberError && tenantUsersWithMember) {
             const memberUsersInfo = tenantUsersWithMember
-              .filter(tu => tu.member && tu.member.email)
-              .map(tu => ({
-                id: tu.user_id,
-                email: tu.member!.email,
-                first_name: tu.member!.preferred_name || tu.member!.first_name || '',
-                last_name: tu.member!.last_name || ''
-              }));
+              .filter((tu: any) => {
+                const member = Array.isArray(tu.member) ? tu.member[0] : tu.member;
+                return member && member.email;
+              })
+              .map((tu: any) => {
+                const member = Array.isArray(tu.member) ? tu.member[0] : tu.member;
+                return {
+                  id: tu.user_id,
+                  email: member.email,
+                  first_name: member.preferred_name || member.first_name || '',
+                  last_name: member.last_name || ''
+                };
+              });
 
             usersInfo = [...usersInfo, ...memberUsersInfo];
           }
@@ -292,7 +307,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     }
   }
 
-  async removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any> {
+  async removeUserRole(userId: string, roleId: string, _tenantId: string): Promise<any> {
     const supabase = await this.getSupabaseClient();
 
     try {
@@ -369,7 +384,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
           .rpc('get_user_profiles', { user_ids: userIds });
 
         if (!authUsersError && authUsersData && authUsersData.length > 0) {
-          usersInfo = authUsersData.map(user => ({
+          usersInfo = authUsersData.map((user: any) => ({
             id: user.id,
             email: user.email,
             user_metadata: user.raw_user_meta_data || {}
@@ -406,15 +421,21 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
 
           if (!memberError && tenantUsersWithMember) {
             const memberUsersInfo = tenantUsersWithMember
-              .filter(tu => tu.member && tu.member.email)
-              .map(tu => ({
-                id: tu.user_id,
-                email: tu.member!.email,
-                user_metadata: {
-                  first_name: tu.member!.preferred_name || tu.member!.first_name || '',
-                  last_name: tu.member!.last_name || ''
-                }
-              }));
+              .filter((tu: any) => {
+                const member = Array.isArray(tu.member) ? tu.member[0] : tu.member;
+                return member && member.email;
+              })
+              .map((tu: any) => {
+                const member = Array.isArray(tu.member) ? tu.member[0] : tu.member;
+                return {
+                  id: tu.user_id,
+                  email: member.email,
+                  user_metadata: {
+                    first_name: member.preferred_name || member.first_name || '',
+                    last_name: member.last_name || ''
+                  }
+                };
+              });
 
             usersInfo = [...usersInfo, ...memberUsersInfo];
             console.log(`Successfully fetched ${memberUsersInfo.length} additional users from member data`);
@@ -484,7 +505,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
         created_at: new Date().toISOString()
       }));
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('user_roles')
         .insert(roleAssignments)
         .select();
@@ -506,7 +527,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     }
   }
 
-  async toggleMultiRoleMode(userId: string, enabled: boolean, tenantId: string): Promise<any> {
+  async toggleMultiRoleMode(userId: string, enabled: boolean, _tenantId: string): Promise<any> {
     // For now, this is a conceptual toggle - the actual multi-role capability
     // is determined by whether a user has multiple roles assigned
     return {
@@ -571,11 +592,6 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       metadata_key?: string | null;
       is_system?: boolean | null;
       is_delegatable?: boolean | null;
-    };
-
-    type UserRoleRow = {
-      user_id: string;
-      roles: RoleRow | null;
     };
 
     const pickString = (...values: unknown[]): string | null => {
@@ -659,13 +675,15 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
         console.error('Error fetching user roles:', userRolesError);
       }
 
-      const userRoles = (userRolesData || []) as UserRoleRow[];
+      const userRoles = (userRolesData || []) as any[];
       const rolesByUserId = new Map<string, RoleRow[]>();
 
-      userRoles.forEach(ur => {
+      userRoles.forEach((ur: any) => {
         if (!ur.roles) return;
         const existing = rolesByUserId.get(ur.user_id) || [];
-        rolesByUserId.set(ur.user_id, [...existing, ur.roles]);
+        // ur.roles might be an object or array depending on the query
+        const rolesArray = Array.isArray(ur.roles) ? ur.roles : [ur.roles];
+        rolesByUserId.set(ur.user_id, [...existing, ...rolesArray]);
       });
 
       // Build final user list
@@ -774,7 +792,7 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     return (data as any)?.admin_role || null;
   }
 
-  async getRolesWithPermissions(userId: string, tenantId?: string): Promise<any[]> {
+  async getRolesWithPermissions(userId: string, _tenantId?: string): Promise<any[]> {
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId provided to getRolesWithPermissions');
@@ -893,15 +911,19 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
     return data || [];
   }
 
-  // getUserAccessibleMenuItems REMOVED
-  // getUserAccessibleMetadataSurfaces REMOVED
-  //
-  // Navigation and metadata access are controlled via static XML files with:
-  // - featureCode attribute (license check via tenant_feature_grants)
-  // - requiredPermissions attribute (permission check via user permissions)
-  // - RBAC allow/deny attributes (role check)
-  //
-  // NO database tables should be used for menu/navigation/metadata surfaces.
+  /**
+   * DEPRECATED: Menu access is now controlled via static XML files
+   * Returns empty array for interface compatibility
+   */
+  async getUserAccessibleMenuItems(_userId: string, _tenantId?: string): Promise<any[]> {
+    // Navigation and metadata access are controlled via static XML files with:
+    // - featureCode attribute (license check via tenant_feature_grants)
+    // - requiredPermissions attribute (permission check via user permissions)
+    // - RBAC allow/deny attributes (role check)
+    //
+    // NO database tables should be used for menu/navigation/metadata surfaces.
+    return [];
+  }
 
   async replaceUserRoles(
     userId: string,

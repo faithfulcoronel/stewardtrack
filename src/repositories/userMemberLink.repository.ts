@@ -1,15 +1,15 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { BaseRepository } from './base.repository';
-import {
-  UserMemberLink,
-  UserMemberLinkAudit,
+import { MemberAdapter } from '@/adapters/member.adapter';
+import { UserAdapter } from '@/adapters/user.adapter';
+import { TYPES } from '@/lib/types';
+import type {
   LinkUserToMemberDto,
   UnlinkUserFromMemberDto,
   LinkingResult,
-  MemberWithUser,
   MemberSearchResult,
+  MemberWithUser,
   UserSearchResult,
   BulkLinkRequest,
   BulkLinkResult,
@@ -18,9 +18,21 @@ import {
   LinkingAuditEntry
 } from '@/models/userMemberLink.model';
 
+/**
+ * UserMemberLinkRepository
+ *
+ * Handles linking/unlinking users to member records.
+ * Uses MemberAdapter for member data (handles encryption transparently).
+ * Uses UserAdapter for auth user data (handles RPC calls).
+ */
 @injectable()
-export class UserMemberLinkRepository extends BaseRepository {
+export class UserMemberLinkRepository {
   private supabaseClient: SupabaseClient | null = null;
+
+  constructor(
+    @inject(TYPES.MemberAdapter) private memberAdapter: MemberAdapter,
+    @inject(TYPES.UserAdapter) private userAdapter: UserAdapter
+  ) {}
 
   private async getSupabaseClient(): Promise<SupabaseClient> {
     if (!this.supabaseClient) {
@@ -86,29 +98,17 @@ export class UserMemberLinkRepository extends BaseRepository {
 
   // Get members with user information
   async getMembersWithUsers(tenantId: string, limit = 50, offset = 0): Promise<MemberWithUser[]> {
-    const supabase = await this.getSupabaseClient();
+    // Use MemberAdapter to get members (handles decryption)
+    (this.memberAdapter as any).context = { tenantId };
 
-    const { data, error } = await supabase
-      .from('members')
-      .select(`
-        *,
-        user:user_id (
-          id,
-          email,
-          last_sign_in_at,
-          created_at
-        )
-      `)
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    const result = await this.memberAdapter.fetch({
+      order: { column: 'created_at', ascending: false },
+      pagination: { page: Math.floor(offset / limit) + 1, pageSize: limit }
+    });
 
-    if (error) {
-      throw new Error(`Failed to fetch members with users: ${error.message}`);
-    }
-
-    return data || [];
+    // Note: User information would need to be fetched separately if needed
+    // The member data is already decrypted by the adapter
+    return result.data as any[];
   }
 
   // Search members for linking
@@ -117,54 +117,89 @@ export class UserMemberLinkRepository extends BaseRepository {
     query: string,
     linkedStatus?: 'linked' | 'unlinked' | 'all'
   ): Promise<MemberSearchResult[]> {
-    const supabase = await this.getSupabaseClient();
+    console.log(`[UserMemberLinkRepository.searchMembers] Called with tenantId: ${tenantId}, query: "${query}", linkedStatus: ${linkedStatus}`);
 
-    let baseQuery = supabase
-      .from('members')
-      .select(`
-        id,
-        first_name,
-        last_name,
-        email,
-        user_id,
-        linked_at,
-        tenant_id
-      `)
-      .eq('tenant_id', tenantId);
+    // Set tenant context on the adapter
+    (this.memberAdapter as any).context = { tenantId };
+    console.log(`[UserMemberLinkRepository.searchMembers] Set context on adapter, verifying: ${(this.memberAdapter as any).context?.tenantId}`);
 
-    // Apply search filter
-    if (query) {
-      baseQuery = baseQuery.or(
-        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`
-      );
-    }
+    // Build filter conditions (ONLY for non-encrypted fields)
+    const filters: Record<string, any> = {};
 
-    // Apply linking status filter
+    // Apply linking status filter (user_id is not encrypted)
     if (linkedStatus === 'linked') {
-      baseQuery = baseQuery.not('user_id', 'is', null);
+      filters.user_id = { operator: 'neq', value: null };
     } else if (linkedStatus === 'unlinked') {
-      baseQuery = baseQuery.is('user_id', null);
+      filters.user_id = { operator: 'eq', value: null };
     }
 
-    const { data, error } = await baseQuery
-      .order('last_name', { ascending: true })
-      .limit(100);
+    // NOTE: We cannot filter on encrypted fields (first_name, last_name, email) in the database
+    // We'll fetch all members matching the linking status, then filter in memory after decryption
 
-    if (error) {
-      throw new Error(`Failed to search members: ${error.message}`);
+    console.log(`[UserMemberLinkRepository.searchMembers] Filters:`, JSON.stringify(filters));
+
+    // Fetch members using adapter (which handles decryption automatically)
+    const result = await this.memberAdapter.fetch({
+      filters,
+      order: { column: 'created_at', ascending: false },
+      pagination: { page: 1, pageSize: 500 } // Increased to support in-memory search
+    });
+
+    console.log(`[UserMemberLinkRepository.searchMembers] Fetched ${result.data.length} members from adapter`);
+
+    // Log first member's data to check if encrypted or decrypted
+    if (result.data.length > 0) {
+      const firstMember = result.data[0];
+      console.log(`[UserMemberLinkRepository.searchMembers] First member sample:`, {
+        id: firstMember.id,
+        email: firstMember.email,
+        email_length: firstMember.email?.length,
+        email_starts_with: firstMember.email?.substring(0, 10),
+        first_name: firstMember.first_name,
+        last_name: firstMember.last_name,
+        encrypted_fields: firstMember.encrypted_fields
+      });
     }
 
-    return (data || []).map((member: any) => ({
+    // Transform to MemberSearchResult format
+    let transformed = result.data.map((member: any) => ({
       id: member.id,
-      first_name: member.first_name,
-      last_name: member.last_name,
-      email: member.email,
-      contact_number: '', // Not available in this table
+      first_name: member.first_name || '',
+      last_name: member.last_name || '',
+      email: member.email || '',
+      contact_number: member.contact_number || '',
       membership_status: 'Unknown', // Would need to join membership_stage table separately
       is_linked: !!member.user_id,
       linked_user_email: undefined, // Would need to get from users table separately
       linked_at: member.linked_at
     }));
+
+    // Filter in memory based on decrypted values (if query provided)
+    if (query && query.trim()) {
+      const searchLower = query.trim().toLowerCase();
+      transformed = transformed.filter(member => {
+        const firstNameMatch = member.first_name.toLowerCase().includes(searchLower);
+        const lastNameMatch = member.last_name.toLowerCase().includes(searchLower);
+        const emailMatch = member.email.toLowerCase().includes(searchLower);
+        const fullNameMatch = `${member.first_name} ${member.last_name}`.toLowerCase().includes(searchLower);
+
+        return firstNameMatch || lastNameMatch || emailMatch || fullNameMatch;
+      });
+
+      console.log(`[UserMemberLinkRepository.searchMembers] After in-memory filtering with query "${query}": ${transformed.length} results`);
+    }
+
+    console.log(`[UserMemberLinkRepository.searchMembers] Returning ${transformed.length} results`);
+    if (transformed.length > 0) {
+      console.log(`[UserMemberLinkRepository.searchMembers] First result:`, {
+        id: transformed[0].id,
+        email: transformed[0].email,
+        first_name: transformed[0].first_name,
+        last_name: transformed[0].last_name
+      });
+    }
+
+    return transformed;
   }
 
   // Search users for linking
@@ -173,64 +208,39 @@ export class UserMemberLinkRepository extends BaseRepository {
     query: string,
     linkedStatus?: 'linked' | 'unlinked' | 'all'
   ): Promise<UserSearchResult[]> {
-    const supabase = await this.getSupabaseClient();
+    console.log(`[UserMemberLinkRepository.searchUsers] Called with tenantId: ${tenantId}, query: "${query}", linkedStatus: ${linkedStatus}`);
 
-    // Get members to identify linked users
-    const { data: members, error: membersError } = await supabase
-      .from('members')
-      .select('user_id, first_name, last_name, linked_at')
-      .eq('tenant_id', tenantId)
-      .not('user_id', 'is', null);
+    // Get members to identify linked users - use adapter for decryption
+    (this.memberAdapter as any).context = { tenantId };
 
-    if (membersError) {
-      console.error('Error fetching members for user search:', membersError);
-    }
+    const linkedMembers = await this.memberAdapter.fetch({
+      filters: {
+        user_id: { operator: 'neq', value: null }
+      },
+      pagination: { page: 1, pageSize: 1000 }
+    });
 
-    // Create a map of linked users
+    console.log(`[UserMemberLinkRepository.searchUsers] Found ${linkedMembers.data.length} linked members`);
+
+    // Create a map of linked users with decrypted names
     const linkedUserMap = new Map();
-    (members || []).forEach(member => {
+    linkedMembers.data.forEach((member: any) => {
       if (member.user_id) {
+        console.log(`[UserMemberLinkRepository.searchUsers] Adding to map - user_id: ${member.user_id}, member: ${member.first_name} ${member.last_name} (ID: ${member.id})`);
         linkedUserMap.set(member.user_id, {
           first_name: member.first_name,
           last_name: member.last_name,
-          linked_at: member.linked_at
+          linked_at: member.linked_at,
+          member_id: member.id
         });
       }
     });
 
-    // Get user profiles using RPC function
-    let users = [];
+    console.log(`[UserMemberLinkRepository.searchUsers] linkedUserMap size: ${linkedUserMap.size}`);
 
-    try {
-      const { data: userProfiles, error: profilesError } = await supabase
-        .rpc('get_user_profiles', { p_tenant_id: tenantId });
-
-      if (!profilesError && userProfiles) {
-        users = userProfiles;
-        console.log(`Got ${users.length} user profiles from get_user_profiles RPC`);
-      } else {
-        console.error('Error fetching user profiles:', profilesError);
-      }
-    } catch (error) {
-      console.error('get_user_profiles RPC failed:', error);
-    }
-
-    // Fallback: try get_tenant_users if get_user_profiles is not available
-    if (users.length === 0) {
-      try {
-        const { data: rpcUsers, error: rpcError } = await supabase
-          .rpc('get_tenant_users', { p_tenant_id: tenantId });
-
-        if (!rpcError && rpcUsers) {
-          users = rpcUsers;
-          console.log(`Fallback: Got ${users.length} users from get_tenant_users RPC`);
-        } else {
-          console.error('Error fetching tenant users:', rpcError);
-        }
-      } catch (error) {
-        console.error('get_tenant_users RPC failed:', error);
-      }
-    }
+    // Get user profiles using UserAdapter (handles RPC calls)
+    const users = await this.userAdapter.fetchUsers(tenantId);
+    console.log(`[UserMemberLinkRepository.searchUsers] Got ${users.length} users from UserAdapter`);
 
     // Transform to UserSearchResult format
     const results = users.map((user: any) => {
@@ -280,18 +290,18 @@ export class UserMemberLinkRepository extends BaseRepository {
     let filteredResults = results;
     if (query) {
       const lowerQuery = query.toLowerCase();
-      filteredResults = results.filter(user =>
+      filteredResults = results.filter((user: UserSearchResult) =>
         user.email.toLowerCase().includes(lowerQuery) ||
-        user.first_name.toLowerCase().includes(lowerQuery) ||
-        user.last_name.toLowerCase().includes(lowerQuery)
+        (user.first_name || '').toLowerCase().includes(lowerQuery) ||
+        (user.last_name || '').toLowerCase().includes(lowerQuery)
       );
     }
 
     // Apply linking status filter
     if (linkedStatus === 'linked') {
-      return filteredResults.filter(user => user.is_linked);
+      return filteredResults.filter((user: UserSearchResult) => user.is_linked);
     } else if (linkedStatus === 'unlinked') {
-      return filteredResults.filter(user => !user.is_linked);
+      return filteredResults.filter((user: UserSearchResult) => !user.is_linked);
     }
 
     return filteredResults.slice(0, 100); // Limit results
@@ -546,80 +556,53 @@ export class UserMemberLinkRepository extends BaseRepository {
 
   // Get member by user ID
   async getMemberByUserId(userId: string, tenantId: string): Promise<MemberWithUser | null> {
-    const supabase = await this.getSupabaseClient();
+    // Use MemberAdapter to get member (handles decryption)
+    (this.memberAdapter as any).context = { tenantId };
 
-    const { data, error } = await supabase
-      .from('members')
-      .select(`
-        *,
-        user:user_id (
-          id,
-          email,
-          last_sign_in_at,
-          created_at
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .single();
+    const result = await this.memberAdapter.fetch({
+      filters: {
+        user_id: { operator: 'eq', value: userId }
+      },
+      pagination: { page: 1, pageSize: 1 }
+    });
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // No member found
-      }
-      throw new Error(`Failed to fetch member by user ID: ${error.message}`);
+    if (result.data.length === 0) {
+      return null; // No member found
     }
 
-    return data;
+    return result.data[0] as any;
   }
 
   // Get user by member ID
   async getUserByMemberId(memberId: string, tenantId: string): Promise<UserSearchResult | null> {
-    const supabase = await this.getSupabaseClient();
+    // Use MemberAdapter to get member (handles decryption)
+    (this.memberAdapter as any).context = { tenantId };
 
-    const { data, error } = await supabase
-      .from('members')
-      .select(`
-        user_id,
-        linked_at,
-        user:user_id (
-          id,
-          email,
-          raw_user_meta_data,
-          last_sign_in_at,
-          created_at
-        )
-      `)
-      .eq('id', memberId)
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .not('user_id', 'is', null)
-      .single();
+    const result = await this.memberAdapter.fetchById(memberId);
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // No linked user found
-      }
-      throw new Error(`Failed to fetch user by member ID: ${error.message}`);
+    if (!result || !result.user_id) {
+      return null; // No linked user found
     }
 
-    if (!data.user) {
+    // Get all users from tenant to find the linked user
+    const users = await this.userAdapter.fetchUsers(tenantId);
+    const user = users.find(u => u.id === result.user_id || u.user_id === result.user_id);
+
+    if (!user) {
       return null;
     }
 
-    const user = data.user;
-    const metadata = user.raw_user_meta_data || {};
+    const metadata = user.raw_user_meta_data || user.user_metadata || {};
 
     return {
-      id: user.id,
-      email: user.email,
-      first_name: metadata.first_name,
-      last_name: metadata.last_name,
-      last_sign_in_at: user.last_sign_in_at,
-      created_at: user.created_at,
+      id: (user.id || user.user_id) ?? '',
+      email: user.email ?? '',
+      first_name: metadata.first_name || metadata.firstName || '',
+      last_name: metadata.last_name || metadata.lastName || '',
+      last_sign_in_at: user.last_sign_in_at ?? undefined,
+      created_at: user.created_at ?? new Date().toISOString(),
       is_linked: true,
-      linked_at: data.linked_at
+      linked_at: result.linked_at ? result.linked_at : undefined
     };
   }
 }

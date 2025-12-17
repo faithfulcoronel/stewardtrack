@@ -280,7 +280,7 @@ export class LicenseFeatureBundleAdapter
   }
 
   // Override update to handle global table (no tenant_id column)
-  async update(id: string, data: Partial<LicenseFeatureBundle>, fieldsToRemove?: string[]): Promise<LicenseFeatureBundle> {
+  async update(id: string, data: Partial<LicenseFeatureBundle>, relations?: Record<string, string[]>, fieldsToRemove?: string[]): Promise<LicenseFeatureBundle> {
     try {
       // Check admin role directly from database
       const supabase = await this.getSupabaseClient();

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,22 +15,17 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/use-toast';
 import {
   Users,
-  UserPlus,
   Mail,
   Link2,
   Unlink,
   Search,
-  Filter,
-  Plus,
   Send,
   Eye,
-  EyeOff,
   CheckCircle,
   Clock,
   AlertTriangle,
   RefreshCw,
   UserCheck,
-  UserX,
   ExternalLink,
   Loader2
 } from 'lucide-react';
@@ -103,7 +97,6 @@ export function UserManagement() {
   const [filterType, setFilterType] = useState('all');
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [preselectedUserForLinking, setPreselectedUserForLinking] = useState<any>(null);
 
@@ -120,7 +113,8 @@ export function UserManagement() {
     try {
       setIsLoading(true);
       const [usersRes, membersRes, invitationsRes, statsRes] = await Promise.all([
-        fetch('/api/user-member-link/users/unlinked'),
+        // Fetch ALL users (not just unlinked) so we can show linked status
+        fetch('/api/user-member-link/search?type=users&q=&linked=all'),
         fetch('/api/user-member-link/members/unlinked'),
         fetch('/api/user-member-link/invitations'),
         fetch('/api/user-member-link/stats')
@@ -133,7 +127,8 @@ export function UserManagement() {
         statsRes.json()
       ]);
 
-      if (usersData.success) setUsers(usersData.data);
+      // The search endpoint returns data in 'results' field, not 'data'
+      if (usersData.results) setUsers(usersData.results);
       if (membersData.success) setMembers(membersData.data);
       if (invitationsData.success) setInvitations(invitationsData.data);
       if (statsData.success) setStats(statsData.data);
@@ -142,28 +137,6 @@ export function UserManagement() {
       toast.error('Failed to load user management data');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleLinkUser = async (userId: string, memberId: string) => {
-    try {
-      const response = await fetch('/api/user-member-link/link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, member_id: memberId })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success('User linked to member successfully');
-        setShowLinkDialog(false);
-        loadData();
-      } else {
-        toast.error(result.error || 'Failed to link user to member');
-      }
-    } catch (error) {
-      console.error('Error linking user:', error);
-      toast.error('Failed to link user to member');
     }
   };
 

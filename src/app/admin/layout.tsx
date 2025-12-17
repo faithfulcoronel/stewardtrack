@@ -5,6 +5,9 @@ import { type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { AdminLayoutShell } from "@/components/admin/layout-shell";
 import { signOut } from "@/lib/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { container } from "@/lib/container";
+import { TYPES } from "@/lib/types";
+import type { IMemberRepository } from "@/repositories/member.repository";
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
@@ -67,12 +70,9 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Get user information
-  const { data: memberData } = await supabase
-    .from("members")
-    .select("first_name, last_name")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Get user information using MemberRepository for proper decryption
+  const memberRepository = container.get<IMemberRepository>(TYPES.IMemberRepository);
+  const memberData = await memberRepository.getCurrentUserMember();
 
   // Determine display name
   let displayName: string;

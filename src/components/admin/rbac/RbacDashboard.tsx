@@ -14,7 +14,6 @@ import {
   Key,
   Lock,
   TrendingUp,
-  Clock,
   CheckCircle,
   HelpCircle,
   BookOpen,
@@ -476,7 +475,7 @@ export function RbacDashboard() {
         onComplete={() => {
           setShowWizard(false);
           // Refresh stats after role creation
-          fetchStats();
+          loadDashboardData();
         }}
       />
     </div>

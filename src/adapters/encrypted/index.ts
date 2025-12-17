@@ -1,1 +1,0 @@
-export { EncryptedMemberAdapter } from './EncryptedMemberAdapter';
