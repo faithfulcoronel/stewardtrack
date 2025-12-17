@@ -3,7 +3,7 @@
  *
  * Guided workflow for quickly locating and creating member records.
  *
- * SECURITY: Protected by AccessGate requiring members:write permission.
+ * SECURITY: Protected by AccessGate requiring members:manage permission.
  */
 
 import type { Metadata } from "next";
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default async function LookupQuickCreatePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission("members:write", "all", {
+  const gate = Gate.withPermission("members:manage", "all", {
     fallbackPath: "/unauthorized?reason=members_write_required",
   });
 

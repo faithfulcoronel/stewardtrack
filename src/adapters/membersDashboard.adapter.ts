@@ -110,7 +110,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     const query = supabase
       .from('members')
       .select(
-        `id, first_name, last_name, email, profile_picture_url, created_at, membership_stage:membership_status_id(name, code), membership_center:membership_center_id(name, code)`
+        `id, tenant_id, first_name, last_name, email, profile_picture_url, encrypted_fields, encryption_key_version, created_at, membership_stage:membership_status_id(name, code), membership_center:membership_center_id(name, code)`
       )
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
@@ -127,7 +127,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     let query = supabase
       .from('members')
       .select(
-        `id, first_name, last_name, email, contact_number, profile_picture_url, membership_stage:membership_status_id(name, code), membership_center:membership_center_id(name, code)`
+        `id, tenant_id, first_name, last_name, email, contact_number, profile_picture_url, encrypted_fields, encryption_key_version, membership_stage:membership_status_id(name, code), membership_center:membership_center_id(name, code)`
       )
       .is('deleted_at', null)
       .order('last_name', { ascending: true })

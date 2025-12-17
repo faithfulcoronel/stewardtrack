@@ -70,7 +70,7 @@ Enable Product Owners to create and manage features in the Licensing Studio with
 - ❌ No link between features and RBAC permission system
 
 **RBAC System:**
-- ✅ `permissions` table with permission codes (e.g., `members:read`, `finance:write`)
+- ✅ `permissions` table with permission codes (e.g., `members:view`, `finance:write`)
 - ✅ `role_permissions` junction table linking roles to permissions
 - ✅ `rbac_surface_bindings` linking surfaces to permissions
 - ✅ Tenant Admins can assign permissions to roles

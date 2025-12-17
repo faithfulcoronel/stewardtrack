@@ -22,7 +22,7 @@ const PAGE_CATEGORIES = {
   },
   members: {
     pattern: /members/,
-    protection: "Gate.withPermission(['members:read', 'members:write'], 'any')",
+    protection: "Gate.withPermission(['members:view', 'members:manage'], 'any')",
     requireTenant: true,
   },
   finance: {

@@ -284,7 +284,7 @@ Utility functions for permission checks:
 ```typescript
 import { hasPermission, getEffectivePermissions } from '@/lib/rbac/permissionHelpers';
 
-const canEdit = await hasPermission(userId, 'members:write', tenantId);
+const canEdit = await hasPermission(userId, 'members:manage', tenantId);
 const permissions = await getEffectivePermissions(userId, tenantId);
 ```
 
@@ -298,7 +298,7 @@ import { AccessGate } from '@/lib/access-gate';
 // In server components or API routes
 const gate = new AccessGate(userId, tenantId);
 
-await gate.requirePermission('members:read');
+await gate.requirePermission('members:view');
 await gate.requireFeature('advanced_reporting');
 await gate.requireRole('admin');
 ```

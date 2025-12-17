@@ -54,7 +54,7 @@ For a quick overview of the RBAC system, start here:
 ### Database Tables (Core)
 
 - **`roles`** - Role definitions (tenant-scoped and system-scoped)
-- **`permissions`** - Granular access rights (e.g., `members:read`, `finance:write`)
+- **`permissions`** - Granular access rights (e.g., `members:view`, `finance:write`)
 - **`user_roles`** - Many-to-many user-role assignments (supports multiple roles per user)
 - **`role_permissions`** - Direct permission-to-role mappings (no bundles) ✨ **KEY TABLE**
 - **`feature_catalog`** - Available features with metadata

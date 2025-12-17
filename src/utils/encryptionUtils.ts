@@ -134,8 +134,8 @@ export function getFieldEncryptionConfig(tableName: string): FieldEncryptionConf
       { fieldName: 'email', required: false },
       { fieldName: 'contact_number', required: true },
       { fieldName: 'address', required: true },
-      { fieldName: 'birthday', required: false },
-      { fieldName: 'anniversary', required: false },
+      // NOTE: birthday and anniversary are DATE fields - cannot be encrypted as strings
+      // They remain as plain dates in the database
       { fieldName: 'emergency_contact_name', required: false },
       { fieldName: 'emergency_contact_phone', required: false },
       { fieldName: 'emergency_contact_relationship', required: false },

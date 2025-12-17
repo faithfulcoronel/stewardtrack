@@ -81,7 +81,7 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 
 **Core Entities:**
 - **Roles** (`roles` table): Tenant-scoped or system-scoped roles (e.g., `tenant_admin`, `staff`, `volunteer`, `member`)
-- **Permissions** (`permissions` table): Granular access rights (e.g., `members:read`, `finance:write`)
+- **Permissions** (`permissions` table): Granular access rights (e.g., `members:view`, `finance:write`)
 - **Role Permissions** (`role_permissions`): Direct mapping of permissions to roles (no bundles)
 - **User Roles** (`user_roles`): Many-to-many (user ↔ role) - supports multiple roles per user
 - **Delegations** (`delegations`): Simplified role-based delegation with scope (Campus/Ministry) and time limits

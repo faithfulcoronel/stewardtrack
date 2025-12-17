@@ -72,7 +72,7 @@ import { Gate } from '@/lib/access-gate';
 import { ProtectedPage } from '@/components/access-gate';
 
 // Single permission
-const gate = Gate.withPermission('members:read');
+const gate = Gate.withPermission('members:view');
 
 <ProtectedPage gate={gate} userId={userId}>
   {children}
@@ -80,8 +80,8 @@ const gate = Gate.withPermission('members:read');
 
 // Multiple permissions (all required)
 const allGate = all(
-  Gate.withPermission('members:read'),
-  Gate.withPermission('members:write')
+  Gate.withPermission('members:view'),
+  Gate.withPermission('members:manage')
 );
 
 <ProtectedPage gate={allGate} userId={userId}>
@@ -90,8 +90,8 @@ const allGate = all(
 
 // Multiple permissions (any one required)
 const anyGate = any(
-  Gate.withPermission('members:read'),
-  Gate.withPermission('members:write')
+  Gate.withPermission('members:view'),
+  Gate.withPermission('members:manage')
 );
 
 <ProtectedPage gate={anyGate} userId={userId}>
@@ -100,7 +100,7 @@ const anyGate = any(
 ```
 
 **Permission Mappings:**
-- `/admin/members/**` â†’ `members:read` or `members:write`
+- `/admin/members/**` â†’ `members:view` or `members:manage`
 - `/admin/financial-overview` â†’ `finance:read`
 - `/admin/expenses` â†’ `finance:read`
 - `/admin/reports` â†’ `reports:read`
@@ -206,7 +206,7 @@ export default async function PageName() {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId(); // Only if needed
 
-  const gate = Gate.withPermission('members:read'); // Or other gate type
+  const gate = Gate.withPermission('members:view'); // Or other gate type
 
   return (
     <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
@@ -226,11 +226,11 @@ export default async function PageName() {
 
 ### ðŸŸ¡ High Priority - Permission Required
 
-- [x] `/admin/members/page.tsx` - `Gate.withPermission('members:read')`
-- [x] `/admin/members/list/page.tsx` - `Gate.withPermission('members:read')`
-- [x] `/admin/members/manage/page.tsx` - `Gate.withPermission('members:write')`
-- [x] `/admin/members/manage/lookup-new/page.tsx` - `Gate.withPermission('members:write')`
-- [x] `/admin/members/[memberId]/page.tsx` - `Gate.withPermission('members:read')`
+- [x] `/admin/members/page.tsx` - `Gate.withPermission('members:view')`
+- [x] `/admin/members/list/page.tsx` - `Gate.withPermission('members:view')`
+- [x] `/admin/members/manage/page.tsx` - `Gate.withPermission('members:manage')`
+- [x] `/admin/members/manage/lookup-new/page.tsx` - `Gate.withPermission('members:manage')`
+- [x] `/admin/members/[memberId]/page.tsx` - `Gate.withPermission('members:view')`
 - [x] `/admin/security/rbac/page.tsx` - `Gate.rbacAdmin()`
 - [x] `/admin/security/rbac/**/page.tsx` (all subpages) - `Gate.rbacAdmin()`
 - [x] `/admin/rbac/**/page.tsx` (all delegation pages) - `Gate.rbacAdmin()`
@@ -293,7 +293,7 @@ import { ProtectedPage } from '@/components/access-gate/ProtectedPage';
 
 export default async function MembersPage() {
   return (
-    <ProtectedPage permission="members:read">
+    <ProtectedPage permission="members:view">
       <MembersContent />
     </ProtectedPage>
   );
@@ -320,7 +320,7 @@ export default async function MembersPage() {
 **Solution:** Use `/unauthorized` (which should not be protected) or provide custom redirect:
 ```typescript
 <ProtectedPage
-  permission="members:read"
+  permission="members:view"
   redirectTo="/admin?error=permission_denied"
 >
 ```
@@ -330,7 +330,7 @@ export default async function MembersPage() {
 **Problem:** Permission name mismatch or RBAC not properly configured
 
 **Solution:**
-1. Check permission key matches database exactly (`members:read` not `members.read`)
+1. Check permission key matches database exactly (`members:view` not `members.read`)
 2. Verify user role has the permission via `role_permissions` table
 3. Check permission exists in `permissions` table
 

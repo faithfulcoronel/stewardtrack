@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,7 +46,7 @@ export function PermissionsStep({ formData, updateFormData }: PermissionsStepPro
 
   // Group permissions by module
   const groupedPermissions = permissions.reduce((acc, permission) => {
-    const module = permission.resource?.split(':')[0] || 'other';
+    const module = permission.module || 'other';
     if (!acc[module]) {
       acc[module] = [];
     }
@@ -63,11 +62,11 @@ export function PermissionsStep({ formData, updateFormData }: PermissionsStepPro
       searchQuery === '' ||
       permission.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       permission.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      permission.resource?.toLowerCase().includes(searchQuery.toLowerCase());
+      permission.code?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesModule =
       selectedModule === 'all' ||
-      permission.resource?.split(':')[0] === selectedModule;
+      permission.module === selectedModule;
 
     return matchesSearch && matchesModule;
   });
@@ -199,9 +198,6 @@ export function PermissionsStep({ formData, updateFormData }: PermissionsStepPro
                 const allSelected = modulePermissions.every((p) =>
                   formData.selectedPermissions.includes(p.id)
                 );
-                const someSelected = modulePermissions.some((p) =>
-                  formData.selectedPermissions.includes(p.id)
-                );
 
                 return (
                   <div key={module} className="border rounded-lg p-4">
@@ -262,7 +258,7 @@ export function PermissionsStep({ formData, updateFormData }: PermissionsStepPro
               <p className="font-medium">Permission Tips:</p>
               <ul className="list-disc list-inside space-y-1 text-blue-800">
                 <li>Use bulk selection to quickly assign all permissions in a module</li>
-                <li>Search by resource (e.g., "members:read") for specific actions</li>
+                <li>Search by resource (e.g., "members:view") for specific actions</li>
                 <li>Review selected permissions before proceeding to next step</li>
                 <li>You can always edit role permissions later</li>
               </ul>
@@ -292,9 +288,9 @@ function PermissionItem({ permission, isSelected, onToggle }: PermissionItemProp
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-medium text-gray-900">{permission.name}</span>
-          {permission.resource && (
+          {permission.code && (
             <Badge variant="outline" className="text-xs">
-              {permission.resource}
+              {permission.code}
             </Badge>
           )}
         </div>

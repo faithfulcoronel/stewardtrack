@@ -1,8 +1,11 @@
 import { SupabaseAuditService } from "@/services/AuditService";
-import { MemberAdapter } from "@/adapters/member.adapter";
+import { EncryptedMemberAdapter } from "@/adapters/encrypted/EncryptedMemberAdapter";
+import { EncryptedAccountAdapter } from "@/adapters/encrypted/EncryptedAccountAdapter";
+import { EncryptionService } from "@/lib/encryption/EncryptionService";
+import { EncryptionKeyManager } from "@/lib/encryption/EncryptionKeyManager";
+import { AES256GCMStrategy } from "@/lib/encryption/strategies/AES256GCMStrategy";
 import { MemberRepository } from "@/repositories/member.repository";
 import { MemberService } from "@/services/MemberService";
-import { AccountAdapter } from "@/adapters/account.adapter";
 import { AccountRepository } from "@/repositories/account.repository";
 import { FinancialTransactionAdapter } from "@/adapters/financialTransaction.adapter";
 import { FinancialTransactionRepository } from "@/repositories/financialTransaction.repository";
@@ -66,11 +69,18 @@ export class MemberManageResourceFactory {
   }
 
   private createMemberService(context: RequestContext, auditService: SupabaseAuditService): MemberService {
-    const memberAdapter = new MemberAdapter(auditService);
+    // Create encryption stack (shared across all encrypted adapters)
+    const encryptionStrategy = new AES256GCMStrategy();
+    const keyManager = new EncryptionKeyManager();
+    const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+
+    // Use EncryptedMemberAdapter instead of plain MemberAdapter
+    const memberAdapter = new EncryptedMemberAdapter(encryptionService, auditService);
     this.applyRequestContextToAdapter(memberAdapter, context);
     const memberRepository = new MemberRepository(memberAdapter);
 
-    const accountAdapter = new AccountAdapter(auditService);
+    // Use EncryptedAccountAdapter instead of plain AccountAdapter
+    const accountAdapter = new EncryptedAccountAdapter(auditService, encryptionService);
     this.applyRequestContextToAdapter(accountAdapter, context);
     const accountRepository = new AccountRepository(accountAdapter);
 
@@ -110,7 +120,7 @@ export class MemberManageResourceFactory {
 
   private async fetchRepositoryRecords<T extends { id: string }>(
     repository: {
-      findAll: (options?: unknown) => Promise<{ data?: T[] | null }>;
+      findAll: (options?: any) => Promise<{ data: T[]; count: number | null }>;
     },
   ): Promise<T[]> {
     try {

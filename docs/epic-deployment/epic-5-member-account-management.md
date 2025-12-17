@@ -130,7 +130,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 - [ ] Confirm all 4 pages are defined (dashboard, list, manage, profile)
 - [ ] Check component registry has all required member/account components
 - [ ] Validate dataSources are properly configured
-- [ ] Verify RBAC rules in metadata (permissions required: `members:read`, `members:write`)
+- [ ] Verify RBAC rules in metadata (permissions required: `members:view`, `members:manage`)
 - [ ] Run `npm run metadata:compile` to ensure no validation errors
 
 ### Phase 2: Functional Testing (Days 3-5)
@@ -257,7 +257,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 
 **Verify Permission Guards:**
 - [ ] Unauthorized users cannot access member/account routes
-- [ ] API endpoints enforce `members:read` and `members:write` permissions
+- [ ] API endpoints enforce `members:view` and `members:manage` permissions
 - [ ] API endpoints enforce `accounts:read` and `accounts:write` permissions
 - [ ] UI hides/disables actions based on user permissions
 - [ ] Error messages display for permission denied (403 status)
@@ -271,9 +271,9 @@ The following modules must have metadata definitions and follow the Dashboard â†
 
 **Verify Metadata RBAC Rules:**
 - [ ] Members Dashboard XML has `<rbac>` section with required permissions
-- [ ] Members List XML enforces `members:read` permission
-- [ ] Members AddEdit XML enforces `members:write` permission
-- [ ] Members Profile XML enforces `members:read` permission
+- [ ] Members List XML enforces `members:view` permission
+- [ ] Members AddEdit XML enforces `members:manage` permission
+- [ ] Members Profile XML enforces `members:view` permission
 - [ ] Metadata resolver blocks access when permission/feature missing
 
 ### Phase 4: Data Integrity Testing (Days 8-9)
@@ -308,7 +308,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 ### Metadata Issues
 - Missing or incorrect component type mappings for member/account components
 - Broken dataSource references to members, accounts, membership_types tables
-- Invalid RBAC permission checks (should be `members:read/write`, `accounts:read/write`)
+- Invalid RBAC permission checks (should be `members:view/write`, `accounts:read/write`)
 - Missing required fields in forms (first_name, last_name, account_type)
 - Incorrect event handlers for member/account creation
 

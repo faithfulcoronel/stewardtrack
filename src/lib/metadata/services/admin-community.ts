@@ -2,13 +2,13 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 import type { GridColumnConfig } from '@/components/dynamic/admin/AdminDataGridSection';
 
-import { MembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
+import { EncryptedMembersDashboardAdapter } from '@/adapters/encrypted/EncryptedMembersDashboardAdapter';
 import {
   MembersDashboardRepository,
   type DirectoryMember,
 } from '@/repositories/membersDashboard.repository';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
-import { MemberProfileAdapter } from '@/adapters/memberProfile.adapter';
+import { EncryptedMemberProfileAdapter } from '@/adapters/encrypted/EncryptedMemberProfileAdapter';
 import { MemberProfileRepository } from '@/repositories/memberProfile.repository';
 import {
   MemberProfileService,
@@ -19,6 +19,9 @@ import {
   type MemberRow,
   type MemberTimelineEventRow,
 } from '@/services/MemberProfileService';
+import { EncryptionService } from '@/lib/encryption/EncryptionService';
+import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
+import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy';
 import {
   fetchMembershipLookupGroups,
   formatLabel,
@@ -284,13 +287,33 @@ const MEMBERS_MANAGE_HANDLER_ID = 'admin-community.members.manage.membershipReco
 const MEMBERS_LOOKUPS_HANDLER_ID = 'admin-community.members.manage.lookups';
 
 function createMembersDashboardService(): MembersDashboardService {
-  const adapter = new MembersDashboardAdapter();
+  console.log('[admin-community] Creating MembersDashboardService with ENCRYPTED adapter');
+
+  // Create encryption stack (shared for all encrypted adapters)
+  const encryptionStrategy = new AES256GCMStrategy();
+  const keyManager = new EncryptionKeyManager();
+  const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+
+  // Use EncryptedMembersDashboardAdapter to decrypt PII after fetching
+  const adapter = new EncryptedMembersDashboardAdapter(encryptionService);
+  console.log('[admin-community] EncryptedMembersDashboardAdapter instantiated:', adapter.constructor.name);
+
   const repository = new MembersDashboardRepository(adapter);
   return new MembersDashboardService(repository);
 }
 
 function createMemberProfileService(): MemberProfileService {
-  const adapter = new MemberProfileAdapter();
+  console.log('[admin-community] Creating MemberProfileService with ENCRYPTED adapter');
+
+  // Create encryption stack (shared for all encrypted adapters)
+  const encryptionStrategy = new AES256GCMStrategy();
+  const keyManager = new EncryptionKeyManager();
+  const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+
+  // Use EncryptedMemberProfileAdapter to decrypt PII after fetching
+  const adapter = new EncryptedMemberProfileAdapter(encryptionService);
+  console.log('[admin-community] EncryptedMemberProfileAdapter instantiated:', adapter.constructor.name);
+
   const repository = new MemberProfileRepository(adapter);
   return new MemberProfileService(repository);
 }
@@ -1317,6 +1340,22 @@ async function buildMemberProfileRecord(
   const lastReview = formatFullDate(member.last_review_at ?? null);
 
   return {
+    // DirectoryMember required fields
+    first_name: member.first_name ?? '',
+    last_name: member.last_name ?? '',
+    email: member.email ?? null,
+    profile_picture_url: member.profile_picture_url ?? null,
+    contact_number: member.contact_number ?? null,
+    membership_stage: member.membership_stage ? {
+      name: member.membership_stage.name ?? '',
+      code: member.membership_stage.code ?? ''
+    } : null,
+    membership_center: member.membership_center ? {
+      name: member.membership_center.name ?? '',
+      code: member.membership_center.code ?? ''
+    } : null,
+    created_at: member.membership_date ?? null, // Use membership_date as created_at fallback
+    // MemberProfileRecord fields
     id: member.id,
     fullName: fullName || preferredName || member.email || 'Member',
     photoUrl,

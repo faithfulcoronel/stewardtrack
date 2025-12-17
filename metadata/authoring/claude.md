@@ -117,7 +117,7 @@ metadata/authoring/
   <!-- Access Control -->
   <accessControl>
     <permissions>
-      <permission>members:read</permission>
+      <permission>members:view</permission>
     </permissions>
     <roles>
       <role>tenant_admin</role>
@@ -295,8 +295,8 @@ metadata/authoring/
 ```xml
 <accessControl>
   <permissions>
-    <permission>members:read</permission>
-    <permission>members:write</permission>
+    <permission>members:view</permission>
+    <permission>members:manage</permission>
   </permissions>
   <roles>
     <role>tenant_admin</role>
@@ -409,7 +409,7 @@ metadata/authoring/
 
   <!-- Conditional Rendering -->
   <conditions>
-    <condition type="permission" value="members:write" />
+    <condition type="permission" value="members:manage" />
     <condition type="feature" value="advanced_tables" />
   </conditions>
 

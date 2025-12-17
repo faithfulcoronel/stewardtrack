@@ -41,7 +41,7 @@ interface ProtectedAdminPageProps {
  * Prevents direct URL access to protected pages by checking AccessGate on the server
  *
  * @example Basic permission check
- * <ProtectedAdminPage permission="members:read">
+ * <ProtectedAdminPage permission="members:view">
  *   <MembersPage />
  * </ProtectedAdminPage>
  *
@@ -158,7 +158,7 @@ export const TenantAdminPage = createProtectedPage({
  * Preset: Members Page Protection
  */
 export const MembersProtectedPage = createProtectedPage({
-  permission: 'members:read',
+  permission: 'members:view',
   requireTenant: true,
 });
 

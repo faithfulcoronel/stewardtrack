@@ -14,13 +14,15 @@ import { getFieldEncryptionConfig } from '@/utils/encryptionUtils';
  * Extends MemberAdapter to automatically encrypt/decrypt PII fields.
  * Uses the Decorator Pattern to add encryption capabilities transparently.
  *
- * Encrypted Fields (14 total):
+ * Encrypted Fields (12 total):
  * - first_name, last_name, middle_name
  * - email, contact_number, address
- * - birthday, anniversary
  * - emergency_contact_name, emergency_contact_phone, emergency_contact_relationship
  * - physician_name, pastoral_notes
  * - prayer_requests (array)
+ *
+ * NOT Encrypted (remain as plain database values):
+ * - birthday, anniversary (DATE fields - cannot be encrypted)
  */
 @injectable()
 export class EncryptedMemberAdapter extends MemberAdapter {
@@ -112,8 +114,14 @@ export class EncryptedMemberAdapter extends MemberAdapter {
         fieldsToEncrypt
       );
 
+      // Update encrypted_fields marker to include ALL encrypted field names (not just updated ones)
+      // For update, we should maintain the full list of ALL encrypted fields in the record
+      const allPIIFieldNames = this.getPIIFields().map(f => f.fieldName);
+      encrypted.encrypted_fields = allPIIFieldNames; // Mark all PII fields as encrypted
+      encrypted.encryption_key_version = 1; // Will be updated by key manager
+
       console.log(
-        `[EncryptedMemberAdapter] Encrypted ${fieldsToEncrypt.length} PII fields for member ${id}`
+        `[EncryptedMemberAdapter] Encrypted ${fieldsToEncrypt.length} PII fields for member ${id}, encrypted_fields marker set to ${allPIIFieldNames.length} fields`
       );
 
       return encrypted;

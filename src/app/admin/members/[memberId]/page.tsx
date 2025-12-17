@@ -3,7 +3,7 @@
  *
  * Detailed profile view combining engagement, giving, and serving history.
  *
- * SECURITY: Protected by AccessGate requiring members:read or members:write permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
  */
 
 import type { Metadata } from "next";

@@ -15,8 +15,6 @@ import { BaseAdapter } from './base.adapter';
 import type {
   FeaturePermission,
   PermissionRoleTemplate,
-  CreateFeaturePermissionDto,
-  UpdateFeaturePermissionDto,
   DbFeaturePermissionWithTemplates
 } from '@/models/featurePermission.model';
 import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
@@ -132,7 +130,11 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
       let processedData = await this.onBeforeUpdate(id, data);
 
       if (fieldsToRemove) {
-        processedData = this.sanitizeData(processedData, fieldsToRemove);
+        const sanitized = { ...processedData };
+        for (const field of fieldsToRemove) {
+          delete (sanitized as any)[field];
+        }
+        processedData = sanitized;
       }
 
       // Update record (NO tenant_id filter - global table)
@@ -222,7 +224,7 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
         throw new Error(error.message);
       }
 
-      return (data || []) as FeaturePermission[];
+      return (data || []) as unknown as FeaturePermission[];
     } catch (error: any) {
       throw new Error(`Failed to get permissions for feature: ${error.message}`);
     }
@@ -347,16 +349,5 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
     } catch (error: any) {
       throw new Error(`Failed to check permission code availability: ${error.message}`);
     }
-  }
-
-  /**
-   * Helper method for sanitizing data
-   */
-  protected sanitizeData(data: Partial<FeaturePermission>, fieldsToRemove: string[]): Partial<FeaturePermission> {
-    const sanitized = { ...data };
-    for (const field of fieldsToRemove) {
-      delete (sanitized as any)[field];
-    }
-    return sanitized;
   }
 }

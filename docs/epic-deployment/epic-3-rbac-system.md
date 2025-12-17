@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Permission details
-  name TEXT NOT NULL UNIQUE, -- e.g., "members:read", "finance:write"
+  name TEXT NOT NULL UNIQUE, -- e.g., "members:view", "finance:write"
   display_name TEXT NOT NULL,
   description TEXT,
 
@@ -479,8 +479,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 INSERT INTO permissions (name, display_name, description, category, is_system)
 VALUES
   -- Members
-  ('members:read', 'View Members', 'View member profiles and directory', 'members', TRUE),
-  ('members:write', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
+  ('members:view', 'View Members', 'View member profiles and directory', 'members', TRUE),
+  ('members:manage', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
   ('members:export', 'Export Members', 'Export member data', 'members', TRUE),
 
   -- Finance
@@ -554,7 +554,7 @@ BEGIN
   INSERT INTO role_permissions (role_id, permission_id)
   SELECT v_volunteer_role_id, id FROM permissions
   WHERE name IN (
-    'members:read',
+    'members:view',
     'finance:read',
     'reports:read'
   )
@@ -564,7 +564,7 @@ BEGIN
   INSERT INTO role_permissions (role_id, permission_id)
   SELECT v_member_role_id, id FROM permissions
   WHERE name IN (
-    'members:read',
+    'members:view',
     'reports:read'
   )
   ON CONFLICT DO NOTHING;
@@ -647,7 +647,7 @@ Each metadata page defines RBAC rules:
 <page id="members-list">
   <rbac>
     <permissions>
-      <permission name="members:read" required="true" />
+      <permission name="members:view" required="true" />
     </permissions>
     <features>
       <feature name="member_management" required="true" />
@@ -668,7 +668,7 @@ import { requirePermission, requireFeature } from '@/lib/server/auth-context';
 
 export async function GET(request: NextRequest) {
   // Guard 1: Check permission
-  await requirePermission('members:read');
+  await requirePermission('members:view');
 
   // Guard 2: Check license feature
   await requireFeature('member_management');
@@ -691,7 +691,7 @@ export function MemberActions() {
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeatures();
 
-  const canEdit = hasPermission('members:write') && hasFeature('member_management');
+  const canEdit = hasPermission('members:manage') && hasFeature('member_management');
 
   return (
     <Button disabled={!canEdit}>Edit</Button>
@@ -712,7 +712,7 @@ export class MemberService {
     const hasPermission = await this.rbacService.userHasPermission(
       userId,
       tenantId,
-      'members:write'
+      'members:manage'
     );
 
     if (!hasPermission) {
@@ -767,7 +767,7 @@ export class MemberService {
 
 #### Pattern 1: Single Permission Guard
 ```
-Permission: members:read
+Permission: members:view
 Feature: member_management
 Use case: View member list
 ```

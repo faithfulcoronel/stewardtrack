@@ -154,7 +154,7 @@ export function isPermittedWithRoles(
    - Go to `/admin/licensing?tab=features`
    - Click "Create Feature"
    - Fill in feature details and define permissions
-   - Permissions define WHO can use the feature (e.g., `members:read`, `finance:write`)
+   - Permissions define WHO can use the feature (e.g., `members:view`, `finance:write`)
 
 2. **Create a Feature Bundle**:
    - Go to `/admin/licensing?tab=bundles`
@@ -249,7 +249,7 @@ When a user accesses a page:
    - Maps features to required permissions
 
 7. **`permissions`**
-   - Granular permission definitions (e.g., `members:read`, `finance:write`)
+   - Granular permission definitions (e.g., `members:view`, `finance:write`)
 
 8. **`user_roles` & `role_permissions`**
    - Assigns permissions to users via roles
@@ -393,7 +393,7 @@ WHERE ur.user_id = '<user-id>'
 
 **Scenario 3: View Member Directory**
 - `featureCode="member-directory"` → All plans (core feature)
-- `requiredPermissions="members:read"` → Anyone with member read permission
+- `requiredPermissions="members:view"` → Anyone with member read permission
 - Result: Core feature, but still respects permission-based visibility
 
 ---
