@@ -31,14 +31,15 @@
       "Bash(dir:*)",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\types\\enums.ts\")",
       "Bash(timeout 60 npm run build:*)",
-      "Bash(npx supabase:*)",
       "Bash(Select-String -Pattern \"features\\[id\\]|FeaturesManager|EditFeatureDialog\" -Context 2)",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251215081134_fix_license_checks_use_tenant_feature_grants.sql\")",
       "Bash(npm run metadata:types:*)",
       "Bash(npm run metadata:compile:*)",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\licensePlan.adapter.ts\")",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\repositories\\licensePlan.repository.ts\")",
-      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\models\\licensePlan.model.ts\")"
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\models\\licensePlan.model.ts\")",
+      "Bash(grep:*)",
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251216231915_fix_permission_role_templates_rls_policies.sql\")"
     ],
     "deny": [],
     "ask": []

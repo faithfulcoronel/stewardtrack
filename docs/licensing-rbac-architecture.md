@@ -431,33 +431,63 @@ User to role assignments (many-to-many, supports multiple roles per user).
 
 **Step-by-step process when a new tenant registers:**
 
-1. **Create Tenant Record**
-   ```sql
-   INSERT INTO tenants (subscription_offering_id, ...)
+1. **Create Supabase Auth User**
+   ```typescript
+   supabase.auth.signUp({ email, password })
    ```
 
-2. **Call License Provisioning**
+2. **Create Tenant Record**
+   ```sql
+   INSERT INTO tenants (subscription_offering_id, subdomain, ...)
+   ```
+
+3. **Generate Encryption Key**
+   ```typescript
+   EncryptionKeyManager.generateTenantKey(tenantId)
+   ```
+   - Creates encryption key for PII data protection
+
+4. **Create Tenant Users Junction**
+   ```sql
+   INSERT INTO tenant_users (tenant_id, user_id, role: 'admin', admin_role: 'tenant_admin')
+   ```
+
+5. **Provision License Features**
    ```typescript
    LicensingService.provisionTenantLicense(tenantId, offeringId)
    ```
-
-3. **Grant Features**
    - Reads `product_offering_features` for direct assignments
    - Reads `product_offering_bundles` → `license_feature_bundle_items` for bundled features
    - Creates `tenant_feature_grants` for each feature with `grant_source = 'direct'`
 
-4. **Seed Default RBAC Roles**
+6. **Seed Default RBAC Roles**
    ```typescript
-   seedDefaultRBAC(tenantId)
+   seedDefaultRBAC(tenantId, tier)
    ```
-   - Creates 4 default roles: `tenant_admin`, `staff`, `volunteer`, `member`
-   - Creates default permissions
-   - Assigns permissions to roles via `role_permissions`
+   - Creates 4 default roles with metadata_key: `tenant_admin`, `staff`, `volunteer`, `member`
+   - Each role has `metadata_key` linking to permission role templates (e.g., `role_tenant_admin`)
+   - **No permissions assigned yet** - just creates empty role shells
 
-5. **Assign User to Admin Role**
-   ```sql
-   INSERT INTO user_roles (user_id, role_id, tenant_id)
+7. **Assign User to Admin Role**
+   ```typescript
+   assignTenantAdminRole(userId, tenantId)
    ```
+   - Assigns registering user to `tenant_admin` role via `user_roles` table
+
+8. **Deploy Feature Permissions (Automatic)**
+   ```typescript
+   PermissionDeploymentService.deployAllFeaturePermissions(tenantId)
+   ```
+   - For each licensed feature:
+     - Reads `feature_permissions` (global permission definitions)
+     - Creates tenant-specific `permissions` records
+     - Reads `permission_role_templates` (role assignments)
+     - Matches `metadata_key` to find tenant roles
+     - Creates `role_permissions` to assign permissions to roles
+   - This is where permissions are automatically deployed from Feature Studio to tenant RBAC
+
+9. **Return Success**
+   - User is automatically logged in via Supabase session
 
 ### License Assignment/Change Flow
 

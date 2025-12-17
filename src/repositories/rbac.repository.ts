@@ -291,9 +291,6 @@ export class RbacRepository extends BaseRepository {
         *,
         role_permissions!inner (
           permissions (*)
-        ),
-        role_bundles!inner (
-          permission_bundles (*)
         )
       `)
       .eq('id', id)
@@ -315,7 +312,6 @@ export class RbacRepository extends BaseRepository {
     const roleRecord = {
       ...data,
       permissions: data.role_permissions?.map((rp: any) => rp.permissions) || [],
-      bundles: data.role_bundles?.map((rb: any) => rb.permission_bundles) || [],
       user_count: count || 0
     };
 
@@ -422,17 +418,11 @@ export class RbacRepository extends BaseRepository {
 
     if (!data) return null;
 
-    // Get role count for this bundle
-    const { count } = await supabase
-      .from('role_bundles')
-      .select('*', { count: 'exact', head: true })
-      .eq('bundle_id', id)
-      .eq('tenant_id', tenantId);
-
+    // Note: role_bundles table removed - bundles are deprecated
     return {
       ...data,
       permissions: data.bundle_permissions?.map((bp: any) => bp.permissions) || [],
-      role_count: count || 0
+      role_count: 0
     };
   }
 
@@ -958,14 +948,14 @@ export class RbacRepository extends BaseRepository {
 
       (role as any).user_count = count || 0;
 
-      // Get bundle count for each role
-      const { count: bundleCount } = await supabase
-        .from('role_bundles')
+      // Get permission count for each role
+      const { count: permissionCount } = await supabase
+        .from('role_permissions')
         .select('*', { count: 'exact', head: true })
         .eq('role_id', role.id)
         .eq('tenant_id', tenantId);
 
-      (role as any).bundle_count = bundleCount || 0;
+      (role as any).permission_count = permissionCount || 0;
     }
 
     return enrichedRoles;
@@ -992,14 +982,8 @@ export class RbacRepository extends BaseRepository {
 
     // Get role counts and permission counts for each bundle
     for (const bundle of bundles) {
-      // Get role count for this bundle
-      const { count: roleCount } = await supabase
-        .from('role_bundles')
-        .select('*', { count: 'exact', head: true })
-        .eq('bundle_id', bundle.id)
-        .eq('tenant_id', tenantId);
-
-      (bundle as any).role_count = roleCount || 0;
+      // Note: role_bundles table removed - bundles are deprecated
+      (bundle as any).role_count = 0;
 
       // Get permission count for this bundle
       const { count: permissionCount } = await supabase

@@ -36,7 +36,6 @@ export interface FeatureDeploymentResult {
   success: boolean;
   permissionsDeployed: number;
   roleAssignments: number;
-  surfaceBindingsCreated: number;
   errors: string[];
   warnings: string[];
 }
@@ -51,7 +50,6 @@ export interface DeploymentSummary {
   failedDeployments: number;
   totalPermissionsDeployed: number;
   totalRoleAssignments: number;
-  totalSurfaceBindings: number;
   results: FeatureDeploymentResult[];
   errors: string[];
   startedAt: Date;
@@ -65,7 +63,6 @@ export interface DeploymentOptions {
   dryRun?: boolean;              // If true, don't actually create/update records
   forceReplace?: boolean;        // If true, replace existing permissions
   skipRoleTemplates?: boolean;   // If true, don't apply role templates
-  skipSurfaceBindings?: boolean; // If true, don't create surface bindings
   specificFeatureIds?: string[]; // Only deploy these features (null = all)
 }
 
@@ -99,6 +96,10 @@ export class PermissionDeploymentService {
     tenantId: string,
     options: DeploymentOptions = {}
   ): Promise<DeploymentSummary> {
+    console.log('[PERMISSION DEPLOY] ========================================');
+    console.log('[PERMISSION DEPLOY] Starting deployment for tenant:', tenantId);
+    console.log('[PERMISSION DEPLOY] ========================================');
+
     const summary: DeploymentSummary = {
       tenantId,
       totalFeatures: 0,
@@ -106,7 +107,6 @@ export class PermissionDeploymentService {
       failedDeployments: 0,
       totalPermissionsDeployed: 0,
       totalRoleAssignments: 0,
-      totalSurfaceBindings: 0,
       results: [],
       errors: [],
       startedAt: new Date(),
@@ -115,7 +115,15 @@ export class PermissionDeploymentService {
 
     try {
       // 1. Get all features granted to this tenant
+      console.log('[PERMISSION DEPLOY] Step 1: Fetching tenant feature grants...');
       const featureGrants = await this.tenantFeatureGrantRepository.getByTenantId(tenantId);
+      console.log('[PERMISSION DEPLOY] Found', featureGrants.length, 'feature grants');
+      console.log('[PERMISSION DEPLOY] Feature grant IDs:', featureGrants.map(fg => fg.feature_id));
+      console.log('[PERMISSION DEPLOY] Feature grants detail:', JSON.stringify(featureGrants.map(fg => ({
+        grant_id: fg.id,
+        feature_id: fg.feature_id,
+        grant_source: fg.grant_source
+      })), null, 2));
 
       // Filter to specific features if requested
       const featuresToDeploy = options.specificFeatureIds
@@ -123,14 +131,29 @@ export class PermissionDeploymentService {
         : featureGrants;
 
       summary.totalFeatures = featuresToDeploy.length;
+      console.log('[PERMISSION DEPLOY] Will deploy', featuresToDeploy.length, 'features');
 
       // 2. Deploy each feature's permissions
-      for (const grant of featuresToDeploy) {
+      for (let i = 0; i < featuresToDeploy.length; i++) {
+        const grant = featuresToDeploy[i];
+        console.log(`[PERMISSION DEPLOY] ----------------------------------------`);
+        console.log(`[PERMISSION DEPLOY] Processing feature ${i + 1}/${featuresToDeploy.length}: ${grant.feature_id}`);
+
         const result = await this.deployFeaturePermissions(
           tenantId,
           grant.feature_id,
           options
         );
+
+        console.log(`[PERMISSION DEPLOY] Result for feature ${grant.feature_id}:`, {
+          success: result.success,
+          featureCode: result.featureCode,
+          featureName: result.featureName,
+          permissionsDeployed: result.permissionsDeployed,
+          roleAssignments: result.roleAssignments,
+          errors: result.errors,
+          warnings: result.warnings
+        });
 
         summary.results.push(result);
 
@@ -138,17 +161,27 @@ export class PermissionDeploymentService {
           summary.successfulDeployments++;
           summary.totalPermissionsDeployed += result.permissionsDeployed;
           summary.totalRoleAssignments += result.roleAssignments;
-          summary.totalSurfaceBindings += result.surfaceBindingsCreated;
         } else {
           summary.failedDeployments++;
           summary.errors.push(...result.errors);
         }
       }
     } catch (error: any) {
+      console.error('[PERMISSION DEPLOY] FATAL ERROR:', error);
+      console.error('[PERMISSION DEPLOY] Stack trace:', error.stack);
       summary.errors.push(`Deployment failed: ${error.message}`);
       summary.failedDeployments = summary.totalFeatures;
     } finally {
       summary.completedAt = new Date();
+      console.log('[PERMISSION DEPLOY] ========================================');
+      console.log('[PERMISSION DEPLOY] Deployment Summary:');
+      console.log('[PERMISSION DEPLOY]   Total Features:', summary.totalFeatures);
+      console.log('[PERMISSION DEPLOY]   Successful:', summary.successfulDeployments);
+      console.log('[PERMISSION DEPLOY]   Failed:', summary.failedDeployments);
+      console.log('[PERMISSION DEPLOY]   Permissions Deployed:', summary.totalPermissionsDeployed);
+      console.log('[PERMISSION DEPLOY]   Role Assignments:', summary.totalRoleAssignments);
+      console.log('[PERMISSION DEPLOY]   Errors:', summary.errors);
+      console.log('[PERMISSION DEPLOY] ========================================');
     }
 
     return summary;
@@ -163,6 +196,10 @@ export class PermissionDeploymentService {
     featureId: string,
     options: DeploymentOptions = {}
   ): Promise<FeatureDeploymentResult> {
+    console.log(`[PERMISSION DEPLOY] >> deployFeaturePermissions() called`);
+    console.log(`[PERMISSION DEPLOY]    Tenant ID: ${tenantId}`);
+    console.log(`[PERMISSION DEPLOY]    Feature ID: ${featureId}`);
+
     const result: FeatureDeploymentResult = {
       featureId,
       featureCode: '',
@@ -170,32 +207,48 @@ export class PermissionDeploymentService {
       success: false,
       permissionsDeployed: 0,
       roleAssignments: 0,
-      surfaceBindingsCreated: 0,
       errors: [],
       warnings: [],
     };
 
     try {
       // 1. Get feature details
+      console.log(`[PERMISSION DEPLOY]    Step 1: Fetching feature details from feature_catalog...`);
       const feature = await this.featureCatalogRepository.getById(featureId);
+
       if (!feature) {
+        console.error(`[PERMISSION DEPLOY]    ERROR: Feature not found in catalog: ${featureId}`);
         result.errors.push(`Feature not found: ${featureId}`);
         return result;
       }
 
       result.featureCode = feature.code;
       result.featureName = feature.name;
+      console.log(`[PERMISSION DEPLOY]    Feature found: ${feature.code} (${feature.name})`);
 
       // 2. Get all permissions defined for this feature
+      console.log(`[PERMISSION DEPLOY]    Step 2: Fetching feature permissions from feature_permissions table...`);
       const featurePermissions = await this.featurePermissionRepository.getByFeatureId(featureId);
+      console.log(`[PERMISSION DEPLOY]    Found ${featurePermissions.length} permissions for feature ${feature.code}`);
 
       if (featurePermissions.length === 0) {
+        console.warn(`[PERMISSION DEPLOY]    WARNING: Feature ${feature.code} has no permissions defined`);
         result.warnings.push(
           `Feature ${feature.code} has no permissions defined in feature_permissions table`
         );
         result.success = true; // Not an error, just no permissions to deploy
         return result;
       }
+
+      // Log permission details
+      featurePermissions.forEach((perm, idx) => {
+        console.log(`[PERMISSION DEPLOY]    Permission ${idx + 1}/${featurePermissions.length}:`, {
+          id: perm.id,
+          permission_code: perm.permission_code,
+          display_name: perm.display_name,
+          is_required: perm.is_required
+        });
+      });
 
       // 3. Deploy each permission
       for (const featPerm of featurePermissions) {
@@ -219,8 +272,6 @@ export class PermissionDeploymentService {
           result.warnings.push(...deployed.warnings);
         }
       }
-
-      // Surface bindings removed - using direct feature-based access control
 
       result.success = result.errors.length === 0;
     } catch (error: any) {
@@ -248,6 +299,8 @@ export class PermissionDeploymentService {
     errors: string[];
     warnings: string[];
   }> {
+    console.log(`[PERMISSION DEPLOY]       >> deployPermission() for ${featurePermission.permission_code}`);
+
     const deployResult = {
       permissionCreated: false,
       roleAssignments: 0,
@@ -257,6 +310,7 @@ export class PermissionDeploymentService {
 
     try {
       // 1. Check if permission already exists for this tenant
+      console.log(`[PERMISSION DEPLOY]          Checking if permission exists in tenant RBAC...`);
       const existingPermission = await this.permissionRepository.findByCode(
         tenantId,
         featurePermission.permission_code
@@ -266,6 +320,7 @@ export class PermissionDeploymentService {
 
       if (existingPermission && !options.forceReplace) {
         // Permission already exists - skip or warn
+        console.log(`[PERMISSION DEPLOY]          Permission already exists, skipping creation`);
         deployResult.warnings.push(
           `Permission ${featurePermission.permission_code} already exists for tenant ${tenantId}`
         );
@@ -281,19 +336,23 @@ export class PermissionDeploymentService {
             name: featurePermission.display_name,
             description: featurePermission.description,
             module: category || 'general',
-            category: featurePermission.category,
+            action: action || 'execute',
             is_active: true,
             tenant_id: tenantId,
             source: 'license_feature',
             source_reference: featureId,
           };
 
+          console.log(`[PERMISSION DEPLOY]          Creating tenant permission:`, permissionData);
+
           if (existingPermission && options.forceReplace) {
+            console.log(`[PERMISSION DEPLOY]          Updating existing permission...`);
             tenantPermission = await this.permissionRepository.update(
               existingPermission.id,
               permissionData
             );
           } else {
+            console.log(`[PERMISSION DEPLOY]          Creating new permission...`);
             tenantPermission = await this.permissionRepository.create(permissionData);
           }
 
@@ -309,9 +368,17 @@ export class PermissionDeploymentService {
 
       // 2. Apply role templates (if not skipped)
       if (!options.skipRoleTemplates) {
+        console.log(`[PERMISSION DEPLOY]          Fetching role templates for permission ${featurePermission.id}...`);
         const templates = await this.featurePermissionRepository.getRoleTemplates(
           featurePermission.id
         );
+        console.log(`[PERMISSION DEPLOY]          Found ${templates.length} role templates`);
+
+        if (templates.length > 0) {
+          templates.forEach((t, idx) => {
+            console.log(`[PERMISSION DEPLOY]          Template ${idx + 1}: role_key=${t.role_key}, recommended=${t.is_recommended}`);
+          });
+        }
 
         for (const template of templates) {
           const assigned = await this.applyRoleTemplate(
@@ -323,10 +390,18 @@ export class PermissionDeploymentService {
 
           if (assigned) {
             deployResult.roleAssignments++;
+            console.log(`[PERMISSION DEPLOY]          ✓ Role assignment successful`);
+          } else {
+            console.log(`[PERMISSION DEPLOY]          ✗ Role assignment failed or skipped`);
           }
         }
+      } else {
+        console.log(`[PERMISSION DEPLOY]          Skipping role templates (skipRoleTemplates=true)`);
       }
+
+      console.log(`[PERMISSION DEPLOY]       << deployPermission() complete: created=${deployResult.permissionCreated}, roleAssignments=${deployResult.roleAssignments}`);
     } catch (error: any) {
+      console.error(`[PERMISSION DEPLOY]       ERROR in deployPermission():`, error);
       deployResult.errors.push(
         `Failed to deploy permission ${featurePermission.permission_code}: ${error.message}`
       );
@@ -345,6 +420,8 @@ export class PermissionDeploymentService {
     template: PermissionRoleTemplate,
     options: DeploymentOptions
   ): Promise<boolean> {
+    console.log(`[PERMISSION DEPLOY]             >> applyRoleTemplate() for role_key=${template.role_key}`);
+
     try {
       // 1. Find tenant role by metadata_key
       // Template.role_key is like "tenant_admin", role.metadata_key is like "role_tenant_admin"
@@ -352,29 +429,38 @@ export class PermissionDeploymentService {
         ? template.role_key
         : `role_${template.role_key}`;
 
+      console.log(`[PERMISSION DEPLOY]                Searching for role with metadata_key: ${metadataKey}`);
       const tenantRole = await this.roleRepository.findByMetadataKey(tenantId, metadataKey);
 
       if (!tenantRole) {
+        console.warn(`[PERMISSION DEPLOY]                WARNING: Role not found with metadata_key=${metadataKey}`);
         console.warn(
           `Role with metadata_key ${metadataKey} not found for tenant ${tenantId}. Skipping role template.`
         );
         return false;
       }
 
+      console.log(`[PERMISSION DEPLOY]                ✓ Found tenant role: ${tenantRole.name} (id=${tenantRole.id})`);
+
       // 2. Check if role already has this permission
+      console.log(`[PERMISSION DEPLOY]                Checking if role already has permission ${permissionId}...`);
       const existing = await this.rolePermissionRepository.findByRoleAndPermission(
         tenantRole.id,
         permissionId
       );
 
       if (existing) {
-        // Already assigned
+        console.log(`[PERMISSION DEPLOY]                Permission already assigned to role. Skipping.`);
         return false;
       }
 
+      console.log(`[PERMISSION DEPLOY]                Permission not yet assigned. Proceeding with assignment...`);
+
       // 3. Assign permission to role
       if (!options.dryRun) {
+        console.log(`[PERMISSION DEPLOY]                Assigning permission ${permissionId} to role ${tenantRole.id}...`);
         await this.rolePermissionRepository.assign(tenantRole.id, permissionId);
+        console.log(`[PERMISSION DEPLOY]                ✓ Successfully assigned permission to role ${tenantRole.name}`);
         return true;
       } else {
         console.log(
@@ -383,17 +469,13 @@ export class PermissionDeploymentService {
         return false;
       }
     } catch (error: any) {
+      console.error(`[PERMISSION DEPLOY]                ERROR in applyRoleTemplate():`, error);
       console.error(
         `Failed to apply role template ${template.role_key}: ${error.message}`
       );
       return false;
     }
   }
-
-  /**
-   * Create surface binding for a feature's surface
-   * Links the metadata surface to the feature's permissions
-   */
 
   /**
    * Remove permissions for features that are NO LONGER licensed

@@ -198,6 +198,7 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
    */
   async getByFeatureId(featureId: string): Promise<FeaturePermission[]> {
     try {
+      console.log(`[PERMISSION ADAPTER] >> getByFeatureId() called with featureId: ${featureId}`);
       const supabase = await this.getSupabaseClient();
 
       const { data, error } = await supabase
@@ -207,7 +208,17 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
         .order('display_order')
         .order('permission_code');
 
+      console.log(`[PERMISSION ADAPTER] Query result:`, { featureId, count: data?.length || 0, error });
+      if (data && data.length > 0) {
+        console.log(`[PERMISSION ADAPTER] Found permissions:`, data.map((p: any) => ({
+          id: p.id,
+          permission_code: p.permission_code,
+          display_name: p.display_name
+        })));
+      }
+
       if (error) {
+        console.error(`[PERMISSION ADAPTER] Query error:`, error);
         throw new Error(error.message);
       }
 
@@ -279,20 +290,38 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
    */
   async getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
     try {
+      console.log(`[ROLE TEMPLATE ADAPTER] >> getRoleTemplates() called with featurePermissionId: ${featurePermissionId}`);
       const supabase = await this.getSupabaseClient();
 
+      console.log(`[ROLE TEMPLATE ADAPTER] Executing query on permission_role_templates...`);
       const { data, error } = await supabase
         .from('permission_role_templates')
         .select('*')
         .eq('feature_permission_id', featurePermissionId)
         .order('role_key');
 
+      console.log(`[ROLE TEMPLATE ADAPTER] Query result:`, {
+        featurePermissionId,
+        count: data?.length || 0,
+        error: error ? { code: error.code, message: error.message, details: error.details } : null
+      });
+
+      if (data && data.length > 0) {
+        console.log(`[ROLE TEMPLATE ADAPTER] Found role templates:`, data.map((t: any) => ({
+          id: t.id,
+          role_key: t.role_key,
+          is_recommended: t.is_recommended
+        })));
+      }
+
       if (error) {
+        console.error(`[ROLE TEMPLATE ADAPTER] Query error:`, error);
         throw new Error(error.message);
       }
 
       return (data || []) as PermissionRoleTemplate[];
     } catch (error: any) {
+      console.error(`[ROLE TEMPLATE ADAPTER] Exception:`, error);
       throw new Error(`Failed to get role templates: ${error.message}`);
     }
   }

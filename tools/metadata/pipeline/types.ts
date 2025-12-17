@@ -83,6 +83,7 @@ export interface CanonicalDefinition {
   page: CanonicalPage;
   sourcePath: string;
   featureCode?: string | null;
+  requiredPermissions?: string | null;
 }
 
 export interface ManifestEntry {
@@ -95,6 +96,7 @@ export interface ManifestEntry {
   sourcePath: string;
   compiledPath: string;
   featureCode?: string | null;
+  requiredPermissions?: string | null;
   dependsOn?: string[];
 }
 

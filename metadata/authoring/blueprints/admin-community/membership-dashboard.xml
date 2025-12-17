@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="members/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="members/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
   <Page id="admin-community-membership-dashboard">
     <Title>Membership intelligence dashboard</Title>
     <Regions>
@@ -639,6 +639,7 @@
         </Config>
       </Action>
       <Action id="launch-new-member" kind="link">
+        <RBAC requirePermissions="members:manage" />
         <Config>
           <Label>Add new member</Label>
           <Url>/admin/members/manage</Url>

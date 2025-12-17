@@ -76,6 +76,7 @@ export class RegistryPublisher {
       sourcePath: definition.sourcePath,
       compiledPath,
       featureCode: definition.featureCode,
+      requiredPermissions: definition.requiredPermissions,
     };
     await fs.writeFile(pointerPath, JSON.stringify(pointer, null, 2) + '\n');
   }
@@ -93,6 +94,7 @@ export class RegistryPublisher {
       sourcePath: definition.sourcePath,
       compiledPath,
       featureCode: definition.featureCode,
+      requiredPermissions: definition.requiredPermissions,
       dependsOn:
         definition.kind === 'overlay'
           ? [computeManifestKey({ ...definition.layer, tenant: null, role: null, variant: null })]

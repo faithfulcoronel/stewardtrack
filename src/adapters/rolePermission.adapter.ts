@@ -42,12 +42,23 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
       return existing;
     }
 
+    // Get tenant_id from the role
+    const { data: role, error: roleError } = await supabase
+      .from('roles')
+      .select('tenant_id')
+      .eq('id', roleId)
+      .single();
+
+    if (roleError || !role) {
+      throw new Error(`Failed to get role tenant_id: ${roleError?.message || 'Role not found'}`);
+    }
+
     const { data, error } = await supabase
       .from(this.tableName)
       .insert({
+        tenant_id: role.tenant_id,
         role_id: roleId,
         permission_id: permissionId,
-        granted_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -152,10 +163,21 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
       return existing;
     }
 
+    // Get tenant_id from the role
+    const { data: role, error: roleError } = await supabase
+      .from('roles')
+      .select('tenant_id')
+      .eq('id', roleId)
+      .single();
+
+    if (roleError || !role) {
+      throw new Error(`Failed to get role tenant_id: ${roleError?.message || 'Role not found'}`);
+    }
+
     const insertData = newPermissionIds.map((permissionId) => ({
+      tenant_id: role.tenant_id,
       role_id: roleId,
       permission_id: permissionId,
-      granted_at: new Date().toISOString(),
     }));
 
     const { data, error } = await supabase

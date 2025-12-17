@@ -210,25 +210,9 @@ async function createBundleForRole(
   }
 
   // Step 6: Link bundle to role
-  const { error: roleBundleError } = await supabase
-    .from('role_bundles')
-    .upsert(
-      {
-        tenant_id: tenantId,
-        role_id: role.id,
-        bundle_id: bundleId,
-      },
-      {
-        onConflict: 'tenant_id,role_id,bundle_id',
-        ignoreDuplicates: true,
-      }
-    );
-
-  if (roleBundleError) {
-    throw new Error(
-      `Failed to link bundle ${definition.bundleCode} to role ${definition.roleMetadataKey}: ${roleBundleError.message}`
-    );
-  }
+  // NOTE: role_bundles table removed - bundles are deprecated in favor of direct role-permission assignments
+  // Skipping role_bundles link as the table no longer exists
+  console.log(`Skipping role_bundles link for deprecated bundle system (bundle: ${definition.bundleCode})`);
 
   return { bundleCreated, permissionsLinked };
 }

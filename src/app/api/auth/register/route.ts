@@ -7,7 +7,6 @@ import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
-import { seedDefaultPermissionBundles } from '@/lib/tenant/seedDefaultPermissionBundles';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import type { IAuthRepository } from '@/repositories/auth.repository';
 
@@ -65,12 +64,13 @@ async function getPublicOfferingForSignup(
  * Handles new user and tenant registration with the following steps:
  * 1. Create Supabase auth user
  * 2. Create tenant record
- * 3. Create user profile
- * 4. Provision license features based on selected offering
- * 5. Seed default RBAC roles for the tenant
- * 6. Assign tenant admin role to the user
- * 7. Deploy permissions from licensed features to tenant RBAC
- * 8. Log in the user automatically
+ * 3. Generate encryption key for tenant
+ * 4. Create tenant_users junction record
+ * 5. Provision license features based on selected offering
+ * 6. Seed default RBAC roles for the tenant
+ * 7. Assign tenant admin role to the user
+ * 8. Deploy permissions from licensed features to tenant RBAC (automatic via PermissionDeploymentService)
+ * 9. Return success (user is automatically logged in via Supabase session)
  */
 export async function POST(request: NextRequest) {
   let userId: string | null = null;
@@ -197,22 +197,6 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to initialize tenant encryption');
     }
 
-    // ===== STEP 5: Create user profile =====
-    const { error: profileError } = await serviceSupabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        tenant_id: tenantId,
-      });
-
-    if (profileError) {
-      console.error('Failed to create profile:', profileError);
-      // Non-fatal error, continue
-    }
-
     // ===== STEP 5: Create tenant_users junction =====
     const { error: tenantUserError } = await serviceSupabase
       .from('tenant_users')
@@ -238,7 +222,7 @@ export async function POST(request: NextRequest) {
       // Non-fatal error, continue with registration
     }
 
-    // ===== STEP 7: Seed default RBAC roles =====
+    // ===== STEP 6: Seed default RBAC roles =====
     try {
       await seedDefaultRBAC(tenantId, offering.tier);
     } catch (error) {
@@ -246,7 +230,7 @@ export async function POST(request: NextRequest) {
       // Non-fatal error, continue
     }
 
-    // ===== STEP 8: Assign tenant admin role =====
+    // ===== STEP 7: Assign tenant admin role =====
     try {
       await assignTenantAdminRole(userId, tenantId);
     } catch (error) {
@@ -254,7 +238,7 @@ export async function POST(request: NextRequest) {
       // Non-fatal error, continue
     }
 
-    // ===== STEP 9: Deploy permissions from licensed features =====
+    // ===== STEP 8: Deploy permissions from licensed features =====
     try {
       const permissionDeploymentService = container.get<PermissionDeploymentService>(
         TYPES.PermissionDeploymentService
@@ -267,7 +251,6 @@ export async function POST(request: NextRequest) {
         successfulDeployments: deploymentSummary.successfulDeployments,
         permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
         roleAssignments: deploymentSummary.totalRoleAssignments,
-        surfaceBindings: deploymentSummary.totalSurfaceBindings,
       });
 
       if (deploymentSummary.errors.length > 0) {
@@ -278,16 +261,7 @@ export async function POST(request: NextRequest) {
       // Non-fatal error - tenant still created successfully
     }
 
-    // ===== STEP 10: Seed permission bundles =====
-    try {
-      await seedDefaultPermissionBundles(tenantId, offering.tier);
-      console.log(`Successfully seeded permission bundles for tenant ${tenantId}`);
-    } catch (error) {
-      console.error('Failed to seed permission bundles:', error);
-      // Non-fatal error - tenant still created successfully
-    }
-
-    // ===== STEP 11: Return success =====
+    // ===== STEP 9: Return success =====
     return NextResponse.json({
       success: true,
       data: {

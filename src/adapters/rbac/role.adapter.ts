@@ -63,9 +63,6 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
         *,
         role_permissions!inner (
           permissions (*)
-        ),
-        role_bundles!inner (
-          permission_bundles (*)
         )
       `)
       .eq('id', id)
@@ -87,7 +84,6 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
     return {
       ...data,
       permissions: data.role_permissions?.map((rp: any) => rp.permissions) || [],
-      bundles: data.role_bundles?.map((rb: any) => rb.permission_bundles) || [],
       user_count: count || 0
     };
   }
@@ -132,14 +128,14 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
         .eq('role_id', role.id)
         .eq('tenant_id', tenantId);
 
-      const { count: bundleCount } = await supabase
-        .from('role_bundles')
+      const { count: permissionCount } = await supabase
+        .from('role_permissions')
         .select('*', { count: 'exact', head: true })
         .eq('role_id', role.id)
         .eq('tenant_id', tenantId);
 
       (role as any).user_count = userCount || 0;
-      (role as any).bundle_count = bundleCount || 0;
+      (role as any).permission_count = permissionCount || 0;
     }
 
     return roles;
