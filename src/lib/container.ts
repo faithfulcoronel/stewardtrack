@@ -23,6 +23,7 @@ import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefre
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
 import { MetricsService } from '@/services/MetricsService';
+import { LicenseAuditService } from '@/services/LicenseAuditService';
 import { UserRoleService } from '@/services/UserRoleService';
 import { TenantService } from '@/services/TenantService';
 import { RolePermissionService } from '@/services/RolePermissionService';
@@ -33,18 +34,22 @@ import { MaterializedViewRefreshJobAdapter, type IMaterializedViewRefreshJobAdap
 import { LicenseValidationAdapter } from '@/adapters/licenseValidation.adapter';
 import { LicenseMonitoringAdapter } from '@/adapters/licenseMonitoring.adapter';
 import { UserMemberLinkAdapter } from '@/adapters/userMemberLink.adapter';
+import { LicenseAuditAdapter, type ILicenseAuditAdapter } from '@/adapters/licenseAudit.adapter';
 
 // Phase 5 Optimization & Monitoring Repositories
 import { PerformanceMetricRepository, type IPerformanceMetricRepository } from '@/repositories/performanceMetric.repository';
 import { MaterializedViewRefreshJobRepository, type IMaterializedViewRefreshJobRepository } from '@/repositories/materializedViewRefreshJob.repository';
 import { LicenseValidationRepository } from '@/repositories/licenseValidation.repository';
 import { LicenseMonitoringRepository } from '@/repositories/licenseMonitoring.repository';
+import { LicenseAuditRepository, type ILicenseAuditRepository } from '@/repositories/licenseAudit.repository';
 
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy';
 import type { IEncryptionStrategy } from '@/lib/encryption/strategies/IEncryptionStrategy';
+import { EncryptionKeyAdapter, type IEncryptionKeyAdapter } from '@/adapters/encryptionKey.adapter';
+import { EncryptionKeyRepository, type IEncryptionKeyRepository } from '@/repositories/encryptionKey.repository';
 
 // Adapters
 import { MemberAdapter, type IMemberAdapter } from '@/adapters/member.adapter';
@@ -224,6 +229,11 @@ container
   .to(MetricsService)
   .inRequestScope();
 
+container
+  .bind<LicenseAuditService>(TYPES.LicenseAuditService)
+  .to(LicenseAuditService)
+  .inRequestScope();
+
 // ==================== PHASE 5 OPTIMIZATION & MONITORING ADAPTERS ====================
 container
   .bind<IPerformanceMetricAdapter>(TYPES.IPerformanceMetricAdapter)
@@ -250,6 +260,11 @@ container
   .to(UserMemberLinkAdapter)
   .inRequestScope();
 
+container
+  .bind<ILicenseAuditAdapter>(TYPES.ILicenseAuditAdapter)
+  .to(LicenseAuditAdapter)
+  .inRequestScope();
+
 // ==================== PHASE 5 OPTIMIZATION & MONITORING REPOSITORIES ====================
 container
   .bind<IPerformanceMetricRepository>(TYPES.IPerformanceMetricRepository)
@@ -271,18 +286,35 @@ container
   .to(LicenseMonitoringRepository)
   .inRequestScope();
 
+container
+  .bind<ILicenseAuditRepository>(TYPES.ILicenseAuditRepository)
+  .to(LicenseAuditRepository)
+  .inRequestScope();
+
 // ==================== ENCRYPTION SERVICES ====================
+// Bind encryption adapter and repository
+container
+  .bind<IEncryptionKeyAdapter>(TYPES.IEncryptionKeyAdapter)
+  .to(EncryptionKeyAdapter)
+  .inRequestScope();
+
+container
+  .bind<IEncryptionKeyRepository>(TYPES.IEncryptionKeyRepository)
+  .to(EncryptionKeyRepository)
+  .inRequestScope();
+
 // Bind encryption strategy (singleton for performance)
 container
   .bind<IEncryptionStrategy>(TYPES.EncryptionStrategy)
   .to(AES256GCMStrategy)
   .inSingletonScope();
 
-// Bind key manager (singleton for key caching)
+// Bind key manager (request scope to match repository scope)
+// Note: Key caching still works within the request context
 container
   .bind<EncryptionKeyManager>(TYPES.EncryptionKeyManager)
   .to(EncryptionKeyManager)
-  .inSingletonScope();
+  .inRequestScope();
 
 // Bind encryption service (request scope for tenant isolation)
 container

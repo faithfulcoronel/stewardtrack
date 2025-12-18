@@ -1,8 +1,8 @@
 import 'server-only';
 import crypto from 'crypto';
-import { injectable } from 'inversify';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
+import type { IEncryptionKeyRepository } from '@/repositories/encryptionKey.repository';
 
 /**
  * Manages encryption keys with hierarchical key derivation
@@ -24,7 +24,10 @@ export class EncryptionKeyManager {
   private keyCache: Map<string, { key: Buffer; version: number; expiresAt: number }>;
   private readonly cacheTTL = 5 * 60 * 1000; // 5 minutes
 
-  constructor() {
+  constructor(
+    @inject(TYPES.IEncryptionKeyRepository)
+    private repository: IEncryptionKeyRepository
+  ) {
     // Load system master key from environment
     const key = process.env.ENCRYPTION_MASTER_KEY;
 
@@ -54,19 +57,11 @@ export class EncryptionKeyManager {
 
   /**
    * Generate a new tenant master key during registration
-   * Uses service role client to bypass RLS during tenant setup
+   * Uses repository which handles service role access during tenant setup
    */
   async generateTenantKey(tenantId: string): Promise<void> {
-    // Use service client to bypass RLS - this is called during registration
-    // before the user has proper tenant permissions
-    const supabase = await getSupabaseServiceClient();
-
     // Check if tenant already has a key
-    const { data: existing } = await supabase
-      .from('encryption_keys')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .single();
+    const existing = await this.repository.findByTenantId(tenantId);
 
     if (existing) {
       throw new Error(`Tenant ${tenantId} already has an encryption key`);
@@ -79,8 +74,8 @@ export class EncryptionKeyManager {
     // Encrypt master key with system key
     const encryptedKey = this.encryptMasterKey(masterKey);
 
-    // Store in database
-    const { error } = await supabase.from('encryption_keys').insert({
+    // Store in database via repository
+    await this.repository.createKey({
       tenant_id: tenantId,
       key_version: 1,
       encrypted_master_key: encryptedKey,
@@ -89,10 +84,6 @@ export class EncryptionKeyManager {
       is_active: true,
       created_at: new Date().toISOString()
     });
-
-    if (error) {
-      throw new Error(`Failed to store tenant encryption key: ${error.message}`);
-    }
 
     console.log(`[EncryptionKeyManager] Generated encryption key for tenant ${tenantId}`);
   }
@@ -112,22 +103,12 @@ export class EncryptionKeyManager {
       }
     }
 
-    const supabase = await createSupabaseServerClient();
+    // Fetch key from repository
+    const data = version
+      ? await this.repository.findByTenantIdAndVersion(tenantId, version)
+      : await this.repository.findActiveTenantKey(tenantId);
 
-    let query = supabase
-      .from('encryption_keys')
-      .select('*')
-      .eq('tenant_id', tenantId);
-
-    if (version) {
-      query = query.eq('key_version', version);
-    } else {
-      query = query.eq('is_active', true);
-    }
-
-    const { data, error } = await query.single();
-
-    if (error || !data) {
+    if (!data) {
       throw new Error(
         `Tenant encryption key not found for tenant ${tenantId}` +
         (version ? ` version ${version}` : '')
@@ -183,8 +164,6 @@ export class EncryptionKeyManager {
    * A background job should re-encrypt all data with the new key.
    */
   async rotateKey(tenantId: string): Promise<{ oldVersion: number; newVersion: number }> {
-    const supabase = await createSupabaseServerClient();
-
     // Get current key version
     const { keyVersion: currentVersion } = await this.getTenantKey(tenantId);
 
@@ -195,36 +174,19 @@ export class EncryptionKeyManager {
 
     const now = new Date().toISOString();
 
-    // Mark old key as inactive
-    const { error: deactivateError } = await supabase
-      .from('encryption_keys')
-      .update({
-        is_active: false,
-        rotated_at: now
-      })
-      .eq('tenant_id', tenantId)
-      .eq('key_version', currentVersion);
+    // Mark old key as inactive via repository
+    await this.repository.deactivateKey(tenantId, currentVersion, now);
 
-    if (deactivateError) {
-      throw new Error(`Failed to deactivate old key: ${deactivateError.message}`);
-    }
-
-    // Insert new key
-    const { error: insertError } = await supabase
-      .from('encryption_keys')
-      .insert({
-        tenant_id: tenantId,
-        key_version: currentVersion + 1,
-        encrypted_master_key: encryptedKey,
-        key_derivation_salt: newSalt,
-        algorithm: 'AES-256-GCM',
-        is_active: true,
-        created_at: now
-      });
-
-    if (insertError) {
-      throw new Error(`Failed to insert new key: ${insertError.message}`);
-    }
+    // Insert new key via repository
+    await this.repository.createKey({
+      tenant_id: tenantId,
+      key_version: currentVersion + 1,
+      encrypted_master_key: encryptedKey,
+      key_derivation_salt: newSalt,
+      algorithm: 'AES-256-GCM',
+      is_active: true,
+      created_at: now
+    });
 
     // Clear cache
     this.keyCache.delete(tenantId);

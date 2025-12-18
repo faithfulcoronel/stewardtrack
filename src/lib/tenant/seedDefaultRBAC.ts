@@ -1,5 +1,8 @@
 import 'server-only';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { RbacCoreService } from '@/services/RbacCoreService';
+import type { CreateRoleDto } from '@/models/rbac.model';
 
 /**
  * Seeds default RBAC roles for a new tenant
@@ -16,73 +19,60 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
  *
  * All default roles have is_system=true, meaning they cannot be deleted by users.
  *
+ * Follows architectural pattern: Utility → Service → Repository → Adapter → Supabase
+ *
  * @param tenantId - The tenant ID to seed roles for
  * @param offeringTier - The product offering tier (for logging/future use)
  */
 export async function seedDefaultRBAC(
   tenantId: string,
-  offeringTier: string = 'starter'
+  _offeringTier: string = 'starter'
 ): Promise<void> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const rbacService = container.get<RbacCoreService>(TYPES.RbacCoreService);
 
     // Define default roles for a church organization
     // IMPORTANT: metadata_key links tenant roles to permission role templates
-    // Format: role_{role_code} (e.g., role_tenant_admin)
-    const defaultRoles = [
+    // Format: role_{role_name} (e.g., role_tenant_admin)
+    const defaultRoles: CreateRoleDto[] = [
       {
-        code: 'tenant_admin',
         name: 'Tenant Administrator',
         description: 'Full administrative access to all church management features',
-        scope: 'tenant' as const,
+        scope: 'tenant',
         metadata_key: 'role_tenant_admin',  // ⭐ Links to permission templates
-        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: false,
-        tenant_id: tenantId,
       },
       {
-        code: 'staff',
         name: 'Staff Member',
         description: 'Extended access for church staff members',
-        scope: 'tenant' as const,
+        scope: 'tenant',
         metadata_key: 'role_staff',          // ⭐ Links to permission templates
-        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: true,
-        tenant_id: tenantId,
       },
       {
-        code: 'volunteer',
         name: 'Volunteer',
         description: 'Limited access for church volunteers',
-        scope: 'tenant' as const,
+        scope: 'tenant',
         metadata_key: 'role_volunteer',      // ⭐ Links to permission templates
-        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: true,
-        tenant_id: tenantId,
       },
       {
-        code: 'member',
         name: 'Church Member',
         description: 'Basic access for church members',
-        scope: 'tenant' as const,
+        scope: 'tenant',
         metadata_key: 'role_member',         // ⭐ Links to permission templates
-        is_system: true,                     // ⭐ System role (cannot be deleted)
         is_delegatable: false,
-        tenant_id: tenantId,
       },
     ];
 
-    // Insert default roles
-    const { data: createdRoles, error: rolesError } = await supabase
-      .from('roles')
-      .insert(defaultRoles)
-      .select();
-
-    if (rolesError) {
-      throw new Error(`Failed to create default roles: ${rolesError.message}`);
+    // Create default roles using service layer
+    const createdRoles = [];
+    for (const roleData of defaultRoles) {
+      const role = await rbacService.createRole(roleData, tenantId);
+      createdRoles.push(role);
     }
 
-    console.log(`Created ${createdRoles?.length || 0} default roles for tenant ${tenantId}`);
+    console.log(`Created ${createdRoles.length} default roles for tenant ${tenantId}`);
     console.log('Roles created with metadata_key linking to permission templates');
     console.log('PermissionDeploymentService will auto-assign permissions based on licensed features');
 
@@ -101,6 +91,8 @@ export async function seedDefaultRBAC(
 /**
  * Assigns the tenant admin role to a user
  *
+ * Follows architectural pattern: Utility → Service → Repository → Adapter → Supabase
+ *
  * @param userId - The user to assign the role to
  * @param tenantId - The tenant context
  */
@@ -109,33 +101,21 @@ export async function assignTenantAdminRole(
   tenantId: string
 ): Promise<void> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const rbacService = container.get<RbacCoreService>(TYPES.RbacCoreService);
 
-    // Find the tenant admin role
-    const { data: adminRole, error: roleError } = await supabase
-      .from('roles')
-      .select('id')
-      .eq('code', 'tenant_admin')
-      .eq('tenant_id', tenantId)
-      .single();
+    // Find the tenant admin role using service layer
+    const roles = await rbacService.getRoles(tenantId, true);
+    const adminRole = roles.find(role => role.metadata_key === 'role_tenant_admin');
 
-    if (roleError || !adminRole) {
-      throw new Error(`Tenant admin role not found for tenant ${tenantId}: ${roleError?.message}`);
+    if (!adminRole) {
+      throw new Error(`Tenant admin role not found for tenant ${tenantId}`);
     }
 
-    // Assign the role to the user
-    const { error: assignError } = await supabase
-      .from('user_roles')
-      .insert({
-        user_id: userId,
-        role_id: adminRole.id,
-        tenant_id: tenantId,
-        assigned_at: new Date().toISOString(),
-      });
-
-    if (assignError) {
-      throw new Error(`Failed to assign tenant admin role: ${assignError.message}`);
-    }
+    // Assign the role to the user using service layer
+    await rbacService.assignRole({
+      user_id: userId,
+      role_id: adminRole.id,
+    }, tenantId, 'system');
 
     console.log(`Assigned tenant admin role to user ${userId} for tenant ${tenantId}`);
   } catch (error) {

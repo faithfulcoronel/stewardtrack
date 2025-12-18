@@ -19,9 +19,9 @@ import {
   type MemberRow,
   type MemberTimelineEventRow,
 } from '@/services/MemberProfileService';
-import { EncryptionService } from '@/lib/encryption/EncryptionService';
-import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
-import { AES256GCMStrategy } from '@/lib/encryption/strategies/AES256GCMStrategy';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import {
   fetchMembershipLookupGroups,
   formatLabel,
@@ -289,10 +289,8 @@ const MEMBERS_LOOKUPS_HANDLER_ID = 'admin-community.members.manage.lookups';
 function createMembersDashboardService(): MembersDashboardService {
   console.log('[admin-community] Creating MembersDashboardService with ENCRYPTED adapter');
 
-  // Create encryption stack (shared for all encrypted adapters)
-  const encryptionStrategy = new AES256GCMStrategy();
-  const keyManager = new EncryptionKeyManager();
-  const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+  // Get encryption service from DI container (properly initialized with all dependencies)
+  const encryptionService = container.get<EncryptionService>(TYPES.EncryptionService);
 
   // Use EncryptedMembersDashboardAdapter to decrypt PII after fetching
   const adapter = new MembersDashboardAdapter(encryptionService);
@@ -305,10 +303,8 @@ function createMembersDashboardService(): MembersDashboardService {
 function createMemberProfileService(): MemberProfileService {
   console.log('[admin-community] Creating MemberProfileService with ENCRYPTED adapter');
 
-  // Create encryption stack (shared for all encrypted adapters)
-  const encryptionStrategy = new AES256GCMStrategy();
-  const keyManager = new EncryptionKeyManager();
-  const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+  // Get encryption service from DI container (properly initialized with all dependencies)
+  const encryptionService = container.get<EncryptionService>(TYPES.EncryptionService);
 
   // Use EncryptedMemberProfileAdapter to decrypt PII after fetching
   const adapter = new MemberProfileAdapter(encryptionService);

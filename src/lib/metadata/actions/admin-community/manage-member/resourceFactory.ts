@@ -1,9 +1,9 @@
 import { SupabaseAuditService } from "@/services/AuditService";
 import { MemberAdapter } from "@/adapters/member.adapter";
 import { AccountAdapter } from "@/adapters/account.adapter";
-import { EncryptionService } from "@/lib/encryption/EncryptionService";
-import { EncryptionKeyManager } from "@/lib/encryption/EncryptionKeyManager";
-import { AES256GCMStrategy } from "@/lib/encryption/strategies/AES256GCMStrategy";
+import { container } from "@/lib/container";
+import { TYPES } from "@/lib/types";
+import type { EncryptionService } from "@/lib/encryption/EncryptionService";
 import { MemberRepository } from "@/repositories/member.repository";
 import { MemberService } from "@/services/MemberService";
 import { AccountRepository } from "@/repositories/account.repository";
@@ -69,10 +69,8 @@ export class MemberManageResourceFactory {
   }
 
   private createMemberService(context: RequestContext, auditService: SupabaseAuditService): MemberService {
-    // Create encryption stack (shared across all encrypted adapters)
-    const encryptionStrategy = new AES256GCMStrategy();
-    const keyManager = new EncryptionKeyManager();
-    const encryptionService = new EncryptionService(encryptionStrategy, keyManager);
+    // Get encryption service from DI container (properly initialized with all dependencies)
+    const encryptionService = container.get<EncryptionService>(TYPES.EncryptionService);
 
     // MemberAdapter has built-in encryption
     const memberAdapter = new MemberAdapter(auditService, encryptionService);
