@@ -4,10 +4,11 @@ import { Gate } from "@/lib/access-gate";
 import { type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { AdminLayoutShell } from "@/components/admin/layout-shell";
 import { signOut } from "@/lib/auth/actions";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { IMemberRepository } from "@/repositories/member.repository";
+import type { TenantService } from "@/services/TenantService";
+import type { AuthorizationService } from "@/services/AuthorizationService";
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
@@ -60,15 +61,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  // Check authentication using service layer
+  const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+  const authResult = await authService.checkAuthentication();
 
-  if (error || !user) {
+  if (!authResult.authorized || !authResult.user) {
     redirect("/login");
   }
+
+  const user = authResult.user;
 
   // Get user information using MemberRepository for proper decryption
   const memberRepository = container.get<IMemberRepository>(TYPES.IMemberRepository);
@@ -110,19 +111,21 @@ export default async function AdminLayout({
     );
   }
 
-  // Non-super admin users: Require tenant context
-  const { data: tenantUser } = await supabase
-    .from('tenant_users')
-    .select('tenant_id')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  // Non-super admin users: Require tenant context using service layer
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
 
-  if (!tenantUser) {
+  let tenantId: string | null = null;
+  try {
+    const currentTenant = await tenantService.getCurrentTenant();
+    tenantId = currentTenant?.id ?? null;
+  } catch (error) {
+    console.error('Failed to get tenant context:', error);
+  }
+
+  if (!tenantId) {
     // No tenant context - redirect to unauthorized
     redirect("/unauthorized?reason=no_tenant");
   }
-
-  const tenantId = tenantUser.tenant_id;
 
   // Use static menu system - filter using AccessGate
   const filteredSections = await filterSectionsWithAccessGate(NAV_SECTIONS, user.id, tenantId);

@@ -1,6 +1,7 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { readTenantSession, writeTenantSession } from "@/lib/tenant/session-cache";
-import { resolveTenantForUser } from "@/lib/tenant/tenant-resolver";
+import { container } from "@/lib/container";
+import { TYPES } from "@/lib/types";
+import type { AuthorizationService } from "@/services/AuthorizationService";
+import type { TenantService } from "@/services/TenantService";
 
 export interface AdminSettingsContext {
   role: string;
@@ -9,68 +10,35 @@ export interface AdminSettingsContext {
   featureFlags: Record<string, boolean>;
 }
 
+/**
+ * Get admin settings context using service layer
+ * Follows architectural pattern: Utility → Service → Repository → Adapter → Supabase
+ */
 export async function getAdminSettingsContext(): Promise<AdminSettingsContext> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Use AuthorizationService for authentication
+  const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+  const authResult = await authService.checkAuthentication();
 
-  const role = (user?.app_metadata?.role as string | undefined) ?? "admin";
-  let tenant = (user?.app_metadata?.tenant as string | undefined)?.trim() ?? null;
-  const locale = (user?.user_metadata?.locale as string | undefined) ?? "en-US";
+  if (!authResult.authorized || !authResult.user) {
+    throw new Error("User not authenticated");
+  }
+
+  const user = authResult.user;
+  const role = (user.app_metadata?.role as string | undefined) ?? "admin";
+  const locale = (user.user_metadata?.locale as string | undefined) ?? "en-US";
   const featureFlags =
-    (user?.app_metadata?.featureFlags as Record<string, boolean> | undefined) ?? ({} as Record<string, boolean>);
+    (user.app_metadata?.featureFlags as Record<string, boolean> | undefined) ?? ({} as Record<string, boolean>);
 
-  const currentSessionId = (session?.access_token as string | undefined) ?? null;
-  const cachedTenant = await readTenantSession();
+  // Use TenantService to get tenant context
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  let tenant: string | null = null;
 
-  const cachedTenantMatchesSession =
-    cachedTenant.tenant &&
-    (!cachedTenant.sessionId || !currentSessionId || cachedTenant.sessionId === currentSessionId);
-
-  if (!tenant && cachedTenantMatchesSession) {
-    tenant = cachedTenant.tenant?.trim() ?? null;
-  }
-
-  if (!tenant) {
-    try {
-      const { data: tenantData, error: tenantError } = await supabase.rpc("get_current_tenant");
-
-      if (tenantError) {
-        throw tenantError;
-      }
-
-      const tenantRecord = Array.isArray(tenantData) ? tenantData[0] : tenantData;
-      const resolvedTenant = (tenantRecord as { id?: string } | null)?.id ?? null;
-      tenant = typeof resolvedTenant === "string" ? resolvedTenant.trim() : null;
-
-      if (tenant && currentSessionId) {
-        await writeTenantSession(tenant, currentSessionId);
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV !== "test") {
-        console.error("Failed to resolve tenant for admin settings metadata context", error);
-      }
-    }
-  }
-
-  if (!tenant) {
-    const { tenant: assignmentTenant, error: assignmentError } = await resolveTenantForUser(
-      supabase,
-      user?.id ?? null
-    );
-
-    tenant = assignmentTenant;
-
-    if (!tenant && assignmentError && process.env.NODE_ENV !== "test") {
-      console.error("Failed to resolve tenant from assignments for admin settings context", assignmentError);
-    }
-
-    if (tenant && currentSessionId) {
-      await writeTenantSession(tenant, currentSessionId);
+  try {
+    const currentTenant = await tenantService.getCurrentTenant();
+    tenant = currentTenant?.id ?? null;
+  } catch (error) {
+    if (process.env.NODE_ENV !== "test") {
+      console.error("Failed to resolve tenant for admin settings metadata context", error);
     }
   }
 
