@@ -2,6 +2,7 @@ import { Container } from 'inversify';
 import { TYPES } from './types';
 
 // Services
+import { AuthServiceImpl, type AuthService } from '@/services/AuthService';
 import { RbacService } from '@/services/rbac.service';
 import { RbacRegistryService } from '@/services/RbacRegistryService';
 import { RbacCoreService } from '@/services/RbacCoreService';
@@ -35,6 +36,7 @@ import { LicenseValidationAdapter } from '@/adapters/licenseValidation.adapter';
 import { LicenseMonitoringAdapter } from '@/adapters/licenseMonitoring.adapter';
 import { UserMemberLinkAdapter } from '@/adapters/userMemberLink.adapter';
 import { LicenseAuditAdapter, type ILicenseAuditAdapter } from '@/adapters/licenseAudit.adapter';
+import { ActivityLogAdapter, type IActivityLogAdapter } from '@/adapters/activityLog.adapter';
 
 // Phase 5 Optimization & Monitoring Repositories
 import { PerformanceMetricRepository, type IPerformanceMetricRepository } from '@/repositories/performanceMetric.repository';
@@ -42,6 +44,7 @@ import { MaterializedViewRefreshJobRepository, type IMaterializedViewRefreshJobR
 import { LicenseValidationRepository } from '@/repositories/licenseValidation.repository';
 import { LicenseMonitoringRepository } from '@/repositories/licenseMonitoring.repository';
 import { LicenseAuditRepository, type ILicenseAuditRepository } from '@/repositories/licenseAudit.repository';
+import { ActivityLogRepository, type IActivityLogRepository } from '@/repositories/activityLog.repository';
 
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
@@ -149,6 +152,7 @@ const container = new Container();
 
 // ==================== CORE SERVICES ====================
 container.bind<AuditService>(TYPES.AuditService).to(SupabaseAuditService).inRequestScope();
+container.bind<AuthService>(TYPES.AuthService).to(AuthServiceImpl).inRequestScope();
 
 // ==================== RBAC SERVICES ====================
 container.bind<RbacService>(TYPES.RbacService).to(RbacService).inRequestScope();
@@ -265,6 +269,11 @@ container
   .to(LicenseAuditAdapter)
   .inRequestScope();
 
+container
+  .bind<IActivityLogAdapter>(TYPES.IActivityLogAdapter)
+  .to(ActivityLogAdapter)
+  .inRequestScope();
+
 // ==================== PHASE 5 OPTIMIZATION & MONITORING REPOSITORIES ====================
 container
   .bind<IPerformanceMetricRepository>(TYPES.IPerformanceMetricRepository)
@@ -289,6 +298,11 @@ container
 container
   .bind<ILicenseAuditRepository>(TYPES.ILicenseAuditRepository)
   .to(LicenseAuditRepository)
+  .inRequestScope();
+
+container
+  .bind<IActivityLogRepository>(TYPES.IActivityLogRepository)
+  .to(ActivityLogRepository)
   .inRequestScope();
 
 // ==================== ENCRYPTION SERVICES ====================

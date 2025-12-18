@@ -5,7 +5,7 @@ export interface OnboardingProgress {
   current_step: string;
   completed_steps: string[];
   is_completed: boolean;
-  completed_at: string | null;
+  completed_at?: string | null;
   welcome_data: Record<string, any>;
   church_details_data: Record<string, any>;
   rbac_setup_data: Record<string, any>;
@@ -13,6 +13,9 @@ export interface OnboardingProgress {
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+  deleted_at?: string;
 }
 
 export interface CreateOnboardingProgressInput {

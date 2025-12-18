@@ -115,7 +115,7 @@ export async function assignTenantAdminRole(
     await rbacService.assignRole({
       user_id: userId,
       role_id: adminRole.id,
-    }, tenantId, 'system');
+    }, tenantId, userId);
 
     console.log(`Assigned tenant admin role to user ${userId} for tenant ${tenantId}`);
   } catch (error) {

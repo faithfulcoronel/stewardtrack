@@ -2,9 +2,11 @@ import 'server-only';
 import 'reflect-metadata';
 import { injectable } from 'inversify';
 import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
-import { ActivityLog } from '@/models/activityLog.model';
+import type { ActivityLog, CreateActivityLogInput } from '@/models/activityLog.model';
 
-export type IActivityLogAdapter = IBaseAdapter<ActivityLog>;
+export interface IActivityLogAdapter extends IBaseAdapter<ActivityLog> {
+  createActivityLog(input: CreateActivityLogInput): Promise<void>;
+}
 
 @injectable()
 export class ActivityLogAdapter
@@ -31,4 +33,16 @@ export class ActivityLogAdapter
       select: ['id', 'email', 'raw_user_meta_data'],
     },
   ];
+
+  async createActivityLog(input: CreateActivityLogInput): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    const { error} = await supabase
+      .from(this.tableName)
+      .insert([input]);
+
+    if (error) {
+      throw new Error(`Failed to create activity log: ${error.message}`);
+    }
+  }
 }

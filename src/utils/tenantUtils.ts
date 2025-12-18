@@ -1,21 +1,22 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+/**
+ * Tenant Utils
+ *
+ * Provides convenient tenant context utilities
+ * Follows architectural pattern: Utility → Service → Repository → Adapter → Supabase
+ */
 
-async function fetchTenantId(): Promise<string | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc('get_current_tenant');
-
-  if (error) {
-    throw error;
-  }
-
-  const tenant = Array.isArray(data) ? data[0] : data;
-  return (tenant as { id?: string } | null)?.id ?? null;
-}
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { TenantService } from '@/services/TenantService';
 
 export const tenantUtils = {
   async getTenantId(): Promise<string | null> {
     try {
-      return await fetchTenantId();
+      // Get tenant via service layer
+      const tenantService = container.get<TenantService>(TYPES.TenantService);
+      const tenant = await tenantService.getCurrentTenant();
+
+      return tenant?.id ?? null;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
         console.error('Failed to determine tenant id', error);

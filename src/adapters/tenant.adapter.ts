@@ -85,6 +85,50 @@ export class TenantAdapter
     await this.auditService.logAuditEvent('update', 'tenant', data.id, data);
   }
 
+  /**
+   * Override update to skip tenant context check
+   * The tenants table doesn't have tenant_id - it IS the tenants table
+   * During onboarding, users may not have tenant session established yet
+   */
+  public async update(
+    id: string,
+    data: Partial<Tenant>,
+    relations?: Record<string, string[]>
+  ): Promise<Tenant> {
+    // Run pre-update hook
+    const processedData = await this.onBeforeUpdate(id, data);
+
+    // Update record
+    const userId = await this.getUserId();
+    const supabase = await this.getSupabaseClient();
+    const record: Record<string, unknown> = {
+      ...processedData,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: updated, error: updateError } = await supabase
+      .from(this.tableName)
+      .update(record)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(`Failed to update tenant: ${updateError.message}`);
+    }
+
+    // Handle relations if provided
+    if (relations) {
+      await this.updateRelations(id, relations);
+    }
+
+    // Run post-update hook
+    await this.onAfterUpdate(updated);
+
+    return updated;
+  }
+
   async getCurrentTenant() {
     const supabase = await this.getSupabaseClient();
     const { data, error } = await supabase.rpc('get_current_tenant');

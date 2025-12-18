@@ -28,8 +28,54 @@ export class OnboardingProgressAdapter
     feature_tour_data,
     metadata,
     created_at,
-    updated_at
+    updated_at,
+    created_by,
+    updated_by,
+    deleted_at
   `;
+
+  /**
+   * Override update to allow updates during onboarding when tenant context isn't established
+   * The record already has tenant_id, so we don't need session tenant context
+   */
+  public async update(
+    id: string,
+    data: Partial<OnboardingProgress>,
+    relations?: Record<string, string[]>
+  ): Promise<OnboardingProgress> {
+    // Run pre-update hook
+    const processedData = await this.onBeforeUpdate(id, data);
+
+    // Update record
+    const userId = await this.getUserId();
+    const supabase = await this.getSupabaseClient();
+    const record: Record<string, unknown> = {
+      ...processedData,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: updated, error: updateError } = await supabase
+      .from(this.tableName)
+      .update(record)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(`Failed to update onboarding progress: ${updateError.message}`);
+    }
+
+    // Handle relations if provided
+    if (relations) {
+      await this.updateRelations(id, relations);
+    }
+
+    // Run post-update hook
+    await this.onAfterUpdate(updated);
+
+    return updated;
+  }
 
   /**
    * Find onboarding progress by tenant ID

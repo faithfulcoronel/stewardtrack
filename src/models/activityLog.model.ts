@@ -13,3 +13,11 @@ export interface ActivityLog extends BaseModel {
     raw_user_meta_data?: Record<string, unknown>;
   } | null;
 }
+
+export interface CreateActivityLogInput {
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  changes: Record<string, unknown>;
+  performed_by: string | null;
+}
