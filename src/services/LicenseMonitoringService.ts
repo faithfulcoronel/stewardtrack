@@ -1,8 +1,8 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { AuditService } from './AuditService';
+import type { LicenseMonitoringRepository, LicenseUtilization, FeatureAdoption, OnboardingMetrics } from '@/repositories/licenseMonitoring.repository';
 
 /**
  * LicenseMonitoringService
@@ -16,27 +16,7 @@ import type { AuditService } from './AuditService';
  * - Feature adoption anomalies
  */
 
-export interface LicenseUtilization {
-  tenant_id: string;
-  tenant_name: string;
-  offering_name: string;
-  total_seats: number;
-  used_seats: number;
-  available_seats: number;
-  utilization_percentage: number;
-  expires_at: string | null;
-  days_until_expiration: number | null;
-  status: 'active' | 'expiring_soon' | 'expired' | 'over_limit';
-}
-
-export interface FeatureAdoption {
-  feature_id: string;
-  feature_name: string;
-  total_tenants: number;
-  active_tenants: number;
-  adoption_rate: number;
-  avg_usage_per_tenant: number;
-}
+export type { LicenseUtilization, FeatureAdoption, OnboardingMetrics };
 
 export interface LicenseAnomaly {
   type: 'seat_exceeded' | 'expiring_soon' | 'rbac_mismatch' | 'orphaned_permission' | 'onboarding_abandoned';
@@ -45,20 +25,6 @@ export interface LicenseAnomaly {
   description: string;
   detected_at: Date;
   metadata: Record<string, any>;
-}
-
-export interface OnboardingMetrics {
-  total_started: number;
-  total_completed: number;
-  total_abandoned: number;
-  completion_rate: number;
-  avg_completion_time_hours: number;
-  abandoned_tenants: Array<{
-    tenant_id: string;
-    started_at: string;
-    last_step: string;
-    hours_since_start: number;
-  }>;
 }
 
 export interface SystemHealthMetrics {
@@ -79,23 +45,15 @@ export interface SystemHealthMetrics {
 @injectable()
 export class LicenseMonitoringService {
   constructor(
-    @inject(TYPES.AuditService) private auditService: AuditService
+    @inject(TYPES.AuditService) private auditService: AuditService,
+    @inject(TYPES.LicenseMonitoringRepository) private monitoringRepository: LicenseMonitoringRepository
   ) {}
 
   /**
    * Get license utilization metrics for all tenants
    */
   async getLicenseUtilization(): Promise<LicenseUtilization[]> {
-    const supabase = await createSupabaseServerClient();
-
-    const { data, error } = await supabase.rpc('get_license_utilization_metrics');
-
-    if (error) {
-      console.error('Error getting license utilization:', error);
-      throw error;
-    }
-
-    return data || [];
+    return this.monitoringRepository.getLicenseUtilization();
   }
 
   /**
@@ -110,16 +68,7 @@ export class LicenseMonitoringService {
    * Get feature adoption metrics across all tenants
    */
   async getFeatureAdoption(): Promise<FeatureAdoption[]> {
-    const supabase = await createSupabaseServerClient();
-
-    const { data, error } = await supabase.rpc('get_feature_adoption_metrics');
-
-    if (error) {
-      console.error('Error getting feature adoption:', error);
-      throw error;
-    }
-
-    return data || [];
+    return this.monitoringRepository.getFeatureAdoption();
   }
 
   /**
@@ -238,17 +187,11 @@ export class LicenseMonitoringService {
    * Detect RBAC surfaces that require licenses but tenant doesn't have them
    */
   private async detectRbacLicenseMismatches(): Promise<LicenseAnomaly[]> {
-    const supabase = await createSupabaseServerClient();
     const anomalies: LicenseAnomaly[] = [];
 
-    const { data, error } = await supabase.rpc('detect_rbac_license_mismatches');
+    const data = await this.monitoringRepository.detectRbacLicenseMismatches();
 
-    if (error) {
-      console.error('Error detecting RBAC mismatches:', error);
-      return anomalies;
-    }
-
-    for (const mismatch of data || []) {
+    for (const mismatch of data) {
       anomalies.push({
         type: 'rbac_mismatch',
         severity: 'high',
@@ -271,24 +214,13 @@ export class LicenseMonitoringService {
    * Detect tenants with abandoned onboarding processes
    */
   private async detectOnboardingAbandonment(): Promise<LicenseAnomaly[]> {
-    const supabase = await createSupabaseServerClient();
     const anomalies: LicenseAnomaly[] = [];
 
-    // Get onboarding progress for incomplete tenants
-    const { data, error } = await supabase
-      .from('onboarding_progress')
-      .select('*')
-      .eq('completed', false)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error detecting onboarding abandonment:', error);
-      return anomalies;
-    }
+    const data = await this.monitoringRepository.getOnboardingProgress();
 
     const now = new Date();
 
-    for (const progress of data || []) {
+    for (const progress of data) {
       const createdAt = new Date(progress.created_at);
       const hoursSinceStart = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
@@ -319,21 +251,17 @@ export class LicenseMonitoringService {
    * Get onboarding metrics
    */
   async getOnboardingMetrics(): Promise<OnboardingMetrics> {
-    const supabase = await createSupabaseServerClient();
+    const allProgress = await this.monitoringRepository.getAllOnboardingProgress();
 
-    const { data: allProgress } = await supabase
-      .from('onboarding_progress')
-      .select('*');
-
-    const total_started = allProgress?.length || 0;
-    const total_completed = allProgress?.filter(p => p.completed).length || 0;
-    const total_abandoned = allProgress?.filter(p => !p.completed).length || 0;
+    const total_started = allProgress.length;
+    const total_completed = allProgress.filter(p => p.completed).length;
+    const total_abandoned = allProgress.filter(p => !p.completed).length;
 
     // Calculate completion rate
     const completion_rate = total_started > 0 ? (total_completed / total_started) * 100 : 0;
 
     // Calculate average completion time for completed onboardings
-    const completedOnboardings = allProgress?.filter(p => p.completed && p.completed_at) || [];
+    const completedOnboardings = allProgress.filter(p => p.completed && p.completed_at);
     let avg_completion_time_hours = 0;
 
     if (completedOnboardings.length > 0) {
@@ -348,7 +276,7 @@ export class LicenseMonitoringService {
     }
 
     // Get abandoned tenants
-    const abandoned_tenants = (allProgress?.filter(p => !p.completed) || []).map(p => {
+    const abandoned_tenants = allProgress.filter(p => !p.completed).map(p => {
       const start = new Date(p.created_at);
       const now = new Date();
       const hours_since_start = (now.getTime() - start.getTime()) / (1000 * 60 * 60);
@@ -375,33 +303,23 @@ export class LicenseMonitoringService {
    * Get comprehensive system health metrics
    */
   async getSystemHealthMetrics(): Promise<SystemHealthMetrics> {
-    const supabase = await createSupabaseServerClient();
-
     // Get subscription metrics
-    const { data: subscriptions } = await supabase
-      .from('tenant_license_summary')
-      .select('*');
+    const subscriptions = await this.monitoringRepository.getSubscriptionMetrics();
 
-    const total_active_subscriptions = subscriptions?.length || 0;
+    const total_active_subscriptions = subscriptions.length;
 
     // Count by tier
     const subscriptions_by_tier: Record<string, number> = {};
-    for (const sub of subscriptions || []) {
+    for (const sub of subscriptions) {
       const tier = sub.offering_tier || 'unknown';
       subscriptions_by_tier[tier] = (subscriptions_by_tier[tier] || 0) + 1;
     }
 
     // Get feature grants
-    const { count: total_licensed_features } = await supabase
-      .from('tenant_feature_grants')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
+    const total_licensed_features = await this.monitoringRepository.getActiveTenantFeatureGrantsCount();
 
     // Get active tenants
-    const { count: total_active_tenants } = await supabase
-      .from('tenants')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
+    const total_active_tenants = await this.monitoringRepository.getActiveTenantsCount();
 
     // Calculate average utilization
     const utilization = await this.getLicenseUtilization();
@@ -415,14 +333,10 @@ export class LicenseMonitoringService {
     const warning_alerts = anomalies.filter(a => a.severity === 'high' || a.severity === 'medium').length;
 
     // Check materialized view health
-    const { data: refreshJobs } = await supabase
-      .from('materialized_view_refresh_jobs')
-      .select('*')
-      .order('started_at', { ascending: false })
-      .limit(100);
+    const refreshJobs = await this.monitoringRepository.getMaterializedViewRefreshJobs(100);
 
     const viewHealthMap = new Map<string, any>();
-    for (const job of refreshJobs || []) {
+    for (const job of refreshJobs) {
       if (!viewHealthMap.has(job.view_name)) {
         const completedAt = job.completed_at ? new Date(job.completed_at) : null;
         const isStale = completedAt
@@ -440,8 +354,8 @@ export class LicenseMonitoringService {
     return {
       total_active_subscriptions,
       subscriptions_by_tier,
-      total_licensed_features: total_licensed_features || 0,
-      total_active_tenants: total_active_tenants || 0,
+      total_licensed_features,
+      total_active_tenants,
       avg_license_utilization,
       critical_alerts,
       warning_alerts,

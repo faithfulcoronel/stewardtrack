@@ -25,6 +25,19 @@ export const TYPES = {
   LicenseValidationService: Symbol.for('LicenseValidationService'),
   MetricsService: Symbol.for('MetricsService'),
 
+  // Phase 5 Optimization & Monitoring Adapters
+  IPerformanceMetricAdapter: Symbol.for('IPerformanceMetricAdapter'),
+  IMaterializedViewRefreshJobAdapter: Symbol.for('IMaterializedViewRefreshJobAdapter'),
+  LicenseValidationAdapter: Symbol.for('LicenseValidationAdapter'),
+  LicenseMonitoringAdapter: Symbol.for('LicenseMonitoringAdapter'),
+  UserMemberLinkAdapter: Symbol.for('UserMemberLinkAdapter'),
+
+  // Phase 5 Optimization & Monitoring Repositories
+  IPerformanceMetricRepository: Symbol.for('IPerformanceMetricRepository'),
+  IMaterializedViewRefreshJobRepository: Symbol.for('IMaterializedViewRefreshJobRepository'),
+  LicenseValidationRepository: Symbol.for('LicenseValidationRepository'),
+  LicenseMonitoringRepository: Symbol.for('LicenseMonitoringRepository'),
+
   // Encryption Services
   EncryptionService: Symbol.for('EncryptionService'),
   EncryptionKeyManager: Symbol.for('EncryptionKeyManager'),

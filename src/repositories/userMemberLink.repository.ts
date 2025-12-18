@@ -1,8 +1,7 @@
 import { injectable, inject } from 'inversify';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MemberAdapter } from '@/adapters/member.adapter';
 import { UserAdapter } from '@/adapters/user.adapter';
+import { UserMemberLinkAdapter } from '@/adapters/userMemberLink.adapter';
 import { TYPES } from '@/lib/types';
 import type {
   LinkUserToMemberDto,
@@ -27,19 +26,11 @@ import type {
  */
 @injectable()
 export class UserMemberLinkRepository {
-  private supabaseClient: SupabaseClient | null = null;
-
   constructor(
     @inject(TYPES.MemberAdapter) private memberAdapter: MemberAdapter,
-    @inject(TYPES.UserAdapter) private userAdapter: UserAdapter
+    @inject(TYPES.UserAdapter) private userAdapter: UserAdapter,
+    @inject(TYPES.UserMemberLinkAdapter) private linkAdapter: UserMemberLinkAdapter
   ) {}
-
-  private async getSupabaseClient(): Promise<SupabaseClient> {
-    if (!this.supabaseClient) {
-      this.supabaseClient = await createSupabaseServerClient();
-    }
-    return this.supabaseClient;
-  }
 
   // Link user to member
   async linkUserToMember(
@@ -49,24 +40,15 @@ export class UserMemberLinkRepository {
     ipAddress?: string,
     userAgent?: string
   ): Promise<LinkingResult> {
-    const supabase = await this.getSupabaseClient();
-
-    const { data: result, error } = await supabase
-      .rpc('link_user_to_member', {
-        p_tenant_id: tenantId,
-        p_user_id: data.user_id,
-        p_member_id: data.member_id,
-        p_performed_by: performedBy,
-        p_ip_address: ipAddress,
-        p_user_agent: userAgent,
-        p_notes: data.notes
-      });
-
-    if (error) {
-      throw new Error(`Failed to link user to member: ${error.message}`);
-    }
-
-    return result as LinkingResult;
+    return this.linkAdapter.callLinkUserToMember({
+      p_tenant_id: tenantId,
+      p_user_id: data.user_id,
+      p_member_id: data.member_id,
+      p_performed_by: performedBy,
+      p_ip_address: ipAddress,
+      p_user_agent: userAgent,
+      p_notes: data.notes
+    });
   }
 
   // Unlink user from member
@@ -77,23 +59,14 @@ export class UserMemberLinkRepository {
     ipAddress?: string,
     userAgent?: string
   ): Promise<LinkingResult> {
-    const supabase = await this.getSupabaseClient();
-
-    const { data: result, error } = await supabase
-      .rpc('unlink_user_from_member', {
-        p_tenant_id: tenantId,
-        p_member_id: data.member_id,
-        p_performed_by: performedBy,
-        p_ip_address: ipAddress,
-        p_user_agent: userAgent,
-        p_notes: data.notes
-      });
-
-    if (error) {
-      throw new Error(`Failed to unlink user from member: ${error.message}`);
-    }
-
-    return result as LinkingResult;
+    return this.linkAdapter.callUnlinkUserFromMember({
+      p_tenant_id: tenantId,
+      p_member_id: data.member_id,
+      p_performed_by: performedBy,
+      p_ip_address: ipAddress,
+      p_user_agent: userAgent,
+      p_notes: data.notes
+    });
   }
 
   // Get members with user information
@@ -363,67 +336,31 @@ export class UserMemberLinkRepository {
 
   // Get linking statistics
   async getLinkingStats(tenantId: string): Promise<LinkingStats> {
-    const supabase = await this.getSupabaseClient();
-
     // Get member counts
-    const { count: totalMembers } = await supabase
-      .from('members')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null);
-
-    const { count: linkedMembers } = await supabase
-      .from('members')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .not('user_id', 'is', null);
+    const totalMembers = await this.linkAdapter.countTotalMembers(tenantId);
+    const linkedMembers = await this.linkAdapter.countLinkedMembers(tenantId);
 
     // Get user counts for this tenant
-    const { count: totalUsers } = await supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId);
-
-    const { data: linkedUsersData } = await supabase
-      .from('members')
-      .select('user_id')
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .not('user_id', 'is', null);
-
-    const linkedUsers = new Set(linkedUsersData?.map(m => m.user_id) || []).size;
+    const totalUsers = await this.linkAdapter.countTotalUsers(tenantId);
+    const linkedUserIds = await this.linkAdapter.fetchLinkedUserIds(tenantId);
+    const linkedUsers = new Set(linkedUserIds).size;
 
     // Get recent links count (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { count: recentLinksCount } = await supabase
-      .from('members')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .is('deleted_at', null)
-      .not('user_id', 'is', null)
-      .gte('linked_at', thirtyDaysAgo.toISOString());
+    const recentLinksCount = await this.linkAdapter.countRecentLinks(tenantId, 30);
 
     // Get pending invitations count
-    const { count: pendingInvitations } = await supabase
-      .from('member_invitations')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .in('status', ['pending', 'sent'])
-      .gt('expires_at', new Date().toISOString());
+    const pendingInvitations = await this.linkAdapter.countPendingInvitations(tenantId);
 
     return {
-      total_members: totalMembers || 0,
-      linked_members: linkedMembers || 0,
-      unlinked_members: (totalMembers || 0) - (linkedMembers || 0),
-      total_users: totalUsers || 0,
+      total_members: totalMembers,
+      linked_members: linkedMembers,
+      unlinked_members: totalMembers - linkedMembers,
+      total_users: totalUsers,
       linked_users: linkedUsers,
-      unlinked_users: (totalUsers || 0) - linkedUsers,
-      linking_percentage: totalMembers ? Math.round((linkedMembers || 0) / totalMembers * 100) : 0,
-      recent_links_count: recentLinksCount || 0,
-      pending_invitations: pendingInvitations || 0
+      unlinked_users: totalUsers - linkedUsers,
+      linking_percentage: totalMembers ? Math.round((linkedMembers / totalMembers) * 100) : 0,
+      recent_links_count: recentLinksCount,
+      pending_invitations: pendingInvitations
     };
   }
 
@@ -433,20 +370,25 @@ export class UserMemberLinkRepository {
     memberId: string,
     tenantId: string
   ): Promise<LinkingConflict[]> {
-    const supabase = await this.getSupabaseClient();
     const conflicts: LinkingConflict[] = [];
 
-    // Check if user is already linked to another member
-    const { data: existingUserLink } = await supabase
-      .from('members')
-      .select('id, first_name, last_name, linked_at')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId)
-      .neq('id', memberId)
-      .is('deleted_at', null)
-      .single();
+    // Set tenant context on member adapter for encryption/decryption
+    (this.memberAdapter as any).context = { tenantId };
 
-    if (existingUserLink) {
+    // Check if user is already linked to another member
+    // Use MemberAdapter to handle encrypted data properly
+    const existingUserLinkResult = await this.memberAdapter.fetch({
+      filters: {
+        user_id: { operator: 'eq', value: userId }
+      },
+      pagination: { page: 1, pageSize: 100 }
+    });
+
+    // Filter out the current member being linked
+    const existingUserLinks = existingUserLinkResult.data.filter((m: any) => m.id !== memberId);
+
+    if (existingUserLinks.length > 0) {
+      const existingUserLink = existingUserLinks[0];
       conflicts.push({
         type: 'user_already_linked',
         user_id: userId,
@@ -454,22 +396,17 @@ export class UserMemberLinkRepository {
         existing_link: {
           user_id: userId,
           member_id: existingUserLink.id,
-          linked_at: existingUserLink.linked_at
+          linked_at: existingUserLink.linked_at || new Date().toISOString()
         },
         suggested_action: 'Unlink user from current member first'
       });
     }
 
     // Check if member is already linked to another user
-    const { data: existingMemberLink } = await supabase
-      .from('members')
-      .select('user_id, linked_at')
-      .eq('id', memberId)
-      .eq('tenant_id', tenantId)
-      .not('user_id', 'is', null)
-      .single();
+    // Use MemberAdapter to handle encrypted data properly
+    const existingMemberLink = await this.memberAdapter.fetchById(memberId);
 
-    if (existingMemberLink && existingMemberLink.user_id !== userId) {
+    if (existingMemberLink && existingMemberLink.user_id && existingMemberLink.user_id !== userId) {
       conflicts.push({
         type: 'member_already_linked',
         user_id: existingMemberLink.user_id,
@@ -477,7 +414,7 @@ export class UserMemberLinkRepository {
         existing_link: {
           user_id: existingMemberLink.user_id,
           member_id: memberId,
-          linked_at: existingMemberLink.linked_at
+          linked_at: existingMemberLink.linked_at || new Date().toISOString()
         },
         suggested_action: 'Unlink member from current user first'
       });
@@ -499,54 +436,14 @@ export class UserMemberLinkRepository {
       date_to?: string;
     }
   ): Promise<LinkingAuditEntry[]> {
-    const supabase = await this.getSupabaseClient();
+    const data = await this.linkAdapter.fetchAuditTrail(tenantId, limit, offset, filters);
 
-    let query = supabase
-      .from('user_member_link_audit')
-      .select(`
-        id,
-        action,
-        old_values,
-        new_values,
-        notes,
-        created_at,
-        users:user_id(email),
-        members:member_id(first_name, last_name),
-        performed_by_user:performed_by(email, raw_user_meta_data)
-      `)
-      .eq('tenant_id', tenantId);
-
-    // Apply filters
-    if (filters?.user_id) {
-      query = query.eq('user_id', filters.user_id);
-    }
-    if (filters?.member_id) {
-      query = query.eq('member_id', filters.member_id);
-    }
-    if (filters?.action) {
-      query = query.eq('action', filters.action);
-    }
-    if (filters?.date_from) {
-      query = query.gte('created_at', filters.date_from);
-    }
-    if (filters?.date_to) {
-      query = query.lte('created_at', filters.date_to);
-    }
-
-    const { data, error } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      throw new Error(`Failed to fetch audit trail: ${error.message}`);
-    }
-
-    return (data || []).map((entry: any) => ({
+    return data.map((entry: any) => ({
       id: entry.id,
       action: entry.action,
-      user_email: entry.users?.email,
-      member_name: entry.members ? `${entry.members.first_name} ${entry.members.last_name}` : undefined,
-      performed_by_name: entry.performed_by_user?.email || 'System',
+      user_email: entry.users?.[0]?.email,
+      member_name: entry.members?.[0] ? `${entry.members[0].first_name} ${entry.members[0].last_name}` : undefined,
+      performed_by_name: entry.performed_by_user?.[0]?.email || 'System',
       created_at: entry.created_at,
       notes: entry.notes,
       old_values: entry.old_values,

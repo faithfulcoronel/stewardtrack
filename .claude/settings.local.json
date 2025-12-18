@@ -43,7 +43,8 @@
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMemberAdapter.ts\")",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMemberProfileAdapter.ts\")",
       "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\src\\adapters\\encrypted\\EncryptedMembersDashboardAdapter.ts\")",
-      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251217225000_add_encryption_to_member_invitations.sql\")"
+      "Bash(del \"c:\\Users\\CortanatechSolutions\\source\\repos\\github\\stewardtrack\\supabase\\migrations\\20251217225000_add_encryption_to_member_invitations.sql\")",
+      "Bash(Select-String -Pattern \"\\(licenseValidation|licenseMonitoring|performanceMetric|materializedView\\)\" -Context 1)"
     ],
     "deny": [],
     "ask": []

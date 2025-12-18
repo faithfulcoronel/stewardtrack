@@ -1,6 +1,7 @@
 import 'server-only';
-import { injectable } from 'inversify';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
+import type { IPerformanceMetricRepository } from '@/repositories/performanceMetric.repository';
 
 /**
  * MetricsService
@@ -17,8 +18,8 @@ export interface PerformanceMetric {
   metric_name: string;
   metric_value: number;
   metric_unit: 'ms' | 'seconds' | 'count' | 'percentage';
-  tenant_id?: string | null;
-  user_id?: string | null;
+  tenant_id?: string;
+  user_id?: string;
   metadata?: Record<string, any>;
   recorded_at: Date;
 }
@@ -35,19 +36,21 @@ export interface LatencyPercentiles {
 
 @injectable()
 export class MetricsService {
+  constructor(
+    @inject(TYPES.IPerformanceMetricRepository) private performanceMetricRepository: IPerformanceMetricRepository
+  ) {}
+
   /**
    * Record a performance metric
    */
   async recordMetric(metric: PerformanceMetric): Promise<void> {
     try {
-      const supabase = await createSupabaseServerClient();
-
-      await supabase.from('performance_metrics').insert({
+      await this.performanceMetricRepository.create({
         metric_name: metric.metric_name,
         metric_value: metric.metric_value,
         metric_unit: metric.metric_unit,
-        tenant_id: metric.tenant_id || null,
-        user_id: metric.user_id || null,
+        tenant_id: metric.tenant_id,
+        user_id: metric.user_id,
         metadata: metric.metadata || {},
         recorded_at: metric.recorded_at.toISOString(),
       });
@@ -110,58 +113,7 @@ export class MetricsService {
       tenantId?: string;
     } = {}
   ): Promise<LatencyPercentiles> {
-    const supabase = await createSupabaseServerClient();
-
-    let query = supabase
-      .from('performance_metrics')
-      .select('metric_value')
-      .eq('metric_name', metricName)
-      .order('metric_value', { ascending: true });
-
-    if (options.startDate) {
-      query = query.gte('recorded_at', options.startDate.toISOString());
-    }
-
-    if (options.endDate) {
-      query = query.lte('recorded_at', options.endDate.toISOString());
-    }
-
-    if (options.tenantId) {
-      query = query.eq('tenant_id', options.tenantId);
-    }
-
-    const { data, error } = await query;
-
-    if (error || !data || data.length === 0) {
-      return {
-        p50: 0,
-        p95: 0,
-        p99: 0,
-        avg: 0,
-        min: 0,
-        max: 0,
-        count: 0,
-      };
-    }
-
-    const values = data.map(d => d.metric_value).sort((a, b) => a - b);
-    const count = values.length;
-
-    const p50Index = Math.floor(count * 0.5);
-    const p95Index = Math.floor(count * 0.95);
-    const p99Index = Math.floor(count * 0.99);
-
-    const sum = values.reduce((a, b) => a + b, 0);
-
-    return {
-      p50: values[p50Index] || 0,
-      p95: values[p95Index] || 0,
-      p99: values[p99Index] || 0,
-      avg: sum / count,
-      min: values[0] || 0,
-      max: values[count - 1] || 0,
-      count,
-    };
+    return this.performanceMetricRepository.getLatencyPercentiles(metricName, options);
   }
 
   /**
@@ -192,21 +144,6 @@ export class MetricsService {
    * Clean up old metrics (retention policy)
    */
   async cleanupOldMetrics(retentionDays: number = 90): Promise<number> {
-    const supabase = await createSupabaseServerClient();
-
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-
-    const { count, error } = await supabase
-      .from('performance_metrics')
-      .delete()
-      .lt('recorded_at', cutoffDate.toISOString());
-
-    if (error) {
-      console.error('Error cleaning up old metrics:', error);
-      return 0;
-    }
-
-    return count || 0;
+    return this.performanceMetricRepository.cleanupOldMetrics(retentionDays);
   }
 }

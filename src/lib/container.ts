@@ -23,6 +23,19 @@ import { LicenseValidationService } from '@/services/LicenseValidationService';
 import { MetricsService } from '@/services/MetricsService';
 import { UserRoleService } from '@/services/UserRoleService';
 
+// Phase 5 Optimization & Monitoring Adapters
+import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
+import { MaterializedViewRefreshJobAdapter, type IMaterializedViewRefreshJobAdapter } from '@/adapters/materializedViewRefreshJob.adapter';
+import { LicenseValidationAdapter } from '@/adapters/licenseValidation.adapter';
+import { LicenseMonitoringAdapter } from '@/adapters/licenseMonitoring.adapter';
+import { UserMemberLinkAdapter } from '@/adapters/userMemberLink.adapter';
+
+// Phase 5 Optimization & Monitoring Repositories
+import { PerformanceMetricRepository, type IPerformanceMetricRepository } from '@/repositories/performanceMetric.repository';
+import { MaterializedViewRefreshJobRepository, type IMaterializedViewRefreshJobRepository } from '@/repositories/materializedViewRefreshJob.repository';
+import { LicenseValidationRepository } from '@/repositories/licenseValidation.repository';
+import { LicenseMonitoringRepository } from '@/repositories/licenseMonitoring.repository';
+
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
@@ -183,6 +196,53 @@ container
 container
   .bind<MetricsService>(TYPES.MetricsService)
   .to(MetricsService)
+  .inRequestScope();
+
+// ==================== PHASE 5 OPTIMIZATION & MONITORING ADAPTERS ====================
+container
+  .bind<IPerformanceMetricAdapter>(TYPES.IPerformanceMetricAdapter)
+  .to(PerformanceMetricAdapter)
+  .inRequestScope();
+
+container
+  .bind<IMaterializedViewRefreshJobAdapter>(TYPES.IMaterializedViewRefreshJobAdapter)
+  .to(MaterializedViewRefreshJobAdapter)
+  .inRequestScope();
+
+container
+  .bind<LicenseValidationAdapter>(TYPES.LicenseValidationAdapter)
+  .to(LicenseValidationAdapter)
+  .inRequestScope();
+
+container
+  .bind<LicenseMonitoringAdapter>(TYPES.LicenseMonitoringAdapter)
+  .to(LicenseMonitoringAdapter)
+  .inRequestScope();
+
+container
+  .bind<UserMemberLinkAdapter>(TYPES.UserMemberLinkAdapter)
+  .to(UserMemberLinkAdapter)
+  .inRequestScope();
+
+// ==================== PHASE 5 OPTIMIZATION & MONITORING REPOSITORIES ====================
+container
+  .bind<IPerformanceMetricRepository>(TYPES.IPerformanceMetricRepository)
+  .to(PerformanceMetricRepository)
+  .inRequestScope();
+
+container
+  .bind<IMaterializedViewRefreshJobRepository>(TYPES.IMaterializedViewRefreshJobRepository)
+  .to(MaterializedViewRefreshJobRepository)
+  .inRequestScope();
+
+container
+  .bind<LicenseValidationRepository>(TYPES.LicenseValidationRepository)
+  .to(LicenseValidationRepository)
+  .inRequestScope();
+
+container
+  .bind<LicenseMonitoringRepository>(TYPES.LicenseMonitoringRepository)
+  .to(LicenseMonitoringRepository)
   .inRequestScope();
 
 // ==================== ENCRYPTION SERVICES ====================
