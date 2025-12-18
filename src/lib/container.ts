@@ -18,6 +18,7 @@ import { PermissionValidationService } from '@/services/PermissionValidationServ
 import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
+import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
@@ -47,11 +48,13 @@ import type { IEncryptionStrategy } from '@/lib/encryption/strategies/IEncryptio
 import { MemberAdapter, type IMemberAdapter } from '@/adapters/member.adapter';
 import { UserAdapter } from '@/adapters/user.adapter';
 import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapters/memberInvitation.adapter';
+import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/adapters/onboardingProgress.adapter';
 
 // Repositories
 import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
 import { AuthRepository } from '@/repositories/auth.repository';
 import { TenantRepository } from '@/repositories/tenant.repository';
+import { OnboardingProgressRepository, type IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
 import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -181,6 +184,11 @@ container
 container
   .bind<RegistrationService>(TYPES.RegistrationService)
   .to(RegistrationService)
+  .inRequestScope();
+
+container
+  .bind<AuthorizationService>(TYPES.AuthorizationService)
+  .to(AuthorizationService)
   .inRequestScope();
 
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
@@ -388,5 +396,9 @@ container.bind<MemberInvitationRepository>(TYPES.MemberInvitationRepository).to(
 // ==================== USER MEMBER LINK SERVICES ====================
 container.bind<UserMemberLinkService>(TYPES.UserMemberLinkService).to(UserMemberLinkService).inRequestScope();
 container.bind<UserMemberLinkRepository>(TYPES.UserMemberLinkRepository).to(UserMemberLinkRepository).inRequestScope();
+
+// ==================== ONBOARDING PROGRESS ====================
+container.bind<IOnboardingProgressAdapter>(TYPES.IOnboardingProgressAdapter).to(OnboardingProgressAdapter).inRequestScope();
+container.bind<IOnboardingProgressRepository>(TYPES.IOnboardingProgressRepository).to(OnboardingProgressRepository).inRequestScope();
 
 export { container };

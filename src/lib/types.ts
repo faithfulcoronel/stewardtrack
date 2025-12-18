@@ -22,6 +22,10 @@ export const TYPES = {
   // Registration Service
   RegistrationService: Symbol.for('RegistrationService'),
 
+  // Authorization Service
+  AuthorizationService: Symbol.for('AuthorizationService'),
+  UserRoleAdapter: Symbol.for('UserRoleAdapter'),
+
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),
   LicenseMonitoringService: Symbol.for('LicenseMonitoringService'),
@@ -88,6 +92,10 @@ export const TYPES = {
   ILicenseAssignmentRepository: Symbol.for('ILicenseAssignmentRepository'),
   IFeaturePermissionRepository: Symbol.for('IFeaturePermissionRepository'),
   IPermissionRoleTemplateRepository: Symbol.for('IPermissionRoleTemplateRepository'),
+
+  // Onboarding
+  IOnboardingProgressAdapter: Symbol.for('IOnboardingProgressAdapter'),
+  IOnboardingProgressRepository: Symbol.for('IOnboardingProgressRepository'),
 
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),

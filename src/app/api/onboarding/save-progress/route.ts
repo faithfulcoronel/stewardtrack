@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import { AuthorizationService } from '@/services/AuthorizationService';
+import type { IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
 
 interface SaveProgressRequest {
   step: string;
@@ -28,21 +31,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    // Check authentication
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.checkAuthentication();
 
-    // Get current user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Unauthorized',
+          error: authResult.error,
         },
-        { status: 401 }
+        { status: authResult.statusCode }
       );
     }
 
@@ -58,57 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if onboarding progress record exists
-    const { data: existingProgress, error: fetchError } = await supabase
-      .from('onboarding_progress')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, which is fine
-      throw new Error(`Failed to fetch onboarding progress: ${fetchError.message}`);
-    }
-
-    // Map step to data field
-    const stepDataField = `${step.replace(/-/g, '_')}_data`;
-
-    if (existingProgress) {
-      // Update existing record
-      const completedSteps = existingProgress.completed_steps || [];
-      if (!completedSteps.includes(step)) {
-        completedSteps.push(step);
-      }
-
-      const { error: updateError } = await supabase
-        .from('onboarding_progress')
-        .update({
-          current_step: step,
-          completed_steps: completedSteps,
-          [stepDataField]: data,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingProgress.id);
-
-      if (updateError) {
-        throw new Error(`Failed to update onboarding progress: ${updateError.message}`);
-      }
-    } else {
-      // Create new record
-      const { error: insertError } = await supabase
-        .from('onboarding_progress')
-        .insert({
-          tenant_id: tenantId,
-          user_id: user.id,
-          current_step: step,
-          completed_steps: [step],
-          [stepDataField]: data,
-        });
-
-      if (insertError) {
-        throw new Error(`Failed to create onboarding progress: ${insertError.message}`);
-      }
-    }
+    // Save progress using repository
+    const repository = container.get<IOnboardingProgressRepository>(TYPES.IOnboardingProgressRepository);
+    await repository.saveProgress(tenantId, authResult.userId!, step, data);
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { AuthorizationService } from '@/services/AuthorizationService';
 
 /**
  * POST /api/admin/validate-licenses
@@ -18,30 +19,13 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     // Check admin authorization
-    const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireAdmin();
 
-    if (authError || !user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user has admin role
-    const { data: userRoles } = await supabase
-      .from('user_roles')
-      .select('role_id, roles(code)')
-      .eq('user_id', user.id);
-
-    const isAdmin = userRoles?.some((ur: any) =>
-      ['super_admin', 'admin', 'system_admin'].includes(ur.roles?.code)
-    );
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
+        { error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
@@ -103,30 +87,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check admin authorization
-    const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireAdmin();
 
-    if (authError || !user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user has admin role
-    const { data: userRoles } = await supabase
-      .from('user_roles')
-      .select('role_id, roles(code)')
-      .eq('user_id', user.id);
-
-    const isAdmin = userRoles?.some((ur: any) =>
-      ['super_admin', 'admin', 'system_admin'].includes(ur.roles?.code)
-    );
-
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
+        { error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
