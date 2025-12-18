@@ -1,4 +1,5 @@
 import type { MetadataActionExecution, MetadataActionResult } from "../types";
+import { adminSettingsHandlers } from "@/lib/metadata/services/admin-settings";
 
 function toStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -120,9 +121,9 @@ function validateSettings(values: Record<string, unknown>): {
     errors.contactEmail = ["Provide a best contact email so notifications reach your team."];
   }
 
-  const timeZone = toOptionalString(values.timeZone);
-  if (!timeZone) {
-    errors.timeZone = ["Choose the primary time zone for your ministry."];
+  const currency = toOptionalString(values.currency);
+  if (!currency) {
+    errors.currency = ["Choose the default currency for your ministry."];
   }
 
   return { valid: Object.keys(errors).length === 0, errors };
@@ -150,32 +151,51 @@ async function handleSaveAdminSettings(execution: MetadataActionExecution): Prom
     } satisfies MetadataActionResult;
   }
 
-  const toggles = normalizeFeatureToggles(payload.values.featureFlags);
-  const tenantId = payload.tenantId ?? toOptionalString(execution.context.params.tenant) ?? "demo-tenant";
+  // Call the actual service handler
+  const serviceHandler = adminSettingsHandlers["admin-settings.settings.overview.save"];
+  if (!serviceHandler) {
+    throw new Error("Service handler not found: admin-settings.settings.overview.save");
+  }
 
-  const context: Record<string, unknown> = {
-    tenantId,
-    params: execution.context.params,
-    data: payload.values,
-  };
+  try {
+    const serviceResult = await serviceHandler({
+      params: payload.values,
+      context: execution.context,
+    });
 
-  const redirectTemplate =
-    toOptionalString(config.redirectUrl) ?? toOptionalString(config.redirectTemplate) ?? null;
-  const redirectUrl = buildRedirectUrl(redirectTemplate, context);
+    const tenantId = serviceResult.tenantId ?? toOptionalString(execution.context.params.tenant) ?? "demo-tenant";
 
-  const message = buildSuccessMessage(config, payload.mode);
-
-  return {
-    success: true,
-    status: 200,
-    message,
-    redirectUrl,
-    data: {
+    const context: Record<string, unknown> = {
       tenantId,
-      updatedAt: new Date().toISOString(),
-      featureFlags: toggles,
-    },
-  } satisfies MetadataActionResult;
+      params: execution.context.params,
+      data: payload.values,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ?? toOptionalString(config.redirectTemplate) ?? null;
+    const redirectUrl = buildRedirectUrl(redirectTemplate, context);
+
+    const message = buildSuccessMessage(config, payload.mode);
+
+    return {
+      success: true,
+      status: 200,
+      message,
+      redirectUrl,
+      data: {
+        tenantId,
+        updatedAt: new Date().toISOString(),
+      },
+    } satisfies MetadataActionResult;
+  } catch (error) {
+    console.error("Failed to save settings via service handler:", error);
+    return {
+      success: false,
+      status: 500,
+      message: "Failed to save settings. Please try again.",
+      errors: {},
+    } satisfies MetadataActionResult;
+  }
 }
 
 export const adminSettingsActionHandlers: Record<string, (execution: MetadataActionExecution) => Promise<MetadataActionResult>> = {

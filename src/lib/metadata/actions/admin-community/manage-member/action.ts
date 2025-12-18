@@ -82,15 +82,31 @@ export class ManageMemberAction {
         } satisfies MetadataActionResult;
       }
 
-      const fallbackMessage = "Something went wrong while saving the member. Please try again.";
-      const formMessage = baseError.message?.trim() || fallbackMessage;
+      // Parse database constraint errors to provide meaningful messages
+      const errorMessage = baseError.message?.trim() || '';
+      let userMessage = "Something went wrong while saving the member. Please try again.";
+
+      if (errorMessage.includes('null value in column') && errorMessage.includes('violates not-null constraint')) {
+        const columnMatch = errorMessage.match(/column "([^"]+)"/);
+        const columnName = columnMatch ? columnMatch[1] : 'a required field';
+        userMessage = `The ${columnName} field is required but was not provided. Please ensure all required fields are filled in.`;
+      } else if (errorMessage.includes('duplicate key value violates unique constraint')) {
+        userMessage = "A member with this information already exists. Please check for duplicates.";
+      } else if (errorMessage.includes('violates foreign key constraint')) {
+        userMessage = "The selected option is no longer valid. Please refresh the page and try again.";
+      } else if (errorMessage) {
+        // Use the actual error message if it's meaningful (not too technical)
+        if (!errorMessage.includes('SupabaseClient') && !errorMessage.includes('undefined') && errorMessage.length < 200) {
+          userMessage = errorMessage;
+        }
+      }
 
       return {
         success: false,
         status: 500,
-        message: fallbackMessage,
+        message: userMessage,
         errors: {
-          formErrors: [formMessage],
+          formErrors: [userMessage],
         },
       } satisfies MetadataActionResult;
     }

@@ -481,9 +481,6 @@ export class MemberAdapter
         householdRecord = await this.upsertHousehold(householdInput ?? {}, tenantId ?? null, userId);
         if (householdRecord) {
           payload.household_id = householdRecord.id;
-          if (householdRecord.envelope_number !== undefined) {
-            payload.envelope_number = householdRecord.envelope_number;
-          }
         }
       }
     }

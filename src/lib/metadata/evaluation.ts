@@ -131,7 +131,13 @@ export async function evaluateMetadataDataSources(
   return results;
 }
 
-export function evaluateMetadataActions(actions: CanonicalAction[], role: string, roles?: string[], permissions?: string[]): ActionScope {
+export function evaluateMetadataActions(
+  actions: CanonicalAction[],
+  role: string,
+  roles?: string[],
+  permissions?: string[],
+  params?: Record<string, string | string[] | undefined>,
+): ActionScope {
   const effectiveRoles = roles ?? [role];
   const effectivePermissions = permissions ?? [];
   return actions.reduce<ActionScope>((acc, action) => {
@@ -139,9 +145,41 @@ export function evaluateMetadataActions(actions: CanonicalAction[], role: string
       return acc;
     }
     const config = normalizeRecord(action.config ?? {});
+
+    // Interpolate template variables in URL if present
+    if (typeof config.url === 'string' && params) {
+      config.url = interpolateTemplate(config.url, params);
+    }
+
     acc[action.id] = { ...action, config };
     return acc;
   }, {});
+}
+
+/**
+ * Interpolate template variables like {{params.householdId}} in a string
+ */
+function interpolateTemplate(template: string, params: Record<string, string | string[] | undefined>): string {
+  return template.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
+    const trimmed = expression.trim();
+
+    // Handle params.* expressions
+    if (trimmed.startsWith('params.')) {
+      const paramKey = trimmed.substring(7); // Remove 'params.' prefix
+      const value = params[paramKey];
+
+      if (value === undefined || value === null) {
+        console.warn(`Template variable ${expression} not found in params`);
+        return match; // Return original if not found
+      }
+
+      // If array, use first value
+      return Array.isArray(value) ? value[0] ?? match : String(value);
+    }
+
+    // If not a params expression, return original
+    return match;
+  });
 }
 
 export function evaluateMetadataProps(

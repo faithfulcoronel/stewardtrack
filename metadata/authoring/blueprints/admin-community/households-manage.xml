@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="households/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:manage" locale="en-US">
+  <Page id="admin-community-households-manage">
+    <Title>Manage household record</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+        <Component id="household-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="householdForm.title"/>
+            <Prop name="description" kind="binding" contract="householdForm.description"/>
+            <Prop name="fields" kind="binding" contract="householdForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="householdForm.initialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="householdForm.submitLabel"/>
+            <Prop name="mode" kind="binding" contract="householdForm.mode"/>
+            <Prop name="contextParams" kind="binding" contract="householdForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-household"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.households.manage.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="householdForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for household-form.title"/>
+          <Field name="description" path="form.description" description="Binding for household-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for household-form.fields"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for household-form.initialValues"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for household-form.submitLabel"/>
+          <Field name="mode" path="form.mode" description="Binding for household-form.mode"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for household-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.households.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-household" kind="metadata.service">
+        <Config>
+          <Handler>admin-community.households.manage.save</Handler>
+          <SuccessMessage>Household saved successfully.</SuccessMessage>
+          <CreateMessage>Household created successfully.</CreateMessage>
+          <UpdateMessage>Household updated successfully.</UpdateMessage>
+          <ErrorMessage>Failed to save household. Please try again.</ErrorMessage>
+          <IdentifierKey>householdId</IdentifierKey>
+          <IdentifierCandidates>
+            <Array>
+              <Value>householdId</Value>
+              <Value>data.householdId</Value>
+              <Value>params.householdId</Value>
+            </Array>
+          </IdentifierCandidates>
+          <RedirectTemplate>/admin/community/households/{{householdId}}</RedirectTemplate>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/households</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

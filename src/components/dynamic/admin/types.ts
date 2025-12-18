@@ -31,6 +31,7 @@ export interface FormFieldConfig {
     | "multiline"
     | "tags"
     | "image"
+    | "hidden"
     | null;
   placeholder?: string | null;
   helperText?: string | null;

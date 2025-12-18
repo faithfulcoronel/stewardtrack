@@ -261,6 +261,26 @@
               </Object>
               <Object>
                 <Field name="id">
+                  <Value>link-households</Value>
+                </Field>
+                <Field name="title">
+                  <Value>Household directory</Value>
+                </Field>
+                <Field name="description">
+                  <Value>Manage household records, envelope numbers, and family addresses.</Value>
+                </Field>
+                <Field name="href">
+                  <Value>/admin/community/households/list</Value>
+                </Field>
+                <Field name="badge">
+                  <Value>Households</Value>
+                </Field>
+                <Field name="stat">
+                  <Value>Envelope tracking</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
                   <Value>link-finance</Value>
                 </Field>
                 <Field name="title">

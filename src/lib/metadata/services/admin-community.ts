@@ -33,6 +33,7 @@ import type {
   ServiceDataSourceHandler,
   ServiceDataSourceRequest,
 } from './types';
+import { adminCommunityHouseholdsHandlers } from './admin-community-households';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -886,7 +887,7 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       }
     : fallbackAddress;
   const householdName = (householdRecord?.name ?? '').trim() || formatHouseholdName(member);
-  const envelopeNumber = member.envelope_number ?? householdRecord?.envelope_number ?? null;
+  const envelopeNumber = member.envelope_number ?? null;
   const occupation = (member.occupation ?? '').trim() || null;
   const householdDetails: NonNullable<MemberManageRecord["household"]> = {
     id: member.household_id ?? null,
@@ -1254,7 +1255,7 @@ async function buildMemberProfileRecord(
   const maritalStatus = rawMaritalStatus ? formatLabel(rawMaritalStatus, 'Unknown') : null;
   const occupation = (member.occupation ?? '').trim() || null;
   const joinDate = formatFullDate(member.membership_date ?? null);
-  const envelopeNumber = member.envelope_number ?? member.household?.envelope_number ?? null;
+  const envelopeNumber = member.envelope_number ?? null;
 
   const groupTags = Array.isArray(member.small_groups)
     ? member.small_groups
@@ -1498,4 +1499,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   [MEMBERS_PROFILE_HANDLER_ID]: resolveMemberProfile,
   [MEMBERS_LOOKUPS_HANDLER_ID]: resolveMembershipLookups,
   [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,
+  ...adminCommunityHouseholdsHandlers,
 };

@@ -242,8 +242,9 @@ function buildHouseholdKey(id: string | null, name: string, envelopeNumber: stri
     return normalizedId;
   }
   const normalizedName = (name ?? "").trim().toLowerCase();
-  const normalizedEnvelope = (envelopeNumber ?? "").trim().toLowerCase();
-  return `name:${normalizedName || "household"}:${normalizedEnvelope}`;
+  // Note: envelopeNumber parameter kept for backward compatibility but no longer used
+  // Households are now uniquely identified by name only when ID is not available
+  return `name:${normalizedName || "household"}`;
 }
 
 function mapHouseholdRowToOption(row: Record<string, unknown>): HouseholdOption | null {

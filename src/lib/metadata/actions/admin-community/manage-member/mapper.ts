@@ -396,7 +396,6 @@ export class MemberFormMapper {
         householdPayload.id = householdId;
       }
       householdPayload.name = householdName;
-      householdPayload.envelope_number = envelopeNumber;
       householdPayload.address_street = addressStreet;
       householdPayload.address_city = addressCity;
       householdPayload.address_state = addressState;
@@ -405,6 +404,26 @@ export class MemberFormMapper {
       payload.household = householdPayload;
     } else if (hasHouseholdIdField && householdId === null) {
       payload.household = { id: null } satisfies Partial<MemberHousehold>;
+    }
+
+    // Ensure required fields have valid defaults for new members
+    if (!isEditMode) {
+      // Address field is required by database (NOT NULL constraint)
+      if (!payload.contact_number) {
+        payload.contact_number = '';
+      }
+      if (!payload.address) {
+        payload.address = '';
+      }
+      if (!payload.gender) {
+        payload.gender = 'other';
+      }
+      if (!payload.marital_status) {
+        payload.marital_status = 'single';
+      }
+      if (!payload.profile_picture_url) {
+        payload.profile_picture_url = null;
+      }
     }
 
     return {

@@ -58,7 +58,14 @@ export class MemberProfileService {
     try {
       return await this.repo.fetchHouseholdRelationships(memberId, tenantId);
     } catch (error) {
-      console.error('Failed to load household relationships for member', error);
+      const errorDetails = {
+        message: error instanceof Error ? error.message : String(error),
+        details: error instanceof Error ? error.stack : String(error),
+        hint: (error as any)?.hint || '',
+        code: (error as any)?.code || ''
+      };
+      console.error('Failed to load household relationships for member', errorDetails);
+      // Return empty array to allow page to load gracefully
       return [];
     }
   }

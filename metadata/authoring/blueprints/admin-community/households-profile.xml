@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="households/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-households-profile">
+    <Title>Household profile</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="profileHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="profileHero.headline"/>
+            <Prop name="description" kind="binding" contract="profileHero.description"/>
+            <Prop name="metrics" kind="binding" contract="profileHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-household"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="profile-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="columns" kind="static">2</Prop>
+            <Prop name="panels" kind="binding" contract="profileSummary.panels"/>
+          </Props>
+        </Component>
+        <Component id="household-members" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Household members</Prop>
+            <Prop name="description" kind="static">Members associated with this household.</Prop>
+            <Prop name="rows" kind="binding" contract="householdMembers.rows"/>
+            <Prop name="columns" kind="binding" contract="householdMembers.columns"/>
+            <Prop name="emptyState" kind="static">{"title": "No members in this household", "description": "Add members to this household from their individual profiles."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="profileHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for profile-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for profile-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for profile-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for profile-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.households.profile.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="profileSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for profile-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.households.profile.summary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="householdMembers" kind="service">
+        <Contract>
+          <Field name="rows" path="members.rows" description="Binding for household-members.rows"/>
+          <Field name="columns" path="members.columns" description="Binding for household-members.columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.households.profile.members</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-household" kind="link">
+        <Config>
+          <Label>Edit household</Label>
+          <Url>/admin/community/households/manage?id={{params.householdId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to list</Label>
+          <Url>/admin/community/households</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

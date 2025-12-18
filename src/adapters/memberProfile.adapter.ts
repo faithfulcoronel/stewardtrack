@@ -339,7 +339,6 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           household:household_id(
             id,
             name,
-            envelope_number,
             address_street,
             address_city,
             address_state,

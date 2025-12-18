@@ -31,7 +31,13 @@ export async function renderResolvedPage(
     resolved.definition.page.dataSources ?? [],
     context,
   );
-  const actions = evaluateMetadataActions(resolved.definition.page.actions ?? [], role);
+  const actions = evaluateMetadataActions(
+    resolved.definition.page.actions ?? [],
+    role,
+    undefined,
+    undefined,
+    context.searchParams
+  );
   const regions = resolved.definition.page.regions ?? [];
 
   const renderedRegions = regions.map((region) => {

@@ -291,6 +291,16 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
   const readOnly = Boolean(field.readOnly);
   const isInteractive = !(disabled || readOnly);
 
+  // Hidden fields should render as actual hidden inputs
+  if (field.type === "hidden") {
+    return (
+      <input
+        type="hidden"
+        value={String(controller.value ?? "")}
+      />
+    );
+  }
+
   if (isTagsField(field)) {
     const value = toTagArray(controller.value);
     return (
