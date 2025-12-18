@@ -24,6 +24,8 @@ import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
 import { MetricsService } from '@/services/MetricsService';
 import { UserRoleService } from '@/services/UserRoleService';
+import { TenantService } from '@/services/TenantService';
+import { RolePermissionService } from '@/services/RolePermissionService';
 
 // Phase 5 Optimization & Monitoring Adapters
 import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
@@ -189,6 +191,16 @@ container
 container
   .bind<AuthorizationService>(TYPES.AuthorizationService)
   .to(AuthorizationService)
+  .inRequestScope();
+
+container
+  .bind<TenantService>(TYPES.TenantService)
+  .to(TenantService)
+  .inRequestScope();
+
+container
+  .bind<RolePermissionService>(TYPES.RolePermissionService)
+  .to(RolePermissionService)
   .inRequestScope();
 
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================

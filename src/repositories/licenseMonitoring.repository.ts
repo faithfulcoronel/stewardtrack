@@ -1,10 +1,11 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import { LicenseMonitoringAdapter, type LicenseUtilization, type FeatureAdoption } from '@/adapters/licenseMonitoring.adapter';
+import { LicenseMonitoringAdapter, type LicenseUtilization, type FeatureAdoption, type LicensingAnalyticsSummary } from '@/adapters/licenseMonitoring.adapter';
 
 // Re-export types from adapter for convenience
 export type { LicenseUtilization, FeatureAdoption };
+export type { LicensingAnalyticsSummary };
 
 export interface OnboardingMetrics {
   total_started: number;
@@ -93,5 +94,12 @@ export class LicenseMonitoringRepository {
    */
   async getMaterializedViewRefreshJobs(limit: number = 100): Promise<any[]> {
     return this.adapter.fetchMaterializedViewRefreshJobs(limit);
+  }
+
+  /**
+   * Get system-wide licensing analytics summary
+   */
+  async getSystemAnalytics(): Promise<LicensingAnalyticsSummary> {
+    return this.adapter.fetchSystemAnalytics();
   }
 }

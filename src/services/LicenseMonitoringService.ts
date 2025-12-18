@@ -2,7 +2,13 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from './AuditService';
-import type { LicenseMonitoringRepository, LicenseUtilization, FeatureAdoption, OnboardingMetrics } from '@/repositories/licenseMonitoring.repository';
+import type {
+  LicenseMonitoringRepository,
+  LicenseUtilization,
+  FeatureAdoption,
+  OnboardingMetrics,
+  LicensingAnalyticsSummary
+} from '@/repositories/licenseMonitoring.repository';
 
 /**
  * LicenseMonitoringService
@@ -388,5 +394,12 @@ export class LicenseMonitoringService {
     }
 
     return alerts;
+  }
+
+  /**
+   * System-wide licensing analytics (super admin)
+   */
+  async getSystemAnalytics(): Promise<LicensingAnalyticsSummary> {
+    return this.monitoringRepository.getSystemAnalytics();
   }
 }

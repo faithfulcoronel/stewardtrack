@@ -10,6 +10,18 @@ export interface IProductOfferingAdapter extends IBaseAdapter<ProductOffering> {
   getOfferingWithFeatures(offeringId: string): Promise<ProductOfferingWithFeatures | null>;
   getActiveOfferings(): Promise<ProductOffering[]>;
   getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
+  getPublicProductOfferings(options: {
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    tier: string | null;
+    targetId?: string | null;
+  }): Promise<Array<Record<string, any>>>;
+  getPublicProductOffering(options: {
+    id: string;
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    includeComplete: boolean;
+  }): Promise<Record<string, any> | null>;
   addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
   getOfferingFeatures(offeringId: string): Promise<Array<{ id: string; code: string; name: string; category: string; is_required: boolean }>>;
@@ -57,6 +69,85 @@ export class ProductOfferingAdapter
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
+  private normalizeCount(value: unknown): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  private mapPublicOfferingRow(row: unknown) {
+    const base = row && typeof row === 'object' && !Array.isArray(row)
+      ? (row as Record<string, any>)
+      : {};
+
+    return {
+      ...base,
+      features: Array.isArray((base as any)?.features) ? (base as any).features : [],
+      bundles: Array.isArray((base as any)?.bundles) ? (base as any).bundles : [],
+      feature_count: this.normalizeCount((base as any)?.feature_count),
+      bundle_count: this.normalizeCount((base as any)?.bundle_count),
+    };
+  }
+
+  async getPublicProductOfferings(options: {
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    tier: string | null;
+    targetId?: string | null;
+  }): Promise<Array<Record<string, any>>> {
+    const supabase = await this.getSupabaseClient();
+    const { includeFeatures, includeBundles, tier, targetId } = options;
+
+    const { data, error } = await supabase.rpc('get_public_product_offerings', {
+      include_features: includeFeatures,
+      include_bundles: includeBundles,
+      target_tier: tier,
+      target_id: targetId ?? null,
+    });
+
+    if (error) {
+      throw new Error(`Failed to load public product offerings: ${error.message}`);
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    return rows.map(row => this.mapPublicOfferingRow(row));
+  }
+
+  async getPublicProductOffering(options: {
+    id: string;
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    includeComplete: boolean;
+  }): Promise<Record<string, any> | null> {
+    const { id, includeFeatures, includeBundles, includeComplete } = options;
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_public_product_offerings', {
+      include_features: includeFeatures || includeComplete,
+      include_bundles: includeBundles || includeComplete,
+      target_tier: null,
+      target_id: id,
+    });
+
+    if (error) {
+      throw new Error(`Failed to load public product offering: ${error.message}`);
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    if (!rows.length) {
+      return null;
+    }
+
+    return this.mapPublicOfferingRow(rows[0]);
+  }
+
   async getOfferingWithFeatures(offeringId: string): Promise<ProductOfferingWithFeatures | null> {
     const supabase = await this.getSupabaseClient();
 
@@ -71,14 +162,14 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get product offering: ${offeringError.message}`);
     }
 
-    if (!offering) {
+    if (!offering || typeof offering !== 'object' || Array.isArray(offering)) {
       return null;
     }
 
     const features = await this.getOfferingFeatures(offeringId);
 
     return {
-      ...offering,
+      ...(offering as ProductOffering),
       features,
     };
   }
@@ -98,7 +189,11 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get active product offerings: ${error.message}`);
     }
 
-    return data || [];
+    if (!data) {
+      return [];
+    }
+
+    return (data as unknown as ProductOffering[]).filter(Boolean);
   }
 
   async getOfferingsByTier(tier: string): Promise<ProductOffering[]> {
@@ -116,7 +211,11 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get product offerings by tier: ${error.message}`);
     }
 
-    return data || [];
+    if (!data) {
+      return [];
+    }
+
+    return (data as unknown as ProductOffering[]).filter(Boolean);
   }
 
   async addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean = true): Promise<void> {
@@ -311,14 +410,14 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get product offering: ${offeringError.message}`);
     }
 
-    if (!offering) {
+    if (!offering || typeof offering !== 'object' || Array.isArray(offering)) {
       return null;
     }
 
     const bundles = await this.getOfferingBundles(offeringId);
 
     return {
-      ...offering,
+      ...(offering as ProductOffering),
       bundles,
     };
   }
@@ -359,7 +458,7 @@ export class ProductOfferingAdapter
       throw new Error(`Failed to get product offering: ${offeringError.message}`);
     }
 
-    if (!offering) {
+    if (!offering || typeof offering !== 'object' || Array.isArray(offering)) {
       return null;
     }
 
@@ -370,7 +469,7 @@ export class ProductOfferingAdapter
     ]);
 
     return {
-      ...offering,
+      ...(offering as ProductOffering),
       bundles,
       features: directFeatures,
       bundle_count: bundles.length,

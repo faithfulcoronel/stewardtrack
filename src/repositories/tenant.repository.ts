@@ -22,6 +22,13 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
   createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void>;
   deleteTenantForCleanup(tenantId: string): Promise<void>;
   getPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
+  getTenantStatus(tenantId: string): Promise<{
+    roles: { count: number; data: any[]; error?: string };
+    permissions: { count: number; data: any[]; error?: string };
+    rolePermissions: { count: number; data: any[]; error?: string };
+    surfaceBindings: { count: number; data: any[]; error?: string };
+    featureGrants: { count: number; data: any[]; error?: string };
+  }>;
 }
 
 @injectable()
@@ -87,5 +94,9 @@ export class TenantRepository
 
   async getPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null> {
     return this.tenantAdapter.fetchPublicProductOffering(offeringId);
+  }
+
+  async getTenantStatus(tenantId: string) {
+    return this.tenantAdapter.getTenantStatus(tenantId);
   }
 }

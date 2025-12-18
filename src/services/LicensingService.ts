@@ -140,6 +140,27 @@ export class LicensingService {
   }
 
   /**
+   * Gets public product offerings (unauthenticated flow)
+   */
+  async getPublicProductOfferings(options: {
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    tier: string | null;
+    targetId?: string | null;
+  }) {
+    return this.productOfferingRepository.getPublicProductOfferings(options);
+  }
+
+  async getPublicProductOffering(options: {
+    id: string;
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    includeComplete: boolean;
+  }) {
+    return this.productOfferingRepository.getPublicProductOffering(options);
+  }
+
+  /**
    * Adds a feature to a product offering
    */
   async addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean = true): Promise<void> {
@@ -377,7 +398,6 @@ export class LicensingService {
       // Import the repository here to avoid circular dependency
       const { container } = await import('@/lib/container');
       const { TYPES } = await import('@/lib/types');
-      const tenantFeatureGrantRepo = container.get<any>(TYPES.ITenantFeatureGrantRepository);
 
       // Get adapter to access Supabase directly
       const productOfferingAdapter = container.get<any>(TYPES.IProductOfferingAdapter);

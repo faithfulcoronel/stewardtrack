@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { Tenant } from '@/models/tenant.model';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { TenantService } from '@/services/TenantService';
+import { AuthorizationService } from '@/services/AuthorizationService';
 
 /**
  * GET /api/tenant/current
@@ -9,33 +11,21 @@ import type { Tenant } from '@/models/tenant.model';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.checkAuthentication();
 
-    // Get current user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Unauthorized',
+          error: authResult.error,
         },
-        { status: 401 }
+        { status: authResult.statusCode }
       );
     }
 
-    // Fetch tenant data via RPC to avoid ambiguous column issues
-    const { data: tenantData, error: tenantError } = await supabase.rpc('get_current_tenant');
-
-    if (tenantError) {
-      throw new Error(`Failed to fetch tenant: ${tenantError.message}`);
-    }
-
-    const tenantResult = Array.isArray(tenantData) ? tenantData[0] : tenantData;
-    const tenant = tenantResult as Tenant | undefined;
+    const tenantService = container.get<TenantService>(TYPES.TenantService);
+    const tenant = await tenantService.getCurrentTenant();
 
     if (!tenant) {
       return NextResponse.json(

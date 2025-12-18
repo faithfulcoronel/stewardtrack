@@ -19,6 +19,18 @@ export interface IProductOfferingRepository extends BaseRepository<ProductOfferi
   getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null>;
   getActiveOfferings(): Promise<ProductOffering[]>;
   getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
+  getPublicProductOfferings(options: {
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    tier: string | null;
+    targetId?: string | null;
+  }): Promise<Array<Record<string, any>>>;
+  getPublicProductOffering(options: {
+    id: string;
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    includeComplete: boolean;
+  }): Promise<Record<string, any> | null>;
   addFeatureToOffering(offeringId: string, featureId: string, isRequired?: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
   addBundleToOffering(offeringId: string, bundleId: string, isRequired?: boolean, displayOrder?: number): Promise<void>;
@@ -71,6 +83,24 @@ export class ProductOfferingRepository
 
   async getOfferingsByTier(tier: string): Promise<ProductOffering[]> {
     return await this.productOfferingAdapter.getOfferingsByTier(tier);
+  }
+
+  async getPublicProductOfferings(options: {
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    tier: string | null;
+    targetId?: string | null;
+  }): Promise<Array<Record<string, any>>> {
+    return this.productOfferingAdapter.getPublicProductOfferings(options);
+  }
+
+  async getPublicProductOffering(options: {
+    id: string;
+    includeFeatures: boolean;
+    includeBundles: boolean;
+    includeComplete: boolean;
+  }): Promise<Record<string, any> | null> {
+    return this.productOfferingAdapter.getPublicProductOffering(options);
   }
 
   async addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean = true): Promise<void> {

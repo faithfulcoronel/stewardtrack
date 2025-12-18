@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
@@ -9,61 +8,11 @@ import {
   type ProductOfferingWithBundles,
   type ProductOfferingComplete,
 } from '@/models/productOffering.model';
-import { checkSuperAdmin } from '@/utils/authUtils';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-
-const PUBLIC_PRODUCT_OFFERINGS_RPC = 'get_public_product_offerings';
-
-type PublicProductOfferingRow = Record<string, any>;
-
-function normalizeCount(value: unknown): number | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? null : parsed;
-}
+import { AuthorizationService } from '@/services/AuthorizationService';
+import type { IAuthRepository } from '@/repositories/auth.repository';
 
 function parseBooleanParam(value: string | null): boolean {
   return value === 'true';
-}
-
-async function getPublicProductOffering(
-  supabase: SupabaseClient,
-  options: { includeFeatures: boolean; includeBundles: boolean; includeComplete: boolean; id: string }
-) {
-  const { includeFeatures, includeBundles, includeComplete, id } = options;
-
-  const { data, error } = await supabase.rpc(PUBLIC_PRODUCT_OFFERINGS_RPC, {
-    include_features: includeFeatures || includeComplete,
-    include_bundles: includeBundles || includeComplete,
-    target_tier: null,
-    target_id: id,
-  });
-
-  if (error) {
-    throw new Error(`Failed to load public product offering: ${error.message}`);
-  }
-
-  const rows = Array.isArray(data) ? (data as PublicProductOfferingRow[]) : [];
-  if (!rows.length) {
-    return null;
-  }
-
-  const row = rows[0];
-
-  return {
-    ...row,
-    features: Array.isArray(row?.features) ? row.features : [],
-    bundles: Array.isArray(row?.bundles) ? row.bundles : [],
-    feature_count: normalizeCount(row?.feature_count),
-    bundle_count: normalizeCount(row?.bundle_count),
-  };
 }
 
 async function resolveAuthenticatedOffering(
@@ -103,7 +52,6 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createSupabaseServerClient();
     const { id } = await params;
 
     const { searchParams } = new URL(request.url);
@@ -111,15 +59,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const withBundles = parseBooleanParam(searchParams.get('withBundles'));
     const complete = parseBooleanParam(searchParams.get('complete'));
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      console.error('Error retrieving Supabase session for product offerings detail route:', sessionError);
-    }
-
-    const isAuthenticated = !!sessionData?.session;
+    const authRepository = container.get<IAuthRepository>(TYPES.IAuthRepository);
+    const { data: userData } = await authRepository.getUser();
+    const isAuthenticated = !!userData?.user;
 
     if (!isAuthenticated) {
-      const publicOffering = await getPublicProductOffering(supabase, {
+      const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+      const publicOffering = await licensingService.getPublicProductOffering({
         id,
         includeFeatures: withFeatures,
         includeBundles: withBundles,
@@ -183,15 +129,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    // Check super admin permission
-    const { isAuthorized } = await checkSuperAdmin();
-    if (!isAuthorized) {
+    // Check super admin permission via AuthorizationService
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
+
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Unauthorized. Super admin access required.',
+          error: authResult.error,
         },
-        { status: 403 }
+        { status: authResult.statusCode }
       );
     }
 
@@ -242,7 +190,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (featureIds !== undefined) {
       // Get current features
       const currentOffering = await licensingService.getProductOfferingWithFeatures(id);
-      const currentFeatureIds = (currentOffering.features || []).map((f: any) => f.id);
+      const currentFeatureIds = (currentOffering?.features || []).map((f: any) => f.id);
 
       // Determine changes
       const featuresToAdd = featureIds.filter(featureId => !currentFeatureIds.includes(featureId));

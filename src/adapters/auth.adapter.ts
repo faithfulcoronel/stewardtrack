@@ -18,6 +18,7 @@ interface IAuthAdapter {
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
   signOut(): Promise<{ error: AuthError | null }>;
   getUser(): Promise<any>;
+  getAdminRole(): Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null>;
   refreshSession(): Promise<any>;
   onAuthStateChange(callback: (event: string, session: any) => void): () => void;
 }
@@ -113,6 +114,22 @@ export class AuthAdapter implements IAuthAdapter {
   async getUser() {
     const supabase = await this.getServerClient();
     return supabase.auth.getUser();
+  }
+
+  /**
+   * Get the current user's admin role using centralized RPC
+   * Returns one of: super_admin, tenant_admin, staff, member, or null
+   */
+  async getAdminRole(): Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null> {
+    const supabase = await this.getServerClient();
+    const { data, error } = await supabase.rpc('get_user_admin_role');
+
+    if (error) {
+      console.error('[AuthAdapter] get_user_admin_role RPC error:', error);
+      return null;
+    }
+
+    return data as 'super_admin' | 'tenant_admin' | 'staff' | 'member' | null;
   }
 
   async refreshSession() {

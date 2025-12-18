@@ -42,6 +42,7 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void>;
   deleteTenantWithServiceRole(tenantId: string): Promise<void>;
   fetchPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
+  getTenantStatus(tenantId: string): Promise<any>;
 }
 
 @injectable()
@@ -246,5 +247,72 @@ export class TenantAdapter
 
     const [offering] = data as PublicProductOffering[];
     return offering ?? null;
+  }
+
+  /**
+   * Fetch diagnostic tenant status information.
+   */
+  async getTenantStatus(tenantId: string) {
+    const supabase = await this.getSupabaseClient();
+
+    const { data: roles, error: rolesError } = await supabase
+      .from('roles')
+      .select('id, code, name, metadata_key, is_system')
+      .eq('tenant_id', tenantId);
+
+    const { data: permissions, error: permissionsError } = await supabase
+      .from('permissions')
+      .select('id, code, name, source, source_reference')
+      .eq('tenant_id', tenantId);
+
+    const { data: rolePermissions, error: rpError } = await supabase
+      .from('role_permissions')
+      .select(`
+        id,
+        role:roles(code, name),
+        permission:permissions(code, name)
+      `)
+      .in('role_id', (roles || []).map(r => r.id));
+
+    const { data: surfaceBindings, error: sbError } = await supabase
+      .from('rbac_surface_bindings')
+      .select('id, surface_id, required_feature_code, is_active')
+      .eq('tenant_id', tenantId);
+
+    const { data: featureGrants, error: fgError } = await supabase
+      .from('tenant_feature_grants')
+      .select(`
+        id,
+        feature:feature_catalog(code, name)
+      `)
+      .eq('tenant_id', tenantId);
+
+    return {
+      roles: {
+        count: roles?.length || 0,
+        data: roles || [],
+        error: rolesError?.message
+      },
+      permissions: {
+        count: permissions?.length || 0,
+        data: permissions || [],
+        error: permissionsError?.message
+      },
+      rolePermissions: {
+        count: rolePermissions?.length || 0,
+        data: rolePermissions || [],
+        error: rpError?.message
+      },
+      surfaceBindings: {
+        count: surfaceBindings?.length || 0,
+        data: surfaceBindings || [],
+        error: sbError?.message
+      },
+      featureGrants: {
+        count: featureGrants?.length || 0,
+        data: featureGrants || [],
+        error: fgError?.message
+      }
+    };
   }
 }

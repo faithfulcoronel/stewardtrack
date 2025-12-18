@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { authUtils } from '@/utils/authUtils';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import { AuthorizationService } from '@/services/AuthorizationService';
+import type { IFeatureCatalogRepository } from '@/repositories/featureCatalog.repository';
 
 interface RouteParams {
   params: Promise<{
@@ -14,48 +16,25 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const user = await authUtils.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
 
-    if (!user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get user's admin role
-    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
-
-    if (adminRole !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Access denied. Only super admins can view features.' },
-        { status: 403 }
+        { success: false, error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
     const { id } = await params;
+    const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
 
-    // Get feature from catalog
-    const { data: feature, error } = await supabase
-      .from('feature_catalog')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const feature = await featureCatalogRepository.getById(id);
 
-    if (error) {
-      console.error('Error fetching feature:', error);
-
-      if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { success: false, error: 'Feature not found' },
-          { status: 404 }
-        );
-      }
-
+    if (!feature) {
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch feature' },
-        { status: 500 }
+        { success: false, error: 'Feature not found' },
+        { status: 404 }
       );
     }
 
@@ -81,41 +60,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const user = await authUtils.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
 
-    if (!user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { success: false, error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
-    // Get user's admin role
-    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
-
-    if (adminRole !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Access denied. Only super admins can delete features.' },
-        { status: 403 }
-      );
-    }
-
+    const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
     const { id } = await params;
 
-    // Delete feature (will cascade to permissions and templates via database constraints)
-    const { error } = await supabase
-      .from('feature_catalog')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting feature:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to delete feature' },
-        { status: 500 }
-      );
-    }
+    await featureCatalogRepository.deleteFeature(id);
 
     return NextResponse.json({
       success: true,
@@ -139,52 +97,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const user = await authUtils.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
 
-    if (!user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get user's admin role
-    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
-
-    if (adminRole !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Access denied. Only super admins can update features.' },
-        { status: 403 }
+        { success: false, error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
     const { id } = await params;
     const body = await request.json();
+    const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
 
-    // Update feature
-    const { data: feature, error } = await supabase
-      .from('feature_catalog')
-      .update({
-        name: body.name,
-        description: body.description,
-        tier: body.tier,
-        category: body.category,
-        code: body.code || null,
-        is_active: body.is_active,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating feature:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to update feature' },
-        { status: 500 }
-      );
-    }
+    const feature = await featureCatalogRepository.update(id, {
+      name: body.name,
+      description: body.description,
+      tier: body.tier,
+      category: body.category,
+      code: body.code || null,
+      is_active: body.is_active,
+      phase: body.phase,
+      is_delegatable: body.is_delegatable,
+    });
 
     return NextResponse.json({
       success: true,

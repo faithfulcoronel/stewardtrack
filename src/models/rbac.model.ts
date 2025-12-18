@@ -60,6 +60,7 @@ export interface FeatureCatalog {
   code: string;
   name: string;
   category: string;
+  tier?: string | null;
   description?: string;
   phase: string;
   is_delegatable: boolean;

@@ -17,10 +17,12 @@ export interface IFeatureCatalogAdapter extends IBaseAdapter<FeatureCatalog> {
     name: string;
     category: string;
     description?: string;
+    tier?: string | null;
     phase: string;
     is_delegatable: boolean;
     is_active: boolean;
   }): Promise<FeatureCatalog>;
+  hardDeleteFeature(id: string): Promise<void>;
 }
 
 @injectable()
@@ -107,6 +109,7 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
     name: string;
     category: string;
     description?: string;
+    tier?: string | null;
     phase: string;
     is_delegatable: boolean;
     is_active: boolean;
@@ -117,6 +120,7 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
       .from(this.tableName)
       .insert({
         ...featureData,
+        tier: featureData.tier ?? null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -132,5 +136,20 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
     }
 
     return data;
+  }
+
+  /**
+   * Hard delete feature catalog entry (no soft delete)
+   */
+  async hardDeleteFeature(id: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+    const { error } = await supabase
+      .from(this.tableName)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete feature: ${error.message}`);
+    }
   }
 }

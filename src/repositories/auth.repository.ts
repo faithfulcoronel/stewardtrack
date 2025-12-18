@@ -16,6 +16,7 @@ export interface IAuthRepository {
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
   signOut(): Promise<{ error: AuthError | null }>;
   getUser(): ReturnType<IAuthAdapter['getUser']>;
+  getAdminRole(): ReturnType<IAuthAdapter['getAdminRole']>;
   refreshSession(): ReturnType<IAuthAdapter['refreshSession']>;
   onAuthStateChange(callback: (event: string, session: any) => void): () => void;
 }
@@ -67,6 +68,10 @@ export class AuthRepository implements IAuthRepository {
   // Updated to use getUser() instead of getSession() for security
   getUser() {
     return this.adapter.getUser();
+  }
+
+  getAdminRole() {
+    return this.adapter.getAdminRole();
   }
 
   refreshSession() {

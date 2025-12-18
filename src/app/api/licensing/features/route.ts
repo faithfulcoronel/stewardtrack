@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { authUtils } from '@/utils/authUtils';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import { AuthorizationService } from '@/services/AuthorizationService';
+import type { IFeatureCatalogRepository } from '@/repositories/featureCatalog.repository';
 
 /**
  * GET /api/licensing/features
@@ -8,45 +10,28 @@ import { authUtils } from '@/utils/authUtils';
  */
 export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
-    const user = await authUtils.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
 
-    if (!user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { success: false, error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
-    // Get user's admin role
-    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
+    const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
+    const features = await featureCatalogRepository.getFeatures({ is_active: true });
 
-    if (adminRole !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Access denied. Only super admins can view features.' },
-        { status: 403 }
-      );
-    }
-
-    // Get all active features from the catalog
-    const { data: features, error } = await supabase
-      .from('feature_catalog')
-      .select('*')
-      .eq('is_active', true)
-      .order('category', { ascending: true })
-      .order('code', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching features:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch features' },
-        { status: 500 }
-      );
-    }
+    const sortedFeatures = [...(features || [])].sort((a, b) => {
+      const categoryCompare = (a.category || '').localeCompare(b.category || '');
+      if (categoryCompare !== 0) return categoryCompare;
+      return (a.code || '').localeCompare(b.code || '');
+    });
 
     return NextResponse.json({
       success: true,
-      data: features,
+      data: sortedFeatures,
     });
   } catch (error) {
     console.error('Error fetching features:', error);
@@ -66,23 +51,13 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const user = await authUtils.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.requireSuperAdmin();
 
-    if (!user) {
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get user's admin role
-    const { data: adminRole } = await supabase.rpc('get_user_admin_role');
-
-    if (adminRole !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Access denied. Only super admins can create features.' },
-        { status: 403 }
+        { success: false, error: authResult.error },
+        { status: authResult.statusCode }
       );
     }
 
@@ -103,29 +78,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create feature
-    const { data: feature, error } = await supabase
-      .from('feature_catalog')
-      .insert({
-        code: body.code || body.name.toLowerCase().replace(/\s+/g, '_'),
-        name: body.name,
-        description: body.description,
-        tier: body.tier,
-        category: body.category,
-        is_active: body.is_active !== undefined ? body.is_active : true,
-        created_by: user.id,
-        updated_by: user.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating feature:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to create feature' },
-        { status: 500 }
-      );
-    }
+    const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
+    const feature = await featureCatalogRepository.createFeature({
+      code: body.code || body.name.toLowerCase().replace(/\s+/g, '_'),
+      name: body.name,
+      description: body.description,
+      tier: body.tier ?? null,
+      category: body.category,
+      is_active: body.is_active !== undefined ? body.is_active : true,
+      is_delegatable: body.is_delegatable ?? false,
+      phase: body.phase || '',
+    });
 
     return NextResponse.json(
       {

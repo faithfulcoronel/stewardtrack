@@ -17,10 +17,12 @@ export interface IFeatureCatalogRepository extends BaseRepository<FeatureCatalog
     name: string;
     category: string;
     description?: string;
+    tier?: string | null;
     phase: string;
     is_delegatable: boolean;
     is_active: boolean;
   }): Promise<FeatureCatalog>;
+  deleteFeature(id: string): Promise<void>;
 }
 
 @injectable()
@@ -52,10 +54,15 @@ export class FeatureCatalogRepository extends BaseRepository<FeatureCatalog> imp
     name: string;
     category: string;
     description?: string;
+    tier?: string | null;
     phase: string;
     is_delegatable: boolean;
     is_active: boolean;
   }): Promise<FeatureCatalog> {
     return await this.featureCatalogAdapter.createFeature(data);
+  }
+
+  async deleteFeature(id: string): Promise<void> {
+    return this.featureCatalogAdapter.hardDeleteFeature(id);
   }
 }

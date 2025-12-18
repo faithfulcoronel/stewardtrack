@@ -64,7 +64,7 @@ export class AuthorizationService {
         authorized: true,
         userId,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         authorized: false,
         userId,
@@ -108,7 +108,7 @@ export class AuthorizationService {
         authorized: true,
         userId,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         authorized: false,
         userId,
@@ -130,5 +130,30 @@ export class AuthorizationService {
 
     // Then check permission
     return this.checkPermission(authResult.userId!, permission, tenantId);
+  }
+
+  /**
+   * Combined check for authentication and super admin role
+   */
+  async requireSuperAdmin(): Promise<AuthorizationResult> {
+    const authResult = await this.checkAuthentication();
+    if (!authResult.authorized) {
+      return authResult;
+    }
+
+    const adminRole = await this.authRepository.getAdminRole();
+    if (adminRole !== 'super_admin') {
+      return {
+        authorized: false,
+        userId: authResult.userId,
+        error: 'Forbidden: Super admin access required',
+        statusCode: 403
+      };
+    }
+
+    return {
+      authorized: true,
+      userId: authResult.userId
+    };
   }
 }

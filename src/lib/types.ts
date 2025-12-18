@@ -25,6 +25,7 @@ export const TYPES = {
   // Authorization Service
   AuthorizationService: Symbol.for('AuthorizationService'),
   UserRoleAdapter: Symbol.for('UserRoleAdapter'),
+  RolePermissionService: Symbol.for('RolePermissionService'),
 
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),

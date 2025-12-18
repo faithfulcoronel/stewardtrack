@@ -53,6 +53,28 @@ export interface MaterializedViewRefreshJob {
   [key: string]: any;
 }
 
+export interface LicensingAnalyticsSummary {
+  totalOfferings: number;
+  activeOfferings: number;
+  totalBundles: number;
+  totalFeatures: number;
+  activeSubscriptions: number;
+  subscriptionsByTier: Array<{ tier: string; count: number }>;
+  featureAdoption: Array<{ feature_code: string; feature_name: string; tenant_count: number }>;
+  manualAssignments: {
+    total: number;
+    last30Days: number;
+    byTier: Array<{ tier: string; count: number }>;
+    recent: Array<{
+      assignment_id: string;
+      assigned_at: string;
+      tenant_name: string;
+      offering_name: string;
+      offering_tier: string;
+    }>;
+  };
+}
+
 /**
  * LicenseMonitoringAdapter
  *
@@ -186,5 +208,154 @@ export class LicenseMonitoringAdapter {
 
     if (error) throw error;
     return data || [];
+  }
+
+  /**
+   * Fetch system-wide licensing analytics (super admin view)
+   */
+  async fetchSystemAnalytics(): Promise<LicensingAnalyticsSummary> {
+    const supabase = await createSupabaseServerClient();
+    const nowIso = new Date().toISOString();
+
+    const { count: totalOfferings } = await supabase
+      .from('product_offerings')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: activeOfferings } = await supabase
+      .from('product_offerings')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    const { count: totalBundles } = await supabase
+      .from('feature_bundles')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: totalFeatures } = await supabase
+      .from('bundle_features')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: activeSubscriptions } = await supabase
+      .from('tenant_product_offerings')
+      .select('*', { count: 'exact', head: true })
+      .lte('starts_at', nowIso)
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`);
+
+    const { data: subscriptionsByTier } = await supabase
+      .from('tenant_product_offerings')
+      .select(`
+        product_offering_id,
+        product_offerings!inner(tier)
+      `)
+      .lte('starts_at', nowIso)
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`);
+
+    const tierCounts: Record<string, number> = {};
+    subscriptionsByTier?.forEach((sub: any) => {
+      const tier = sub.product_offerings?.tier || 'Unknown';
+      tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+    });
+
+    const formattedTierData = Object.entries(tierCounts).map(([tier, count]) => ({
+      tier,
+      count,
+    }));
+
+    const { data: featureAdoption } = await supabase
+      .from('tenant_feature_grants')
+      .select(`
+        feature_id,
+        features!inner(feature_code, feature_name)
+      `)
+      .lte('starts_at', nowIso)
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`);
+
+    const featureCounts: Record<string, { feature_code: string; feature_name: string; count: number }> = {};
+    featureAdoption?.forEach((grant: any) => {
+      const featureId = grant.feature_id;
+      const feature = grant.features;
+      if (feature) {
+        if (!featureCounts[featureId]) {
+          featureCounts[featureId] = {
+            feature_code: feature.feature_code,
+            feature_name: feature.feature_name,
+            count: 0,
+          };
+        }
+        featureCounts[featureId].count++;
+      }
+    });
+
+    const formattedFeatureAdoption = Object.values(featureCounts)
+      .sort((a, b) => b.count - a.count)
+      .map(f => ({
+        feature_code: f.feature_code,
+        feature_name: f.feature_name,
+        tenant_count: f.count,
+      }));
+
+    const { count: totalAssignments } = await supabase
+      .from('license_assignments')
+      .select('*', { count: 'exact', head: true });
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const { count: recentAssignments } = await supabase
+      .from('license_assignments')
+      .select('*', { count: 'exact', head: true })
+      .gte('assigned_at', thirtyDaysAgo.toISOString());
+
+    const { data: assignmentsByTier } = await supabase
+      .from('license_assignments')
+      .select(`
+        offering_id,
+        product_offerings!inner(tier)
+      `)
+      .gte('assigned_at', thirtyDaysAgo.toISOString());
+
+    const assignmentTierCounts: Record<string, number> = {};
+    assignmentsByTier?.forEach((assignment: any) => {
+      const tier = assignment.product_offerings?.tier || 'Unknown';
+      assignmentTierCounts[tier] = (assignmentTierCounts[tier] || 0) + 1;
+    });
+
+    const formattedAssignmentsByTier = Object.entries(assignmentTierCounts).map(([tier, count]) => ({
+      tier,
+      count,
+    }));
+
+    const { data: recentAssignmentDetails } = await supabase
+      .from('license_assignments')
+      .select(`
+        id,
+        assigned_at,
+        tenants!inner(name),
+        product_offerings!inner(name, tier)
+      `)
+      .order('assigned_at', { ascending: false })
+      .limit(10);
+
+    const formattedRecentAssignments = recentAssignmentDetails?.map((assignment: any) => ({
+      assignment_id: assignment.id,
+      assigned_at: assignment.assigned_at,
+      tenant_name: assignment.tenants?.name || 'Unknown',
+      offering_name: assignment.product_offerings?.name || 'Unknown',
+      offering_tier: assignment.product_offerings?.tier || 'Unknown',
+    })) || [];
+
+    return {
+      totalOfferings: totalOfferings || 0,
+      activeOfferings: activeOfferings || 0,
+      totalBundles: totalBundles || 0,
+      totalFeatures: totalFeatures || 0,
+      activeSubscriptions: activeSubscriptions || 0,
+      subscriptionsByTier: formattedTierData,
+      featureAdoption: formattedFeatureAdoption,
+      manualAssignments: {
+        total: totalAssignments || 0,
+        last30Days: recentAssignments || 0,
+        byTier: formattedAssignmentsByTier,
+        recent: formattedRecentAssignments,
+      },
+    };
   }
 }
