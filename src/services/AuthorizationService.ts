@@ -3,10 +3,12 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IAuthRepository } from '@/repositories/auth.repository';
 import type { IUserRoleManagementAdapter } from '@/adapters/userRoleManagement.adapter';
+import type { User } from '@supabase/supabase-js';
 
 export interface AuthorizationResult {
   authorized: boolean;
   userId?: string;
+  user?: User;
   error?: string;
   statusCode?: number;
 }
@@ -41,6 +43,7 @@ export class AuthorizationService {
     return {
       authorized: true,
       userId: data.user.id,
+      user: data.user,
     };
   }
 

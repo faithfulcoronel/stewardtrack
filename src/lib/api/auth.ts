@@ -5,8 +5,10 @@
  */
 
 import 'server-only';
-import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { AuthorizationService } from '@/services/AuthorizationService';
 import type { User } from '@supabase/supabase-js';
 
 /**
@@ -39,23 +41,23 @@ export type AuthCheckResult = AuthResult | AuthError;
  */
 export async function getAuthenticatedUser(): Promise<AuthCheckResult> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.checkAuthentication();
 
-    if (error || !user) {
+    if (!authResult.authorized || !authResult.user) {
       return {
         user: null,
         error: NextResponse.json(
           {
             success: false,
-            error: 'Unauthorized - Authentication required'
+            error: authResult.error || 'Unauthorized - Authentication required'
           },
-          { status: 401 }
+          { status: authResult.statusCode || 401 }
         )
       };
     }
 
-    return { user, error: null };
+    return { user: authResult.user, error: null };
   } catch (err) {
     console.error('Authentication error:', err);
     return {
@@ -101,9 +103,9 @@ export async function requireAuth(): Promise<User> {
  */
 export async function getUserId(): Promise<string | null> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || null;
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    const authResult = await authService.checkAuthentication();
+    return authResult.authorized ? authResult.userId || null : null;
   } catch {
     return null;
   }

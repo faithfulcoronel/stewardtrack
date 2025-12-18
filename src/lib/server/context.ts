@@ -1,7 +1,9 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { AuthorizationService } from '@/services/AuthorizationService';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 export interface RequestContext {
@@ -18,17 +20,14 @@ interface UserOptions {
 
 export async function getCurrentUser(options: UserOptions = {}): Promise<User> {
   const redirectTo = options.redirectTo ?? '/login';
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+  const authResult = await authService.checkAuthentication();
 
-  if (error || !user) {
+  if (!authResult.authorized || !authResult.user) {
     redirect(redirectTo);
   }
 
-  return user;
+  return authResult.user;
 }
 
 export async function getCurrentUserId(options: UserOptions = {}): Promise<string> {

@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { container } from "@/lib/container";
+import { TYPES } from "@/lib/types";
+import type { AuthService } from "@/services/AuthService";
+import type { TenantService } from "@/services/TenantService";
 import { clearTenantSession, writeTenantSession } from "@/lib/tenant/session-cache";
 
 export type SignInState = {
@@ -21,11 +24,8 @@ export async function signInWithPassword(
     return { error: "Email and password are required." };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const authService = container.get<AuthService>(TYPES.AuthService);
+  const { data, error } = await authService.signIn(email, password);
 
   if (error) {
     return { error: error.message };
@@ -36,15 +36,12 @@ export async function signInWithPassword(
 
   if (!tenant) {
     try {
-      const { data: tenantData, error: tenantError } = await supabase.rpc("get_current_tenant");
+      const tenantService = container.get<TenantService>(TYPES.TenantService);
+      const tenantData = await tenantService.getCurrentTenant();
 
-      if (tenantError) {
-        throw tenantError;
+      if (tenantData) {
+        tenant = tenantData.id?.trim() ?? null;
       }
-
-      const tenantRecord = Array.isArray(tenantData) ? tenantData[0] : tenantData;
-      const resolvedTenant = (tenantRecord as { id?: string } | null)?.id ?? null;
-      tenant = typeof resolvedTenant === "string" ? resolvedTenant.trim() : null;
     } catch (tenantLookupError) {
       if (process.env.NODE_ENV !== "test") {
         console.error("Failed to determine tenant during sign-in", tenantLookupError);
@@ -63,8 +60,8 @@ export async function signInWithPassword(
 }
 
 export async function signOut() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  const authService = container.get<AuthService>(TYPES.AuthService);
+  await authService.signOut();
   await clearTenantSession();
   revalidatePath("/", "layout");
   redirect("/login");
