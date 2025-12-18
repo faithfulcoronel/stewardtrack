@@ -3,11 +3,16 @@
  *
  * Server-side page protection for admin routes with AccessGate integration
  * This ensures that even if users know the URL, they cannot access protected pages
+ *
+ * Follows architectural pattern: Component → Service → Repository → Adapter → Supabase
  */
 
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { AuthorizationService } from '@/services/AuthorizationService';
+import type { TenantService } from '@/services/TenantService';
 import { AccessGate } from '@/lib/access-gate';
 
 interface ProtectedAdminPageProps {
@@ -66,32 +71,33 @@ export async function ProtectedAdminPage({
   redirectTo,
   requireTenant = true,
 }: ProtectedAdminPageProps) {
-  // Get authenticated user
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  // Get authenticated user via service layer
+  const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+  const authResult = await authService.checkAuthentication();
 
-  if (authError || !user) {
+  if (!authResult.authorized || !authResult.userId) {
     redirect('/login');
   }
 
-  // Get tenant context (if required)
+  const userId = authResult.userId;
+
+  // Get tenant context (if required) via service layer
   let tenantId: string | undefined;
 
   if (requireTenant && !superAdminOnly) {
-    const { data: tenantUser } = await supabase
-      .from('tenant_users')
-      .select('tenant_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    try {
+      const tenantService = container.get<TenantService>(TYPES.TenantService);
+      const tenant = await tenantService.getCurrentTenant();
 
-    if (!tenantUser) {
+      if (!tenant) {
+        redirect('/unauthorized?reason=no_tenant');
+      }
+
+      tenantId = tenant.id;
+    } catch (error) {
+      console.error('[ProtectedAdminPage] Failed to get tenant context:', error);
       redirect('/unauthorized?reason=no_tenant');
     }
-
-    tenantId = tenantUser.tenant_id;
   }
 
   // Determine which gate to use
@@ -118,7 +124,7 @@ export async function ProtectedAdminPage({
   }
 
   // Check access
-  const result = await gate.check(user.id, tenantId);
+  const result = await gate.check(userId, tenantId);
 
   if (!result.allowed) {
     const path = redirectTo || result.redirectTo || '/unauthorized';
