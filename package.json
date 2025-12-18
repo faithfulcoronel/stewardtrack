@@ -12,7 +12,12 @@
     "metadata:types": "tsx tools/metadata/generate-types.ts",
     "metadata:seed-features": "tsx tools/metadata/seedFeatures.ts",
     "prebuild": "npm run metadata:compile",
-    "rbac:phase1": "tsx tools/rbac/phase1-inventory.ts"
+    "rbac:phase1": "tsx tools/rbac/phase1-inventory.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.3",
@@ -83,6 +88,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

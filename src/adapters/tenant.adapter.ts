@@ -5,6 +5,27 @@ import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.ad
 import { Tenant } from '@/models/tenant.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
+
+export interface PublicProductOffering {
+  id: string;
+  tier: string;
+  offering_type: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  base_price?: number | null;
+  billing_cycle?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface TenantUserData {
+  tenant_id: string;
+  user_id: string;
+  role: string;
+  admin_role?: string | null;
+  created_by: string;
+}
 
 export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -14,6 +35,13 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   resetTenantData(tenantId: string): Promise<void>;
   /** Preview records that would be removed by a reset */
   previewResetTenantData(tenantId: string): Promise<Record<string, number>>;
+
+  // Registration flow methods
+  checkSubdomainExists(subdomain: string): Promise<boolean>;
+  createTenantWithServiceRole(tenantData: Partial<Tenant>): Promise<Tenant>;
+  createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void>;
+  deleteTenantWithServiceRole(tenantId: string): Promise<void>;
+  fetchPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
 }
 
 @injectable()
@@ -122,5 +150,101 @@ export class TenantAdapter
     );
     if (error) throw error;
     return (data?.[0] as Record<string, number>) || {};
+  }
+
+  // ==================== REGISTRATION FLOW METHODS ====================
+
+  /**
+   * Check if a subdomain already exists
+   */
+  async checkSubdomainExists(subdomain: string): Promise<boolean> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    return !!data;
+  }
+
+  /**
+   * Create a new tenant using service role (for registration)
+   */
+  async createTenantWithServiceRole(tenantData: Partial<Tenant>): Promise<Tenant> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { data, error } = await serviceSupabase
+      .from('tenants')
+      .insert(tenantData)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create tenant: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('Tenant creation failed - no data returned');
+    }
+
+    return data as Tenant;
+  }
+
+  /**
+   * Create a tenant-user relationship using service role (for registration)
+   */
+  async createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { error } = await serviceSupabase
+      .from('tenant_users')
+      .insert(tenantUserData);
+
+    if (error) {
+      throw new Error(`Failed to create tenant-user relationship: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a tenant using service role (for cleanup/rollback)
+   */
+  async deleteTenantWithServiceRole(tenantId: string): Promise<void> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { error } = await serviceSupabase
+      .from('tenants')
+      .delete()
+      .eq('id', tenantId);
+
+    if (error) {
+      throw new Error(`Failed to delete tenant: ${error.message}`);
+    }
+  }
+
+  /**
+   * Fetch public product offering details via RPC
+   */
+  async fetchPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_public_product_offerings', {
+      include_features: false,
+      include_bundles: false,
+      target_tier: null,
+      target_id: offeringId,
+    });
+
+    if (error) {
+      throw new Error(`Failed to load product offering: ${error.message}`);
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return null;
+    }
+
+    const [offering] = data as PublicProductOffering[];
+    return offering ?? null;
   }
 }

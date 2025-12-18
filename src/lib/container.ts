@@ -17,6 +17,7 @@ import { LicensingService } from '@/services/LicensingService';
 import { PermissionValidationService } from '@/services/PermissionValidationService';
 import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
+import { RegistrationService } from '@/services/RegistrationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
 import { LicenseValidationService } from '@/services/LicenseValidationService';
@@ -175,6 +176,11 @@ container
 container
   .bind<PermissionDeploymentService>(TYPES.PermissionDeploymentService)
   .to(PermissionDeploymentService)
+  .inRequestScope();
+
+container
+  .bind<RegistrationService>(TYPES.RegistrationService)
+  .to(RegistrationService)
   .inRequestScope();
 
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
