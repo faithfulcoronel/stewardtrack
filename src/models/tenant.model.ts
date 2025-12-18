@@ -14,5 +14,6 @@ export interface Tenant extends BaseModel {
   subscription_status: string;
   billing_cycle: 'monthly' | 'annual';
   subscription_end_date?: string | null;
+  currency?: string | null;
   created_by: string;
 }

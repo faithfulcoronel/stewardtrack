@@ -1,166 +1,128 @@
 import type { ServiceDataSourceHandler } from "./types";
+import { container } from "@/lib/container";
+import { TYPES } from "@/lib/types";
+import type { TenantService } from "@/services/TenantService";
 
 const SETTINGS_OVERVIEW_HANDLER_ID = "admin-settings.settings.overview";
+const SETTINGS_SAVE_HANDLER_ID = "admin-settings.settings.overview.save";
 
-type FeatureToggle = {
-  id: string;
-  label: string;
-  description: string;
-  category: string;
-  enabled: boolean;
-};
+// Asian currencies list
+const ASIAN_CURRENCIES = [
+  { label: "Philippine Peso (PHP)", value: "PHP" },
+  { label: "Japanese Yen (JPY)", value: "JPY" },
+  { label: "Chinese Yuan (CNY)", value: "CNY" },
+  { label: "South Korean Won (KRW)", value: "KRW" },
+  { label: "Indian Rupee (INR)", value: "INR" },
+  { label: "Indonesian Rupiah (IDR)", value: "IDR" },
+  { label: "Thai Baht (THB)", value: "THB" },
+  { label: "Vietnamese Dong (VND)", value: "VND" },
+  { label: "Malaysian Ringgit (MYR)", value: "MYR" },
+  { label: "Singapore Dollar (SGD)", value: "SGD" },
+  { label: "Hong Kong Dollar (HKD)", value: "HKD" },
+  { label: "Taiwan Dollar (TWD)", value: "TWD" },
+  { label: "Pakistani Rupee (PKR)", value: "PKR" },
+  { label: "Bangladeshi Taka (BDT)", value: "BDT" },
+  { label: "Sri Lankan Rupee (LKR)", value: "LKR" },
+];
 
-type CommunicationChannel = {
-  id: string;
-  label: string;
-  value: string;
-};
+const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
+  // Get real tenant data using service layer
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
 
-function resolveTenantId(params: Record<string, string | string[] | undefined>): string {
-  const candidate = params.tenant;
-  if (Array.isArray(candidate)) {
-    const first = candidate.find((entry) => typeof entry === "string" && entry.trim().length > 0);
-    if (first) {
-      return first.trim();
-    }
+  if (!tenant) {
+    throw new Error("No tenant context available");
   }
-  if (typeof candidate === "string" && candidate.trim().length > 0) {
-    return candidate.trim();
-  }
-  return "demo-hope-chapel";
-}
 
-function getDefaultFeatureToggles(): FeatureToggle[] {
-  return [
-    {
-      id: "online-check-in",
-      label: "Online check-in",
-      description: "Families pre-register kids and volunteers through the portal before Sunday gatherings.",
-      category: "Engagement",
-      enabled: true,
-    },
-    {
-      id: "care-plan-workflows",
-      label: "Care plan workflows",
-      description: "Route pastoral care plans to center pastors with automated task assignments.",
-      category: "Care",
-      enabled: true,
-    },
-    {
-      id: "mission-support-pledges",
-      label: "Mission support pledges",
-      description: "Track global mission pledges with quarterly reminder cadences.",
-      category: "Giving",
-      enabled: false,
-    },
-    {
-      id: "sabbath-mode",
-      label: "Sabbath quiet hours",
-      description: "Pause outbound notifications from Friday sundown through Saturday evening.",
-      category: "Communications",
-      enabled: true,
-    },
-  ];
-}
+  const tenantId = tenant.id;
+  const ministryName = tenant.name || "Church";
+  const tenantEmail = tenant.email || "";
+  const tenantPhone = tenant.contact_number || "";
+  const tenantAddress = tenant.address || "";
+  const tenantWebsite = tenant.website || "";
+  const subscriptionTier = tenant.subscription_tier || "starter";
+  const currency = tenant.currency || "PHP"; // Default currency from tenant
 
-function getCommunicationChannels(): CommunicationChannel[] {
-  return [
-    {
-      id: "weekly-digest",
-      label: "Weekly shepherd digest",
-      value: "Sends every Monday at 6am with pastoral assignments and care escalations.",
-    },
-    {
-      id: "finance-brief",
-      label: "Finance covenant brief",
-      value: "Monthly giving recap distributed to elders and finance stewards.",
-    },
-    {
-      id: "volunteer-roster",
-      label: "Volunteer roster sync",
-      value: "Mid-week schedule reminders with serving confirmations.",
-    },
-  ];
-}
+  // TODO: These will be fetched from tenant_settings table once fully implemented
+  const twilioConfigured = false;
+  const emailConfigured = false;
 
-const resolveSettingsOverview: ServiceDataSourceHandler = async (request) => {
-  const tenantId = resolveTenantId(request.params);
-  const toggles = getDefaultFeatureToggles();
-  const enabledToggleCount = toggles.filter((toggle) => toggle.enabled).length;
+  // Format last updated date
+  const lastUpdated = tenant.updated_at
+    ? new Date(tenant.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : 'Not available';
+
+  // Safe date formatting with fallbacks
+  const createdAt = tenant.created_at ? new Date(tenant.created_at) : new Date();
+  const updatedAt = tenant.updated_at ? new Date(tenant.updated_at) : new Date();
 
   return {
     tenantId,
     hero: {
       eyebrow: "StewardTrack Admin",
-      headline: "Configure ministry operations for " + tenantId.replace(/[-_]/g, " "),
+      headline: `Configure ${ministryName} Settings`,
       description:
-        "Manage multi-campus preferences, guardrails, and notifications for your church management teams.",
+        "Manage your church information, integrations, and global settings.",
       highlights: [
-        "Align finance, pastoral care, and discipleship workflows in one control surface.",
-        "Automate compliance reminders for background checks and child safety renewals.",
-        "Roll out new feature toggles to campuses with confidence using staged rollout windows.",
+        "Update your church profile and contact information.",
+        "Configure messaging and email integrations for communications.",
+        "Set currency and regional preferences for your ministry.",
       ],
       metrics: [
         {
-          label: "Active campuses",
-          value: "8",
-          caption: "Downtown, Northside, Riverwalk, and five microsites synced nightly.",
+          label: "Subscription",
+          value: subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1),
+          caption: `${tenant.subscription_status || 'Active'} • ${tenant.billing_cycle || 'monthly'} billing`,
         },
         {
-          label: "Weekly check-ins",
-          value: "1,942",
-          caption: "Kids and students checked-in across weekend gatherings.",
+          label: "Created",
+          value: createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          caption: "Tenant established",
         },
         {
-          label: "Automations",
-          value: "27",
-          caption: "Live pastoral workflows powering shepherd assignments.",
+          label: "Last Updated",
+          value: updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          caption: "Settings modified",
         },
       ],
-      primaryCta: {
-        id: "view-change-log",
-        kind: "link",
-        config: {
-          label: "View change log",
-          url: "/admin/settings/change-log",
-          variant: "secondary",
-        },
-      },
-      secondaryCta: {
-        id: "launch-campus-wizard",
-        kind: "link",
-        config: {
-          label: "Launch campus setup",
-          url: "/admin/settings/campuses",
-        },
-      },
+      primaryCta: null,
+      secondaryCta: null,
     },
     summary: {
       panels: [
         {
           id: "tenant-profile",
-          title: "Tenant profile",
-          description: "Snapshot of the ministry identity stewarded across StewardTrack.",
+          title: "Tenant Profile",
+          description: "Your church information and contact details.",
           columns: 2,
           items: [
-            { label: "Ministry", value: "Hope Chapel Collective", type: "text" },
-            { label: "Headquarters", value: "Franklin, TN", type: "text" },
+            { label: "Ministry Name", value: ministryName, type: "text" },
+            { label: "Subdomain", value: tenant.subdomain, type: "text" },
             {
-              label: "Primary contact",
-              value: "marissa.owens@hopechapel.org",
-              type: "link",
-              href: "mailto:marissa.owens@hopechapel.org",
+              label: "Contact Email",
+              value: tenantEmail || "Not set",
+              type: tenantEmail ? "link" : "text",
+              ...(tenantEmail && { href: `mailto:${tenantEmail}` }),
             },
             {
-              label: "Data steward",
-              value: "Marissa Owens",
-              type: "badge",
-              variant: "info",
-              description: "Director of Administration",
+              label: "Contact Number",
+              value: tenantPhone || "Not set",
+              type: "text",
             },
             {
-              label: "Last review",
-              value: "September 12, 2024",
+              label: "Address",
+              value: tenantAddress || "Not set",
+              type: "multiline",
+            },
+            {
+              label: "Website",
+              value: tenantWebsite || "Not set",
+              type: tenantWebsite ? "link" : "text",
+              ...(tenantWebsite && { href: tenantWebsite }),
+            },
+            {
+              label: "Last Updated",
+              value: lastUpdated,
               type: "text",
             },
             {
@@ -173,161 +135,143 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (request) => {
         {
           id: "integrations",
           title: "Integrations",
-          description: "Connected systems powering giving, communications, and volunteer coordination.",
+          description: "Configure external services for messaging and communications.",
           columns: 2,
-          badge: `${enabledToggleCount} live`,
+          badge: `${twilioConfigured && emailConfigured ? '2' : twilioConfigured || emailConfigured ? '1' : '0'} configured`,
           items: [
             {
-              label: "Accounting",
-              value: "Sage Intacct",
-              type: "text",
-              description: "Daily journal sync with restricted ledger segments.",
+              label: "Twilio (SMS)",
+              value: twilioConfigured ? "Configured" : "Not configured",
+              type: "badge",
+              variant: twilioConfigured ? "success" : "default",
+              description: "SMS and messaging capabilities",
             },
             {
-              label: "Background checks",
-              value: "ProtectMyMinistry",
-              type: "text",
-            },
-            {
-              label: "Messaging",
-              value: "Twilio Notify",
-              type: "text",
-              description: "SMS deliverability tuned for multi-campus alerts.",
-            },
-            {
-              label: "File storage",
-              value: "SharePoint",
-              type: "text",
-            },
-            {
-              label: "Check-in kiosks",
-              value: "Church Center iPad fleet",
-              type: "text",
+              label: "Email Service",
+              value: emailConfigured ? "Configured" : "Not configured",
+              type: "badge",
+              variant: emailConfigured ? "success" : "default",
+              description: "Transactional and bulk email",
             },
           ],
-        },
-        {
-          id: "communications",
-          title: "Broadcast channels",
-          description: "Weekly rhythms that StewardTrack automates for your teams.",
-          columns: 1,
-          items: getCommunicationChannels().map((channel) => ({
-            label: channel.label,
-            value: channel.value,
-            type: "multiline",
-          })),
         },
       ],
     },
     form: {
       mode: "edit",
-      title: "Update global settings",
-      description: "Fine-tune how StewardTrack coordinates ministries, security, and congregational care.",
-      submitLabel: "Save settings",
+      title: "Update Global Settings",
+      description: "Configure your church details and regional preferences.",
+      submitLabel: "Save Settings",
       contextParams: { tenantId },
-      footnote: "Changes sync to all campuses instantly. Feature toggles roll out during the next deployment window.",
+      footnote: "Changes will be applied immediately to your church management system.",
       initialValues: {
-        ministryName: "Hope Chapel Collective",
-        contactEmail: "marissa.owens@hopechapel.org",
-        smsNumber: "+1 (615) 555-1188",
-        timeZone: "America/Chicago",
-        weekendStartDay: "friday",
-        enableBackgroundChecks: true,
-        requireTwoFactor: true,
-        featureFlags: toggles.filter((toggle) => toggle.enabled).map((toggle) => toggle.id),
-        pledgeCampaign: "Kingdom Builders 2025",
+        ministryName,
+        contactEmail: tenantEmail,
+        contactNumber: tenantPhone,
+        address: tenantAddress,
+        website: tenantWebsite,
+        currency,
+        requireTwoFactor: false,
       },
       fields: [
         {
           name: "ministryName",
-          label: "Ministry name",
+          label: "Ministry Name",
           type: "text",
           colSpan: "half",
-          placeholder: "Hope Chapel Collective",
-          helperText: "Displayed across the member portal and email communications.",
+          placeholder: "Your Church Name",
+          helperText: "Displayed across member portal and communications.",
           required: true,
         },
         {
           name: "contactEmail",
-          label: "Primary contact email",
+          label: "Primary Contact Email",
           type: "email",
           colSpan: "half",
-          placeholder: "admin@hopechapel.org",
+          placeholder: "admin@yourchurch.org",
+          helperText: "Main email for church communications.",
           required: true,
         },
         {
-          name: "smsNumber",
-          label: "SMS reply-to",
+          name: "contactNumber",
+          label: "Contact Number",
           type: "tel",
           colSpan: "half",
-          placeholder: "+1 (615) 555-1188",
-          helperText: "Used for SMS confirmations and volunteer reminders.",
+          placeholder: "+63 912 345 6789",
+          helperText: "Primary phone number for the church.",
         },
         {
-          name: "timeZone",
-          label: "Primary time zone",
+          name: "address",
+          label: "Church Address",
+          type: "textarea",
+          colSpan: "half",
+          placeholder: "123 Main St, City, Province",
+          helperText: "Physical address of your church.",
+          rows: 3,
+        },
+        {
+          name: "website",
+          label: "Website URL",
+          type: "text",
+          colSpan: "half",
+          placeholder: "https://www.yourchurch.org",
+          helperText: "Your church website (optional).",
+        },
+        {
+          name: "currency",
+          label: "Currency",
           type: "select",
           colSpan: "half",
           required: true,
+          helperText: "Default currency for financial transactions and reports.",
           options: {
-            items: [
-              { label: "Central (US)", value: "America/Chicago" },
-              { label: "Eastern (US)", value: "America/New_York" },
-              { label: "Mountain (US)", value: "America/Denver" },
-              { label: "Pacific (US)", value: "America/Los_Angeles" },
-            ],
+            items: ASIAN_CURRENCIES,
           },
-        },
-        {
-          name: "weekendStartDay",
-          label: "Weekend start",
-          type: "select",
-          colSpan: "half",
-          options: {
-            items: [
-              { label: "Thursday", value: "thursday" },
-              { label: "Friday", value: "friday" },
-              { label: "Saturday", value: "saturday" },
-            ],
-          },
-          helperText: "Drives attendance and volunteer reporting windows.",
-        },
-        {
-          name: "enableBackgroundChecks",
-          label: "Require background checks",
-          type: "toggle",
-          colSpan: "half",
-          helperText: "Enforces background checks for all NextGen and Care volunteers.",
         },
         {
           name: "requireTwoFactor",
-          label: "Enforce two-factor login",
+          label: "Enforce Two-Factor Login (SOON)",
           type: "toggle",
           colSpan: "half",
-          helperText: "Applies to admins and campus leads across StewardTrack.",
-        },
-        {
-          name: "featureFlags",
-          label: "Feature toggles",
-          type: "tags",
-          colSpan: "full",
-          helperText: "Enable new capabilities before rolling out to every campus.",
-          options: {
-            items: toggles.map((toggle) => ({ label: `${toggle.label} (${toggle.category})`, value: toggle.id })),
-          },
-        },
-        {
-          name: "pledgeCampaign",
-          label: "Current pledge campaign",
-          type: "text",
-          colSpan: "full",
-          placeholder: "Kingdom Builders 2025",
+          helperText: "Two-factor authentication for admin users (coming soon).",
+          disabled: true,
         },
       ],
     },
   };
 };
 
+const saveSettings: ServiceDataSourceHandler = async (request) => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+
+  if (!tenant) {
+    throw new Error("No tenant context available");
+  }
+
+  // Extract form data from params
+  const params = request.params as any;
+
+  // Update tenant with form data
+  const updates: Record<string, any> = {
+    name: params.ministryName as string,
+    email: params.contactEmail as string,
+    contact_number: params.contactNumber ? (params.contactNumber as string) : null,
+    address: params.address ? (params.address as string) : null,
+    website: params.website ? (params.website as string) : null,
+    currency: params.currency ? (params.currency as string) : "PHP",
+  };
+
+  await tenantService.updateTenant(tenant.id, updates);
+
+  return {
+    success: true,
+    message: "Settings saved successfully",
+    tenantId: tenant.id,
+  };
+};
+
 export const adminSettingsHandlers: Record<string, ServiceDataSourceHandler> = {
   [SETTINGS_OVERVIEW_HANDLER_ID]: resolveSettingsOverview,
+  [SETTINGS_SAVE_HANDLER_ID]: saveSettings,
 };

@@ -194,7 +194,7 @@ async function filterSectionsWithAccessGate(
       }
       // Settings - tenant admin or higher
       else if (item.href.includes('/settings')) {
-        const gate = Gate.withRole('tenant_admin');
+        const gate = Gate.withRole('role_tenant_admin');
         hasAccess = await gate.allows(userId, tenantId);
       }
 

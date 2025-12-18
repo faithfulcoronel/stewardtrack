@@ -29,7 +29,7 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
   const gate = new CompositeAccessGate(
     [
       Gate.superAdminOnly({ fallbackPath: "/unauthorized?reason=super_admin_only" }),
-      Gate.withRole("tenant_admin", "any", { fallbackPath: "/unauthorized?reason=tenant_admin_required" }),
+      Gate.withRole("role_tenant_admin", "any", { fallbackPath: "/unauthorized?reason=tenant_admin_required" }),
     ],
     { requireAll: false, fallbackPath: "/unauthorized?reason=admin_settings" },
   );

@@ -70,6 +70,7 @@ export class TenantAdapter
     subscription_status,
     billing_cycle,
     subscription_end_date,
+    currency,
     created_by,
     created_at,
     updated_at
