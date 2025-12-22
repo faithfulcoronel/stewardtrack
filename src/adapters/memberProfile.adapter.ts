@@ -364,7 +364,11 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       throw error;
     }
 
-    const members = (data ?? []) as MemberRow[];
+    // Transform household from array to single object (Supabase returns arrays for foreign key joins)
+    const members = (data ?? []).map((row: any) => ({
+      ...row,
+      household: Array.isArray(row.household) ? row.household[0] ?? null : row.household ?? null,
+    })) as MemberRow[];
 
     console.log('[MemberProfileAdapter] Fetched members from DB:', {
       count: members.length,

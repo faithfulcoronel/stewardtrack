@@ -33,6 +33,17 @@
             <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
           </Props>
         </Component>
+        <Component id="care-plans-card" type="AdminCarePlansCard">
+          <Props>
+            <Prop name="title" kind="binding" contract="carePlansCard.title"/>
+            <Prop name="description" kind="binding" contract="carePlansCard.description"/>
+            <Prop name="metrics" kind="binding" contract="carePlansCard.metrics"/>
+            <Prop name="priorityBreakdown" kind="binding" contract="carePlansCard.priorityBreakdown"/>
+            <Prop name="recentItems" kind="binding" contract="carePlansCard.recentItems"/>
+            <Prop name="viewAllUrl" kind="binding" contract="carePlansCard.viewAllUrl"/>
+            <Prop name="addNewUrl" kind="binding" contract="carePlansCard.addNewUrl"/>
+          </Props>
+        </Component>
         <Component id="giving-trend" type="AdminGivingChart">
           <Props>
             <Prop name="title" kind="static">Covenant giving momentum</Prop>
@@ -648,6 +659,20 @@
             </Array>
           </Field>
         </Data>
+      </DataSource>
+      <DataSource id="carePlansCard" kind="service">
+        <Contract>
+          <Field name="title" path="carePlansCard.title" description="Card title"/>
+          <Field name="description" path="carePlansCard.description" description="Card description"/>
+          <Field name="metrics" path="carePlansCard.metrics" description="Care plan metrics"/>
+          <Field name="priorityBreakdown" path="carePlansCard.priorityBreakdown" description="Priority breakdown"/>
+          <Field name="recentItems" path="carePlansCard.recentItems" description="Recent care plan items"/>
+          <Field name="viewAllUrl" path="carePlansCard.viewAllUrl" description="View all URL"/>
+          <Field name="addNewUrl" path="carePlansCard.addNewUrl" description="Add new URL"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.careplans</Handler>
+        </Config>
       </DataSource>
     </DataSources>
     <Actions>

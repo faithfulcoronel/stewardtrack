@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="care-plans/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:manage" locale="en-US">
+  <Page id="admin-community-care-plans-manage">
+    <Title>Manage care plan</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+        <Component id="care-plan-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="carePlanForm.title"/>
+            <Prop name="description" kind="binding" contract="carePlanForm.description"/>
+            <Prop name="fields" kind="binding" contract="carePlanForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="carePlanForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="carePlanForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="carePlanForm.contextParams"/>
+            <Prop name="onSubmit" kind="action" actionId="save-care-plan"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.manage.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="carePlanForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for care-plan-form.title"/>
+          <Field name="description" path="form.description" description="Binding for care-plan-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for care-plan-form.fields"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for care-plan-form.submitLabel"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for care-plan-form.initialValues"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for care-plan-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-care-plan" kind="service">
+        <Config>
+          <Handler>admin-community.careplans.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/care-plans/{{carePlanId}}</Navigate>
+            <ShowToast>Care plan saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save care plan. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/care-plans/list</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

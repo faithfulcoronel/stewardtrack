@@ -358,9 +358,6 @@ export class MemberFormMapper {
     const householdName = this.hasField(values, "householdName")
       ? this.cleanString(values.householdName)
       : null;
-    const envelopeNumber = this.hasField(values, "envelopeNumber")
-      ? this.cleanString(values.envelopeNumber)
-      : null;
     const addressStreet = this.hasField(values, "addressStreet")
       ? this.cleanString(values.addressStreet)
       : null;
@@ -383,7 +380,6 @@ export class MemberFormMapper {
     const includeHousehold =
       householdId !== null ||
       householdName !== null ||
-      envelopeNumber !== null ||
       addressStreet !== null ||
       addressCity !== null ||
       addressState !== null ||

@@ -155,7 +155,6 @@ export class MemberAdapter
       select: [
         'id',
         'name',
-        'envelope_number',
         'address_street',
         'address_city',
         'address_state',
@@ -346,7 +345,6 @@ export class MemberAdapter
     }
 
     const name = this.cleanOptionalString(input.name);
-    const envelope = this.cleanOptionalString(input.envelope_number);
     const street = this.cleanOptionalString(input.address_street);
     const city = this.cleanOptionalString(input.address_city);
     const state = this.cleanOptionalString(input.address_state);
@@ -357,7 +355,6 @@ export class MemberAdapter
     const hasMeaningfulInput = Boolean(
       input.id !== undefined ||
         name !== undefined ||
-        envelope !== undefined ||
         street !== undefined ||
         city !== undefined ||
         state !== undefined ||
@@ -375,7 +372,6 @@ export class MemberAdapter
     const basePayload: Record<string, unknown> = {
       tenant_id: tenantId,
       name,
-      envelope_number: envelope,
       address_street: street,
       address_city: city,
       address_state: state,
@@ -391,7 +387,6 @@ export class MemberAdapter
     const selectColumns = `
       id,
       name,
-      envelope_number,
       address_street,
       address_city,
       address_state,
@@ -405,36 +400,6 @@ export class MemberAdapter
         .from('member_households')
         .update(payload)
         .eq('id', input.id)
-        .select(selectColumns)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-      return (data as MemberHousehold) ?? null;
-    }
-
-    let targetId: string | null = null;
-    if (payload.envelope_number) {
-      const { data: existing, error: lookupError } = await supabase
-        .from('member_households')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('envelope_number', payload.envelope_number)
-        .is('deleted_at', null)
-        .limit(1);
-
-      if (lookupError) {
-        throw lookupError;
-      }
-      targetId = existing?.[0]?.id ?? null;
-    }
-
-    if (targetId) {
-      const { data, error } = await supabase
-        .from('member_households')
-        .update(payload)
-        .eq('id', targetId)
         .select(selectColumns)
         .single();
 

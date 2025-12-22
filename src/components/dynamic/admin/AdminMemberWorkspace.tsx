@@ -42,7 +42,6 @@ import {
   CommandList,
   CommandDialog,
 } from "@/components/ui/command";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export interface WorkspaceSummary {
@@ -236,14 +235,13 @@ function maybeAugmentHouseholdField(field: FormFieldConfig): FormFieldConfig {
   return field;
 }
 
-function buildHouseholdKey(id: string | null, name: string, envelopeNumber: string | null): string {
+function buildHouseholdKey(id: string | null, name: string): string {
   const normalizedId = (id ?? "").trim();
   if (normalizedId) {
     return normalizedId;
   }
   const normalizedName = (name ?? "").trim().toLowerCase();
-  // Note: envelopeNumber parameter kept for backward compatibility but no longer used
-  // Households are now uniquely identified by name only when ID is not available
+  // Households are now uniquely identified by name when ID is not available
   return `name:${normalizedName || "household"}`;
 }
 
@@ -263,7 +261,7 @@ function mapHouseholdRowToOption(row: Record<string, unknown>): HouseholdOption 
   const addressPostal = typeof row.address_postal_code === "string" ? row.address_postal_code.trim() : null;
 
   const hasAddress = Boolean(addressStreet || addressCity || addressState || addressPostal);
-  const key = buildHouseholdKey(id, name, envelope);
+  const key = buildHouseholdKey(id, name);
 
   return {
     key,
@@ -518,7 +516,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     if (!initialHouseholdId && !initialHouseholdName) {
       return null;
     }
-    const key = buildHouseholdKey(initialHouseholdId, initialHouseholdName, initialEnvelopeNumber);
+    const key = buildHouseholdKey(initialHouseholdId, initialHouseholdName);
     return {
       key,
       id: initialHouseholdId || null,
@@ -660,24 +658,20 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
 
   React.useEffect(() => {
     let isMounted = true;
-    const supabase = createSupabaseBrowserClient();
 
     const loadHouseholds = async () => {
       setIsLoadingHouseholds(true);
       try {
-        const { data, error } = await supabase
-          .from("member_households")
-          .select(
-            "id,name,envelope_number,address_street,address_city,address_state,address_postal_code,member_names",
-          )
-          .is("deleted_at", null)
-          .order("name", { ascending: true });
+        const response = await fetch("/api/households");
 
-        if (error) {
-          throw error;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch households: ${response.statusText}`);
         }
 
-        const mapped = (data ?? [])
+        const json = await response.json();
+        const data = json.data ?? [];
+
+        const mapped = data
           .map(mapHouseholdRowToOption)
           .filter((option): option is HouseholdOption => option !== null);
 

@@ -21,6 +21,10 @@ import {
   AdminMemberWorkspace,
   type AdminMemberWorkspaceProps,
 } from '@/components/dynamic/admin/AdminMemberWorkspace';
+import {
+  AdminCarePlansCard,
+  type AdminCarePlansCardProps,
+} from '@/components/dynamic/admin/AdminCarePlansCard';
 
 function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
@@ -82,5 +86,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminMemberWorkspaceProps>(AdminMemberWorkspace, 'AdminMemberWorkspaceRenderer'),
+  },
+  {
+    type: 'AdminCarePlansCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminCarePlansCardProps>(AdminCarePlansCard, 'AdminCarePlansCardRenderer'),
   },
 ];

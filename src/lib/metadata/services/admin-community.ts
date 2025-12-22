@@ -34,6 +34,7 @@ import type {
   ServiceDataSourceRequest,
 } from './types';
 import { adminCommunityHouseholdsHandlers } from './admin-community-households';
+import { adminCommunityCarePlansHandlers } from './admin-community-careplans';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -1500,4 +1501,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   [MEMBERS_LOOKUPS_HANDLER_ID]: resolveMembershipLookups,
   [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,
   ...adminCommunityHouseholdsHandlers,
+  ...adminCommunityCarePlansHandlers,
 };

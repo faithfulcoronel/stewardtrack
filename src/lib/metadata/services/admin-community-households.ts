@@ -106,7 +106,7 @@ const resolveHouseholdsListTable: ServiceDataSourceHandler = async (_request) =>
     {
       id: 'search',
       type: 'search',
-      placeholder: 'Search by name, envelope, or address...',
+      placeholder: 'Search by name or address...',
     },
   ];
 
