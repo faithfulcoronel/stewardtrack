@@ -94,17 +94,20 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
             {isDark ? "Light Mode" : "Dark Mode"}
           </span>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="p-0">
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-destructive hover:text-destructive"
-            >
-              <LogOut className="size-4" /> Logout
-            </button>
-          </form>
+        <DropdownMenuItem
+          className="px-4 py-2 text-sm text-destructive focus:text-destructive"
+          onSelect={() => {
+            // Submit the hidden form to trigger the server action
+            formRef.current?.requestSubmit();
+          }}
+        >
+          <span className="flex w-full items-center gap-2">
+            <LogOut className="size-4" /> Logout
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      {/* Hidden form for logout action - placed outside dropdown to ensure proper form submission */}
+      <form ref={formRef} action={logoutAction} className="hidden" />
     </DropdownMenu>
   );
 }
