@@ -35,6 +35,7 @@ import type {
 } from './types';
 import { adminCommunityHouseholdsHandlers } from './admin-community-households';
 import { adminCommunityCarePlansHandlers } from './admin-community-careplans';
+import { adminCommunityDashboardHandlers } from './admin-community-dashboard';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -1502,4 +1503,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,
   ...adminCommunityHouseholdsHandlers,
   ...adminCommunityCarePlansHandlers,
+  ...adminCommunityDashboardHandlers,
 };

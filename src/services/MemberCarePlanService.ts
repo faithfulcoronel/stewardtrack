@@ -211,4 +211,71 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
       status_label: 'Active',
     });
   }
+
+  /**
+   * Get care plan statistics for the dashboard
+   */
+  async getCarePlanStats(): Promise<{
+    total: number;
+    active: number;
+    pending: number;
+    urgent: number;
+    completed: number;
+  }> {
+    const carePlans = await this.repo.getAll();
+
+    const stats = {
+      total: carePlans.length,
+      active: 0,
+      pending: 0,
+      urgent: 0,
+      completed: 0,
+    };
+
+    for (const plan of carePlans) {
+      if (!plan.is_active) {
+        stats.completed++;
+      } else if (plan.priority === 'urgent' || plan.priority === 'critical') {
+        stats.urgent++;
+        stats.active++;
+      } else if (plan.status_code === 'pending' || plan.status_code === 'new') {
+        stats.pending++;
+        stats.active++;
+      } else {
+        stats.active++;
+      }
+    }
+
+    return stats;
+  }
+
+  /**
+   * Get recent care plans for the timeline
+   */
+  async getRecentCarePlans(limit = 5): Promise<Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    priority: string | null;
+    status: string;
+    created_at: string | null;
+  }>> {
+    const carePlans = await this.repo.getAll();
+
+    return carePlans
+      .sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, limit)
+      .map((plan) => ({
+        id: plan.id,
+        title: plan.status_label || plan.status_code || 'Care Plan',
+        description: plan.details || null,
+        priority: plan.priority || null,
+        status: plan.is_active ? 'active' : 'completed',
+        created_at: plan.created_at || null,
+      }));
+  }
 }

@@ -156,6 +156,7 @@ export const TYPES = {
   IMemberHouseholdRepository: Symbol.for('IMemberHouseholdRepository'),
   IMembersDashboardAdapter: Symbol.for('IMembersDashboardAdapter'),
   IMembersDashboardRepository: Symbol.for('IMembersDashboardRepository'),
+  MembersDashboardService: Symbol.for('MembersDashboardService'),
   IMembershipStageAdapter: Symbol.for('IMembershipStageAdapter'),
   IMembershipStageRepository: Symbol.for('IMembershipStageRepository'),
   IMembershipCenterAdapter: Symbol.for('IMembershipCenterAdapter'),

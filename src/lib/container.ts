@@ -29,6 +29,7 @@ import { UserRoleService } from '@/services/UserRoleService';
 import { TenantService } from '@/services/TenantService';
 import { MemberHouseholdService } from '@/services/MemberHouseholdService';
 import { MemberCarePlanService } from '@/services/MemberCarePlanService';
+import { MembersDashboardService } from '@/services/MembersDashboardService';
 import { RolePermissionService } from '@/services/RolePermissionService';
 
 // Phase 5 Optimization & Monitoring Adapters
@@ -60,6 +61,7 @@ import { EncryptionKeyRepository, type IEncryptionKeyRepository } from '@/reposi
 import { MemberAdapter, type IMemberAdapter } from '@/adapters/member.adapter';
 import { MemberHouseholdAdapter, type IMemberHouseholdAdapter } from '@/adapters/memberHousehold.adapter';
 import { MemberCarePlanAdapter, type IMemberCarePlanAdapter } from '@/adapters/memberCarePlan.adapter';
+import { MembersDashboardAdapter, type IMembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import { UserAdapter } from '@/adapters/user.adapter';
 import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapters/memberInvitation.adapter';
 import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/adapters/onboardingProgress.adapter';
@@ -68,6 +70,7 @@ import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/ad
 import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
 import { MemberHouseholdRepository, type IMemberHouseholdRepository } from '@/repositories/memberHousehold.repository';
 import { MemberCarePlanRepository, type IMemberCarePlanRepository } from '@/repositories/memberCarePlan.repository';
+import { MembersDashboardRepository, type IMembersDashboardRepository } from '@/repositories/membersDashboard.repository';
 import { AuthRepository } from '@/repositories/auth.repository';
 import { TenantRepository } from '@/repositories/tenant.repository';
 import { OnboardingProgressRepository, type IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
@@ -462,6 +465,11 @@ container.bind<MemberHouseholdService>(TYPES.MemberHouseholdService).to(MemberHo
 container.bind<IMemberCarePlanAdapter>(TYPES.IMemberCarePlanAdapter).to(MemberCarePlanAdapter).inRequestScope();
 container.bind<IMemberCarePlanRepository>(TYPES.IMemberCarePlanRepository).to(MemberCarePlanRepository).inRequestScope();
 container.bind<MemberCarePlanService>(TYPES.MemberCarePlanService).to(MemberCarePlanService).inRequestScope();
+
+// ==================== MEMBERS DASHBOARD ====================
+container.bind<IMembersDashboardAdapter>(TYPES.IMembersDashboardAdapter).to(MembersDashboardAdapter).inRequestScope();
+container.bind<IMembersDashboardRepository>(TYPES.IMembersDashboardRepository).to(MembersDashboardRepository).inRequestScope();
+container.bind<MembersDashboardService>(TYPES.MembersDashboardService).to(MembersDashboardService).inRequestScope();
 
 // ==================== MEMBER INVITATION ====================
 container.bind<IMemberInvitationAdapter>(TYPES.IMemberInvitationAdapter).to(MemberInvitationAdapter).inRequestScope();
