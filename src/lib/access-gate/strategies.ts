@@ -6,10 +6,11 @@
 
 import 'server-only';
 import { AccessGate, AccessCheckResult, AccessGateConfig } from './AccessGate';
-import { hasPermission, hasAllPermissions, hasAnyPermission, checkSuperAdmin, checkTenantAdmin } from '@/lib/rbac/permissionHelpers';
+import { hasPermission, hasAllPermissions, hasAnyPermission } from '@/lib/rbac/permissionHelpers';
+import { isCachedSuperAdmin, isCachedTenantAdmin } from '@/lib/auth/authCache';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { LicensingService } from '@/services/LicensingService';
+import { RbacFeatureService } from '@/services/rbacFeature.service';
 import { UserRoleService } from '@/services/UserRoleService';
 import { tenantUtils } from '@/utils/tenantUtils';
 
@@ -93,9 +94,9 @@ export class LicenseGate extends AccessGate {
     super(config);
   }
 
-  async check(userId: string, tenantId?: string): Promise<AccessCheckResult> {
+  async check(_userId: string, tenantId?: string): Promise<AccessCheckResult> {
     try {
-      const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+      const featureService = container.get<RbacFeatureService>(TYPES.RbacFeatureService);
       const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
 
       if (!effectiveTenantId) {
@@ -105,7 +106,7 @@ export class LicenseGate extends AccessGate {
         };
       }
 
-      const hasLicense = await licensingService.hasFeatureAccess(this.featureCode, effectiveTenantId);
+      const hasLicense = await featureService.hasFeatureAccess(this.featureCode, effectiveTenantId);
 
       if (!hasLicense) {
         return {
@@ -173,15 +174,12 @@ export class RoleGate extends AccessGate {
 
 /**
  * Super Admin Gate - Checks if user is a super admin
- * Uses the centralized getUserAdminRole() RPC method
+ * Uses cached auth to prevent redundant Supabase Auth API calls
  */
 export class SuperAdminGate extends AccessGate {
   async check(userId: string): Promise<AccessCheckResult> {
     try {
-      console.log('[SuperAdminGate] Checking super admin access');
-
       if (!userId) {
-        console.log('[SuperAdminGate] No userId provided');
         return {
           allowed: false,
           reason: 'No user ID provided',
@@ -189,9 +187,8 @@ export class SuperAdminGate extends AccessGate {
         };
       }
 
-      // Use centralized checkSuperAdmin helper (which uses get_user_admin_role RPC)
-      const isSuperAdmin = await checkSuperAdmin();
-      console.log('[SuperAdminGate] isSuperAdmin result:', isSuperAdmin);
+      // Use cached super admin check (deduplicated per request)
+      const isSuperAdmin = await isCachedSuperAdmin();
 
       if (!isSuperAdmin) {
         return {
@@ -214,7 +211,7 @@ export class SuperAdminGate extends AccessGate {
 
 /**
  * Tenant Admin Gate - Checks if user is a tenant admin
- * Uses the centralized getUserAdminRole() method
+ * Uses cached auth to prevent redundant Supabase Auth API calls
  */
 export class TenantAdminGate extends AccessGate {
   async check(userId: string): Promise<AccessCheckResult> {
@@ -227,7 +224,8 @@ export class TenantAdminGate extends AccessGate {
         };
       }
 
-      const isTenantAdmin = await checkTenantAdmin();
+      // Use cached tenant admin check (deduplicated per request)
+      const isTenantAdmin = await isCachedTenantAdmin();
 
       if (!isTenantAdmin) {
         return {

@@ -5,6 +5,7 @@ import { AuthError, AuthResponse } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { getCachedUser, getCachedAdminRole } from '@/lib/auth/authCache';
 
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
@@ -111,25 +112,26 @@ export class AuthAdapter implements IAuthAdapter {
     return supabase.auth.signOut();
   }
 
+  /**
+   * Get the current user with request-level caching.
+   * Uses cached auth to prevent redundant Supabase Auth API calls.
+   */
   async getUser() {
-    const supabase = await this.getServerClient();
-    return supabase.auth.getUser();
+    const { user, error } = await getCachedUser();
+    return {
+      data: { user },
+      error: error ? { message: error.message, status: 500 } : null,
+    };
   }
 
   /**
-   * Get the current user's admin role using centralized RPC
+   * Get the current user's admin role using cached RPC.
+   * Uses request-level caching to prevent redundant database queries.
    * Returns one of: super_admin, tenant_admin, staff, member, or null
    */
   async getAdminRole(): Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null> {
-    const supabase = await this.getServerClient();
-    const { data, error } = await supabase.rpc('get_user_admin_role');
-
-    if (error) {
-      console.error('[AuthAdapter] get_user_admin_role RPC error:', error);
-      return null;
-    }
-
-    return data as 'super_admin' | 'tenant_admin' | 'staff' | 'member' | null;
+    const { role } = await getCachedAdminRole();
+    return role;
   }
 
   async refreshSession() {

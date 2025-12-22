@@ -4,20 +4,20 @@
  * Provides convenient helper functions for checking RBAC + licensing permissions
  * throughout the application. These helpers use the DI container to resolve
  * services and provide a simplified API for common permission checks.
+ *
+ * PERFORMANCE: Uses request-level caching via authCache to prevent redundant
+ * Supabase Auth API calls that can trigger rate limiting (429 errors).
  */
 
 import 'server-only';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { UserRoleService } from '@/services/UserRoleService';
-import type { LicensingService } from '@/services/LicensingService';
-import { tenantUtils } from '@/utils/tenantUtils';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCachedAdminRole } from '@/lib/auth/authCache';
 
 /**
- * CENTRAL METHOD: Get user's admin role using Supabase RPC
- * This is the ONLY place where we call the database RPC function.
- * All other methods should use this function.
+ * CENTRAL METHOD: Get user's admin role using cached Supabase RPC
+ * Uses request-level caching to prevent redundant database queries.
  *
  * @returns Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null>
  *
@@ -28,20 +28,8 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
  * }
  */
 export async function getUserAdminRole(): Promise<'super_admin' | 'tenant_admin' | 'staff' | 'member' | null> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data: adminRoleData, error } = await supabase.rpc('get_user_admin_role');
-
-    if (error) {
-      console.error('[getUserAdminRole] RPC error:', error);
-      return null;
-    }
-
-    return adminRoleData as 'super_admin' | 'tenant_admin' | 'staff' | 'member' | null;
-  } catch (error) {
-    console.error('[getUserAdminRole] Error:', error);
-    return null;
-  }
+  const { role } = await getCachedAdminRole();
+  return role;
 }
 
 /**

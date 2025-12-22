@@ -4,6 +4,7 @@ import { injectable, inject, optional } from 'inversify';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCachedUserId, isCachedSuperAdmin } from '@/lib/auth/authCache';
 import { getUserDisplayNameMap } from '@/lib/server/userDisplayName';
 import { TYPES } from '@/lib/types';
 import { BaseModel } from '@/models/base.model';
@@ -32,28 +33,23 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     return this.supabase;
   }
 
+  /**
+   * Get current user ID with request-level caching.
+   * Uses cached auth to prevent redundant Supabase Auth API calls.
+   */
   protected async getUserId(): Promise<string | undefined> {
+    // First check context (passed explicitly)
     if (this.context?.userId) return this.context.userId;
-    const supabase = await this.getSupabaseClient();
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id;
+    // Fall back to cached auth (deduplicated per request)
+    return getCachedUserId();
   }
 
+  /**
+   * Check if current user is super admin with request-level caching.
+   * Uses cached RPC call to prevent redundant database queries.
+   */
   protected async isSuperAdmin(): Promise<boolean> {
-    try {
-      const supabase = await this.getSupabaseClient();
-      const { data, error } = await supabase.rpc('get_user_admin_role');
-
-      if (error) {
-        console.error('[BaseAdapter] get_user_admin_role RPC error:', error);
-        return false;
-      }
-
-      return (data as string | null) === 'super_admin';
-    } catch (error) {
-      console.error('[BaseAdapter] Error checking super admin status:', error);
-      return false;
-    }
+    return isCachedSuperAdmin();
   }
 
   protected async attachUserNames<U extends { created_by?: string | null; updated_by?: string | null }>(
