@@ -72,7 +72,28 @@
         <Component id="manage-workspace" type="AdminMemberWorkspace">
           <Props>
             <Prop name="variant" kind="static">manage</Prop>
-            <Prop name="tabs" kind="binding" contract="formBlueprint.tabs"/>
+            <Prop name="tabs" kind="expression">
+              (() =&gt; {
+                const baseTabs = data.formBlueprint?.tabs ?? [];
+                const carePlansSection = data.memberCarePlans?.carePlansListSection;
+
+                if (!carePlansSection || !params.memberId) {
+                  return baseTabs;
+                }
+
+                return baseTabs.map((tab) =&gt; {
+                  if (tab.id !== 'care') {
+                    return tab;
+                  }
+
+                  const existingSections = tab.sections ?? [];
+                  return {
+                    ...tab,
+                    sections: [...existingSections, carePlansSection]
+                  };
+                });
+              })()
+            </Prop>
             <Prop name="form" kind="expression">
               (() =&gt; {
                 const records = data.membershipRecords?.records ?? [];
@@ -151,8 +172,6 @@
                   ? discipleship.ministryInterests
                   : profile.ministryInterests;
                 const interests = Array.isArray(interestsSource) ? interestsSource : [];
-                const careTeamSource = Array.isArray(carePlan.team) ? carePlan.team : profile.careTeam;
-                const careTeam = Array.isArray(careTeamSource) ? careTeamSource : [];
                 const leadershipRolesSource = Array.isArray(serving.leadershipRoles)
                   ? serving.leadershipRoles
                   : profile.leadershipRoles;
@@ -202,10 +221,6 @@
                   ministryInterests: Array.isArray(interests) ? interests : [],
                   discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? &apos;&apos;,
                   prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? discipleship.prayerFocus ?? &apos;&apos;,
-                  careStatus: profile.careStatus ?? carePlan.statusKey ?? &apos;observation&apos;,
-                  carePastor: profile.carePastor ?? carePlan.assignedTo ?? &apos;&apos;,
-                  followUpDate: profile.followUpDate ?? carePlan.followUpDate ?? &apos;&apos;,
-                  careTeam: Array.isArray(careTeam) ? careTeam : [],
                   pastoralNotes: profile.notes ?? &apos;&apos;,
                   prayerRequests: formattedPrayerRequests,
                   emergencyContact: profile.emergencyContact ?? emergency.contact ?? &apos;&apos;,
@@ -269,10 +284,6 @@
                   initialValues.ministryInterests = [];
                   initialValues.discipleshipNextStep = &apos;&apos;;
                   initialValues.prayerFocus = &apos;&apos;;
-                  initialValues.careStatus = &apos;observation&apos;;
-                  initialValues.carePastor = &apos;&apos;;
-                  initialValues.followUpDate = &apos;&apos;;
-                  initialValues.careTeam = [];
                   initialValues.pastoralNotes = &apos;&apos;;
                   initialValues.prayerRequests = &apos;&apos;;
                   initialValues.emergencyContact = &apos;&apos;;
@@ -2422,109 +2433,10 @@
                   <Value>Care</Value>
                 </Field>
                 <Field name="description">
-                  <Value>Emergency contacts, care status, and pastoral notes.</Value>
+                  <Value>Care plans, emergency contacts, and pastoral notes.</Value>
                 </Field>
                 <Field name="sections">
                   <Array>
-                    <Object>
-                      <Field name="kind">
-                        <Value>form</Value>
-                      </Field>
-                      <Field name="id">
-                        <Value>care-plan</Value>
-                      </Field>
-                      <Field name="title">
-                        <Value>Care plan</Value>
-                      </Field>
-                      <Field name="fields">
-                        <Array>
-                          <Object>
-                            <Field name="name">
-                              <Value>careStatus</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Care status</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>select</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="options">
-                              <Array>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Active</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>active</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Observation</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>observation</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Resolved</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>resolved</Value>
-                                  </Field>
-                                </Object>
-                              </Array>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>carePastor</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Assigned pastor</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>followUpDate</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Follow-up date</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>date</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>careTeam</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Care team</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>tags</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                        </Array>
-                      </Field>
-                    </Object>
                     <Object>
                       <Field name="kind">
                         <Value>form</Value>
@@ -3333,6 +3245,14 @@
             </Array>
           </Field>
         </Data>
+      </DataSource>
+      <DataSource id="memberCarePlans" kind="service">
+        <Contract>
+          <Field name="carePlansListSection" path="carePlansListSection" description="Care plans list section for workspace"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.members.careplans</Handler>
+        </Config>
       </DataSource>
     </DataSources>
     <Actions>

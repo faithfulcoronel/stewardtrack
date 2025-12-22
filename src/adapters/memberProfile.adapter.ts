@@ -63,11 +63,7 @@ export interface MemberRow {
   giving_primary_fund?: string | null;
   giving_tier?: string | null;
   finance_notes?: string | null;
-  care_status_code?: string | null;
-  care_pastor?: string | null;
-  care_follow_up_at?: string | null;
   pastoral_notes?: string | null;
-  care_team?: string[] | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
   emergency_contact_relationship?: string | null;
@@ -319,11 +315,7 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           giving_primary_fund,
           giving_tier,
           finance_notes,
-          care_status_code,
-          care_pastor,
-          care_follow_up_at,
           pastoral_notes,
-          care_team,
           emergency_contact_name,
           emergency_contact_phone,
           emergency_contact_relationship,

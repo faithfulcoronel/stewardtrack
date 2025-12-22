@@ -36,150 +36,24 @@
       </Region>
     </Regions>
     <DataSources>
-      <DataSource id="listHero" kind="static">
+      <DataSource id="listHero" kind="service">
         <Contract>
           <Field name="eyebrow" path="eyebrow" description="Binding for list-hero.eyebrow"/>
           <Field name="headline" path="headline" description="Binding for list-hero.headline"/>
           <Field name="description" path="description" description="Binding for list-hero.description"/>
           <Field name="metrics" path="metrics" description="Binding for list-hero.metrics"/>
         </Contract>
-        <Data>
-          <Field name="eyebrow">
-            <Value>Membership operations</Value>
-          </Field>
-          <Field name="headline">
-            <Value>A unified directory for discipleship, finances, and care</Value>
-          </Field>
-          <Field name="description">
-            <Value>Filter members by center, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.</Value>
-          </Field>
-          <Field name="metrics">
-            <Array>
-              <Object>
-                <Field name="label">
-                  <Value>Households</Value>
-                </Field>
-                <Field name="value">
-                  <Value>1,284</Value>
-                </Field>
-                <Field name="caption">
-                  <Value>Directory synced nightly from Planning Center.</Value>
-                </Field>
-              </Object>
-              <Object>
-                <Field name="label">
-                  <Value>New this month</Value>
-                </Field>
-                <Field name="value">
-                  <Value>58</Value>
-                </Field>
-                <Field name="caption">
-                  <Value>Guests currently in assimilation pipeline.</Value>
-                </Field>
-              </Object>
-              <Object>
-                <Field name="label">
-                  <Value>Recurring givers</Value>
-                </Field>
-                <Field name="value">
-                  <Value>612</Value>
-                </Field>
-                <Field name="caption">
-                  <Value>Active automated giving schedules.</Value>
-                </Field>
-              </Object>
-            </Array>
-          </Field>
-        </Data>
+        <Config>
+          <Handler>admin-community.members.list.listHero</Handler>
+        </Config>
       </DataSource>
-      <DataSource id="segmentHealth" kind="static">
+      <DataSource id="segmentHealth" kind="service">
         <Contract>
           <Field name="items" path="items" description="Binding for list-segments.metrics"/>
         </Contract>
-        <Data>
-          <Field name="items">
-            <Array>
-              <Object>
-                <Field name="id">
-                  <Value>segment-guests</Value>
-                </Field>
-                <Field name="label">
-                  <Value>First-time guests scheduled</Value>
-                </Field>
-                <Field name="value">
-                  <Value>31</Value>
-                </Field>
-                <Field name="change">
-                  <Value>+9</Value>
-                </Field>
-                <Field name="changeLabel">
-                  <Value>follow-up calls</Value>
-                </Field>
-                <Field name="trend">
-                  <Value>up</Value>
-                </Field>
-                <Field name="tone">
-                  <Value>positive</Value>
-                </Field>
-                <Field name="description">
-                  <Value>Hospitality team coordinating welcome brunch invitations.</Value>
-                </Field>
-              </Object>
-              <Object>
-                <Field name="id">
-                  <Value>segment-classes</Value>
-                </Field>
-                <Field name="label">
-                  <Value>Membership class seats</Value>
-                </Field>
-                <Field name="value">
-                  <Value>120</Value>
-                </Field>
-                <Field name="change">
-                  <Value>82%</Value>
-                </Field>
-                <Field name="changeLabel">
-                  <Value>capacity filled</Value>
-                </Field>
-                <Field name="trend">
-                  <Value>up</Value>
-                </Field>
-                <Field name="tone">
-                  <Value>informative</Value>
-                </Field>
-                <Field name="description">
-                  <Value>Next covenant class launches November 3rd across two centers.</Value>
-                </Field>
-              </Object>
-              <Object>
-                <Field name="id">
-                  <Value>segment-care</Value>
-                </Field>
-                <Field name="label">
-                  <Value>Care escalations</Value>
-                </Field>
-                <Field name="value">
-                  <Value>18</Value>
-                </Field>
-                <Field name="change">
-                  <Value>5 urgent</Value>
-                </Field>
-                <Field name="changeLabel">
-                  <Value>needs pastoral visits</Value>
-                </Field>
-                <Field name="trend">
-                  <Value>flat</Value>
-                </Field>
-                <Field name="tone">
-                  <Value>neutral</Value>
-                </Field>
-                <Field name="description">
-                  <Value>Assign shepherds to coordinate meals, prayer, and benevolence support.</Value>
-                </Field>
-              </Object>
-            </Array>
-          </Field>
-        </Data>
+        <Config>
+          <Handler>admin-community.members.list.segmentHealth</Handler>
+        </Config>
       </DataSource>
       <DataSource id="membersTable" kind="service">
         <Contract>

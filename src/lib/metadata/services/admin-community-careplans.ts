@@ -3,6 +3,46 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { MemberCarePlan } from '@/models/memberCarePlan.model';
 import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
+import type { MembersDashboardService } from '@/services/MembersDashboardService';
+import type { TenantService } from '@/services/TenantService';
+
+// Helper type for member data from dashboard service
+type MemberRecord = {
+  id?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string | null;
+};
+
+// Helper function to build member name lookup map
+async function buildMemberNameMap(memberIds: string[]): Promise<Map<string, string>> {
+  if (memberIds.length === 0) {
+    return new Map();
+  }
+
+  const membersDashboardService = container.get<MembersDashboardService>(TYPES.MembersDashboardService);
+  const members = await membersDashboardService.getDirectory(undefined, 1000) as MemberRecord[];
+
+  const memberMap = new Map<string, string>();
+  for (const member of members) {
+    if (member.id) {
+      const name = `${member.first_name || ''} ${member.last_name || ''}`.trim();
+      memberMap.set(member.id, name || member.email || 'Unknown member');
+    }
+  }
+
+  return memberMap;
+}
+
+// Helper function to get a single member name
+async function getMemberName(memberId: string | undefined): Promise<string> {
+  if (!memberId) {
+    return 'Unknown member';
+  }
+
+  const memberMap = await buildMemberNameMap([memberId]);
+  return memberMap.get(memberId) || 'Unknown member';
+}
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -44,9 +84,13 @@ const resolveCarePlansListTable: ServiceDataSourceHandler = async (_request) => 
 
   const carePlans = await carePlanService.getCarePlansForTenant();
 
+  // Fetch member names for all care plans using the dashboard service (has tenant context)
+  const memberIds = [...new Set(carePlans.map((cp) => cp.member_id).filter(Boolean))] as string[];
+  const memberMap = await buildMemberNameMap(memberIds);
+
   const rows = carePlans.map((carePlan) => ({
     id: carePlan.id,
-    memberId: carePlan.member_id,
+    memberName: carePlan.member_id ? memberMap.get(carePlan.member_id) || 'Unknown member' : 'Unknown member',
     status: carePlan.status_label || carePlan.status_code || 'Unknown',
     priority: carePlan.priority || '—',
     assignedTo: carePlan.assigned_to || 'Unassigned',
@@ -57,9 +101,10 @@ const resolveCarePlansListTable: ServiceDataSourceHandler = async (_request) => 
 
   const columns = [
     {
-      field: 'memberId',
+      field: 'memberName',
       headerName: 'Member',
-      type: 'text',
+      type: 'link',
+      hrefTemplate: '/admin/community/care-plans/{{id}}',
     },
     {
       field: 'status',
@@ -81,12 +126,18 @@ const resolveCarePlansListTable: ServiceDataSourceHandler = async (_request) => 
       headerName: 'Follow-up date',
       type: 'date',
     },
+    {
+      field: 'actions',
+      headerName: '',
+      type: 'actions',
+    },
   ];
 
   const filters = [
     {
       id: 'search',
       type: 'search',
+      label: 'Member',
       placeholder: 'Search by member or assigned staff...',
     },
     {
@@ -166,6 +217,7 @@ const resolveCarePlanManageHero: ServiceDataSourceHandler = async (request) => {
 
 const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
   const carePlanService = container.get<MemberCarePlanService>(TYPES.MemberCarePlanService);
+  const membersDashboardService = container.get<MembersDashboardService>(TYPES.MembersDashboardService);
 
   const carePlanId = (request.params?.id || request.params?.carePlanId) as string | undefined;
   const isCreate = !carePlanId;
@@ -178,6 +230,18 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
       carePlan = existingCarePlan;
     }
   }
+
+  // Fetch members for the dropdown
+  const members = await membersDashboardService.getDirectory(undefined, 500) as Array<{
+    id?: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string | null;
+  }>;
+  const memberOptions = members.map((member) => ({
+    value: member.id || '',
+    label: `${member.first_name || ''} ${member.last_name || ''}`.trim() || member.email || 'Unknown',
+  })).filter((opt) => opt.value !== '');
 
   return {
     form: {
@@ -198,7 +262,7 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
         priority: carePlan.priority || 'medium',
         details: carePlan.details || '',
         membershipStageId: carePlan.membership_stage_id || '',
-        isActive: carePlan.is_active !== undefined ? carePlan.is_active : true,
+        isActive: carePlan.is_active !== undefined ? (carePlan.is_active ? 'true' : 'false') : 'true',
       },
       fields: [
         // Hidden field to pass care plan ID for updates
@@ -214,7 +278,7 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
           placeholder: 'Select member',
           helperText: 'Member this care plan is for',
           required: true,
-          options: [], // TODO: Populate from members lookup
+          options: memberOptions,
         },
         {
           name: 'statusCode',
@@ -248,11 +312,10 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
         {
           name: 'assignedTo',
           label: 'Assigned to',
-          type: 'select',
+          type: 'text',
           colSpan: 'half',
-          placeholder: 'Select staff member',
+          placeholder: 'Enter staff member name',
           helperText: 'Staff member responsible for this care plan',
-          options: [], // TODO: Populate from staff lookup
         },
         {
           name: 'followUpAt',
@@ -263,13 +326,17 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
           helperText: 'Next scheduled follow-up date',
         },
         {
-          name: 'membershipStageId',
-          label: 'Membership stage',
+          name: 'isActive',
+          label: 'Active status',
           type: 'select',
           colSpan: 'half',
-          placeholder: 'Select stage',
-          helperText: 'Current membership or discipleship stage',
-          options: [], // TODO: Populate from membership stages lookup
+          placeholder: 'Select status',
+          helperText: 'Whether this care plan is currently active',
+          required: true,
+          options: [
+            { value: 'true', label: 'Active' },
+            { value: 'false', label: 'Inactive' },
+          ],
         },
         {
           name: 'details',
@@ -280,13 +347,6 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
           helperText: 'Sensitive information (encrypted at rest)',
           rows: 6,
         },
-        {
-          name: 'isActive',
-          label: 'Active',
-          type: 'checkbox',
-          colSpan: 'full',
-          helperText: 'Whether this care plan is currently active',
-        },
       ],
     },
   };
@@ -295,11 +355,22 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
 const saveCarePlan: ServiceDataSourceHandler = async (request) => {
   const params = request.params as any;
 
+  // Get tenant context first (following the same pattern as saveHousehold)
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
   const carePlanService = container.get<MemberCarePlanService>(TYPES.MemberCarePlanService);
 
   const carePlanId = params.carePlanId as string | undefined;
 
+  // Convert isActive from string to boolean (select dropdown returns 'true'/'false' strings)
+  const isActive = params.isActive === 'true' || params.isActive === true;
+
   const carePlanData: Partial<MemberCarePlan> = {
+    tenant_id: tenant.id,
     member_id: params.memberId,
     status_code: params.statusCode,
     status_label: params.statusLabel || null,
@@ -308,7 +379,7 @@ const saveCarePlan: ServiceDataSourceHandler = async (request) => {
     priority: params.priority || null,
     details: params.details || null,
     membership_stage_id: params.membershipStageId || null,
-    is_active: params.isActive !== undefined ? params.isActive : true,
+    is_active: isActive,
   };
 
   let result: MemberCarePlan;
@@ -345,10 +416,13 @@ const resolveCarePlanProfileHero: ServiceDataSourceHandler = async (request) => 
     throw new Error('Care plan not found');
   }
 
+  // Fetch the member name using the dashboard service (has tenant context)
+  const memberName = await getMemberName(carePlan.member_id);
+
   return {
     hero: {
       eyebrow: 'Care plan details · Community module',
-      headline: `Care plan for member ${carePlan.member_id}`,
+      headline: `Care plan for ${memberName}`,
       description: `Status: ${carePlan.status_label || carePlan.status_code} · Priority: ${carePlan.priority || 'Not set'}`,
       metrics: [
         {
@@ -386,6 +460,9 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
     throw new Error('Care plan not found');
   }
 
+  // Fetch the member name using the dashboard service (has tenant context)
+  const memberName = await getMemberName(carePlan.member_id);
+
   return {
     summary: {
       panels: [
@@ -395,7 +472,7 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
           description: 'Basic care plan information',
           columns: 2,
           items: [
-            { label: 'Member ID', value: carePlan.member_id, type: 'text' },
+            { label: 'Member', value: memberName, type: 'text' },
             { label: 'Status', value: carePlan.status_label || carePlan.status_code, type: 'badge' },
             { label: 'Priority', value: carePlan.priority || '—', type: 'text' },
             { label: 'Assigned to', value: carePlan.assigned_to || 'Unassigned', type: 'text' },
@@ -439,6 +516,16 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
       carePlans: {
         rows: [],
         columns: [],
+      },
+      carePlansListSection: {
+        kind: 'list',
+        id: 'member-care-plans-list',
+        title: 'Care plans',
+        description: 'Care plans associated with this member',
+        items: [],
+        emptyMessage: 'No care plans found for this member.',
+        viewAllHref: '/admin/community/care-plans/list',
+        viewAllLabel: 'View all care plans',
       },
     };
   }
@@ -500,11 +587,41 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
     },
   ];
 
+  // Build list items for the workspace list section
+  const listItems = carePlans.map((carePlan) => {
+    const status = carePlan.status_label || carePlan.status_code || 'Unknown';
+    const priority = carePlan.priority || 'Normal';
+    const followUp = carePlan.follow_up_at
+      ? `Follow-up: ${new Date(carePlan.follow_up_at).toLocaleDateString()}`
+      : null;
+    const assignedTo = carePlan.assigned_to ? `Assigned to: ${carePlan.assigned_to}` : null;
+    const descriptionParts = [followUp, assignedTo].filter(Boolean);
+
+    return {
+      id: carePlan.id,
+      label: `${status} - ${priority} priority`,
+      description: descriptionParts.length > 0 ? descriptionParts.join(' · ') : null,
+      href: `/admin/community/care-plans/${carePlan.id}`,
+      badge: carePlan.is_active ? 'Active' : 'Closed',
+      badgeVariant: carePlan.is_active ? 'default' : 'secondary',
+    };
+  });
+
   return {
     carePlans: {
       rows,
       columns,
       actions,
+    },
+    carePlansListSection: {
+      kind: 'list',
+      id: 'member-care-plans-list',
+      title: 'Care plans',
+      description: 'Care plans associated with this member',
+      items: listItems,
+      emptyMessage: 'No care plans found for this member.',
+      viewAllHref: `/admin/community/care-plans/list?memberId=${memberId}`,
+      viewAllLabel: 'View all care plans',
     },
   };
 };
@@ -518,10 +635,14 @@ const resolveDashboardCarePlansCard: ServiceDataSourceHandler = async (_request)
   const activeCarePlans = await carePlanService.getActiveCarePlansForTenant();
   const upcomingFollowUps = await carePlanService.getUpcomingFollowUpsForTenant();
 
-  // Get recent care plans (last 5 active)
-  const recentCarePlans = activeCarePlans.slice(0, 5).map((carePlan) => ({
+  // Fetch member names for recent care plans using the dashboard service (has tenant context)
+  const recentCarePlans = activeCarePlans.slice(0, 5);
+  const memberIds = [...new Set(recentCarePlans.map((cp) => cp.member_id).filter(Boolean))] as string[];
+  const memberMap = await buildMemberNameMap(memberIds);
+
+  const recentCarePlansWithNames = recentCarePlans.map((carePlan) => ({
     id: carePlan.id,
-    memberId: carePlan.member_id,
+    memberName: carePlan.member_id ? memberMap.get(carePlan.member_id) || 'Unknown member' : 'Unknown member',
     status: carePlan.status_label || carePlan.status_code || 'Unknown',
     priority: carePlan.priority || 'Medium',
     assignedTo: carePlan.assigned_to || 'Unassigned',
@@ -563,7 +684,7 @@ const resolveDashboardCarePlansCard: ServiceDataSourceHandler = async (_request)
         medium: mediumPriority,
         low: lowPriority,
       },
-      recentItems: recentCarePlans,
+      recentItems: recentCarePlansWithNames,
       viewAllUrl: '/admin/community/care-plans/list',
       addNewUrl: '/admin/community/care-plans/manage',
     },

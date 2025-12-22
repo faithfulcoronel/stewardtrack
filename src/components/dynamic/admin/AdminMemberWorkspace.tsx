@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -71,7 +73,24 @@ export interface WorkspaceFormSection extends WorkspaceSectionBase {
   helperText?: string | null;
 }
 
-export type WorkspaceSectionConfig = WorkspacePanelSection | WorkspaceFormSection;
+export interface WorkspaceListItem {
+  id: string;
+  label: string;
+  description?: string | null;
+  href?: string | null;
+  badge?: string | null;
+  badgeVariant?: "default" | "secondary" | "outline" | "destructive" | null;
+}
+
+export interface WorkspaceListSection extends WorkspaceSectionBase {
+  kind: "list";
+  items?: WorkspaceListItem[] | { items?: WorkspaceListItem[] } | null;
+  emptyMessage?: string | null;
+  viewAllHref?: string | null;
+  viewAllLabel?: string | null;
+}
+
+export type WorkspaceSectionConfig = WorkspacePanelSection | WorkspaceFormSection | WorkspaceListSection;
 
 export interface WorkspaceTabConfig {
   id: string;
@@ -193,7 +212,11 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
                       )}
                     </header>
                   )}
-                  <AdminDetailPanels panels={section.panels ?? []} columns={section.badge ? 3 : undefined} />
+                  {isListSection(section) ? (
+                    <WorkspaceListSectionRenderer section={section} />
+                  ) : isPanelSection(section) ? (
+                    <AdminDetailPanels panels={section.panels ?? []} columns={section.badge ? 3 : undefined} />
+                  ) : null}
                 </div>
               ))}
             </TabsContent>
@@ -772,13 +795,14 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
 
   const groupedTabs = React.useMemo(() => {
     return tabs.map((tab) => {
-      const panelSections = normalizeList<WorkspaceSectionConfig>(tab.sections).filter(
-        (section) => !isFormSection(section),
-      );
-      const editableSections = normalizeList<WorkspaceSectionConfig>(tab.sections).filter(isFormSection);
+      const allSections = normalizeList<WorkspaceSectionConfig>(tab.sections);
+      const panelSections = allSections.filter(isPanelSection);
+      const listSections = allSections.filter(isListSection);
+      const editableSections = allSections.filter(isFormSection);
       return {
         ...tab,
         panelSections,
+        listSections,
         editableSections: editableSections as WorkspaceFormSection[],
       };
     });
@@ -1009,6 +1033,37 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                   </div>
                 ))}
 
+                {tab.listSections.map((section) => (
+                  <div key={section.id ?? section.title ?? `${tab.id}-list`} className="space-y-4">
+                    {(section.title || section.summary) && (
+                      <header className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          {section.title && (
+                            <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                          )}
+                          {section.description && (
+                            <p className="text-sm text-muted-foreground">{section.description}</p>
+                          )}
+                        </div>
+                        {section.summary && (
+                          <Card className="border-border/60">
+                            <CardContent className="py-3">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                {section.summary.label}
+                              </div>
+                              <div className="text-base font-semibold text-foreground">{section.summary.value}</div>
+                              {section.summary.description && (
+                                <p className="mt-1 text-xs text-muted-foreground">{section.summary.description}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )}
+                      </header>
+                    )}
+                    <WorkspaceListSectionRenderer section={section} />
+                  </div>
+                ))}
+
                 {tab.editableSections.length > 0 && (
                   <Accordion type="multiple" className="space-y-4">
                     {tab.editableSections.map((section) => {
@@ -1185,6 +1240,67 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
 
 function isFormSection(section: WorkspaceSectionConfig): section is WorkspaceFormSection {
   return (section as WorkspaceFormSection).kind === "form";
+}
+
+function isListSection(section: WorkspaceSectionConfig): section is WorkspaceListSection {
+  return (section as WorkspaceListSection).kind === "list";
+}
+
+function isPanelSection(section: WorkspaceSectionConfig): section is WorkspacePanelSection {
+  return !isFormSection(section) && !isListSection(section);
+}
+
+function WorkspaceListSectionRenderer({ section }: { section: WorkspaceListSection }) {
+  const items = normalizeList<WorkspaceListItem>(section.items);
+
+  if (items.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center text-sm text-muted-foreground">
+          {section.emptyMessage ?? "No items to display."}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="divide-y divide-border rounded-md border">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span className="font-medium text-foreground">{item.label}</span>
+              )}
+              {item.description && (
+                <p className="mt-0.5 text-sm text-muted-foreground truncate">{item.description}</p>
+              )}
+            </div>
+            {item.badge && (
+              <Badge variant={item.badgeVariant ?? "secondary"}>{item.badge}</Badge>
+            )}
+          </div>
+        ))}
+      </div>
+      {section.viewAllHref && (
+        <div className="text-right">
+          <Link
+            href={section.viewAllHref}
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            {section.viewAllLabel ?? "View all"} →
+          </Link>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ensureQuickCreateAction(field: FormFieldConfig): FormFieldQuickCreateConfig | null {

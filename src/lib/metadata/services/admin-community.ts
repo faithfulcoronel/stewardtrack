@@ -167,7 +167,6 @@ type MemberManageRecord = {
 };
 
 type FormMembershipStageKey = 'active' | 'new' | 'care' | 'inactive';
-type CareStatusFormKey = 'active' | 'observation' | 'resolved';
 
 type MembersTableStaticConfig = {
   filters?: unknown;
@@ -285,6 +284,8 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
 }
 
 const MEMBERS_TABLE_HANDLER_ID = 'admin-community.members.list.membersTable';
+const MEMBERS_LIST_HERO_HANDLER_ID = 'admin-community.members.list.listHero';
+const MEMBERS_LIST_SEGMENTS_HANDLER_ID = 'admin-community.members.list.segmentHealth';
 const MEMBERS_PROFILE_HANDLER_ID = 'admin-community.members.profile.memberDirectory';
 const MEMBERS_MANAGE_HANDLER_ID = 'admin-community.members.manage.membershipRecords';
 const MEMBERS_LOOKUPS_HANDLER_ID = 'admin-community.members.manage.lookups';
@@ -479,34 +480,6 @@ function mapCenterKeyForForm(
     }
   }
   return null;
-}
-
-const CARE_STATUS_MAPPINGS: Array<{ target: CareStatusFormKey; patterns: RegExp[] }> = [
-  {
-    target: 'resolved',
-    patterns: [/resolved/, /closed/, /completed/, /inactive/, /released/, /graduated/],
-  },
-  {
-    target: 'active',
-    patterns: [/active/, /urgent/, /crisis/, /escalated/, /support/, /care/, /open/],
-  },
-  {
-    target: 'observation',
-    patterns: [/observation/, /monitor/, /follow\s*up/, /watch/, /pending/, /review/],
-  },
-];
-
-function mapCareStatusKey(code: string | undefined | null): CareStatusFormKey {
-  const normalized = normalizeCode(code);
-  if (!normalized) {
-    return 'observation';
-  }
-  for (const mapping of CARE_STATUS_MAPPINGS) {
-    if (mapping.patterns.some((pattern) => pattern.test(normalized))) {
-      return mapping.target;
-    }
-  }
-  return 'observation';
 }
 
 function cloneMemberRecords(value: unknown): MemberProfileRecord[] {
@@ -832,13 +805,6 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
           .filter((value): value is string => Boolean(value))
       )
     : [];
-  const careTeamList = Array.isArray(member.care_team)
-    ? ensureUnique(
-        member.care_team
-          .map((value) => (typeof value === 'string' ? value.trim() : ''))
-          .filter((value): value is string => Boolean(value))
-      )
-    : [];
   const leadershipRoles = Array.isArray(member.leadership_roles)
     ? ensureUnique(
         member.leadership_roles
@@ -851,10 +817,6 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
     ...groupTags,
     ...(discipleshipGroup ? [discipleshipGroup] : []),
   ]);
-  const rawCareStatus = (member.care_status_code ?? '').trim();
-  const careStatusKey = mapCareStatusKey(rawCareStatus);
-  const careStatusLabel = formatLabel(rawCareStatus || careStatusKey, 'Observation');
-  const followUpDate = formatIsoDate(member.care_follow_up_at ?? null);
   const joinDate = formatIsoDate(member.membership_date ?? null);
   const hasRecurringGiving =
     member.giving_recurring_amount !== null && member.giving_recurring_amount !== undefined
@@ -863,7 +825,6 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
           (member.giving_recurring_frequency ?? '').trim() ||
             (member.giving_recurring_method ?? '').trim()
         );
-  const carePastor = (member.care_pastor ?? '').trim();
   const notes = (member.pastoral_notes ?? '').trim();
   const photoUrl = member.profile_picture_url ?? null;
   const birthDate = formatIsoDate(member.birthday ?? null);
@@ -967,11 +928,6 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       prayerRequests: prayerRequestsList,
     },
     carePlan: {
-      status: careStatusLabel,
-      statusKey: careStatusKey,
-      assignedTo: carePastor || null,
-      followUpDate: followUpDate ?? '',
-      team: careTeamList,
       emergencyContact,
       prayerFocus: member.prayer_focus ?? null,
       prayerRequests: prayerRequestsList,
@@ -999,9 +955,6 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       centerKey: centerKey ?? null,
       joinDate: joinDate ?? '',
       preferredContact,
-      careStatus: careStatusKey,
-      carePastor,
-      followUpDate: followUpDate ?? '',
       servingTeam: member.serving_team ?? '',
       servingRole: member.serving_role ?? '',
       servingSchedule: member.serving_schedule ?? '',
@@ -1062,6 +1015,97 @@ function toMembersTableRow(member: MemberDirectoryRecord) {
     tags: [] as string[],
     phone: member.contact_number ?? '',
     email: member.email ?? '',
+  };
+}
+
+/**
+ * Resolve the list hero section with real metrics from the database
+ */
+async function resolveMembersListHero(
+  _request: ServiceDataSourceRequest
+): Promise<{
+  eyebrow: string;
+  headline: string;
+  description: string;
+  metrics: Array<{ label: string; value: string; caption: string }>;
+}> {
+  const service = createMembersDashboardService();
+  const metrics = await service.getMetrics();
+
+  // Format numbers with commas
+  const formatNumber = (num: number) => num.toLocaleString();
+
+  return {
+    eyebrow: 'Membership operations',
+    headline: 'A unified directory for discipleship, finances, and care',
+    description: 'Filter members by center, stage, and giving rhythm. Launch pastoral follow-ups or finance workflows from one table.',
+    metrics: [
+      {
+        label: 'Total members',
+        value: formatNumber(metrics.totalMembers),
+        caption: 'Active records in your directory.',
+      },
+      {
+        label: 'New this month',
+        value: formatNumber(metrics.newMembers),
+        caption: 'Recently added to the community.',
+      },
+      {
+        label: 'Visitors',
+        value: formatNumber(metrics.visitorCount),
+        caption: 'First-time guests and visitors.',
+      },
+    ],
+  };
+}
+
+/**
+ * Resolve the segment health cards with real data from the database
+ */
+async function resolveMembersListSegments(
+  _request: ServiceDataSourceRequest
+): Promise<{
+  items: Array<{
+    id: string;
+    label: string;
+    value: string;
+    change?: string;
+    changeLabel?: string;
+    trend: 'up' | 'down' | 'flat';
+    tone: 'positive' | 'neutral' | 'informative' | 'warning';
+    description: string;
+  }>;
+}> {
+  const service = createMembersDashboardService();
+  const metrics = await service.getMetrics();
+
+  return {
+    items: [
+      {
+        id: 'segment-visitors',
+        label: 'Visitors to follow up',
+        value: String(metrics.visitorCount),
+        trend: 'flat',
+        tone: 'informative',
+        description: 'First-time guests awaiting welcome outreach.',
+      },
+      {
+        id: 'segment-new',
+        label: 'New members this month',
+        value: String(metrics.newMembers),
+        trend: metrics.newMembers > 0 ? 'up' : 'flat',
+        tone: metrics.newMembers > 0 ? 'positive' : 'neutral',
+        description: 'Recently joined and in assimilation pipeline.',
+      },
+      {
+        id: 'segment-households',
+        label: 'Households',
+        value: String(metrics.familyCount),
+        trend: 'flat',
+        tone: 'neutral',
+        description: 'Family units connected to the community.',
+      },
+    ],
   };
 }
 
@@ -1198,9 +1242,9 @@ function buildGiving(profile: MemberGivingProfileRow | null, member: MemberRow) 
 }
 
 function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
-  const statusCode = carePlan?.status_code ?? member.care_status_code ?? null;
+  const statusCode = carePlan?.status_code ?? null;
   const statusLabel = carePlan?.status_label ?? formatLabel(statusCode, 'Healthy');
-  const followUp = carePlan?.follow_up_at ?? member.care_follow_up_at ?? null;
+  const followUp = carePlan?.follow_up_at ?? null;
   const followUpText = formatFullDate(followUp);
   const details = (carePlan?.details ?? '').trim();
   const appended = followUpText
@@ -1222,7 +1266,7 @@ function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
   return {
     status: statusLabel,
     statusVariant: mapCareStatusVariant(statusCode),
-    assignedTo: carePlan?.assigned_to ?? member.care_pastor ?? null,
+    assignedTo: carePlan?.assigned_to ?? null,
     details: appended || 'No active care tasks.',
     followUpDate: followUpText,
     emergencyContact,
@@ -1498,6 +1542,8 @@ async function resolveMembershipManage(
 
 export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = {
   [MEMBERS_TABLE_HANDLER_ID]: resolveMembersTable,
+  [MEMBERS_LIST_HERO_HANDLER_ID]: resolveMembersListHero,
+  [MEMBERS_LIST_SEGMENTS_HANDLER_ID]: resolveMembersListSegments,
   [MEMBERS_PROFILE_HANDLER_ID]: resolveMemberProfile,
   [MEMBERS_LOOKUPS_HANDLER_ID]: resolveMembershipLookups,
   [MEMBERS_MANAGE_HANDLER_ID]: resolveMembershipManage,

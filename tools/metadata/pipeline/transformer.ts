@@ -325,18 +325,76 @@ export class CanonicalTransformer {
   }
 
   private normalizeAction(action: XmlElement): CanonicalAction {
+    const rawKind = String(action['@_kind'] ?? '');
     const node: CanonicalAction = {
       id: String(action['@_id'] ?? ''),
-      kind: String(action['@_kind'] ?? ''),
+      kind: this.normalizeActionKind(rawKind),
       operation: parseOperation(action['@_operation']),
     };
     if (isRecord(action.RBAC)) {
       node.rbac = this.normalizeRBAC(action.RBAC as XmlElement);
     }
     if (isRecord(action.Config)) {
-      node.config = this.normalizeConfig(action.Config as XmlElement);
+      node.config = this.normalizeActionConfig(action.Config as XmlElement);
     }
     return node;
+  }
+
+  /**
+   * Normalize action kind to canonical runtime format.
+   * XML authors may use shorthand 'service' which maps to 'metadata.service'.
+   */
+  private normalizeActionKind(kind: string): string {
+    const kindMap: Record<string, string> = {
+      'service': 'metadata.service',
+      'metadata.service': 'metadata.service',
+      'link': 'link',
+      'modal': 'modal',
+      'navigate': 'navigate',
+    };
+    return kindMap[kind] ?? kind;
+  }
+
+  /**
+   * Normalize action config keys to camelCase for runtime consistency.
+   * XML uses PascalCase (Handler, OnSuccess) but runtime expects camelCase (handler, onSuccess).
+   */
+  private normalizeActionConfig(node: XmlElement): Record<string, unknown> {
+    const config = this.normalizeConfig(node);
+    return this.normalizeConfigKeys(config);
+  }
+
+  /**
+   * Recursively normalize config object keys to camelCase.
+   */
+  private normalizeConfigKeys(obj: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const normalizedKey = this.toCamelCase(key);
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[normalizedKey] = this.normalizeConfigKeys(value as Record<string, unknown>);
+      } else if (Array.isArray(value)) {
+        result[normalizedKey] = value.map(item =>
+          item && typeof item === 'object' && !Array.isArray(item)
+            ? this.normalizeConfigKeys(item as Record<string, unknown>)
+            : item
+        );
+      } else {
+        result[normalizedKey] = value;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Convert PascalCase or other formats to camelCase.
+   */
+  private toCamelCase(str: string): string {
+    if (!str || str.length === 0) return str;
+    // If already camelCase or lowercase, return as-is
+    if (str[0] === str[0].toLowerCase()) return str;
+    // Convert first character to lowercase
+    return str[0].toLowerCase() + str.slice(1);
   }
 
   private normalizeContract(contract: XmlElement): CanonicalDataContract {

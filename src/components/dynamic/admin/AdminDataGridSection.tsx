@@ -458,11 +458,13 @@ function FilterInput({
             <SelectValue placeholder={filter.placeholder ?? "Choose"} />
           </SelectTrigger>
           <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
+            {options
+              .filter((option) => option.value !== '')
+              .map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>

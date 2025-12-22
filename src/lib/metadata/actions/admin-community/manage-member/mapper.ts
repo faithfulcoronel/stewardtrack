@@ -131,18 +131,6 @@ export class MemberFormMapper {
       payload.giving_recurring_method = this.cleanString(values.recurringMethod) ?? null;
     }
 
-    if (this.hasField(values, "careStatus")) {
-      payload.care_status_code = this.cleanString(values.careStatus)?.toLowerCase() ?? null;
-    }
-
-    if (this.hasField(values, "carePastor")) {
-      payload.care_pastor = this.cleanString(values.carePastor) ?? null;
-    }
-
-    if (this.hasField(values, "followUpDate")) {
-      payload.care_follow_up_at = this.toDateString(values.followUpDate) ?? null;
-    }
-
     if (this.hasField(values, "servingTeam")) {
       payload.serving_team = this.cleanString(values.servingTeam) ?? null;
     }
@@ -183,7 +171,7 @@ export class MemberFormMapper {
     }
 
     if (this.hasField(values, "phone")) {
-      payload.contact_number = this.cleanString(values.phone) ?? null;
+      payload.contact_number = this.cleanString(values.phone) ?? undefined;
     }
 
     if (this.hasField(values, "birthdate")) {
@@ -252,12 +240,6 @@ export class MemberFormMapper {
       payload.prayer_requests = this.toTags(values.prayerRequests);
     } else if (!isEditMode) {
       payload.prayer_requests = [];
-    }
-
-    if (this.hasField(values, "careTeam")) {
-      payload.care_team = this.toTags(values.careTeam);
-    } else if (!isEditMode) {
-      payload.care_team = [];
     }
 
     if (this.hasField(values, "emergencyContact")) {
@@ -397,9 +379,9 @@ export class MemberFormMapper {
       householdPayload.address_state = addressState;
       householdPayload.address_postal_code = addressPostal;
       householdPayload.member_names = householdMembers;
-      payload.household = householdPayload;
+      payload.household = householdPayload as MemberHousehold;
     } else if (hasHouseholdIdField && householdId === null) {
-      payload.household = { id: null } satisfies Partial<MemberHousehold>;
+      payload.household = null;
     }
 
     // Ensure required fields have valid defaults for new members
@@ -555,10 +537,10 @@ export class MemberFormMapper {
       .filter((item) => item.length > 0);
   }
 
-  private toMaritalStatus(value: unknown): Member['marital_status'] | null {
+  private toMaritalStatus(value: unknown): Member['marital_status'] | undefined {
     const normalized = this.cleanString(value)?.toLowerCase();
     if (!normalized) {
-      return null;
+      return undefined;
     }
     if (normalized === 'engaged' || normalized === 'engagement') {
       return 'engaged';
@@ -566,7 +548,7 @@ export class MemberFormMapper {
     if (normalized === 'single' || normalized === 'married' || normalized === 'widowed' || normalized === 'divorced') {
       return normalized as Member['marital_status'];
     }
-    return null;
+    return undefined;
   }
 
   private findStageId(stages: MemberManageResources["stages"], stageValue: string | null): string | null {

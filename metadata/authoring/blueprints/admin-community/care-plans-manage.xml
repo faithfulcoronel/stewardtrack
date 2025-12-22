@@ -22,7 +22,7 @@
             <Prop name="submitLabel" kind="binding" contract="carePlanForm.submitLabel"/>
             <Prop name="initialValues" kind="binding" contract="carePlanForm.initialValues"/>
             <Prop name="contextParams" kind="binding" contract="carePlanForm.contextParams"/>
-            <Prop name="onSubmit" kind="action" actionId="save-care-plan"/>
+            <Prop name="submitAction" kind="action" actionId="save-care-plan"/>
           </Props>
         </Component>
       </Region>

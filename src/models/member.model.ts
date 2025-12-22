@@ -42,10 +42,6 @@ export interface Member extends BaseModel {
   prayer_requests?: string[] | null;
   prayer_focus?: string | null;
   preferred_contact_method?: PreferredContactMethod | null;
-  care_status_code?: string | null;
-  care_pastor?: string | null;
-  care_follow_up_at?: string | null;
-  care_team?: string[] | null;
   serving_team?: string | null;
   serving_role?: string | null;
   serving_schedule?: string | null;

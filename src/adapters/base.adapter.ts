@@ -404,9 +404,15 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
-      if (!tenantId && !isSuperAdmin) {
+      // Check if data already has tenant_id (e.g., from service handler)
+      const dataTenantId = (data as any).tenant_id;
+
+      if (!tenantId && !dataTenantId && !isSuperAdmin) {
         throw new TenantContextError('No tenant context found');
       }
+
+      // Use context tenantId or fall back to data tenantId
+      const effectiveTenantId = tenantId ?? dataTenantId;
 
       // Run pre-update hook
       let processedData = await this.onBeforeUpdate(id, data);
@@ -419,7 +425,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Update record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
-      const hasTenantContext = tenantId !== undefined && tenantId !== null;
+      const hasTenantContext = effectiveTenantId !== undefined && effectiveTenantId !== null;
 
       let updateQuery = supabase
         .from(this.tableName)
@@ -431,7 +437,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
         .eq('id', id);
 
       if (hasTenantContext) {
-        updateQuery = updateQuery.eq('tenant_id', tenantId);
+        updateQuery = updateQuery.eq('tenant_id', effectiveTenantId);
       }
 
       const { data: updated, error: updateError } = await updateQuery

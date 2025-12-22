@@ -90,10 +90,6 @@ export class MemberAdapter
     prayer_requests,
     prayer_focus,
     preferred_contact_method,
-    care_status_code,
-    care_pastor,
-    care_follow_up_at,
-    care_team,
     serving_team,
     serving_role,
     serving_schedule,
@@ -483,8 +479,6 @@ export class MemberAdapter
       'primary_small_group',
       'pastoral_notes',
       'prayer_focus',
-      'care_status_code',
-      'care_pastor',
       'serving_team',
       'serving_role',
       'serving_schedule',
@@ -510,11 +504,6 @@ export class MemberAdapter
       }
     }
 
-    if (payload.care_status_code !== undefined) {
-      const status = this.cleanOptionalString(payload.care_status_code);
-      payload.care_status_code = status ? status.toLowerCase() : null;
-    }
-
     const arrayFields: Array<keyof Member> = [
       'spiritual_gifts',
       'ministry_interests',
@@ -522,7 +511,6 @@ export class MemberAdapter
       'ministries',
       'volunteer_roles',
       'discipleship_pathways',
-      'care_team',
       'leadership_roles',
       'prayer_requests',
       'tags'
@@ -555,7 +543,6 @@ export class MemberAdapter
       'membership_date',
       'birthday',
       'baptism_date',
-      'care_follow_up_at',
       'last_attendance_date',
       'giving_last_gift_at',
       'anniversary',

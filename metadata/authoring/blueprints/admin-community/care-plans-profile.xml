@@ -49,7 +49,7 @@
       <Action id="edit-care-plan" kind="link">
         <Config>
           <Label>Edit care plan</Label>
-          <Url>/admin/community/care-plans/manage?carePlanId={{carePlanId}}</Url>
+          <Url>/admin/community/care-plans/manage?carePlanId={{params.carePlanId}}</Url>
         </Config>
       </Action>
       <Action id="back-to-list" kind="link">
