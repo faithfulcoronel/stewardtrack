@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useRef } from "react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,13 +21,7 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
   const initials = name ? name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() : "U";
   const { mode, setMode, resolvedMode } = useTheme();
   const isDark = mode === "dark" || (mode === "system" && resolvedMode === "dark");
-  const [isPending, startTransition] = useTransition();
-
-  const handleLogout = () => {
-    startTransition(async () => {
-      await logoutAction();
-    });
-  };
+  const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <DropdownMenu>
@@ -100,19 +94,15 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
             {isDark ? "Light Mode" : "Dark Mode"}
           </span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="px-4 py-2 text-sm text-destructive focus:text-destructive"
-          onSelect={(event) => {
-            event.preventDefault();
-            if (!isPending) {
-              handleLogout();
-            }
-          }}
-          disabled={isPending}
-        >
-          <span className="flex w-full items-center gap-2">
-            <LogOut className="size-4" /> Logout
-          </span>
+        <DropdownMenuItem asChild className="p-0">
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-destructive hover:text-destructive"
+            >
+              <LogOut className="size-4" /> Logout
+            </button>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

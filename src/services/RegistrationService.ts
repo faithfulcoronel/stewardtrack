@@ -5,8 +5,10 @@ import type { IAuthRepository } from '@/repositories/auth.repository';
 import type { ITenantRepository } from '@/repositories/tenant.repository';
 import type { LicensingService } from '@/services/LicensingService';
 import type { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
+import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
+import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
 
 // Re-export types for convenience
 export type { PublicProductOffering } from '@/repositories/tenant.repository';
@@ -47,6 +49,7 @@ export interface RegistrationError {
  * 7. Seeds default RBAC roles
  * 8. Assigns tenant admin role
  * 9. Deploys permissions from licensed features
+ * 10. Executes feature onboarding plugins (seeds preset data)
  *
  * Handles rollback/cleanup on errors.
  */
@@ -57,8 +60,12 @@ export class RegistrationService {
     @inject(TYPES.ITenantRepository) private tenantRepository: ITenantRepository,
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
     @inject(TYPES.PermissionDeploymentService) private permissionDeploymentService: PermissionDeploymentService,
-    @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager
-  ) {}
+    @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager,
+    @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService
+  ) {
+    // Initialize feature onboarding plugins on first use
+    initializeFeaturePlugins();
+  }
 
   /**
    * Validate registration data
@@ -229,7 +236,38 @@ export class RegistrationService {
         // Non-fatal - tenant still created successfully
       }
 
-      // ===== STEP 12: Return success =====
+      // ===== STEP 12: Execute feature onboarding plugins =====
+      // Each licensed feature can register a plugin to seed preset data
+      // (e.g., membership types, stages, financial categories, etc.)
+      try {
+        const onboardingSummary = await this.featureOnboardingOrchestrator.executePlugins({
+          tenantId,
+          userId,
+          subscriptionTier: offering.tier,
+          offeringId,
+        });
+
+        console.log(`Feature onboarding for tenant ${tenantId}:`, {
+          pluginsExecuted: onboardingSummary.totalPluginsExecuted,
+          successful: onboardingSummary.successfulPlugins,
+          failed: onboardingSummary.failedPlugins,
+          recordsCreated: onboardingSummary.totalRecordsCreated,
+          skipped: onboardingSummary.skippedPlugins,
+        });
+
+        if (onboardingSummary.failedPlugins > 0) {
+          console.warn('Feature onboarding plugin errors:',
+            onboardingSummary.results
+              .filter(r => !r.result.success)
+              .map(r => ({ feature: r.featureCode, error: r.result.message }))
+          );
+        }
+      } catch (error) {
+        console.error('Failed to execute feature onboarding plugins:', error);
+        // Non-fatal - tenant still created successfully
+      }
+
+      // ===== STEP 13: Return success =====
       return {
         success: true,
         userId,

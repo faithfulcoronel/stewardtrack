@@ -31,6 +31,10 @@ import { MemberHouseholdService } from '@/services/MemberHouseholdService';
 import { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
 import { RolePermissionService } from '@/services/RolePermissionService';
+import { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
+
+// Feature Onboarding Plugins
+import { MembershipOnboardingPlugin } from '@/lib/onboarding/plugins/features/MembershipOnboardingPlugin';
 
 // Phase 5 Optimization & Monitoring Adapters
 import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
@@ -65,6 +69,8 @@ import { MembersDashboardAdapter, type IMembersDashboardAdapter } from '@/adapte
 import { UserAdapter } from '@/adapters/user.adapter';
 import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapters/memberInvitation.adapter';
 import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/adapters/onboardingProgress.adapter';
+import { MembershipTypeAdapter, type IMembershipTypeAdapter } from '@/adapters/membershipType.adapter';
+import { MembershipStageAdapter, type IMembershipStageAdapter } from '@/adapters/membershipStage.adapter';
 
 // Repositories
 import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
@@ -74,6 +80,8 @@ import { MembersDashboardRepository, type IMembersDashboardRepository } from '@/
 import { AuthRepository } from '@/repositories/auth.repository';
 import { TenantRepository } from '@/repositories/tenant.repository';
 import { OnboardingProgressRepository, type IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
+import { MembershipTypeRepository, type IMembershipTypeRepository } from '@/repositories/membershipType.repository';
+import { MembershipStageRepository, type IMembershipStageRepository } from '@/repositories/membershipStage.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
 import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -482,5 +490,15 @@ container.bind<UserMemberLinkRepository>(TYPES.UserMemberLinkRepository).to(User
 // ==================== ONBOARDING PROGRESS ====================
 container.bind<IOnboardingProgressAdapter>(TYPES.IOnboardingProgressAdapter).to(OnboardingProgressAdapter).inRequestScope();
 container.bind<IOnboardingProgressRepository>(TYPES.IOnboardingProgressRepository).to(OnboardingProgressRepository).inRequestScope();
+
+// ==================== MEMBERSHIP TYPE & STAGE ====================
+container.bind<IMembershipTypeAdapter>(TYPES.IMembershipTypeAdapter).to(MembershipTypeAdapter).inRequestScope();
+container.bind<IMembershipTypeRepository>(TYPES.IMembershipTypeRepository).to(MembershipTypeRepository).inRequestScope();
+container.bind<IMembershipStageAdapter>(TYPES.IMembershipStageAdapter).to(MembershipStageAdapter).inRequestScope();
+container.bind<IMembershipStageRepository>(TYPES.IMembershipStageRepository).to(MembershipStageRepository).inRequestScope();
+
+// ==================== FEATURE ONBOARDING ====================
+container.bind<FeatureOnboardingOrchestratorService>(TYPES.FeatureOnboardingOrchestratorService).to(FeatureOnboardingOrchestratorService).inRequestScope();
+container.bind<MembershipOnboardingPlugin>(TYPES.MembershipOnboardingPlugin).to(MembershipOnboardingPlugin).inRequestScope();
 
 export { container };

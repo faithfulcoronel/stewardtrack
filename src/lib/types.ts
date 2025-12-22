@@ -208,6 +208,10 @@ export const TYPES = {
   UserMemberLinkService: Symbol.for('UserMemberLinkService'),
   UserMemberLinkRepository: Symbol.for('UserMemberLinkRepository'),
   MemberInvitationRepository: Symbol.for('MemberInvitationRepository'),
+
+  // Feature Onboarding Services & Plugins
+  FeatureOnboardingOrchestratorService: Symbol.for('FeatureOnboardingOrchestratorService'),
+  MembershipOnboardingPlugin: Symbol.for('MembershipOnboardingPlugin'),
 } as const;
 
 export type TypeBindings = typeof TYPES;
