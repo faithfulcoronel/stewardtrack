@@ -13,6 +13,7 @@ import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
 import type { FilterCondition, QueryOptions } from '@/lib/repository/query';
 import type { RequestContext } from '@/lib/server/context';
 import { handleError, TenantContextError } from '@/utils/errorHandler';
+import { tenantUtils } from '@/utils/tenantUtils';
 import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
 
 @injectable()
@@ -50,6 +51,60 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
    */
   protected async isSuperAdmin(): Promise<boolean> {
     return isCachedSuperAdmin();
+  }
+
+  /**
+   * Get tenant ID with fallback to TenantService.
+   *
+   * TENANT CONTEXT PATTERN:
+   * This method provides a consistent way to resolve tenant context across all adapters.
+   * It follows a two-tier resolution strategy:
+   *
+   * 1. First check `this.context?.tenantId` - set explicitly via:
+   *    - DI container injection (optional, not always available)
+   *    - Direct context assignment via `applyRequestContext()` in metadata services
+   *
+   * 2. Fallback to `tenantUtils.getTenantId()` - resolves via TenantService
+   *    which queries `tenant_users` table based on authenticated user
+   *
+   * USAGE IN ADAPTERS:
+   * All adapters extending BaseAdapter should use this method instead of
+   * implementing their own `getTenantId()` method:
+   *
+   * ```typescript
+   * async getAll(): Promise<MyModel[]> {
+   *   const tenantId = await this.ensureTenantContext();
+   *   // ... use tenantId in query
+   * }
+   * ```
+   *
+   * FOR METADATA SERVICES:
+   * When creating adapters outside of DI (e.g., in metadata service handlers),
+   * use the `applyRequestContext()` pattern to set context before calling methods:
+   *
+   * ```typescript
+   * const adapter = new MyAdapter(auditService);
+   * (adapter as any).context = { tenantId: resolvedTenantId };
+   * // Now adapter methods will use the explicit context
+   * ```
+   *
+   * @returns The tenant ID (throws TenantContextError if not available)
+   * @throws TenantContextError if no tenant context can be resolved
+   */
+  protected async ensureTenantContext(): Promise<string> {
+    // 1. Check explicit context (set via DI or applyRequestContext)
+    if (this.context?.tenantId) {
+      return this.context.tenantId;
+    }
+
+    // 2. Fallback to TenantService resolution
+    const fallbackTenantId = await tenantUtils.getTenantId();
+    if (fallbackTenantId) {
+      return fallbackTenantId;
+    }
+
+    // 3. No tenant context available
+    throw new TenantContextError('No tenant context available');
   }
 
   protected async attachUserNames<U extends { created_by?: string | null; updated_by?: string | null }>(
@@ -225,13 +280,12 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     options: QueryOptions = {}
   ): Promise<{ query: any }> {
     try {
-      const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
-      if (!tenantId && !isSuperAdmin) {
-        console.log("TenantId is " + tenantId);
-        console.log("IsSuperAdmin is " + isSuperAdmin);
-        throw new TenantContextError('No tenant context found');
+      // Use ensureTenantContext() with fallback for non-superadmin users
+      let tenantId: string | null = null;
+      if (!isSuperAdmin) {
+        tenantId = await this.ensureTenantContext();
       }
 
       const relationships = options.relationships || this.defaultRelationships || [];
@@ -332,19 +386,22 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     fieldsToRemove: string[] = []
   ): Promise<T> {
     try {
-      const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
       // Check if data already has tenant_id (e.g., during registration)
       const dataTenantId = (data as any).tenant_id;
 
-      if (!tenantId && !dataTenantId && !isSuperAdmin) {
-        throw new TenantContextError('No tenant context found');
+      // Use ensureTenantContext() for proper fallback, unless data already has tenant_id or is super admin
+      let tenantId: string | null = null;
+      if (!dataTenantId && !isSuperAdmin) {
+        tenantId = await this.ensureTenantContext();
+      } else if (dataTenantId) {
+        tenantId = dataTenantId;
       }
 
       // Run pre-create hook
       let processedData = await this.onBeforeCreate(data);
-      
+
       // Remove specified fields
       if (fieldsToRemove) {
         processedData = this.sanitizeData(processedData, fieldsToRemove);
@@ -353,7 +410,6 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Create record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
-      const hasTenantContext = tenantId !== undefined && tenantId !== null;
       const record: Record<string, unknown> = {
         ...processedData,
         created_by: userId,
@@ -362,7 +418,8 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
         updated_at: new Date().toISOString(),
       };
 
-      if (hasTenantContext) {
+      // Always set tenant_id if available (for RLS policy compliance)
+      if (tenantId) {
         record.tenant_id = tenantId;
       }
 
@@ -401,18 +458,18 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
     fieldsToRemove: string[] = []
   ): Promise<T> {
     try {
-      const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
       // Check if data already has tenant_id (e.g., from service handler)
       const dataTenantId = (data as any).tenant_id;
 
-      if (!tenantId && !dataTenantId && !isSuperAdmin) {
-        throw new TenantContextError('No tenant context found');
+      // Use ensureTenantContext() for proper fallback, unless data already has tenant_id or is super admin
+      let effectiveTenantId: string | null = null;
+      if (!dataTenantId && !isSuperAdmin) {
+        effectiveTenantId = await this.ensureTenantContext();
+      } else if (dataTenantId) {
+        effectiveTenantId = dataTenantId;
       }
-
-      // Use context tenantId or fall back to data tenantId
-      const effectiveTenantId = tenantId ?? dataTenantId;
 
       // Run pre-update hook
       let processedData = await this.onBeforeUpdate(id, data);
@@ -469,11 +526,12 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
 
   public async delete(id: string): Promise<void> {
     try {
-      const tenantId = this.context?.tenantId;
       const isSuperAdmin = await this.isSuperAdmin();
 
-      if (!tenantId && !isSuperAdmin) {
-        throw new TenantContextError('No tenant context found');
+      // Use ensureTenantContext() for proper fallback, unless super admin
+      let tenantId: string | null = null;
+      if (!isSuperAdmin) {
+        tenantId = await this.ensureTenantContext();
       }
 
       // Run pre-delete hook
@@ -482,7 +540,6 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
       // Soft delete the record
       const userId = await this.getUserId();
       const supabase = await this.getSupabaseClient();
-      const hasTenantContext = tenantId !== undefined && tenantId !== null;
 
       let deleteQuery = supabase
         .from(this.tableName)
@@ -492,7 +549,7 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
         })
         .eq('id', id);
 
-      if (hasTenantContext) {
+      if (tenantId) {
         deleteQuery = deleteQuery.eq('tenant_id', tenantId);
       }
 

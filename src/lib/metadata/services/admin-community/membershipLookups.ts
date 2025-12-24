@@ -8,6 +8,9 @@ import { MembershipTypeService } from '@/services/MembershipTypeService';
 import { MembershipCenterAdapter } from '@/adapters/membershipCenter.adapter';
 import { MembershipCenterRepository } from '@/repositories/membershipCenter.repository';
 import { MembershipCenterService } from '@/services/MembershipCenterService';
+import { DiscipleshipPathwayAdapter } from '@/adapters/discipleshipPathway.adapter';
+import { DiscipleshipPathwayRepository } from '@/repositories/discipleshipPathway.repository';
+import { DiscipleshipPathwayService } from '@/services/DiscipleshipPathwayService';
 import type { ServiceDataSourceRequest } from '../types';
 import type { RequestContext } from '@/lib/server/context';
 import type { BaseAdapter } from '@/adapters/base.adapter';
@@ -15,32 +18,34 @@ import { tenantUtils } from '@/utils/tenantUtils';
 import type { MembershipStage } from '@/models/membershipStage.model';
 import type { MembershipType } from '@/models/membershipType.model';
 import type { MembershipCenter } from '@/models/membershipCenter.model';
+import type { DiscipleshipPathway } from '@/models/discipleshipPathway.model';
 import type { FormFieldOption } from '@/components/dynamic/admin/types';
 
 export type LookupItem = { id: string; value: string };
 export type LookupGroups = Record<string, LookupItem[]>;
 
-type LookupRecord = { id?: string | null; name?: string | null; code?: string | null } & Record<string, unknown>;
+type LookupRecord = { id?: string | null; name?: string | null; code?: string | null };
 
 type StageRecord = Pick<MembershipStage, 'id' | 'name' | 'code' | 'sort_order'>;
 type TypeRecord = Pick<MembershipType, 'id' | 'name' | 'code' | 'sort_order'>;
 type CenterRecord = Pick<MembershipCenter, 'id' | 'name' | 'code' | 'sort_order' | 'is_primary'>;
+type PathwayRecord = Pick<DiscipleshipPathway, 'id' | 'name' | 'code' | 'display_order' | 'is_active'>;
 
-export interface LookupServiceInstance<TRecord extends LookupRecord = LookupRecord> {
+export interface LookupServiceInstance<TRecord = unknown> {
   getActive: () => Promise<TRecord[]>;
-  create: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  create: (data: Partial<TRecord>) => Promise<TRecord>;
 }
 
-type LookupServiceFactory<TRecord extends LookupRecord = LookupRecord> = (
+type LookupServiceFactory = (
   context: RequestContext,
   auditService: SupabaseAuditService,
-) => LookupServiceInstance<TRecord>;
+) => LookupServiceInstance;
 
-interface MembershipLookupDefinition<TRecord extends LookupRecord = LookupRecord> {
+interface MembershipLookupDefinition {
   id: string;
   fallbackLabel: string;
-  createService: LookupServiceFactory<TRecord>;
-  sortRecords?: (records: TRecord[]) => TRecord[];
+  createService: LookupServiceFactory;
+  sortRecords?: (records: unknown[]) => unknown[];
 }
 
 export function formatLabel(value: string | undefined | null, fallback: string): string {
@@ -99,7 +104,7 @@ export function createMembershipStageService(
   const adapter = new MembershipStageAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipStageRepository(adapter);
-  return new MembershipStageService(repository);
+  return new MembershipStageService(repository) as LookupServiceInstance<StageRecord>;
 }
 
 export function createMembershipTypeService(
@@ -109,7 +114,7 @@ export function createMembershipTypeService(
   const adapter = new MembershipTypeAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipTypeRepository(adapter);
-  return new MembershipTypeService(repository);
+  return new MembershipTypeService(repository) as LookupServiceInstance<TypeRecord>;
 }
 
 export function createMembershipCenterService(
@@ -119,7 +124,17 @@ export function createMembershipCenterService(
   const adapter = new MembershipCenterAdapter(auditService);
   applyRequestContext(adapter, context);
   const repository = new MembershipCenterRepository(adapter);
-  return new MembershipCenterService(repository);
+  return new MembershipCenterService(repository) as LookupServiceInstance<CenterRecord>;
+}
+
+export function createDiscipleshipPathwayService(
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+): LookupServiceInstance<PathwayRecord> {
+  const adapter = new DiscipleshipPathwayAdapter(auditService);
+  applyRequestContext(adapter, context);
+  const repository = new DiscipleshipPathwayRepository(adapter);
+  return new DiscipleshipPathwayService(repository) as LookupServiceInstance<PathwayRecord>;
 }
 
 function sortCenters(records: CenterRecord[]): CenterRecord[] {
@@ -157,7 +172,12 @@ const membershipLookupDefinitions: Record<string, MembershipLookupDefinition> = 
     id: 'membership.center',
     fallbackLabel: 'Center',
     createService: createMembershipCenterService,
-    sortRecords: sortCenters,
+    sortRecords: (records) => sortCenters(records as CenterRecord[]),
+  },
+  'discipleship_pathway': {
+    id: 'discipleship_pathway',
+    fallbackLabel: 'Discipleship pathway',
+    createService: createDiscipleshipPathwayService,
   },
 };
 
@@ -204,7 +224,7 @@ export async function fetchMembershipLookupGroups(
     entries.map(async (definition) => {
       const service = definition.createService(context, auditService);
       const records = (await service.getActive()) as LookupRecord[];
-      const sorted = definition.sortRecords ? definition.sortRecords(records as any) : records;
+      const sorted = definition.sortRecords ? definition.sortRecords(records) as LookupRecord[] : records;
       results[definition.id] = mapLookupRows(sorted, definition.fallbackLabel);
     }),
   );

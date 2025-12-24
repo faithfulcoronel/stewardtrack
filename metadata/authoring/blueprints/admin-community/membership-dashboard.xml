@@ -44,6 +44,17 @@
             <Prop name="addNewUrl" kind="binding" contract="carePlansCard.addNewUrl"/>
           </Props>
         </Component>
+        <Component id="discipleship-plans-card" type="AdminDiscipleshipPlansCard">
+          <Props>
+            <Prop name="title" kind="binding" contract="discipleshipPlansCard.title"/>
+            <Prop name="description" kind="binding" contract="discipleshipPlansCard.description"/>
+            <Prop name="metrics" kind="binding" contract="discipleshipPlansCard.metrics"/>
+            <Prop name="pathwayBreakdown" kind="binding" contract="discipleshipPlansCard.pathwayBreakdown"/>
+            <Prop name="recentItems" kind="binding" contract="discipleshipPlansCard.recentItems"/>
+            <Prop name="viewAllUrl" kind="binding" contract="discipleshipPlansCard.viewAllUrl"/>
+            <Prop name="addNewUrl" kind="binding" contract="discipleshipPlansCard.addNewUrl"/>
+          </Props>
+        </Component>
         <Component id="giving-trend" type="AdminGivingChart">
           <Props>
             <Prop name="title" kind="static">Covenant giving momentum</Prop>
@@ -121,6 +132,20 @@
         </Contract>
         <Config>
           <Handler>admin-community.dashboard.careplans</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="discipleshipPlansCard" kind="service">
+        <Contract>
+          <Field name="title" path="discipleshipPlansCard.title" description="Card title"/>
+          <Field name="description" path="discipleshipPlansCard.description" description="Card description"/>
+          <Field name="metrics" path="discipleshipPlansCard.metrics" description="Discipleship plan metrics"/>
+          <Field name="pathwayBreakdown" path="discipleshipPlansCard.pathwayBreakdown" description="Pathway breakdown"/>
+          <Field name="recentItems" path="discipleshipPlansCard.recentItems" description="Recent discipleship plan items"/>
+          <Field name="viewAllUrl" path="discipleshipPlansCard.viewAllUrl" description="View all URL"/>
+          <Field name="addNewUrl" path="discipleshipPlansCard.addNewUrl" description="Add new URL"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.discipleship</Handler>
         </Config>
       </DataSource>
     </DataSources>

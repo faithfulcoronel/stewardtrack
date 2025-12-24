@@ -25,6 +25,7 @@ export interface FormFieldConfig {
     | "date"
     | "select"
     | "textarea"
+    | "richtext"
     | "currency"
     | "number"
     | "toggle"

@@ -4,6 +4,8 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IMembershipTypeRepository } from '@/repositories/membershipType.repository';
 import type { IMembershipStageRepository } from '@/repositories/membershipStage.repository';
+import type { IDiscipleshipPathwayRepository } from '@/repositories/discipleshipPathway.repository';
+import { DEFAULT_DISCIPLESHIP_PATHWAYS } from '@/models/discipleshipPathway.model';
 import { BaseFeatureOnboardingPlugin } from '../BaseFeatureOnboardingPlugin';
 import type { FeatureOnboardingContext, FeatureOnboardingResult } from '../types';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -91,14 +93,15 @@ const DEFAULT_MEMBERSHIP_STAGES = [
 /**
  * MembershipOnboardingPlugin
  *
- * Seeds default membership types and stages when a tenant registers
- * with the member-management feature licensed.
+ * Seeds default membership types, stages, and discipleship pathways when a tenant
+ * registers with the member-management feature licensed.
  *
  * Feature code: 'member-management' (maps to feature_catalog.code)
  *
  * This plugin creates:
  * - Default membership types (Member, Regular Attendee, Visitor, etc.)
  * - Default membership stages (First Time Guest, Connected, Growing, etc.)
+ * - Default discipleship pathways (Growth Track, Leadership, Foundations, etc.)
  *
  * All records are marked as is_system=true so users know they are defaults
  * but can still be modified or deactivated.
@@ -107,7 +110,7 @@ const DEFAULT_MEMBERSHIP_STAGES = [
 export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   readonly featureCode = 'member-management';
   readonly name = 'Member Management Feature';
-  readonly description = 'Seeds default membership types and stages for new tenants';
+  readonly description = 'Seeds default membership types, stages, and discipleship pathways for new tenants';
   readonly priority = 10; // Run early since other features may depend on membership
 
   constructor(
@@ -115,7 +118,10 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
     private membershipTypeRepository: IMembershipTypeRepository,
 
     @inject(TYPES.IMembershipStageRepository)
-    private membershipStageRepository: IMembershipStageRepository
+    private membershipStageRepository: IMembershipStageRepository,
+
+    @inject(TYPES.IDiscipleshipPathwayRepository)
+    private discipleshipPathwayRepository: IDiscipleshipPathwayRepository
   ) {
     super();
   }
@@ -150,6 +156,7 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   ): Promise<FeatureOnboardingResult> {
     let typesCreated = 0;
     let stagesCreated = 0;
+    let pathwaysCreated = 0;
 
     try {
       // Create membership types
@@ -158,14 +165,18 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
       // Create membership stages
       stagesCreated = await this.seedMembershipStages(context);
 
-      const totalCreated = typesCreated + stagesCreated;
+      // Create discipleship pathways
+      pathwaysCreated = await this.seedDiscipleshipPathways(context);
+
+      const totalCreated = typesCreated + stagesCreated + pathwaysCreated;
 
       return this.successResult(
-        `Created ${typesCreated} membership types and ${stagesCreated} membership stages`,
+        `Created ${typesCreated} membership types, ${stagesCreated} membership stages, and ${pathwaysCreated} discipleship pathways`,
         totalCreated,
         {
           membershipTypesCreated: typesCreated,
           membershipStagesCreated: stagesCreated,
+          discipleshipPathwaysCreated: pathwaysCreated,
         }
       );
     } catch (error) {
@@ -302,6 +313,73 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
       if (error) {
         console.warn(`[MembershipOnboardingPlugin] Error checking existing stage: ${error.message}`);
+        return false;
+      }
+      return (data?.length ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Seed default discipleship pathways for the tenant
+   * These represent spiritual growth tracks like Growth Track, Leadership, etc.
+   */
+  private async seedDiscipleshipPathways(context: FeatureOnboardingContext): Promise<number> {
+    let created = 0;
+
+    for (const pathwayData of DEFAULT_DISCIPLESHIP_PATHWAYS) {
+      try {
+        // Check if pathway already exists (idempotent)
+        const existing = await this.checkExistingPathway(context.tenantId, pathwayData.code);
+        if (existing) {
+          console.log(
+            `[MembershipOnboardingPlugin] Discipleship pathway '${pathwayData.code}' already exists, skipping`
+          );
+          continue;
+        }
+
+        await this.discipleshipPathwayRepository.create({
+          ...pathwayData,
+          tenant_id: context.tenantId,
+          is_active: true,
+          created_by: context.userId,
+          updated_by: context.userId,
+        } as Partial<{ id: string; code: string; name: string; description: string | null; is_active: boolean; display_order: number; tenant_id: string; created_by: string; updated_by: string }>);
+
+        created++;
+        console.log(
+          `[MembershipOnboardingPlugin] Created discipleship pathway: ${pathwayData.name}`
+        );
+      } catch (error) {
+        console.error(
+          `[MembershipOnboardingPlugin] Failed to create discipleship pathway '${pathwayData.code}':`,
+          error
+        );
+        // Continue with other pathways - don't fail entirely
+      }
+    }
+
+    return created;
+  }
+
+  /**
+   * Check if a discipleship pathway already exists
+   * Uses direct Supabase query to bypass tenant context requirement during onboarding
+   */
+  private async checkExistingPathway(tenantId: string, code: string): Promise<boolean> {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from('discipleship_pathways')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('code', code)
+        .is('deleted_at', null)
+        .limit(1);
+
+      if (error) {
+        console.warn(`[MembershipOnboardingPlugin] Error checking existing pathway: ${error.message}`);
         return false;
       }
       return (data?.length ?? 0) > 0;

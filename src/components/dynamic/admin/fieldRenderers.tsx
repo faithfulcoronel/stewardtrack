@@ -23,6 +23,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useMetadataClientContext } from "@/lib/metadata/context";
 import { DatePicker } from "@/components/ui/date-picker";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 function isTagsField(field: FormFieldConfig): boolean {
   return field.type === "tags" || field.name === "tags";
@@ -315,6 +316,17 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
   }
 
   switch (field.type) {
+    case "richtext":
+      return (
+        <RichTextEditor
+          value={String(controller.value ?? "")}
+          onChange={(value) => controller.onChange(value)}
+          placeholder={basePlaceholder || "Start typing..."}
+          disabled={disabled}
+          readOnly={readOnly}
+          minHeight="200px"
+        />
+      );
     case "textarea":
     case "multiline":
       return (

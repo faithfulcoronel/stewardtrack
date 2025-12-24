@@ -13,6 +13,8 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { MembersDashboardService } from '@/services/MembersDashboardService';
 import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
+import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
+import type { MemberDiscipleshipMilestoneService } from '@/services/MemberDiscipleshipMilestoneService';
 
 import type { ServiceDataSourceHandler, ServiceDataSourceRequest } from './types';
 
@@ -32,6 +34,14 @@ function getMembersDashboardService(): MembersDashboardService {
 
 function getCarePlanService(): MemberCarePlanService {
   return container.get<MemberCarePlanService>(TYPES.MemberCarePlanService);
+}
+
+function getDiscipleshipPlanService(): MemberDiscipleshipPlanService {
+  return container.get<MemberDiscipleshipPlanService>(TYPES.MemberDiscipleshipPlanService);
+}
+
+function getDiscipleshipMilestoneService(): MemberDiscipleshipMilestoneService {
+  return container.get<MemberDiscipleshipMilestoneService>(TYPES.MemberDiscipleshipMilestoneService);
 }
 
 /**
@@ -279,7 +289,7 @@ async function resolveDashboardGivingTrend(
 
 /**
  * Dashboard Care Timeline Handler
- * Provides recent care milestones and events
+ * Provides recent care milestones and discipleship events
  */
 async function resolveDashboardCareTimeline(
   _request: ServiceDataSourceRequest
@@ -296,19 +306,93 @@ async function resolveDashboardCareTimeline(
   }>;
 }> {
   const carePlanService = getCarePlanService();
+  const discipleshipPlanService = getDiscipleshipPlanService();
+  const milestoneService = getDiscipleshipMilestoneService();
 
   try {
-    const recentPlans = await carePlanService.getRecentCarePlans(5);
+    // Fetch care plans, discipleship plans, and milestones
+    const [recentCarePlans, recentDiscipleshipPlans, recentMilestones] = await Promise.all([
+      carePlanService.getRecentCarePlans(5),
+      discipleshipPlanService.getRecentPlans(5),
+      milestoneService.getRecentMilestones(5),
+    ]);
 
-    if (!recentPlans || recentPlans.length === 0) {
+    // Map care plans to timeline items
+    const careItems = (recentCarePlans || []).map((plan, index) => ({
+      id: plan.id || `care-${index}`,
+      title: plan.title || 'Care plan update',
+      date: plan.created_at ? format(new Date(plan.created_at), 'MMM d') : '',
+      timeAgo: plan.created_at
+        ? formatDistanceToNow(new Date(plan.created_at))
+        : '',
+      description: plan.description || 'Care follow-up in progress.',
+      category: plan.priority === 'urgent' ? 'Urgent' : 'Care',
+      status: (plan.status === 'active' ? 'attention' : plan.status === 'completed' ? 'completed' : 'new') as 'completed' | 'scheduled' | 'attention' | 'new',
+      icon: plan.priority === 'urgent' ? '🔴' : '💙',
+      sortDate: plan.created_at ? new Date(plan.created_at).getTime() : 0,
+    }));
+
+    // Map discipleship plans to timeline items
+    const discipleshipItems = (recentDiscipleshipPlans || []).map((plan, index) => {
+      const pathwayLabel = plan.pathway
+        ? plan.pathway.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+        : 'Discipleship';
+      const description = plan.nextStep
+        ? `Next step: ${plan.nextStep}`
+        : plan.mentorName
+          ? `Mentor: ${plan.mentorName}`
+          : 'Discipleship journey in progress.';
+
+      return {
+        id: plan.id || `discipleship-${index}`,
+        title: `${pathwayLabel} plan`,
+        date: plan.createdAt ? format(new Date(plan.createdAt), 'MMM d') : '',
+        timeAgo: plan.createdAt
+          ? formatDistanceToNow(new Date(plan.createdAt))
+          : '',
+        description,
+        category: 'Discipleship',
+        status: (plan.status === 'completed' ? 'completed' : plan.status === 'active' ? 'scheduled' : 'new') as 'completed' | 'scheduled' | 'attention' | 'new',
+        icon: '📖',
+        sortDate: plan.createdAt ? new Date(plan.createdAt).getTime() : 0,
+      };
+    });
+
+    // Map milestones to timeline items
+    const milestoneItems = (recentMilestones || []).map((milestone, index) => {
+      const isCelebrated = !!milestone.celebratedAt;
+      const milestoneDate = milestone.milestoneDate || milestone.createdAt;
+
+      return {
+        id: milestone.id || `milestone-${index}`,
+        title: milestone.name || 'Milestone reached',
+        date: milestoneDate ? format(new Date(milestoneDate), 'MMM d') : '',
+        timeAgo: milestoneDate
+          ? formatDistanceToNow(new Date(milestoneDate))
+          : '',
+        description: milestone.description || 'Discipleship milestone achieved.',
+        category: 'Milestone',
+        status: (isCelebrated ? 'completed' : 'new') as 'completed' | 'scheduled' | 'attention' | 'new',
+        icon: isCelebrated ? '🎉' : '🏆',
+        sortDate: milestoneDate ? new Date(milestoneDate).getTime() : 0,
+      };
+    });
+
+    // Merge and sort by date (most recent first)
+    const allItems = [...careItems, ...discipleshipItems, ...milestoneItems]
+      .sort((a, b) => b.sortDate - a.sortDate)
+      .slice(0, 10)
+      .map(({ sortDate: _sortDate, ...item }) => item);
+
+    if (allItems.length === 0) {
       return {
         items: [
           {
             id: 'empty-state',
-            title: 'No recent care activity',
+            title: 'No recent activity',
             date: format(new Date(), 'MMM d'),
             timeAgo: 'Today',
-            description: 'Care timeline events will appear here as pastoral care activities are logged.',
+            description: 'Care, discipleship, and milestone events will appear here as activities are logged.',
             category: 'Info',
             status: 'new',
             icon: '📋',
@@ -317,30 +401,17 @@ async function resolveDashboardCareTimeline(
       };
     }
 
-    return {
-      items: recentPlans.map((plan, index) => ({
-        id: plan.id || `care-${index}`,
-        title: plan.title || 'Care plan update',
-        date: plan.created_at ? format(new Date(plan.created_at), 'MMM d') : '',
-        timeAgo: plan.created_at
-          ? formatDistanceToNow(new Date(plan.created_at))
-          : '',
-        description: plan.description || 'Care follow-up in progress.',
-        category: plan.priority === 'urgent' ? 'Urgent' : 'Care',
-        status: plan.status === 'active' ? 'attention' : plan.status === 'completed' ? 'completed' : 'new',
-        icon: plan.priority === 'urgent' ? '🔴' : '💙',
-      })),
-    };
+    return { items: allItems };
   } catch (error) {
     console.error('[Dashboard] Error fetching care timeline:', error);
     return {
       items: [
         {
           id: 'error-state',
-          title: 'Unable to load care timeline',
+          title: 'Unable to load timeline',
           date: format(new Date(), 'MMM d'),
           timeAgo: 'Now',
-          description: 'There was an error loading the care timeline. Please try refreshing.',
+          description: 'There was an error loading the timeline. Please try refreshing.',
           category: 'Error',
           status: 'attention',
           icon: '⚠️',

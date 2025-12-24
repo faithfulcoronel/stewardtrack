@@ -1,3 +1,21 @@
+/**
+ * ================================================================================
+ * MEMBER DISCIPLESHIP PLAN REPOSITORY
+ * ================================================================================
+ *
+ * REPOSITORY PATTERN:
+ * Repositories provide a domain-oriented interface to data access.
+ * They wrap adapters and add business logic like notifications and validation.
+ *
+ * KEY RESPONSIBILITIES:
+ *   1. Delegate CRUD operations to adapter
+ *   2. Handle notifications (success messages)
+ *   3. Expose domain-specific query methods
+ *   4. Apply business rules and validation
+ *
+ * ================================================================================
+ */
+
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';
@@ -6,7 +24,14 @@ import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 import type { IMemberDiscipleshipPlanAdapter } from '@/adapters/memberDiscipleshipPlan.adapter';
 
-export type IMemberDiscipleshipPlanRepository = BaseRepository<MemberDiscipleshipPlan>;
+/**
+ * Repository interface extending base CRUD with domain-specific methods
+ */
+export interface IMemberDiscipleshipPlanRepository extends BaseRepository<MemberDiscipleshipPlan> {
+  getAll(): Promise<MemberDiscipleshipPlan[]>;
+  getById(planId: string): Promise<MemberDiscipleshipPlan | null>;
+  getByMember(memberId: string): Promise<MemberDiscipleshipPlan[]>;
+}
 
 @injectable()
 export class MemberDiscipleshipPlanRepository
@@ -15,10 +40,12 @@ export class MemberDiscipleshipPlanRepository
 {
   constructor(
     @inject(TYPES.IMemberDiscipleshipPlanAdapter)
-    adapter: IMemberDiscipleshipPlanAdapter,
+    private readonly discipleshipPlanAdapter: IMemberDiscipleshipPlanAdapter,
   ) {
-    super(adapter);
+    super(discipleshipPlanAdapter);
   }
+
+  // ==================== LIFECYCLE HOOKS ====================
 
   protected override async afterCreate(_data: MemberDiscipleshipPlan): Promise<void> {
     NotificationService.showSuccess('Discipleship plan created successfully.');
@@ -26,5 +53,28 @@ export class MemberDiscipleshipPlanRepository
 
   protected override async afterUpdate(_data: MemberDiscipleshipPlan): Promise<void> {
     NotificationService.showSuccess('Discipleship plan updated successfully.');
+  }
+
+  // ==================== DOMAIN-SPECIFIC METHODS ====================
+
+  /**
+   * Get all discipleship plans for the current tenant
+   */
+  async getAll(): Promise<MemberDiscipleshipPlan[]> {
+    return this.discipleshipPlanAdapter.getAll();
+  }
+
+  /**
+   * Get a discipleship plan by ID (tenant-scoped)
+   */
+  async getById(planId: string): Promise<MemberDiscipleshipPlan | null> {
+    return this.discipleshipPlanAdapter.getById(planId);
+  }
+
+  /**
+   * Get all discipleship plans for a specific member
+   */
+  async getByMember(memberId: string): Promise<MemberDiscipleshipPlan[]> {
+    return this.discipleshipPlanAdapter.getByMember(memberId);
   }
 }

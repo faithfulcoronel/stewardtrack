@@ -25,6 +25,10 @@ import {
   AdminCarePlansCard,
   type AdminCarePlansCardProps,
 } from '@/components/dynamic/admin/AdminCarePlansCard';
+import {
+  AdminDiscipleshipPlansCard,
+  type AdminDiscipleshipPlansCardProps,
+} from '@/components/dynamic/admin/AdminDiscipleshipPlansCard';
 
 function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
@@ -92,5 +96,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminCarePlansCardProps>(AdminCarePlansCard, 'AdminCarePlansCardRenderer'),
+  },
+  {
+    type: 'AdminDiscipleshipPlansCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminDiscipleshipPlansCardProps>(AdminDiscipleshipPlansCard, 'AdminDiscipleshipPlansCardRenderer'),
   },
 ];

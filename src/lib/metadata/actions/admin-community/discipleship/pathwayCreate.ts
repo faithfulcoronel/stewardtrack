@@ -1,13 +1,24 @@
-import { z } from "zod";
+/**
+ * ================================================================================
+ * DISCIPLESHIP PATHWAY QUICK-CREATE ACTION HANDLER
+ * ================================================================================
+ *
+ * Handles the quick-create action for adding new discipleship pathways
+ * from the AdminLookupQuickCreate component in the discipleship plan form.
+ *
+ * Follows the same pattern as handleMembershipLookupQuickCreate for consistency.
+ *
+ * ================================================================================
+ */
 
+import { z } from "zod";
 import type { MetadataActionExecution, MetadataActionResult } from "../../types";
 import { tenantUtils } from "@/utils/tenantUtils";
 import { SupabaseAuditService } from "@/services/AuditService";
-import type { RequestContext } from "@/lib/server/context";
 import {
   createMembershipLookupRequestContext,
-  mapMembershipLookupOption,
   resolveMembershipLookupDefinition,
+  mapMembershipLookupOption,
 } from "@/lib/metadata/services/admin-community/membershipLookups";
 
 const inputSchema = z.object({
@@ -16,14 +27,7 @@ const inputSchema = z.object({
   code: z.string().min(1, "Code is required."),
 });
 
-type LookupContext = {
-  service: {
-    create: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
-  };
-  fallbackLabel: string;
-};
-
-export async function handleMembershipLookupQuickCreate(
+export async function handleDiscipleshipPathwayQuickCreate(
   execution: MetadataActionExecution,
 ): Promise<MetadataActionResult> {
   const parsed = inputSchema.safeParse(execution.input);
@@ -45,7 +49,17 @@ export async function handleMembershipLookupQuickCreate(
     return {
       success: false,
       status: 400,
-      message: "All fields are required to create a lookup option.",
+      message: "All fields are required to create a pathway.",
+    } satisfies MetadataActionResult;
+  }
+
+  // Validate code format (lowercase with underscores/hyphens)
+  const codePattern = /^[a-z][a-z0-9_-]*$/;
+  if (!codePattern.test(code)) {
+    return {
+      success: false,
+      status: 400,
+      message: "Code must start with a letter and contain only lowercase letters, numbers, underscores, and hyphens.",
     } satisfies MetadataActionResult;
   }
 
@@ -61,9 +75,9 @@ export async function handleMembershipLookupQuickCreate(
 
     const context = createMembershipLookupRequestContext(tenantId, execution.context.role ?? null);
     const auditService = new SupabaseAuditService();
-    const lookupContext = createLookupContext(lookupId, context, auditService);
 
-    if (!lookupContext) {
+    const definition = resolveMembershipLookupDefinition(lookupId);
+    if (!definition) {
       return {
         success: false,
         status: 400,
@@ -71,8 +85,9 @@ export async function handleMembershipLookupQuickCreate(
       } satisfies MetadataActionResult;
     }
 
-    const record = await lookupContext.service.create({ name, code });
-    const option = mapMembershipLookupOption(record, lookupContext.fallbackLabel) ?? {
+    const service = definition.createService(context, auditService);
+    const record = await service.create({ name, code });
+    const option = mapMembershipLookupOption(record, definition.fallbackLabel) ?? {
       label: name,
       value: code,
     };
@@ -98,30 +113,13 @@ export async function handleMembershipLookupQuickCreate(
       return handled;
     }
 
-    console.error("Failed to create lookup option", error);
+    console.error("Failed to create discipleship pathway", error);
     return {
       success: false,
       status: 500,
-      message: "We couldn't save the new option. Please try again.",
+      message: "We couldn't save the new pathway. Please try again.",
     } satisfies MetadataActionResult;
   }
-}
-
-function createLookupContext(
-  lookupId: string,
-  context: RequestContext,
-  auditService: SupabaseAuditService,
-): LookupContext | null {
-  const definition = resolveMembershipLookupDefinition(lookupId);
-  if (!definition) {
-    return null;
-  }
-
-  const service = definition.createService(context, auditService);
-  return {
-    service,
-    fallbackLabel: definition.fallbackLabel,
-  } satisfies LookupContext;
 }
 
 function handleKnownLookupErrors(
@@ -138,7 +136,9 @@ function handleKnownLookupErrors(
     return {
       success: false,
       status: 409,
-      message: getUniqueConstraintMessage(message, lookupId),
+      message: lookupId === 'discipleship_pathway'
+        ? "A pathway with this code already exists."
+        : "An item with this code already exists.",
     } satisfies MetadataActionResult;
   }
 
@@ -150,8 +150,8 @@ function extractErrorMessage(error: unknown): string | null {
     return error;
   }
 
-  if (error && typeof error === "object" && "message" in error && typeof (error as any).message === "string") {
-    return (error as any).message;
+  if (error && typeof error === "object" && "message" in error && typeof (error as { message: unknown }).message === "string") {
+    return (error as { message: string }).message;
   }
 
   return null;
@@ -160,31 +160,4 @@ function extractErrorMessage(error: unknown): string | null {
 function isUniqueConstraintError(message: string): boolean {
   const normalized = message.toLowerCase();
   return normalized.includes("duplicate key value") && normalized.includes("unique constraint");
-}
-
-function getUniqueConstraintMessage(message: string, lookupId: string): string {
-  const normalized = message.toLowerCase();
-
-  if (normalized.includes("membership_center")) {
-    return "A center with this code already exists. Try a different code.";
-  }
-
-  if (normalized.includes("membership_stage")) {
-    return "A membership stage with this code already exists.";
-  }
-
-  if (normalized.includes("membership_type")) {
-    return "A membership type with this code already exists.";
-  }
-
-  switch (lookupId) {
-    case "membership.center":
-      return "This center code is already in use.";
-    case "membership.stage":
-      return "This membership stage code is already in use.";
-    case "membership.type":
-      return "This membership type code is already in use.";
-    default:
-      return "An item with this code already exists.";
-  }
 }

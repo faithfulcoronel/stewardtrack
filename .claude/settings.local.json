@@ -47,7 +47,10 @@
       "Bash(Select-String -Pattern \"\\(licenseValidation|licenseMonitoring|performanceMetric|materializedView\\)\" -Context 1)",
       "Bash(del \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\e2e\\\\registration.spec.ts\")",
       "Bash(npx playwright test --ui)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(timeout 120 npm run build:*)",
+      "Bash(timeout 180 npm run build:*)",
+      "Bash(npx supabase:*)"
     ],
     "deny": [],
     "ask": []
