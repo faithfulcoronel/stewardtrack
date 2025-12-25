@@ -101,7 +101,7 @@ test.describe('Registration Flow', () => {
       expect(hasError).toBe(true);
     });
 
-    test('should show error for invalid email format', async ({ page, registrationPage }) => {
+    test('should show error for invalid email format', async ({ registrationPage }) => {
       const testData = generateRegistrationData({
         email: 'invalid-email',
       });
@@ -109,14 +109,18 @@ test.describe('Registration Flow', () => {
       await registrationPage.fillRegistrationForm(testData);
       await registrationPage.submit();
 
-      // Verify email validation error - look for specific email error or browser validation
-      const hasError = await registrationPage.hasEmailValidationError();
-      if (!hasError) {
-        // Check for browser's native email validation or any visible error text
-        const emailError = page.getByText(/invalid.*email|email.*invalid|valid.*email|include.*@/i);
-        await expect(emailError.first()).toBeVisible({ timeout: 5000 });
+      // Verify email validation error
+      // The browser's native HTML5 validation shows a tooltip that isn't in the DOM
+      // So we check if the email input has invalid state or if form shows custom error
+      const hasCustomError = await registrationPage.hasEmailValidationError();
+
+      if (!hasCustomError) {
+        // Check the email input's validity state (browser native validation)
+        const emailInput = registrationPage.emailField;
+        const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
+        expect(isInvalid).toBe(true);
       } else {
-        expect(hasError).toBe(true);
+        expect(hasCustomError).toBe(true);
       }
     });
 
