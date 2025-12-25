@@ -237,8 +237,8 @@ test.describe('Community Members Management', () => {
         expect(inputValue).toContain('Updated-');
         console.log(`Verified updated preferred name in form: ${inputValue}`);
       } else {
-        // On profile page - verify the text is displayed
-        await expect(page.getByText(new RegExp(updatedPreferredName, 'i'))).toBeVisible({ timeout: 10000 });
+        // On profile page - verify the text is displayed (use first() to avoid strict mode violation with multiple matches)
+        await expect(page.getByText(new RegExp(updatedPreferredName, 'i')).first()).toBeVisible({ timeout: 10000 });
       }
 
       // Log success

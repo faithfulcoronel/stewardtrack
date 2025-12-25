@@ -133,13 +133,19 @@ test.describe('Registration Flow', () => {
   });
 
   test.describe('Subdomain Generation', () => {
+    // Subdomain tests need to go through the full signup flow since
+    // /signup/register requires an offering ID in the URL
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
+    });
+
     test('should generate valid subdomain from church name', async ({ page, registrationPage }) => {
       const churchName = 'Test Church With Spaces & Special!@# Characters';
       const testData = generateRegistrationData({
         churchName,
       });
 
-      await registrationPage.goto();
       await registrationPage.register(testData);
       await registrationPage.waitForSuccessfulRegistration();
 
@@ -154,6 +160,7 @@ test.describe('Registration Flow', () => {
 
     test('should handle duplicate subdomain by appending unique suffix', async ({
       page,
+      signupPage,
       registrationPage,
     }) => {
       // This test would require two registrations with the same church name
@@ -164,16 +171,16 @@ test.describe('Registration Flow', () => {
 
       // First registration
       const testData1 = generateRegistrationData({ churchName });
-      await registrationPage.goto();
       await registrationPage.register(testData1);
       await registrationPage.waitForSuccessfulRegistration();
 
       // Logout (would need logout functionality)
       // ...
 
-      // Second registration with same church name
+      // Second registration with same church name - need to go through signup flow again
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
       const testData2 = generateRegistrationData({ churchName });
-      await registrationPage.goto();
       await registrationPage.register(testData2);
       await registrationPage.waitForSuccessfulRegistration();
 
@@ -183,8 +190,11 @@ test.describe('Registration Flow', () => {
   });
 
   test.describe('Edge Cases', () => {
-    test.beforeEach(async ({ registrationPage }) => {
-      await registrationPage.goto();
+    // Edge case tests need to go through the full signup flow since
+    // /signup/register requires an offering ID in the URL
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
     });
 
     test('should handle very long church name', async ({ registrationPage }) => {
@@ -211,8 +221,10 @@ test.describe('Registration Flow', () => {
     });
 
     test('should trim whitespace from inputs', async ({ registrationPage }) => {
+      // Generate unique email with whitespace padding
+      const timestamp = Date.now();
       const testData = generateRegistrationData({
-        email: '  test@example.com  ',
+        email: `  whitespace-test-${timestamp}@example.com  `,
         churchName: '  Test Church  ',
         firstName: '  John  ',
         lastName: '  Doe  ',
