@@ -17,6 +17,8 @@ variables:
     value: 'true'
   - name: PLAYWRIGHT_TEST_BASE_URL
     value: 'http://localhost:3000'
+  - name: npm_config_cache
+    value: $(Pipeline.Workspace)/.npm
 
 steps:
   - task: NodeTool@0
