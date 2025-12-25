@@ -68,8 +68,11 @@ test.describe('Registration Flow', () => {
   });
 
   test.describe('Form Validation', () => {
-    test.beforeEach(async ({ registrationPage }) => {
-      await registrationPage.goto();
+    // Form validation tests need to go through the full signup flow since
+    // /signup/register requires an offering ID in the URL
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
     });
 
     test('should show validation errors for empty form submission', async ({
@@ -106,12 +109,12 @@ test.describe('Registration Flow', () => {
       await registrationPage.fillRegistrationForm(testData);
       await registrationPage.submit();
 
-      // Verify email validation error (any error message should appear)
+      // Verify email validation error - look for specific email error or browser validation
       const hasError = await registrationPage.hasEmailValidationError();
       if (!hasError) {
-        // Check for any error message on the page
-        const anyError = await page.locator('.text-destructive, [role="alert"]').isVisible({ timeout: 2000 });
-        expect(anyError).toBe(true);
+        // Check for browser's native email validation or any visible error text
+        const emailError = page.getByText(/invalid.*email|email.*invalid|valid.*email|include.*@/i);
+        await expect(emailError.first()).toBeVisible({ timeout: 5000 });
       } else {
         expect(hasError).toBe(true);
       }
@@ -126,9 +129,9 @@ test.describe('Registration Flow', () => {
       await registrationPage.fillRegistrationForm(testData);
       await registrationPage.submit();
 
-      // Verify password strength error - check for any error message
-      const errorVisible = await page.locator('.text-destructive, [role="alert"]').isVisible({ timeout: 5000 });
-      expect(errorVisible).toBe(true);
+      // Verify password strength error - look for specific password error message
+      const passwordError = page.getByText(/password must be at least|password.*too.*short|password.*weak/i);
+      await expect(passwordError.first()).toBeVisible({ timeout: 5000 });
     });
   });
 
