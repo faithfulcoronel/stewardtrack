@@ -12,6 +12,15 @@ export default [
     ],
   },
   ...nextConfig,
+  // Disable React hooks rules for Playwright e2e tests (Playwright's `use` is not a React hook)
+  {
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
   {
     plugins: {
       "@typescript-eslint": tseslint.plugin,

@@ -639,10 +639,12 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
       if (normalizedCurrent.length > 0) {
         return;
       }
-      controller.setValue(fieldName as never, nextValue ?? "", {
-        shouldDirty: false,
-        shouldValidate: false,
-      });
+      // Dynamic field name requires type assertion for react-hook-form
+      (controller.setValue as (name: string, value: unknown, options?: { shouldDirty?: boolean; shouldValidate?: boolean }) => void)(
+        fieldName,
+        nextValue ?? "",
+        { shouldDirty: false, shouldValidate: false }
+      );
     };
 
     ensureTextValue("householdName", initialHousehold.name ?? "");
@@ -692,7 +694,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
         }
 
         const json = await response.json();
-        const data = json.data ?? [];
+        const data: Record<string, unknown>[] = json.data ?? [];
 
         const mapped = data
           .map(mapHouseholdRowToOption)
@@ -959,10 +961,12 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
         } satisfies Record<string, FormFieldOption[]>;
       });
 
-      controller.setValue(field.name as never, option.value, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      // Dynamic field name requires type assertion for react-hook-form
+      (controller.setValue as (name: string, value: unknown, options?: { shouldDirty?: boolean; shouldValidate?: boolean }) => void)(
+        field.name,
+        option.value,
+        { shouldDirty: true, shouldValidate: true }
+      );
     },
     [controller],
   );
@@ -1065,7 +1069,17 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                 ))}
 
                 {tab.editableSections.length > 0 && (
-                  <Accordion type="multiple" className="space-y-4">
+                  <Accordion
+                    type="multiple"
+                    className="space-y-4"
+                    defaultValue={(() => {
+                      // Open the first accordion section by default
+                      const firstSection = tab.editableSections[0];
+                      if (!firstSection) return [];
+                      const firstValue = firstSection.id ?? firstSection.title ?? `${tab.id}-form-section`;
+                      return [firstValue];
+                    })()}
+                  >
                     {tab.editableSections.map((section) => {
                       const sectionFields = normalizeList<FormFieldConfig>(section.fields).map((field) => {
                         const augmented = fieldMap.get(field.name);
