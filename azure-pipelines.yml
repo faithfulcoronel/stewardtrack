@@ -1,0 +1,70 @@
+# Azure Pipeline for StewardTrack
+# Runs build and Playwright E2E tests
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+  - for-q2-2026-release
+
+pr:
+  - for-q2-2026-release
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  CI: 'true'
+  PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node.js'
+
+  - task: Cache@2
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: $(npm_config_cache)
+    displayName: 'Cache npm packages'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npm run build
+    displayName: 'Build application'
+
+  - script: npx playwright install --with-deps chromium
+    displayName: 'Install Playwright browsers'
+
+  - script: npx playwright test --project=chromium
+    displayName: 'Run Playwright E2E tests'
+    env:
+      CI: 'true'
+      PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results/junit.xml'
+      testRunTitle: 'Playwright E2E Tests'
+      mergeTestResults: true
+    displayName: 'Publish test results'
+
+  - task: PublishPipelineArtifact@1
+    condition: failed()
+    inputs:
+      targetPath: 'playwright-report'
+      artifact: 'playwright-report'
+      publishLocation: 'pipeline'
+    displayName: 'Publish Playwright report on failure'
+
+  - task: PublishPipelineArtifact@1
+    condition: failed()
+    inputs:
+      targetPath: 'test-results'
+      artifact: 'test-results'
+      publishLocation: 'pipeline'
+    displayName: 'Publish test results on failure'
