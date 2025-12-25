@@ -2,6 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+
 ## Project Overview
 
 StewardTrack is a Next.js 15 church management SaaS application with a **metadata-driven architecture** where pages are authored in XML and interpreted at runtime. The system supports multi-tenant operations with sophisticated RBAC (Role-Based Access Control), licensing, and onboarding flows.
