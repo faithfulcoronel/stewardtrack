@@ -12,8 +12,11 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  CI: 'true'
-  PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+  - group: StewardTrack-E2E-Secrets
+  - name: CI
+    value: 'true'
+  - name: PLAYWRIGHT_TEST_BASE_URL
+    value: 'http://localhost:3000'
 
 steps:
   - task: NodeTool@0
@@ -34,6 +37,14 @@ steps:
 
   - script: npm run build
     displayName: 'Build application'
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY: $(NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY)
+      SUPABASE_URL: $(SUPABASE_URL)
+      SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+      NEXT_PUBLIC_MENU_STRATEGY: $(NEXT_PUBLIC_MENU_STRATEGY)
+      ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
 
   - script: npx playwright install --with-deps chromium
     displayName: 'Install Playwright browsers'
@@ -43,6 +54,13 @@ steps:
     env:
       CI: 'true'
       PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+      NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY: $(NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY)
+      SUPABASE_URL: $(SUPABASE_URL)
+      SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+      NEXT_PUBLIC_MENU_STRATEGY: $(NEXT_PUBLIC_MENU_STRATEGY)
+      ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
 
   - task: PublishTestResults@2
     condition: succeededOrFailed()
