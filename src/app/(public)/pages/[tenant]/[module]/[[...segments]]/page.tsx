@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { resolvePageMetadata } from "@/lib/metadata/resolver";
 import { renderResolvedPage } from "@/lib/metadata/interpreter";
 
 export const revalidate = 120;
+
+/**
+ * Development-only metadata preview page.
+ * This route is disabled in production for security reasons.
+ */
+const isDevelopment = process.env.NODE_ENV === "development";
 
 interface PageParams {
   tenant: string;
@@ -23,6 +30,11 @@ export const metadata: Metadata = {
 };
 
 export default async function DynamicExperiencePage({ params, searchParams }: PageProps) {
+  // Block access in production - this is a development-only preview route
+  if (!isDevelopment) {
+    notFound();
+  }
+
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     Promise.resolve(params),
     Promise.resolve(searchParams),
