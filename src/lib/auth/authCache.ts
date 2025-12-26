@@ -48,8 +48,11 @@ export const getCachedUser = cache(async (): Promise<CachedAuthData> => {
     const { data, error } = await supabase.auth.getUser();
 
     if (error) {
-      // Don't log rate limit errors - they're expected during high load
-      if (error.status !== 429) {
+      // Don't log expected errors:
+      // - 429: Rate limit errors during high load
+      // - "Auth session missing!": Expected on public routes where user isn't authenticated
+      const isExpectedError = error.status === 429 || error.message === 'Auth session missing!';
+      if (!isExpectedError) {
         console.error('[AuthCache] getUser error:', error.message);
       }
       return { user: null, userId: null, error };

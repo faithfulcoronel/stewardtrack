@@ -47,20 +47,16 @@ export async function POST(request: NextRequest) {
     // Log completion in audit trail
     try {
       const auditService = container.get<AuditService>(TYPES.AuditService);
-      await auditService.log({
-        operation: 'COMPLETE',
-        table_name: 'onboarding_progress',
-        record_id: tenantId,
-        user_id: user.id,
-        changes: {
+      await auditService.logAuditEvent(
+        'update',
+        'onboarding_progress',
+        tenantId,
+        {
           is_completed: true,
           completed_at: new Date().toISOString(),
-        },
-        metadata: {
-          event: 'onboarding_completed',
-          tenant_id: tenantId,
-        },
-      });
+          user_id: authResult.userId,
+        }
+      );
     } catch (auditError) {
       console.error('Failed to log onboarding completion:', auditError);
       // Non-fatal error, continue

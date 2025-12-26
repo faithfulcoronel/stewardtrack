@@ -120,6 +120,6 @@ export class LoginPage {
  * These should be configured for a test user in the test environment
  */
 export const TEST_CREDENTIALS = {
-  email: 'abc@gmail.com',
+  email: 'uitest100@gmail.com',
   password: 'Password1',
 };
