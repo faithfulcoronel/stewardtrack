@@ -50,7 +50,8 @@
       "Bash(npx playwright test:*)",
       "Bash(timeout 120 npm run build:*)",
       "Bash(timeout 180 npm run build:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(timeout 300 npm run build:*)"
     ],
     "deny": [],
     "ask": []
