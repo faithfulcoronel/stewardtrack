@@ -151,7 +151,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
       supabase
         .from('membership_stage')
         .select('id')
-        .eq('code', 'visitor')
+        .eq('code', 'first_time_guest')
         .maybeSingle(),
     );
 

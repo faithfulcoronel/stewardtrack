@@ -147,13 +147,21 @@ export function useAdminFormController(props: AdminFormSectionProps) {
   };
 }
 
+// Hidden fields that should be included in form values even without explicit form fields
+const HIDDEN_FORM_FIELDS = ['householdId', 'memberId'] as const;
+
 function buildDefaultValues(
   fields: FormFieldConfig[],
   initialValues: Record<string, unknown>,
 ): Record<string, unknown> {
+  console.log('[buildDefaultValues] initialValues.householdId:', initialValues.householdId);
+  console.log('[buildDefaultValues] initialValues.addressStreet:', initialValues.addressStreet);
+
   const values: Record<string, unknown> = {};
+  const processedFieldNames = new Set<string>();
 
   for (const field of fields) {
+    processedFieldNames.add(field.name);
     const incoming = initialValues[field.name];
     if (incoming !== undefined) {
       if (isTagsField(field)) {
@@ -185,6 +193,21 @@ function buildDefaultValues(
     }
     values[field.name] = field.type === "toggle" ? false : "";
   }
+
+  // Include hidden fields from initialValues that don't have explicit form fields
+  // This ensures values like householdId and memberId are submitted with the form
+  for (const hiddenField of HIDDEN_FORM_FIELDS) {
+    if (processedFieldNames.has(hiddenField)) {
+      continue;
+    }
+    const incoming = initialValues[hiddenField];
+    if (incoming !== undefined) {
+      values[hiddenField] = incoming;
+    }
+  }
+
+  console.log('[buildDefaultValues] RESULT - householdId:', values.householdId);
+  console.log('[buildDefaultValues] RESULT - addressStreet:', values.addressStreet);
 
   return values;
 }

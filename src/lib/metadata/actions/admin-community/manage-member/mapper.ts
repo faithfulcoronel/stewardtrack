@@ -337,6 +337,11 @@ export class MemberFormMapper {
     }
 
     const hasHouseholdIdField = this.hasField(values, "householdId");
+    console.log('[MemberFormMapper] hasHouseholdIdField:', hasHouseholdIdField);
+    console.log('[MemberFormMapper] householdId value:', values?.householdId);
+    console.log('[MemberFormMapper] addressStreet value:', values?.addressStreet);
+    console.log('[MemberFormMapper] preferredName value:', values?.preferredName);
+
     const householdName = this.hasField(values, "householdName")
       ? this.cleanString(values.householdName)
       : null;
@@ -382,6 +387,17 @@ export class MemberFormMapper {
       payload.household = householdPayload as MemberHousehold;
     } else if (hasHouseholdIdField && householdId === null) {
       payload.household = null;
+    }
+
+    // Also update the member's direct address field when address components change
+    // This ensures consistency between household address and member address
+    if (addressStreet !== null || addressCity !== null || addressState !== null || addressPostal !== null) {
+      const addressParts = [
+        addressStreet,
+        addressCity && addressState ? `${addressCity}, ${addressState}` : (addressCity || addressState),
+        addressPostal
+      ].filter(Boolean);
+      payload.address = addressParts.join(', ') || '';
     }
 
     // Ensure required fields have valid defaults for new members

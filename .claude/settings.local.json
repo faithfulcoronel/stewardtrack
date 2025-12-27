@@ -53,7 +53,8 @@
       "Bash(npx supabase:*)",
       "Bash(timeout 300 npm run build:*)",
       "Bash(node --version:*)",
-      "Bash(npm --version:*)"
+      "Bash(npm --version:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

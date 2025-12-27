@@ -23,6 +23,7 @@ export interface AdminActivityTimelineProps {
   description?: string;
   events?: TimelineEvent[] | { items?: TimelineEvent[] } | null;
   accentLabel?: string | null;
+  emptyMessage?: string | null;
 }
 
 const statusTone: Record<NonNullable<TimelineEvent["status"]>, string> = {
@@ -52,34 +53,45 @@ export function AdminActivityTimeline(props: AdminActivityTimelineProps) {
           </CardHeader>
         )}
         <CardContent className="pt-6">
-          <ol className="relative space-y-6 border-l border-border/60 pl-6">
-            {events.map((event, index) => (
-              <li key={event.id ?? `${event.title}-${index}`} className="ml-2 space-y-2">
-                <div className="absolute -left-[0.65rem] mt-1 flex size-3 items-center justify-center rounded-full border border-border/60 bg-background">
-                  <span className="text-[10px] leading-none">{event.icon ?? "•"}</span>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">{event.title}</h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {event.date && <span>{event.date}</span>}
-                    {event.timeAgo && <span>{event.timeAgo}</span>}
+          {events.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted/50">
+                <span className="text-xl">📅</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {props.emptyMessage ?? "No milestones recorded yet. Key moments in this member's journey will appear here."}
+              </p>
+            </div>
+          ) : (
+            <ol className="relative space-y-6 border-l border-border/60 pl-6">
+              {events.map((event, index) => (
+                <li key={event.id ?? `${event.title}-${index}`} className="ml-2 space-y-2">
+                  <div className="absolute -left-[0.65rem] mt-1 flex size-3 items-center justify-center rounded-full border border-border/60 bg-background">
+                    <span className="text-[10px] leading-none">{event.icon ?? "•"}</span>
                   </div>
-                </div>
-                {event.description && (
-                  <p className="text-sm text-muted-foreground">{event.description}</p>
-                )}
-                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground/90">
-                  {event.amount && <span className="font-medium text-foreground">{event.amount}</span>}
-                  {event.category && <span>{event.category}</span>}
-                  {event.status && (
-                    <Badge variant="outline" className={cn("border", statusTone[event.status])}>
-                      {labelStatus(event.status)}
-                    </Badge>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">{event.title}</h3>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {event.date && <span>{event.date}</span>}
+                      {event.timeAgo && <span>{event.timeAgo}</span>}
+                    </div>
+                  </div>
+                  {event.description && (
+                    <p className="text-sm text-muted-foreground">{event.description}</p>
                   )}
-                </div>
-              </li>
-            ))}
-          </ol>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground/90">
+                    {event.amount && <span className="font-medium text-foreground">{event.amount}</span>}
+                    {event.category && <span>{event.category}</span>}
+                    {event.status && (
+                      <Badge variant="outline" className={cn("border", statusTone[event.status])}>
+                        {labelStatus(event.status)}
+                      </Badge>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </CardContent>
       </Card>
     </section>

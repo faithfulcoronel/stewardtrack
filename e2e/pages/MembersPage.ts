@@ -1,21 +1,36 @@
 import { Page, Locator } from '@playwright/test';
+import { MemberFormLocators } from './members/MemberFormLocators';
+import { MemberFormActions } from './members/MemberFormActions';
+import { MemberListPage } from './members/MemberListPage';
+
+// Re-export types and generators for backwards compatibility
+export type { MemberTestData, ComprehensiveMemberData } from './members/MemberTestData';
+export { generateMemberData, generateComprehensiveMemberData } from './members/MemberTestData';
 
 /**
  * Page Object Model for Members Pages
  *
- * Encapsulates selectors and actions for:
- * - Members list page
- * - Member manage/create page
- * - Member profile page
+ * Facade that composes specialized classes for different responsibilities:
+ * - MemberFormLocators: Form field locators
+ * - MemberFormActions: Form interactions
+ * - MemberListPage: List page interactions
+ *
+ * Maintains backwards compatibility with existing tests.
  */
 export class MembersPage {
   readonly page: Page;
 
+  // Composed modules
+  readonly form: MemberFormLocators;
+  readonly actions: MemberFormActions;
+  readonly list: MemberListPage;
+
+  // ==================== BACKWARDS COMPATIBLE LOCATORS ====================
   // Navigation
   readonly membersNavLink: Locator;
   readonly addMemberButton: Locator;
 
-  // List page elements
+  // List page
   readonly pageTitle: Locator;
   readonly searchInput: Locator;
   readonly memberRows: Locator;
@@ -23,7 +38,35 @@ export class MembersPage {
   readonly centerFilter: Locator;
   readonly dataGrid: Locator;
 
-  // Member form elements (manage page)
+  // Tabs (delegated to form)
+  readonly profileBasicsTab: Locator;
+  readonly engagementTab: Locator;
+  readonly careTab: Locator;
+  readonly servingTab: Locator;
+  readonly financeTab: Locator;
+  readonly adminTab: Locator;
+  readonly personalTab: Locator;
+  readonly contactTab: Locator;
+  readonly membershipTab: Locator;
+  readonly discipleshipTab: Locator;
+  readonly givingTab: Locator;
+
+  // Accordion sections (delegated to form)
+  readonly identityProfileSection: Locator;
+  readonly householdSection: Locator;
+  readonly contactPreferencesSection: Locator;
+  readonly communitiesPathwaysSection: Locator;
+  readonly giftsInterestsSection: Locator;
+  readonly pastoralNotesSection: Locator;
+  readonly emergencyContactSection: Locator;
+  readonly servingAssignmentSection: Locator;
+  readonly leadershipScopeSection: Locator;
+  readonly givingSection: Locator;
+  readonly financeAdminSection: Locator;
+  readonly membershipCentersSection: Locator;
+  readonly segmentationSection: Locator;
+
+  // Form fields (delegated to form)
   readonly firstNameInput: Locator;
   readonly lastNameInput: Locator;
   readonly preferredNameInput: Locator;
@@ -37,32 +80,54 @@ export class MembersPage {
   readonly stateInput: Locator;
   readonly zipCodeInput: Locator;
   readonly countryInput: Locator;
+  readonly envelopeNumberInput: Locator;
+  readonly occupationInput: Locator;
+  readonly householdNameInput: Locator;
+  readonly preferredContactSelect: Locator;
 
-  // Membership details
+  // Engagement fields
+  readonly smallGroupInput: Locator;
+  readonly mentorInput: Locator;
+  readonly attendanceRateInput: Locator;
+  readonly discipleshipNextStepInput: Locator;
+  readonly prayerFocusInput: Locator;
+
+  // Care fields
+  readonly pastoralNotesInput: Locator;
+  readonly prayerRequestsInput: Locator;
+  readonly emergencyContactInput: Locator;
+  readonly emergencyRelationshipInput: Locator;
+  readonly emergencyPhoneInput: Locator;
+  readonly physicianInput: Locator;
+
+  // Serving fields
+  readonly servingTeamInput: Locator;
+  readonly servingRoleInput: Locator;
+  readonly servingScheduleInput: Locator;
+  readonly servingCoachInput: Locator;
+  readonly teamFocusInput: Locator;
+  readonly reportsToInput: Locator;
+
+  // Finance fields
+  readonly recurringGivingInput: Locator;
+  readonly pledgeAmountInput: Locator;
+  readonly pledgeCampaignInput: Locator;
+  readonly primaryFundInput: Locator;
+  readonly financeNotesInput: Locator;
+
+  // Admin fields
   readonly membershipStageSelect: Locator;
   readonly membershipTypeSelect: Locator;
   readonly centerSelect: Locator;
   readonly joinDateInput: Locator;
+  readonly dataStewardInput: Locator;
 
   // Form actions
   readonly saveButton: Locator;
   readonly cancelButton: Locator;
   readonly deleteButton: Locator;
 
-  // Tabs in manage page
-  readonly personalTab: Locator;
-  readonly contactTab: Locator;
-  readonly membershipTab: Locator;
-  readonly discipleshipTab: Locator;
-  readonly careTab: Locator;
-  readonly givingTab: Locator;
-
-  // Accordion sections (collapsible)
-  readonly identityProfileSection: Locator;
-  readonly householdSection: Locator;
-  readonly contactPreferencesSection: Locator;
-
-  // Feedback elements
+  // Feedback
   readonly successMessage: Locator;
   readonly errorMessage: Locator;
   readonly loadingSpinner: Locator;
@@ -70,64 +135,109 @@ export class MembersPage {
   constructor(page: Page) {
     this.page = page;
 
-    // Navigation
+    // Initialize composed modules
+    this.form = new MemberFormLocators(page);
+    this.actions = new MemberFormActions(page, this.form);
+    this.list = new MemberListPage(page);
+
+    // Delegate list locators
     this.membersNavLink = page.getByRole('link', { name: /members|membership/i }).first();
-    this.addMemberButton = page.getByRole('button', { name: /add.*member|new.*member/i }).or(
-      page.getByRole('link', { name: /add.*member|new.*member/i })
-    );
+    this.addMemberButton = this.list.addMemberButton;
+    this.pageTitle = this.list.pageTitle;
+    this.searchInput = this.list.searchInput;
+    this.memberRows = this.list.memberRows;
+    this.stageFilter = this.list.stageFilter;
+    this.centerFilter = this.list.centerFilter;
+    this.dataGrid = this.list.dataGrid;
 
-    // List page
-    this.pageTitle = page.getByRole('heading', { level: 1 });
-    // Use more specific placeholder to avoid matching the global search in navbar
-    this.searchInput = page.getByPlaceholder(/search.*member|search.*name|search.*household/i);
-    this.memberRows = page.locator('[data-testid="member-row"], table tbody tr, [role="row"]');
-    this.stageFilter = page.getByLabel(/stage/i);
-    this.centerFilter = page.getByLabel(/center/i);
-    this.dataGrid = page.locator('[data-testid="data-grid"], [role="grid"], table');
-
-    // Personal information form fields
-    this.firstNameInput = page.getByLabel(/first name/i).or(page.locator('[name="firstName"]'));
-    this.lastNameInput = page.getByLabel(/last name/i).or(page.locator('[name="lastName"]'));
-    this.preferredNameInput = page.getByLabel(/preferred name|nickname/i).or(page.locator('[name="preferredName"]'));
-    this.emailInput = page.getByLabel(/email/i).first().or(page.locator('[name="email"]'));
-    this.phoneInput = page.getByLabel(/phone|mobile/i).first().or(page.locator('[name="phone"]'));
-    this.birthdateInput = page.getByLabel(/birth.*date|date.*birth/i).or(page.locator('[name="birthdate"]'));
-    this.maritalStatusSelect = page.getByLabel(/marital.*status/i).or(page.locator('[name="maritalStatus"]'));
-    this.genderSelect = page.getByLabel(/gender/i).or(page.locator('[name="gender"]'));
-
-    // Address fields - field names match metadata form: addressStreet, addressCity, addressState, addressPostal
-    this.addressLine1Input = page.getByLabel(/street.*address/i).or(page.locator('[name="addressStreet"]'));
-    this.cityInput = page.getByLabel(/^city$/i).or(page.locator('[name="addressCity"]'));
-    this.stateInput = page.getByLabel(/state.*province|^state$/i).or(page.locator('[name="addressState"]'));
-    this.zipCodeInput = page.getByLabel(/postal.*code|^postal$/i).or(page.locator('[name="addressPostal"]'));
-    this.countryInput = page.getByLabel(/country/i).or(page.locator('[name="country"]'));
-
-    // Membership details
-    this.membershipStageSelect = page.getByLabel(/membership.*stage/i).or(page.locator('[name="stageId"]'));
-    this.membershipTypeSelect = page.getByLabel(/membership.*type/i).or(page.locator('[name="typeId"]'));
-    this.centerSelect = page.getByLabel(/center|campus/i).first().or(page.locator('[name="centerId"]'));
-    this.joinDateInput = page.getByLabel(/join.*date|membership.*date/i).or(page.locator('[name="joinDate"]'));
-
-    // Form actions - "Create member" for new, "Save changes" for edit
-    this.saveButton = page.getByRole('button', { name: /create member|save changes|save|submit|update/i });
-    this.cancelButton = page.getByRole('button', { name: /cancel/i }).or(
-      page.getByRole('link', { name: /cancel/i })
-    );
-    this.deleteButton = page.getByRole('button', { name: /delete|archive|remove/i });
-
-    // Tabs
-    this.personalTab = page.getByRole('tab', { name: /personal|profile/i });
+    // Delegate tab locators
+    this.profileBasicsTab = this.form.profileBasicsTab;
+    this.engagementTab = this.form.engagementTab;
+    this.careTab = this.form.careTab;
+    this.servingTab = this.form.servingTab;
+    this.financeTab = this.form.financeTab;
+    this.adminTab = this.form.adminTab;
+    this.personalTab = this.form.profileBasicsTab;
     this.contactTab = page.getByRole('tab', { name: /contact/i });
-    this.membershipTab = page.getByRole('tab', { name: /membership/i });
-    this.discipleshipTab = page.getByRole('tab', { name: /discipleship|growth/i });
-    this.careTab = page.getByRole('tab', { name: /care|pastoral/i });
-    this.givingTab = page.getByRole('tab', { name: /giving|finance/i });
+    this.membershipTab = this.form.adminTab;
+    this.discipleshipTab = this.form.engagementTab;
+    this.givingTab = this.form.financeTab;
 
-    // Accordion sections (collapsible) - these need to be expanded to show form fields
-    // Section titles: "Identity & profile", "Household", "Contact preferences"
-    this.identityProfileSection = page.getByRole('button', { name: /identity.*profile/i });
-    this.householdSection = page.getByRole('button', { name: /^household$/i });
-    this.contactPreferencesSection = page.getByRole('button', { name: /contact.*preferences/i });
+    // Delegate section locators
+    this.identityProfileSection = this.form.identityProfileSection;
+    this.householdSection = this.form.householdSection;
+    this.contactPreferencesSection = this.form.contactPreferencesSection;
+    this.communitiesPathwaysSection = this.form.communitiesPathwaysSection;
+    this.giftsInterestsSection = this.form.giftsInterestsSection;
+    this.pastoralNotesSection = this.form.pastoralNotesSection;
+    this.emergencyContactSection = this.form.emergencyContactSection;
+    this.servingAssignmentSection = this.form.servingAssignmentSection;
+    this.leadershipScopeSection = this.form.leadershipScopeSection;
+    this.givingSection = this.form.givingSection;
+    this.financeAdminSection = this.form.financeAdminSection;
+    this.membershipCentersSection = this.form.membershipCentersSection;
+    this.segmentationSection = this.form.segmentationSection;
+
+    // Delegate form field locators
+    this.firstNameInput = this.form.firstNameInput;
+    this.lastNameInput = this.form.lastNameInput;
+    this.preferredNameInput = this.form.preferredNameInput;
+    this.emailInput = this.form.emailInput;
+    this.phoneInput = this.form.phoneInput;
+    this.birthdateInput = this.form.birthdateInput;
+    this.maritalStatusSelect = this.form.maritalStatusSelect;
+    this.genderSelect = page.getByLabel(/gender/i).or(page.locator('[name="gender"]'));
+    this.addressLine1Input = this.form.addressStreetInput;
+    this.cityInput = this.form.cityInput;
+    this.stateInput = this.form.stateInput;
+    this.zipCodeInput = this.form.postalCodeInput;
+    this.countryInput = page.getByLabel(/country/i).or(page.locator('[name="country"]'));
+    this.envelopeNumberInput = this.form.envelopeNumberInput;
+    this.occupationInput = this.form.occupationInput;
+    this.householdNameInput = this.form.householdNameInput;
+    this.preferredContactSelect = this.form.preferredContactSelect;
+
+    // Engagement fields
+    this.smallGroupInput = this.form.smallGroupInput;
+    this.mentorInput = this.form.mentorInput;
+    this.attendanceRateInput = this.form.attendanceRateInput;
+    this.discipleshipNextStepInput = this.form.discipleshipNextStepInput;
+    this.prayerFocusInput = this.form.prayerFocusInput;
+
+    // Care fields
+    this.pastoralNotesInput = this.form.pastoralNotesInput;
+    this.prayerRequestsInput = this.form.prayerRequestsInput;
+    this.emergencyContactInput = this.form.emergencyContactInput;
+    this.emergencyRelationshipInput = this.form.emergencyRelationshipInput;
+    this.emergencyPhoneInput = this.form.emergencyPhoneInput;
+    this.physicianInput = this.form.physicianInput;
+
+    // Serving fields
+    this.servingTeamInput = this.form.servingTeamInput;
+    this.servingRoleInput = this.form.servingRoleInput;
+    this.servingScheduleInput = this.form.servingScheduleInput;
+    this.servingCoachInput = this.form.servingCoachInput;
+    this.teamFocusInput = this.form.teamFocusInput;
+    this.reportsToInput = this.form.reportsToInput;
+
+    // Finance fields
+    this.recurringGivingInput = this.form.recurringGivingInput;
+    this.pledgeAmountInput = this.form.pledgeAmountInput;
+    this.pledgeCampaignInput = this.form.pledgeCampaignInput;
+    this.primaryFundInput = this.form.primaryFundInput;
+    this.financeNotesInput = this.form.financeNotesInput;
+
+    // Admin fields
+    this.membershipStageSelect = this.form.membershipStageSelect;
+    this.membershipTypeSelect = this.form.membershipTypeSelect;
+    this.centerSelect = this.form.centerSelect;
+    this.joinDateInput = this.form.joinDateInput;
+    this.dataStewardInput = this.form.dataStewardInput;
+
+    // Form actions
+    this.saveButton = this.form.saveButton;
+    this.cancelButton = this.form.cancelButton;
+    this.deleteButton = this.form.deleteButton;
 
     // Feedback
     this.successMessage = page.locator('[data-testid="success-message"], .toast-success, [role="alert"]').filter({ hasText: /success|saved|created|updated/i });
@@ -135,372 +245,135 @@ export class MembersPage {
     this.loadingSpinner = page.locator('[data-testid="loading"], .loading, [aria-busy="true"]');
   }
 
-  // ==================== Navigation ====================
+  // ==================== NAVIGATION ====================
 
-  /**
-   * Navigate to members list page
-   */
-  async gotoList() {
-    await this.page.goto('/admin/members/list');
+  async gotoList(): Promise<void> {
+    await this.list.goto();
   }
 
-  /**
-   * Navigate to members dashboard
-   */
-  async gotoDashboard() {
+  async gotoDashboard(): Promise<void> {
     await this.page.goto('/admin/members');
   }
 
-  /**
-   * Navigate to create new member page
-   */
-  async gotoCreateMember() {
+  async gotoCreateMember(): Promise<void> {
     await this.page.goto('/admin/members/manage');
   }
 
-  /**
-   * Navigate to edit member page
-   */
-  async gotoEditMember(memberId: string) {
+  async gotoEditMember(memberId: string): Promise<void> {
     await this.page.goto(`/admin/members/manage?memberId=${memberId}`);
   }
 
-  /**
-   * Navigate to member profile page
-   */
-  async gotoMemberProfile(memberId: string) {
+  async gotoMemberProfile(memberId: string): Promise<void> {
     await this.page.goto(`/admin/members/${memberId}`);
   }
 
-  // ==================== List Page Actions ====================
+  // ==================== LIST ACTIONS ====================
 
-  /**
-   * Search for a member in the list
-   */
-  async searchMember(query: string) {
-    await this.searchInput.fill(query);
-    // Wait for search results to update
-    await this.page.waitForTimeout(500);
+  async searchMember(query: string): Promise<void> {
+    await this.list.searchMember(query);
   }
 
-  /**
-   * Click on a member row to view details
-   */
-  async clickMemberRow(name: string) {
-    const row = this.page.locator('[role="row"], table tr').filter({ hasText: name }).first();
-    await row.click();
+  async clickMemberRow(name: string): Promise<void> {
+    await this.list.clickMemberRow(name);
   }
 
-  /**
-   * Click edit button for a member in the list
-   */
-  async clickEditMember(name: string) {
-    const row = this.page.locator('[role="row"], table tr').filter({ hasText: name }).first();
-    const editButton = row.getByRole('button', { name: /edit/i }).or(
-      row.getByRole('link', { name: /edit/i })
-    );
-    await editButton.click();
+  async clickEditMember(name: string): Promise<void> {
+    await this.list.clickEditMember(name);
   }
 
-  /**
-   * Click Add Member button from list or dashboard
-   */
-  async clickAddMember() {
-    await this.addMemberButton.click();
+  async clickAddMember(): Promise<void> {
+    await this.list.clickAddMember();
   }
 
-  /**
-   * Get count of members displayed in the list
-   */
   async getMemberCount(): Promise<number> {
-    await this.memberRows.first().waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
-    return await this.memberRows.count();
+    return await this.list.getMemberCount();
   }
 
-  // ==================== Form Actions ====================
+  // ==================== FORM ACTIONS ====================
 
-  /**
-   * Expand an accordion section if it's collapsed
-   */
-  async expandAccordionSection(section: Locator) {
-    const isExpanded = await section.getAttribute('aria-expanded');
-    if (isExpanded !== 'true') {
-      await section.click();
-      // Wait for animation to complete
-      await this.page.waitForTimeout(300);
-    }
+  async expandAccordionSection(section: Locator): Promise<void> {
+    await this.actions.expandAccordionSection(section);
   }
 
-  /**
-   * Expand all accordion sections in the form to make fields visible
-   */
-  async expandAllSections() {
-    // Expand Identity & Profile section
+  async expandAllSections(): Promise<void> {
     if (await this.identityProfileSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.expandAccordionSection(this.identityProfileSection);
+      await this.actions.expandAccordionSection(this.identityProfileSection);
     }
-
-    // Expand Household section
     if (await this.householdSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.expandAccordionSection(this.householdSection);
+      await this.actions.expandAccordionSection(this.householdSection);
     }
-
-    // Expand Contact Preferences section
     if (await this.contactPreferencesSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.expandAccordionSection(this.contactPreferencesSection);
+      await this.actions.expandAccordionSection(this.contactPreferencesSection);
     }
   }
 
-  /**
-   * Fill personal information tab
-   */
-  async fillPersonalInfo(data: {
-    firstName: string;
-    lastName: string;
-    preferredName?: string;
-    birthdate?: string;
-    maritalStatus?: string;
-    gender?: string;
-  }) {
-    // First expand the Identity & Profile section to reveal form fields
-    await this.expandAccordionSection(this.identityProfileSection);
-
-    await this.firstNameInput.fill(data.firstName);
-    await this.lastNameInput.fill(data.lastName);
-
-    if (data.preferredName) {
-      await this.preferredNameInput.fill(data.preferredName);
-    }
-
-    if (data.birthdate) {
-      await this.birthdateInput.fill(data.birthdate);
-    }
-
-    if (data.maritalStatus) {
-      await this.selectOption(this.maritalStatusSelect, data.maritalStatus);
-    }
-
-    if (data.gender) {
-      await this.selectOption(this.genderSelect, data.gender);
-    }
+  async navigateToTab(tabName: 'profile' | 'engagement' | 'care' | 'serving' | 'finance' | 'admin'): Promise<void> {
+    await this.actions.navigateToTab(tabName);
   }
 
-  /**
-   * Fill contact information (email, phone in Contact Preferences section)
-   */
-  async fillContactInfo(data: {
-    email?: string;
-    phone?: string;
-  }) {
-    // Expand Contact Preferences section if visible
-    if (await this.contactPreferencesSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.expandAccordionSection(this.contactPreferencesSection);
-    }
-
-    if (data.email) {
-      await this.emailInput.fill(data.email);
-    }
-
-    if (data.phone) {
-      await this.phoneInput.fill(data.phone);
-    }
+  async fillPersonalInfo(data: { firstName: string; lastName: string; preferredName?: string; birthdate?: string; maritalStatus?: string; gender?: string }): Promise<void> {
+    await this.actions.fillIdentitySection(data);
   }
 
-  /**
-   * Fill address/household information (in Household section)
-   * Address fields: addressStreet, addressCity, addressState, addressPostal
-   */
-  async fillAddressInfo(data: {
-    addressStreet?: string;
-    addressCity?: string;
-    addressState?: string;
-    addressPostal?: string;
-    householdName?: string;
-  }) {
-    // Expand Household section if visible - address fields are here
-    if (await this.householdSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.expandAccordionSection(this.householdSection);
-    }
-
-    if (data.addressStreet) {
-      await this.addressLine1Input.fill(data.addressStreet);
-    }
-
-    if (data.addressCity) {
-      await this.cityInput.fill(data.addressCity);
-    }
-
-    if (data.addressState) {
-      await this.stateInput.fill(data.addressState);
-    }
-
-    if (data.addressPostal) {
-      await this.zipCodeInput.fill(data.addressPostal);
-    }
+  async fillContactInfo(data: { email?: string; phone?: string }): Promise<void> {
+    await this.actions.fillContactSection(data);
   }
 
-  /**
-   * Fill membership details
-   */
-  async fillMembershipInfo(data: {
-    stage?: string;
-    type?: string;
-    center?: string;
-    joinDate?: string;
-  }) {
-    if (data.stage) {
-      await this.selectOption(this.membershipStageSelect, data.stage);
-    }
-
-    if (data.type) {
-      await this.selectOption(this.membershipTypeSelect, data.type);
-    }
-
-    if (data.center) {
-      await this.selectOption(this.centerSelect, data.center);
-    }
-
-    if (data.joinDate) {
-      await this.joinDateInput.fill(data.joinDate);
-    }
+  async fillAddressInfo(data: { addressStreet?: string; addressCity?: string; addressState?: string; addressPostal?: string; householdName?: string }): Promise<void> {
+    await this.actions.fillHouseholdSection(data);
   }
 
-  /**
-   * Helper to select an option from a dropdown
-   */
-  private async selectOption(locator: Locator, value: string) {
-    try {
-      // Try native select first
-      await locator.selectOption(value);
-    } catch {
-      // If not a native select, try clicking and selecting
-      await locator.click();
-      await this.page.getByRole('option', { name: new RegExp(value, 'i') }).click();
-    }
+  async fillMembershipInfo(data: { stage?: string; type?: string; center?: string; joinDate?: string }): Promise<void> {
+    await this.actions.fillAdminTab({ stage: data.stage, membershipType: data.type, center: data.center });
   }
 
-  /**
-   * Click on a specific tab in the member form
-   */
-  async clickTab(tabName: 'personal' | 'contact' | 'membership' | 'discipleship' | 'care' | 'giving') {
-    const tabMap = {
-      personal: this.personalTab,
-      contact: this.contactTab,
-      membership: this.membershipTab,
-      discipleship: this.discipleshipTab,
-      care: this.careTab,
-      giving: this.givingTab,
-    };
-    await tabMap[tabName].click();
+  async submitForm(): Promise<void> {
+    await this.actions.submitForm();
   }
 
-  /**
-   * Submit the member form
-   */
-  async submitForm() {
-    await this.saveButton.click();
+  async cancelForm(): Promise<void> {
+    await this.actions.cancelForm();
   }
 
-  /**
-   * Cancel form and go back
-   */
-  async cancelForm() {
-    await this.cancelButton.click();
-  }
+  // ==================== VERIFICATION ====================
 
-  // ==================== Verification ====================
-
-  /**
-   * Wait for success message after form submission
-   */
-  async waitForSuccess() {
+  async waitForSuccess(): Promise<void> {
     await this.successMessage.waitFor({ state: 'visible', timeout: 10000 });
   }
 
-  /**
-   * Check if error message is displayed
-   */
   async hasError(): Promise<boolean> {
     return await this.errorMessage.isVisible({ timeout: 3000 });
   }
 
-  /**
-   * Check if page has loaded (data grid or form visible)
-   */
   async isListLoaded(): Promise<boolean> {
-    return await this.dataGrid.isVisible({ timeout: 10000 });
+    return await this.list.isLoaded();
   }
 
-  /**
-   * Check if manage form is loaded (checks for accordion sections or form fields)
-   */
   async isFormLoaded(): Promise<boolean> {
-    // Wait for either the accordion sections OR the form fields to be visible
     const accordionVisible = await this.identityProfileSection.isVisible({ timeout: 10000 }).catch(() => false);
-    if (accordionVisible) {
-      return true;
-    }
-    // Fallback to checking if firstName input is visible (for expanded forms)
+    if (accordionVisible) return true;
     return await this.firstNameInput.isVisible({ timeout: 5000 }).catch(() => false);
   }
 
-  /**
-   * Verify member exists in the list
-   */
   async memberExistsInList(name: string): Promise<boolean> {
-    const row = this.page.locator('[role="row"], table tr').filter({ hasText: name });
-    return await row.isVisible({ timeout: 5000 });
+    return await this.list.memberExistsInList(name);
   }
 
-  /**
-   * Wait for the page URL to change after save
-   */
-  async waitForNavigationAfterSave() {
+  async waitForNavigationAfterSave(): Promise<void> {
     await this.page.waitForURL(/\/admin\/members\/(?!manage)/, { timeout: 15000 });
   }
-}
 
-/**
- * Test data generator for members
- */
-export function generateMemberData(overrides: Partial<MemberTestData> = {}): MemberTestData {
-  const timestamp = Date.now();
-  const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
+  // ==================== LEGACY TAB METHOD ====================
 
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-
-  return {
-    firstName,
-    lastName,
-    preferredName: firstName,
-    email: `test-member-${timestamp}@example.com`,
-    phone: '555-123-4567',
-    birthdate: '1990-01-15',
-    maritalStatus: 'single',
-    gender: 'male',
-    // Address fields matching the form field names
-    addressStreet: '123 Test Street',
-    addressCity: 'Test City',
-    addressState: 'TX',
-    addressPostal: '12345',
-    ...overrides,
-  };
-}
-
-export interface MemberTestData {
-  firstName: string;
-  lastName: string;
-  preferredName?: string;
-  email?: string;
-  phone?: string;
-  birthdate?: string;
-  maritalStatus?: string;
-  gender?: string;
-  // Address fields matching the form field names (in Household section)
-  addressStreet?: string;
-  addressCity?: string;
-  addressState?: string;
-  addressPostal?: string;
+  async clickTab(tabName: 'personal' | 'contact' | 'membership' | 'discipleship' | 'care' | 'giving'): Promise<void> {
+    const tabMap: Record<string, 'profile' | 'engagement' | 'care' | 'serving' | 'finance' | 'admin'> = {
+      personal: 'profile',
+      contact: 'profile',
+      membership: 'admin',
+      discipleship: 'engagement',
+      care: 'care',
+      giving: 'finance',
+    };
+    await this.actions.navigateToTab(tabMap[tabName]);
+  }
 }

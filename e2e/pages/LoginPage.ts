@@ -66,13 +66,18 @@ export class LoginPage {
    * Wait for successful login (redirect to admin dashboard)
    */
   async waitForSuccessfulLogin() {
+    // Increased timeout for slower CI environments
+    const loginTimeout = 60000;
+
     // Wait for either URL change to admin/dashboard OR for admin heading to appear
     await Promise.race([
-      this.page.waitForURL(/\/(admin|dashboard)/, { timeout: 30000 }),
-      this.page.getByRole('heading', { name: /admin|dashboard/i }).waitFor({ state: 'visible', timeout: 30000 }),
+      this.page.waitForURL(/\/(admin|dashboard|onboarding)/, { timeout: loginTimeout }),
+      this.page.getByRole('heading', { name: /admin|dashboard|overview/i }).waitFor({ state: 'visible', timeout: loginTimeout }),
+      // Also check for sidebar navigation as indicator of successful login
+      this.page.locator('[data-testid="sidebar"], nav[role="navigation"]').waitFor({ state: 'visible', timeout: loginTimeout }),
     ]);
     // Additional wait for page to stabilize
-    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   /**

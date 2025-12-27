@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -135,15 +136,6 @@ export function AdminMemberWorkspace(props: AdminMemberWorkspaceProps) {
   const variant = props.variant ?? "profile";
   const tabs = normalizeList<WorkspaceTabConfig>(props.tabs);
 
-  const [activeTab, setActiveTab] = React.useState<string>(() => tabs[0]?.id ?? "overview");
-
-  React.useEffect(() => {
-    const defaultTab = tabs[0]?.id;
-    if (defaultTab && defaultTab !== activeTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [tabs, activeTab]);
-
   if (!tabs.length) {
     const emptyTitle = props.emptyState?.title ?? "No sections available";
     const emptyDescription =
@@ -164,9 +156,37 @@ export function AdminMemberWorkspace(props: AdminMemberWorkspaceProps) {
 }
 
 function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Get the current tab from URL, defaulting to the first tab
+  const defaultTab = tabs[0]?.id ?? "overview";
+  const currentTab = searchParams.get("tab") ?? defaultTab;
+
+  // Ensure the current tab is valid, otherwise use the default
+  const validTabIds = tabs.map((tab) => tab.id);
+  const activeTab = validTabIds.includes(currentTab) ? currentTab : defaultTab;
+
+  const handleTabChange = React.useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === defaultTab) {
+        // Remove tab param if it's the default to keep URL clean
+        params.delete("tab");
+      } else {
+        params.set("tab", value);
+      }
+      const queryString = params.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router, defaultTab],
+  );
+
   return (
     <section className="space-y-6">
-      <Tabs defaultValue={tabs[0]?.id ?? "overview"} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="w-full justify-start overflow-x-auto">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id} className="whitespace-nowrap">
@@ -459,6 +479,34 @@ interface ManageWorkspaceProps {
 }
 
 function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Get the current tab from URL, defaulting to the first tab
+  const defaultTab = tabs[0]?.id ?? "overview";
+  const currentTab = searchParams.get("tab") ?? defaultTab;
+
+  // Ensure the current tab is valid, otherwise use the default
+  const validTabIds = tabs.map((tab) => tab.id);
+  const activeTab = validTabIds.includes(currentTab) ? currentTab : defaultTab;
+
+  const handleTabChange = React.useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === defaultTab) {
+        // Remove tab param if it's the default to keep URL clean
+        params.delete("tab");
+      } else {
+        params.set("tab", value);
+      }
+      const queryString = params.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router, defaultTab],
+  );
+
   const sections = React.useMemo(() => {
     return tabs.flatMap((tab) => normalizeList<WorkspaceSectionConfig>(tab.sections));
   }, [tabs]);
@@ -993,7 +1041,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
             </Alert>
           )}
 
-          <Tabs defaultValue={tabs[0]?.id ?? "overview"} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="w-full justify-start overflow-x-auto">
               {tabs.map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id} className="whitespace-nowrap">

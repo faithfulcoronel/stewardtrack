@@ -93,7 +93,7 @@ export function AdminLayoutShell({
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className="flex-none rounded-full border border-border/60 text-muted-foreground"
+                      className="hidden flex-none rounded-full border border-border/60 text-muted-foreground sm:flex"
                       aria-pressed={isCanvasExpanded}
                       aria-label={
                         isCanvasExpanded

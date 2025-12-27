@@ -331,6 +331,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     case "multiline":
       return (
         <Textarea
+          name={field.name}
           value={String(controller.value ?? "")}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder}
@@ -375,6 +376,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     case "currency":
       return (
         <Input
+          name={field.name}
           type="number"
           min={0}
           step="0.01"
@@ -403,6 +405,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     case "number":
       return (
         <Input
+          name={field.name}
           type="number"
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
@@ -414,6 +417,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     case "email":
       return (
         <Input
+          name={field.name}
           type="email"
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
@@ -425,6 +429,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     case "tel":
       return (
         <Input
+          name={field.name}
           type="tel"
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
@@ -437,6 +442,7 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     default:
       return (
         <Input
+          name={field.name}
           value={controller.value === undefined ? "" : String(controller.value)}
           onChange={(event) => controller.onChange(event.target.value)}
           placeholder={basePlaceholder}

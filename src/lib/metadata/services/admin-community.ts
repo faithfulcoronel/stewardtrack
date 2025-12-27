@@ -22,6 +22,10 @@ import {
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { EncryptionService } from '@/lib/encryption/EncryptionService';
+import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
+import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
+import type { MemberCarePlan } from '@/models/memberCarePlan.model';
+import type { MemberDiscipleshipPlan } from '@/models/memberDiscipleshipPlan.model';
 import {
   fetchMembershipLookupGroups,
   formatLabel,
@@ -1274,17 +1278,108 @@ function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
   } satisfies MemberProfileRecord['carePlan'];
 }
 
+/**
+ * Build a merged timeline combining timeline events, care plans, and discipleship plans
+ * Similar to how the dashboard's resolveDashboardCareTimeline works
+ */
+function buildMemberTimeline(
+  timelineEvents: MemberTimelineEventRow[],
+  carePlans: MemberCarePlan[],
+  discipleshipPlans: MemberDiscipleshipPlan[],
+  limit: number
+): Array<{
+  id: string;
+  title: string;
+  date: string;
+  timeAgo: string;
+  description: string | null;
+  category: string | null;
+  stage: string | null;
+  icon: string | null;
+}> {
+  // Convert timeline events to unified format with sortDate
+  const eventItems = timelineEvents.map((event) => ({
+    id: event.id,
+    title: event.title,
+    date: formatMonthDay(event.occurred_at ?? null),
+    timeAgo: formatRelative(event.occurred_at ?? null),
+    description: event.description ?? null,
+    category: event.event_category ?? null,
+    stage: event.status ?? null,
+    icon: event.icon ?? null,
+    sortDate: event.occurred_at ? new Date(event.occurred_at).getTime() : 0,
+  }));
+
+  // Convert care plans to timeline items
+  const carePlanItems = (carePlans || []).map((plan, index) => {
+    const dateField = plan.created_at || plan.follow_up_at;
+    const isUrgent = plan.priority === 'urgent';
+    const statusLabel = plan.is_active ? 'Active' : 'Completed';
+
+    return {
+      id: plan.id || `care-${index}`,
+      title: plan.status_label || 'Care plan',
+      date: formatMonthDay(dateField ?? null),
+      timeAgo: formatRelative(dateField ?? null),
+      description: plan.details || `Care follow-up ${statusLabel.toLowerCase()}.`,
+      category: isUrgent ? 'Urgent Care' : 'Care',
+      stage: plan.is_active ? 'attention' : 'completed',
+      icon: isUrgent ? '🔴' : '💙',
+      sortDate: dateField ? new Date(dateField).getTime() : 0,
+    };
+  });
+
+  // Convert discipleship plans to timeline items
+  const discipleshipItems = (discipleshipPlans || []).map((plan, index) => {
+    const dateField = plan.created_at || plan.target_date;
+    const pathwayLabel = plan.pathway
+      ? plan.pathway.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+      : 'Discipleship';
+    const description = plan.next_step
+      ? `Next step: ${plan.next_step}`
+      : plan.mentor_name
+        ? `Mentor: ${plan.mentor_name}`
+        : 'Discipleship journey in progress.';
+
+    return {
+      id: plan.id || `discipleship-${index}`,
+      title: `${pathwayLabel} plan`,
+      date: formatMonthDay(dateField ?? null),
+      timeAgo: formatRelative(dateField ?? null),
+      description,
+      category: 'Discipleship',
+      stage: plan.status === 'completed' ? 'completed' : plan.status === 'active' ? 'scheduled' : 'new',
+      icon: '📖',
+      sortDate: dateField ? new Date(dateField).getTime() : 0,
+    };
+  });
+
+  // Merge all items and sort by date (most recent first)
+  const allItems = [...eventItems, ...carePlanItems, ...discipleshipItems]
+    .sort((a, b) => b.sortDate - a.sortDate)
+    .slice(0, limit)
+    .map(({ sortDate: _sortDate, ...item }) => item);
+
+  return allItems;
+}
+
 async function buildMemberProfileRecord(
   service: MemberProfileService,
   member: MemberRow,
   options: { timelineLimit: number }
 ): Promise<MemberProfileRecord> {
-  const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows] = await Promise.all([
+  // Fetch care plan and discipleship plan services from DI container
+  const carePlanService = container.get<MemberCarePlanService>(TYPES.MemberCarePlanService);
+  const discipleshipPlanService = container.get<MemberDiscipleshipPlanService>(TYPES.MemberDiscipleshipPlanService);
+
+  const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows, memberCarePlans, memberDiscipleshipPlans] = await Promise.all([
     fetchHouseholdMembers(service, member),
     fetchGivingProfile(service, member.id),
     fetchCarePlan(service, member.id),
     fetchTimelineEvents(service, member.id, options.timelineLimit),
     fetchMilestones(service, member.id),
+    carePlanService.getCarePlansByMember(member.id),
+    discipleshipPlanService.getPlansByMember(member.id),
   ]);
 
   const fullName = formatFullName(member.first_name ?? null, member.last_name ?? null);
@@ -1454,22 +1549,13 @@ async function buildMemberProfileRecord(
     },
     carePlan: carePlanRecord,
     emergency: emergencyDetails,
-    timeline: timelineEvents.map((event) => ({
-      id: event.id,
-      title: event.title,
-      date: formatMonthDay(event.occurred_at ?? null),
-      timeAgo: formatRelative(event.occurred_at ?? null),
-      description: event.description ?? null,
-      category: event.event_category ?? null,
-      stage: event.status ?? null,
-      icon: event.icon ?? null,
-    })),
+    timeline: buildMemberTimeline(timelineEvents, memberCarePlans, memberDiscipleshipPlans, options.timelineLimit),
   } satisfies MemberProfileRecord;
 }
 
 async function resolveMemberProfile(
   request: ServiceDataSourceRequest
-): Promise<{ records: MemberProfileRecord[] }> {
+): Promise<{ records: MemberProfileRecord[]; notFound?: boolean }> {
   const fallback = cloneMemberRecords(request.config.value);
   try {
     const memberId = firstParam(request.params.memberId);
@@ -1478,6 +1564,11 @@ async function resolveMemberProfile(
     const service = createMemberProfileService();
     const members = await service.getMembers({ memberId, limit });
     if (!members.length) {
+      // If a specific memberId was requested but not found, return notFound flag
+      // Only use fallback data when no specific memberId is requested (for preview/dev)
+      if (memberId) {
+        return { records: [], notFound: true };
+      }
       return { records: fallback };
     }
 
@@ -1488,6 +1579,11 @@ async function resolveMemberProfile(
     return { records };
   } catch (error) {
     console.error('Failed to resolve member profile data source', error);
+    // On error with a specific memberId, indicate not found rather than showing fallback
+    const memberId = firstParam(request.params.memberId);
+    if (memberId) {
+      return { records: [], notFound: true };
+    }
     if (fallback.length) {
       return { records: fallback };
     }

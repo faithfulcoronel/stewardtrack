@@ -199,6 +199,9 @@ export class AdminFormSubmitHandler {
   }
 
   private buildActionPayload(values: Record<string, unknown>): Record<string, unknown> {
+    console.log('[AdminFormSubmitHandler] values.addressStreet:', values.addressStreet);
+    console.log('[AdminFormSubmitHandler] values.preferredName:', values.preferredName);
+
     const payload: Record<string, unknown> = {
       mode: this.mode ?? null,
       values,
