@@ -127,7 +127,7 @@ export function AdminFormSection(props: AdminFormSectionProps) {
         } satisfies Record<string, FormFieldOption[]>;
       });
 
-      form.setValue(field.name as never, option.value, {
+      form.setValue(field.name as never, option.value as never, {
         shouldDirty: true,
         shouldValidate: true,
       });
@@ -171,6 +171,8 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                 key={field.name}
                 control={form.control}
                 name={field.name as never}
+                required={field.required === true}
+                rules={field.required === true ? { required: `${field.label ?? field.name} is required` } : undefined}
                 render={({ field: controller }) => {
                   // Hidden fields don't need the FormItem wrapper - just render the input
                   if (field.type === "hidden") {

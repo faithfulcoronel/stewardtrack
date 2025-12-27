@@ -674,8 +674,10 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
       await membersPage.submitForm();
       await page.waitForTimeout(2000);
 
-      // Check for validation errors
-      const hasErrors = await page.locator('.text-destructive, [role="alert"], .error, [aria-invalid="true"]')
+      // Check for validation errors - use more specific selectors to avoid matching Next.js route announcer
+      // Look for form-level error messages (FormMessage component) or invalid input fields
+      const hasErrors = await page.locator('[data-slot="form-message"], [data-slot="alert"], input[aria-invalid="true"], textarea[aria-invalid="true"]')
+        .first()
         .isVisible({ timeout: 5000 });
 
       await page.screenshot({ path: `e2e/screenshots/validation-errors-${Date.now()}.png` });
