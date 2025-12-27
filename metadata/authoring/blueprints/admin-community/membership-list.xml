@@ -119,39 +119,7 @@
                       <Field name="value">
                         <Value>all</Value>
                       </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Active</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>active</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>New here</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>new</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Shepherding</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>care</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Inactive</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>inactive</Value>
-                      </Field>
-                    </Object>
+                    </Object>                
                   </Array>
                 </Field>
               </Object>
@@ -183,39 +151,7 @@
                       <Field name="value">
                         <Value>all</Value>
                       </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Downtown</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>downtown</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Northside</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>northside</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Southridge</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>southridge</Value>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="label">
-                        <Value>Online</Value>
-                      </Field>
-                      <Field name="value">
-                        <Value>online</Value>
-                      </Field>
-                    </Object>
+                    </Object>                    
                   </Array>
                 </Field>
               </Object>

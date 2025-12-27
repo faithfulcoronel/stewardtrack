@@ -27,6 +27,7 @@ import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshi
 import type { MemberCarePlan } from '@/models/memberCarePlan.model';
 import type { MemberDiscipleshipPlan } from '@/models/memberDiscipleshipPlan.model';
 import {
+  fetchMembershipFilterOptions,
   fetchMembershipLookupGroups,
   formatLabel,
   type LookupGroups,
@@ -1123,10 +1124,54 @@ async function resolveMembersTable(
   const service = createMembersDashboardService();
   const directory = await service.getDirectory(undefined, limit);
   const rows = directory.map((member) => toMembersTableRow(member as MemberDirectoryRecord));
+
+  // Fetch membership stages and centers from database for dynamic filter options
+  // Uses code as the value for client-side filtering (matches row.stageKey and row.centerKey)
+  const { stages, centers } = await fetchMembershipFilterOptions(request);
+
+  // Build stage filter options from database
+  if (stages.length > 0) {
+    const stageOptions = [
+      { label: 'All stages', value: 'all' },
+      ...stages,
+    ];
+    updateFilterOptions(base, 'stage', stageOptions);
+  }
+
+  // Build center filter options from database
+  if (centers.length > 0) {
+    const centerOptions = [
+      { label: 'All centers', value: 'all' },
+      ...centers,
+    ];
+    updateFilterOptions(base, 'center', centerOptions);
+  }
+
   return {
     ...base,
     rows,
   };
+}
+
+/**
+ * Update filter options for a specific filter by ID
+ */
+function updateFilterOptions(
+  config: MembersTableStaticConfig,
+  filterId: string,
+  options: Array<{ label: string; value: string }>
+) {
+  const filters = config.filters as unknown[];
+  if (!Array.isArray(filters)) {
+    return;
+  }
+
+  for (const filter of filters) {
+    if (isRecord(filter) && filter.id === filterId) {
+      filter.options = options;
+      break;
+    }
+  }
 }
 
 function enhanceMembersTableColumns(config: MembersTableStaticConfig) {

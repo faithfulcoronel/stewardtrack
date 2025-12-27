@@ -423,7 +423,7 @@ export class MemberAdapter
     return (data as MemberHousehold) ?? null;
   }
 
-  private async prepareMemberPayload(data: Partial<Member>): Promise<Partial<Member>> {
+  private async prepareMemberPayload(data: Partial<Member>, existingMemberId?: string): Promise<Partial<Member>> {
     const payload: Record<string, unknown> = { ...data };
     const tenantId = await this.getTenantId();
     const userId = await this.getUserId();
@@ -439,7 +439,24 @@ export class MemberAdapter
           payload.envelope_number = null;
         }
       } else {
-        householdRecord = await this.upsertHousehold(householdInput ?? {}, tenantId ?? null, userId);
+        // If editing a member and no household ID is provided, check if member already has a household
+        // to avoid creating duplicate households
+        let householdInputWithId = householdInput ?? {};
+        if (existingMemberId && !householdInputWithId.id) {
+          const supabase = await this.getSupabaseClient();
+          const { data: existingMember } = await supabase
+            .from('members')
+            .select('household_id')
+            .eq('id', existingMemberId)
+            .single();
+
+          if (existingMember?.household_id) {
+            // Use the existing household ID to update instead of creating new
+            householdInputWithId = { ...householdInputWithId, id: existingMember.household_id };
+          }
+        }
+
+        householdRecord = await this.upsertHousehold(householdInputWithId, tenantId ?? null, userId);
         if (householdRecord) {
           payload.household_id = householdRecord.id;
         }
@@ -706,7 +723,7 @@ export class MemberAdapter
   }
 
   protected override async onBeforeUpdate(id: string, data: Partial<Member>): Promise<Partial<Member>> {
-    const prepared = await this.prepareMemberPayload(data);
+    const prepared = await this.prepareMemberPayload(data, id);
 
     if (prepared.email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(prepared.email)) {

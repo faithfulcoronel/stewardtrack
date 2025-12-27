@@ -231,3 +231,50 @@ export async function fetchMembershipLookupGroups(
 
   return results;
 }
+
+/**
+ * Filter option with code-based value for client-side filtering
+ */
+export type FilterOption = { label: string; value: string };
+
+/**
+ * Fetch membership stages and centers as filter options using code as the value.
+ * This is used for client-side filtering where rows contain the code field.
+ */
+export async function fetchMembershipFilterOptions(
+  request: ServiceDataSourceRequest
+): Promise<{ stages: FilterOption[]; centers: FilterOption[] }> {
+  const tenantId = await tenantUtils.getTenantId();
+  if (!tenantId) {
+    return { stages: [], centers: [] };
+  }
+
+  const role = (request.role ?? '').trim() || null;
+  const context = createMembershipLookupRequestContext(tenantId, role);
+  const auditService = new SupabaseAuditService();
+
+  const stageService = createMembershipStageService(context, auditService);
+  const centerService = createMembershipCenterService(context, auditService);
+
+  const [stageRecords, centerRecords] = await Promise.all([
+    stageService.getActive(),
+    centerService.getActive(),
+  ]);
+
+  // Map to filter options using code as the value (for client-side filtering)
+  const stages = (stageRecords as StageRecord[])
+    .filter((r) => r.code)
+    .map((r) => ({
+      label: r.name || formatLabel(r.code, 'Stage'),
+      value: r.code!,
+    }));
+
+  const centers = (centerRecords as CenterRecord[])
+    .filter((r) => r.code)
+    .map((r) => ({
+      label: r.name || formatLabel(r.code, 'Center'),
+      value: r.code!,
+    }));
+
+  return { stages, centers };
+}
