@@ -23,6 +23,7 @@ export interface FormFieldConfig {
     | "email"
     | "tel"
     | "date"
+    | "datetime"
     | "select"
     | "textarea"
     | "richtext"
