@@ -217,6 +217,13 @@ export const TYPES = {
   // Feature Onboarding Services & Plugins
   FeatureOnboardingOrchestratorService: Symbol.for('FeatureOnboardingOrchestratorService'),
   MembershipOnboardingPlugin: Symbol.for('MembershipOnboardingPlugin'),
+
+  // Planning Calendar Feature
+  ICalendarCategoryAdapter: Symbol.for('ICalendarCategoryAdapter'),
+  ICalendarCategoryRepository: Symbol.for('ICalendarCategoryRepository'),
+  ICalendarEventAdapter: Symbol.for('ICalendarEventAdapter'),
+  ICalendarEventRepository: Symbol.for('ICalendarEventRepository'),
+  PlanningService: Symbol.for('PlanningService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

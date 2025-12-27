@@ -40,6 +40,13 @@ import { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardi
 // Feature Onboarding Plugins
 import { MembershipOnboardingPlugin } from '@/lib/onboarding/plugins/features/MembershipOnboardingPlugin';
 
+// Planning Calendar Feature
+import { CalendarCategoryAdapter, type ICalendarCategoryAdapter } from '@/adapters/calendarCategory.adapter';
+import { CalendarEventAdapter, type ICalendarEventAdapter } from '@/adapters/calendarEvent.adapter';
+import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/repositories/calendarCategory.repository';
+import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
+import { PlanningService } from '@/services/PlanningService';
+
 // Phase 5 Optimization & Monitoring Adapters
 import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
 import { MaterializedViewRefreshJobAdapter, type IMaterializedViewRefreshJobAdapter } from '@/adapters/materializedViewRefreshJob.adapter';
@@ -532,5 +539,12 @@ container.bind<IMembershipStageRepository>(TYPES.IMembershipStageRepository).to(
 // ==================== FEATURE ONBOARDING ====================
 container.bind<FeatureOnboardingOrchestratorService>(TYPES.FeatureOnboardingOrchestratorService).to(FeatureOnboardingOrchestratorService).inRequestScope();
 container.bind<MembershipOnboardingPlugin>(TYPES.MembershipOnboardingPlugin).to(MembershipOnboardingPlugin).inRequestScope();
+
+// ==================== PLANNING CALENDAR ====================
+container.bind<ICalendarCategoryAdapter>(TYPES.ICalendarCategoryAdapter).to(CalendarCategoryAdapter).inRequestScope();
+container.bind<ICalendarCategoryRepository>(TYPES.ICalendarCategoryRepository).to(CalendarCategoryRepository).inRequestScope();
+container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEventAdapter).inRequestScope();
+container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
+container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
 
 export { container };

@@ -17,7 +17,8 @@ import {
   Briefcase,
   Blocks,
   Layers,
-  BookOpen
+  BookOpen,
+  CalendarDays,
 } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,6 +38,7 @@ export const ADMIN_NAV_ICONS = {
   uiBlocks: Blocks,
   modules: Layers,
   docs: BookOpen,
+  calendar: CalendarDays,
 } satisfies Record<string, ComponentType<{ className?: string }>>;
 
 type IconKey = keyof typeof ADMIN_NAV_ICONS;

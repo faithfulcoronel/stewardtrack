@@ -23,6 +23,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useMetadataClientContext } from "@/lib/metadata/context";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 function isTagsField(field: FormFieldConfig): boolean {
@@ -399,6 +400,24 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           title={field.label ?? "Select date"}
           buttonProps={{ variant: "outline", disabled: !isInteractive }}
           isDisabled={!isInteractive}
+        />
+      );
+    }
+    case "datetime": {
+      const dateTimeValue = toDateValue(controller.value);
+      return (
+        <DateTimePicker
+          value={dateTimeValue ?? undefined}
+          onChange={(nextValue) => {
+            if (nextValue instanceof Date && isValid(nextValue)) {
+              controller.onChange(nextValue.toISOString());
+            } else {
+              controller.onChange("");
+            }
+          }}
+          placeholder={basePlaceholder || "Select date & time"}
+          title={field.label ?? "Select date & time"}
+          disabled={!isInteractive}
         />
       );
     }
