@@ -242,6 +242,11 @@ export const TYPES = {
   ICalendarEventAdapter: Symbol.for('ICalendarEventAdapter'),
   ICalendarEventRepository: Symbol.for('ICalendarEventRepository'),
   PlanningService: Symbol.for('PlanningService'),
+
+  // Admin Dashboard Feature
+  IAdminDashboardAdapter: Symbol.for('IAdminDashboardAdapter'),
+  IAdminDashboardRepository: Symbol.for('IAdminDashboardRepository'),
+  AdminDashboardService: Symbol.for('AdminDashboardService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

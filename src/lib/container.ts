@@ -47,6 +47,11 @@ import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/
 import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import { PlanningService } from '@/services/PlanningService';
 
+// Admin Dashboard Feature
+import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/adminDashboard.adapter';
+import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
+import { AdminDashboardService } from '@/services/AdminDashboardService';
+
 // Notification System
 import { NotificationAdapter, type INotificationAdapter } from '@/adapters/notification.adapter';
 import { NotificationQueueAdapter, type INotificationQueueAdapter } from '@/adapters/notificationQueue.adapter';
@@ -593,5 +598,10 @@ container.bind<PushChannel>(TYPES.PushChannel).to(PushChannel).inRequestScope();
 container.bind<WebhookChannel>(TYPES.WebhookChannel).to(WebhookChannel).inRequestScope();
 container.bind<ChannelDispatcher>(TYPES.ChannelDispatcher).to(ChannelDispatcher).inRequestScope();
 container.bind<INotificationBusService>(TYPES.NotificationBusService).to(NotificationBusService).inRequestScope();
+
+// ==================== ADMIN DASHBOARD ====================
+container.bind<IAdminDashboardAdapter>(TYPES.IAdminDashboardAdapter).to(AdminDashboardAdapter).inRequestScope();
+container.bind<IAdminDashboardRepository>(TYPES.IAdminDashboardRepository).to(AdminDashboardRepository).inRequestScope();
+container.bind<AdminDashboardService>(TYPES.AdminDashboardService).to(AdminDashboardService).inRequestScope();
 
 export { container };

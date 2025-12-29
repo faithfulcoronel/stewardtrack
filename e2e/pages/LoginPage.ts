@@ -121,10 +121,27 @@ export class LoginPage {
 }
 
 /**
- * Default test credentials
- * These should be configured for a test user in the test environment
+ * Test credentials loaded from environment variables
+ * Configure via StewardTrack-E2E-Secrets variable group in CI/CD
+ * or set locally via .env file
+ *
+ * Required environment variables:
+ * - E2E_TEST_USER_EMAIL
+ * - E2E_TEST_USER_PASSWORD
  */
 export const TEST_CREDENTIALS = {
-  email: 'uitest100@gmail.com',
-  password: 'Password1',
+  get email(): string {
+    const email = process.env.E2E_TEST_USER_EMAIL;
+    if (!email) {
+      throw new Error('E2E_TEST_USER_EMAIL environment variable is not set');
+    }
+    return email;
+  },
+  get password(): string {
+    const password = process.env.E2E_TEST_USER_PASSWORD;
+    if (!password) {
+      throw new Error('E2E_TEST_USER_PASSWORD environment variable is not set');
+    }
+    return password;
+  },
 };
