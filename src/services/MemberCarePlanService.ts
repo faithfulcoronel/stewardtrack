@@ -2,15 +2,24 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IMemberCarePlanRepository } from '@/repositories/memberCarePlan.repository';
+import type { IMemberRepository } from '@/repositories/member.repository';
 import type { MemberCarePlan } from '@/models/memberCarePlan.model';
 import { QueryOptions } from '@/adapters/base.adapter';
 import type { CrudService } from '@/services/CrudService';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import type { NotificationPriority } from '@/models/notification/notification.model';
+import { randomUUID } from 'crypto';
 
 @injectable()
 export class MemberCarePlanService implements CrudService<MemberCarePlan> {
   constructor(
     @inject(TYPES.IMemberCarePlanRepository)
     private repo: IMemberCarePlanRepository,
+    @inject(TYPES.IMemberRepository)
+    private memberRepo: IMemberRepository,
+    @inject(TYPES.NotificationBusService)
+    private notificationBus: INotificationBusService,
   ) {}
 
   /**
@@ -175,7 +184,74 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
 
-    return this.repo.create(carePlanData);
+    const carePlan = await this.repo.create(carePlanData);
+
+    // Send notification to the member if they have a linked user account
+    if (carePlan.member_id) {
+      await this.sendCarePlanAssignedNotification(carePlan);
+    }
+
+    return carePlan;
+  }
+
+  /**
+   * Send notification when a care plan is assigned to a member
+   */
+  private async sendCarePlanAssignedNotification(carePlan: MemberCarePlan): Promise<void> {
+    try {
+      // Get member details to find their user account and contact info
+      const member = await this.memberRepo.getById(carePlan.member_id);
+      if (!member) {
+        return; // Member not found
+      }
+
+      // Member must have a linked user account to receive in-app notifications
+      // They can still receive email/SMS without a user account
+      const recipientUserId = member.user_id;
+
+      // If no user account and no email, we can't notify them
+      if (!recipientUserId && !member.email) {
+        return;
+      }
+
+      // Map priority for notification
+      const priorityMap: Record<string, NotificationPriority> = {
+        'low': 'low',
+        'normal': 'normal',
+        'high': 'high',
+        'urgent': 'urgent',
+        'critical': 'urgent',
+      };
+      const priority = priorityMap[carePlan.priority || 'normal'] || 'normal';
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.CARE_PLAN_ASSIGNED,
+        category: 'member',
+        priority,
+        tenantId: carePlan.tenant_id!,
+        recipient: {
+          userId: recipientUserId || '', // Empty if no user account - email/SMS only
+          email: member.email || undefined,
+          phone: member.contact_number || undefined,
+        },
+        payload: {
+          title: 'Care Plan Assigned',
+          message: `A care plan has been assigned to you. ${carePlan.details ? `Details: ${carePlan.details}` : ''}`,
+          memberName: `${member.first_name} ${member.last_name}`,
+          carePlanId: carePlan.id,
+          statusLabel: carePlan.status_label || carePlan.status_code,
+          priority: carePlan.priority,
+          followUpDate: carePlan.follow_up_at,
+          actionType: 'redirect',
+          actionPayload: `/members/${carePlan.member_id}/care`,
+        },
+        channels: recipientUserId ? ['in_app', 'email', 'sms'] : ['email', 'sms'],
+      });
+    } catch (error) {
+      // Log error but don't fail the care plan creation
+      console.error('Failed to send care plan notification:', error);
+    }
   }
 
   /**

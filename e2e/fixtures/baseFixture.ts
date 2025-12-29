@@ -4,6 +4,7 @@ import { RegistrationPage } from '../pages/RegistrationPage';
 import { OnboardingPage } from '../pages/OnboardingPage';
 import { LoginPage, TEST_CREDENTIALS } from '../pages/LoginPage';
 import { MembersPage } from '../pages/MembersPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
 
 /**
  * Extended Test Fixture
@@ -17,6 +18,7 @@ type TestFixtures = {
   onboardingPage: OnboardingPage;
   loginPage: LoginPage;
   membersPage: MembersPage;
+  notificationsPage: NotificationsPage;
 };
 
 type AuthenticatedFixtures = TestFixtures & {
@@ -51,6 +53,11 @@ export const test = base.extend<TestFixtures>({
   membersPage: async ({ page }, use) => {
     const membersPage = new MembersPage(page);
     await use(membersPage);
+  },
+
+  notificationsPage: async ({ page }, use) => {
+    const notificationsPage = new NotificationsPage(page);
+    await use(notificationsPage);
   },
 });
 
@@ -100,6 +107,11 @@ export const authenticatedTest = base.extend<AuthenticatedFixtures>({
   membersPage: async ({ page }, use) => {
     const membersPage = new MembersPage(page);
     await use(membersPage);
+  },
+
+  notificationsPage: async ({ page }, use) => {
+    const notificationsPage = new NotificationsPage(page);
+    await use(notificationsPage);
   },
 });
 

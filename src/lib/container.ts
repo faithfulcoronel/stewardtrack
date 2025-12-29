@@ -47,6 +47,25 @@ import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/
 import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import { PlanningService } from '@/services/PlanningService';
 
+// Notification System
+import { NotificationAdapter, type INotificationAdapter } from '@/adapters/notification.adapter';
+import { NotificationQueueAdapter, type INotificationQueueAdapter } from '@/adapters/notificationQueue.adapter';
+import { NotificationPreferenceAdapter, type INotificationPreferenceAdapter } from '@/adapters/notificationPreference.adapter';
+import { NotificationTemplateAdapter, type INotificationTemplateAdapter } from '@/adapters/notificationTemplate.adapter';
+import { NotificationRepository, type INotificationRepository } from '@/repositories/notification.repository';
+import { NotificationQueueRepository, type INotificationQueueRepository } from '@/repositories/notificationQueue.repository';
+import { NotificationPreferenceRepository, type INotificationPreferenceRepository } from '@/repositories/notificationPreference.repository';
+import { NotificationTemplateRepository, type INotificationTemplateRepository } from '@/repositories/notificationTemplate.repository';
+import { NotificationService, type INotificationService } from '@/services/notification/NotificationService';
+import { NotificationQueueService, type INotificationQueueService } from '@/services/notification/NotificationQueueService';
+import { NotificationBusService, type INotificationBusService } from '@/services/notification/NotificationBusService';
+import { ChannelDispatcher } from '@/services/notification/ChannelDispatcher';
+import { InAppChannel } from '@/services/notification/channels/InAppChannel';
+import { EmailChannel } from '@/services/notification/channels/EmailChannel';
+import { SmsChannel } from '@/services/notification/channels/SmsChannel';
+import { PushChannel } from '@/services/notification/channels/PushChannel';
+import { WebhookChannel } from '@/services/notification/channels/WebhookChannel';
+
 // Phase 5 Optimization & Monitoring Adapters
 import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
 import { MaterializedViewRefreshJobAdapter, type IMaterializedViewRefreshJobAdapter } from '@/adapters/materializedViewRefreshJob.adapter';
@@ -546,5 +565,33 @@ container.bind<ICalendarCategoryRepository>(TYPES.ICalendarCategoryRepository).t
 container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEventAdapter).inRequestScope();
 container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
 container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
+
+// ==================== NOTIFICATION SYSTEM ====================
+// Adapters
+container.bind<INotificationAdapter>(TYPES.INotificationAdapter).to(NotificationAdapter).inRequestScope();
+container.bind<INotificationQueueAdapter>(TYPES.INotificationQueueAdapter).to(NotificationQueueAdapter).inRequestScope();
+container.bind<INotificationPreferenceAdapter>(TYPES.INotificationPreferenceAdapter).to(NotificationPreferenceAdapter).inRequestScope();
+container.bind<INotificationTemplateAdapter>(TYPES.INotificationTemplateAdapter).to(NotificationTemplateAdapter).inRequestScope();
+
+// Repositories
+container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository).inRequestScope();
+container.bind<INotificationQueueRepository>(TYPES.INotificationQueueRepository).to(NotificationQueueRepository).inRequestScope();
+container.bind<INotificationPreferenceRepository>(TYPES.INotificationPreferenceRepository).to(NotificationPreferenceRepository).inRequestScope();
+container.bind<INotificationTemplateRepository>(TYPES.INotificationTemplateRepository).to(NotificationTemplateRepository).inRequestScope();
+
+// Services
+container.bind<INotificationService>(TYPES.NotificationService).to(NotificationService).inRequestScope();
+container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService).inRequestScope();
+container.bind<INotificationQueueService>(TYPES.NotificationQueueService).to(NotificationQueueService).inRequestScope();
+container.bind<INotificationQueueService>(TYPES.INotificationQueueService).to(NotificationQueueService).inRequestScope();
+
+// Notification Bus (Multi-Channel Delivery)
+container.bind<InAppChannel>(TYPES.InAppChannel).to(InAppChannel).inRequestScope();
+container.bind<EmailChannel>(TYPES.EmailChannel).to(EmailChannel).inRequestScope();
+container.bind<SmsChannel>(TYPES.SmsChannel).to(SmsChannel).inRequestScope();
+container.bind<PushChannel>(TYPES.PushChannel).to(PushChannel).inRequestScope();
+container.bind<WebhookChannel>(TYPES.WebhookChannel).to(WebhookChannel).inRequestScope();
+container.bind<ChannelDispatcher>(TYPES.ChannelDispatcher).to(ChannelDispatcher).inRequestScope();
+container.bind<INotificationBusService>(TYPES.NotificationBusService).to(NotificationBusService).inRequestScope();
 
 export { container };

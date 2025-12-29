@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Bell, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
+import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
+import { NotificationBell } from "@/components/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,13 +114,7 @@ export function AdminLayoutShell({
                     {isCanvasExpanded ? "Exit full-width" : "Full-width canvas"}
                   </TooltipContent>
                 </Tooltip>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="flex-none rounded-full border border-border/60 text-muted-foreground"
-                >
-                  <Bell className="size-4" />
-                </Button>
+                <NotificationBell />
                 <ProfileMenu
                   name={name}
                   email={email}

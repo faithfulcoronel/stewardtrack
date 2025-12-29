@@ -28,13 +28,21 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IMemberDiscipleshipPlanRepository } from '@/repositories/memberDiscipleshipPlan.repository';
+import type { IMemberRepository } from '@/repositories/member.repository';
 import type { MemberDiscipleshipPlan } from '@/models/memberDiscipleshipPlan.model';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import { randomUUID } from 'crypto';
 
 @injectable()
 export class MemberDiscipleshipPlanService {
   constructor(
     @inject(TYPES.IMemberDiscipleshipPlanRepository)
     private repo: IMemberDiscipleshipPlanRepository,
+    @inject(TYPES.IMemberRepository)
+    private memberRepo: IMemberRepository,
+    @inject(TYPES.NotificationBusService)
+    private notificationBus: INotificationBusService,
   ) {}
 
   // ==================== TENANT-SCOPED QUERIES ====================
@@ -133,7 +141,76 @@ export class MemberDiscipleshipPlanService {
       status: data.status || 'active',
     };
 
-    return this.repo.create(planData);
+    const plan = await this.repo.create(planData);
+
+    // Send notification to the member
+    if (plan.member_id) {
+      await this.sendDiscipleshipPlanAssignedNotification(plan);
+    }
+
+    return plan;
+  }
+
+  /**
+   * Send notification when a discipleship plan is assigned to a member
+   */
+  private async sendDiscipleshipPlanAssignedNotification(plan: MemberDiscipleshipPlan): Promise<void> {
+    try {
+      // Get member details to find their user account and contact info
+      const member = await this.memberRepo.getById(plan.member_id);
+      if (!member) {
+        return; // Member not found
+      }
+
+      // Member must have a linked user account to receive in-app notifications
+      const recipientUserId = member.user_id;
+
+      // If no user account and no email, we can't notify them
+      if (!recipientUserId && !member.email) {
+        return;
+      }
+
+      // Build message based on plan details
+      let message = 'A discipleship plan has been created for you.';
+      if (plan.pathway) {
+        message = `You've been enrolled in the "${plan.pathway}" discipleship pathway.`;
+      }
+      if (plan.mentor_name) {
+        message += ` Your mentor is ${plan.mentor_name}.`;
+      }
+      if (plan.next_step) {
+        message += ` Next step: ${plan.next_step}`;
+      }
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.DISCIPLESHIP_PLAN_ASSIGNED,
+        category: 'member',
+        priority: 'normal',
+        tenantId: plan.tenant_id!,
+        recipient: {
+          userId: recipientUserId || '',
+          email: member.email || undefined,
+          phone: member.contact_number || undefined,
+        },
+        payload: {
+          title: 'Discipleship Plan Started',
+          message,
+          memberName: `${member.first_name} ${member.last_name}`,
+          planId: plan.id,
+          pathway: plan.pathway,
+          mentorName: plan.mentor_name,
+          nextStep: plan.next_step,
+          targetDate: plan.target_date,
+          actionType: 'redirect',
+          actionPayload: `/members/${plan.member_id}/discipleship`,
+        },
+        channels: recipientUserId ? ['in_app', 'email', 'sms'] : ['email', 'sms'],
+      });
+    } catch (error) {
+      // Log error but don't fail the plan creation
+      console.error('Failed to send discipleship plan notification:', error);
+    }
   }
 
   /**

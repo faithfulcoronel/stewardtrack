@@ -1,16 +1,25 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
-import { Notification } from '@/models/notification.model';
+import type {
+  Notification,
+  CreateNotificationDto,
+  NotificationListResponse,
+} from '@/models/notification/notification.model';
 import { NotificationValidator } from '@/validators/notification.validator';
 import type { INotificationAdapter } from '@/adapters/notification.adapter';
 import { TYPES } from '@/lib/types';
 
-export interface INotificationRepository
-  extends BaseRepository<Notification>
-{
+export interface INotificationRepository extends BaseRepository<Notification> {
   markAsRead(id: string): Promise<void>;
   markAllAsRead(userId: string): Promise<void>;
   deleteExpired(): Promise<void>;
+  getUnreadCount(userId: string): Promise<number>;
+  getUserNotifications(
+    userId: string,
+    options?: { limit?: number; offset?: number; unreadOnly?: boolean }
+  ): Promise<NotificationListResponse>;
+  createNotification(dto: CreateNotificationDto): Promise<Notification>;
+  deleteNotification(id: string, userId: string): Promise<void>;
 }
 
 @injectable()
@@ -35,6 +44,27 @@ export class NotificationRepository
 
   async deleteExpired(): Promise<void> {
     await this.notificationAdapter.deleteExpired();
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    return this.notificationAdapter.getUnreadCount(userId);
+  }
+
+  async getUserNotifications(
+    userId: string,
+    options?: { limit?: number; offset?: number; unreadOnly?: boolean }
+  ): Promise<NotificationListResponse> {
+    return this.notificationAdapter.getUserNotifications(userId, options);
+  }
+
+  async createNotification(dto: CreateNotificationDto): Promise<Notification> {
+    // Validate notification data
+    NotificationValidator.validate(dto);
+    return this.notificationAdapter.createNotification(dto);
+  }
+
+  async deleteNotification(id: string, userId: string): Promise<void> {
+    return this.notificationAdapter.deleteNotification(id, userId);
   }
 
   protected override async beforeCreate(data: Partial<Notification>): Promise<Partial<Notification>> {
