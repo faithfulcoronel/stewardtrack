@@ -54,7 +54,8 @@
       "Bash(timeout 300 npm run build:*)",
       "Bash(node --version:*)",
       "Bash(npm --version:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(del \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\models\\\\settings.model.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\adapters\\\\settings.adapter.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\repositories\\\\settings.repository.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\services\\\\IntegrationSettingsService.ts\")"
     ],
     "deny": [],
     "ask": []

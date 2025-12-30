@@ -66,6 +66,7 @@ export class NotificationQueueRepository
   }
 
   async enqueue(dto: CreateQueueItemDto): Promise<NotificationQueueItem> {
-    return this.queueAdapter.create(dto as Partial<NotificationQueueItem>, dto.tenant_id);
+    // The tenant_id is included in the dto, no need to pass relations
+    return this.queueAdapter.create(dto as Partial<NotificationQueueItem>);
   }
 }

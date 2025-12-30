@@ -1,5 +1,6 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
+import { randomUUID } from 'crypto';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from './AuditService';
 import type {
@@ -9,6 +10,9 @@ import type {
   OnboardingMetrics,
   LicensingAnalyticsSummary
 } from '@/repositories/licenseMonitoring.repository';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import type { NotificationPriority } from '@/models/notification/notification.model';
 
 /**
  * LicenseMonitoringService
@@ -52,7 +56,8 @@ export interface SystemHealthMetrics {
 export class LicenseMonitoringService {
   constructor(
     @inject(TYPES.AuditService) private auditService: AuditService,
-    @inject(TYPES.LicenseMonitoringRepository) private monitoringRepository: LicenseMonitoringRepository
+    @inject(TYPES.LicenseMonitoringRepository) private monitoringRepository: LicenseMonitoringRepository,
+    @inject(TYPES.NotificationBusService) private notificationBus: INotificationBusService
   ) {}
 
   /**
@@ -378,7 +383,7 @@ export class LicenseMonitoringService {
     // Filter for high and critical severity
     const alerts = anomalies.filter(a => a.severity === 'high' || a.severity === 'critical');
 
-    // Log alerts
+    // Log alerts and send notifications
     for (const alert of alerts) {
       await this.auditService.logAuditEvent(
         'create',
@@ -391,9 +396,68 @@ export class LicenseMonitoringService {
           metadata: alert.metadata,
         }
       );
+
+      // Send notification for license expiration alerts
+      if (alert.tenant_id && (alert.type === 'expiring_soon' || alert.type === 'seat_exceeded')) {
+        await this.sendLicenseAlertNotification(alert);
+      }
     }
 
     return alerts;
+  }
+
+  /**
+   * Send notification for license alerts to tenant admins
+   */
+  private async sendLicenseAlertNotification(alert: LicenseAnomaly): Promise<void> {
+    try {
+      if (!alert.tenant_id) return;
+
+      // Get tenant admin users for notification
+      const adminUsers = await this.monitoringRepository.getTenantAdminUsers(alert.tenant_id);
+      if (!adminUsers || adminUsers.length === 0) return;
+
+      const priorityMap: Record<string, NotificationPriority> = {
+        'critical': 'urgent',
+        'high': 'high',
+        'medium': 'normal',
+        'low': 'low',
+      };
+
+      const eventType = alert.type === 'expiring_soon'
+        ? NotificationEventType.LICENSE_EXPIRING
+        : NotificationEventType.LICENSE_EXPIRING; // Use same event type for seat exceeded
+
+      const title = alert.type === 'expiring_soon'
+        ? 'License Expiring Soon'
+        : 'License Seat Limit Alert';
+
+      for (const admin of adminUsers) {
+        await this.notificationBus.publish({
+          id: randomUUID(),
+          eventType,
+          category: 'system',
+          priority: priorityMap[alert.severity] || 'high',
+          tenantId: alert.tenant_id,
+          recipient: {
+            userId: admin.user_id,
+            email: admin.email || undefined,
+          },
+          payload: {
+            title,
+            message: alert.description,
+            alertType: alert.type,
+            severity: alert.severity,
+            metadata: alert.metadata,
+            actionType: 'redirect',
+            actionPayload: '/admin/licensing',
+          },
+          channels: ['in_app', 'email'],
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send license alert notification:', error);
+    }
   }
 
   /**

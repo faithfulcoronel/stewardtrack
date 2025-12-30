@@ -54,7 +54,7 @@ const SUPER_ADMIN_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
       { title: "Licensing Studio", href: "/admin/licensing", icon: "projects" },
-      { title: "System Settings", href: "/admin/settings", icon: "settings" },
+      { title: "System Settings", href: "/admin/system-settings", icon: "settings" },
     ],
   },
 ];

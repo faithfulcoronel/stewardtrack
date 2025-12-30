@@ -27,6 +27,7 @@ import { MetricsService } from '@/services/MetricsService';
 import { LicenseAuditService } from '@/services/LicenseAuditService';
 import { UserRoleService } from '@/services/UserRoleService';
 import { TenantService } from '@/services/TenantService';
+import { SupabaseSettingService, type SettingService } from '@/services/SettingService';
 import { MemberHouseholdService } from '@/services/MemberHouseholdService';
 import { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
@@ -70,6 +71,9 @@ import { EmailChannel } from '@/services/notification/channels/EmailChannel';
 import { SmsChannel } from '@/services/notification/channels/SmsChannel';
 import { PushChannel } from '@/services/notification/channels/PushChannel';
 import { WebhookChannel } from '@/services/notification/channels/WebhookChannel';
+import { PushDeviceTokenAdapter, type IPushDeviceTokenAdapter } from '@/adapters/pushDeviceToken.adapter';
+import { PushDeviceTokenRepository, type IPushDeviceTokenRepository } from '@/repositories/pushDeviceToken.repository';
+import { PushDeviceTokenService, type IPushDeviceTokenService } from '@/services/PushDeviceTokenService';
 
 // Phase 5 Optimization & Monitoring Adapters
 import { PerformanceMetricAdapter, type IPerformanceMetricAdapter } from '@/adapters/performanceMetric.adapter';
@@ -110,6 +114,7 @@ import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapte
 import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/adapters/onboardingProgress.adapter';
 import { MembershipTypeAdapter, type IMembershipTypeAdapter } from '@/adapters/membershipType.adapter';
 import { MembershipStageAdapter, type IMembershipStageAdapter } from '@/adapters/membershipStage.adapter';
+import { SettingAdapter, type ISettingAdapter } from '@/adapters/setting.adapter';
 
 // Repositories
 import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
@@ -125,6 +130,7 @@ import { TenantRepository } from '@/repositories/tenant.repository';
 import { OnboardingProgressRepository, type IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
 import { MembershipTypeRepository, type IMembershipTypeRepository } from '@/repositories/membershipType.repository';
 import { MembershipStageRepository, type IMembershipStageRepository } from '@/repositories/membershipStage.repository';
+import { SettingRepository, type ISettingRepository } from '@/repositories/setting.repository';
 import { RoleRepository } from '@/repositories/role.repository';
 import { PermissionRepository } from '@/repositories/permission.repository';
 import { RolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -266,6 +272,11 @@ container
   .bind<TenantService>(TYPES.TenantService)
   .to(TenantService)
   .inRequestScope();
+
+// ==================== SETTING SERVICE ====================
+container.bind<ISettingAdapter>(TYPES.ISettingAdapter).to(SettingAdapter).inRequestScope();
+container.bind<ISettingRepository>(TYPES.ISettingRepository).to(SettingRepository).inRequestScope();
+container.bind<SettingService>(TYPES.SettingService).to(SupabaseSettingService).inRequestScope();
 
 container
   .bind<RolePermissionService>(TYPES.RolePermissionService)
@@ -598,6 +609,11 @@ container.bind<PushChannel>(TYPES.PushChannel).to(PushChannel).inRequestScope();
 container.bind<WebhookChannel>(TYPES.WebhookChannel).to(WebhookChannel).inRequestScope();
 container.bind<ChannelDispatcher>(TYPES.ChannelDispatcher).to(ChannelDispatcher).inRequestScope();
 container.bind<INotificationBusService>(TYPES.NotificationBusService).to(NotificationBusService).inRequestScope();
+
+// Push Device Token (Firebase)
+container.bind<IPushDeviceTokenAdapter>(TYPES.IPushDeviceTokenAdapter).to(PushDeviceTokenAdapter).inRequestScope();
+container.bind<IPushDeviceTokenRepository>(TYPES.IPushDeviceTokenRepository).to(PushDeviceTokenRepository).inRequestScope();
+container.bind<IPushDeviceTokenService>(TYPES.IPushDeviceTokenService).to(PushDeviceTokenService).inRequestScope();
 
 // ==================== ADMIN DASHBOARD ====================
 container.bind<IAdminDashboardAdapter>(TYPES.IAdminDashboardAdapter).to(AdminDashboardAdapter).inRequestScope();

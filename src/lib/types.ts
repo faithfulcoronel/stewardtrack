@@ -205,6 +205,12 @@ export const TYPES = {
   WebhookChannel: Symbol.for('WebhookChannel'),
   INotificationService: Symbol.for('INotificationService'),
   INotificationQueueService: Symbol.for('INotificationQueueService'),
+
+  // Push Device Token (Firebase)
+  IPushDeviceTokenAdapter: Symbol.for('IPushDeviceTokenAdapter'),
+  IPushDeviceTokenRepository: Symbol.for('IPushDeviceTokenRepository'),
+  IPushDeviceTokenService: Symbol.for('IPushDeviceTokenService'),
+
   IOfferingBatchAdapter: Symbol.for('IOfferingBatchAdapter'),
   IOpeningBalanceRepository: Symbol.for('IOpeningBalanceRepository'),
   IOpeningBalanceAdapter: Symbol.for('IOpeningBalanceAdapter'),
@@ -212,6 +218,7 @@ export const TYPES = {
   IRelationshipTypeRepository: Symbol.for('IRelationshipTypeRepository'),
   ISettingAdapter: Symbol.for('ISettingAdapter'),
   ISettingRepository: Symbol.for('ISettingRepository'),
+  SettingService: Symbol.for('SettingService'),
   ISourceRecentTransactionAdapter: Symbol.for('ISourceRecentTransactionAdapter'),
   ISubscriptionAdapter: Symbol.for('ISubscriptionAdapter'),
   ISubscriptionRepository: Symbol.for('ISubscriptionRepository'),

@@ -40,7 +40,19 @@ export function NotificationBell({ className }: NotificationBellProps) {
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
 
-    return () => clearInterval(interval);
+    // Listen for push notification events to refresh the count immediately
+    // This is triggered by the foreground message handler when a push notification arrives
+    const handleNotificationReceived = () => {
+      // Small delay to allow the server to process the notification
+      setTimeout(fetchUnreadCount, 500);
+    };
+
+    window.addEventListener('notification-received', handleNotificationReceived);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notification-received', handleNotificationReceived);
+    };
   }, [fetchUnreadCount]);
 
   const handleNotificationRead = useCallback(() => {

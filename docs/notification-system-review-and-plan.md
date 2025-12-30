@@ -1,30 +1,35 @@
 # Notification System Review and Implementation Plan
 
-## Implementation Status (Updated 2025-12-28)
+## Implementation Status (Updated 2025-12-30)
 
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 1: Foundation (Database) | ✅ COMPLETE | All tables created, RLS policies applied |
 | Phase 2: Service Layer | ✅ COMPLETE | NotificationBusService + All 5 Channels implemented |
-| Phase 3: API Layer | ✅ COMPLETE | All CRUD endpoints implemented |
-| Phase 4: UI Components | ✅ COMPLETE | NotificationBell + NotificationCenter + useNotifications hook |
-| Phase 5: Event Publishing | ⚠️ PARTIAL | Care Plan + Discipleship Plan notifications integrated |
-| Phase 6: Premium Features | ❌ NOT STARTED | Scheduled, Analytics, Templates UI |
+| Phase 3: API Layer | ✅ COMPLETE | All CRUD endpoints + Preferences API |
+| Phase 4: UI Components | ✅ COMPLETE | NotificationBell + NotificationCenter + Preferences UI + Integration Settings |
+| Phase 5: Event Publishing | ✅ COMPLETE | All core domain services integrated with notifications |
+| Phase 6: Premium Features | ✅ COMPLETE | All UI components implemented (Templates, Analytics, Scheduled) |
 
 ### What's Implemented
 - ✅ Database: `notifications`, `notification_queue`, `notification_preferences`, `notification_templates` tables
 - ✅ Models: `notification.model.ts`, `notificationQueue.model.ts`, `notificationPreference.model.ts`, `notificationTemplate.model.ts`, `notificationEvent.model.ts`
-- ✅ Adapters: All 4 notification adapters
+- ✅ Adapters: All 4 notification adapters (`notification.adapter.ts`, `notificationQueue.adapter.ts`, `notificationPreference.adapter.ts`, `notificationTemplate.adapter.ts`)
 - ✅ Repositories: All 4 notification repositories
 - ✅ Services: `NotificationService`, `NotificationQueueService`, `NotificationBusService`, `ChannelDispatcher`
 - ✅ Channels: `InAppChannel`, `EmailChannel`, `SmsChannel`, `PushChannel`, `WebhookChannel`
 - ✅ API Routes: `/api/notifications/*` (GET, POST, PATCH, DELETE, mark-read, mark-all-read, unread-count)
+- ✅ API Routes: `/api/notifications/preferences` (GET, POST, DELETE) - Preferences management
 - ✅ UI: `NotificationBell.tsx`, `NotificationCenter.tsx`
+- ✅ UI: `AdminNotificationPreferences.tsx` - Metadata-based dynamic component in settings page
+- ✅ UI: `AdminIntegrationSettings.tsx` - Twilio SMS and Email provider configuration
+- ✅ UI: `AdminSettingsTabs.tsx` - Tabbed settings with URL-based tab tracking
 - ✅ React Hook: `useNotifications.ts` for realtime client updates via Supabase Realtime
 - ✅ Feature Codes: Added to `feature_catalog` in migration
 - ✅ Event Types: Care Plan and Discipleship Plan events added
-- ✅ Service Integration: `MemberCarePlanService` and `MemberDiscipleshipPlanService` send notifications on plan creation
+- ✅ Service Integration: `MemberCarePlanService`, `MemberDiscipleshipPlanService`, `MemberService`, `RbacDelegationService`, `LicenseMonitoringService` send notifications
 - ✅ Templates: Email/SMS/In-App templates for care plan and discipleship plan assignments
+- ✅ Metadata Integration: All settings components registered in component registry and settings XML blueprint
 
 ### Channel Implementation Summary
 
@@ -36,14 +41,317 @@
 | Push | `PushChannel.ts` | notifications-push | Professional | Firebase Cloud Messaging |
 | Webhook | `WebhookChannel.ts` | notifications-webhooks | Enterprise | HTTP POST with HMAC-SHA256 |
 
-### What's Still Missing
-- ❌ Event integration in other domain services (MemberService, DonationService, etc.)
-- ❌ Notification preferences UI
-- ❌ Scheduled notifications
-- ❌ Analytics dashboard
-- ❌ Firebase service account setup (for Push)
-- ❌ Twilio credentials setup (for SMS)
-- ❌ Webhook URL configuration (for WebhookChannel)
+### Settings Page UI Architecture
+
+The notification and integration settings are integrated into a tabbed settings page at `/admin/settings`:
+
+#### Settings Tabs Component
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `AdminSettingsTabs` | `src/components/dynamic/admin/AdminSettingsTabs.tsx` | Tabbed navigation with URL tracking |
+
+**Features:**
+- URL-based tab tracking via `?tab=` query parameter (e.g., `/admin/settings?tab=notifications`)
+- Browser back/forward navigation support
+- Mobile-first responsive design (pill tabs on mobile, sidebar on desktop)
+- Shareable/bookmarkable tab URLs
+
+#### Tab Content Components
+
+| Tab | Component | Description |
+|-----|-----------|-------------|
+| General | `AdminDetailPanels` + `AdminFormSection` | Tenant profile + global settings form |
+| Notifications | `AdminNotificationPreferences` | Channel preferences, quiet hours, digest options |
+| Integrations | `AdminIntegrationSettings` | Twilio SMS, Email, and Webhook provider configuration |
+| Templates | `AdminNotificationTemplates` | Template management with RichTextEditor (Enterprise) |
+| Analytics | `AdminNotificationAnalytics` | Delivery metrics and channel performance (Premium) |
+| Scheduled | `AdminScheduledNotifications` | View and manage scheduled notifications (Enterprise) |
+
+#### Component Registry
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `AdminNotificationPreferences` | `src/components/dynamic/admin/AdminNotificationPreferences.tsx` | Mobile-first preferences component |
+| `AdminIntegrationSettings` | `src/components/dynamic/admin/AdminIntegrationSettings.tsx` | Twilio/Email/Webhook provider config UI |
+| `AdminNotificationTemplates` | `src/components/dynamic/admin/AdminNotificationTemplates.tsx` | Template CRUD with RichTextEditor for email/in_app |
+| `AdminNotificationAnalytics` | `src/components/dynamic/admin/AdminNotificationAnalytics.tsx` | Delivery metrics dashboard |
+| `AdminScheduledNotifications` | `src/components/dynamic/admin/AdminScheduledNotifications.tsx` | Scheduled notifications management |
+| `AdminSettingsTabs` | `src/components/dynamic/admin/AdminSettingsTabs.tsx` | Tabbed container with URL sync |
+| Component Registry | `src/lib/metadata/components/admin.tsx` | All components registered |
+| Settings Blueprint | `metadata/authoring/blueprints/admin-settings/settings-overview.xml` | XML page definition |
+| Service Handler | `src/lib/metadata/services/admin-settings.ts` | Provides all settings data |
+
+#### Integration Settings Features
+
+| Provider | Features | Status |
+|----------|----------|--------|
+| Twilio (SMS) | Account SID, Auth Token, Phone Number configuration | ✅ Complete |
+| Email (Resend) | API Key, From Email, From Name configuration | ✅ Complete |
+| Webhook | URL, Signing Secret, Test functionality | ✅ Complete |
+
+**Features:**
+- Save and retrieve integration credentials via Settings API
+- Test SMS/Email/Webhook delivery from the settings UI
+- Masked display of sensitive fields (tokens, API keys, secrets)
+- Verification status badges (Verified, Not Tested, Not Configured)
+- HMAC-SHA256 signature verification for webhook payloads
+
+#### Template Management Features (Enterprise)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Template CRUD | Create, edit, delete notification templates | ✅ Complete |
+| RichTextEditor | TipTap-based HTML editor for email/in_app channels | ✅ Complete |
+| Plain Text | Simple textarea for SMS/push/webhook channels | ✅ Complete |
+| Channel-specific UI | Different editors based on channel type | ✅ Complete |
+| Variable Support | `{{variable}}` syntax for dynamic content | ✅ Complete |
+| HTML Preview | Rendered preview for email/in_app templates | ✅ Complete |
+| Event Type Grouping | Templates grouped by event type | ✅ Complete |
+| System Templates | Read-only system default templates | ✅ Complete |
+
+#### Analytics Dashboard Features (Premium)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Delivery Summary | Total, delivered, pending, failed, scheduled counts | ✅ Complete |
+| Delivery Rate | Percentage of successful deliveries | ✅ Complete |
+| Channel Breakdown | Stats per channel (email, sms, in_app, push, webhook) | ✅ Complete |
+| Trend Charts | Delivery trends over time | ✅ Complete |
+| Date Range Filter | Filter analytics by time period | ✅ Complete |
+
+#### Scheduled Notifications Features (Enterprise)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Scheduled List | View all scheduled notifications | ✅ Complete |
+| Cancel/Reschedule | Manage scheduled notifications | ✅ Complete |
+| Status Tracking | Pending, processing, completed, failed states | ✅ Complete |
+| Channel Display | Visual channel indicators | ✅ Complete |
+
+### Service Integrations (Phase 5) - COMPLETE
+
+| Service | Event Types | Status | Description |
+|---------|-------------|--------|-------------|
+| `MemberCarePlanService` | CARE_PLAN_ASSIGNED | ✅ Complete | Notifies members when care plan is assigned |
+| `MemberDiscipleshipPlanService` | DISCIPLESHIP_PLAN_ASSIGNED | ✅ Complete | Notifies members when discipleship plan is assigned |
+| `MemberService` | MEMBER_JOINED | ✅ Complete | Welcome notification for new members with linked accounts |
+| `RbacDelegationService` | DELEGATION_ASSIGNED | ✅ Complete | Notifies users when roles are delegated to them |
+| `LicenseMonitoringService` | LICENSE_EXPIRING | ✅ Complete | Alerts tenant admins on license expiration/seat limits |
+
+**Note:** The `DonationService` (IncomeExpenseTransactionService) is a batch-oriented financial transaction service that doesn't have member context for individual donation notifications. Donation receipts would typically be handled separately via email templates.
+
+### What's Still Missing (Phase 6 - Premium Features) - ALL COMPLETE ✅
+- ✅ Scheduled notifications UI (Enterprise feature) - `AdminScheduledNotifications` component
+- ✅ Analytics dashboard UI (Premium feature) - `AdminNotificationAnalytics` component
+- ✅ Template management UI (Enterprise feature) - `AdminNotificationTemplates` with RichTextEditor
+- ✅ Firebase Push Notifications - Complete implementation with device token management
+- ✅ Integration credentials API endpoints (save/validate Twilio, Email, Webhook settings)
+- ✅ Webhook URL configuration UI (for WebhookChannel)
+- ✅ Test notification functionality (send test SMS/Email/Webhook from settings)
+
+### Firebase Push Notifications Implementation (COMPLETE)
+
+| Component | Location | Status |
+|-----------|----------|--------|
+| Database Migration | `supabase/migrations/20251229233625_add_push_device_tokens.sql` | ✅ Complete |
+| Model | `src/models/notification/pushDeviceToken.model.ts` | ✅ Complete |
+| Adapter | `src/adapters/pushDeviceToken.adapter.ts` | ✅ Complete |
+| Repository | `src/repositories/pushDeviceToken.repository.ts` | ✅ Complete |
+| Service | `src/services/PushDeviceTokenService.ts` | ✅ Complete |
+| API Routes | `src/app/api/notifications/device-tokens/route.ts` | ✅ Complete |
+| Client Integration | `src/lib/firebase/index.ts` | ✅ Complete |
+| Service Worker | `public/firebase-messaging-sw.js` | ✅ Complete |
+| DI Container | `src/lib/container.ts` + `src/lib/types.ts` | ✅ Complete |
+
+**API Endpoints:**
+- `POST /api/notifications/device-tokens` - Register device token
+- `GET /api/notifications/device-tokens` - Get user's device tokens
+- `DELETE /api/notifications/device-tokens` - Delete all user tokens
+- `DELETE /api/notifications/device-tokens/[token]` - Delete specific token
+
+**Client Functions (`src/lib/firebase/index.ts`):**
+- `initializeFirebaseMessaging()` - Initialize Firebase app
+- `requestNotificationPermission()` - Request browser permission and get FCM token
+- `registerDeviceToken()` - Register token with backend
+- `unregisterDeviceToken()` - Remove token from backend
+- `onForegroundMessage()` - Handle foreground push notifications
+- `getCurrentToken()` - Get current FCM token
+- `isPushSupported()` - Check browser support
+- `isFirebaseConfigured()` - Check environment variables
+
+### Firebase Service Account Setup (Push Notifications)
+
+To enable push notifications via Firebase Cloud Messaging (FCM), follow these steps:
+
+#### Step 1: Create a Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click **Add project** (or select an existing project)
+3. Enter a project name (e.g., "StewardTrack-Push")
+4. Optionally enable Google Analytics
+5. Click **Create project**
+
+#### Step 2: Enable Cloud Messaging
+
+1. In the Firebase Console, go to **Project Settings** (gear icon)
+2. Navigate to the **Cloud Messaging** tab
+3. Note your **Server Key** (legacy) or ensure FCM API is enabled
+
+#### Step 3: Create a Service Account
+
+1. In Firebase Console, go to **Project Settings** → **Service accounts**
+2. Click **Generate new private key**
+3. Confirm by clicking **Generate key**
+4. A JSON file will download - this is your service account credentials
+
+**Important:** Keep this file secure. Never commit it to version control.
+
+#### Step 4: Extract Required Values
+
+Open the downloaded JSON file and extract these values:
+
+```json
+{
+  "type": "service_account",
+  "project_id": "your-project-id",        // → FIREBASE_PROJECT_ID
+  "private_key": "-----BEGIN PRIVATE...", // → FIREBASE_PRIVATE_KEY
+  "client_email": "firebase-adminsdk-...", // → FIREBASE_CLIENT_EMAIL
+  ...
+}
+```
+
+#### Step 5: Configure Environment Variables
+
+Add the following to your `.env.local` file:
+
+```env
+# Firebase Push Notifications (Professional+ tier)
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n"
+```
+
+**Note:** The `FIREBASE_PRIVATE_KEY` must:
+- Be wrapped in double quotes
+- Keep the `\n` newline characters intact
+- Include the full key from `-----BEGIN` to `-----END`
+
+#### Step 6: Configure Web Push (Optional - for Browser Notifications)
+
+1. In Firebase Console, go to **Project Settings** → **Cloud Messaging**
+2. Under **Web configuration**, click **Generate key pair**
+3. Copy the generated VAPID key
+4. Add to your frontend configuration:
+
+```typescript
+// src/lib/firebase.ts
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken } from 'firebase/messaging';
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+
+export async function requestNotificationPermission() {
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    const token = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    });
+    return token;
+  }
+  return null;
+}
+```
+
+#### Step 7: Install Firebase Admin SDK
+
+```bash
+npm install firebase-admin
+```
+
+#### Step 8: Verify PushChannel Configuration
+
+The `PushChannel` service at `src/services/notification/channels/PushChannel.ts` should be configured to use Firebase Admin SDK:
+
+```typescript
+import * as admin from 'firebase-admin';
+
+// Initialize Firebase Admin (do this once at app startup)
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+// Send push notification
+async function sendPushNotification(token: string, title: string, body: string) {
+  const message = {
+    notification: { title, body },
+    token,
+  };
+
+  const response = await admin.messaging().send(message);
+  return response;
+}
+```
+
+#### Step 9: Device Token Storage
+
+To send push notifications, you need to store user device tokens. Create a migration for device tokens:
+
+```sql
+CREATE TABLE push_device_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  device_type TEXT CHECK (device_type IN ('web', 'ios', 'android')),
+  device_name TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+
+  UNIQUE(user_id, token)
+);
+
+-- RLS policies
+ALTER TABLE push_device_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own device tokens"
+  ON push_device_tokens FOR ALL
+  USING (user_id = auth.uid());
+```
+
+#### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `FIREBASE_PRIVATE_KEY` parsing error | Ensure the key is wrapped in quotes and `\n` characters are preserved |
+| "messaging/invalid-registration-token" | The device token has expired or is invalid - remove from database |
+| "messaging/registration-token-not-registered" | User has uninstalled the app or disabled notifications |
+| Push not working in development | FCM requires HTTPS; use ngrok or deploy to staging |
+| Rate limiting errors | FCM has quotas; implement exponential backoff |
+
+#### Security Best Practices
+
+1. **Never expose service account credentials** in client-side code
+2. Store credentials in environment variables, not in code
+3. Use separate Firebase projects for development/staging/production
+4. Rotate service account keys periodically
+5. Implement token refresh logic for expired device tokens
 
 ---
 

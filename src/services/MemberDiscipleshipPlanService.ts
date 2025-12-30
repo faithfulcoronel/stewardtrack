@@ -157,7 +157,7 @@ export class MemberDiscipleshipPlanService {
   private async sendDiscipleshipPlanAssignedNotification(plan: MemberDiscipleshipPlan): Promise<void> {
     try {
       // Get member details to find their user account and contact info
-      const member = await this.memberRepo.getById(plan.member_id);
+      const member = await this.memberRepo.findById(plan.member_id);
       if (!member) {
         return; // Member not found
       }

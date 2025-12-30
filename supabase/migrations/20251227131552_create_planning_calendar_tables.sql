@@ -186,80 +186,115 @@ ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_event_reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_event_attendees ENABLE ROW LEVEL SECURITY;
 
--- Calendar categories policies
-CREATE POLICY "calendar_categories_tenant_isolation" ON public.calendar_categories
-    FOR ALL USING (
-        tenant_id IN (
-            SELECT tenant_id FROM public.tenant_users
-            WHERE user_id = auth.uid()
-        )
-    );
+-- Calendar categories policies (with existence check)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_categories' AND policyname = 'calendar_categories_tenant_isolation') THEN
+        CREATE POLICY "calendar_categories_tenant_isolation" ON public.calendar_categories
+            FOR ALL USING (
+                tenant_id IN (
+                    SELECT tenant_id FROM public.tenant_users
+                    WHERE user_id = auth.uid()
+                )
+            );
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_categories' AND policyname = 'calendar_categories_service_role') THEN
+        CREATE POLICY "calendar_categories_service_role" ON public.calendar_categories
+            FOR ALL TO service_role USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
-CREATE POLICY "calendar_categories_service_role" ON public.calendar_categories
-    FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- Calendar events policies (with existence check)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_tenant_isolation') THEN
+        CREATE POLICY "calendar_events_tenant_isolation" ON public.calendar_events
+            FOR ALL USING (
+                tenant_id IN (
+                    SELECT tenant_id FROM public.tenant_users
+                    WHERE user_id = auth.uid()
+                )
+            );
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_service_role') THEN
+        CREATE POLICY "calendar_events_service_role" ON public.calendar_events
+            FOR ALL TO service_role USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
--- Calendar events policies
-CREATE POLICY "calendar_events_tenant_isolation" ON public.calendar_events
-    FOR ALL USING (
-        tenant_id IN (
-            SELECT tenant_id FROM public.tenant_users
-            WHERE user_id = auth.uid()
-        )
-    );
+-- Event reminders policies (with existence check)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_event_reminders' AND policyname = 'calendar_reminders_tenant_isolation') THEN
+        CREATE POLICY "calendar_reminders_tenant_isolation" ON public.calendar_event_reminders
+            FOR ALL USING (
+                tenant_id IN (
+                    SELECT tenant_id FROM public.tenant_users
+                    WHERE user_id = auth.uid()
+                )
+            );
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_event_reminders' AND policyname = 'calendar_reminders_service_role') THEN
+        CREATE POLICY "calendar_reminders_service_role" ON public.calendar_event_reminders
+            FOR ALL TO service_role USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
-CREATE POLICY "calendar_events_service_role" ON public.calendar_events
-    FOR ALL TO service_role USING (true) WITH CHECK (true);
-
--- Event reminders policies
-CREATE POLICY "calendar_reminders_tenant_isolation" ON public.calendar_event_reminders
-    FOR ALL USING (
-        tenant_id IN (
-            SELECT tenant_id FROM public.tenant_users
-            WHERE user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "calendar_reminders_service_role" ON public.calendar_event_reminders
-    FOR ALL TO service_role USING (true) WITH CHECK (true);
-
--- Event attendees policies
-CREATE POLICY "calendar_attendees_tenant_isolation" ON public.calendar_event_attendees
-    FOR ALL USING (
-        tenant_id IN (
-            SELECT tenant_id FROM public.tenant_users
-            WHERE user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "calendar_attendees_service_role" ON public.calendar_event_attendees
-    FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- Event attendees policies (with existence check)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_event_attendees' AND policyname = 'calendar_attendees_tenant_isolation') THEN
+        CREATE POLICY "calendar_attendees_tenant_isolation" ON public.calendar_event_attendees
+            FOR ALL USING (
+                tenant_id IN (
+                    SELECT tenant_id FROM public.tenant_users
+                    WHERE user_id = auth.uid()
+                )
+            );
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_event_attendees' AND policyname = 'calendar_attendees_service_role') THEN
+        CREATE POLICY "calendar_attendees_service_role" ON public.calendar_event_attendees
+            FOR ALL TO service_role USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
 -- ============================================================================
--- TRIGGERS
+-- TRIGGERS (with existence checks)
 -- ============================================================================
--- Update timestamp trigger for calendar_categories
-CREATE TRIGGER set_calendar_categories_updated_at
-    BEFORE UPDATE ON public.calendar_categories
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
+DO $$
+BEGIN
+    -- Update timestamp trigger for calendar_categories
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_calendar_categories_updated_at') THEN
+        CREATE TRIGGER set_calendar_categories_updated_at
+            BEFORE UPDATE ON public.calendar_categories
+            FOR EACH ROW
+            EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
 
--- Update timestamp trigger for calendar_events
-CREATE TRIGGER set_calendar_events_updated_at
-    BEFORE UPDATE ON public.calendar_events
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
+    -- Update timestamp trigger for calendar_events
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_calendar_events_updated_at') THEN
+        CREATE TRIGGER set_calendar_events_updated_at
+            BEFORE UPDATE ON public.calendar_events
+            FOR EACH ROW
+            EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
 
--- Update timestamp trigger for calendar_event_reminders
-CREATE TRIGGER set_calendar_reminders_updated_at
-    BEFORE UPDATE ON public.calendar_event_reminders
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
+    -- Update timestamp trigger for calendar_event_reminders
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_calendar_reminders_updated_at') THEN
+        CREATE TRIGGER set_calendar_reminders_updated_at
+            BEFORE UPDATE ON public.calendar_event_reminders
+            FOR EACH ROW
+            EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
 
--- Update timestamp trigger for calendar_event_attendees
-CREATE TRIGGER set_calendar_attendees_updated_at
-    BEFORE UPDATE ON public.calendar_event_attendees
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
+    -- Update timestamp trigger for calendar_event_attendees
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_calendar_attendees_updated_at') THEN
+        CREATE TRIGGER set_calendar_attendees_updated_at
+            BEFORE UPDATE ON public.calendar_event_attendees
+            FOR EACH ROW
+            EXECUTE FUNCTION public.update_updated_at_column();
+    END IF;
+END $$;
 
 -- ============================================================================
 -- SEED DEFAULT CALENDAR CATEGORIES

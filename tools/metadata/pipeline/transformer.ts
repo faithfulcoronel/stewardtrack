@@ -35,15 +35,25 @@ function ensureArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-function extractNodeValue(node: XmlElement | string | undefined): string | null {
+function extractNodeValue(node: XmlElement | string | boolean | number | undefined): string | null {
   if (node == null) {
     return null;
   }
   if (typeof node === 'string') {
     return node;
   }
-  if (typeof node['#text'] === 'string') {
-    return node['#text'] as string;
+  if (typeof node === 'boolean' || typeof node === 'number') {
+    return String(node);
+  }
+  const textValue = node['#text'];
+  if (textValue != null) {
+    // Handle primitives parsed by fast-xml-parser
+    if (typeof textValue === 'string') {
+      return textValue;
+    }
+    if (typeof textValue === 'boolean' || typeof textValue === 'number') {
+      return String(textValue);
+    }
   }
   return null;
 }
@@ -53,9 +63,6 @@ function parseScalar(value: string | null, format?: string): unknown {
     return null;
   }
   const trimmed = value.trim();
-  if (!format || format === 'text') {
-    return trimmed;
-  }
   if (format === 'number') {
     return Number(trimmed);
   }
@@ -64,6 +71,17 @@ function parseScalar(value: string | null, format?: string): unknown {
   }
   if (format === 'json') {
     return JSON.parse(trimmed);
+  }
+  if (format === 'text') {
+    return trimmed;
+  }
+  // Auto-detect type when no format specified
+  if (trimmed === 'true' || trimmed === 'false') {
+    return trimmed === 'true';
+  }
+  const numeric = Number(trimmed);
+  if (!Number.isNaN(numeric) && trimmed !== '') {
+    return numeric;
   }
   return trimmed;
 }

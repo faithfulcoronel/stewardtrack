@@ -1,5 +1,6 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
+import { randomUUID } from 'crypto';
 import { TYPES } from '@/lib/types';
 import type { IDelegationRepository } from '@/repositories/delegation.repository';
 import type { IRoleRepository } from '@/repositories/role.repository';
@@ -9,8 +10,9 @@ import type {
   UserWithRoles,
   Role,
   UserRole,
-  RoleWithPermissions
 } from '@/models/rbac.model';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
 
 /**
  * RbacDelegationService
@@ -31,7 +33,9 @@ export class RbacDelegationService {
     @inject(TYPES.IDelegationRepository)
     private delegationRepository: IDelegationRepository,
     @inject(TYPES.IRoleRepository)
-    private roleRepository: IRoleRepository
+    private roleRepository: IRoleRepository,
+    @inject(TYPES.NotificationBusService)
+    private notificationBus: INotificationBusService
   ) {}
 
   private async resolveTenantId(tenantId?: string): Promise<string> {
@@ -77,7 +81,7 @@ export class RbacDelegationService {
     if (!targetRole || !targetRole.is_delegatable) return false;
 
     const delegatedContext = await this.getDelegatedContext(userId, effectiveTenantId);
-    return delegatedContext && delegatedContext.allowed_roles.includes(roleId);
+    return delegatedContext !== null && delegatedContext.allowed_roles.includes(roleId);
   }
 
   async assignDelegatedRole(
@@ -93,13 +97,25 @@ export class RbacDelegationService {
       throw new Error('Role is not delegatable for this context');
     }
 
-    return await this.delegationRepository.assignDelegatedRole({
+    const result = await this.delegationRepository.assignDelegatedRole({
       delegatorId,
       delegateeId: payload.user_id,
       roleId: payload.role_id,
       scopeId: payload.scope_id,
       context: delegatedContext
     });
+
+    // Send notification to the delegatee
+    if (result.success) {
+      await this.sendDelegationAssignedNotification(
+        payload.user_id,
+        payload.role_id,
+        resolvedTenantId,
+        payload.scope_id
+      );
+    }
+
+    return result;
   }
 
   async revokeDelegatedRole(
@@ -168,5 +184,44 @@ export class RbacDelegationService {
   async getPermissionTemplates(tenantId?: string): Promise<any[]> {
     const resolvedTenantId = await this.resolveTenantId(tenantId);
     return await this.delegationRepository.getPermissionTemplates(resolvedTenantId);
+  }
+
+  /**
+   * Send notification when a role is delegated to a user
+   */
+  private async sendDelegationAssignedNotification(
+    userId: string,
+    roleId: string,
+    tenantId: string,
+    scopeId?: string
+  ): Promise<void> {
+    try {
+      // Get role details
+      const role = await this.roleRepository.getRoleWithPermissions(roleId, tenantId);
+      const roleName = role?.name || 'a new role';
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.DELEGATION_ASSIGNED,
+        category: 'security',
+        priority: 'high',
+        tenantId,
+        recipient: {
+          userId,
+        },
+        payload: {
+          title: 'Role Delegated',
+          message: `You have been assigned the "${roleName}" role${scopeId ? ' with scoped access' : ''}. You can now perform actions associated with this role.`,
+          roleId,
+          roleName,
+          scopeId,
+          actionType: 'redirect',
+          actionPayload: '/admin/rbac/delegated-console',
+        },
+        channels: ['in_app', 'email'],
+      });
+    } catch (error) {
+      console.error('Failed to send delegation assigned notification:', error);
+    }
   }
 }

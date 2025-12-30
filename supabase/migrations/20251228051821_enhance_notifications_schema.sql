@@ -85,35 +85,48 @@ DROP POLICY IF EXISTS "Users can view their own notifications" ON public.notific
 DROP POLICY IF EXISTS "Users can update their own notifications" ON public.notifications;
 DROP POLICY IF EXISTS "Users can insert notifications" ON public.notifications;
 DROP POLICY IF EXISTS "Users can delete their own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
 
--- Create properly scoped SELECT policy
-CREATE POLICY "Users can view their own notifications"
-ON public.notifications
-FOR SELECT
-TO authenticated
-USING (user_id = auth.uid());
+-- Create notification policies with existence checks
+DO $$
+BEGIN
+    -- Create properly scoped SELECT policy
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can view their own notifications') THEN
+        CREATE POLICY "Users can view their own notifications"
+        ON public.notifications
+        FOR SELECT
+        TO authenticated
+        USING (user_id = auth.uid());
+    END IF;
 
--- Create properly scoped UPDATE policy
-CREATE POLICY "Users can update their own notifications"
-ON public.notifications
-FOR UPDATE
-TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+    -- Create properly scoped UPDATE policy
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can update their own notifications') THEN
+        CREATE POLICY "Users can update their own notifications"
+        ON public.notifications
+        FOR UPDATE
+        TO authenticated
+        USING (user_id = auth.uid())
+        WITH CHECK (user_id = auth.uid());
+    END IF;
 
--- Create INSERT policy (system can insert for any user, but user_id must be set)
-CREATE POLICY "System can insert notifications"
-ON public.notifications
-FOR INSERT
-TO authenticated
-WITH CHECK (user_id IS NOT NULL);
+    -- Create INSERT policy (system can insert for any user, but user_id must be set)
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'System can insert notifications') THEN
+        CREATE POLICY "System can insert notifications"
+        ON public.notifications
+        FOR INSERT
+        TO authenticated
+        WITH CHECK (user_id IS NOT NULL);
+    END IF;
 
--- Create properly scoped DELETE policy
-CREATE POLICY "Users can delete their own notifications"
-ON public.notifications
-FOR DELETE
-TO authenticated
-USING (user_id = auth.uid());
+    -- Create properly scoped DELETE policy
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can delete their own notifications') THEN
+        CREATE POLICY "Users can delete their own notifications"
+        ON public.notifications
+        FOR DELETE
+        TO authenticated
+        USING (user_id = auth.uid());
+    END IF;
+END $$;
 
 -- =====================================================================================
 -- PART 3: Create notification_queue table for message bus
@@ -184,18 +197,23 @@ CREATE INDEX IF NOT EXISTS idx_notification_queue_correlation
 ALTER TABLE public.notification_queue ENABLE ROW LEVEL SECURITY;
 
 -- Admin-only access to queue (service role bypasses RLS)
-CREATE POLICY "Admins can manage notification queue"
-ON public.notification_queue
-FOR ALL
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.user_roles ur
-    JOIN public.roles r ON ur.role_id = r.id
-    WHERE ur.user_id = auth.uid()
-    AND r.code IN ('super_admin', 'tenant_admin')
-  )
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_queue' AND policyname = 'Admins can manage notification queue') THEN
+        CREATE POLICY "Admins can manage notification queue"
+        ON public.notification_queue
+        FOR ALL
+        TO authenticated
+        USING (
+          EXISTS (
+            SELECT 1 FROM public.user_roles ur
+            JOIN public.roles r ON ur.role_id = r.id
+            WHERE ur.user_id = auth.uid()
+            AND r.code IN ('super_admin', 'tenant_admin')
+          )
+        );
+    END IF;
+END $$;
 
 -- =====================================================================================
 -- PART 4: Create notification_preferences table
@@ -238,31 +256,42 @@ CREATE INDEX IF NOT EXISTS idx_notification_preferences_lookup
 -- Enable RLS
 ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
 
--- Users can view/manage their own preferences
-CREATE POLICY "Users can view their own notification preferences"
-ON public.notification_preferences
-FOR SELECT
-TO authenticated
-USING (user_id = auth.uid());
+-- Users can view/manage their own preferences (with existence checks)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_preferences' AND policyname = 'Users can view their own notification preferences') THEN
+        CREATE POLICY "Users can view their own notification preferences"
+        ON public.notification_preferences
+        FOR SELECT
+        TO authenticated
+        USING (user_id = auth.uid());
+    END IF;
 
-CREATE POLICY "Users can insert their own notification preferences"
-ON public.notification_preferences
-FOR INSERT
-TO authenticated
-WITH CHECK (user_id = auth.uid());
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_preferences' AND policyname = 'Users can insert their own notification preferences') THEN
+        CREATE POLICY "Users can insert their own notification preferences"
+        ON public.notification_preferences
+        FOR INSERT
+        TO authenticated
+        WITH CHECK (user_id = auth.uid());
+    END IF;
 
-CREATE POLICY "Users can update their own notification preferences"
-ON public.notification_preferences
-FOR UPDATE
-TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_preferences' AND policyname = 'Users can update their own notification preferences') THEN
+        CREATE POLICY "Users can update their own notification preferences"
+        ON public.notification_preferences
+        FOR UPDATE
+        TO authenticated
+        USING (user_id = auth.uid())
+        WITH CHECK (user_id = auth.uid());
+    END IF;
 
-CREATE POLICY "Users can delete their own notification preferences"
-ON public.notification_preferences
-FOR DELETE
-TO authenticated
-USING (user_id = auth.uid());
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_preferences' AND policyname = 'Users can delete their own notification preferences') THEN
+        CREATE POLICY "Users can delete their own notification preferences"
+        ON public.notification_preferences
+        FOR DELETE
+        TO authenticated
+        USING (user_id = auth.uid());
+    END IF;
+END $$;
 
 -- Trigger for updated_at
 CREATE OR REPLACE FUNCTION update_notification_preferences_updated_at()
@@ -330,44 +359,52 @@ CREATE INDEX IF NOT EXISTS idx_notification_templates_system
 -- Enable RLS
 ALTER TABLE public.notification_templates ENABLE ROW LEVEL SECURITY;
 
--- Users can view system templates and their tenant's templates
-CREATE POLICY "Users can view accessible notification templates"
-ON public.notification_templates
-FOR SELECT
-TO authenticated
-USING (
-  tenant_id IS NULL -- System templates
-  OR tenant_id IN (
-    SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid()
-  )
-);
+-- Notification templates policies (with existence checks)
+DO $$
+BEGIN
+    -- Users can view system templates and their tenant's templates
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_templates' AND policyname = 'Users can view accessible notification templates') THEN
+        CREATE POLICY "Users can view accessible notification templates"
+        ON public.notification_templates
+        FOR SELECT
+        TO authenticated
+        USING (
+          tenant_id IS NULL -- System templates
+          OR tenant_id IN (
+            SELECT tenant_id FROM public.tenant_users WHERE user_id = auth.uid()
+          )
+        );
+    END IF;
 
--- Only admins can manage tenant templates
-CREATE POLICY "Admins can manage tenant notification templates"
-ON public.notification_templates
-FOR ALL
-TO authenticated
-USING (
-  tenant_id IS NOT NULL
-  AND EXISTS (
-    SELECT 1 FROM public.user_roles ur
-    JOIN public.roles r ON ur.role_id = r.id
-    WHERE ur.user_id = auth.uid()
-    AND ur.tenant_id = notification_templates.tenant_id
-    AND r.code IN ('super_admin', 'tenant_admin')
-  )
-)
-WITH CHECK (
-  tenant_id IS NOT NULL
-  AND is_system = false -- Cannot create system templates
-  AND EXISTS (
-    SELECT 1 FROM public.user_roles ur
-    JOIN public.roles r ON ur.role_id = r.id
-    WHERE ur.user_id = auth.uid()
-    AND ur.tenant_id = notification_templates.tenant_id
-    AND r.code IN ('super_admin', 'tenant_admin')
-  )
-);
+    -- Only admins can manage tenant templates
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'notification_templates' AND policyname = 'Admins can manage tenant notification templates') THEN
+        CREATE POLICY "Admins can manage tenant notification templates"
+        ON public.notification_templates
+        FOR ALL
+        TO authenticated
+        USING (
+          tenant_id IS NOT NULL
+          AND EXISTS (
+            SELECT 1 FROM public.user_roles ur
+            JOIN public.roles r ON ur.role_id = r.id
+            WHERE ur.user_id = auth.uid()
+            AND ur.tenant_id = notification_templates.tenant_id
+            AND r.code IN ('super_admin', 'tenant_admin')
+          )
+        )
+        WITH CHECK (
+          tenant_id IS NOT NULL
+          AND is_system = false -- Cannot create system templates
+          AND EXISTS (
+            SELECT 1 FROM public.user_roles ur
+            JOIN public.roles r ON ur.role_id = r.id
+            WHERE ur.user_id = auth.uid()
+            AND ur.tenant_id = notification_templates.tenant_id
+            AND r.code IN ('super_admin', 'tenant_admin')
+          )
+        );
+    END IF;
+END $$;
 
 -- Trigger for updated_at
 CREATE OR REPLACE FUNCTION update_notification_templates_updated_at()

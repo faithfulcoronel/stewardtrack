@@ -200,7 +200,7 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
   private async sendCarePlanAssignedNotification(carePlan: MemberCarePlan): Promise<void> {
     try {
       // Get member details to find their user account and contact info
-      const member = await this.memberRepo.getById(carePlan.member_id);
+      const member = await this.memberRepo.findById(carePlan.member_id);
       if (!member) {
         return; // Member not found
       }

@@ -15,6 +15,7 @@ import {
   subYears,
   subWeeks,
 } from 'date-fns';
+import { randomUUID } from 'crypto';
 import { TYPES } from '@/lib/types';
 import type { IMemberRepository } from '@/repositories/member.repository';
 import type { IAccountRepository } from '@/repositories/account.repository';
@@ -24,6 +25,8 @@ import { QueryOptions, FilterCondition } from '@/adapters/base.adapter';
 import type { CrudService } from '@/services/CrudService';
 import { MemberValidator } from '@/validators/member.validator';
 import { validateOrThrow } from '@/utils/validation';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
 
 @injectable()
 export class MemberService implements CrudService<Member> {
@@ -34,6 +37,8 @@ export class MemberService implements CrudService<Member> {
     private accountRepo: IAccountRepository,
     @inject(TYPES.IFinancialTransactionRepository)
     private ftRepo: IFinancialTransactionRepository,
+    @inject(TYPES.NotificationBusService)
+    private notificationBus: INotificationBusService,
   ) {}
 
   find(options: QueryOptions = {}) {
@@ -60,13 +65,20 @@ export class MemberService implements CrudService<Member> {
     return this.repo.findById(id, options);
   }
 
-  create(
+  async create(
     data: Partial<Member>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
     validateOrThrow(MemberValidator, data);
-    return this.repo.create(data, relations, fieldsToRemove);
+    const member = await this.repo.create(data, relations, fieldsToRemove);
+
+    // Send notification if member has a linked user account
+    if (member.user_id) {
+      await this.sendMemberJoinedNotification(member);
+    }
+
+    return member;
   }
 
   update(
@@ -360,5 +372,41 @@ export class MemberService implements CrudService<Member> {
     });
 
     return data || [];
+  }
+
+  /**
+   * Send notification when a new member joins (has linked user account)
+   */
+  private async sendMemberJoinedNotification(member: Member): Promise<void> {
+    try {
+      if (!member.user_id || !member.tenant_id) {
+        return;
+      }
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.MEMBER_JOINED,
+        category: 'member',
+        priority: 'normal',
+        tenantId: member.tenant_id,
+        recipient: {
+          userId: member.user_id,
+          email: member.email || undefined,
+          phone: member.contact_number || undefined,
+        },
+        payload: {
+          title: 'Welcome to the Community',
+          message: `Welcome ${member.first_name}! Your member profile has been created. Explore your dashboard to see your giving history, events, and more.`,
+          memberName: `${member.first_name} ${member.last_name}`,
+          memberId: member.id,
+          actionType: 'redirect',
+          actionPayload: '/member/dashboard',
+        },
+        channels: ['in_app', 'email'],
+      });
+    } catch (error) {
+      // Log error but don't fail the member creation
+      console.error('Failed to send member joined notification:', error);
+    }
   }
 }

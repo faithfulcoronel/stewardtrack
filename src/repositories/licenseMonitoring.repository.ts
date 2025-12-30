@@ -1,10 +1,10 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import { LicenseMonitoringAdapter, type LicenseUtilization, type FeatureAdoption, type LicensingAnalyticsSummary } from '@/adapters/licenseMonitoring.adapter';
+import { LicenseMonitoringAdapter, type LicenseUtilization, type FeatureAdoption, type LicensingAnalyticsSummary, type TenantAdminUser } from '@/adapters/licenseMonitoring.adapter';
 
 // Re-export types from adapter for convenience
-export type { LicenseUtilization, FeatureAdoption };
+export type { LicenseUtilization, FeatureAdoption, TenantAdminUser };
 export type { LicensingAnalyticsSummary };
 
 export interface OnboardingMetrics {
@@ -101,5 +101,12 @@ export class LicenseMonitoringRepository {
    */
   async getSystemAnalytics(): Promise<LicensingAnalyticsSummary> {
     return this.adapter.fetchSystemAnalytics();
+  }
+
+  /**
+   * Get tenant admin users for notifications
+   */
+  async getTenantAdminUsers(tenantId: string): Promise<TenantAdminUser[]> {
+    return this.adapter.fetchTenantAdminUsers(tenantId);
   }
 }

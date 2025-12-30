@@ -17,6 +17,10 @@ export class TenantService {
     return this.repo.getCurrentTenant();
   }
 
+  findById(id: string): Promise<Tenant | null> {
+    return this.repo.findById(id);
+  }
+
   updateTenant(id: string, data: Partial<Tenant>) {
     validateOrThrow(TenantValidator, data);
     return this.repo.update(id, data);

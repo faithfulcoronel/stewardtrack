@@ -53,6 +53,11 @@ export interface MaterializedViewRefreshJob {
   [key: string]: any;
 }
 
+export interface TenantAdminUser {
+  user_id: string;
+  email: string | null;
+}
+
 export interface LicensingAnalyticsSummary {
   totalOfferings: number;
   activeOfferings: number;
@@ -357,5 +362,41 @@ export class LicenseMonitoringAdapter {
         recent: formattedRecentAssignments,
       },
     };
+  }
+
+  /**
+   * Fetch admin users for a specific tenant (for notifications)
+   */
+  async fetchTenantAdminUsers(tenantId: string): Promise<TenantAdminUser[]> {
+    const supabase = await createSupabaseServerClient();
+
+    // Get users with 'tenant_admin' or 'admin' roles for this tenant
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select(`
+        user_id,
+        profiles!inner(email),
+        roles!inner(name)
+      `)
+      .eq('tenant_id', tenantId)
+      .in('roles.name', ['tenant_admin', 'admin']);
+
+    if (error) {
+      console.error('Failed to fetch tenant admin users:', error);
+      return [];
+    }
+
+    // Deduplicate by user_id
+    const userMap = new Map<string, TenantAdminUser>();
+    data?.forEach((row: any) => {
+      if (!userMap.has(row.user_id)) {
+        userMap.set(row.user_id, {
+          user_id: row.user_id,
+          email: row.profiles?.email || null,
+        });
+      }
+    });
+
+    return Array.from(userMap.values());
   }
 }

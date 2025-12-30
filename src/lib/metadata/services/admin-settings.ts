@@ -2,6 +2,7 @@ import type { ServiceDataSourceHandler } from "./types";
 import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
+import type { SettingService } from "@/services/SettingService";
 
 const SETTINGS_OVERVIEW_HANDLER_ID = "admin-settings.settings.overview";
 const SETTINGS_SAVE_HANDLER_ID = "admin-settings.settings.overview.save";
@@ -28,6 +29,7 @@ const ASIAN_CURRENCIES = [
 const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
   // Get real tenant data using service layer
   const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const settingService = container.get<SettingService>(TYPES.SettingService);
   const tenant = await tenantService.getCurrentTenant();
 
   if (!tenant) {
@@ -43,9 +45,12 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
   const subscriptionTier = tenant.subscription_tier || "starter";
   const currency = tenant.currency || "PHP"; // Default currency from tenant
 
-  // TODO: These will be fetched from tenant_settings table once fully implemented
-  const twilioConfigured = false;
-  const emailConfigured = false;
+  // Check integration status from settings service
+  const integrationSettings = await settingService.getIntegrationSettings();
+  const twilioConfigured = integrationSettings.twilio.configured;
+  const emailConfigured = integrationSettings.email.configured;
+  const webhookConfigured = integrationSettings.webhook.configured;
+  const integrationsConfiguredCount = (twilioConfigured ? 1 : 0) + (emailConfigured ? 1 : 0) + (webhookConfigured ? 1 : 0);
 
   // Format last updated date
   const lastUpdated = tenant.updated_at
@@ -58,6 +63,49 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
 
   return {
     tenantId,
+    // Tab configuration for AdminSettingsTabs
+    tabs: [
+      {
+        id: 'general',
+        label: 'General',
+        icon: 'settings',
+        description: 'Church profile and preferences',
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        icon: 'bell',
+        description: 'Alert and communication settings',
+      },
+      {
+        id: 'integrations',
+        label: 'Integrations',
+        icon: 'link',
+        description: 'Email, SMS, and webhook providers',
+        badge: integrationsConfiguredCount > 0 ? `${integrationsConfiguredCount}/3` : undefined,
+      },
+      {
+        id: 'templates',
+        label: 'Templates',
+        icon: 'file-text',
+        description: 'Notification message templates',
+        badge: 'Enterprise',
+      },
+      {
+        id: 'analytics',
+        label: 'Analytics',
+        icon: 'bar-chart-3',
+        description: 'Notification delivery metrics',
+        badge: 'Premium',
+      },
+      {
+        id: 'scheduled',
+        label: 'Scheduled',
+        icon: 'calendar-clock',
+        description: 'Future notification delivery',
+        badge: 'Enterprise',
+      },
+    ],
     hero: {
       eyebrow: "StewardTrack Admin",
       headline: `Configure ${ministryName} Settings`,
@@ -137,7 +185,7 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
           title: "Integrations",
           description: "Configure external services for messaging and communications.",
           columns: 2,
-          badge: `${twilioConfigured && emailConfigured ? '2' : twilioConfigured || emailConfigured ? '1' : '0'} configured`,
+          badge: `${integrationsConfiguredCount} configured`,
           items: [
             {
               label: "Twilio (SMS)",
@@ -153,9 +201,24 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
               variant: emailConfigured ? "success" : "default",
               description: "Transactional and bulk email",
             },
+            {
+              label: "Webhook",
+              value: webhookConfigured ? "Configured" : "Not configured",
+              type: "badge",
+              variant: webhookConfigured ? "success" : "default",
+              description: "External system notifications",
+            },
           ],
         },
       ],
+    },
+    notification: {
+      title: "Notification Preferences",
+      description: "Configure how and when you receive notifications from StewardTrack.",
+    },
+    integrations: {
+      title: "Integration Settings",
+      description: "Configure external services for messaging and email communications.",
     },
     form: {
       mode: "edit",

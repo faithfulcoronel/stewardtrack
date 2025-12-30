@@ -114,16 +114,43 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
       }
     }
 
-    // Get user's display name from profile if available
+    // Get user's display name - check linked member first, then profile
     let userName = userEmail.split('@')[0];
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, display_name')
-      .eq('id', userId)
-      .single();
 
-    if (profile) {
-      userName = profile.display_name || profile.full_name || userName;
+    // Check if user is linked to a member record
+    if (tenantId) {
+      const { data: linkedMember } = await supabase
+        .from('members')
+        .select('id, first_name, last_name, encrypted_fields')
+        .eq('user_id', userId)
+        .eq('tenant_id', tenantId)
+        .is('deleted_at', null)
+        .single();
+
+      if (linkedMember) {
+        // Decrypt member data if needed
+        const decryptedMember = await this.decryptMember(linkedMember, tenantId);
+        const firstName = decryptedMember.first_name as string;
+        const lastName = decryptedMember.last_name as string;
+        if (firstName && lastName) {
+          userName = `${firstName} ${lastName}`;
+        } else if (firstName) {
+          userName = firstName;
+        }
+      }
+    }
+
+    // Fall back to profile if no linked member found
+    if (userName === userEmail.split('@')[0]) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, display_name')
+        .eq('id', userId)
+        .single();
+
+      if (profile) {
+        userName = profile.display_name || profile.full_name || userName;
+      }
     }
 
     return {
@@ -403,18 +430,15 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
     // Get follow-up items from care plans
     try {
-      const tenantFilter = <T extends { eq: (col: string, val: string) => T }>(query: T) =>
-        tenantId ? query.eq('tenant_id', tenantId) : query;
-
-      const { data: carePlans } = await tenantFilter(
-        supabase
-          .from('member_care_plans')
-          .select('id, member_id, title, next_follow_up_date, status')
-          .eq('status', 'active')
-          .lte('next_follow_up_date', format(weekEnd, 'yyyy-MM-dd'))
-          .gte('next_follow_up_date', format(today, 'yyyy-MM-dd'))
-          .limit(5)
-      );
+      let carePlansQuery = supabase
+        .from('member_care_plans')
+        .select('id, member_id, title, next_follow_up_date, status')
+        .eq('status', 'active')
+        .lte('next_follow_up_date', format(weekEnd, 'yyyy-MM-dd'))
+        .gte('next_follow_up_date', format(today, 'yyyy-MM-dd'))
+        .limit(5);
+      if (tenantId) carePlansQuery = carePlansQuery.eq('tenant_id', tenantId);
+      const { data: carePlans } = await carePlansQuery;
 
       for (const plan of carePlans || []) {
         const followUpDate = parseISO(plan.next_follow_up_date);
@@ -448,19 +472,16 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     const supabase = await this.getSupabaseClient();
     const activities: RecentActivity[] = [];
 
-    const tenantFilter = <T extends { eq: (col: string, val: string) => T }>(query: T) =>
-      tenantId ? query.eq('tenant_id', tenantId) : query;
-
     // Get recent member additions
     try {
-      const { data: recentMembers } = await tenantFilter(
-        supabase
-          .from('members')
-          .select('id, tenant_id, first_name, last_name, encrypted_fields, created_at')
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-          .limit(5)
-      );
+      let recentMembersQuery = supabase
+        .from('members')
+        .select('id, tenant_id, first_name, last_name, encrypted_fields, created_at')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (tenantId) recentMembersQuery = recentMembersQuery.eq('tenant_id', tenantId);
+      const { data: recentMembers } = await recentMembersQuery;
 
       if (recentMembers && tenantId) {
         const decrypted = await Promise.all(
@@ -485,14 +506,14 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
     // Get recent donations
     try {
-      const { data: recentDonations } = await tenantFilter(
-        supabase
-          .from('income_expense_transactions')
-          .select('id, amount, transaction_date, description')
-          .eq('type', 'income')
-          .order('transaction_date', { ascending: false })
-          .limit(5)
-      );
+      let recentDonationsQuery = supabase
+        .from('income_expense_transactions')
+        .select('id, amount, transaction_date, description')
+        .eq('type', 'income')
+        .order('transaction_date', { ascending: false })
+        .limit(5);
+      if (tenantId) recentDonationsQuery = recentDonationsQuery.eq('tenant_id', tenantId);
+      const { data: recentDonations } = await recentDonationsQuery;
 
       for (const donation of recentDonations || []) {
         activities.push({
@@ -520,18 +541,15 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     const supabase = await this.getSupabaseClient();
     const today = new Date();
 
-    const tenantFilter = <T extends { eq: (col: string, val: string) => T }>(query: T) =>
-      tenantId ? query.eq('tenant_id', tenantId) : query;
-
     try {
-      const { data: events } = await tenantFilter(
-        supabase
-          .from('calendar_events')
-          .select('id, title, description, start_date, end_date, location')
-          .gte('start_date', format(today, 'yyyy-MM-dd'))
-          .order('start_date', { ascending: true })
-          .limit(limit)
-      );
+      let eventsQuery = supabase
+        .from('calendar_events')
+        .select('id, title, description, start_date, end_date, location')
+        .gte('start_date', format(today, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: true })
+        .limit(limit);
+      if (tenantId) eventsQuery = eventsQuery.eq('tenant_id', tenantId);
+      const { data: events } = await eventsQuery;
 
       return (events || []).map(event => ({
         id: event.id,

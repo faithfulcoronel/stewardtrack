@@ -24,6 +24,7 @@ export interface INotificationAdapter extends IBaseAdapter<Notification> {
     options?: { limit?: number; offset?: number; unreadOnly?: boolean }
   ): Promise<NotificationListResponse>;
   createNotification(dto: CreateNotificationDto): Promise<Notification>;
+  deleteNotification(id: string, userId: string): Promise<void>;
 }
 
 @injectable()

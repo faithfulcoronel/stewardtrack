@@ -29,6 +29,38 @@ import {
   AdminDiscipleshipPlansCard,
   type AdminDiscipleshipPlansCardProps,
 } from '@/components/dynamic/admin/AdminDiscipleshipPlansCard';
+import {
+  AdminNotificationPreferences,
+  type AdminNotificationPreferencesProps,
+} from '@/components/dynamic/admin/AdminNotificationPreferences';
+import {
+  AdminSettingsTabs,
+  type AdminSettingsTabsProps,
+} from '@/components/dynamic/admin/AdminSettingsTabs';
+import {
+  AdminIntegrationSettings,
+  type AdminIntegrationSettingsProps,
+} from '@/components/dynamic/admin/AdminIntegrationSettings';
+import {
+  AdminScheduledNotifications,
+  type AdminScheduledNotificationsProps,
+} from '@/components/dynamic/admin/AdminScheduledNotifications';
+import {
+  AdminNotificationAnalytics,
+  type AdminNotificationAnalyticsProps,
+} from '@/components/dynamic/admin/AdminNotificationAnalytics';
+import {
+  AdminNotificationTemplates,
+  type AdminNotificationTemplatesProps,
+} from '@/components/dynamic/admin/AdminNotificationTemplates';
+import {
+  SuperAdminIntegrationSettings,
+  type SuperAdminIntegrationSettingsProps,
+} from '@/components/dynamic/admin/SuperAdminIntegrationSettings';
+import {
+  SuperAdminSystemTemplates,
+  type SuperAdminSystemTemplatesProps,
+} from '@/components/dynamic/admin/SuperAdminSystemTemplates';
 
 function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
@@ -36,7 +68,27 @@ function withoutChildren<Props>(Component: React.ComponentType<Props>, displayNa
   return Renderer;
 }
 
+function withChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
+  const Renderer = (props: Record<string, unknown>, children: React.ReactNode) => (
+    <Component {...(props as Props)}>{children}</Component>
+  );
+  Renderer.displayName = displayName;
+  return Renderer;
+}
+
+// Fragment renderer - wraps children with spacing (used for grouping in XML)
+function FragmentRenderer(_props: Record<string, unknown>, children: React.ReactNode) {
+  return <div className="space-y-8">{children}</div>;
+}
+FragmentRenderer.displayName = 'FragmentRenderer';
+
 export const adminComponentDefinitions: ComponentDefinition[] = [
+  {
+    type: 'Fragment',
+    namespace: 'core',
+    version: '1.0.0',
+    renderer: FragmentRenderer,
+  },
   {
     type: 'AdminMetricCards',
     namespace: 'admin',
@@ -102,5 +154,53 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminDiscipleshipPlansCardProps>(AdminDiscipleshipPlansCard, 'AdminDiscipleshipPlansCardRenderer'),
+  },
+  {
+    type: 'AdminNotificationPreferences',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminNotificationPreferencesProps>(AdminNotificationPreferences, 'AdminNotificationPreferencesRenderer'),
+  },
+  {
+    type: 'AdminSettingsTabs',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withChildren<AdminSettingsTabsProps>(AdminSettingsTabs, 'AdminSettingsTabsRenderer'),
+  },
+  {
+    type: 'AdminIntegrationSettings',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminIntegrationSettingsProps>(AdminIntegrationSettings, 'AdminIntegrationSettingsRenderer'),
+  },
+  {
+    type: 'AdminScheduledNotifications',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminScheduledNotificationsProps>(AdminScheduledNotifications, 'AdminScheduledNotificationsRenderer'),
+  },
+  {
+    type: 'AdminNotificationAnalytics',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminNotificationAnalyticsProps>(AdminNotificationAnalytics, 'AdminNotificationAnalyticsRenderer'),
+  },
+  {
+    type: 'AdminNotificationTemplates',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminNotificationTemplatesProps>(AdminNotificationTemplates, 'AdminNotificationTemplatesRenderer'),
+  },
+  {
+    type: 'SuperAdminIntegrationSettings',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<SuperAdminIntegrationSettingsProps>(SuperAdminIntegrationSettings, 'SuperAdminIntegrationSettingsRenderer'),
+  },
+  {
+    type: 'SuperAdminSystemTemplates',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<SuperAdminSystemTemplatesProps>(SuperAdminSystemTemplates, 'SuperAdminSystemTemplatesRenderer'),
   },
 ];
