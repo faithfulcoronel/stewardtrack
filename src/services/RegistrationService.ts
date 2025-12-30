@@ -151,16 +151,19 @@ export class RegistrationService {
       const subdomain = await this.generateUniqueSubdomain(churchName);
 
       // ===== STEP 5: Create tenant =====
+      // Note: created_by is omitted because the profile record may not exist yet
+      // (Supabase creates it via trigger, but there can be timing issues with FK constraints)
       const tenant = await this.tenantRepository.createTenantForRegistration({
         name: churchName,
         subdomain,
         subscription_tier: offering.tier,
         subscription_status: 'active',
+        subscription_offering_id: offeringId,
         subscription_end_date: offering.offering_type === 'trial'
           ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
           : null,
         status: 'active',
-        created_by: userId,
+        // created_by will be NULL - can be backfilled later if needed
       });
 
       tenantId = tenant.id;
