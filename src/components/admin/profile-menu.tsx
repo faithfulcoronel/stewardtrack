@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "../theme/theme-provider";
-import { Globe, LogOut, Moon, Sun, User, UserCircle2, BadgeCheck } from "lucide-react";
+import { Globe, LogOut, Moon, Sun, User, UserCircle2, BadgeCheck, CreditCard } from "lucide-react";
 
 export type ProfileMenuProps = {
   name: string;
@@ -79,6 +79,14 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
               </span>
               <span className="text-xs text-muted-foreground">English</span>
             </div>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator className="bg-border/60" />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <a className="flex items-center gap-3 px-4 py-2 text-sm" href="/admin/subscription">
+              <CreditCard className="size-4" /> Manage Subscription
+            </a>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="bg-border/60" />

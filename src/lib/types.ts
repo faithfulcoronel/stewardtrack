@@ -26,6 +26,15 @@ export const TYPES = {
   AuthorizationService: Symbol.for('AuthorizationService'),
   UserRoleAdapter: Symbol.for('UserRoleAdapter'),
   RolePermissionService: Symbol.for('RolePermissionService'),
+  
+  // Payment Services (Xendit Integration)
+  XenditService: Symbol.for('XenditService'),
+  PaymentService: Symbol.for('PaymentService'),
+  PaymentSubscriptionService: Symbol.for('PaymentSubscriptionService'),
+
+  // Payment Adapters & Repositories
+  ISubscriptionPaymentAdapter: Symbol.for('ISubscriptionPaymentAdapter'),
+  ISubscriptionPaymentRepository: Symbol.for('ISubscriptionPaymentRepository'),
 
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),

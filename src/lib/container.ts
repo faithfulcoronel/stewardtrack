@@ -92,6 +92,15 @@ import { LicenseMonitoringRepository } from '@/repositories/licenseMonitoring.re
 import { LicenseAuditRepository, type ILicenseAuditRepository } from '@/repositories/licenseAudit.repository';
 import { ActivityLogRepository, type IActivityLogRepository } from '@/repositories/activityLog.repository';
 
+// Payment Services (Xendit Integration)
+import { XenditService } from '@/services/XenditService';
+import { PaymentService } from '@/services/PaymentService';
+import { PaymentSubscriptionService } from '@/services/PaymentSubscriptionService';
+
+// Payment Adapters & Repositories
+import { SubscriptionPaymentAdapter, type ISubscriptionPaymentAdapter } from '@/adapters/subscriptionPayment.adapter';
+import { SubscriptionPaymentRepository, type ISubscriptionPaymentRepository } from '@/repositories/subscriptionPayment.repository';
+
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
@@ -281,6 +290,33 @@ container.bind<SettingService>(TYPES.SettingService).to(SupabaseSettingService).
 container
   .bind<RolePermissionService>(TYPES.RolePermissionService)
   .to(RolePermissionService)
+// ==================== PAYMENT SERVICES (XENDIT INTEGRATION) ====================
+// Adapters
+container
+  .bind<ISubscriptionPaymentAdapter>(TYPES.ISubscriptionPaymentAdapter)
+  .to(SubscriptionPaymentAdapter)
+  .inRequestScope();
+
+// Repositories
+container
+  .bind<ISubscriptionPaymentRepository>(TYPES.ISubscriptionPaymentRepository)
+  .to(SubscriptionPaymentRepository)
+  .inRequestScope();
+
+// Services
+container
+  .bind<XenditService>(TYPES.XenditService)
+  .to(XenditService)
+  .inRequestScope();
+
+container
+  .bind<PaymentService>(TYPES.PaymentService)
+  .to(PaymentService)
+  .inRequestScope();
+
+container
+  .bind<PaymentSubscriptionService>(TYPES.PaymentSubscriptionService)
+  .to(PaymentSubscriptionService)
   .inRequestScope();
 
 // ==================== PHASE 5 OPTIMIZATION & MONITORING SERVICES ====================
