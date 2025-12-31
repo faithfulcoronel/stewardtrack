@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGradient)"/>
+
+  <!-- Church/Stewardship Icon - Stylized Cross with Hands -->
+  <g fill="#ffffff">
+    <!-- Cross -->
+    <rect x="224" y="96" width="64" height="256" rx="8"/>
+    <rect x="160" y="160" width="192" height="64" rx="8"/>
+
+    <!-- Base/Foundation representing stewardship -->
+    <path d="M128 368 L256 416 L384 368 L384 400 C384 416 368 432 352 432 L160 432 C144 432 128 416 128 400 Z" />
+
+    <!-- Subtle glow effect -->
+    <ellipse cx="256" cy="240" rx="80" ry="80" fill="#ffffff" opacity="0.1"/>
+  </g>
+</svg>

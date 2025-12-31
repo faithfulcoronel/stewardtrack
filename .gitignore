@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,14 +11,15 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build
+dist
 
 # misc
 .DS_Store
@@ -32,6 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,11 +42,28 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-#Compiled JSON files
-/metadata/compiled/
-/metadata/registry/
+# Compiled JSON files (metadata system)
+**/metadata/compiled/
+**/metadata/registry/
 
-#Playwright report
-/playwright-report
-/test-results
-/e2e/screenshots
+# Playwright report
+playwright-report
+test-results
+**/e2e/screenshots
+
+# Turborepo
+.turbo
+
+# Capacitor
+apps/mobile/ios/
+apps/mobile/android/
+!apps/mobile/ios/.gitkeep
+!apps/mobile/android/.gitkeep
+
+# IDE
+.idea
+*.swp
+*.swo
+
+# OS
+Thumbs.db

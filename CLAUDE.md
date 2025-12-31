@@ -5,33 +5,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-StewardTrack is a Next.js 15 church management SaaS application with a **metadata-driven architecture** where pages are authored in XML and interpreted at runtime. The system supports multi-tenant operations with sophisticated RBAC (Role-Based Access Control), licensing, and onboarding flows.
+StewardTrack is a **multi-platform church management SaaS application** built as a **Turborepo monorepo**. It features a metadata-driven architecture where pages are authored in XML and interpreted at runtime. The system supports multi-tenant operations with sophisticated RBAC (Role-Based Access Control), licensing, and onboarding flows.
 
 **Core Domain:** Church operations (membership management, donations, finances, events)
 **Key Innovation:** XML-based page definitions compiled to JSON, resolved through a layered registry, and rendered via React interpreter
+**Platforms:** Web (Next.js), iOS (Capacitor), Android (Capacitor)
+
+## Monorepo Structure
+
+```
+stewardtrack/
+├── apps/
+│   ├── web/                    # Next.js 16 web application
+│   │   ├── src/                # Application source code
+│   │   ├── public/             # Static assets
+│   │   ├── metadata/           # XML page definitions
+│   │   ├── tools/              # Build tools (metadata compiler)
+│   │   └── e2e/                # Playwright tests
+│   └── mobile/                 # Capacitor mobile app (iOS/Android)
+├── packages/
+│   ├── shared-types/           # Shared TypeScript types
+│   ├── api-client/             # Supabase client wrapper
+│   ├── native-bridge/          # Native platform APIs
+│   └── config/                 # Shared configurations
+├── supabase/                   # Database migrations & functions
+├── docs/                       # Documentation
+├── turbo.json                  # Turborepo configuration
+├── pnpm-workspace.yaml         # pnpm workspace definition
+└── package.json                # Root package.json
+```
 
 ## Essential Commands
 
 ### Development
 ```bash
-npm run dev                    # Start Next.js dev server with Turbopack
-npm run build                  # Production build (runs metadata:compile prebuild)
-npm run lint                   # Run ESLint
+pnpm dev                       # Start all apps in dev mode
+pnpm dev:web                   # Start web app only (Next.js with Turbopack)
+pnpm build                     # Build all packages and apps
+pnpm build:web                 # Build web app only
+pnpm lint                      # Run ESLint across monorepo
 ```
 
 ### Metadata Pipeline
 ```bash
-npm run metadata:compile       # Validate XML, compile to JSON, update registry
-npm run metadata:watch         # Watch authoring files for changes
-npm run metadata:types         # Regenerate TypeScript types after schema updates
+pnpm metadata:compile          # Validate XML, compile to JSON, update registry
+pnpm --filter @stewardtrack/web metadata:watch    # Watch authoring files for changes
+pnpm --filter @stewardtrack/web metadata:types    # Regenerate TypeScript types
+```
+
+### Mobile (Phase 3+)
+```bash
+pnpm mobile:sync               # Sync web build to native projects
+pnpm mobile:ios                # Open iOS project in Xcode
+pnpm mobile:android            # Open Android project in Android Studio
+pnpm mobile:run:ios            # Run on iOS simulator
+pnpm mobile:run:android        # Run on Android emulator
 ```
 
 ### Supabase (Local)
 ```bash
-npx supabase start            # Start local Supabase stack
-npx supabase db push          # Apply migrations to local database
-npx supabase db reset         # Reset database and rerun migrations
-npx supabase stop             # Stop local Supabase stack
+npx supabase start             # Start local Supabase stack
+npx supabase db push           # Apply migrations to local database
+npx supabase db reset          # Reset database and rerun migrations
+npx supabase stop              # Stop local Supabase stack
 ```
 
 ## Architecture
@@ -43,33 +79,33 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 **1. Authoring (XML)** → **2. Compilation (JSON)** → **3. Registry** → **4. Resolution (Layering)** → **5. Interpretation (React)**
 
 #### Key Files & Flow
-- **Authoring:** `metadata/authoring/blueprints/` and `metadata/authoring/overlays/`
-- **Schema:** `metadata/xsd/page-definition.xsd`
-- **Compiler:** `tools/metadata/compile.ts` → validates XML against XSD, transforms to canonical JSON
-- **Compiled Output:** `metadata/compiled/` (versioned JSON artifacts)
-- **Registry:** `metadata/registry/manifest.json` (maps module/route → artifact paths)
-- **Resolver:** `src/lib/metadata/resolver.ts` (merges base + overlays based on tenant/role/variant)
-- **Interpreter:** `src/lib/metadata/interpreter.tsx` (renders React components from canonical JSON)
-- **Component Registry:** `src/lib/metadata/component-registry.ts` (maps type strings → React components)
+- **Authoring:** `apps/web/metadata/authoring/blueprints/` and `apps/web/metadata/authoring/overlays/`
+- **Schema:** `apps/web/metadata/xsd/page-definition.xsd`
+- **Compiler:** `apps/web/tools/metadata/compile.ts` → validates XML against XSD, transforms to canonical JSON
+- **Compiled Output:** `apps/web/metadata/compiled/` (versioned JSON artifacts)
+- **Registry:** `apps/web/metadata/registry/manifest.json` (maps module/route → artifact paths)
+- **Resolver:** `apps/web/src/lib/metadata/resolver.ts` (merges base + overlays based on tenant/role/variant)
+- **Interpreter:** `apps/web/src/lib/metadata/interpreter.tsx` (renders React components from canonical JSON)
+- **Component Registry:** `apps/web/src/lib/metadata/component-registry.ts` (maps type strings → React components)
 
 #### Metadata Pipeline Workflow
-1. Author XML in `metadata/authoring/blueprints/` (base definitions) or `overlays/` (tenant/role customizations)
-2. Run `npm run metadata:compile` to:
+1. Author XML in `apps/web/metadata/authoring/blueprints/` (base definitions) or `overlays/` (tenant/role customizations)
+2. Run `pnpm metadata:compile` to:
    - Validate XML against schema
    - Transform to canonical JSON with checksums
-   - Publish to `metadata/compiled/` with content versioning
+   - Publish to `apps/web/metadata/compiled/` with content versioning
    - Update `manifest.json` with registry entries
 3. At runtime, `resolver.ts` resolves layers (base → overlays) based on context (tenant, role, variant)
 4. `interpreter.tsx` walks the merged definition and renders React components via component registry
 5. RBAC rules in metadata control component visibility per role
 
-**When adding/modifying metadata pages:** Always run `npm run metadata:compile` before testing. The dev server does not auto-recompile metadata.
+**When adding/modifying metadata pages:** Always run `pnpm metadata:compile` before testing. The dev server does not auto-recompile metadata.
 
 ### Multi-Tenancy
 
 **Tenant Resolution:**
-- `src/lib/tenant/tenant-resolver.ts` → queries `tenant_users` table by authenticated user
-- Each request resolves tenant context via `src/lib/server/context.ts`
+- `apps/web/src/lib/tenant/tenant-resolver.ts` → queries `tenant_users` table by authenticated user
+- Each request resolves tenant context via `apps/web/src/lib/server/context.ts`
 - Metadata overlays support tenant-specific customizations
 
 **Tenant Isolation:**
@@ -88,28 +124,12 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 - **Delegations** (`delegations`): Simplified role-based delegation with scope (Campus/Ministry) and time limits
 
 **Key Services:**
-- `src/services/RbacCoreService.ts` → Core role/permission operations (bundle methods removed)
-- `src/services/RbacFeatureService.ts` → Feature flag grants and license feature management
-- `src/services/RbacDelegationService.ts` → Simplified delegation workflows (role + scope model)
-- `src/services/RbacPublishingService.ts` → Compile/publish RBAC state changes
-- `src/services/RbacStatisticsService.ts` → Dashboard statistics (bundle stats removed)
+- `apps/web/src/services/RbacCoreService.ts` → Core role/permission operations
+- `apps/web/src/services/RbacFeatureService.ts` → Feature flag grants and license feature management
+- `apps/web/src/services/RbacDelegationService.ts` → Simplified delegation workflows
+- `apps/web/src/services/RbacPublishingService.ts` → Compile/publish RBAC state changes
 
-**Role Creation Workflow:**
-- 4-step wizard: Basic Info → Assign Permissions → Link Users → Review & Create
-- Wizard component: `src/components/admin/rbac/RoleCreationWizard.tsx`
-- Direct permission assignment (no permission bundles)
-
-**Delegation Model (Simplified):**
-- Delegation = Assign Role + Scope (Campus/Ministry/Event) + Time Limit
-- No granular permission selection - delegate complete roles only
-- API endpoints: `/api/rbac/delegation/assign-role`, `/api/rbac/delegation/revoke-role`
-
-**Multi-Role Support:**
-- Users can have multiple roles simultaneously
-- Conflict analysis for overlapping permissions
-- UI: `/admin/rbac/multi-role`
-
-**Dependency Injection:** InversifyJS container in `src/lib/container.ts` (use `inRequestScope()` for all services)
+**Dependency Injection:** InversifyJS container in `apps/web/src/lib/container.ts` (use `inRequestScope()` for all services)
 
 ### Licensing System
 
@@ -119,97 +139,45 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 - **Product Offerings** (`product_offerings`): Pricing plans with feature bundles
 - **Licenses** (`licenses`): Tenant license assignments
 - **License Features** (`license_features`): Available features catalog
-- **License Feature Bundles** (`license_feature_bundles`): Features grouped by plan
 - **Tenant Feature Grants** (`tenant_feature_grants`): Active feature access per tenant
-- **Surface License Bindings** (`surface_license_bindings`): UI surfaces requiring specific licenses
 
 **Key Services:**
-- `src/services/LicensingService.ts` → License management
-- `src/services/LicenseFeatureService.ts` → Feature grant operations
-- `src/services/LicenseValidationService.ts` → Compliance checking
-- `src/services/LicenseMonitoringService.ts` → Health monitoring
+- `apps/web/src/services/LicensingService.ts` → License management
+- `apps/web/src/services/LicenseFeatureService.ts` → Feature grant operations
+- `apps/web/src/services/LicenseValidationService.ts` → Compliance checking
 
-**Feature Flag Checks:**
-```typescript
-// In metadata evaluation.ts or component code
-if (!context.featureFlags?.['advanced_reporting']) {
-  return null; // Hide component if feature not granted
-}
-```
+### Shared Packages
 
-### Onboarding Flow
+**@stewardtrack/shared-types** (`packages/shared-types/`)
+- Platform types (Platform, DeviceInfo, PlatformCapabilities)
+- API types (ApiResponse, PaginationMeta, AuthTokens)
+- Shared across web and mobile apps
 
-**Route:** `/signup` → `/signup/register` → `/onboarding` → `/admin`
+**@stewardtrack/api-client** (`packages/api-client/`)
+- Supabase client wrapper with custom storage adapters
+- React hooks (useSession, useUser, useAuth, useQuery)
+- Cross-platform authentication support
 
-**Registration (`src/app/api/auth/register/route.ts`):**
-1. Creates Supabase auth user
-2. Creates tenant record with subdomain
-3. Seeds 4 default RBAC roles (admin, staff, volunteer, member)
-4. Assigns user to `tenant_admin` role
-5. Grants license features based on selected plan
-6. Creates `onboarding_progress` record
-
-**Onboarding Wizard (`src/app/(protected)/onboarding/page.tsx`):**
-- Multi-step wizard (Welcome → Church Details → RBAC Setup → Feature Tour → Complete)
-- Progress saved to `onboarding_progress` table (JSONB columns per step)
-- API endpoints: `/api/onboarding/save-progress`, `/api/onboarding/complete`
+**@stewardtrack/native-bridge** (`packages/native-bridge/`)
+- Platform detection utilities
+- Native API abstractions (camera, biometrics, push, storage)
+- Capacitor plugin wrappers (Phase 3-4)
 
 ### Key Architecture Patterns
 
-**Dependency Injection:** InversifyJS container (`src/lib/container.ts`)
+**Dependency Injection:** InversifyJS container (`apps/web/src/lib/container.ts`)
 - All services/repositories bound in request scope
 - Use `@injectable()` decorator on classes
 - Inject via constructor with `@inject(TYPES.ServiceName)`
 
 **Repository Pattern:**
-- Adapters (`src/adapters/*.adapter.ts`) → Convert domain models ↔ database rows
-- Repositories (`src/repositories/*.repository.ts`) → Data access layer with Supabase client
-- Services (`src/services/*.ts`) → Business logic, injected with repositories
+- Adapters (`apps/web/src/adapters/*.adapter.ts`) → Convert domain models ↔ database rows
+- Repositories (`apps/web/src/repositories/*.repository.ts`) → Data access layer with Supabase client
+- Services (`apps/web/src/services/*.ts`) → Business logic, injected with repositories
 
-**Server Context Resolution:**
-- `src/lib/server/context.ts` → Resolves tenant, user, roles per request
-- Used in API routes and server components
-- Caches session data to minimize Supabase queries
-
-**Path Aliases:** `@/*` maps to `src/*` (configured in `tsconfig.json`)
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── (public)/          # Marketing pages, login, signup
-│   ├── (protected)/       # Onboarding wizard
-│   ├── admin/             # Authenticated admin pages
-│   └── api/               # Next.js API routes
-├── lib/
-│   ├── metadata/          # Metadata system (resolver, interpreter, registry)
-│   ├── supabase/          # Supabase client/server helpers
-│   ├── tenant/            # Tenant resolution, session cache, RBAC seeding
-│   ├── rbac/              # RBAC utilities
-│   └── container.ts       # DI container
-├── services/              # Business logic services (70+ services)
-├── repositories/          # Data access layer
-├── adapters/              # Domain ↔ database conversion
-├── components/            # React components (UI library + domain)
-└── types/                 # TypeScript type definitions
-
-metadata/
-├── authoring/
-│   ├── blueprints/        # Base XML page definitions
-│   └── overlays/          # Tenant/role/variant customizations
-├── compiled/              # Generated canonical JSON artifacts
-├── registry/              # Manifest + latest symlinks
-└── xsd/                   # XML schema definition
-
-supabase/
-├── config.toml            # Local Supabase configuration
-├── migrations/            # Database migrations (100+ files)
-└── functions/             # Edge functions (e.g., email-service)
-
-tools/
-└── metadata/              # Compiler, type generator, validators
-```
+**Path Aliases:**
+- `@/*` maps to `apps/web/src/*` (configured in `apps/web/tsconfig.json`)
+- `@stewardtrack/*` for shared packages
 
 ## Database
 
@@ -220,13 +188,10 @@ tools/
 - `tenant_users` → User ↔ tenant assignments
 - `profiles` → User profile data
 - `members` → Church membership records
-- `roles`, `permissions`, `user_roles`, `role_permissions` → RBAC (simplified 2-layer)
+- `roles`, `permissions`, `user_roles`, `role_permissions` → RBAC
 - `licenses`, `license_features`, `tenant_feature_grants` → Licensing
-- `license_feature_bundles` → License tier feature groupings (NOT RBAC bundles)
 - `product_offerings` → Pricing plans
 - `onboarding_progress` → Signup wizard state
-- `feature_catalog`, `feature_permissions` → Feature-to-permission mappings
-- `delegations` → Simplified role-based delegation with scopes
 
 **Migrations:** 100+ files in `supabase/migrations/` (applied sequentially by timestamp)
 
@@ -245,24 +210,24 @@ SUPABASE_SERVICE_ROLE_KEY         # Service role key (server-side only)
 ```env
 NEXT_PUBLIC_ENABLE_DYNAMIC_MENU=false  # Disable metadata-driven sidebars
 RESEND_API_KEY                         # For email edge function
-RESEND_FROM_EMAIL                      # Sender email address
+CAPACITOR_BUILD=true                   # Enable static export for mobile
 ```
 
 ## Common Tasks
 
 ### Adding a New Metadata Page
-1. Create XML in `metadata/authoring/blueprints/<module>/<route>.xml`
+1. Create XML in `apps/web/metadata/authoring/blueprints/<module>/<route>.xml`
 2. Define regions, components, dataSources, actions
-3. Register components in `src/lib/metadata/component-registry.ts` if new
-4. Run `npm run metadata:compile`
+3. Register components in `apps/web/src/lib/metadata/component-registry.ts` if new
+4. Run `pnpm metadata:compile`
 5. Access at `/pages/<tenant>/<module>/<route>` or `/admin/<module>/<route>`
 
 ### Adding a New Service
-1. Create service class in `src/services/MyService.ts`
+1. Create service class in `apps/web/src/services/MyService.ts`
 2. Decorate with `@injectable()`
 3. Inject dependencies via constructor with `@inject(TYPES.Dependency)`
-4. Add type symbol to `src/lib/types.ts`
-5. Bind in `src/lib/container.ts`: `container.bind<MyService>(TYPES.MyService).to(MyService).inRequestScope()`
+4. Add type symbol to `apps/web/src/lib/types.ts`
+5. Bind in `apps/web/src/lib/container.ts`: `container.bind<MyService>(TYPES.MyService).to(MyService).inRequestScope()`
 
 ### Adding a Database Migration
 1. Create migration: `npx supabase migration new <description>`
@@ -270,55 +235,55 @@ RESEND_FROM_EMAIL                      # Sender email address
 3. Apply locally: `npx supabase db push`
 4. Test thoroughly before deploying
 
-### Modifying RBAC
-- Roles/permissions are seeded in `src/lib/tenant/seedDefaultRBAC.ts` during registration
-- Use 4-step Role Creation Wizard at `/admin/security/rbac` → Quick Actions → Create Role
-- Direct permission assignment to roles (no bundles - simplified architecture)
-- Features mapped to permissions via `feature_permissions` table for fine-grained access control
-- Multi-role assignment supported via `/admin/rbac/multi-role`
+### Adding a Shared Type
+1. Add type to `packages/shared-types/src/`
+2. Export from appropriate module (platform, api, or index)
+3. Import in apps: `import { MyType } from '@stewardtrack/shared-types'`
 
 ## Testing
 
-**No dedicated test framework configured.** Manual testing workflow:
-1. Start local Supabase: `npx supabase start`
-2. Apply migrations: `npx supabase db push`
-3. Start dev server: `npm run dev`
-4. Test flows end-to-end in browser
+**Web E2E Tests:** Playwright
+```bash
+pnpm --filter @stewardtrack/web test:e2e        # Run all tests
+pnpm --filter @stewardtrack/web test:e2e:ui     # Interactive mode
+pnpm --filter @stewardtrack/web test:e2e:debug  # Debug mode
+```
 
-**Manual Test Checklist (Onboarding):**
-- `/signup` → pricing plans display
-- `/signup/register` → form submission creates account
-- `/onboarding` → wizard steps save progress
-- `/admin` → dashboard loads after completion
+**Mobile Tests (Phase 7):** Detox for iOS/Android
 
 ## Troubleshooting
 
 **"No tenant context available"** → User session expired or `tenant_users` record missing
 **"Failed to save progress"** → Check RLS policies and user tenant access
-**"Module not found: @/*"** → Verify `tsconfig.json` paths configuration
-**Metadata changes not reflected** → Run `npm run metadata:compile`
+**"Module not found: @/*"** → Verify `apps/web/tsconfig.json` paths configuration
+**"Module not found: @stewardtrack/*"** → Run `pnpm install` to link workspace packages
+**Metadata changes not reflected** → Run `pnpm metadata:compile`
 **Supabase connection errors** → Ensure `npx supabase start` is running and env vars set
 
 ## Code Style
 
 - **TypeScript:** Strict mode enabled
-- **Linting:** ESLint configured but currently disabled (`ignores: ['**/*']` in `eslint.config.mjs`)
+- **Linting:** ESLint configured in `apps/web/eslint.config.mjs`
 - **Unused vars:** Allowed with `_` prefix
 - **Formatting:** No automated formatter configured
 
 ## Key Concepts
 
-**Metadata Overlays:** Tenant/role/variant-specific XML patches applied on top of base blueprints (merged by ID)
-**Feature Permissions:** Features mapped to specific permissions for fine-grained access control (e.g., "advanced_reporting" feature requires `reports:advanced` permission)
+**Monorepo:** Turborepo with pnpm workspaces for shared packages
+**Metadata Overlays:** Tenant/role/variant-specific XML patches applied on top of base blueprints
+**Feature Permissions:** Features mapped to specific permissions for fine-grained access control
 **Delegation:** Temporary role assignments with subset of delegator's permissions
 **Feature Flags:** License-based feature gating (checked in metadata evaluation)
 **Request Scope:** DI container creates new service instances per request (stateless)
 **Server Context:** Resolves tenant/user/roles once per request, cached for reuse
-**Content Versioning:** Metadata artifacts versioned by checksum to support safe caching
+**Cross-Platform:** Capacitor wraps web app for iOS/Android deployment
 
 ## References
 
-- **Phase 4 Quick Reference:** `docs/phase4-developer-quick-reference.md` (onboarding implementation details)
-- **README:** `README.md` (overview, tech stack, project structure)
+- **Multi-Platform Plan:** `docs/MULTI-PLATFORM-IMPLEMENTATION-PLAN.md`
+- **Phase 4 Quick Reference:** `docs/phase4-developer-quick-reference.md`
+- **README:** `README.md`
 - **Supabase Docs:** https://supabase.com/docs
 - **Next.js Docs:** https://nextjs.org/docs
+- **Turborepo Docs:** https://turbo.build/repo/docs
+- **Capacitor Docs:** https://capacitorjs.com/docs

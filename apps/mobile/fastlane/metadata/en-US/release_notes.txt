@@ -1,0 +1,13 @@
+Welcome to StewardTrack!
+
+This release includes:
+- Initial release of StewardTrack mobile app
+- Member management and directory
+- Giving and donation tracking
+- Event calendar and management
+- Ministry team coordination
+- Biometric authentication (Face ID/Touch ID/Fingerprint)
+- Push notifications for announcements
+- Offline access to cached data
+
+We'd love to hear your feedback! Contact us at support@stewardtrack.com

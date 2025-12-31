@@ -55,7 +55,12 @@
       "Bash(node --version:*)",
       "Bash(npm --version:*)",
       "Bash(taskkill:*)",
-      "Bash(del \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\models\\\\settings.model.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\adapters\\\\settings.adapter.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\repositories\\\\settings.repository.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\services\\\\IntegrationSettingsService.ts\")"
+      "Bash(del \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\models\\\\settings.model.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\adapters\\\\settings.adapter.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\repositories\\\\settings.repository.ts\" \"c:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\src\\\\services\\\\IntegrationSettingsService.ts\")",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm build:web:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm cap:*)",
+      "Bash(if exist \".next\" rmdir /s /q \".next\")"
     ],
     "deny": [],
     "ask": []
