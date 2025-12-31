@@ -14,6 +14,7 @@
     "metadata:watch": "tsx watch --clear-screen=false tools/metadata/compile.ts",
     "metadata:types": "tsx tools/metadata/generate-types.ts",
     "metadata:seed-features": "tsx tools/metadata/seedFeatures.ts",
+    "generate-tenant-keys": "tsx tools/encryption/generate-tenant-keys.ts",
     "prebuild": "npm run metadata:compile",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

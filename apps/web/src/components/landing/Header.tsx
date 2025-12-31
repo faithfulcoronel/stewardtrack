@@ -1,16 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 
 export function LandingHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        setIsAuthenticated(data.authenticated);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const menuItems = ["Overview", "Features", "Testimonials", "Pricing", "FAQ"];
 
@@ -78,18 +97,32 @@ export function LandingHeader() {
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-[#179a65] font-bold text-sm hover:text-green-700 transition-colors border-2 border-[#179a65] rounded-full px-6 py-2 hover:bg-green-50"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-[#179a65] text-white font-bold text-sm hover:bg-green-600 transition-colors rounded-full px-6 py-2.5 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            Try for Free
-          </Link>
+          {!isLoading && (
+            isAuthenticated ? (
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 bg-[#179a65] text-white font-bold text-sm hover:bg-green-600 transition-colors rounded-full px-6 py-2.5 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              >
+                <LayoutDashboard className="size-4" />
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-[#179a65] font-bold text-sm hover:text-green-700 transition-colors border-2 border-[#179a65] rounded-full px-6 py-2 hover:bg-green-50"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#179a65] text-white font-bold text-sm hover:bg-green-600 transition-colors rounded-full px-6 py-2.5 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  Try for Free
+                </Link>
+              </>
+            )
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -125,18 +158,32 @@ export function LandingHeader() {
                 </button>
               ))}
               <div className="flex flex-col gap-3 mt-4">
-                <Link
-                  href="/signup"
-                  className="w-full bg-[#179a65] text-white font-bold text-lg py-3 rounded-xl shadow-md hover:bg-green-600 transition-colors text-center"
-                >
-                  Try for Free
-                </Link>
-                <Link
-                  href="/login"
-                  className="w-full text-[#179a65] font-bold text-lg py-3 border-2 border-[#179a65] rounded-xl hover:bg-green-50 transition-colors text-center"
-                >
-                  Sign In
-                </Link>
+                {!isLoading && (
+                  isAuthenticated ? (
+                    <Link
+                      href="/admin"
+                      className="w-full flex items-center justify-center gap-2 bg-[#179a65] text-white font-bold text-lg py-3 rounded-xl shadow-md hover:bg-green-600 transition-colors"
+                    >
+                      <LayoutDashboard className="size-5" />
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href="/signup"
+                        className="w-full bg-[#179a65] text-white font-bold text-lg py-3 rounded-xl shadow-md hover:bg-green-600 transition-colors text-center"
+                      >
+                        Try for Free
+                      </Link>
+                      <Link
+                        href="/login"
+                        className="w-full text-[#179a65] font-bold text-lg py-3 border-2 border-[#179a65] rounded-xl hover:bg-green-50 transition-colors text-center"
+                      >
+                        Sign In
+                      </Link>
+                    </>
+                  )
+                )}
               </div>
             </nav>
           </motion.div>

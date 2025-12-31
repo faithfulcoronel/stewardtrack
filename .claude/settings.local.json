@@ -61,7 +61,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm cap:*)",
       "Bash(if exist \".next\" rmdir /s /q \".next\")",
-      "Bash(timeout 300 pnpm build:web:*)"
+      "Bash(timeout 300 pnpm build:web:*)",
+      "Bash(pnpm generate-tenant-keys:*)"
     ],
     "deny": [],
     "ask": []

@@ -24,7 +24,7 @@ const config: CapacitorConfig = {
   server: {
     // Development: Use your local IP address (find with ipconfig/ifconfig)
     // Production: Use your deployed URL (e.g., 'https://app.stewardtrack.com')
-    url: 'http://192.168.1.10:3000', // Your local network IP for physical device
+    url: 'https://stewardtrack.com', // Your local network IP for physical device
     cleartext: true, // Allow HTTP for development (use HTTPS in production)
     // For iOS simulator, use your Mac's local IP instead
   },

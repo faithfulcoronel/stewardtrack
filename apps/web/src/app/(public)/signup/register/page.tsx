@@ -68,13 +68,30 @@ function RegisterFormContent() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (offeringId) {
-      loadOffering(offeringId);
-    } else {
-      setIsLoadingOffering(false);
-      toast.error('No plan selected. Redirecting to signup...');
-      setTimeout(() => router.push('/signup'), 2000);
-    }
+    const init = async () => {
+      // Check if user is already authenticated
+      try {
+        const authResponse = await fetch('/api/auth/status');
+        const authData = await authResponse.json();
+        if (authData.authenticated) {
+          router.replace('/admin');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+
+      // Load offering if not authenticated
+      if (offeringId) {
+        loadOffering(offeringId);
+      } else {
+        setIsLoadingOffering(false);
+        toast.error('No plan selected. Redirecting to signup...');
+        setTimeout(() => router.push('/signup'), 2000);
+      }
+    };
+
+    init();
   }, [offeringId, router]);
 
   async function loadOffering(id: string) {

@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { Shield, CheckCircle2, Users } from "lucide-react";
+import { Shield, CheckCircle2, Users, Loader2 } from "lucide-react";
 
 import { SignInForm } from "./sign-in-form";
 import { svgPaths } from '@/components/landing/svg-paths';
@@ -45,6 +47,39 @@ function BackgroundVectors() {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        if (data.authenticated) {
+          router.replace('/admin');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (isChecking) {
+    return (
+      <div className="relative overflow-hidden min-h-[calc(100vh-200px)]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#179a65] via-green-600 to-[#0F766E]" />
+        <div className="relative z-10 flex justify-center items-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden min-h-[calc(100vh-200px)]">
       {/* Background */}
