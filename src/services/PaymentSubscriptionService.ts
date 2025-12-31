@@ -4,7 +4,6 @@ import { TYPES } from '@/lib/types';
 import { PaymentService } from './PaymentService';
 import { LicensingService } from './LicensingService';
 import { TenantService } from './TenantService';
-import type { ITenantRepository } from '@/repositories/tenant.repository';
 
 /**
  * Payment Subscription Service
@@ -47,22 +46,28 @@ export class PaymentSubscriptionService {
   constructor(
     @inject(TYPES.PaymentService) private paymentService: PaymentService,
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
-    @inject(TYPES.TenantService) private tenantService: TenantService,
-    @inject(TYPES.ITenantRepository) private tenantRepository: ITenantRepository
+    @inject(TYPES.TenantService) private tenantService: TenantService
   ) {}
+
+  
 
   /**
    * Get subscription status for a tenant
    *
-   * @param tenantId Tenant ID
+   * @param tenantId Tenant ID (optional - uses current tenant from context if not provided)
    * @returns Subscription status
    */
-  async getSubscriptionStatus(tenantId: string): Promise<SubscriptionStatus> {
-    // Use TenantRepository to get tenant details
-    const tenant = await this.tenantRepository.findById(tenantId);
+  async getSubscriptionStatus(tenantId?: string): Promise<SubscriptionStatus> {
+    // Use TenantService to get cached tenant (avoids unnecessary DB query)
+    const tenant = await this.tenantService.getCurrentTenant();
 
     if (!tenant) {
       throw new Error('Tenant not found');
+    }
+
+    // Verify tenantId matches if provided
+    if (tenantId && tenant.id !== tenantId) {
+      throw new Error('Tenant ID mismatch');
     }
 
     return {

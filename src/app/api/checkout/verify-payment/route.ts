@@ -42,11 +42,15 @@ export async function GET(request: NextRequest) {
     // Get payment record
     let payment = null;
 
+    console.log('Params', { externalId, invoiceId });
+
     if (externalId) {
       payment = await paymentService.getPaymentByExternalId(externalId);
     } else if (invoiceId) {
       payment = await paymentService.getPaymentByXenditId(invoiceId);
     }
+
+    console.log('PAYMENT RECORD:', payment);
 
     if (!payment) {
       return NextResponse.json(
@@ -76,6 +80,8 @@ export async function GET(request: NextRequest) {
       console.error('[Verify Payment] Error fetching Xendit invoice:', error.message);
       // Continue with local payment status if Xendit API fails
     }
+
+    console.log('FINAL PAYMENT STATUS:', payment.status);
 
     // Get subscription status if payment is successful
     let subscriptionStatus = null;

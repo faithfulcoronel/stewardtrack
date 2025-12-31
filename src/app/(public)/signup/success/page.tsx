@@ -25,6 +25,8 @@ function SuccessPageContent() {
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payment, setPayment] = useState<any>(null);
+  const [subscription, setSubscription] = useState<any | null>(null);
+  
 
   useEffect(() => {
     verifyPayment();
@@ -37,6 +39,8 @@ function SuccessPageContent() {
       const params = new URLSearchParams();
       if (externalId) params.append('external_id', externalId);
       if (invoiceId) params.append('invoice_id', invoiceId);
+      
+      console.log('Verifying payment with params:', subscription);
 
       const response = await fetch(`/api/checkout/verify-payment?${params.toString()}`);
       const data = await response.json();
