@@ -5,6 +5,44 @@ import { motion } from "motion/react";
 import { Shield, CheckCircle2, Users } from "lucide-react";
 
 import { SignInForm } from "./sign-in-form";
+import { svgPaths } from '@/components/landing/svg-paths';
+
+function BackgroundVectors() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 scale-[0.5] md:scale-[0.7] lg:scale-90 w-[2100px] h-[2700px] opacity-10">
+        {/* Main diagonal lines pattern */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2012.79px] h-[2608.31px] mix-blend-soft-light">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 2013 2609">
+            <g style={{ mixBlendMode: "soft-light" }}>
+              <path d={svgPaths.p3320a480} fill="url(#paint0_linear_login_1)" />
+            </g>
+            <defs>
+              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_login_1" x1="1006.4" x2="1006.4" y1="0" y2="2608.31">
+                <stop stopColor="white" />
+                <stop offset="0.677885" stopColor="#999999" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        {/* Angled strokes pattern */}
+        <div className="absolute top-[200px] left-[-200px] w-[2980.52px] h-[2929.62px] mix-blend-soft-light rotate-[15deg]">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 2981 2930">
+            <g style={{ mixBlendMode: "soft-light" }}>
+              <path d={svgPaths.p40308b0} fill="url(#paint0_linear_login_2)" fillOpacity="0.5" />
+            </g>
+            <defs>
+              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_login_2" x1="0" x2="2980.52" y1="0" y2="2929.62">
+                <stop stopColor="white" />
+                <stop offset="0.953184" stopColor="#999999" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   return (
@@ -13,6 +51,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-[#179a65] via-green-600 to-[#0F766E]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.1),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.08),transparent_40%)]" />
+      <BackgroundVectors />
 
       <div className="relative z-10 flex items-center justify-center px-4 py-24 md:py-32">
         <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
