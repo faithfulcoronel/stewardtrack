@@ -3,20 +3,39 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 
 export function LandingHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
   const menuItems = ["Overview", "Features", "Testimonials", "Pricing", "FAQ"];
 
-  const scrollToSection = (id: string) => {
+  const isLandingPage = pathname === "/";
+
+  const handleNavigation = (id: string) => {
     setIsMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (isLandingPage) {
+      // On landing page, scroll to section
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // On other pages, navigate to landing page with hash
+      router.push(`/#${id}`);
     }
+  };
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (isLandingPage) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    // Otherwise, let the Link handle navigation to "/"
   };
 
   return (
@@ -32,7 +51,7 @@ export function LandingHeader() {
         {/* Logo */}
         <Link
           href="/"
-          onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onClick={handleLogoClick}
           className="flex-shrink-0"
         >
           <Image
@@ -49,7 +68,7 @@ export function LandingHeader() {
           {menuItems.map((item) => (
             <button
               key={item}
-              onClick={() => scrollToSection(item.toLowerCase())}
+              onClick={() => handleNavigation(item.toLowerCase())}
               className="text-gray-600 hover:text-[#179a65] font-semibold text-sm transition-colors"
             >
               {item}
@@ -99,7 +118,7 @@ export function LandingHeader() {
               {menuItems.map((item) => (
                 <button
                   key={item}
-                  onClick={() => scrollToSection(item.toLowerCase())}
+                  onClick={() => handleNavigation(item.toLowerCase())}
                   className="text-lg font-semibold text-gray-800 py-3 border-b border-gray-100 last:border-0 text-left hover:text-[#179a65] transition-colors"
                 >
                   {item}

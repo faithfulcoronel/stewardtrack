@@ -115,7 +115,7 @@ export function HeroSlide1({ isActive = true }: HeroSlideProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center text-white max-w-4xl drop-shadow-xl"
         >
-          <h1 className="text-3xl md:text-5xl lg:text-[56px] font-bold leading-[1.1]">
+          <h1 className="text-3xl md:text-5xl lg:text-[56px] font-bold leading-[1.1] text-white">
             Is Church Accounting taking up <br className="hidden md:block" />
             much of your God-given time?
           </h1>
@@ -159,7 +159,7 @@ export function HeroSlide2({ isActive = false }: HeroSlideProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center md:text-right text-white max-w-lg drop-shadow-xl pointer-events-auto"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-6 text-white">
             Because caring for <br />
             God&apos;s work shouldn&apos;t <br />
             feel complicated.
@@ -216,7 +216,7 @@ export function HeroSlide3({ isActive = false }: HeroSlideProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center md:text-left text-white max-w-lg drop-shadow-xl pointer-events-auto"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-6 text-white">
             Because you deserve to <br />
             focus on what truly <br />
             matters, not paperwork.
