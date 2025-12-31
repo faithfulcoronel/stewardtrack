@@ -1,0 +1,39 @@
+{
+  "name": "@stewardtrack/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StewardTrack mobile app (iOS/Android) using Capacitor",
+  "scripts": {
+    "build": "echo 'Mobile build handled by Capacitor - run cap sync after web build'",
+    "sync": "cap sync",
+    "sync:ios": "cap sync ios",
+    "sync:android": "cap sync android",
+    "ios": "cap open ios",
+    "android": "cap open android",
+    "run:ios": "cap run ios",
+    "run:android": "cap run android",
+    "copy": "cap copy",
+    "update": "cap update",
+    "clean": "rimraf ios android node_modules/.cache"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/camera": "^6.1.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/device": "^6.0.2",
+    "@capacitor/filesystem": "^6.0.2",
+    "@capacitor/haptics": "^6.0.2",
+    "@capacitor/ios": "^6.2.0",
+    "@capacitor/keyboard": "^6.0.3",
+    "@capacitor/preferences": "^6.0.3",
+    "@capacitor/push-notifications": "^6.0.3",
+    "@capacitor/splash-screen": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2",
+    "@stewardtrack/native-bridge": "workspace:*"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "rimraf": "^5.0.0"
+  }
+}

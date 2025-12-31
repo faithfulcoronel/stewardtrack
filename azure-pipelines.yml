@@ -1,70 +1,404 @@
-# Azure Pipeline for StewardTrack
-# Runs build and Playwright E2E tests
+# Azure Pipeline for StewardTrack Multi-Platform Build
+# Builds web app, iOS app, and Android app
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
   - for-q2-2026-release
+  - main
+  - master
 
 pr:
   - for-q2-2026-release
+  - main
+  - master
 
-pool:
-  vmImage: ubuntu-latest
+parameters:
+  - name: buildMobile
+    displayName: 'Build Mobile Apps'
+    type: boolean
+    default: false
+  - name: deployToTestFlight
+    displayName: 'Deploy iOS to TestFlight'
+    type: boolean
+    default: false
+  - name: deployToPlayStore
+    displayName: 'Deploy Android to Play Store (Internal)'
+    type: boolean
+    default: false
 
 variables:
-  CI: 'true'
-  PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+  - group: StewardTrack-E2E-Secrets
+  - group: StewardTrack-Mobile-Secrets
+  - name: CI
+    value: 'true'
+  - name: PLAYWRIGHT_TEST_BASE_URL
+    value: 'http://localhost:3000'
+  - name: pnpm_config_cache
+    value: $(Pipeline.Workspace)/.pnpm-store
+  - name: nodeVersion
+    value: '20.x'
 
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '20.x'
-    displayName: 'Install Node.js'
+# ============================================
+# Stage 1: Build Web Application
+# ============================================
+stages:
+  - stage: BuildWeb
+    displayName: 'Build Web Application'
+    jobs:
+      - job: WebBuild
+        displayName: 'Build Next.js Web App'
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
 
-  - task: Cache@2
-    inputs:
-      key: 'npm | "$(Agent.OS)" | package-lock.json'
-      restoreKeys: |
-        npm | "$(Agent.OS)"
-      path: $(npm_config_cache)
-    displayName: 'Cache npm packages'
+          - script: |
+              npm install -g pnpm@9.15.0
+            displayName: 'Install pnpm'
 
-  - script: npm ci
-    displayName: 'Install dependencies'
+          - task: Cache@2
+            inputs:
+              key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+              restoreKeys: |
+                pnpm | "$(Agent.OS)"
+              path: $(pnpm_config_cache)
+            displayName: 'Cache pnpm packages'
 
-  - script: npm run build
-    displayName: 'Build application'
+          - script: pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
 
-  - script: npx playwright install --with-deps chromium
-    displayName: 'Install Playwright browsers'
+          - script: pnpm build:web
+            displayName: 'Build web application'
+            env:
+              NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+              SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+              ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
 
-  - script: npx playwright test --project=chromium
-    displayName: 'Run Playwright E2E tests'
-    env:
-      CI: 'true'
-      PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: 'apps/web/.next'
+              artifact: 'web-build'
+              publishLocation: 'pipeline'
+            displayName: 'Publish web build artifact'
 
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: 'test-results/junit.xml'
-      testRunTitle: 'Playwright E2E Tests'
-      mergeTestResults: true
-    displayName: 'Publish test results'
+  # ============================================
+  # Stage 2: Run E2E Tests
+  # ============================================
+  - stage: E2ETests
+    displayName: 'E2E Tests'
+    dependsOn: BuildWeb
+    jobs:
+      - job: PlaywrightTests
+        displayName: 'Playwright E2E Tests'
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
 
-  - task: PublishPipelineArtifact@1
-    condition: failed()
-    inputs:
-      targetPath: 'playwright-report'
-      artifact: 'playwright-report'
-      publishLocation: 'pipeline'
-    displayName: 'Publish Playwright report on failure'
+          - script: npm install -g pnpm@9.15.0
+            displayName: 'Install pnpm'
 
-  - task: PublishPipelineArtifact@1
-    condition: failed()
-    inputs:
-      targetPath: 'test-results'
-      artifact: 'test-results'
-      publishLocation: 'pipeline'
-    displayName: 'Publish test results on failure'
+          - task: Cache@2
+            inputs:
+              key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+              restoreKeys: |
+                pnpm | "$(Agent.OS)"
+              path: $(pnpm_config_cache)
+            displayName: 'Cache pnpm packages'
+
+          - script: pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'web-build'
+              targetPath: 'apps/web/.next'
+            displayName: 'Download web build'
+
+          - script: cd apps/web && npx playwright install --with-deps chromium
+            displayName: 'Install Playwright browsers'
+
+          - script: cd apps/web && npx playwright test --project=chromium
+            displayName: 'Run Playwright E2E tests'
+            env:
+              CI: 'true'
+              PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+              NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+              SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+              ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'apps/web/test-results/junit.xml'
+              testRunTitle: 'Playwright E2E Tests'
+              mergeTestResults: true
+            displayName: 'Publish test results'
+
+          - task: PublishPipelineArtifact@1
+            condition: failed()
+            inputs:
+              targetPath: 'apps/web/playwright-report'
+              artifact: 'playwright-report'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Playwright report on failure'
+
+  # ============================================
+  # Stage 3: Build iOS App (macOS agent)
+  # ============================================
+  - stage: BuildiOS
+    displayName: 'Build iOS Application'
+    dependsOn: E2ETests
+    condition: and(succeeded(), eq('${{ parameters.buildMobile }}', 'true'))
+    jobs:
+      - job: iOSBuild
+        displayName: 'Build iOS App'
+        pool:
+          vmImage: macos-latest
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: npm install -g pnpm@9.15.0
+            displayName: 'Install pnpm'
+
+          - task: Cache@2
+            inputs:
+              key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+              restoreKeys: |
+                pnpm | "$(Agent.OS)"
+              path: $(pnpm_config_cache)
+            displayName: 'Cache pnpm packages'
+
+          - script: pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          # Build static export for Capacitor
+          - script: pnpm build:static
+            displayName: 'Build static web app for Capacitor'
+            env:
+              NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+              SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+              ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
+              CAPACITOR_BUILD: 'true'
+
+          # Sync Capacitor
+          - script: cd apps/mobile && pnpm cap sync ios
+            displayName: 'Sync Capacitor iOS'
+
+          # Install CocoaPods dependencies
+          - script: cd apps/mobile/ios/App && pod install
+            displayName: 'Install CocoaPods dependencies'
+
+          # Install Apple certificate and provisioning profile
+          - task: InstallAppleCertificate@2
+            inputs:
+              certSecureFile: '$(APPLE_CERTIFICATE_FILE)'
+              certPwd: '$(APPLE_CERTIFICATE_PASSWORD)'
+              keychain: 'temp'
+            displayName: 'Install Apple certificate'
+            condition: ne(variables['APPLE_CERTIFICATE_FILE'], '')
+
+          - task: InstallAppleProvisioningProfile@1
+            inputs:
+              provisioningProfileLocation: 'secureFiles'
+              provProfileSecureFile: '$(APPLE_PROVISIONING_PROFILE)'
+            displayName: 'Install provisioning profile'
+            condition: ne(variables['APPLE_PROVISIONING_PROFILE'], '')
+
+          # Build iOS app
+          - task: Xcode@5
+            inputs:
+              actions: 'build'
+              configuration: 'Release'
+              xcWorkspacePath: 'apps/mobile/ios/App/App.xcworkspace'
+              scheme: 'App'
+              sdk: 'iphoneos'
+              packageApp: true
+              exportPath: '$(Build.ArtifactStagingDirectory)/ios'
+              signingOption: 'manual'
+              signingIdentity: '$(APPLE_SIGNING_IDENTITY)'
+              provisioningProfileUuid: '$(APPLE_PROVISIONING_PROFILE_UUID)'
+            displayName: 'Build iOS app'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/ios'
+              artifact: 'ios-build'
+              publishLocation: 'pipeline'
+            displayName: 'Publish iOS build artifact'
+
+  # ============================================
+  # Stage 4: Build Android App
+  # ============================================
+  - stage: BuildAndroid
+    displayName: 'Build Android Application'
+    dependsOn: E2ETests
+    condition: and(succeeded(), eq('${{ parameters.buildMobile }}', 'true'))
+    jobs:
+      - job: AndroidBuild
+        displayName: 'Build Android App'
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - script: npm install -g pnpm@9.15.0
+            displayName: 'Install pnpm'
+
+          - task: Cache@2
+            inputs:
+              key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+              restoreKeys: |
+                pnpm | "$(Agent.OS)"
+              path: $(pnpm_config_cache)
+            displayName: 'Cache pnpm packages'
+
+          - script: pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          # Build static export for Capacitor
+          - script: pnpm build:static
+            displayName: 'Build static web app for Capacitor'
+            env:
+              NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+              SUPABASE_SERVICE_ROLE_KEY: $(SUPABASE_SERVICE_ROLE_KEY)
+              ENCRYPTION_MASTER_KEY: $(ENCRYPTION_MASTER_KEY)
+              CAPACITOR_BUILD: 'true'
+
+          # Sync Capacitor
+          - script: cd apps/mobile && pnpm cap sync android
+            displayName: 'Sync Capacitor Android'
+
+          # Set up Java
+          - task: JavaToolInstaller@0
+            inputs:
+              versionSpec: '17'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+            displayName: 'Set up Java 17'
+
+          # Download and decode keystore
+          - task: DownloadSecureFile@1
+            name: keystore
+            inputs:
+              secureFile: '$(ANDROID_KEYSTORE_FILE)'
+            displayName: 'Download Android keystore'
+            condition: ne(variables['ANDROID_KEYSTORE_FILE'], '')
+
+          # Build Android APK
+          - script: |
+              cd apps/mobile/android
+              chmod +x gradlew
+              ./gradlew assembleRelease
+            displayName: 'Build Android APK (unsigned)'
+            env:
+              ANDROID_KEYSTORE_PATH: $(keystore.secureFilePath)
+              ANDROID_KEYSTORE_PASSWORD: $(ANDROID_KEYSTORE_PASSWORD)
+              ANDROID_KEY_ALIAS: $(ANDROID_KEY_ALIAS)
+              ANDROID_KEY_PASSWORD: $(ANDROID_KEY_PASSWORD)
+
+          # Sign the APK (if keystore is available)
+          - script: |
+              if [ -f "$(keystore.secureFilePath)" ]; then
+                cd apps/mobile/android/app/build/outputs/apk/release
+                jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+                  -keystore $(keystore.secureFilePath) \
+                  -storepass $(ANDROID_KEYSTORE_PASSWORD) \
+                  -keypass $(ANDROID_KEY_PASSWORD) \
+                  app-release-unsigned.apk $(ANDROID_KEY_ALIAS)
+                zipalign -v 4 app-release-unsigned.apk app-release.apk
+              fi
+            displayName: 'Sign Android APK'
+            condition: ne(variables['ANDROID_KEYSTORE_FILE'], '')
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: 'apps/mobile/android/app/build/outputs/apk'
+              artifact: 'android-build'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Android build artifact'
+
+  # ============================================
+  # Stage 5: Deploy to TestFlight (Optional)
+  # ============================================
+  - stage: DeployTestFlight
+    displayName: 'Deploy to TestFlight'
+    dependsOn: BuildiOS
+    condition: and(succeeded(), eq('${{ parameters.deployToTestFlight }}', 'true'))
+    jobs:
+      - deployment: TestFlightDeploy
+        displayName: 'Upload to TestFlight'
+        environment: 'testflight'
+        pool:
+          vmImage: macos-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'ios-build'
+                    targetPath: '$(Pipeline.Workspace)/ios-build'
+                  displayName: 'Download iOS build'
+
+                - script: |
+                    xcrun altool --upload-app \
+                      --type ios \
+                      --file "$(Pipeline.Workspace)/ios-build/App.ipa" \
+                      --username "$(APPLE_ID)" \
+                      --password "$(APPLE_APP_SPECIFIC_PASSWORD)"
+                  displayName: 'Upload to TestFlight'
+                  condition: ne(variables['APPLE_ID'], '')
+
+  # ============================================
+  # Stage 6: Deploy to Play Store (Optional)
+  # ============================================
+  - stage: DeployPlayStore
+    displayName: 'Deploy to Play Store (Internal)'
+    dependsOn: BuildAndroid
+    condition: and(succeeded(), eq('${{ parameters.deployToPlayStore }}', 'true'))
+    jobs:
+      - deployment: PlayStoreDeploy
+        displayName: 'Upload to Play Store'
+        environment: 'playstore-internal'
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'android-build'
+                    targetPath: '$(Pipeline.Workspace)/android-build'
+                  displayName: 'Download Android build'
+
+                - task: GooglePlayRelease@4
+                  inputs:
+                    serviceConnection: 'Google Play Console'
+                    applicationId: 'com.stewardtrack.app'
+                    action: 'SingleApk'
+                    apkFile: '$(Pipeline.Workspace)/android-build/release/app-release.apk'
+                    track: 'internal'
+                  displayName: 'Upload to Play Store (Internal)'
+                  condition: ne(variables['GOOGLE_PLAY_SERVICE_CONNECTION'], '')

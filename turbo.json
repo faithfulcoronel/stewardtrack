@@ -1,0 +1,58 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [".env", ".env.local"],
+  "globalEnv": [
+    "NODE_ENV",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_URL",
+    "NEXT_PUBLIC_FIREBASE_API_KEY",
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+    "NEXT_PUBLIC_FIREBASE_VAPID_KEY",
+    "CAPACITOR_BUILD"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"],
+      "env": ["CAPACITOR_BUILD"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "metadata:compile": {
+      "outputs": ["metadata/compiled/**"]
+    },
+    "metadata:types": {
+      "outputs": ["src/types/metadata/**"]
+    },
+    "mobile:sync": {
+      "dependsOn": ["@stewardtrack/web#build"],
+      "outputs": []
+    },
+    "mobile:ios": {
+      "dependsOn": ["mobile:sync"],
+      "cache": false
+    },
+    "mobile:android": {
+      "dependsOn": ["mobile:sync"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

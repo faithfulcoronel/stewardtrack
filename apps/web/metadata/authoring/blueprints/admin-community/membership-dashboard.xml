@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="members/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-membership-dashboard">
+    <Title>Membership intelligence dashboard</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="dashboard-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="dashboardHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="dashboardHero.headline"/>
+            <Prop name="description" kind="binding" contract="dashboardHero.description"/>
+            <Prop name="highlights" kind="binding" contract="dashboardHero.highlights"/>
+            <Prop name="metrics" kind="binding" contract="dashboardHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="open-member-list"/>
+            <Prop name="secondaryCta" kind="action" actionId="launch-new-member"/>
+          </Props>
+        </Component>
+        <Component id="dashboard-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Ministry KPIs at a glance</Prop>
+            <Prop name="description" kind="static">Measure the spiritual and financial health of your congregation in real time.</Prop>
+            <Prop name="metrics" kind="binding" contract="membershipMetrics.items"/>
+            <Prop name="footnote" kind="static">Benchmarks compare against the previous four-week cycle across all centers.</Prop>
+          </Props>
+        </Component>
+        <Component id="dashboard-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Jump to focus areas</Prop>
+            <Prop name="description" kind="static">Coordinate membership, giving, and care workflows without leaving the dashboard.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="dashboardQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
+          </Props>
+        </Component>
+        <Component id="care-plans-card" type="AdminCarePlansCard">
+          <Props>
+            <Prop name="title" kind="binding" contract="carePlansCard.title"/>
+            <Prop name="description" kind="binding" contract="carePlansCard.description"/>
+            <Prop name="metrics" kind="binding" contract="carePlansCard.metrics"/>
+            <Prop name="priorityBreakdown" kind="binding" contract="carePlansCard.priorityBreakdown"/>
+            <Prop name="recentItems" kind="binding" contract="carePlansCard.recentItems"/>
+            <Prop name="viewAllUrl" kind="binding" contract="carePlansCard.viewAllUrl"/>
+            <Prop name="addNewUrl" kind="binding" contract="carePlansCard.addNewUrl"/>
+          </Props>
+        </Component>
+        <Component id="discipleship-plans-card" type="AdminDiscipleshipPlansCard">
+          <Props>
+            <Prop name="title" kind="binding" contract="discipleshipPlansCard.title"/>
+            <Prop name="description" kind="binding" contract="discipleshipPlansCard.description"/>
+            <Prop name="metrics" kind="binding" contract="discipleshipPlansCard.metrics"/>
+            <Prop name="pathwayBreakdown" kind="binding" contract="discipleshipPlansCard.pathwayBreakdown"/>
+            <Prop name="recentItems" kind="binding" contract="discipleshipPlansCard.recentItems"/>
+            <Prop name="viewAllUrl" kind="binding" contract="discipleshipPlansCard.viewAllUrl"/>
+            <Prop name="addNewUrl" kind="binding" contract="discipleshipPlansCard.addNewUrl"/>
+          </Props>
+        </Component>
+        <Component id="giving-trend" type="AdminGivingChart">
+          <Props>
+            <Prop name="title" kind="static">Covenant giving momentum</Prop>
+            <Prop name="description" kind="static">Track pledged commitments, received giving, and household participation to steward financial health.</Prop>
+            <Prop name="data" kind="binding" contract="givingTrend.points"/>
+            <Prop name="highlight" kind="binding" contract="givingTrend.highlight"/>
+          </Props>
+        </Component>
+        <Component id="care-timeline" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Care &amp; discipleship milestones</Prop>
+            <Prop name="description" kind="static">Recent spiritual milestones and upcoming pastoral follow-ups surfaced across your membership.</Prop>
+            <Prop name="accentLabel" kind="static">This week</Prop>
+            <Prop name="events" kind="binding" contract="careTimeline.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="dashboardHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Dashboard eyebrow text"/>
+          <Field name="headline" path="headline" description="Dashboard headline"/>
+          <Field name="description" path="description" description="Dashboard description"/>
+          <Field name="highlights" path="highlights" description="Feature highlights list"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="membershipMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="KPI metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.kpis</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="dashboardQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.quickLinks</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="givingTrend" kind="service">
+        <Contract>
+          <Field name="points" path="points" description="Giving trend data points"/>
+          <Field name="highlight" path="highlight" description="Giving highlight summary"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.givingTrend</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="careTimeline" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Care timeline events"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.careTimeline</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="carePlansCard" kind="service">
+        <Contract>
+          <Field name="title" path="carePlansCard.title" description="Card title"/>
+          <Field name="description" path="carePlansCard.description" description="Card description"/>
+          <Field name="metrics" path="carePlansCard.metrics" description="Care plan metrics"/>
+          <Field name="priorityBreakdown" path="carePlansCard.priorityBreakdown" description="Priority breakdown"/>
+          <Field name="recentItems" path="carePlansCard.recentItems" description="Recent care plan items"/>
+          <Field name="viewAllUrl" path="carePlansCard.viewAllUrl" description="View all URL"/>
+          <Field name="addNewUrl" path="carePlansCard.addNewUrl" description="Add new URL"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.careplans</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="discipleshipPlansCard" kind="service">
+        <Contract>
+          <Field name="title" path="discipleshipPlansCard.title" description="Card title"/>
+          <Field name="description" path="discipleshipPlansCard.description" description="Card description"/>
+          <Field name="metrics" path="discipleshipPlansCard.metrics" description="Discipleship plan metrics"/>
+          <Field name="pathwayBreakdown" path="discipleshipPlansCard.pathwayBreakdown" description="Pathway breakdown"/>
+          <Field name="recentItems" path="discipleshipPlansCard.recentItems" description="Recent discipleship plan items"/>
+          <Field name="viewAllUrl" path="discipleshipPlansCard.viewAllUrl" description="View all URL"/>
+          <Field name="addNewUrl" path="discipleshipPlansCard.addNewUrl" description="Add new URL"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.dashboard.discipleship</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-member-list" kind="link">
+        <Config>
+          <Label>View membership list</Label>
+          <Url>/admin/members/list</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="launch-new-member" kind="link">
+        <RBAC requirePermissions="members:manage" />
+        <Config>
+          <Label>Add new member</Label>
+          <Url>/admin/members/manage</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

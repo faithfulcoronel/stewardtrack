@@ -1,50 +1,98 @@
-# Epic 3: Simplified RBAC System
+# Epic 3: RBAC System & License Studio Integration
 
 **Release:** Beta - March 2026
-**Timeline:** Weeks 5-6 (February 3-16, 2026)
+**Timeline:** Weeks 3-4 (January 20 - February 2, 2026)
 **Duration:** 2 weeks
 **Priority:** P0 (Blocking - Critical Infrastructure)
-**Epic Owner:** Backend Team
+**Epic Owner:** Backend Team + Claude AI Assistance
 **Dependencies:** Epic 1 (JWT Authentication)
 
 ## Epic Overview
 
-Implement and review the **simplified 2-layer RBAC system** (Roles → Permissions) with multi-role support, delegation, and feature-permission mapping. This epic has two major components:
+Refactor the RBAC system to a simplified 2-layer architecture (Roles → Permissions) and complete the License Studio implementation with full RBAC-License integration. This epic has three major components:
 
-### Component 1: RBAC Core System (REVIEW & FIX)
-Review and fix the existing simplified 2-layer RBAC architecture:
+### Component 1: RBAC System Simplification (REFACTOR)
+**Current State:** 3-layer architecture (Roles → Permission Bundles → Permissions)
+**Target State:** 2-layer architecture (Roles → Permissions) - remove bundles entirely
+
+Tasks:
+- Remove permission bundle tables and references
+- Update `can_user()` function to direct permission checking
+- Migrate existing role-bundle assignments to direct role-permission mappings
+- Update RbacCoreService to eliminate bundle methods
 - Direct Role → Permission mapping (no bundles)
 - Multi-role support for users
 - Role delegation with scope and time limits
 - Feature-to-permission mapping for license control
-- **License and permission guards** on all pages and features
-- **Metadata page access control** enforcement
 
-### Component 2: License Studio (REVIEW & FIX)
-Review and fix the existing License Management Studio UI that already exists in the codebase:
-- Product Offerings management
-- License Features catalog
-- Feature Bundles configuration
-- License assignment and monitoring
-- Compliance checking and health monitoring
+### Component 2: License Studio Completion (BUILD & INTEGRATE)
+**Current State:** 3-4 of 7 modules partially implemented (dashboard exists but incomplete)
+**Target State:** All 7 modules fully functional with complete UI
+
+Missing/Incomplete Modules:
+- Module 4: License Assignment (backend exists, NO standalone UI)
+- Module 5: Feature Grants (backend only, NO UI at all)
+- Module 6: Compliance Checking (service exists, NO UI)
+- Module 7: Health Monitoring (partial UI, needs completion)
+
+Partially Complete Modules (need routing/integration fixes):
+- Module 1: Product Offerings (3/4 complete)
+- Module 2: License Features (3/4 complete)
+- Module 3: Feature Bundles (2/4 complete, embedded in tabs)
+
+### Component 3: RBAC-License Runtime Integration (IMPLEMENT)
+**Current State:** Well-integrated at registration, NOT integrated at runtime
+**Target State:** Combined permission + license guards enforced throughout application
+
+Tasks:
+- Implement combined guard utilities (permission AND license)
+- Update metadata evaluation to check license features
+- Add license feature checks to all API endpoints
+- Implement payment webhook for license status changes
+- Create unified can_access_surface() enforcement
+- **License and permission guards** on all pages and features
+- **Metadata page access control** enforcement for both RBAC and licensing
 
 **Critical Infrastructure:** This epic must be completed before onboarding, as it controls all access throughout the system and integrates with the licensing/payment flow.
 
-## RBAC Architecture (Simplified)
+## ⚠️ IMPORTANT: Current State vs. Documentation
 
-### Core Principles
+**CODEBASE REALITY CHECK:**
 
-**Before Simplification (Old - 3 Layers):**
+This document was originally written as if the "simplified 2-layer RBAC" already existed. **Deep codebase review revealed this is NOT accurate.** The actual implementation status is:
+
+| Component | Document Claims | Actual Reality | Work Required |
+|-----------|----------------|----------------|---------------|
+| RBAC Architecture | "Simplified 2-layer (NO bundles)" | 3-layer with bundles STILL ACTIVE | REFACTOR (2-3 days) |
+| License Studio | "7 modules exist, need review" | 3-4 modules partially done, 3-4 MISSING UI | BUILD (3-4 days) |
+| RBAC-License Integration | "Guards enforce both" | Registration only, runtime NOT integrated | IMPLEMENT (2-3 days) |
+
+**This epic is NOT "REVIEW & FIX" but "REFACTOR, BUILD & INTEGRATE" - a significant implementation effort.**
+
+## RBAC Architecture
+
+### Current State (3 Layers - NEEDS REFACTORING)
+
+**Current Implementation:**
 ```
 Users → Roles → Permission Bundles → Permissions ❌ TOO COMPLEX
 ```
 
-**After Simplification (New - 2 Layers):**
+**Database Evidence:**
+- `permission_bundles` table EXISTS (migration 20250931000009_reset_rbac_schema.sql)
+- `bundle_permissions` table EXISTS (linking bundles to permissions)
+- `role_bundles` table EXISTS (linking roles to bundles)
+- `can_user()` function has HARDCODED bundle logic (lines 497-544)
+- Recent migration attempted removal but INCOMPLETE (20251219091017_remove_permission_bundles.sql)
+
+### Target State (2 Layers - TO BE IMPLEMENTED)
+
+**After Simplification:**
 ```
 Users → Roles → Permissions ✅ SIMPLE
 ```
 
-### Entity Relationships
+### Entity Relationships (Target)
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -69,15 +117,19 @@ Users → Roles → Permissions ✅ SIMPLE
 └─────────────────────────────────────────────────┘
 ```
 
-### Key Changes from Original System
+### Refactoring Tasks
 
-1. **Removed:** `permission_bundles` table
-2. **Removed:** `role_permission_bundles` table
-3. **Removed:** `bundle_permissions` table
-4. **Simplified:** Direct `role_permissions` mapping
-5. **Simplified:** Delegation assigns complete roles (not granular permissions)
-6. **Added:** Multi-role support (users can have multiple roles)
-7. **Added:** Feature-to-permission mapping for license control
+1. **Remove:** `permission_bundles` table (partially done, needs completion)
+2. **Remove:** `role_bundles` table
+3. **Remove:** `bundle_permissions` table
+4. **Migrate:** Existing role-bundle-permission chains to direct role-permission mappings
+5. **Refactor:** `can_user()` function to eliminate bundle logic (lines 497-544)
+6. **Update:** RbacCoreService adapter to remove bundle references
+7. **Remove:** Bundle seeding code from `src/lib/tenant/seedDefaultPermissionBundles.ts`
+8. **Remove:** Bundle seeding call from registration flow (`src/app/api/auth/register/route.ts` lines 263-270)
+9. **Test:** Verify all permission checks work after bundle removal
+10. **Preserve:** Multi-role support (already working)
+11. **Preserve:** Feature-to-permission mapping (already working)
 
 ---
 
@@ -153,7 +205,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Permission details
-  name TEXT NOT NULL UNIQUE, -- e.g., "members:read", "finance:write"
+  name TEXT NOT NULL UNIQUE, -- e.g., "members:view", "finance:write"
   display_name TEXT NOT NULL,
   description TEXT,
 
@@ -427,8 +479,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 INSERT INTO permissions (name, display_name, description, category, is_system)
 VALUES
   -- Members
-  ('members:read', 'View Members', 'View member profiles and directory', 'members', TRUE),
-  ('members:write', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
+  ('members:view', 'View Members', 'View member profiles and directory', 'members', TRUE),
+  ('members:manage', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
   ('members:export', 'Export Members', 'Export member data', 'members', TRUE),
 
   -- Finance
@@ -502,7 +554,7 @@ BEGIN
   INSERT INTO role_permissions (role_id, permission_id)
   SELECT v_volunteer_role_id, id FROM permissions
   WHERE name IN (
-    'members:read',
+    'members:view',
     'finance:read',
     'reports:read'
   )
@@ -512,7 +564,7 @@ BEGIN
   INSERT INTO role_permissions (role_id, permission_id)
   SELECT v_member_role_id, id FROM permissions
   WHERE name IN (
-    'members:read',
+    'members:view',
     'reports:read'
   )
   ON CONFLICT DO NOTHING;
@@ -538,18 +590,52 @@ ON CONFLICT DO NOTHING;
 
 ### Overview
 
-The system enforces **two-level access control** on all pages and features:
+The system is **designed** to enforce **two-level access control** on all pages and features:
 
 1. **Permission Guards** - User must have required RBAC permission(s)
 2. **License Guards** - Tenant must have active license feature grant
 
-Both guards must pass for access to be granted. This applies to:
-- **Metadata pages** (defined in XML)
-- **API endpoints** (server-side enforcement)
-- **UI components** (client-side hiding/disabling)
-- **Features** (license-gated functionality)
+**CODEBASE REALITY:** Guard integration is INCOMPLETE.
 
-### Guard Enforcement Layers
+**Current Implementation Status:**
+
+| Guard Layer | Permission Guards | License Guards | Combined (Both) | Status |
+|-------------|------------------|----------------|-----------------|---------|
+| **Registration Flow** | ✅ Working | ✅ Working | ✅ Working | Grade: A (Well integrated) |
+| **Metadata Pages** | ✅ Working | ❌ NOT CHECKED | ❌ Missing | Grade: D (RBAC only) |
+| **API Endpoints** | ⚠️ Partial | ❌ NOT CHECKED | ❌ Missing | Grade: D (Inconsistent) |
+| **UI Components** | ⚠️ Partial | ❌ NOT CHECKED | ❌ Missing | Grade: D (Inconsistent) |
+| **Runtime Enforcement** | ⚠️ Works but isolated | ❌ Works but isolated | ❌ NOT INTEGRATED | Grade: D |
+
+**Critical Findings:**
+
+1. **Registration Flow (WORKS):**
+   - File: `src/app/api/auth/register/route.ts`
+   - Steps 6-9 integrate RBAC + Licensing perfectly
+   - PermissionDeploymentService bridges license features → RBAC permissions ✅
+
+2. **Metadata Evaluation (BROKEN):**
+   - File: `src/lib/metadata/evaluation.ts`
+   - `isPermittedWithRoles()` only checks RBAC, NOT license features ❌
+   - License features ARE in context (contextBuilder.ts) but NOT USED ❌
+
+3. **Database Function (EXISTS BUT NEVER CALLED):**
+   - Function: `can_access_surface()` in surface_license_bindings migration
+   - Checks BOTH permission AND license ✅
+   - ZERO references in application code ❌
+
+4. **Payment Webhook (MISSING):**
+   - No webhook handler for Xendit payment events
+   - License status changes NOT automated
+   - Feature grants NOT triggered by payments ❌
+
+**Target State:** Both guards must pass for access to be granted. This applies to:
+- **Metadata pages** (defined in XML) - NEEDS IMPLEMENTATION
+- **API endpoints** (server-side enforcement) - NEEDS IMPLEMENTATION
+- **UI components** (client-side hiding/disabling) - NEEDS IMPLEMENTATION
+- **Features** (license-gated functionality) - NEEDS IMPLEMENTATION
+
+### Guard Enforcement Layers (Target)
 
 #### Layer 1: Metadata Pages (XML-based)
 
@@ -561,7 +647,7 @@ Each metadata page defines RBAC rules:
 <page id="members-list">
   <rbac>
     <permissions>
-      <permission name="members:read" required="true" />
+      <permission name="members:view" required="true" />
     </permissions>
     <features>
       <feature name="member_management" required="true" />
@@ -582,7 +668,7 @@ import { requirePermission, requireFeature } from '@/lib/server/auth-context';
 
 export async function GET(request: NextRequest) {
   // Guard 1: Check permission
-  await requirePermission('members:read');
+  await requirePermission('members:view');
 
   // Guard 2: Check license feature
   await requireFeature('member_management');
@@ -605,7 +691,7 @@ export function MemberActions() {
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeatures();
 
-  const canEdit = hasPermission('members:write') && hasFeature('member_management');
+  const canEdit = hasPermission('members:manage') && hasFeature('member_management');
 
   return (
     <Button disabled={!canEdit}>Edit</Button>
@@ -626,7 +712,7 @@ export class MemberService {
     const hasPermission = await this.rbacService.userHasPermission(
       userId,
       tenantId,
-      'members:write'
+      'members:manage'
     );
 
     if (!hasPermission) {
@@ -681,7 +767,7 @@ export class MemberService {
 
 #### Pattern 1: Single Permission Guard
 ```
-Permission: members:read
+Permission: members:view
 Feature: member_management
 Use case: View member list
 ```
@@ -1451,21 +1537,43 @@ export async function GET(request: NextRequest) {
 
 ---
 
-## License Studio Review & Fix
+## License Studio Completion & Integration
 
 ### Overview
 
-The License Studio is an **existing admin interface** for managing the licensing system. This section focuses on **reviewing and fixing** the existing functionality, NOT building new features.
+The License Studio is a **partially implemented admin interface** for managing the licensing system. **Codebase review revealed significant gaps** - only 3-4 of 7 modules have UI, the rest are backend-only.
 
 **Location:** `/admin/licensing/*`
 
-**Key Modules to Review:**
-1. Product Offerings management
-2. License Features catalog
-3. Feature Bundles configuration
-4. License assignment and tracking
-5. Compliance checking
-6. Health monitoring
+**Current Implementation Status:**
+- **Main Dashboard:** EXISTS - Consolidated single-page with tabs (NOT Dashboard → List → AddEdit → Profile pattern)
+- **Standalone Module Pages:** MISSING for most modules
+- **API Routes:** EXIST for most operations
+- **Services:** FULLY IMPLEMENTED (LicensingService, LicenseFeatureService, LicenseValidationService, etc.)
+- **UI Completeness:** 30-40% (3-4 of 7 modules have partial UI)
+
+### Module Implementation Status
+
+| Module | Backend | API Routes | UI Dashboard Tab | Standalone Pages | Completeness |
+|--------|---------|------------|------------------|------------------|--------------|
+| 1. Product Offerings | ✅ | ✅ | ✅ | ⚠️ Partial | 75% (3/4) |
+| 2. License Features | ✅ | ✅ | ✅ | ⚠️ Partial | 75% (3/4) |
+| 3. Feature Bundles | ✅ | ✅ | ✅ | ❌ None | 50% (2/4) |
+| 4. License Assignment | ✅ | ✅ | ⚠️ Partial | ❌ None | 25% (1/4) |
+| 5. Feature Grants | ✅ | ✅ | ❌ None | ❌ None | 0% (0/4) |
+| 6. Compliance | ✅ | ⚠️ Partial | ❌ None | ❌ None | 0% (0/4) |
+| 7. Health Monitoring | ✅ | ✅ | ⚠️ Partial | ❌ None | 25% (1/4) |
+
+**Files Evidence:**
+- Main dashboard: `src/app/admin/licensing/page.tsx` (consolidated tabs)
+- Offerings: `src/app/admin/licensing/offerings/new/page.tsx` EXISTS
+- Features: `src/app/admin/licensing/features/create/page.tsx` EXISTS
+- Missing: NO `/admin/licensing/licenses/` page
+- Missing: NO `/admin/licensing/feature-grants/` page
+- Missing: NO `/admin/licensing/compliance/` page
+- Missing: NO `/admin/licensing/health/` dedicated page
+
+**This is NOT "REVIEW & FIX" but "COMPLETE BUILD" work (estimated 3-4 days).**
 
 ### License Studio Modules
 
@@ -1596,21 +1704,37 @@ The License Studio is an **existing admin interface** for managing the licensing
 - Revenue calculations incorrect
 - Usage stats not accurate
 
-### Review Checklist
+### Implementation Checklist
 
-#### Phase 1: Metadata Verification (Days 1-2)
+#### Phase 1: RBAC Simplification (Days 1-3)
 
-**For each License Studio module:**
-- [ ] Verify XML metadata exists in `metadata/authoring/blueprints/licensing/`
-- [ ] Confirm all pages follow Dashboard → List → AddEdit → Profile pattern
-- [ ] Check component registry has all required licensing components
-- [ ] Validate dataSources are properly configured
-- [ ] Verify RBAC rules (should require `licensing:admin` permission)
-- [ ] Run `npm run metadata:compile` to ensure no validation errors
+**Remove Bundle Architecture:**
+- [ ] Create migration to drop bundle tables (permission_bundles, bundle_permissions, role_bundles)
+- [ ] Create data migration to convert role-bundle-permission to direct role-permission
+- [ ] Backup existing bundle assignments before conversion
+- [ ] Refactor `can_user()` function to remove bundle logic (lines 497-544)
+- [ ] Update RbacCoreService adapter to remove bundle references
+- [ ] Remove bundle seeding from `src/lib/tenant/seedDefaultPermissionBundles.ts`
+- [ ] Remove bundle seeding call from registration flow (`src/app/api/auth/register/route.ts` lines 263-270)
+- [ ] Test all permission checks work after refactoring
+- [ ] Verify 4 default roles (tenant_admin, staff, volunteer, member) have correct direct permissions
+- [ ] Verify multi-role support still works
+- [ ] Verify delegation still works
 
-#### Phase 2: Functional Testing (Days 3-5)
+#### Phase 2: License Studio UI Completion (Days 4-7)
 
-**Test each module systematically:**
+**Build Missing Module UIs:**
+- [ ] Module 4: Create `/admin/licensing/licenses/` page (Dashboard → List → AddEdit → Profile)
+- [ ] Module 5: Create `/admin/licensing/feature-grants/` page (Dashboard → List → AddEdit)
+- [ ] Module 6: Create `/admin/licensing/compliance/` page (Dashboard → Violations List → Detail)
+- [ ] Module 7: Complete `/admin/licensing/health/` page (add missing metrics)
+- [ ] Fix routing for Modules 1-3 (offerings, features, bundles)
+- [ ] Ensure all pages have RBAC metadata (`licensing:admin` permission required)
+- [ ] Add all licensing components to component registry
+- [ ] Create metadata XML for all 7 modules
+- [ ] Run `npm run metadata:compile` to validate
+
+**Functional Testing:**
 - [ ] Product Offerings: Create, edit, activate, deactivate
 - [ ] Features: Add, edit, categorize, activate
 - [ ] Feature Bundles: Assign features to offerings
@@ -1619,31 +1743,32 @@ The License Studio is an **existing admin interface** for managing the licensing
 - [ ] Compliance: Run checks, view violations
 - [ ] Health: Verify metrics accuracy
 
-**Test License & Permission Guards:**
-- [ ] Verify metadata pages enforce required permissions (RBAC rules in XML)
-- [ ] Test feature flag checks prevent access to unlicensed features
-- [ ] Confirm API endpoints validate both permissions and license features
-- [ ] Verify UI components hide/disable based on permissions and features
-- [ ] Test multi-level guards (permission AND feature required)
+#### Phase 3: RBAC-License Runtime Integration (Days 8-10)
 
-#### Phase 3: Integration Testing (Days 6-7)
+**Implement Combined Guards:**
+- [ ] Create `requireFeature()` utility in `src/lib/server/auth-context.ts`
+- [ ] Create `requirePermissionAndFeature()` combined utility
+- [ ] Update `isPermittedWithRoles()` in `src/lib/metadata/evaluation.ts` to check license features
+- [ ] Use license features from context (already populated in contextBuilder.ts)
+- [ ] Add license feature checks to metadata resolver
+- [ ] Implement `can_access_surface()` wrapper service
+- [ ] Create `useFeatures()` hook for client-side license checks
+- [ ] Update all metadata pages to include `<features>` in RBAC section
+- [ ] Add `requireFeature()` calls to all feature-gated API endpoints
+- [ ] Implement Xendit payment webhook handler
+- [ ] Test payment webhook triggers license activation
+- [ ] Test license activation triggers feature grants
+- [ ] Verify combined guards work across all layers
 
-**Cross-module workflows:**
+**Integration Testing:**
 - [ ] Create product offering → Add features → Assign to tenant → Verify grants
 - [ ] Upgrade tenant license → Verify new features granted
 - [ ] Downgrade tenant license → Verify features revoked
 - [ ] Expire license → Verify compliance violation detected
-- [ ] Payment webhook → License activation → Feature grants
-
-#### Phase 4: Bug Fixes (Days 8-10)
-
-**For each bug found:**
-1. Document in issue tracker with severity (Critical, High, Medium, Low)
-2. Identify root cause (metadata, service, database, UI)
-3. Implement fix
-4. Test fix thoroughly
-5. Update metadata and recompile if needed
-6. Verify fix doesn't break other functionality
+- [ ] Payment webhook → License activation → Feature grants → Permission deployment
+- [ ] Test user WITHOUT permission but WITH feature (should deny)
+- [ ] Test user WITH permission but WITHOUT feature (should deny)
+- [ ] Test user WITH both permission AND feature (should allow)
 
 ### Key Services & Files to Review
 
@@ -1731,38 +1856,83 @@ The License Studio is an **existing admin interface** for managing the licensing
 
 ## Epic Completion Checklist
 
-### Component 1: RBAC Core System (REVIEW & FIX)
-- [ ] RBAC database schema verified (simplified 2-layer)
-- [ ] RbacCoreService reviewed and bugs fixed
-- [ ] RbacDelegationService reviewed and bugs fixed
-- [ ] RBAC API endpoints tested and fixed
-- [ ] Permission checking utilities verified working
-- [ ] Multi-role support tested and fixed
-- [ ] Feature-permission mapping verified
+### Component 1: RBAC System Simplification (REFACTOR)
+- [ ] Bundle tables removed (permission_bundles, bundle_permissions, role_bundles)
+- [ ] Data migrated from bundle architecture to direct role-permission mapping
+- [ ] `can_user()` function refactored (bundle logic removed)
+- [ ] RbacCoreService adapter updated (no bundle references)
+- [ ] Bundle seeding code removed (`seedDefaultPermissionBundles.ts`)
+- [ ] Bundle seeding call removed from registration flow (`register/route.ts`)
+- [ ] All permission checks work after refactoring
+- [ ] 4 default roles have correct direct permissions
+- [ ] Multi-role support still works
+- [ ] Role delegation still works
+- [ ] Feature-permission mapping preserved
 - [ ] System roles seeding verified
 - [ ] Default permissions seeding verified
-- [ ] **License guards verified on all pages**
-- [ ] **Permission guards verified on all API endpoints**
-- [ ] **Metadata RBAC rules verified and enforced**
-- [ ] **Feature flag checks working correctly**
 
-### Component 2: License Studio (REVIEW & FIX)
-- [ ] All 7 License Studio modules reviewed
-- [ ] Product Offerings management tested
-- [ ] License Features catalog tested
-- [ ] Feature Bundles configuration tested
+### Component 2: License Studio Completion (BUILD & INTEGRATE)
+- [ ] Module 4: License Assignment UI built (Dashboard → List → AddEdit → Profile)
+- [ ] Module 5: Feature Grants UI built (Dashboard → List → AddEdit)
+- [ ] Module 6: Compliance UI built (Dashboard → Violations List → Detail)
+- [ ] Module 7: Health Monitoring UI completed (all metrics)
+- [ ] Modules 1-3: Routing fixed (Offerings, Features, Bundles)
+- [ ] All 7 modules have RBAC metadata
+- [ ] All licensing components in component registry
+- [ ] All pages follow proper routing patterns
+- [ ] Product Offerings CRUD tested
+- [ ] License Features CRUD tested
+- [ ] Feature Bundles CRUD tested
 - [ ] License assignment workflow tested
-- [ ] Feature grants verified working
-- [ ] Compliance checking verified
-- [ ] Health monitoring verified
-- [ ] All bugs found documented and fixed
-- [ ] Integration with payment webhook verified
-- [ ] RBAC permissions enforced on all licensing routes
+- [ ] Feature grants workflow tested
+- [ ] Compliance checking tested
+- [ ] Health monitoring tested
+- [ ] Metadata compiled successfully
+
+### Component 3: RBAC-License Runtime Integration (IMPLEMENT)
+- [ ] `requireFeature()` utility created
+- [ ] `requirePermissionAndFeature()` combined utility created
+- [ ] Metadata evaluation checks license features
+- [ ] License features from context used in evaluation
+- [ ] Metadata resolver enforces license guards
+- [ ] `can_access_surface()` wrapper service implemented
+- [ ] `useFeatures()` hook created for client-side
+- [ ] All metadata pages have `<features>` in RBAC section
+- [ ] All feature-gated APIs call `requireFeature()`
+- [ ] Xendit payment webhook handler implemented
+- [ ] Payment webhook triggers license activation
+- [ ] License activation triggers feature grants
+- [ ] **Combined guards work on all metadata pages**
+- [ ] **Combined guards work on all API endpoints**
+- [ ] **Combined guards work in UI components**
+- [ ] **Integration tested end-to-end**
 
 ### Documentation & Final Testing
-- [ ] Documentation complete for both components
+- [ ] Documentation updated to reflect actual implementation
 - [ ] Integration testing passed (RBAC + Licensing)
+- [ ] All 3 components verified working together
 - [ ] Ready for Epic 4 (Onboarding & Feature Grants)
+
+---
+
+## Implementation Notes
+
+**Estimated Total Effort:** 10 days (2 weeks with buffer)
+
+**Breakdown:**
+- Phase 1 (RBAC Simplification): 3 days
+- Phase 2 (License Studio UI): 4 days
+- Phase 3 (Runtime Integration): 3 days
+
+**Risk Factors:**
+- Data migration from bundles to direct permissions may require careful testing
+- Payment webhook implementation depends on Xendit API documentation
+- Combined guard enforcement touches many files across the codebase
+
+**Success Metrics:**
+- Zero bundle references in codebase after Phase 1
+- All 7 License Studio modules functional with UI after Phase 2
+- Combined permission+license checks work on 100% of protected endpoints after Phase 3
 
 ---
 

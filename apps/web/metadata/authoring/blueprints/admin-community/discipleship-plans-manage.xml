@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+DISCIPLESHIP PLANS MANAGE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page provides create/edit functionality for discipleship plans.
+It serves two modes:
+  - CREATE: /admin/community/discipleship-plans/manage (no query param)
+  - EDIT:   /admin/community/discipleship-plans/manage?discipleshipPlanId=xxx
+
+MODE DETECTION:
+Service handlers check for discipleshipPlanId in request.params:
+  - If present: Load existing record, show "Edit" mode
+  - If absent: Show empty form, "Create" mode
+
+FORM ARCHITECTURE:
+AdminFormSection component handles:
+  - Dynamic field generation from handler
+  - Form validation
+  - Submit action invocation
+  - Success/error toast notifications
+  - Post-save navigation
+
+CREATING MANAGE/FORM PAGES:
+  1. Define HeroSection with mode-aware title (Create vs Edit)
+  2. Add AdminFormSection with form fields from handler
+  3. Create save action with OnSuccess navigation
+  4. Handler returns { form: { fields, initialValues, submitLabel, ... } }
+
+FORM FIELD STRUCTURE (from handler):
+  {
+    form: {
+      title: 'Plan information',
+      description: 'Enter plan details...',
+      mode: 'create' | 'edit',
+      submitLabel: 'Create plan' | 'Update plan',
+      contextParams: { discipleshipPlanId: '...' },  // For edit mode
+      initialValues: { memberId: '', pathway: '', ... },
+      fields: [
+        {
+          name: 'memberId',
+          label: 'Member',
+          type: 'select',           // text, select, date, textarea, hidden
+          colSpan: 'half' | 'full',
+          placeholder: 'Select member',
+          helperText: 'Description...',
+          required: true,
+          options: [{ value: 'id', label: 'Name' }, ...]  // For select
+        },
+        ...
+      ]
+    }
+  }
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="discipleship-plans/manage"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="member-management"
+  requiredPermissions="members:manage"
+  locale="en-US">
+
+  <Page id="admin-community-discipleship-plans-manage">
+    <Title>Manage discipleship plan</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Mode-aware header
+
+        In create mode: "Create a new discipleship plan"
+        In edit mode:   "Update discipleship plan details"
+
+        The handler checks for discipleshipPlanId to determine mode.
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!--
+        FORM SECTION: Dynamic form for create/edit
+
+        AdminFormSection renders form fields based on handler response.
+        Key props:
+          - fields: Array of field definitions
+          - initialValues: Pre-populated values (for edit mode)
+          - submitAction: Action to call on form submit
+          - contextParams: Additional params passed to save handler
+
+        The form component handles:
+          - Field rendering based on type
+          - Client-side validation
+          - Loading states during submission
+          - Error display
+        -->
+        <Component id="discipleship-plan-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="discipleshipPlanForm.title"/>
+            <Prop name="description" kind="binding" contract="discipleshipPlanForm.description"/>
+            <Prop name="fields" kind="binding" contract="discipleshipPlanForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="discipleshipPlanForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="discipleshipPlanForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="discipleshipPlanForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-discipleship-plan"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      MANAGE HERO DATA SOURCE
+
+      Returns mode-aware header content.
+      Handler checks request.params.discipleshipPlanId for mode detection.
+      -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.discipleship.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      FORM DATA SOURCE
+
+      Returns form configuration including:
+        - Field definitions (type, validation, options)
+        - Initial values (empty for create, populated for edit)
+        - Submit button label
+        - Context params for save handler
+
+      For SELECT fields, handler fetches options from database
+      (e.g., member list, pathway options).
+      -->
+      <DataSource id="discipleshipPlanForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for discipleship-plan-form.title"/>
+          <Field name="description" path="form.description" description="Binding for discipleship-plan-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for discipleship-plan-form.fields"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for discipleship-plan-form.submitLabel"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for discipleship-plan-form.initialValues"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for discipleship-plan-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.discipleship.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <!--
+    ACTIONS: Form submission and navigation
+
+    SAVE ACTION (kind="service"):
+      - Calls a service handler to persist form data
+      - OnSuccess: Navigate to profile page, show toast
+      - OnError: Show error toast
+
+    The {{discipleshipPlanId}} in Navigate URL is replaced with the
+    ID returned from the save handler.
+    -->
+    <Actions>
+      <Action id="save-discipleship-plan" kind="service">
+        <Config>
+          <Handler>admin-community.discipleship.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/discipleship-plans/{{discipleshipPlanId}}</Navigate>
+            <ShowToast>Discipleship plan saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save discipleship plan. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/discipleship-plans/list</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

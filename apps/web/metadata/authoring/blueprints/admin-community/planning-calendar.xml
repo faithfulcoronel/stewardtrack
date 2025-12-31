@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+PLANNING CALENDAR PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the planning calendar page that aggregates events from
+care plans, discipleship plans, and other church activities into a unified
+calendar view using StewardTrack's metadata-driven architecture.
+
+FEATURE: Planning Calendar
+- Central calendar view for all upcoming events
+- Aggregates care plan follow-ups and discipleship milestones
+- Modern, mobile-first, Google Calendar-like interface
+- Multiple views: Month, Week, Agenda
+- Category filtering and color coding
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/calendar"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="member-management"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-calendar">
+    <Title>Planning calendar</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics and CTAs
+        -->
+        <Component id="planning-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="planningHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="planningHero.headline"/>
+            <Prop name="description" kind="binding" contract="planningHero.description"/>
+            <Prop name="metrics" kind="binding" contract="planningHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="sync-events"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+          </Props>
+        </Component>
+
+        <!--
+        CALENDAR COMPONENT: Full-featured planning calendar
+        Component type "PlanningCalendar" maps to dynamic component
+        -->
+        <Component id="planning-calendar" type="PlanningCalendar">
+          <Props>
+            <Prop name="events" kind="binding" contract="calendarData.events"/>
+            <Prop name="categories" kind="binding" contract="calendarData.categories"/>
+            <Prop name="isLoading" kind="binding" contract="calendarData.isLoading"/>
+          </Props>
+        </Component>
+
+        <!--
+        UPCOMING EVENTS SECTION: Quick view of next events
+        -->
+        <Component id="upcoming-events" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Upcoming this week</Prop>
+            <Prop name="description" kind="static">Care plan follow-ups and discipleship milestones requiring attention.</Prop>
+            <Prop name="metrics" kind="binding" contract="upcomingEvents.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data: metrics, description, etc. -->
+      <DataSource id="planningHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for planning-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for planning-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for planning-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for planning-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.calendar.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Calendar data: events and categories -->
+      <DataSource id="calendarData" kind="service">
+        <Contract>
+          <Field name="events" path="calendar.events" description="Binding for planning-calendar.events"/>
+          <Field name="categories" path="calendar.categories" description="Binding for planning-calendar.categories"/>
+          <Field name="isLoading" path="calendar.isLoading" description="Binding for planning-calendar.isLoading"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.calendar.data</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Upcoming events for quick view cards -->
+      <DataSource id="upcomingEvents" kind="service">
+        <Contract>
+          <Field name="items" path="upcoming.items" description="Binding for upcoming-events.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.calendar.upcoming</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="sync-events" kind="service">
+        <Config>
+          <Label>Sync events</Label>
+          <Handler>admin-community.planning.sync</Handler>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="open-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/members</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="add-event" kind="link">
+        <Config>
+          <Label>Add event</Label>
+          <Url>/admin/community/planning/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

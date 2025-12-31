@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="care-plans/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-care-plans-profile">
+    <Title>Care plan profile</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="profileHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="profileHero.headline"/>
+            <Prop name="description" kind="binding" contract="profileHero.description"/>
+            <Prop name="metrics" kind="binding" contract="profileHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-care-plan"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="care-plan-summary" type="AdminSummaryPanelsSection">
+          <Props>
+            <Prop name="title" kind="static">Care plan overview</Prop>
+            <Prop name="description" kind="static">Complete care plan information and member details</Prop>
+            <Prop name="panels" kind="binding" contract="carePlanSummary.panels"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="profileHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for profile-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for profile-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for profile-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for profile-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.profile.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="carePlanSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for care-plan-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.profile.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-care-plan" kind="link">
+        <Config>
+          <Label>Edit care plan</Label>
+          <Url>/admin/community/care-plans/manage?carePlanId={{params.carePlanId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to list</Label>
+          <Url>/admin/community/care-plans/list</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

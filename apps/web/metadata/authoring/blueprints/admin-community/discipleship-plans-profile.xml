@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+DISCIPLESHIP PLANS PROFILE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page displays detailed information about a single discipleship plan record.
+It's accessed via /admin/community/discipleship-plans/[discipleshipPlanId]
+
+ROUTE PARAMETERS:
+The dynamic [discipleshipPlanId] segment from the URL is passed to service handlers
+via request.params.discipleshipPlanId. This allows handlers to fetch the specific
+record for display.
+
+PAGE STRUCTURE:
+  1. HeroSection    - Shows plan headline, member name, and key metrics
+  2. SummaryPanels  - Displays detailed plan information in organized panels
+
+CREATING PROFILE PAGES:
+  1. Define HeroSection with dynamic headline (member name, status)
+  2. Add SummaryPanels for detailed record information
+  3. Provide edit and back-to-list actions
+  4. Create service handlers that accept the record ID parameter
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="discipleship-plans/profile"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="member-management"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-community-discipleship-plans-profile">
+    <Title>Discipleship plan profile</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Dynamic header showing record-specific information
+
+        The hero displays:
+          - Member name in the headline
+          - Current pathway/status in description
+          - Key metrics (pathway stage, mentor, milestones)
+
+        Note: headline and description are resolved dynamically based on
+        the discipleshipPlanId from URL params.
+        -->
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="profileHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="profileHero.headline"/>
+            <Prop name="description" kind="binding" contract="profileHero.description"/>
+            <Prop name="metrics" kind="binding" contract="profileHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-discipleship-plan"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+
+        <!--
+        SUMMARY PANELS: Organized display of record details
+
+        AdminSummaryPanelsSection renders multiple panels, each containing
+        labeled fields. Panel structure from handler:
+          {
+            panels: [
+              {
+                id: 'plan-info',
+                title: 'Plan details',
+                columns: 2,
+                items: [
+                  { label: 'Member', value: 'John Doe', type: 'text' },
+                  { label: 'Status', value: 'Active', type: 'badge' },
+                  ...
+                ]
+              },
+              ...
+            ]
+          }
+
+        Item types: 'text', 'badge', 'date', 'multiline', 'link'
+        -->
+        <Component id="discipleship-plan-summary" type="AdminSummaryPanelsSection">
+          <Props>
+            <Prop name="title" kind="static">Discipleship plan overview</Prop>
+            <Prop name="description" kind="static">Complete discipleship plan information and member progress</Prop>
+            <Prop name="panels" kind="binding" contract="discipleshipPlanSummary.panels"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      PROFILE HERO DATA SOURCE
+
+      Handler receives request.params.discipleshipPlanId from URL.
+      Returns: { hero: { eyebrow, headline, description, metrics } }
+
+      Metrics structure:
+        [
+          { label: 'Pathway', value: 'Growth Track', caption: 'Current pathway' },
+          { label: 'Mentor', value: 'Pastor John', caption: 'Assigned mentor' },
+          ...
+        ]
+      -->
+      <DataSource id="profileHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for profile-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for profile-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for profile-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for profile-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.discipleship.profile.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      SUMMARY PANELS DATA SOURCE
+
+      Returns organized panels of record information.
+      Each panel has: id, title, description (optional), columns, items[]
+      -->
+      <DataSource id="discipleshipPlanSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for discipleship-plan-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.discipleship.profile.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <!--
+    ACTIONS: Navigation for editing and returning to list
+
+    Note the {{params.discipleshipPlanId}} template in the edit URL.
+    This is resolved at runtime from the URL parameters.
+    -->
+    <Actions>
+      <Action id="edit-discipleship-plan" kind="link">
+        <Config>
+          <Label>Edit plan</Label>
+          <Url>/admin/community/discipleship-plans/manage?discipleshipPlanId={{params.discipleshipPlanId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to list</Label>
+          <Url>/admin/community/discipleship-plans/list</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="members/list" schemaVersion="1.0.0" contentVersion="1.1.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-membership-list">
+    <Title>Membership directory</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-new-member"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="list-segments" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Engagement segments</Prop>
+            <Prop name="description" kind="static">Spotlight the pathways that need the most shepherding this week.</Prop>
+            <Prop name="metrics" kind="binding" contract="segmentHealth.items"/>
+          </Props>
+        </Component>
+        <Component id="membership-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Community roster</Prop>
+            <Prop name="description" kind="static">Search, filter, and update member records with finance and pastoral context at your fingertips.</Prop>
+            <Prop name="rows" kind="binding" contract="membersTable.rows"/>
+            <Prop name="columns" kind="binding" contract="membersTable.columns"/>
+            <Prop name="filters" kind="binding" contract="membersTable.filters"/>
+            <Prop name="actions" kind="binding" contract="membersTable.actions"/>
+            <Prop name="emptyState" kind="static">{&quot;title&quot;: &quot;No members match your filters&quot;, &quot;description&quot;: &quot;Try expanding your filters to include additional centers or membership stages.&quot;}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.members.list.listHero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="segmentHealth" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Binding for list-segments.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.members.list.segmentHealth</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="membersTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Binding for membership-grid.rows"/>
+          <Field name="columns" path="columns" description="Binding for membership-grid.columns"/>
+          <Field name="filters" path="filters" description="Binding for membership-grid.filters"/>
+          <Field name="actions" path="actions" description="Binding for membership-grid.actions"/>
+        </Contract>
+        <Config>
+          <handler>admin-community.members.list.membersTable</handler>
+          <limit>100</limit>
+        </Config>
+        <Data>
+          <Field name="filters">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>query</Value>
+                </Field>
+                <Field name="type">
+                  <Value>search</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Search members</Value>
+                </Field>
+                <Field name="placeholder">
+                  <Value>Search name, household, or email</Value>
+                </Field>
+                <Field name="fields">
+                  <Array>
+                    <Value>name</Value>
+                    <Value>household</Value>
+                    <Value>email</Value>
+                    <Value>phone</Value>
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>stage</Value>
+                </Field>
+                <Field name="type">
+                  <Value>select</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Membership stage</Value>
+                </Field>
+                <Field name="placeholder">
+                  <Value>All stages</Value>
+                </Field>
+                <Field name="defaultValue">
+                  <Value>all</Value>
+                </Field>
+                <Field name="field">
+                  <Value>stageKey</Value>
+                </Field>
+                <Field name="options">
+                  <Array>
+                    <Object>
+                      <Field name="label">
+                        <Value>All stages</Value>
+                      </Field>
+                      <Field name="value">
+                        <Value>all</Value>
+                      </Field>
+                    </Object>                
+                  </Array>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="id">
+                  <Value>center</Value>
+                </Field>
+                <Field name="type">
+                  <Value>select</Value>
+                </Field>
+                <Field name="label">
+                  <Value>Center</Value>
+                </Field>
+                <Field name="placeholder">
+                  <Value>All centers</Value>
+                </Field>
+                <Field name="defaultValue">
+                  <Value>all</Value>
+                </Field>
+                <Field name="field">
+                  <Value>centerKey</Value>
+                </Field>
+                <Field name="options">
+                  <Array>
+                    <Object>
+                      <Field name="label">
+                        <Value>All centers</Value>
+                      </Field>
+                      <Field name="value">
+                        <Value>all</Value>
+                      </Field>
+                    </Object>                    
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+          <Field name="actions">
+            <Array>
+              <Object>
+                <Field name="id">
+                  <Value>add-member-action</Value>
+                </Field>
+                <Field name="kind">
+                  <Value>link</Value>
+                </Field>
+                <Field name="config">
+                  <Object>
+                    <Field name="label">
+                      <Value>Add member</Value>
+                    </Field>
+                    <Field name="url">
+                      <Value>/admin/members/manage</Value>
+                    </Field>
+                    <Field name="variant">
+                      <Value>primary</Value>
+                    </Field>
+                  </Object>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+          <Field name="columns">
+            <Array>
+              <Object>
+                <Field name="field">
+                  <Value>name</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Member</Value>
+                </Field>
+                <Field name="type">
+                  <Value>link</Value>
+                </Field>
+                <Field name="hrefTemplate">
+                  <Value>/admin/members/{{id}}</Value>
+                </Field>
+                <Field name="subtitleField">
+                  <Value>membershipLabel</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>1.2</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>center</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Center</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>0.9</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>household</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Household</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>1</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>stage</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Stage</Value>
+                </Field>
+                <Field name="type">
+                  <Value>badge</Value>
+                </Field>
+                <Field name="badgeVariantField">
+                  <Value>stageVariant</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>0.7</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>lastEngagement</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Last engagement</Value>
+                </Field>
+                <Field name="type">
+                  <Value>date</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>0.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>givingThisYear</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>YTD giving</Value>
+                </Field>
+                <Field name="type">
+                  <Value>currency</Value>
+                </Field>
+                <Field name="currency">
+                  <Object>
+                    <Field name="currency">
+                      <Value>USD</Value>
+                    </Field>
+                    <Field name="notation">
+                      <Value>standard</Value>
+                    </Field>
+                  </Object>
+                </Field>
+                <Field name="flex">
+                  <Value>0.8</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>tags</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Highlights</Value>
+                </Field>
+                <Field name="type">
+                  <Value>chip-list</Value>
+                </Field>
+                <Field name="flex">
+                  <Value>1.1</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="field">
+                  <Value>actions</Value>
+                </Field>
+                <Field name="headerName">
+                  <Value>Actions</Value>
+                </Field>
+                <Field name="type">
+                  <Value>actions</Value>
+                </Field>
+                <Field name="actions">
+                  <Array>
+                    <Object>
+                      <Field name="id">
+                        <Value>view-record</Value>
+                      </Field>
+                      <Field name="label">
+                        <Value>View</Value>
+                      </Field>
+                      <Field name="intent">
+                        <Value>view</Value>
+                      </Field>
+                      <Field name="urlTemplate">
+                        <Value>/admin/members/{{id}}</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="id">
+                        <Value>edit-record</Value>
+                      </Field>
+                      <Field name="label">
+                        <Value>Edit</Value>
+                      </Field>
+                      <Field name="intent">
+                        <Value>edit</Value>
+                      </Field>
+                      <Field name="urlTemplate">
+                        <Value>/admin/members/manage?memberId={{id}}</Value>
+                      </Field>
+                      <Field name="variant">
+                        <Value>secondary</Value>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="id">
+                        <Value>delete-record</Value>
+                      </Field>
+                      <Field name="label">
+                        <Value>Archive</Value>
+                      </Field>
+                      <Field name="intent">
+                        <Value>delete</Value>
+                      </Field>
+                      <Field name="confirm">
+                        <Value>Archive {{name}} and remove them from active rosters?</Value>
+                      </Field>
+                      <Field name="successMessage">
+                        <Value>{{name}} was marked as archived.</Value>
+                      </Field>
+                    </Object>
+                  </Array>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-new-member" kind="link">
+        <Config>
+          <Label>Add new member</Label>
+          <Url>/admin/members/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="open-dashboard" kind="link">
+        <Config>
+          <Label>Back to dashboard</Label>
+          <Url>/admin/members</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

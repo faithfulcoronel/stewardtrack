@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="marketing" route="home" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="core-foundation" locale="en-US">
+  <Page id="marketing-home">
+    <Title>StewardTrack marketing home</Title>
+    <Regions>
+      <Region id="hero">
+        <Component id="hero-section" type="HeroSection">
+          <RBAC allow="guest,member"/>
+          <Props>
+            <Prop name="eyebrow" kind="static">StewardTrack platform</Prop>
+            <Prop name="headline" kind="binding" contract="heroCopy.headline"/>
+            <Prop name="description" kind="binding" contract="heroCopy.description"/>
+            <Prop name="metrics" kind="binding" contract="heroMetrics.items"/>
+            <Prop name="primaryCta" kind="action" actionId="get-started"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-docs"/>
+          </Props>
+        </Component>
+      </Region>
+      <Region id="feature-grid">
+        <Component id="feature-grid-section" type="FeatureGrid">
+          <Props>
+            <Prop name="title" kind="static">Why teams choose StewardTrack</Prop>
+            <Prop name="features" kind="binding" contract="featureCopy.value"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="heroCopy" kind="static">
+        <Contract>
+          <Field name="headline" path="headline" description="Binding for hero-section.headline"/>
+          <Field name="description" path="description" description="Binding for hero-section.description"/>
+        </Contract>
+        <Data>
+          <Field name="headline">
+            <Value>Ship operations that feel effortless</Value>
+          </Field>
+          <Field name="description">
+            <Value>Blueprint-driven experiences power every steward experience so that customers see the right value fast.</Value>
+          </Field>
+        </Data>
+      </DataSource>
+      <DataSource id="featureCopy" kind="static">
+        <Contract>
+          <Field name="value" path="$" description="Binding for feature-grid-section.features"/>
+        </Contract>
+        <Data>
+          <Array>
+            <Object>
+              <Field name="title">
+                <Value>Composable blueprints</Value>
+              </Field>
+              <Field name="description">
+                <Value>Author XML once and reuse it everywhere with deterministic overlays.</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="title">
+                <Value>Type-safe runtime</Value>
+              </Field>
+              <Field name="description">
+                <Value>Generated TypeScript types keep renderers honest and fast.</Value>
+              </Field>
+            </Object>
+            <Object>
+              <Field name="title">
+                <Value>Observability ready</Value>
+              </Field>
+              <Field name="description">
+                <Value>Versioned registries expose metadata history and dependency graphs.</Value>
+              </Field>
+            </Object>
+          </Array>
+        </Data>
+      </DataSource>
+      <DataSource id="heroMetrics" kind="static">
+        <Contract>
+          <Field name="items" path="items" description="Binding for hero-section.metrics"/>
+        </Contract>
+        <Data>
+          <Field name="items">
+            <Array>
+              <Object>
+                <Field name="label">
+                  <Value>Tenant launches</Value>
+                </Field>
+                <Field name="value">
+                  <Value>3.2x</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Blueprint reuse</Value>
+                </Field>
+                <Field name="value">
+                  <Value>87%</Value>
+                </Field>
+              </Object>
+              <Object>
+                <Field name="label">
+                  <Value>Authoring errors</Value>
+                </Field>
+                <Field name="value">
+                  <Value>-62%</Value>
+                </Field>
+              </Object>
+            </Array>
+          </Field>
+        </Data>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="get-started" kind="link">
+        <Config>
+          <Label>Start building</Label>
+          <Url>/signup</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-docs" kind="link">
+        <Config>
+          <Label>View docs</Label>
+          <Url>/docs</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

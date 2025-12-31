@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="super-admin-settings" route="system/overview" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="core-foundation" requiredPermissions="system:admin" locale="en-US">
+  <Page id="super-admin-system-settings">
+    <Title>System Settings</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="system-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="systemOverview.heroEyebrow"/>
+            <Prop name="headline" kind="binding" contract="systemOverview.heroHeadline"/>
+            <Prop name="description" kind="binding" contract="systemOverview.heroDescription"/>
+            <Prop name="highlights" kind="binding" contract="systemOverview.heroHighlights"/>
+            <Prop name="metrics" kind="binding" contract="systemOverview.heroMetrics"/>
+            <Prop name="primaryCta" kind="binding" contract="systemOverview.heroPrimaryCta"/>
+            <Prop name="secondaryCta" kind="binding" contract="systemOverview.heroSecondaryCta"/>
+          </Props>
+        </Component>
+        <Component id="system-tabs" type="AdminSettingsTabs">
+          <Props>
+            <Prop name="tabs" kind="binding" contract="systemOverview.tabs"/>
+            <Prop name="defaultTab" kind="static">overview</Prop>
+          </Props>
+          <Children>
+            <Component id="overview-tab-content" type="Fragment">
+              <Children>
+                <Component id="system-summary" type="AdminDetailPanels">
+                  <Props>
+                    <Prop name="columns" kind="static">1</Prop>
+                    <Prop name="panels" kind="binding" contract="systemOverview.summaryPanels"/>
+                  </Props>
+                </Component>
+              </Children>
+            </Component>
+            <Component id="integrations-tab-content" type="SuperAdminIntegrationSettings">
+              <Props>
+                <Prop name="title" kind="static">System Integrations</Prop>
+                <Prop name="description" kind="static">Configure system-wide integrations for all tenants</Prop>
+                <Prop name="showEmail" kind="static">true</Prop>
+                <Prop name="showTwilio" kind="static">true</Prop>
+                <Prop name="showFirebase" kind="static">true</Prop>
+                <Prop name="showWebhook" kind="static">true</Prop>
+              </Props>
+            </Component>
+            <Component id="templates-tab-content" type="SuperAdminSystemTemplates">
+              <Props>
+                <Prop name="title" kind="static">System Templates</Prop>
+                <Prop name="description" kind="static">Manage global notification templates for all tenants</Prop>
+              </Props>
+            </Component>
+          </Children>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="systemOverview" kind="service">
+        <Contract>
+          <Field name="heroEyebrow" path="hero.eyebrow" description="Binding for system-hero.eyebrow"/>
+          <Field name="heroHeadline" path="hero.headline" description="Binding for system-hero.headline"/>
+          <Field name="heroDescription" path="hero.description" description="Binding for system-hero.description"/>
+          <Field name="heroHighlights" path="hero.highlights" description="Binding for system-hero.highlights"/>
+          <Field name="heroMetrics" path="hero.metrics" description="Binding for system-hero.metrics"/>
+          <Field name="heroPrimaryCta" path="hero.primaryCta" description="Binding for system-hero.primaryCta"/>
+          <Field name="heroSecondaryCta" path="hero.secondaryCta" description="Binding for system-hero.secondaryCta"/>
+          <Field name="tabs" path="tabs" description="Tab configuration for system tabs"/>
+          <Field name="summaryPanels" path="summary.panels" description="Binding for system-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>super-admin-settings.system.overview</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-system-settings" kind="metadata.service">
+        <Config>
+          <Handler>super-admin-settings.system.overview.save</Handler>
+          <SuccessMessage>System settings updated successfully.</SuccessMessage>
+          <UpdateMessage>System configuration saved.</UpdateMessage>
+          <ErrorMessage>Failed to save system settings. Please try again.</ErrorMessage>
+          <RedirectTemplate>/admin/system-settings</RedirectTemplate>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

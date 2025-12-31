@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+PLANNING EVENT MANAGE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the event management page for creating and editing
+calendar events within the Planning module.
+
+FEATURE: Planning Event Management
+- Create new calendar events
+- Edit existing events
+- Link events to members, care plans, discipleship plans
+- Set priorities, reminders, and recurrence
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/manage"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="member-management"
+  requiredPermissions="members:manage"
+  locale="en-US">
+
+  <Page id="admin-community-planning-event-manage">
+    <Title>Manage calendar event</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Event form header with context
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!--
+        EVENT FORM: Main form for event creation/editing
+        -->
+        <Component id="event-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="eventForm.title"/>
+            <Prop name="description" kind="binding" contract="eventForm.description"/>
+            <Prop name="fields" kind="binding" contract="eventForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="eventForm.initialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="eventForm.submitLabel"/>
+            <Prop name="mode" kind="binding" contract="eventForm.mode"/>
+            <Prop name="contextParams" kind="binding" contract="eventForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-event"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Event form eyebrow text"/>
+          <Field name="headline" path="hero.headline" description="Event form headline"/>
+          <Field name="description" path="hero.description" description="Event form description"/>
+          <Field name="metrics" path="hero.metrics" description="Event context metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.event.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Event form configuration -->
+      <DataSource id="eventForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Form section title"/>
+          <Field name="description" path="form.description" description="Form section description"/>
+          <Field name="fields" path="form.fields" description="Form field configurations"/>
+          <Field name="initialValues" path="form.initialValues" description="Initial form values"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Submit button label"/>
+          <Field name="mode" path="form.mode" description="Form mode (create/edit)"/>
+          <Field name="contextParams" path="form.contextParams" description="Context parameters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.event.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="save-event" kind="metadata.service">
+        <Config>
+          <Handler>admin-community.planning.event.manage.save</Handler>
+          <SuccessMessage>Event saved successfully.</SuccessMessage>
+          <CreateMessage>Event created successfully.</CreateMessage>
+          <UpdateMessage>Event updated successfully.</UpdateMessage>
+          <ErrorMessage>Failed to save event. Please try again.</ErrorMessage>
+          <IdentifierKey>eventId</IdentifierKey>
+          <IdentifierCandidates>
+            <Array>
+              <Value>eventId</Value>
+              <Value>data.eventId</Value>
+              <Value>params.eventId</Value>
+            </Array>
+          </IdentifierCandidates>
+          <RedirectTemplate>/admin/community/planning/calendar</RedirectTemplate>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/calendar</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

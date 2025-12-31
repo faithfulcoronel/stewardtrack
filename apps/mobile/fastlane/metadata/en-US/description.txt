@@ -1,0 +1,39 @@
+StewardTrack is the modern church management solution designed to simplify how you run your congregation.
+
+KEY FEATURES:
+
+MEMBER MANAGEMENT
+- Complete member directory with profiles and photos
+- Track family relationships and households
+- Manage membership status and milestones
+- Search and filter members instantly
+
+GIVING & DONATIONS
+- Track tithes, offerings, and special gifts
+- Generate giving statements for tax purposes
+- View giving trends and reports
+- Support for multiple funds and campaigns
+
+EVENT MANAGEMENT
+- Create and manage church events
+- Track RSVPs and attendance
+- Send event reminders and updates
+- Coordinate volunteers and resources
+
+MINISTRY TEAMS
+- Organize ministry groups and teams
+- Manage volunteer schedules
+- Track participation and involvement
+- Communicate with team members
+
+SECURE & PRIVATE
+- Bank-level data encryption
+- Role-based access control
+- Multi-factor authentication
+- GDPR and privacy compliant
+
+StewardTrack is trusted by churches of all sizes to manage their congregation effectively. Whether you're a small community church or a multi-campus organization, our flexible platform grows with you.
+
+Start free today and experience the difference that modern church management software can make.
+
+Questions? Contact us at support@stewardtrack.com

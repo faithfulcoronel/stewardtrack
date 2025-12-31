@@ -1,0 +1,208 @@
+# StewardTrack Mobile Fastlane Configuration
+#
+# This file contains the fastlane configuration for automating
+# iOS and Android app deployments.
+#
+# More information: https://docs.fastlane.tools
+
+default_platform(:ios)
+
+# ============================================
+# iOS Configuration
+# ============================================
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    # Ensure we have the latest certificates and profiles
+    match(type: "appstore", readonly: true)
+
+    # Increment build number
+    increment_build_number(
+      xcodeproj: "ios/App/App.xcodeproj"
+    )
+
+    # Build the app
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "StewardTrack.ipa"
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+
+    # Clean up
+    clean_build_artifacts
+  end
+
+  desc "Push a new release to the App Store"
+  lane :release do
+    # Ensure we have the latest certificates and profiles
+    match(type: "appstore", readonly: true)
+
+    # Build the app
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "StewardTrack.ipa"
+    )
+
+    # Upload to App Store Connect
+    upload_to_app_store(
+      force: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: false,
+      automatic_release: false
+    )
+  end
+
+  desc "Sync certificates and profiles"
+  lane :certificates do
+    match(type: "development")
+    match(type: "appstore")
+  end
+
+  desc "Take screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App"
+    )
+    frame_screenshots(white: true)
+  end
+
+  desc "Build for testing"
+  lane :build_for_testing do
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      configuration: "Debug",
+      export_method: "development",
+      skip_archive: true
+    )
+  end
+end
+
+# ============================================
+# Android Configuration
+# ============================================
+
+platform :android do
+  desc "Push a new beta build to Play Store internal track"
+  lane :beta do
+    # Increment version code
+    increment_version_code(
+      gradle_file_path: "android/app/build.gradle"
+    )
+
+    # Build release AAB
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android"
+    )
+
+    # Upload to Play Store internal track
+    upload_to_play_store(
+      track: "internal",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Promote internal to production"
+  lane :release do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build APK for testing"
+  lane :build_apk do
+    gradle(
+      task: "assemble",
+      build_type: "Debug",
+      project_dir: "android"
+    )
+  end
+
+  desc "Build release AAB"
+  lane :build_release do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android"
+    )
+  end
+
+  desc "Upload metadata and screenshots"
+  lane :upload_metadata do
+    upload_to_play_store(
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: false
+    )
+  end
+end
+
+# ============================================
+# Cross-platform lanes
+# ============================================
+
+desc "Run tests on all platforms"
+lane :test do
+  # Run web tests first
+  sh("cd ../web && npm run test")
+
+  # iOS tests
+  # scan(
+  #   workspace: "ios/App/App.xcworkspace",
+  #   scheme: "App",
+  #   devices: ["iPhone 15 Pro"]
+  # )
+
+  # Android tests
+  # gradle(
+  #   task: "test",
+  #   project_dir: "android"
+  # )
+end
+
+desc "Increment version for all platforms"
+lane :bump_version do |options|
+  version = options[:version]
+
+  if version.nil?
+    UI.user_error!("Please provide version: fastlane bump_version version:1.2.3")
+  end
+
+  # Update iOS version
+  increment_version_number(
+    version_number: version,
+    xcodeproj: "ios/App/App.xcodeproj"
+  )
+
+  # Update Android version
+  # Note: This requires android-versioning plugin
+  # android_set_version_name(
+  #   version_name: version,
+  #   gradle_file: "android/app/build.gradle"
+  # )
+
+  UI.success("Version bumped to #{version}")
+end

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="care-plans/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="member-management" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-care-plans-list">
+    <Title>Member care plans</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-new-care-plan"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="care-plans-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Care plan roster</Prop>
+            <Prop name="description" kind="static">Search and manage member care plans with status, priority, and follow-up tracking.</Prop>
+            <Prop name="rows" kind="binding" contract="carePlansTable.rows"/>
+            <Prop name="columns" kind="binding" contract="carePlansTable.columns"/>
+            <Prop name="filters" kind="binding" contract="carePlansTable.filters"/>
+            <Prop name="actions" kind="binding" contract="carePlansTable.actions"/>
+            <Prop name="emptyState" kind="static">{"title": "No care plans found", "description": "Try adjusting your search or create a new care plan record."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="carePlansTable" kind="service">
+        <Contract>
+          <Field name="rows" path="table.rows" description="Binding for care-plans-grid.rows"/>
+          <Field name="columns" path="table.columns" description="Binding for care-plans-grid.columns"/>
+          <Field name="filters" path="table.filters" description="Binding for care-plans-grid.filters"/>
+          <Field name="actions" path="table.actions" description="Binding for care-plans-grid.actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.careplans.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-new-care-plan" kind="link">
+        <Config>
+          <Label>Add care plan</Label>
+          <Url>/admin/community/care-plans/manage</Url>
+        </Config>
+      </Action>
+      <Action id="open-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/members</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

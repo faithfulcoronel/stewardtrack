@@ -1,0 +1,18 @@
+# StewardTrack Fastlane App Configuration
+
+# iOS
+app_identifier("com.stewardtrack.app")
+apple_id("developer@stewardtrack.com")
+team_id("YOUR_TEAM_ID") # Apple Developer Team ID
+
+# For App Store Connect API Key authentication (recommended)
+# app_store_connect_api_key(
+#   key_id: "YOUR_KEY_ID",
+#   issuer_id: "YOUR_ISSUER_ID",
+#   key_filepath: "./AuthKey.p8",
+#   in_house: false
+# )
+
+# Android
+json_key_file("./play_store_service_account.json")
+package_name("com.stewardtrack.app")

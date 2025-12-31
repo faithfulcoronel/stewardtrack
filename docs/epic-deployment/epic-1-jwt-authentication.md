@@ -1,10 +1,10 @@
 # Epic 1: JWT Authentication API & Token Management
 
 **Release:** Beta - March 2026
-**Timeline:** Weeks 1-2 (January 6-19, 2026)
-**Duration:** 2 weeks
+**Timeline:** Week 1 (January 6-12, 2026)
+**Duration:** 1 week (accelerated with Claude AI)
 **Priority:** P0 (Blocking - Required for Product Launch)
-**Epic Owner:** Backend Team
+**Epic Owner:** Backend Team + Claude AI Assistance
 **Dependencies:** None
 
 ## Epic Overview
@@ -60,7 +60,7 @@ User authenticated to app.stewardtrack.com
   "email": "admin@mycollection.church",
   "tenant_id": "tenant-uuid-here",
   "tenant_name": "My Collection Church",
-  "permissions": ["members:read", "members:write", "finance:read"],
+  "permissions": ["members:view", "members:manage", "finance:read"],
   "roles": ["tenant_admin"],
   "iat": 1704067800,
   "exp": 1704068700,
@@ -1020,7 +1020,7 @@ container.bind<ITenantRepository>(TYPES.ITenantRepository).to(TenantRepository).
       "email": "admin@mycollection.church",
       "tenantId": "tenant-uuid-here",
       "tenantName": "My Collection Church",
-      "permissions": ["members:read", "members:write", "finance:read"],
+      "permissions": ["members:view", "members:manage", "finance:read"],
       "roles": ["tenant_admin"]
     }
   }
@@ -1439,7 +1439,7 @@ export async function POST(request: NextRequest) {
       "lastName": "Doe",
       "tenantId": "tenant-uuid-here",
       "tenantName": "My Collection Church",
-      "permissions": ["members:read", "members:write", "finance:read"],
+      "permissions": ["members:view", "members:manage", "finance:read"],
       "roles": ["tenant_admin"]
     }
   }
@@ -1770,7 +1770,7 @@ export async function GET(request: NextRequest) {
   console.log('User:', authContext.userId, 'Tenant:', authContext.tenantId);
 
   // Require specific permission
-  await requirePermission('members:read');
+  await requirePermission('members:view');
 
   // ... rest of handler
 }
