@@ -86,8 +86,24 @@ export default function SignupPage() {
   const [selectingId, setSelectingId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadOfferings();
-  }, []);
+    // Check if user is already authenticated
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        if (data.authenticated) {
+          router.replace('/admin');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+      // Only load offerings if not authenticated
+      loadOfferings();
+    };
+
+    checkAuth();
+  }, [router]);
 
   async function loadOfferings() {
     try {
