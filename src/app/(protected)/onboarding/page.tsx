@@ -13,6 +13,7 @@ import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import ChurchDetailsStep from '@/components/onboarding/ChurchDetailsStep';
 import RBACSetupStep from '@/components/onboarding/RBACSetupStep';
 import FeatureTourStep from '@/components/onboarding/FeatureTourStep';
+import PaymentStep from '@/components/onboarding/PaymentStep';
 import CompleteStep from '@/components/onboarding/CompleteStep';
 
 const STEPS = [
@@ -20,6 +21,7 @@ const STEPS = [
   { id: 'church-details', title: 'Church Details', component: ChurchDetailsStep },
   { id: 'rbac-setup', title: 'Team Setup', component: RBACSetupStep },
   { id: 'feature-tour', title: 'Feature Tour', component: FeatureTourStep },
+  { id: 'payment', title: 'Payment', component: PaymentStep },
   { id: 'complete', title: 'Complete', component: CompleteStep },
 ];
 

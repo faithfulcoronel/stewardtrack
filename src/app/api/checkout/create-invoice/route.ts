@@ -62,10 +62,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let externalId = `SUB-${tenantId}-${Date.now()}`;
     // Build success and failure URLs
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const successUrl = `${baseUrl}/signup/success?offering_id=${offeringId}`;
-    const failureUrl = `${baseUrl}/signup/failed?offering_id=${offeringId}`;
+    const successUrl = `${baseUrl}/signup/success?external_id=${externalId}`;
+    const failureUrl = `${baseUrl}/signup/failed?external_id=${externalId}`;
 
     // Create payment invoice
     const { invoice, payment } = await paymentService.createSubscriptionPayment({
