@@ -60,7 +60,8 @@
       "Bash(pnpm build:web:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm cap:*)",
-      "Bash(if exist \".next\" rmdir /s /q \".next\")"
+      "Bash(if exist \".next\" rmdir /s /q \".next\")",
+      "Bash(timeout 300 pnpm build:web:*)"
     ],
     "deny": [],
     "ask": []

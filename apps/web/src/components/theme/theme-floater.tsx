@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Palette, Sparkles, Sun, Moon, MonitorCog, GripVertical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useTheme } from "./theme-provider";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
 import { cn } from "@/lib/utils";
+
+// Pages where theme floater should be hidden
+const HIDDEN_PATHS = ["/", "/login", "/signup", "/signup/register"];
 
 const modes = [
   { id: "light" as const, label: "Light", icon: Sun },
@@ -50,10 +54,20 @@ function storePosition(position: Position) {
 }
 
 export function ThemeFloater() {
+  const pathname = usePathname();
   const { palettes, palette, setPalette, mode, setMode, resolvedMode, mounted } = useTheme();
   const activePalette = mounted ? palette : DEFAULT_THEME_ID;
   const activeMode = mounted ? mode : "system";
   const resolved = mounted ? resolvedMode : "light";
+
+  // Hide on public/landing pages
+  const isHiddenPath = HIDDEN_PATHS.some(path =>
+    pathname === path || pathname?.startsWith("/signup/")
+  );
+
+  if (isHiddenPath) {
+    return null;
+  }
 
   // Draggable state - position is relative to bottom-right corner
   const [position, setPosition] = useState<Position>(DEFAULT_POSITION);
