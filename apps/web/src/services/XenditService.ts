@@ -385,8 +385,9 @@ export class XenditService {
     billingCycle: 'monthly' | 'annual';
     successUrl: string;
     failureUrl: string;
+    externalId?: string;
   }): Promise<XenditInvoice> {
-    const externalId = `SUB-${params.tenantId}-${Date.now()}`;
+    const externalId = params.externalId || `SUB-${params.tenantId}-${Date.now()}`;
     const description = `${params.offeringName} - ${params.billingCycle === 'monthly' ? 'Monthly' : 'Annual'} Subscription`;
 
     const names = params.payerName.split(' ');

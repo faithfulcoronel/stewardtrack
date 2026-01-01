@@ -27,10 +27,24 @@ function SuccessPageContent() {
   const [payment, setPayment] = useState<any>(null);
 
   useEffect(() => {
-    verifyPayment();
+    // Only attempt verification if we have at least one identifier
+    if (externalId || invoiceId) {
+      verifyPayment();
+    } else {
+      // No payment identifiers provided - show error immediately
+      setError('No payment reference found. Please return to signup or contact support.');
+      setVerifying(false);
+    }
   }, [externalId, invoiceId]);
 
   const verifyPayment = async () => {
+    // Guard: don't attempt verification without identifiers
+    if (!externalId && !invoiceId) {
+      setError('No payment reference found. Please return to signup or contact support.');
+      setVerifying(false);
+      return;
+    }
+
     try {
       setVerifying(true);
 
@@ -96,16 +110,27 @@ function SuccessPageContent() {
             </Alert>
 
             <div className="flex flex-col gap-2">
-              <Button onClick={() => verifyPayment()} className="w-full">
-                Try Again
-              </Button>
-              <Button
-                onClick={() => router.push('/onboarding')}
-                variant="outline"
-                className="w-full"
-              >
-                Continue to Onboarding
-              </Button>
+              {(externalId || invoiceId) ? (
+                <>
+                  <Button onClick={() => verifyPayment()} className="w-full">
+                    Try Again
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/onboarding')}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Continue to Onboarding
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => router.push('/signup')}
+                  className="w-full"
+                >
+                  Return to Signup
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
