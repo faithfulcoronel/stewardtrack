@@ -82,7 +82,7 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
               onClick={scrollToTop}
-              className="fixed bottom-8 right-8 z-50 p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 hover:shadow-xl transition-colors focus:outline-none"
+              className="fixed bottom-8 right-4 sm:right-8 z-50 p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 hover:shadow-xl transition-colors focus:outline-none touch-target mb-safe"
               aria-label="Back to top"
             >
               <ArrowUp size={24} />

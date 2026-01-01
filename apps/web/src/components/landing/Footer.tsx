@@ -15,14 +15,14 @@ export function LandingFooter() {
             <p className="text-gray-300 leading-relaxed max-w-md mb-8">
               StewardTrack is a church management platform that makes finances, records, and ministry operations simple, secure, and solution-focused.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors">
+            <div className="flex gap-3">
+              <a href="#" className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors touch-target" aria-label="Facebook">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors">
+              <a href="#" className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors touch-target" aria-label="Twitter">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors">
+              <a href="#" className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-green-500 transition-colors touch-target" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
               </a>
             </div>
