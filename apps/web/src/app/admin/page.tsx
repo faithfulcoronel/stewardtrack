@@ -1,7 +1,15 @@
 /**
  * Admin Dashboard Page
  *
- * Main dashboard for authenticated administrators displaying:
+ * Main dashboard for authenticated administrators.
+ *
+ * For Super Admins:
+ * - Platform-wide overview (all tenants)
+ * - System health and metrics
+ * - License distribution
+ * - Quick access to Licensing Studio and System Settings
+ *
+ * For Tenant Admins:
  * - Welcome message with tenant name
  * - Bible verse of the day
  * - Key metrics (members, finances, events)
@@ -11,6 +19,7 @@
  * - Upcoming events and birthdays
  *
  * SECURITY: Protected by AccessGate requiring authentication.
+ * Super admin check determines which dashboard to display.
  */
 
 import type { Metadata } from "next";
@@ -18,7 +27,7 @@ import type { Metadata } from "next";
 import { Gate } from "@/lib/access-gate";
 import { ProtectedPage } from "@/components/access-gate";
 import { getCurrentUser } from "@/lib/server/context";
-import { AdminDashboard } from "@/components/admin/dashboard";
+import { AdminDashboard, SuperAdminDashboard } from "@/components/admin/dashboard";
 
 export const metadata: Metadata = {
   title: "Dashboard | StewardTrack",
@@ -27,11 +36,15 @@ export const metadata: Metadata = {
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
-  const gate = Gate.authenticated({ fallbackPath: "/login" });
+  const authGate = Gate.authenticated({ fallbackPath: "/login" });
+
+  // Check if user is a super admin
+  const superAdminGate = Gate.superAdminOnly();
+  const isSuperAdmin = await superAdminGate.allows(user.id);
 
   return (
-    <ProtectedPage gate={gate} userId={user.id}>
-      <AdminDashboard />
+    <ProtectedPage gate={authGate} userId={user.id}>
+      {isSuperAdmin ? <SuperAdminDashboard /> : <AdminDashboard />}
     </ProtectedPage>
   );
 }
