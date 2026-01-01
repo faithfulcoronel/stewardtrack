@@ -1,4 +1,5 @@
 export { AdminDashboard } from './AdminDashboard';
+export { SuperAdminDashboard } from './SuperAdminDashboard';
 export { WelcomeCard } from './WelcomeCard';
 export { BibleVerseCard } from './BibleVerseCard';
 export { MetricsGrid } from './MetricsGrid';
