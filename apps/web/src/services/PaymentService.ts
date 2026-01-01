@@ -24,6 +24,7 @@ export interface CreatePaymentParams {
   billingCycle: 'monthly' | 'annual';
   successUrl: string;
   failureUrl: string;
+  externalId?: string;
 }
 
 @injectable()
@@ -44,8 +45,11 @@ export class PaymentService {
     invoice: XenditInvoice;
     payment: SubscriptionPayment;
   }> {
-    // Create invoice via Xendit
-    const invoice = await this.xenditService.createSubscriptionInvoice(params);
+    // Create invoice via Xendit (pass externalId if provided)
+    const invoice = await this.xenditService.createSubscriptionInvoice({
+      ...params,
+      externalId: params.externalId,
+    });
 
     // Store payment record via repository
     const payment = await this.paymentRepository.createPayment({

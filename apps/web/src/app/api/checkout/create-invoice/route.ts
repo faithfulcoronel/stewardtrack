@@ -62,12 +62,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build success and failure URLs
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const successUrl = `${baseUrl}/signup/success?offering_id=${offeringId}`;
-    const failureUrl = `${baseUrl}/signup/failed?offering_id=${offeringId}`;
+    // Generate external ID for payment tracking
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
-    // Create payment invoice
+    // Build success and failure URLs with external_id for payment verification
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const successUrl = `${baseUrl}/signup/success?external_id=${externalId}`;
+    const failureUrl = `${baseUrl}/signup/failed?external_id=${externalId}`;
+
+    // Create payment invoice with the same externalId used in callback URLs
     const { invoice, payment } = await paymentService.createSubscriptionPayment({
       tenantId,
       offeringId: offering.id,
@@ -78,6 +81,7 @@ export async function POST(request: NextRequest) {
       billingCycle: offering.billing_cycle,
       successUrl,
       failureUrl,
+      externalId,
     });
 
     return NextResponse.json({
