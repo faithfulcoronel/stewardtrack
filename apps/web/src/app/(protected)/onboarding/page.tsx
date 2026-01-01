@@ -139,16 +139,20 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Indicators */}
-        <div className="flex justify-between mb-8">
+        <div className="flex justify-between mb-8 overflow-x-auto scrollbar-hide px-1">
           {STEPS.map((step, index) => (
-            <div
+            <button
               key={step.id}
-              className={`flex flex-col items-center gap-2 ${
+              type="button"
+              onClick={() => index < currentStep && setCurrentStep(index)}
+              disabled={index >= currentStep}
+              className={`flex flex-col items-center gap-2 touch-target min-w-[44px] ${
                 index <= currentStep ? 'opacity-100' : 'opacity-40'
-              }`}
+              } ${index < currentStep ? 'cursor-pointer' : 'cursor-default'}`}
+              aria-label={`Step ${index + 1}: ${step.title}`}
             >
               <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                   index < currentStep
                     ? 'bg-primary text-primary-foreground'
                     : index === currentStep
@@ -161,7 +165,7 @@ export default function OnboardingPage() {
               <span className="text-xs text-center hidden sm:block max-w-[80px]">
                 {step.title}
               </span>
-            </div>
+            </button>
           ))}
         </div>
 
