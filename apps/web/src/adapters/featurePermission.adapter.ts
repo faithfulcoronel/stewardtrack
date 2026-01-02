@@ -196,6 +196,30 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
   }
 
   /**
+   * Override fetchById to handle global table (no tenant_id, no deleted_at)
+   * This table doesn't use soft deletes
+   */
+  async fetchById(id: string): Promise<FeaturePermission | null> {
+    try {
+      const supabase = await this.getSupabaseClient();
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select(this.defaultSelect)
+        .eq('id', id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw new Error(error.message);
+      }
+
+      return data as FeaturePermission | null;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch feature permission: ${error.message}`);
+    }
+  }
+
+  /**
    * Get all permissions for a feature
    */
   async getByFeatureId(featureId: string): Promise<FeaturePermission[]> {

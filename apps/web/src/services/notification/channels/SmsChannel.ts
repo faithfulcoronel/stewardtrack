@@ -5,7 +5,7 @@
  *
  * Delivers notifications via SMS using Twilio.
  *
- * Feature Code: notifications-sms (Professional tier)
+ * Feature Code: integrations.sms (Professional tier)
  *
  * Required Environment Variables:
  * - TWILIO_ACCOUNT_SID
@@ -28,7 +28,7 @@ import type { DeliveryChannelType } from '@/models/notification/notificationEven
 @injectable()
 export class SmsChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'sms';
-  readonly featureCode: string = 'notifications-sms';
+  readonly featureCode: string = 'integrations.sms';
 
   async isAvailable(): Promise<boolean> {
     // Check if Twilio is configured

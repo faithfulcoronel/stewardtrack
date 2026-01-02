@@ -6,7 +6,7 @@
  * Delivers notifications via HTTP webhooks to external systems.
  * Supports signature verification, retry logic, and exponential backoff.
  *
- * Feature Code: notifications-webhooks (Enterprise tier)
+ * Feature Code: integrations.api (Enterprise tier)
  *
  * Webhook Payload Format:
  * {
@@ -48,7 +48,7 @@ interface WebhookConfig {
 @injectable()
 export class WebhookChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'webhook';
-  readonly featureCode: string = 'notifications-webhooks';
+  readonly featureCode: string = 'integrations.api';
 
   private readonly defaultTimeout = 10000; // 10 seconds
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="marketing" route="home" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="core-foundation" locale="en-US">
+<PageDefinition kind="blueprint" module="marketing" route="home" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="dashboard.core" locale="en-US">
   <Page id="marketing-home">
     <Title>StewardTrack marketing home</Title>
     <Regions>

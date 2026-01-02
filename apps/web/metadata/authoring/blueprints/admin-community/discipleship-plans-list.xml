@@ -50,7 +50,7 @@ DATA BINDING:
   route="discipleship-plans/list"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="member-management"
+  featureCode="discipleship.plans"
   requiredPermissions="members:view"
   locale="en-US">
 

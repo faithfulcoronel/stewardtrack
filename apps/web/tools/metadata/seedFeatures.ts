@@ -57,26 +57,54 @@ interface FeatureInfo {
   blueprintCount: number;
 }
 
-// Feature code to category mapping
+// Feature code to category mapping (updated to new dotted notation)
 const FEATURE_CATEGORIES: Record<string, string> = {
-  'core-foundation': 'core',
-  'member-management': 'members',
-  'financial-management': 'finance',
-  'rbac-security': 'rbac',
-  'communication-tools': 'communication',
-  'advanced-reporting': 'reports',
-  'multi-campus': 'delegation',
+  'members.core': 'core',
+  'households.core': 'core',
+  'groups.core': 'core',
+  'events.core': 'core',
+  'finance.core': 'core',
+  'notifications.core': 'core',
+  'integrations.email': 'core',
+  'rbac.core': 'core',
+  'settings.core': 'core',
+  'dashboard.core': 'core',
+  'reports.core': 'core',
+  'care.plans': 'management',
+  'discipleship.plans': 'management',
+  'notifications.push': 'notification',
+  'integrations.sms': 'integration',
+  'finance.management': 'management',
+  'finance.budgets': 'management',
+  'rbac.management': 'security',
+  'rbac.multi_role': 'security',
+  'rbac.delegation': 'security',
+  'integrations.api': 'integration',
 };
 
-// Feature code to description mapping
+// Feature code to description mapping (updated to new dotted notation)
 const FEATURE_DESCRIPTIONS: Record<string, string> = {
-  'core-foundation': 'Essential platform features required for all deployments',
-  'member-management': 'Complete member lifecycle management and family relationships',
-  'financial-management': 'Comprehensive church financial tracking and reporting',
-  'rbac-security': 'Advanced role-based access control and permission management',
-  'communication-tools': 'Messaging, announcements, and member communication features',
-  'advanced-reporting': 'Enhanced analytics and custom report generation',
-  'multi-campus': 'Features for managing multiple campuses and delegated access',
+  'members.core': 'Member directory, profiles, and basic management',
+  'households.core': 'Track family units and relationships',
+  'groups.core': 'Manage ministry groups and small groups',
+  'events.core': 'Church event planning and calendar management',
+  'finance.core': 'View financial transactions and summaries',
+  'notifications.core': 'In-app notifications and alerts',
+  'integrations.email': 'Basic email sending capabilities',
+  'rbac.core': 'Basic role-based access control viewing',
+  'settings.core': 'Configure tenant-specific settings',
+  'dashboard.core': 'Main administrative dashboard with widgets',
+  'reports.core': 'Basic reporting and export capabilities',
+  'care.plans': 'Pastoral care tracking and follow-up management',
+  'discipleship.plans': 'Spiritual growth tracking and discipleship pathways',
+  'notifications.push': 'Mobile push notifications',
+  'integrations.sms': 'Configure SMS/Twilio for text messaging',
+  'finance.management': 'Full financial transaction management',
+  'finance.budgets': 'Create and manage church budgets',
+  'rbac.management': 'Create and manage roles and permissions',
+  'rbac.multi_role': 'Allow users to have multiple roles simultaneously',
+  'rbac.delegation': 'Delegate roles to other users with scopes',
+  'integrations.api': 'REST API access and webhook integrations',
 };
 
 async function readManifest(): Promise<ManifestFile> {
@@ -197,15 +225,15 @@ async function mapFeaturesToBundles(supabaseUrl: string, supabaseKey: string) {
 
   console.log('\n🔗 Mapping features to license bundles...\n');
 
-  // Define bundle-to-feature mappings
+  // Define bundle-to-feature mappings (bundles map to new dotted feature codes)
   const bundleMappings: Record<string, string[]> = {
-    'core-foundation': ['core-foundation'],
-    'member-management': ['member-management'],
-    'financial-management': ['financial-management'],
-    'rbac-security': ['rbac-security'],
-    'communication-tools': ['communication-tools'],
-    'advanced-reporting': ['advanced-reporting'],
-    'multi-campus': ['multi-campus'],
+    'core-foundation': ['members.core', 'households.core', 'groups.core', 'events.core', 'finance.core', 'notifications.core', 'integrations.email', 'rbac.core', 'settings.core', 'dashboard.core', 'reports.core'],
+    'member-management': ['members.core', 'households.core', 'care.plans', 'discipleship.plans'],
+    'financial-management': ['finance.core', 'finance.management', 'finance.budgets'],
+    'rbac-security': ['rbac.core', 'rbac.management', 'rbac.multi_role', 'rbac.delegation'],
+    'communication-tools': ['notifications.core', 'notifications.push', 'integrations.email', 'integrations.sms'],
+    'advanced-reporting': ['reports.core'],
+    'multi-campus': ['rbac.delegation'],
   };
 
   let mappingCount = 0;

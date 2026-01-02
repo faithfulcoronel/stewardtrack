@@ -62,7 +62,7 @@ interface ProtectedSectionProps {
  * </ProtectedSection>
  *
  * // Protect by feature license
- * <ProtectedSection userId={userId} featureCode="member-management">
+ * <ProtectedSection userId={userId} featureCode="members.core">
  *   <MemberManagement />
  * </ProtectedSection>
  */

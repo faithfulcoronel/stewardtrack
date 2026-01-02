@@ -139,6 +139,57 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
   }
 
   /**
+   * Override update to bypass tenant filtering
+   * feature_catalog is a global/system table with no tenant_id column
+   */
+  async update(
+    id: string,
+    data: Partial<FeatureCatalog>,
+    _relations?: Record<string, string[]>,
+    fieldsToRemove: string[] = []
+  ): Promise<FeatureCatalog> {
+    const supabase = await this.getSupabaseClient();
+
+    // Run pre-update hook
+    let processedData = await this.onBeforeUpdate(id, data);
+
+    // Remove specified fields
+    if (fieldsToRemove.length > 0) {
+      const sanitized = { ...processedData };
+      for (const field of fieldsToRemove) {
+        delete (sanitized as any)[field];
+      }
+      processedData = sanitized;
+    }
+
+    // Update record (NO tenant_id filter - global table)
+    const userId = await this.getUserId();
+    const { data: updated, error: updateError } = await supabase
+      .from(this.tableName)
+      .update({
+        ...processedData,
+        updated_by: userId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(`Failed to update feature: ${updateError.message}`);
+    }
+
+    if (!updated) {
+      throw new Error('Failed to update feature: no data returned');
+    }
+
+    // Run post-update hook
+    await this.onAfterUpdate(updated as FeatureCatalog);
+
+    return updated as FeatureCatalog;
+  }
+
+  /**
    * Hard delete feature catalog entry (no soft delete)
    */
   async hardDeleteFeature(id: string): Promise<void> {

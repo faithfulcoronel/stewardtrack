@@ -7,8 +7,11 @@ import type { IFeatureCatalogRepository } from '@/repositories/featureCatalog.re
 /**
  * GET /api/licensing/features
  * Gets all available features from the feature catalog
+ *
+ * Query params:
+ * - status: 'active' | 'inactive' | 'all' (default: 'active')
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
     const authResult = await authService.requireSuperAdmin();
@@ -20,8 +23,22 @@ export async function GET() {
       );
     }
 
+    // Parse status filter from query params
+    const { searchParams } = new URL(request.url);
+    const statusFilter = searchParams.get('status') || 'active';
+
     const featureCatalogRepository = container.get<IFeatureCatalogRepository>(TYPES.IFeatureCatalogRepository);
-    const features = await featureCatalogRepository.getFeatures({ is_active: true });
+
+    // Build filter based on status param
+    let filters: { is_active?: boolean } = {};
+    if (statusFilter === 'active') {
+      filters.is_active = true;
+    } else if (statusFilter === 'inactive') {
+      filters.is_active = false;
+    }
+    // 'all' means no is_active filter
+
+    const features = await featureCatalogRepository.getFeatures(filters);
 
     const sortedFeatures = [...(features || [])].sort((a, b) => {
       const categoryCompare = (a.category || '').localeCompare(b.category || '');

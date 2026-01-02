@@ -23,7 +23,7 @@ FEATURE: Planning Dashboard
   route="planning/dashboard"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="member-management"
+  featureCode="events.core"
   requiredPermissions="members:view"
   locale="en-US">
 
