@@ -9,7 +9,25 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { svgPaths } from '@/components/landing/svg-paths';
-import type { ProductOffering } from '@/models/productOffering.model';
+import type { ProductOffering, ProductOfferingPrice } from '@/models/productOffering.model';
+import { formatCurrency, SupportedCurrency, PRIMARY_CURRENCY } from '@/lib/currency';
+
+interface OfferingDiscount {
+  offeringId: string;
+  discount: {
+    id: string;
+    code: string;
+    name: string;
+    calculation_type: 'percentage' | 'fixed';
+    discount_value: number;
+    badge_text?: string;
+    banner_text?: string;
+    ends_at?: string;
+  };
+  originalPrice: number;
+  discountedPrice: number;
+  discountAmount: number;
+}
 
 function BackgroundVectors() {
   return (
@@ -66,6 +84,7 @@ function RegisterFormContent() {
   const [isLoadingOffering, setIsLoadingOffering] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [offeringDiscount, setOfferingDiscount] = useState<OfferingDiscount | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -101,6 +120,8 @@ function RegisterFormContent() {
 
       if (result.success && result.data) {
         setSelectedOffering(result.data);
+        // Load discount for this offering
+        await loadDiscount(result.data);
       } else {
         toast.error('Failed to load selected plan');
         router.push('/signup');
@@ -111,6 +132,36 @@ function RegisterFormContent() {
       router.push('/signup');
     } finally {
       setIsLoadingOffering(false);
+    }
+  }
+
+  async function loadDiscount(offering: ProductOffering) {
+    try {
+      const priceInfo = getOfferingPrice(offering);
+      if (!priceInfo || priceInfo.price === 0) return;
+
+      const response = await fetch('/api/licensing/discounts/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: offering.id,
+          amount: priceInfo.price,
+          currency: priceInfo.currency,
+        }),
+      });
+      const result = await response.json();
+
+      if (result.success && result.data.discount) {
+        setOfferingDiscount({
+          offeringId: offering.id,
+          discount: result.data.discount,
+          originalPrice: result.data.originalPrice,
+          discountedPrice: result.data.discountedPrice,
+          discountAmount: result.data.discountAmount,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading discount:', error);
     }
   }
 
@@ -186,8 +237,32 @@ function RegisterFormContent() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Registration successful! Redirecting to onboarding...');
-        router.push('/onboarding');
+        // Check if this is a free/trial offering (no payment required)
+        const isFreeOrTrial = selectedOffering && (
+          selectedOffering.offering_type === 'trial' ||
+          selectedOffering.offering_type === 'free' ||
+          (selectedOffering.metadata as any)?.pricing?.is_free
+        );
+
+        // Also check if price is 0
+        const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
+        const isPriceZero = !priceInfo || priceInfo.price === 0;
+
+        if (isFreeOrTrial || isPriceZero) {
+          // Free/Trial: Go directly to onboarding
+          toast.success('Registration successful! Redirecting to onboarding...');
+          router.push('/onboarding');
+        } else {
+          // Paid plan: Redirect to checkout for payment
+          toast.success('Registration successful! Redirecting to payment...');
+          const checkoutParams = new URLSearchParams({
+            tenant_id: result.data.tenantId,
+            offering_id: offeringId!,
+            email: formData.email,
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
+          });
+          router.push(`/signup/checkout?${checkoutParams.toString()}`);
+        }
       } else {
         toast.error(result.error || 'Registration failed');
       }
@@ -207,19 +282,52 @@ function RegisterFormContent() {
     }
   }
 
+  /**
+   * Get the price for an offering from the prices array.
+   * Falls back to PRIMARY_CURRENCY if no price found.
+   */
+  function getOfferingPrice(offering: ProductOffering): { price: number; currency: string } | null {
+    const anyOffering = offering as any;
+
+    // First try resolved_price from API
+    if (anyOffering.resolved_price !== undefined && anyOffering.resolved_price !== null) {
+      return {
+        price: anyOffering.resolved_price,
+        currency: anyOffering.resolved_currency || PRIMARY_CURRENCY,
+      };
+    }
+
+    // Fall back to prices array
+    const prices: ProductOfferingPrice[] = anyOffering.prices || [];
+    if (prices.length > 0) {
+      // Try to find price in primary currency first
+      const primaryPrice = prices.find(p => p.currency === PRIMARY_CURRENCY && p.is_active);
+      if (primaryPrice) {
+        return { price: primaryPrice.price, currency: primaryPrice.currency };
+      }
+      // Fall back to first active price
+      const firstActivePrice = prices.find(p => p.is_active);
+      if (firstActivePrice) {
+        return { price: firstActivePrice.price, currency: firstActivePrice.currency };
+      }
+    }
+
+    return null;
+  }
+
   function formatPrice(offering: ProductOffering): string {
-    if (!offering.base_price || offering.base_price === 0) {
+    const priceInfo = getOfferingPrice(offering);
+
+    if (!priceInfo || priceInfo.price === 0) {
       return 'Free';
     }
 
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: offering.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
+    return formatCurrency(priceInfo.price, priceInfo.currency as SupportedCurrency);
+  }
 
-    return formatter.format(offering.base_price);
+  function hasPrice(offering: ProductOffering): boolean {
+    const priceInfo = getOfferingPrice(offering);
+    return priceInfo !== null && priceInfo.price > 0;
   }
 
   function getBillingPeriod(offering: ProductOffering): string {
@@ -232,6 +340,10 @@ function RegisterFormContent() {
     };
 
     return periods[offering.billing_cycle] || '';
+  }
+
+  function formatPriceValue(price: number, currency: string): string {
+    return formatCurrency(price, currency as SupportedCurrency);
   }
 
   if (isLoadingOffering) {
@@ -289,16 +401,43 @@ function RegisterFormContent() {
                   {selectedOffering.tier} Plan
                 </h3>
 
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-bold text-white">
-                    {formatPrice(selectedOffering)}
-                  </span>
-                  {selectedOffering.base_price && selectedOffering.base_price > 0 && (
-                    <span className="text-lg text-white/70">
-                      {getBillingPeriod(selectedOffering)}
+                {offeringDiscount ? (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-4xl font-bold text-white">
+                        {formatPriceValue(offeringDiscount.discountedPrice, getOfferingPrice(selectedOffering)?.currency || 'PHP')}
+                      </span>
+                      {hasPrice(selectedOffering) && (
+                        <span className="text-lg text-white/70">
+                          {getBillingPeriod(selectedOffering)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white/50 line-through">
+                        {formatPrice(selectedOffering)}
+                      </span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-gray-900">
+                        {offeringDiscount.discount.badge_text ||
+                          (offeringDiscount.discount.calculation_type === 'percentage'
+                            ? `${offeringDiscount.discount.discount_value}% OFF`
+                            : `Save ${formatPriceValue(offeringDiscount.discountAmount, getOfferingPrice(selectedOffering)?.currency || 'PHP')}`
+                          )}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-4xl font-bold text-white">
+                      {formatPrice(selectedOffering)}
                     </span>
-                  )}
-                </div>
+                    {hasPrice(selectedOffering) && (
+                      <span className="text-lg text-white/70">
+                        {getBillingPeriod(selectedOffering)}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <p className="text-white/80 text-sm mb-6">
                   {selectedOffering.description}
@@ -321,7 +460,7 @@ function RegisterFormContent() {
                     {selectedOffering.offering_type === 'trial' && (
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="size-4 text-green-200" />
-                        30-day trial period
+                        {(selectedOffering.metadata as any)?.trial_days || 14}-day trial period
                       </li>
                     )}
                     <li className="flex items-center gap-2">
@@ -411,7 +550,7 @@ function RegisterFormContent() {
                       <span className="text-lg font-bold text-[#179a65]">
                         {formatPrice(selectedOffering)}
                       </span>
-                      {selectedOffering.base_price && selectedOffering.base_price > 0 && (
+                      {hasPrice(selectedOffering) && (
                         <span className="text-sm text-gray-500">
                           {getBillingPeriod(selectedOffering)}
                         </span>

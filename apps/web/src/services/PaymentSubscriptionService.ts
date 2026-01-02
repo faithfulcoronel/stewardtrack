@@ -4,6 +4,7 @@ import { TYPES } from '@/lib/types';
 import { PaymentService } from './PaymentService';
 import { LicensingService } from './LicensingService';
 import { TenantService } from './TenantService';
+import type { ITenantRepository, SubscriptionUpdateParams } from '@/repositories/tenant.repository';
 
 /**
  * Payment Subscription Service
@@ -28,25 +29,13 @@ export interface SubscriptionStatus {
   payment_failed_count: number;
 }
 
-export interface SubscriptionUpdateParams {
-  subscription_status?: SubscriptionStatus['subscription_status'];
-  subscription_tier?: string;
-  billing_cycle?: 'monthly' | 'annual';
-  subscription_offering_id?: string;
-  subscription_end_date?: string | null;
-  payment_status?: string;
-  last_payment_date?: string | null;
-  next_billing_date?: string | null;
-  xendit_customer_id?: string;
-  xendit_subscription_id?: string;
-}
-
 @injectable()
 export class PaymentSubscriptionService {
   constructor(
     @inject(TYPES.PaymentService) private paymentService: PaymentService,
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
-    @inject(TYPES.TenantService) private tenantService: TenantService
+    @inject(TYPES.TenantService) private tenantService: TenantService,
+    @inject(TYPES.ITenantRepository) private tenantRepository: ITenantRepository
   ) {}
 
   /**
@@ -92,19 +81,7 @@ export class PaymentSubscriptionService {
     tenantId: string,
     updates: SubscriptionUpdateParams
   ): Promise<void> {
-    const supabase = await this.getSupabase();
-
-    const { error } = await supabase
-      .from('tenants')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', tenantId);
-
-    if (error) {
-      throw new Error(`Failed to update subscription: ${error.message}`);
-    }
+    await this.tenantRepository.updateSubscriptionFields(tenantId, updates);
   }
 
   /**
@@ -119,17 +96,11 @@ export class PaymentSubscriptionService {
     offeringId: string,
     paidAt: Date = new Date()
   ): Promise<void> {
-    const supabase = await this.getSupabase();
+    // Get offering details via LicensingService
+    const offering = await this.licensingService.getProductOffering(offeringId);
 
-    // Get offering details
-    const { data: offering, error: offeringError } = await supabase
-      .from('product_offerings')
-      .select('tier, billing_cycle')
-      .eq('id', offeringId)
-      .single();
-
-    if (offeringError) {
-      throw new Error(`Failed to fetch offering: ${offeringError.message}`);
+    if (!offering) {
+      throw new Error(`Failed to fetch offering: ${offeringId}`);
     }
 
     // Calculate next billing date
@@ -144,7 +115,7 @@ export class PaymentSubscriptionService {
     await this.updateSubscription(tenantId, {
       subscription_status: 'active',
       subscription_tier: offering.tier,
-      billing_cycle: offering.billing_cycle,
+      billing_cycle: offering.billing_cycle as 'monthly' | 'annual',
       subscription_offering_id: offeringId,
       payment_status: 'paid',
       last_payment_date: paidAt.toISOString(),
@@ -190,11 +161,7 @@ export class PaymentSubscriptionService {
       });
 
       // Revoke all features immediately
-      const supabase = await this.getSupabase();
-      await supabase
-        .from('tenant_feature_grants')
-        .update({ revoked: true, revoked_at: new Date().toISOString() })
-        .eq('tenant_id', tenantId);
+      await this.tenantRepository.revokeAllFeatureGrants(tenantId);
     } else {
       // Set to cancel at end of billing period
       await this.updateSubscription(tenantId, {
@@ -202,6 +169,35 @@ export class PaymentSubscriptionService {
         subscription_end_date: status.next_billing_date || new Date().toISOString(),
       });
     }
+  }
+
+  /**
+   * Get the price for an offering in the tenant's preferred currency
+   * Falls back to primary currency (PHP) if no price found
+   */
+  private async getOfferingPrice(
+    offeringId: string,
+    preferredCurrency: string = 'PHP'
+  ): Promise<{ price: number; currency: string }> {
+    const prices = await this.licensingService.getOfferingPrices(offeringId);
+
+    if (!prices || prices.length === 0) {
+      return { price: 0, currency: preferredCurrency };
+    }
+
+    // Try to find price in preferred currency
+    const priceInCurrency = prices.find(p => p.currency === preferredCurrency && p.is_active);
+    if (priceInCurrency) {
+      return { price: priceInCurrency.price, currency: priceInCurrency.currency };
+    }
+
+    // Fall back to first active price
+    const firstActivePrice = prices.find(p => p.is_active);
+    if (firstActivePrice) {
+      return { price: firstActivePrice.price, currency: firstActivePrice.currency };
+    }
+
+    return { price: 0, currency: preferredCurrency };
   }
 
   /**
@@ -222,41 +218,39 @@ export class PaymentSubscriptionService {
       throw new Error('No offering specified for reactivation');
     }
 
-    // Create a new payment invoice
-    const supabase = await this.getSupabase();
-    const { data: offering } = await supabase
-      .from('product_offerings')
-      .select('name, base_price')
-      .eq('id', targetOfferingId)
-      .single();
-
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('name')
-      .eq('id', tenantId)
-      .single();
-
-    const { data: adminUser } = await supabase
-      .from('tenant_users')
-      .select('profiles(email, first_name, last_name)')
-      .eq('tenant_id', tenantId)
-      .limit(1)
-      .single();
-
-    if (!offering || !tenant || !adminUser) {
-      throw new Error('Failed to fetch tenant or offering details');
+    // Get offering details via LicensingService
+    const offering = await this.licensingService.getProductOffering(targetOfferingId);
+    if (!offering) {
+      throw new Error('Failed to fetch offering details');
     }
 
-    const profile = (adminUser as any).profiles;
-    const payerName = `${profile.first_name} ${profile.last_name}`.trim();
-    const payerEmail = profile.email;
+    // Get tenant details
+    const tenant = await this.tenantService.getCurrentTenant();
+    if (!tenant) {
+      throw new Error('Failed to fetch tenant details');
+    }
+
+    // Get price for this offering in tenant's preferred currency
+    const tenantCurrency = (tenant as any).preferred_currency || 'PHP';
+    const priceInfo = await this.getOfferingPrice(targetOfferingId, tenantCurrency);
+
+    // Get tenant admin info
+    const adminUser = await this.tenantRepository.getTenantAdmin(tenantId);
+
+    if (!adminUser) {
+      throw new Error('Failed to fetch admin user details');
+    }
+
+    const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
+    const payerEmail = adminUser.email;
 
     // Create payment invoice
     await this.paymentService.createSubscriptionPayment({
       tenantId,
       offeringId: targetOfferingId,
       offeringName: offering.name,
-      amount: offering.base_price,
+      amount: priceInfo.price,
+      currency: priceInfo.currency,
       payerEmail,
       payerName,
       billingCycle: status.billing_cycle || 'monthly',
@@ -277,22 +271,24 @@ export class PaymentSubscriptionService {
     newOfferingId: string,
     prorated: boolean = true
   ): Promise<void> {
-    const supabase = await this.getSupabase();
-
-    // Get current and new offerings
+    // Get current status
     const currentStatus = await this.getSubscriptionStatus(tenantId);
-    const { data: newOffering, error: offeringError } = await supabase
-      .from('product_offerings')
-      .select('*')
-      .eq('id', newOfferingId)
-      .single();
 
-    if (offeringError || !newOffering) {
+    // Get new offering via LicensingService
+    const newOffering = await this.licensingService.getProductOffering(newOfferingId);
+    if (!newOffering) {
       throw new Error('Invalid offering ID');
     }
 
+    // Get tenant for preferred currency
+    const tenant = await this.tenantService.getCurrentTenant();
+    const tenantCurrency = (tenant as any)?.preferred_currency || 'PHP';
+
+    // Get price for new offering
+    const priceInfo = await this.getOfferingPrice(newOfferingId, tenantCurrency);
+
     // Calculate prorated amount if applicable
-    let paymentAmount = newOffering.base_price;
+    let paymentAmount = priceInfo.price;
 
     if (prorated && currentStatus.next_billing_date) {
       const now = new Date();
@@ -300,38 +296,32 @@ export class PaymentSubscriptionService {
       const daysRemaining = Math.ceil(
         (nextBilling.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
       );
-      const totalDays =
-        newOffering.billing_cycle === 'monthly' ? 30 : 365;
+      const totalDays = newOffering.billing_cycle === 'monthly' ? 30 : 365;
 
       // Prorate based on remaining days
-      paymentAmount = (newOffering.base_price * daysRemaining) / totalDays;
+      paymentAmount = (priceInfo.price * daysRemaining) / totalDays;
     }
 
     // Get tenant admin for payment
-    const { data: adminUser } = await supabase
-      .from('tenant_users')
-      .select('profiles(email, first_name, last_name)')
-      .eq('tenant_id', tenantId)
-      .limit(1)
-      .single();
+    const adminUser = await this.tenantRepository.getTenantAdmin(tenantId);
 
     if (!adminUser) {
       throw new Error('No admin user found for tenant');
     }
 
-    const profile = (adminUser as any).profiles;
-    const payerName = `${profile.first_name} ${profile.last_name}`.trim();
-    const payerEmail = profile.email;
+    const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
+    const payerEmail = adminUser.email;
 
     // Create payment for new plan
-    const { invoice } = await this.paymentService.createSubscriptionPayment({
+    await this.paymentService.createSubscriptionPayment({
       tenantId,
       offeringId: newOfferingId,
       offeringName: newOffering.name,
       amount: paymentAmount,
+      currency: priceInfo.currency,
       payerEmail,
       payerName,
-      billingCycle: newOffering.billing_cycle,
+      billingCycle: newOffering.billing_cycle || 'monthly',
       successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/admin/billing/success`,
       failureUrl: `${process.env.NEXT_PUBLIC_APP_URL}/admin/billing/failed`,
     });
@@ -375,34 +365,36 @@ export class PaymentSubscriptionService {
       throw new Error('No active offering for renewal');
     }
 
-    const supabase = await this.getSupabase();
-    const { data: offering } = await supabase
-      .from('product_offerings')
-      .select('name, base_price')
-      .eq('id', status.subscription_offering_id)
-      .single();
-
-    const { data: adminUser } = await supabase
-      .from('tenant_users')
-      .select('profiles(email, first_name, last_name)')
-      .eq('tenant_id', tenantId)
-      .limit(1)
-      .single();
-
-    if (!offering || !adminUser) {
-      throw new Error('Failed to fetch renewal details');
+    // Get offering via LicensingService
+    const offering = await this.licensingService.getProductOffering(status.subscription_offering_id);
+    if (!offering) {
+      throw new Error('Failed to fetch offering details');
     }
 
-    const profile = (adminUser as any).profiles;
-    const payerName = `${profile.first_name} ${profile.last_name}`.trim();
-    const payerEmail = profile.email;
+    // Get tenant for preferred currency
+    const tenant = await this.tenantService.getCurrentTenant();
+    const tenantCurrency = (tenant as any)?.preferred_currency || 'PHP';
+
+    // Get price for this offering
+    const priceInfo = await this.getOfferingPrice(status.subscription_offering_id, tenantCurrency);
+
+    // Get tenant admin info
+    const adminUser = await this.tenantRepository.getTenantAdmin(tenantId);
+
+    if (!adminUser) {
+      throw new Error('Failed to fetch admin user details');
+    }
+
+    const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
+    const payerEmail = adminUser.email;
 
     // Create renewal payment
     await this.paymentService.createSubscriptionPayment({
       tenantId,
       offeringId: status.subscription_offering_id,
       offeringName: offering.name,
-      amount: offering.base_price,
+      amount: priceInfo.price,
+      currency: priceInfo.currency,
       payerEmail,
       payerName,
       billingCycle: status.billing_cycle || 'monthly',
@@ -421,28 +413,19 @@ export class PaymentSubscriptionService {
     tenantId: string,
     failureReason: string
   ): Promise<void> {
-    const supabase = await this.getSupabase();
+    // Get current failure count
+    const currentFailureCount = await this.tenantRepository.getPaymentFailedCount(tenantId);
+    const newFailureCount = currentFailureCount + 1;
 
-    // Increment failure count
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('payment_failed_count')
-      .eq('id', tenantId)
-      .single();
-
-    const failureCount = (tenant?.payment_failed_count || 0) + 1;
-
-    await supabase
-      .from('tenants')
-      .update({
-        payment_failed_count: failureCount,
-        payment_failure_reason: failureReason,
-        payment_status: 'failed',
-      })
-      .eq('id', tenantId);
+    // Update tenant with new failure count
+    await this.tenantRepository.updateSubscriptionFields(tenantId, {
+      payment_failed_count: newFailureCount,
+      payment_failure_reason: failureReason,
+      payment_status: 'failed',
+    });
 
     // Suspend after 3 failed attempts
-    if (failureCount >= 3) {
+    if (newFailureCount >= 3) {
       await this.suspendSubscription(tenantId, 'Multiple payment failures');
     }
 

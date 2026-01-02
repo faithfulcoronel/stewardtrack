@@ -2,11 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, Loader2, Sparkles, Shield, Clock, Users } from 'lucide-react';
+import { Check, Loader2, Sparkles, Shield, Clock, Users, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { svgPaths } from '@/components/landing/svg-paths';
-import type { ProductOfferingWithFeatures } from '@/models/productOffering.model';
+import type { ProductOfferingWithFeatures, ProductOfferingPrice } from '@/models/productOffering.model';
+import type { ActiveDiscount } from '@/models/discount.model';
+
+interface OfferingDiscount {
+  offeringId: string;
+  discount: ActiveDiscount;
+  originalPrice: number;
+  discountedPrice: number;
+  discountAmount: number;
+}
 
 function BackgroundVectors() {
   return (
@@ -81,9 +90,32 @@ function BackgroundVectors() {
 
 export default function SignupPage() {
   const router = useRouter();
-  const [offerings, setOfferings] = useState<ProductOfferingWithFeatures[]>([]);
+  const [allOfferings, setAllOfferings] = useState<ProductOfferingWithFeatures[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectingId, setSelectingId] = useState<string | null>(null);
+  const [offeringDiscounts, setOfferingDiscounts] = useState<Record<string, OfferingDiscount>>({});
+  const [activeBanner, setActiveBanner] = useState<{ text: string; endsAt: string | null } | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
+  // Find trial offering (for "Start Free Trial" CTA on paid tiers)
+  const trialOffering = allOfferings.find(o => o.offering_type === 'trial');
+  const trialDays = (trialOffering?.metadata as any)?.trial_days || 14;
+
+  // Filter offerings based on selected billing cycle
+  // Note: Trial offerings are NOT shown as separate cards - trials are a CTA option on paid tiers
+  const offerings = allOfferings.filter(o => {
+    // Don't show trial offerings as separate cards (trials are handled via CTA on paid tiers)
+    if (o.offering_type === 'trial') return false;
+    // Always show free offerings (Essential tier)
+    if (o.offering_type === 'free' || (o.metadata as any)?.pricing?.is_free) return true;
+    // Show offerings matching the selected billing cycle
+    return o.billing_cycle === billingCycle;
+  });
+
+  // Check if a tier has a trial available
+  const hasTrial = (tier: string) => {
+    return trialOffering && trialOffering.tier === tier;
+  };
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -112,32 +144,10 @@ export default function SignupPage() {
 
       if (result.success) {
         const activeOfferings = result.data.filter((o: ProductOfferingWithFeatures) => o.is_active);
+        setAllOfferings(activeOfferings);
 
-        // Group by tier and sort
-        const grouped = activeOfferings.reduce((acc: Record<string, ProductOfferingWithFeatures[]>, offering: ProductOfferingWithFeatures) => {
-          if (!acc[offering.tier]) {
-            acc[offering.tier] = [];
-          }
-          acc[offering.tier].push(offering);
-          return acc;
-        }, {});
-
-        // Sort offerings within each tier by billing cycle
-        Object.keys(grouped).forEach(tier => {
-          grouped[tier].sort((a: ProductOfferingWithFeatures, b: ProductOfferingWithFeatures) => {
-            const cycleOrder = { 'trial': 0, 'monthly': 1, 'annual': 2, 'lifetime': 3 };
-            const aOrder = cycleOrder[a.billing_cycle as keyof typeof cycleOrder] ?? 99;
-            const bOrder = cycleOrder[b.billing_cycle as keyof typeof cycleOrder] ?? 99;
-            return aOrder - bOrder;
-          });
-        });
-
-        // Flatten and display (show one offering per tier, preferring featured)
-        const displayOfferings = Object.values(grouped).map((tierOfferings) => {
-          return tierOfferings.find((o: ProductOfferingWithFeatures) => o.is_featured) || tierOfferings[0];
-        });
-
-        setOfferings(displayOfferings);
+        // Load discounts for all offerings
+        await loadDiscountsForOfferings(activeOfferings);
       } else {
         toast.error(result.error || 'Failed to load pricing plans');
       }
@@ -149,24 +159,108 @@ export default function SignupPage() {
     }
   }
 
+  async function loadDiscountsForOfferings(offerings: ProductOfferingWithFeatures[]) {
+    const discountMap: Record<string, OfferingDiscount> = {};
+    let bannerDiscount: { text: string; endsAt: string | null } | null = null;
+
+    for (const offering of offerings) {
+      try {
+        const priceInfo = getOfferingPriceRaw(offering);
+        if (!priceInfo || priceInfo.price === 0) continue;
+
+        const response = await fetch(
+          `/api/licensing/discounts/apply`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              offeringId: offering.id,
+              amount: priceInfo.price,
+              currency: priceInfo.currency,
+            }),
+          }
+        );
+        const result = await response.json();
+
+        if (result.success && result.data.discount) {
+          discountMap[offering.id] = {
+            offeringId: offering.id,
+            discount: result.data.discount,
+            originalPrice: result.data.originalPrice,
+            discountedPrice: result.data.discountedPrice,
+            discountAmount: result.data.discountAmount,
+          };
+
+          // Check for banner text
+          if (result.data.discount.banner_text && !bannerDiscount) {
+            bannerDiscount = {
+              text: result.data.discount.banner_text,
+              endsAt: result.data.discount.ends_at,
+            };
+          }
+        }
+      } catch (error) {
+        console.error(`Error loading discount for offering ${offering.id}:`, error);
+      }
+    }
+
+    setOfferingDiscounts(discountMap);
+    if (bannerDiscount) {
+      setActiveBanner(bannerDiscount);
+    }
+  }
+
+  function getOfferingPriceRaw(offering: ProductOfferingWithFeatures): { price: number; currency: string } | null {
+    const prices = (offering as any).prices as ProductOfferingPrice[] | undefined;
+    if (!prices || prices.length === 0) return null;
+
+    const phpPrice = prices.find(p => p.currency === 'PHP' && p.is_active);
+    if (phpPrice) return { price: phpPrice.price, currency: phpPrice.currency };
+
+    const firstActive = prices.find(p => p.is_active);
+    if (firstActive) return { price: firstActive.price, currency: firstActive.currency };
+
+    return null;
+  }
+
   function handleSelectPlan(offeringId: string) {
     setSelectingId(offeringId);
     router.push(`/signup/register?offering=${offeringId}`);
   }
 
+  function getOfferingPrice(offering: ProductOfferingWithFeatures): { price: number; currency: string } | null {
+    const prices = (offering as any).prices as ProductOfferingPrice[] | undefined;
+    if (!prices || prices.length === 0) return null;
+
+    // Prefer PHP (primary currency), then first active price
+    const phpPrice = prices.find(p => p.currency === 'PHP' && p.is_active);
+    if (phpPrice) return { price: phpPrice.price, currency: phpPrice.currency };
+
+    const firstActive = prices.find(p => p.is_active);
+    if (firstActive) return { price: firstActive.price, currency: firstActive.currency };
+
+    return null;
+  }
+
   function formatPrice(offering: ProductOfferingWithFeatures): string {
-    if (!offering.base_price || offering.base_price === 0) {
+    const priceInfo = getOfferingPrice(offering);
+    if (!priceInfo || priceInfo.price === 0) {
       return 'Free';
     }
 
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: offering.currency || 'USD',
+      currency: priceInfo.currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
 
-    return formatter.format(offering.base_price);
+    return formatter.format(priceInfo.price);
+  }
+
+  function hasPrice(offering: ProductOfferingWithFeatures): boolean {
+    const priceInfo = getOfferingPrice(offering);
+    return priceInfo !== null && priceInfo.price > 0;
   }
 
   function getBillingPeriod(offering: ProductOfferingWithFeatures): string {
@@ -181,7 +275,20 @@ export default function SignupPage() {
     return periods[offering.billing_cycle] || '';
   }
 
-  const tierOrder = ['starter', 'professional', 'enterprise', 'custom'];
+  function formatPriceValue(price: number, currency: string): string {
+    if (price === 0) return 'Free';
+
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+
+    return formatter.format(price);
+  }
+
+  const tierOrder = ['essential', 'premium', 'professional', 'enterprise', 'custom'];
   const sortedOfferings = [...offerings].sort((a, b) => {
     return tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier);
   });
@@ -202,6 +309,18 @@ export default function SignupPage() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12 md:mb-16"
         >
+          {activeBanner && (
+            <div className="inline-flex items-center gap-2 rounded-full bg-yellow-400 backdrop-blur-sm px-4 py-2 text-sm font-bold text-gray-900 mb-4 shadow-lg animate-pulse">
+              <Tag className="h-4 w-4" />
+              {activeBanner.text}
+              {activeBanner.endsAt && (
+                <span className="text-xs font-normal ml-2">
+                  Ends {new Date(activeBanner.endsAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-white mb-6">
             <span className="size-2 rounded-full bg-white animate-pulse" />
             14-Day Free Trial &bull; No Credit Card Required
@@ -210,9 +329,38 @@ export default function SignupPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-white">
             Choose Your Plan
           </h1>
-          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-8">
             Start managing your church more effectively today. Join 500+ churches already saving time.
           </p>
+
+          {/* Billing Cycle Toggle */}
+          <div className="flex items-center justify-center">
+            <div className="inline-flex items-center bg-white/10 backdrop-blur-sm border border-white/20 rounded-full p-1">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white text-[#179a65] shadow-lg'
+                    : 'text-white hover:text-white/80'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('annual')}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  billingCycle === 'annual'
+                    ? 'bg-white text-[#179a65] shadow-lg'
+                    : 'text-white hover:text-white/80'
+                }`}
+              >
+                Annual
+                <span className="ml-2 text-xs bg-yellow-400 text-gray-900 px-2 py-0.5 rounded-full font-bold">
+                  Save 25%+
+                </span>
+              </button>
+            </div>
+          </div>
         </motion.div>
 
         {isLoading ? (
@@ -224,7 +372,7 @@ export default function SignupPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto"
           >
             {sortedOfferings.map((offering, index) => (
               <motion.div
@@ -261,16 +409,45 @@ export default function SignupPage() {
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">
-                      {formatPrice(offering)}
-                    </span>
-                    {offering.base_price && offering.base_price > 0 && (
-                      <span className={`text-sm ${offering.is_featured ? 'text-gray-400' : 'text-white/70'}`}>
-                        {getBillingPeriod(offering)}
+                  {offeringDiscounts[offering.id] ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-4xl font-bold">
+                          {formatPriceValue(offeringDiscounts[offering.id].discountedPrice, getOfferingPriceRaw(offering)?.currency || 'PHP')}
+                        </span>
+                        {hasPrice(offering) && (
+                          <span className={`text-sm ${offering.is_featured ? 'text-gray-400' : 'text-white/70'}`}>
+                            {getBillingPeriod(offering)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-lg line-through ${offering.is_featured ? 'text-gray-400' : 'text-white/50'}`}>
+                          {formatPrice(offering)}
+                        </span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          offering.is_featured ? 'bg-red-100 text-red-600' : 'bg-yellow-400 text-gray-900'
+                        }`}>
+                          {offeringDiscounts[offering.id].discount.badge_text ||
+                           (offeringDiscounts[offering.id].discount.calculation_type === 'percentage'
+                             ? `${offeringDiscounts[offering.id].discount.discount_value}% OFF`
+                             : `Save ${formatPriceValue(offeringDiscounts[offering.id].discountAmount, getOfferingPriceRaw(offering)?.currency || 'PHP')}`
+                           )}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold">
+                        {formatPrice(offering)}
                       </span>
-                    )}
-                  </div>
+                      {hasPrice(offering) && (
+                        <span className={`text-sm ${offering.is_featured ? 'text-gray-400' : 'text-white/70'}`}>
+                          {getBillingPeriod(offering)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-1 mb-6">
@@ -305,24 +482,68 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                <button
-                  className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
-                    offering.is_featured
-                      ? 'bg-[#179a65] text-white hover:bg-green-600 shadow-lg'
-                      : 'bg-white text-[#179a65] hover:bg-gray-50'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  disabled={selectingId !== null}
-                  onClick={() => handleSelectPlan(offering.id)}
-                >
-                  {selectingId === offering.id ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Selecting...
-                    </span>
-                  ) : (
-                    'Choose Plan'
-                  )}
-                </button>
+                {/* CTA Buttons */}
+                {hasTrial(offering.tier) ? (
+                  <div className="space-y-2">
+                    {/* Primary: Start Free Trial */}
+                    <button
+                      className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
+                        offering.is_featured
+                          ? 'bg-[#179a65] text-white hover:bg-green-600 shadow-lg'
+                          : 'bg-white text-[#179a65] hover:bg-gray-50'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      disabled={selectingId !== null}
+                      onClick={() => handleSelectPlan(trialOffering!.id)}
+                    >
+                      {selectingId === trialOffering?.id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Starting Trial...
+                        </span>
+                      ) : (
+                        `Start ${trialDays}-Day Free Trial`
+                      )}
+                    </button>
+                    {/* Secondary: Subscribe directly */}
+                    <button
+                      className={`w-full py-2 px-6 rounded-xl text-xs font-medium transition-all ${
+                        offering.is_featured
+                          ? 'text-gray-500 hover:text-[#179a65] hover:bg-gray-50'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      disabled={selectingId !== null}
+                      onClick={() => handleSelectPlan(offering.id)}
+                    >
+                      {selectingId === offering.id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing...
+                        </span>
+                      ) : (
+                        'or Subscribe Now'
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
+                      offering.is_featured
+                        ? 'bg-[#179a65] text-white hover:bg-green-600 shadow-lg'
+                        : 'bg-white text-[#179a65] hover:bg-gray-50'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    disabled={selectingId !== null}
+                    onClick={() => handleSelectPlan(offering.id)}
+                  >
+                    {selectingId === offering.id ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Selecting...
+                      </span>
+                    ) : (
+                      (offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Choose Plan'
+                    )}
+                  </button>
+                )}
               </motion.div>
             ))}
           </motion.div>

@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Plus, Save, Search } from 'lucide-react';
+import { Loader2, Plus, Save, Search, Globe } from 'lucide-react';
+import { CurrencyPricingModal, type CurrencyPrice } from './CurrencyPricingModal';
 import { toast } from 'sonner';
 import { type ProductOfferingComplete, type CreateProductOfferingDto } from '@/models/productOffering.model';
 import { type LicenseFeatureBundleWithFeatures } from '@/models/licenseFeatureBundle.model';
@@ -23,6 +24,10 @@ import {
   ProductOfferingTypeLabels,
 } from '@/enums/licensing.enums';
 import { getEnumValues } from '@/enums/helpers';
+import {
+  type SupportedCurrency,
+} from '@/lib/currency';
+import type { ProductOfferingPrice } from '@/models/productOffering.model';
 
 const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   code: '',
@@ -31,8 +36,6 @@ const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   offering_type: ProductOfferingType.SUBSCRIPTION,
   tier: LicenseTier.ESSENTIAL,
   billing_cycle: 'monthly',
-  base_price: 0,
-  currency: 'USD',
   max_users: null,
   max_tenants: 1,
   is_active: true,
@@ -58,6 +61,10 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
   const [bundleSearch, setBundleSearch] = useState('');
   const [featureSearch, setFeatureSearch] = useState('');
+
+  // Multi-currency pricing state
+  const [currencyPrices, setCurrencyPrices] = useState<CurrencyPrice[]>([]);
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
 
   const [isLoadingBundles, setIsLoadingBundles] = useState(false);
   const [isLoadingFeatures, setIsLoadingFeatures] = useState(false);
@@ -140,8 +147,6 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
         billing_cycle: typeof offering.billing_cycle === 'string'
           ? offering.billing_cycle.toLowerCase() as CreateProductOfferingDto['billing_cycle']
           : null,
-        base_price: offering.base_price ?? null,
-        currency: (offering.currency ?? 'USD')?.toUpperCase(),
         max_users: offering.max_users ?? null,
         max_tenants: offering.max_tenants ?? null,
         is_active: offering.is_active,
@@ -151,6 +156,19 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
 
       setSelectedBundleIds((offering.bundles ?? []).map((bundle) => bundle.id));
       setSelectedFeatureIds((offering.features ?? []).map((feature) => feature.id));
+
+      // Load currency prices if available
+      if ((offering as any).prices && Array.isArray((offering as any).prices)) {
+        const prices = (offering as any).prices as ProductOfferingPrice[];
+        setCurrencyPrices(
+          prices.map((p) => ({
+            id: p.id,
+            currency: p.currency as SupportedCurrency,
+            price: p.price,
+            is_active: p.is_active,
+          }))
+        );
+      }
     } catch (error) {
       console.error('Error loading product offering:', error);
       toast.error('Failed to load product offering details');
@@ -240,13 +258,13 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     });
   };
 
-  const handleNumberChange = (field: 'base_price' | 'max_users' | 'max_tenants' | 'sort_order', value: string) => {
+  const handleNumberChange = (field: 'max_users' | 'max_tenants' | 'sort_order', value: string) => {
     if (value === '') {
       handleFieldChange(field, null as never);
       return;
     }
 
-    const parsed = field === 'base_price' ? parseFloat(value) : parseInt(value, 10);
+    const parsed = parseInt(value, 10);
     if (Number.isNaN(parsed)) {
       return;
     }
@@ -381,7 +399,6 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
 
     const payload = {
       ...formData,
-      base_price: formData.base_price ?? null,
       max_users: formData.max_users ?? null,
       max_tenants: formData.max_tenants ?? null,
       sort_order: formData.sort_order ?? 0,
@@ -537,26 +554,29 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Multi-Currency Pricing */}
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
                   <div>
-                    <Label htmlFor="base_price">Base Price (USD)</Label>
-                    <Input
-                      id="base_price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.base_price ?? ''}
-                      onChange={(event) => handleNumberChange('base_price', event.target.value)}
-                    />
+                    <Label className="text-sm font-medium">Multi-Currency Pricing</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Configure pricing for different currencies and regions
+                    </p>
                   </div>
-                  <div>
-                    <Label htmlFor="currency">Currency</Label>
-                    <Input
-                      id="currency"
-                      value={formData.currency ?? 'USD'}
-                      onChange={(event) => handleFieldChange('currency', event.target.value.toUpperCase())}
-                      maxLength={3}
-                    />
+                  <div className="flex items-center gap-2">
+                    {currencyPrices.length > 0 && (
+                      <Badge variant="secondary">
+                        {currencyPrices.length} {currencyPrices.length === 1 ? 'currency' : 'currencies'}
+                      </Badge>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCurrencyModal(true)}
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      {currencyPrices.length > 0 ? 'Manage' : 'Configure'}
+                    </Button>
                   </div>
                 </div>
 
@@ -827,6 +847,16 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
           </form>
         </CardContent>
       </Card>
+
+      {/* Multi-Currency Pricing Modal */}
+      <CurrencyPricingModal
+        open={showCurrencyModal}
+        onOpenChange={setShowCurrencyModal}
+        offeringId={offeringId}
+        offeringName={formData.name || 'Product Offering'}
+        initialPrices={currencyPrices}
+        onSave={(prices) => setCurrencyPrices(prices)}
+      />
     </div>
   );
 }

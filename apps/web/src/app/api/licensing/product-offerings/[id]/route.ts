@@ -105,9 +105,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Load currency prices for complete view
+    let prices: any[] = [];
+    if (complete) {
+      try {
+        prices = await licensingService.getOfferingPrices(id);
+      } catch (error) {
+        console.error('Error loading prices:', error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      data: offering,
+      data: {
+        ...offering,
+        ...(complete ? { prices } : {}),
+      },
     });
   } catch (error) {
     console.error('Error fetching product offering:', error);

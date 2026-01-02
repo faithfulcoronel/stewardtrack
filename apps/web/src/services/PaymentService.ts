@@ -14,17 +14,30 @@ import type { SubscriptionPayment } from '@/models/subscriptionPayment.model';
  * Architecture: Service → Repository → Adapter → Supabase
  */
 
+export interface DiscountInfo {
+  discount_id: string;
+  discount_code?: string;
+  discount_name: string;
+  discount_type: 'coupon' | 'automatic';
+  calculation_type: 'percentage' | 'fixed_amount';
+  discount_value: number;
+  discount_amount: number;
+  original_price: number;
+}
+
 export interface CreatePaymentParams {
   tenantId: string;
   offeringId: string;
   offeringName: string;
   amount: number;
+  currency?: string;
   payerEmail: string;
   payerName: string;
-  billingCycle: 'monthly' | 'annual';
+  billingCycle: 'monthly' | 'annual' | 'lifetime';
   successUrl: string;
   failureUrl: string;
   externalId?: string;
+  discount?: DiscountInfo;
 }
 
 @injectable()
@@ -51,6 +64,27 @@ export class PaymentService {
       externalId: params.externalId,
     });
 
+    // Build metadata including discount info if present
+    const paymentMetadata: Record<string, any> = {
+      offering_name: params.offeringName,
+      billing_cycle: params.billingCycle,
+      payer_name: params.payerName,
+    };
+
+    // Add discount information to metadata for tracking
+    if (params.discount) {
+      paymentMetadata.discount = {
+        discount_id: params.discount.discount_id,
+        discount_code: params.discount.discount_code,
+        discount_name: params.discount.discount_name,
+        discount_type: params.discount.discount_type,
+        calculation_type: params.discount.calculation_type,
+        discount_value: params.discount.discount_value,
+        discount_amount: params.discount.discount_amount,
+        original_price: params.discount.original_price,
+      };
+    }
+
     // Store payment record via repository
     const payment = await this.paymentRepository.createPayment({
       tenant_id: params.tenantId,
@@ -64,11 +98,7 @@ export class PaymentService {
       payer_email: params.payerEmail,
       description: invoice.description,
       expired_at: invoice.expiry_date,
-      metadata: {
-        offering_name: params.offeringName,
-        billing_cycle: params.billingCycle,
-        payer_name: params.payerName,
-      },
+      metadata: paymentMetadata,
     });
 
     return { invoice, payment };

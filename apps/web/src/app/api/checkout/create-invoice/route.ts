@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { PaymentService } from '@/services/PaymentService';
+import { LicensingService } from '@/services/LicensingService';
+import { PRIMARY_CURRENCY } from '@/lib/currency';
 
 /**
  * POST /api/checkout/create-invoice
@@ -14,6 +16,7 @@ import { PaymentService } from '@/services/PaymentService';
  * - offeringId: string
  * - payerEmail: string
  * - payerName: string
+ * - currency?: string (optional, defaults to PHP)
  *
  * Returns:
  * - invoice_url: string (Xendit payment page URL)
@@ -24,7 +27,7 @@ import { PaymentService } from '@/services/PaymentService';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { tenantId, offeringId, payerEmail, payerName } = body;
+    const { tenantId, offeringId, payerEmail, payerName, currency: requestedCurrency } = body;
 
     // Validate required fields
     if (!tenantId || !offeringId || !payerEmail || !payerName) {
@@ -34,8 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get payment service from DI container
+    // Get services from DI container
     const paymentService = container.get<PaymentService>(TYPES.PaymentService);
+    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
 
     // Check if Xendit is configured
     if (!paymentService.isConfigured()) {
@@ -45,21 +49,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get offering details
-    const { createSupabaseServerClient } = await import('@/lib/supabase/server');
-    const supabase = await createSupabaseServerClient();
-
-    const { data: offering, error: offeringError }:any = await supabase
-      .from('product_offerings')
-      .select('*')
-      .eq('id', offeringId)
-      .single();
-
-    if (offeringError || !offering) {
+    // Get offering details via LicensingService
+    const offering = await licensingService.getProductOffering(offeringId);
+    if (!offering) {
       return NextResponse.json(
         { error: 'Invalid offering ID' },
         { status: 404 }
       );
+    }
+
+    // Get prices for this offering
+    const prices = await licensingService.getOfferingPrices(offeringId);
+    const preferredCurrency = requestedCurrency || PRIMARY_CURRENCY;
+
+    // Find price in requested currency, fall back to primary currency or first available
+    let priceInfo: { price: number; currency: string } = { price: 0, currency: preferredCurrency };
+
+    if (prices && prices.length > 0) {
+      const priceInCurrency = prices.find(p => p.currency === preferredCurrency && p.is_active);
+      if (priceInCurrency) {
+        priceInfo = { price: priceInCurrency.price, currency: priceInCurrency.currency };
+      } else {
+        const primaryPrice = prices.find(p => p.currency === PRIMARY_CURRENCY && p.is_active);
+        if (primaryPrice) {
+          priceInfo = { price: primaryPrice.price, currency: primaryPrice.currency };
+        } else {
+          const firstActivePrice = prices.find(p => p.is_active);
+          if (firstActivePrice) {
+            priceInfo = { price: firstActivePrice.price, currency: firstActivePrice.currency };
+          }
+        }
+      }
     }
 
     // Generate external ID for payment tracking
@@ -75,10 +95,11 @@ export async function POST(request: NextRequest) {
       tenantId,
       offeringId: offering.id,
       offeringName: offering.name,
-      amount: offering.base_price,
+      amount: priceInfo.price,
+      currency: priceInfo.currency,
       payerEmail,
       payerName,
-      billingCycle: offering.billing_cycle,
+      billingCycle: offering.billing_cycle || 'monthly',
       successUrl,
       failureUrl,
       externalId,

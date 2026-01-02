@@ -59,7 +59,6 @@ export interface SubscriptionPaymentWithOffering extends SubscriptionPayment {
     id: string;
     name: string;
     tier: string;
-    base_price: number;
     billing_cycle: string;
   };
 }
@@ -77,7 +76,6 @@ export interface SubscriptionPaymentComplete extends SubscriptionPayment {
     id: string;
     name: string;
     tier: string;
-    base_price: number;
     billing_cycle: string;
   };
 }

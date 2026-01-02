@@ -195,7 +195,6 @@ export class SubscriptionPaymentAdapter
           id,
           name,
           tier,
-          base_price,
           billing_cycle
         )
       `)
@@ -229,7 +228,6 @@ export class SubscriptionPaymentAdapter
           id,
           name,
           tier,
-          base_price,
           billing_cycle
         )
       `)

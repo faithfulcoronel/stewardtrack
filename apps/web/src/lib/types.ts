@@ -85,6 +85,7 @@ export const TYPES = {
 
   // Licensing Adapters
   IProductOfferingAdapter: Symbol.for('IProductOfferingAdapter'),
+  IProductOfferingPriceAdapter: Symbol.for('IProductOfferingPriceAdapter'),
   ILicenseFeatureBundleAdapter: Symbol.for('ILicenseFeatureBundleAdapter'),
   ILicenseAssignmentAdapter: Symbol.for('ILicenseAssignmentAdapter'),
   IFeaturePermissionAdapter: Symbol.for('IFeaturePermissionAdapter'),
@@ -103,6 +104,7 @@ export const TYPES = {
 
   // Licensing Repositories
   IProductOfferingRepository: Symbol.for('IProductOfferingRepository'),
+  IProductOfferingPriceRepository: Symbol.for('IProductOfferingPriceRepository'),
   ILicenseFeatureBundleRepository: Symbol.for('ILicenseFeatureBundleRepository'),
   ILicenseAssignmentRepository: Symbol.for('ILicenseAssignmentRepository'),
   IFeaturePermissionRepository: Symbol.for('IFeaturePermissionRepository'),
@@ -263,6 +265,11 @@ export const TYPES = {
   IAdminDashboardAdapter: Symbol.for('IAdminDashboardAdapter'),
   IAdminDashboardRepository: Symbol.for('IAdminDashboardRepository'),
   AdminDashboardService: Symbol.for('AdminDashboardService'),
+
+  // Discount System
+  IDiscountAdapter: Symbol.for('IDiscountAdapter'),
+  IDiscountRepository: Symbol.for('IDiscountRepository'),
+  DiscountService: Symbol.for('DiscountService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

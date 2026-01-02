@@ -14,7 +14,6 @@ export interface PublicProductOffering {
   code: string;
   name: string;
   description?: string | null;
-  base_price?: number | null;
   billing_cycle?: string | null;
   metadata?: Record<string, unknown> | null;
 }
@@ -25,6 +24,28 @@ export interface TenantUserData {
   role: string;
   admin_role?: string | null;
   created_by: string;
+}
+
+export interface SubscriptionUpdateParams {
+  subscription_status?: 'active' | 'inactive' | 'suspended' | 'cancelled' | 'trialing';
+  subscription_tier?: string;
+  billing_cycle?: 'monthly' | 'annual';
+  subscription_offering_id?: string;
+  subscription_end_date?: string | null;
+  payment_status?: string;
+  last_payment_date?: string | null;
+  next_billing_date?: string | null;
+  xendit_customer_id?: string;
+  xendit_subscription_id?: string;
+  payment_failed_count?: number;
+  payment_failure_reason?: string;
+}
+
+export interface TenantAdminInfo {
+  user_id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface ITenantAdapter extends IBaseAdapter<Tenant> {
@@ -43,6 +64,12 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   deleteTenantWithServiceRole(tenantId: string): Promise<void>;
   fetchPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
   getTenantStatus(tenantId: string): Promise<any>;
+
+  // Subscription management methods
+  updateSubscriptionFields(tenantId: string, updates: SubscriptionUpdateParams): Promise<void>;
+  getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
+  revokeAllFeatureGrants(tenantId: string): Promise<void>;
+  getPaymentFailedCount(tenantId: string): Promise<number>;
 }
 
 @injectable()
@@ -359,5 +386,112 @@ export class TenantAdapter
         error: fgError?.message
       }
     };
+  }
+
+  // ==================== SUBSCRIPTION MANAGEMENT METHODS ====================
+
+  /**
+   * Update subscription-related fields for a tenant
+   */
+  async updateSubscriptionFields(tenantId: string, updates: SubscriptionUpdateParams): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    const { error } = await supabase
+      .from('tenants')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', tenantId);
+
+    if (error) {
+      throw new Error(`Failed to update subscription: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the admin user for a tenant (first tenant_user with user info)
+   */
+  async getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('tenant_users')
+      .select(`
+        user_id,
+        user:users (
+          id,
+          email,
+          first_name,
+          last_name
+        )
+      `)
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw new Error(`Failed to fetch tenant admin: ${error.message}`);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Handle case where user might be an array (type-safe)
+    const user = Array.isArray((data as any).user) ? (data as any).user[0] : (data as any).user;
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      user_id: data.user_id,
+      email: user.email || '',
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+    };
+  }
+
+  /**
+   * Revoke all feature grants for a tenant (used when canceling subscription)
+   */
+  async revokeAllFeatureGrants(tenantId: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    const { error } = await supabase
+      .from('tenant_feature_grants')
+      .update({
+        revoked: true,
+        revoked_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId);
+
+    if (error) {
+      throw new Error(`Failed to revoke feature grants: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the current payment failed count for a tenant
+   */
+  async getPaymentFailedCount(tenantId: string): Promise<number> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('payment_failed_count')
+      .eq('id', tenantId)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to fetch payment failed count: ${error.message}`);
+    }
+
+    return data?.payment_failed_count || 0;
   }
 }

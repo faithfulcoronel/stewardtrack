@@ -2,6 +2,8 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IProductOfferingRepository } from '@/repositories/productOffering.repository';
+import type { IProductOfferingPriceRepository } from '@/repositories/productOfferingPrice.repository';
+import type { ProductOfferingPrice } from '@/adapters/productOfferingPrice.adapter';
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
@@ -69,6 +71,8 @@ export class LicensingService {
   constructor(
     @inject(TYPES.IProductOfferingRepository)
     private productOfferingRepository: IProductOfferingRepository,
+    @inject(TYPES.IProductOfferingPriceRepository)
+    private productOfferingPriceRepository: IProductOfferingPriceRepository,
     @inject(TYPES.ILicenseFeatureBundleRepository)
     private licenseFeatureBundleRepository: ILicenseFeatureBundleRepository,
     @inject(TYPES.ITenantFeatureGrantRepository)
@@ -147,6 +151,7 @@ export class LicensingService {
     includeBundles: boolean;
     tier: string | null;
     targetId?: string | null;
+    targetCurrency?: string;
   }) {
     return this.productOfferingRepository.getPublicProductOfferings(options);
   }
@@ -156,6 +161,7 @@ export class LicensingService {
     includeFeatures: boolean;
     includeBundles: boolean;
     includeComplete: boolean;
+    targetCurrency?: string;
   }) {
     return this.productOfferingRepository.getPublicProductOffering(options);
   }
@@ -207,6 +213,49 @@ export class LicensingService {
    */
   async getProductOfferingComplete(offeringId: string): Promise<any> {
     return await this.productOfferingRepository.getOfferingComplete(offeringId);
+  }
+
+  // ==================== PRODUCT OFFERING PRICE METHODS ====================
+
+  /**
+   * Gets all currency-specific prices for a product offering
+   */
+  async getOfferingPrices(offeringId: string): Promise<ProductOfferingPrice[]> {
+    return await this.productOfferingPriceRepository.getOfferingPrices(offeringId);
+  }
+
+  /**
+   * Upserts a currency-specific price for a product offering
+   */
+  async upsertOfferingPrice(
+    offeringId: string,
+    currency: string,
+    price: number,
+    isActive: boolean
+  ): Promise<ProductOfferingPrice> {
+    return await this.productOfferingPriceRepository.upsertOfferingPrice(
+      offeringId,
+      currency,
+      price,
+      isActive
+    );
+  }
+
+  /**
+   * Deletes a currency-specific price for a product offering
+   */
+  async deleteOfferingPrice(offeringId: string, currency: string): Promise<void> {
+    await this.productOfferingPriceRepository.deleteOfferingPrice(offeringId, currency);
+  }
+
+  /**
+   * Replaces all currency-specific prices for a product offering
+   */
+  async replaceOfferingPrices(
+    offeringId: string,
+    prices: Array<{ currency: string; price: number; is_active: boolean }>
+  ): Promise<ProductOfferingPrice[]> {
+    return await this.productOfferingPriceRepository.replaceOfferingPrices(offeringId, prices);
   }
 
   // ==================== LICENSE FEATURE BUNDLE METHODS ====================

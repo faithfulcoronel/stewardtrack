@@ -53,6 +53,11 @@ import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/a
 import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
 import { AdminDashboardService } from '@/services/AdminDashboardService';
 
+// Discount System
+import { DiscountAdapter, type IDiscountAdapter } from '@/adapters/discount.adapter';
+import { DiscountRepository, type IDiscountRepository } from '@/repositories/discount.repository';
+import { DiscountService } from '@/services/DiscountService';
+
 // Notification System
 import { NotificationAdapter, type INotificationAdapter } from '@/adapters/notification.adapter';
 import { NotificationQueueAdapter, type INotificationQueueAdapter } from '@/adapters/notificationQueue.adapter';
@@ -155,6 +160,7 @@ import { LicenseRepository } from '@/repositories/license.repository';
 import { LicenseFeatureRepository } from '@/repositories/licenseFeature.repository';
 // LicensePlanRepository removed - feature_packages table dropped (legacy licensing)
 import { ProductOfferingRepository } from '@/repositories/productOffering.repository';
+import { ProductOfferingPriceRepository, type IProductOfferingPriceRepository } from '@/repositories/productOfferingPrice.repository';
 import { LicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import { LicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import { FeaturePermissionRepository } from '@/repositories/featurePermission.repository';
@@ -197,6 +203,7 @@ import { LicenseAdapter } from '@/adapters/license.adapter';
 import { LicenseFeatureAdapter } from '@/adapters/licenseFeature.adapter';
 // LicensePlanAdapter removed - feature_packages table dropped (legacy licensing)
 import { ProductOfferingAdapter } from '@/adapters/productOffering.adapter';
+import { ProductOfferingPriceAdapter, type IProductOfferingPriceAdapter } from '@/adapters/productOfferingPrice.adapter';
 import { LicenseFeatureBundleAdapter } from '@/adapters/licenseFeatureBundle.adapter';
 import { LicenseAssignmentAdapter } from '@/adapters/licenseAssignment.adapter';
 import { FeaturePermissionAdapter } from '@/adapters/featurePermission.adapter';
@@ -490,6 +497,10 @@ container
   .to(ProductOfferingRepository)
   .inRequestScope();
 container
+  .bind<IProductOfferingPriceRepository>(TYPES.IProductOfferingPriceRepository)
+  .to(ProductOfferingPriceRepository)
+  .inRequestScope();
+container
   .bind<ILicenseFeatureBundleRepository>(TYPES.ILicenseFeatureBundleRepository)
   .to(LicenseFeatureBundleRepository)
   .inRequestScope();
@@ -531,6 +542,10 @@ container
 container
   .bind<IProductOfferingAdapter>(TYPES.IProductOfferingAdapter)
   .to(ProductOfferingAdapter)
+  .inRequestScope();
+container
+  .bind<IProductOfferingPriceAdapter>(TYPES.IProductOfferingPriceAdapter)
+  .to(ProductOfferingPriceAdapter)
   .inRequestScope();
 container
   .bind<ILicenseFeatureBundleAdapter>(TYPES.ILicenseFeatureBundleAdapter)
@@ -655,5 +670,10 @@ container.bind<IPushDeviceTokenService>(TYPES.IPushDeviceTokenService).to(PushDe
 container.bind<IAdminDashboardAdapter>(TYPES.IAdminDashboardAdapter).to(AdminDashboardAdapter).inRequestScope();
 container.bind<IAdminDashboardRepository>(TYPES.IAdminDashboardRepository).to(AdminDashboardRepository).inRequestScope();
 container.bind<AdminDashboardService>(TYPES.AdminDashboardService).to(AdminDashboardService).inRequestScope();
+
+// ==================== DISCOUNT SYSTEM ====================
+container.bind<IDiscountAdapter>(TYPES.IDiscountAdapter).to(DiscountAdapter).inRequestScope();
+container.bind<IDiscountRepository>(TYPES.IDiscountRepository).to(DiscountRepository).inRequestScope();
+container.bind<DiscountService>(TYPES.DiscountService).to(DiscountService).inRequestScope();
 
 export { container };

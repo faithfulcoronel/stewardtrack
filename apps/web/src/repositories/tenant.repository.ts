@@ -1,12 +1,18 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import { Tenant } from '@/models/tenant.model';
-import type { ITenantAdapter, PublicProductOffering, TenantUserData } from '@/adapters/tenant.adapter';
+import type {
+  ITenantAdapter,
+  PublicProductOffering,
+  TenantUserData,
+  SubscriptionUpdateParams,
+  TenantAdminInfo,
+} from '@/adapters/tenant.adapter';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 
 // Re-export types for convenience
-export type { PublicProductOffering, TenantUserData };
+export type { PublicProductOffering, TenantUserData, SubscriptionUpdateParams, TenantAdminInfo };
 
 export interface ITenantRepository extends BaseRepository<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -29,6 +35,12 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
     surfaceBindings: { count: number; data: any[]; error?: string };
     featureGrants: { count: number; data: any[]; error?: string };
   }>;
+
+  // Subscription management methods
+  updateSubscriptionFields(tenantId: string, updates: SubscriptionUpdateParams): Promise<void>;
+  getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
+  revokeAllFeatureGrants(tenantId: string): Promise<void>;
+  getPaymentFailedCount(tenantId: string): Promise<number>;
 }
 
 @injectable()
@@ -98,5 +110,22 @@ export class TenantRepository
 
   async getTenantStatus(tenantId: string) {
     return this.tenantAdapter.getTenantStatus(tenantId);
+  }
+
+  // Subscription management methods - delegate to adapter
+  async updateSubscriptionFields(tenantId: string, updates: SubscriptionUpdateParams): Promise<void> {
+    return this.tenantAdapter.updateSubscriptionFields(tenantId, updates);
+  }
+
+  async getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null> {
+    return this.tenantAdapter.getTenantAdmin(tenantId);
+  }
+
+  async revokeAllFeatureGrants(tenantId: string): Promise<void> {
+    return this.tenantAdapter.revokeAllFeatureGrants(tenantId);
+  }
+
+  async getPaymentFailedCount(tenantId: string): Promise<number> {
+    return this.tenantAdapter.getPaymentFailedCount(tenantId);
   }
 }

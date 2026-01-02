@@ -4,16 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Package, Users, BarChart3, Shield } from 'lucide-react';
+import { Award, Package, Users, BarChart3, Shield, Tag } from 'lucide-react';
 import { ProductOfferingsManager } from './ProductOfferingsManager';
 import { FeatureBundlesManager } from './FeatureBundlesManager';
 import { LicenseAssignmentsManager } from './LicenseAssignmentsManager';
 import { LicensingAnalytics } from './LicensingAnalytics';
 import { FeaturesManager } from './FeaturesManager';
+import { DiscountsManager } from './DiscountsManager';
 
-type TabValue = 'offerings' | 'features' | 'bundles' | 'assignments' | 'analytics';
+type TabValue = 'offerings' | 'features' | 'bundles' | 'discounts' | 'assignments' | 'analytics';
 
-const VALID_TABS: TabValue[] = ['offerings', 'features', 'bundles', 'assignments', 'analytics'];
+const VALID_TABS: TabValue[] = ['offerings', 'features', 'bundles', 'discounts', 'assignments', 'analytics'];
 
 export function LicensingStudio() {
   const router = useRouter();
@@ -71,6 +72,10 @@ export function LicensingStudio() {
             <Award className="h-4 w-4" />
             <span className="hidden sm:inline">Bundles</span>
           </TabsTrigger>
+          <TabsTrigger value="discounts">
+            <Tag className="h-4 w-4" />
+            <span className="hidden sm:inline">Discounts</span>
+          </TabsTrigger>
           <TabsTrigger value="assignments">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Licenses</span>
@@ -91,6 +96,10 @@ export function LicensingStudio() {
 
         <TabsContent value="bundles">
           <FeatureBundlesManager />
+        </TabsContent>
+
+        <TabsContent value="discounts">
+          <DiscountsManager />
         </TabsContent>
 
         <TabsContent value="assignments">

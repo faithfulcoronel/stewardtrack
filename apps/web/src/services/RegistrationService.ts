@@ -151,15 +151,20 @@ export class RegistrationService {
       const subdomain = await this.generateUniqueSubdomain(churchName);
 
       // ===== STEP 5: Create tenant =====
+      // For trial offerings, get trial duration from metadata (default 14 days)
+      const isTrial = offering.offering_type === 'trial';
+      const trialDays = isTrial ? (offering.metadata?.trial_days || 14) : 0;
+      const trialEndDate = isTrial
+        ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
       const tenant = await this.tenantRepository.createTenantForRegistration({
         name: churchName,
         subdomain,
         subscription_tier: offering.tier,
-        subscription_status: 'active',
+        subscription_status: isTrial ? 'trial' : 'active',
         subscription_offering_id: offeringId,
-        subscription_end_date: offering.offering_type === 'trial'
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-          : null,
+        subscription_end_date: trialEndDate,
         status: 'active',
         created_by: userId,
       });
