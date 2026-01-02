@@ -24,12 +24,14 @@ export interface IProductOfferingRepository extends BaseRepository<ProductOfferi
     includeBundles: boolean;
     tier: string | null;
     targetId?: string | null;
+    targetCurrency?: string;
   }): Promise<Array<Record<string, any>>>;
   getPublicProductOffering(options: {
     id: string;
     includeFeatures: boolean;
     includeBundles: boolean;
     includeComplete: boolean;
+    targetCurrency?: string;
   }): Promise<Record<string, any> | null>;
   addFeatureToOffering(offeringId: string, featureId: string, isRequired?: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
@@ -90,6 +92,7 @@ export class ProductOfferingRepository
     includeBundles: boolean;
     tier: string | null;
     targetId?: string | null;
+    targetCurrency?: string;
   }): Promise<Array<Record<string, any>>> {
     return this.productOfferingAdapter.getPublicProductOfferings(options);
   }
@@ -99,6 +102,7 @@ export class ProductOfferingRepository
     includeFeatures: boolean;
     includeBundles: boolean;
     includeComplete: boolean;
+    targetCurrency?: string;
   }): Promise<Record<string, any> | null> {
     return this.productOfferingAdapter.getPublicProductOffering(options);
   }

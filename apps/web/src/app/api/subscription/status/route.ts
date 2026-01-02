@@ -5,11 +5,8 @@ import { TYPES } from '@/lib/types';
 import type { PaymentService } from '@/services/PaymentService';
 import type { LicensingService } from '@/services/LicensingService';
 import { getCurrentTenantId } from '@/lib/server/context';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { Tenant } from '@/models/tenant.model';
 import { TenantService } from '@/services/TenantService';
-import { te } from 'date-fns/locale';
-import { off } from 'process';
+import { PRIMARY_CURRENCY } from '@/lib/currency';
 
 /**
  * GET /api/subscription/status
@@ -20,7 +17,7 @@ import { off } from 'process';
  * Returns:
  * - hasActiveSubscription: boolean
  * - tenant: { id, church_name, subscription_status, payment_status, next_billing_date }
- * - currentOffering?: { id, name, tier, base_price, billing_cycle }
+ * - currentOffering?: { id, name, tier, resolved_price, resolved_currency, billing_cycle, prices }
  * - latestPayment?: { id, amount, currency, status, paid_at, invoice_url, payment_method }
  * - paymentSummary?: { total_paid, total_pending, total_failed, payment_count, last_payment_date }
  */
@@ -36,24 +33,11 @@ export async function GET() {
     // Get services from DI container
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
     const paymentService = container.get<PaymentService>(TYPES.PaymentService);
-
     const tenantService = container.get<TenantService>(TYPES.TenantService);
-
-
-    // console.log('CURRENT TENANT:', tenant);
-
-    // Fetch tenant details directly (repository requires context setup in API routes)
-    const supabase = await createSupabaseServerClient();
-    // const { data: tenant, error: tenantError } = await supabase
-    //   .from('tenants')
-    //   .select('id, name, subscription_status, subscription_end_date, subscription_offering_id')
-    //   .eq('id', tenantId)
-    //   .single();
 
     let tenant: any;
     try {
       tenant = await tenantService.getCurrentTenant();
-      console.log('TENANT:', tenant);
 
       // Determine if subscription is active
       const hasActiveSubscription =
@@ -62,76 +46,85 @@ export async function GET() {
       // Fetch latest payment using payment service
       const latestPayment = await paymentService.getLatestPayment(tenantId);
 
-      console.log('Latest Payment:', latestPayment);
+      // Get offering via LicensingService
+      let currentOffering: any = null;
+      if (tenant?.subscription_offering_id) {
+        const offering = await licensingService.getProductOffering(tenant.subscription_offering_id);
+        if (offering) {
+          // Get prices for the offering
+          const prices = await licensingService.getOfferingPrices(tenant.subscription_offering_id);
 
-      
-      // const offering:any = await licensingService.getProductOffering('3a83a10c-1882-4b24-88f8-7c9b069c39a1');
+          // Get tenant's preferred currency or default to PRIMARY_CURRENCY
+          const tenantCurrency = (tenant as any).preferred_currency || PRIMARY_CURRENCY;
 
-      //notes: will move this implemenation to proper achitecture later
-      const { data: offering } = await supabase
-      .from('product_offerings')
-      .select('id, name, tier, base_price, billing_cycle')
-      .eq('id', tenant.subscription_offering_id)
-      .single();
-      console.log('Product Offering:', offering);
+          // Find price in tenant's currency
+          let resolvedPrice = 0;
+          let resolvedCurrency = tenantCurrency;
 
-      // Get offering from latest payment if available, otherwise try subscription tier
-      let currentOffering = {
-        id: offering?.id || '',
-        name: offering?.name || '',
-        tier: offering?.tier || '',
-        base_price: offering?.base_price || 0,
-        billing_cycle: offering?.billing_cycle,
+          if (prices && prices.length > 0) {
+            const priceInCurrency = prices.find(p => p.currency === tenantCurrency && p.is_active);
+            if (priceInCurrency) {
+              resolvedPrice = priceInCurrency.price;
+              resolvedCurrency = priceInCurrency.currency;
+            } else {
+              const primaryPrice = prices.find(p => p.currency === PRIMARY_CURRENCY && p.is_active);
+              if (primaryPrice) {
+                resolvedPrice = primaryPrice.price;
+                resolvedCurrency = primaryPrice.currency;
+              } else {
+                const firstActivePrice = prices.find(p => p.is_active);
+                if (firstActivePrice) {
+                  resolvedPrice = firstActivePrice.price;
+                  resolvedCurrency = firstActivePrice.currency;
+                }
+              }
+            }
+          }
+
+          currentOffering = {
+            id: offering.id,
+            name: offering.name,
+            tier: offering.tier,
+            billing_cycle: offering.billing_cycle,
+            resolved_price: resolvedPrice,
+            resolved_currency: resolvedCurrency,
+            prices: prices || [],
+          };
+        }
       }
 
-      // if (latestPayment && latestPayment.offering_id) {
-      //   const offering = await licensingService.getProductOffering(latestPayment.offering_id);
-      //   if (offering) {
-      //     currentOffering = {
-      //       id: offering.id,
-      //       name: offering.name,
-      //       tier: offering.tier,
-      //       base_price: offering.base_price,
-      //       billing_cycle: offering.billing_cycle,
-      //     };
-      //   }
-      // }
-
       // Fetch payment summary using payment service
-    const paymentSummary = await paymentService.getTenantPaymentsSummary(tenantId);
+      const paymentSummary = await paymentService.getTenantPaymentsSummary(tenantId);
 
-    return NextResponse.json({
-      hasActiveSubscription,
-      tenant: {
-        id: tenant?.id,
-        church_name: tenant?.name, // name field in Tenant model
-        subscription_status: tenant?.subscription_status,
-        payment_status: latestPayment?.status || null,
-        next_billing_date: tenant?.subscription_end_date,
-      },
-      currentOffering,
-      latestPayment: latestPayment
-        ? {
-            id: latestPayment.id,
-            amount: latestPayment.amount,
-            currency: latestPayment.currency,
-            status: latestPayment.status,
-            paid_at: latestPayment.paid_at,
-            invoice_url: latestPayment.invoice_url,
-            payment_method: latestPayment.payment_method,
-          }
-        : null,
-      paymentSummary,
-    });
-
-
+      return NextResponse.json({
+        hasActiveSubscription,
+        tenant: {
+          id: tenant?.id,
+          church_name: tenant?.name,
+          subscription_status: tenant?.subscription_status,
+          payment_status: latestPayment?.status || null,
+          next_billing_date: tenant?.subscription_end_date,
+        },
+        currentOffering,
+        latestPayment: latestPayment
+          ? {
+              id: latestPayment.id,
+              amount: latestPayment.amount,
+              currency: latestPayment.currency,
+              status: latestPayment.status,
+              paid_at: latestPayment.paid_at,
+              invoice_url: latestPayment.invoice_url,
+              payment_method: latestPayment.payment_method,
+            }
+          : null,
+        paymentSummary,
+      });
     } catch (error) {
       return NextResponse.json(
         { error: 'Failed to fetch tenant details' },
         { status: 404 }
       );
     }
-
   } catch (error) {
     console.error('Error fetching subscription status:', error);
     return NextResponse.json(
@@ -141,6 +134,5 @@ export async function GET() {
       },
       { status: 500 }
     );
-
   }
 }

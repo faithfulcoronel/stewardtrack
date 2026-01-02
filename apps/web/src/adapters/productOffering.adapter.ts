@@ -15,12 +15,14 @@ export interface IProductOfferingAdapter extends IBaseAdapter<ProductOffering> {
     includeBundles: boolean;
     tier: string | null;
     targetId?: string | null;
+    targetCurrency?: string;
   }): Promise<Array<Record<string, any>>>;
   getPublicProductOffering(options: {
     id: string;
     includeFeatures: boolean;
     includeBundles: boolean;
     includeComplete: boolean;
+    targetCurrency?: string;
   }): Promise<Record<string, any> | null>;
   addFeatureToOffering(offeringId: string, featureId: string, isRequired: boolean): Promise<void>;
   removeFeatureFromOffering(offeringId: string, featureId: string): Promise<void>;
@@ -52,8 +54,6 @@ export class ProductOfferingAdapter
     offering_type,
     tier,
     billing_cycle,
-    base_price,
-    currency,
     max_users,
     max_tenants,
     is_active,
@@ -87,10 +87,26 @@ export class ProductOfferingAdapter
       ? (row as Record<string, any>)
       : {};
 
+    // Parse prices from JSONB - ensure it's an array of objects with correct types
+    let prices: Array<{ id: string; currency: string; price: number; is_active: boolean }> = [];
+    if (Array.isArray((base as any)?.prices)) {
+      prices = ((base as any).prices as any[]).map(p => ({
+        id: p.id,
+        currency: p.currency,
+        price: typeof p.price === 'string' ? parseFloat(p.price) : (p.price ?? 0),
+        is_active: p.is_active ?? true,
+      }));
+    }
+
     return {
       ...base,
       features: Array.isArray((base as any)?.features) ? (base as any).features : [],
       bundles: Array.isArray((base as any)?.bundles) ? (base as any).bundles : [],
+      prices,
+      resolved_price: typeof (base as any)?.resolved_price === 'string'
+        ? parseFloat((base as any).resolved_price)
+        : ((base as any)?.resolved_price ?? null),
+      resolved_currency: (base as any)?.resolved_currency ?? null,
       feature_count: this.normalizeCount((base as any)?.feature_count),
       bundle_count: this.normalizeCount((base as any)?.bundle_count),
     };
@@ -101,6 +117,7 @@ export class ProductOfferingAdapter
     includeBundles: boolean;
     tier: string | null;
     targetId?: string | null;
+    targetCurrency?: string;
   }): Promise<Array<Record<string, any>>> {
     const supabase = await this.getSupabaseClient();
     const { includeFeatures, includeBundles, tier, targetId } = options;
@@ -125,6 +142,7 @@ export class ProductOfferingAdapter
     includeFeatures: boolean;
     includeBundles: boolean;
     includeComplete: boolean;
+    targetCurrency?: string;
   }): Promise<Record<string, any> | null> {
     const { id, includeFeatures, includeBundles, includeComplete } = options;
     const supabase = await this.getSupabaseClient();

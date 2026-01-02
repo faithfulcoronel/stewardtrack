@@ -65,7 +65,8 @@
       "Bash(pnpm generate-tenant-keys:*)",
       "Bash(git show:*)",
       "Bash(timeout 120 pnpm build:web:*)",
-      "Bash(pnpm metadata:compile:*)"
+      "Bash(pnpm metadata:compile:*)",
+      "Bash(pnpm exec tsc:*)"
     ],
     "deny": [],
     "ask": []

@@ -288,11 +288,6 @@ export function AssignLicenseDialog({
                             >
                               {offering.tier}
                             </Badge>
-                            {offering.base_price !== null && (
-                              <span className="text-sm text-gray-600">
-                                ${offering.base_price}/{offering.billing_cycle}
-                              </span>
-                            )}
                           </div>
                         </SelectItem>
                       ))}

@@ -7,6 +7,7 @@ import { Loader2, CreditCard, CheckCircle2, AlertCircle, ExternalLink } from 'lu
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { formatCurrency, SupportedCurrency, PRIMARY_CURRENCY } from '@/lib/currency';
 
 interface PaymentStepProps {
   data: Record<string, any>;
@@ -92,14 +93,8 @@ export default function PaymentStep({
     await onNext({});
   }
 
-  function formatPrice(price: number, currency: string = 'PHP'): string {
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-    return formatter.format(price);
+  function formatPrice(price: number, currency: string = PRIMARY_CURRENCY): string {
+    return formatCurrency(price, currency as SupportedCurrency);
   }
 
   if (isLoadingSubscription) {
@@ -139,7 +134,29 @@ export default function PaymentStep({
 
   const isPaid = subscriptionData?.tenant?.payment_status === 'paid';
   const offering = subscriptionData?.currentOffering;
-  const isFreeOrTrial = !offering?.base_price || offering.base_price === 0;
+
+  // Check if offering has a price - look for resolved_price or prices array
+  const getOfferingPrice = (): { price: number; currency: string } | null => {
+    if (!offering) return null;
+
+    // Try resolved_price first (from subscription status API)
+    if (offering.resolved_price !== undefined && offering.resolved_price !== null) {
+      return { price: offering.resolved_price, currency: offering.resolved_currency || PRIMARY_CURRENCY };
+    }
+
+    // Try prices array
+    if (offering.prices && Array.isArray(offering.prices) && offering.prices.length > 0) {
+      const activePrice = offering.prices.find((p: any) => p.is_active);
+      if (activePrice) {
+        return { price: activePrice.price, currency: activePrice.currency };
+      }
+    }
+
+    return null;
+  };
+
+  const offeringPriceInfo = getOfferingPrice();
+  const isFreeOrTrial = !offeringPriceInfo || offeringPriceInfo.price === 0;
 
   return (
     <div className="space-y-6">
@@ -189,7 +206,7 @@ export default function PaymentStep({
               <span className="text-sm text-muted-foreground">Amount</span>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">
-                  {isFreeOrTrial ? 'Free' : formatPrice(offering.base_price, offering.currency || 'PHP')}
+                  {isFreeOrTrial ? 'Free' : formatPrice(offeringPriceInfo!.price, offeringPriceInfo!.currency)}
                 </div>
                 {!isFreeOrTrial && offering.billing_cycle && (
                   <div className="text-sm text-muted-foreground">

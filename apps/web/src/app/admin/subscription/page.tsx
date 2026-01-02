@@ -21,7 +21,8 @@ interface SubscriptionData {
     id: string;
     name: string;
     tier: string;
-    base_price: number;
+    resolved_price: number;
+    resolved_currency: string;
     billing_cycle: string;
   };
   latestPayment?: {
@@ -280,7 +281,7 @@ export default function SubscriptionPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Price</p>
                 <p className="text-lg font-semibold">
-                  {formatCurrency(subscription.currentOffering.base_price)} / {subscription.currentOffering.billing_cycle}
+                  {formatCurrency(subscription.currentOffering.resolved_price, subscription.currentOffering.resolved_currency)} / {subscription.currentOffering.billing_cycle}
                 </p>
               </div>
             </div>

@@ -1,11 +1,24 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
+import {
+  CURRENCY_INFO,
+  getCurrencyInfo,
+  isXenditSupported,
+  PRIMARY_CURRENCY,
+  toXenditAmount,
+} from '@/enums/currency.enums';
 
 /**
  * Xendit API Service
  *
  * Wrapper service for Xendit payment gateway integration.
  * Handles invoice creation, payment methods, and API communication.
+ * Supports multi-currency payments across Southeast Asia and globally.
+ *
+ * Supported currencies:
+ * - PHP (Philippines) - Primary market
+ * - IDR (Indonesia)
+ * - USD, EUR, GBP, AUD, CAD, JPY (via Global Account)
  *
  * Documentation: https://developers.xendit.co/api-reference/
  */
@@ -354,23 +367,99 @@ export class XenditService {
   }
 
   /**
-   * Format amount to Xendit format (no decimal places for PHP)
+   * Format amount to Xendit format based on currency
+   *
+   * Xendit requires amounts in the smallest currency unit:
+   * - PHP, IDR, JPY, KRW, VND: No decimals (whole numbers)
+   * - USD, EUR, GBP, etc.: Cents (multiply by 100)
    *
    * @param amount Amount in currency major units
    * @param currency Currency code
-   * @returns Formatted amount
+   * @returns Formatted amount for Xendit API
    */
-  formatAmount(amount: number, currency: string = 'PHP'): number {
-    // PHP uses whole numbers (no cents)
-    if (currency === 'PHP') {
-      return Math.round(amount);
-    }
-    // Other currencies might use cents
-    return Math.round(amount * 100);
+  formatAmount(amount: number, currency: string = PRIMARY_CURRENCY): number {
+    return toXenditAmount(amount, currency);
   }
 
   /**
-   * Create invoice for subscription payment
+   * Check if a currency is supported by Xendit
+   */
+  isCurrencySupported(currency: string): boolean {
+    return isXenditSupported(currency);
+  }
+
+  /**
+   * Get the effective currency for payment
+   * Falls back to PHP if the requested currency is not supported
+   */
+  getEffectiveCurrency(requestedCurrency: string): string {
+    if (isXenditSupported(requestedCurrency)) {
+      return requestedCurrency;
+    }
+    // Fallback to primary currency (PHP) for unsupported currencies
+    console.warn(
+      `[XenditService] Currency ${requestedCurrency} not supported by Xendit, falling back to ${PRIMARY_CURRENCY}`
+    );
+    return PRIMARY_CURRENCY;
+  }
+
+  /**
+   * Get available payment methods for an amount in a specific currency
+   *
+   * @param amount Payment amount
+   * @param currency Currency code
+   * @returns Available payment methods configuration
+   */
+  getAvailablePaymentMethodsForCurrency(
+    amount: number,
+    currency: string
+  ): {
+    banks: boolean;
+    retailOutlets: boolean;
+    ewallets: boolean;
+    qrCodes: boolean;
+    cards: boolean;
+    availableMethods: string[];
+  } {
+    const currencyInfo = getCurrencyInfo(currency);
+    const minAmount = currencyInfo?.minAmount ?? 100;
+
+    // Payment method availability varies by currency/region
+    if (currency === 'PHP') {
+      // Philippines - Full local payment support
+      return {
+        banks: amount >= minAmount,
+        retailOutlets: amount >= minAmount && amount <= 50000,
+        ewallets: amount >= minAmount, // GCash, PayMaya, GrabPay
+        qrCodes: amount >= minAmount, // QR Ph
+        cards: amount >= minAmount,
+        availableMethods: ['bank_transfer', 'retail_outlet', 'ewallet', 'qr_code', 'card'],
+      };
+    } else if (currency === 'IDR') {
+      // Indonesia - Full local payment support
+      return {
+        banks: amount >= minAmount,
+        retailOutlets: amount >= minAmount && amount <= 5000000,
+        ewallets: amount >= minAmount, // OVO, DANA, LinkAja, ShopeePay
+        qrCodes: amount >= minAmount, // QRIS
+        cards: amount >= minAmount,
+        availableMethods: ['bank_transfer', 'retail_outlet', 'ewallet', 'qr_code', 'card'],
+      };
+    } else {
+      // Global currencies - Cards only via Global Account
+      return {
+        banks: false,
+        retailOutlets: false,
+        ewallets: false,
+        qrCodes: false,
+        cards: amount >= minAmount,
+        availableMethods: ['card'],
+      };
+    }
+  }
+
+  /**
+   * Create invoice for subscription payment with multi-currency support
    *
    * @param params Subscription payment parameters
    * @returns Created invoice
@@ -380,27 +469,59 @@ export class XenditService {
     offeringId: string;
     offeringName: string;
     amount: number;
+    currency?: string;
     payerEmail: string;
     payerName: string;
-    billingCycle: 'monthly' | 'annual';
+    billingCycle: 'monthly' | 'annual' | 'lifetime';
     successUrl: string;
     failureUrl: string;
     externalId?: string;
+    /** Original amount in customer's preferred currency (for tracking) */
+    originalAmount?: number;
+    /** Original currency requested by customer */
+    originalCurrency?: string;
+    /** Discount information if a discount was applied */
+    discount?: {
+      discount_id: string;
+      discount_code?: string;
+      discount_name: string;
+      discount_type: 'coupon' | 'automatic';
+      calculation_type: 'percentage' | 'fixed_amount';
+      discount_value: number;
+      discount_amount: number;
+      original_price: number;
+    };
   }): Promise<XenditInvoice> {
     const externalId = params.externalId || `SUB-${params.tenantId}-${Date.now()}`;
-    const description = `${params.offeringName} - ${params.billingCycle === 'monthly' ? 'Monthly' : 'Annual'} Subscription`;
+    const cycleLabel = params.billingCycle === 'monthly' ? 'Monthly' : params.billingCycle === 'annual' ? 'Annual' : 'Lifetime';
+
+    // Build description with discount info if applicable
+    let description = `${params.offeringName} - ${cycleLabel} Subscription`;
+    if (params.discount) {
+      const discountLabel = params.discount.calculation_type === 'percentage'
+        ? `${params.discount.discount_value}% OFF`
+        : `${params.discount.discount_amount} OFF`;
+      description += ` (${discountLabel} applied)`;
+    }
+
+    // Determine effective currency (fallback to PHP if not supported)
+    const requestedCurrency = params.currency || PRIMARY_CURRENCY;
+    const effectiveCurrency = this.getEffectiveCurrency(requestedCurrency);
 
     const names = params.payerName.split(' ');
     const givenNames = names.slice(0, -1).join(' ') || params.payerName;
     const surname = names.length > 1 ? names[names.length - 1] : '';
 
+    // Format amount for Xendit based on effective currency
+    const formattedAmount = this.formatAmount(params.amount, effectiveCurrency);
+
     return this.createInvoice({
       external_id: externalId,
-      amount: this.formatAmount(params.amount),
+      amount: formattedAmount,
       payer_email: params.payerEmail,
       description,
       invoice_duration: 86400, // 24 hours
-      currency: 'PHP',
+      currency: effectiveCurrency,
       customer: {
         given_names: givenNames,
         surname: surname,
@@ -418,7 +539,7 @@ export class XenditService {
         {
           name: params.offeringName,
           quantity: 1,
-          price: this.formatAmount(params.amount),
+          price: formattedAmount,
           category: 'Subscription',
         },
       ],
@@ -428,7 +549,35 @@ export class XenditService {
         offering_id: params.offeringId,
         billing_cycle: params.billingCycle,
         payment_type: 'subscription',
+        // Track original currency info for reporting
+        original_currency: params.originalCurrency || requestedCurrency,
+        original_amount: params.originalAmount || params.amount,
+        effective_currency: effectiveCurrency,
+        // Discount information for tracking
+        ...(params.discount && {
+          discount_id: params.discount.discount_id,
+          discount_code: params.discount.discount_code,
+          discount_name: params.discount.discount_name,
+          discount_type: params.discount.discount_type,
+          discount_calculation_type: params.discount.calculation_type,
+          discount_value: params.discount.discount_value,
+          discount_amount: params.discount.discount_amount,
+          original_price: params.discount.original_price,
+        }),
       },
     });
+  }
+
+  /**
+   * Get supported currencies for display in UI
+   */
+  getSupportedCurrencies(): Array<{ code: string; name: string; symbol: string }> {
+    return Object.entries(CURRENCY_INFO)
+      .filter(([_, info]) => info.xenditSupported)
+      .map(([code, info]) => ({
+        code,
+        name: info.name,
+        symbol: info.symbol,
+      }));
   }
 }

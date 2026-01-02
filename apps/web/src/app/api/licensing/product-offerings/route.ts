@@ -9,6 +9,12 @@ import type {
   ProductOfferingWithBundles,
   ProductOfferingComplete,
 } from '@/models/productOffering.model';
+import {
+  detectCurrencyFromRequest,
+  getCurrencyForCountry,
+  DEFAULT_CURRENCY,
+  isSupportedCurrency,
+} from '@/lib/currency';
 
 function parseBooleanParam(value: string | null): boolean {
   return value === 'true';
@@ -52,6 +58,8 @@ async function enrichOfferingsForAuthenticatedRequest(
  * - withFeatures: Include individual features
  * - withBundles: Include bundles
  * - complete: Include both bundles and features, plus counts
+ * - currency: Preferred currency code (auto-detected from geo-location if not provided)
+ * - countryCode: Country code for currency detection (optional)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -60,6 +68,26 @@ export async function GET(request: NextRequest) {
     const withFeatures = parseBooleanParam(searchParams.get('withFeatures'));
     const withBundles = parseBooleanParam(searchParams.get('withBundles'));
     const complete = parseBooleanParam(searchParams.get('complete'));
+
+    // Currency detection
+    let requestedCurrency = searchParams.get('currency');
+    const countryCode = searchParams.get('countryCode');
+
+    // If no currency specified, try to detect from request headers or country code
+    if (!requestedCurrency) {
+      if (countryCode) {
+        requestedCurrency = getCurrencyForCountry(countryCode);
+      } else {
+        // Detect from request headers (Cloudflare, Vercel, etc.)
+        const detected = detectCurrencyFromRequest(request.headers);
+        requestedCurrency = detected.currency;
+      }
+    }
+
+    // Validate currency
+    const currency = isSupportedCurrency(requestedCurrency || '')
+      ? requestedCurrency
+      : DEFAULT_CURRENCY;
 
     const includeFeatures = complete || withFeatures;
     const includeBundles = complete || withBundles;
@@ -75,11 +103,16 @@ export async function GET(request: NextRequest) {
         includeBundles,
         tier,
         targetId: null,
+        targetCurrency: currency || undefined,
       });
 
       return NextResponse.json({
         success: true,
         data: publicOfferings,
+        meta: {
+          currency,
+          detectedCountry: countryCode || undefined,
+        },
       });
     }
 
@@ -102,6 +135,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: enrichedOfferings,
+      meta: {
+        currency,
+      },
     });
   } catch (error) {
     console.error('Error fetching product offerings:', error);

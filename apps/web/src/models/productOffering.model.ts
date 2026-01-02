@@ -1,5 +1,6 @@
 import { BaseModel } from '@/models/base.model';
 import { LicenseTier, ProductOfferingType } from '@/enums/licensing.enums';
+import { SupportedCurrency } from '@/enums/currency.enums';
 
 export interface ProductOffering extends BaseModel {
   id: string;
@@ -9,8 +10,6 @@ export interface ProductOffering extends BaseModel {
   offering_type: ProductOfferingType | string;
   tier: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
-  base_price?: number | null;
-  currency?: string;
   max_users?: number | null;
   max_tenants?: number;
   is_active: boolean;
@@ -18,6 +17,48 @@ export interface ProductOffering extends BaseModel {
   sort_order: number;
   metadata?: Record<string, any>;
   deleted_at?: string | null;
+}
+
+/**
+ * Multi-currency pricing for a product offering
+ */
+export interface ProductOfferingPrice {
+  id: string;
+  offering_id: string;
+  currency: SupportedCurrency | string;
+  price: number;
+  is_active: boolean;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Supported currency reference data
+ */
+export interface SupportedCurrencyInfo {
+  code: string;
+  name: string;
+  symbol: string;
+  symbol_position: 'before' | 'after';
+  decimal_places: number;
+  locale: string;
+  region: string;
+  xendit_supported: boolean;
+  min_amount: number;
+  is_active: boolean;
+  sort_order: number;
+}
+
+/**
+ * Country to currency mapping
+ */
+export interface CountryCurrencyMapping {
+  country_code: string;
+  country_name: string;
+  currency_code: string;
+  is_active: boolean;
 }
 
 export interface ProductOfferingFeature {
@@ -35,8 +76,6 @@ export interface CreateProductOfferingDto {
   offering_type: ProductOfferingType | string;
   tier: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
-  base_price?: number | null;
-  currency?: string;
   max_users?: number | null;
   max_tenants?: number;
   is_active?: boolean;
@@ -51,8 +90,6 @@ export interface UpdateProductOfferingDto {
   offering_type?: ProductOfferingType | string;
   tier?: LicenseTier | string;
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
-  base_price?: number | null;
-  currency?: string;
   max_users?: number | null;
   max_tenants?: number;
   is_active?: boolean;
@@ -120,4 +157,35 @@ export interface ProductOfferingComplete extends ProductOffering {
   }>;
   bundle_count?: number;
   feature_count?: number;
+  /** Multi-currency prices */
+  prices?: ProductOfferingPrice[];
+}
+
+/**
+ * Product offering with resolved price for a specific currency
+ */
+export interface ProductOfferingWithPrice extends ProductOffering {
+  /** Resolved price in the requested currency */
+  resolved_price?: number;
+  /** The currency the price is in */
+  resolved_currency?: string;
+  /** Whether the price is from currency-specific pricing or converted */
+  price_source?: 'currency_specific' | 'converted';
+}
+
+/**
+ * DTO for creating/updating currency-specific prices
+ */
+export interface UpsertOfferingPriceDto {
+  currency: string;
+  price: number;
+  is_active?: boolean;
+}
+
+/**
+ * DTO for bulk price updates
+ */
+export interface BulkUpsertOfferingPricesDto {
+  offering_id: string;
+  prices: UpsertOfferingPriceDto[];
 }

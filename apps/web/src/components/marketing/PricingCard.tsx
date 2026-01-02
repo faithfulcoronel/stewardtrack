@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles } from 'lucide-react';
+import { formatCurrency, SupportedCurrency, DEFAULT_CURRENCY } from '@/lib/currency';
 
 interface PricingCardProps {
   tier: string;
@@ -16,6 +17,7 @@ interface PricingCardProps {
   ctaText?: string;
   ctaHref?: string;
   index?: number;
+  currency?: SupportedCurrency | string;
 }
 
 export function PricingCard({
@@ -28,8 +30,11 @@ export function PricingCard({
   ctaText = 'Get Started',
   ctaHref = '/signup',
   index = 0,
+  currency = DEFAULT_CURRENCY,
 }: PricingCardProps) {
-  const displayPrice = typeof price === 'number' ? `$${price}` : price;
+  const displayPrice = typeof price === 'number'
+    ? formatCurrency(price, currency as SupportedCurrency)
+    : price;
 
   return (
     <motion.div

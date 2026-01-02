@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable, DataTableColumn } from '@/components/ui/datatable';
 import { Plus, Loader2, Pencil, Trash2, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProductOfferingComplete } from '@/models/productOffering.model';
+import { ProductOfferingComplete, ProductOfferingPrice } from '@/models/productOffering.model';
 import { LicenseTier, LicenseTierColors, LicenseTierLabels } from '@/enums/licensing.enums';
+import { formatCurrency } from '@/lib/currency';
 
 export function ProductOfferingsManager() {
   const [offerings, setOfferings] = useState<ProductOfferingComplete[]>([]);
@@ -82,6 +83,20 @@ export function ProductOfferingsManager() {
     return tier.charAt(0).toUpperCase() + tier.slice(1);
   }
 
+  function getPrimaryPrice(row: ProductOfferingComplete): { price: number; currency: string } | null {
+    const prices = (row as any).prices as ProductOfferingPrice[] | undefined;
+    if (!prices || prices.length === 0) return null;
+
+    // Prefer PHP (primary currency), then first active price
+    const phpPrice = prices.find(p => p.currency === 'PHP' && p.is_active);
+    if (phpPrice) return { price: phpPrice.price, currency: phpPrice.currency };
+
+    const firstActive = prices.find(p => p.is_active);
+    if (firstActive) return { price: firstActive.price, currency: firstActive.currency };
+
+    return null;
+  }
+
   const columns: DataTableColumn<ProductOfferingComplete>[] = [
     {
       id: 'name',
@@ -142,23 +157,29 @@ export function ProductOfferingsManager() {
       header: 'Price',
       align: 'right',
       sortable: true,
-      getSortValue: (row) => row.base_price || 0,
-      renderCell: (row) => (
-        <div className="text-right">
-          {row.base_price !== null && row.base_price !== undefined ? (
-            <div>
-              <div className="font-medium">
-                ${row.base_price.toFixed(2)}
+      getSortValue: (row) => getPrimaryPrice(row)?.price || 0,
+      renderCell: (row) => {
+        const priceInfo = getPrimaryPrice(row);
+        const priceCount = ((row as any).prices as ProductOfferingPrice[] | undefined)?.filter(p => p.is_active).length || 0;
+
+        return (
+          <div className="text-right">
+            {priceInfo ? (
+              <div>
+                <div className="font-medium">
+                  {formatCurrency(priceInfo.price, priceInfo.currency)}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {row.billing_cycle || 'N/A'}
+                  {priceCount > 1 && ` · ${priceCount} currencies`}
+                </div>
               </div>
-              <div className="text-xs text-gray-500">
-                {row.billing_cycle || 'N/A'}
-              </div>
-            </div>
-          ) : (
-            <span className="text-gray-400">Custom</span>
-          )}
-        </div>
-      ),
+            ) : (
+              <span className="text-gray-400">No pricing</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: 'limits',
