@@ -5,7 +5,7 @@
  *
  * Delivers notifications via push notifications using Firebase Cloud Messaging.
  *
- * Feature Code: notifications-push (Professional tier)
+ * Feature Code: notifications.push (Premium tier)
  *
  * Required Environment Variables:
  * - FIREBASE_PROJECT_ID
@@ -28,7 +28,7 @@ import type { DeliveryChannelType } from '@/models/notification/notificationEven
 @injectable()
 export class PushChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'push';
-  readonly featureCode: string = 'notifications-push';
+  readonly featureCode: string = 'notifications.push';
 
   async isAvailable(): Promise<boolean> {
     // Check if Firebase is configured

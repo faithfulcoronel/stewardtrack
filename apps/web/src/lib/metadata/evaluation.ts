@@ -429,8 +429,22 @@ export function hasFeatureAccess(
     return true;
   }
 
-  // Core foundation features are always accessible
-  if (featureCode === 'core-foundation') {
+  // Core foundation features are always accessible (Essential tier features)
+  // These are the base features available to ALL tiers
+  const CORE_FEATURES = [
+    'members.core',
+    'households.core',
+    'groups.core',
+    'events.core',
+    'finance.core',
+    'notifications.core',
+    'integrations.email',
+    'rbac.core',
+    'settings.core',
+    'dashboard.core',
+    'reports.core',
+  ];
+  if (CORE_FEATURES.includes(featureCode)) {
     return true;
   }
 

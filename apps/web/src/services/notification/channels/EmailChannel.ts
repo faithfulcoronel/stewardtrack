@@ -6,7 +6,7 @@
  * Delivers notifications via email using the Resend API.
  * Calls the email-service Supabase Edge Function.
  *
- * Feature Code: notifications-email (Essential tier)
+ * Feature Code: integrations.email (Essential tier)
  *
  * Required Environment Variables:
  * - RESEND_API_KEY
@@ -28,7 +28,7 @@ import type { DeliveryChannelType } from '@/models/notification/notificationEven
 @injectable()
 export class EmailChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'email';
-  readonly featureCode: string = 'notifications-email';
+  readonly featureCode: string = 'integrations.email';
 
   async isAvailable(): Promise<boolean> {
     // Check if email service is configured

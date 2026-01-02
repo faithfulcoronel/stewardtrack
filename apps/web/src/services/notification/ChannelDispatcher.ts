@@ -128,7 +128,7 @@ export class ChannelDispatcher {
     if (!availableChannels.includes('in_app') && this.channels.has('in_app')) {
       const inAppChannel = this.channels.get('in_app')!;
       const isAvailable = await inAppChannel.isAvailable();
-      const hasAccess = await this.featureService.hasFeatureAccess('notifications-inapp', event.tenantId);
+      const hasAccess = await this.featureService.hasFeatureAccess('notifications.core', event.tenantId);
 
       if (isAvailable && hasAccess) {
         availableChannels.unshift('in_app');
@@ -276,11 +276,11 @@ export class ChannelDispatcher {
    */
   private getFeatureCode(channel: DeliveryChannelType): string {
     const codes: Record<DeliveryChannelType, string> = {
-      in_app: 'notifications-inapp',
-      email: 'notifications-email',
-      sms: 'notifications-sms',
-      push: 'notifications-push',
-      webhook: 'notifications-webhooks',
+      in_app: 'notifications.core',
+      email: 'integrations.email',
+      sms: 'integrations.sms',
+      push: 'notifications.push',
+      webhook: 'integrations.api',
     };
     return codes[channel];
   }

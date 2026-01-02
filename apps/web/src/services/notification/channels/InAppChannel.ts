@@ -6,7 +6,7 @@
  * Delivers notifications to the in-app notification center.
  * Stores notifications in the database and triggers realtime updates.
  *
- * Feature Code: notifications-inapp (Essential tier)
+ * Feature Code: notifications.core (Essential tier)
  *
  * ================================================================================
  */
@@ -27,7 +27,7 @@ import type { DeliveryChannelType } from '@/models/notification/notificationEven
 @injectable()
 export class InAppChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'in_app';
-  readonly featureCode: string = 'notifications-inapp';
+  readonly featureCode: string = 'notifications.core';
 
   constructor(
     @inject(TYPES.INotificationRepository)

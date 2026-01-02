@@ -56,7 +56,7 @@ interface ProtectedAdminPageProps {
  * </ProtectedAdminPage>
  *
  * @example Custom gate
- * <ProtectedAdminPage gate={Gate.withLicense('member-management')}>
+ * <ProtectedAdminPage gate={Gate.withLicense('members.core')}>
  *   <MemberManagement />
  * </ProtectedAdminPage>
  */

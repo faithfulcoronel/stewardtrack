@@ -53,15 +53,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/licensing/features/permissions/[id]
- * Update a feature permission
+ * Update a feature permission and optionally its role templates
  *
  * Request body:
  * {
+ *   permission?: {
+ *     permission_code?: string,
+ *     display_name?: string,
+ *     description?: string,
+ *     is_required?: boolean,
+ *     display_order?: number
+ *   },
+ *   roleTemplates?: Array<{
+ *     role_key: string,
+ *     is_recommended?: boolean,
+ *     reason?: string
+ *   }>
+ * }
+ *
+ * Note: Also supports flat structure for backwards compatibility:
+ * {
  *   permission_code?: string,
  *   display_name?: string,
- *   description?: string,
- *   is_required?: boolean,
- *   display_order?: number
+ *   ...
  * }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
@@ -85,12 +99,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       TYPES.FeaturePermissionService
     );
 
+    // Support both nested (permission: { ... }) and flat structures
+    const permissionData = body.permission || body;
+    const roleTemplates = body.roleTemplates;
+
     // Update permission
-    const updatedPermission = await featurePermissionService.updatePermission(permissionId, body);
+    const updatedPermission = await featurePermissionService.updatePermission(permissionId, permissionData);
+
+    // Update role templates if provided
+    let updatedTemplates = null;
+    if (roleTemplates && Array.isArray(roleTemplates)) {
+      updatedTemplates = await featurePermissionService.updateRoleTemplates(permissionId, roleTemplates);
+    }
 
     return NextResponse.json({
       success: true,
-      data: updatedPermission,
+      data: {
+        permission: updatedPermission,
+        templates: updatedTemplates,
+      },
       message: 'Permission updated successfully',
     });
   } catch (error) {

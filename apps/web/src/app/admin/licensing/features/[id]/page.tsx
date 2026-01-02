@@ -4,8 +4,20 @@ import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle, AlertCircle, Edit, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, Edit, Eye, Trash2, Loader2 } from 'lucide-react';
 import { FeaturePermissionWizard, type WizardData, type WizardMode } from '@/components/licensing/FeaturePermissionWizard';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import { normalizeFeatureCategory } from '@/enums/licensing.enums';
 
 interface Feature {
   id: string;
@@ -49,6 +61,8 @@ export default function FeatureDetailsPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchFeatureData();
@@ -211,24 +225,25 @@ export default function FeatureDetailsPage({
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this feature? This action cannot be undone.')) {
-      return;
-    }
-
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/licensing/features/${unwrappedParams.id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
+        toast.success('Feature deleted successfully');
+        setDeleteDialogOpen(false);
         router.push('/admin/licensing?tab=features');
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to delete feature');
+        toast.error(data.error || 'Failed to delete feature');
       }
     } catch (error) {
       console.error('Error deleting feature:', error);
-      setError('An error occurred while deleting the feature');
+      toast.error('An error occurred while deleting the feature');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -263,11 +278,12 @@ export default function FeatureDetailsPage({
   if (!feature) return null;
 
   // Prepare wizard data from feature and permissions
+  // Normalize category to match enum values (handles aliases like 'notifications' -> 'notification')
   const wizardData: WizardData = {
     name: feature.name,
     description: feature.description,
     tier: (feature.tier as any) || 'professional',
-    category: feature.category,
+    category: normalizeFeatureCategory(feature.category),
     feature_code: feature.code || '',  // Map 'code' from DB to 'feature_code' for wizard
     permissions: permissions.map(p => ({
       permission_code: p.permission_code,
@@ -305,7 +321,7 @@ export default function FeatureDetailsPage({
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Feature
               </Button>
-              <Button variant="destructive" onClick={handleDelete}>
+              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </Button>
@@ -343,6 +359,36 @@ export default function FeatureDetailsPage({
         onComplete={handleComplete}
         onCancel={handleCancel}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Feature</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the feature &quot;{feature?.name}&quot;?
+              This will also delete all associated permissions. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

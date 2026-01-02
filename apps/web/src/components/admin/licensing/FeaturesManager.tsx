@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Plus,
   Search,
@@ -21,11 +22,15 @@ import {
   Trash2,
   Filter,
   MoreVertical,
+  Loader2,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -36,9 +41,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import {
   LicenseTier,
   LicenseTierLabels,
-  LicenseTierColors
+  LicenseTierColors,
+  FeatureCategory,
+  FeatureCategoryLabels,
+  normalizeFeatureCategory
 } from '@/enums/licensing.enums';
 import {
   getEnumValues
@@ -51,7 +70,6 @@ interface Feature {
   description: string;
   tier?: string | null;
   category: string;
-  module?: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -76,6 +94,11 @@ const getTierPresentation = (tier?: string | null) => {
   return { className, label };
 };
 
+const getCategoryLabel = (category: string): string => {
+  const normalizedCategory = normalizeFeatureCategory(category) as FeatureCategory;
+  return FeatureCategoryLabels[normalizedCategory] || category.charAt(0).toUpperCase() + category.slice(1);
+};
+
 export function FeaturesManager() {
   const router = useRouter();
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -83,20 +106,35 @@ export function FeaturesManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [tierFilter, setTierFilter] = useState<string>('all');
-  const [moduleFilter, setModuleFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [featureToDelete, setFeatureToDelete] = useState<Feature | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Multi-select state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState<'activate' | 'deactivate' | null>(null);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   useEffect(() => {
     fetchFeatures();
-  }, []);
+  }, [statusFilter]);
 
   useEffect(() => {
     filterFeatures();
-  }, [features, searchTerm, tierFilter, moduleFilter]);
+  }, [features, searchTerm, tierFilter, categoryFilter]);
+
+  // Clear selection when filters change
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [statusFilter, tierFilter, categoryFilter, searchTerm]);
 
   const fetchFeatures = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/licensing/features');
+      const response = await fetch(`/api/licensing/features?status=${statusFilter}`);
       if (response.ok) {
         const data = await response.json();
         setFeatures(data.data || []);
@@ -127,45 +165,105 @@ export function FeaturesManager() {
       filtered = filtered.filter((f) => f.tier === tierFilter);
     }
 
-    // Module filter
-    if (moduleFilter !== 'all') {
-      filtered = filtered.filter((f) => f.module === moduleFilter);
+    // Category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((f) => normalizeFeatureCategory(f.category) === categoryFilter);
     }
 
     setFilteredFeatures(filtered);
   };
 
-  const handleDelete = async (featureId: string) => {
-    if (!confirm('Are you sure you want to delete this feature?')) {
-      return;
+  // Multi-select handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredFeatures.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredFeatures.map((f) => f.id)));
     }
+  };
 
+  const toggleSelectOne = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const openBulkActionDialog = (action: 'activate' | 'deactivate') => {
+    setBulkAction(action);
+    setBulkActionDialogOpen(true);
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedIds.size === 0) return;
+
+    setIsBulkUpdating(true);
     try {
-      const response = await fetch(`/api/licensing/features/${featureId}`, {
+      const response = await fetch('/api/licensing/features/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: Array.from(selectedIds),
+          updates: { is_active: bulkAction === 'activate' },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || `Successfully ${bulkAction}d ${selectedIds.size} feature(s)`);
+        setSelectedIds(new Set());
+        fetchFeatures();
+      } else {
+        toast.error(data.error || `Failed to ${bulkAction} features`);
+      }
+    } catch (error) {
+      console.error('Error performing bulk action:', error);
+      toast.error(`An error occurred while ${bulkAction === 'activate' ? 'activating' : 'deactivating'} features`);
+    } finally {
+      setIsBulkUpdating(false);
+      setBulkActionDialogOpen(false);
+      setBulkAction(null);
+    }
+  };
+
+  const openDeleteDialog = (feature: Feature) => {
+    setFeatureToDelete(feature);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!featureToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/licensing/features/${featureToDelete.id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
+        toast.success('Feature deleted successfully');
+        setDeleteDialogOpen(false);
+        setFeatureToDelete(null);
         fetchFeatures();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete feature');
+        toast.error(data.error || 'Failed to delete feature');
       }
     } catch (error) {
       console.error('Error deleting feature:', error);
-      alert('An error occurred while deleting the feature');
+      toast.error('An error occurred while deleting the feature');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const uniqueModules = Array.from(
-    new Set(
-      features
-        .map((f) => f.module?.trim())
-        .filter((module): module is string => Boolean(module))
-    )
-  ).sort();
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
@@ -195,9 +293,19 @@ export function FeaturesManager() {
               />
             </div>
           </div>
-          <Select value={tierFilter} onValueChange={setTierFilter}>
-            <SelectTrigger className="w-[180px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
               <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={tierFilter} onValueChange={setTierFilter}>
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="All tiers" />
             </SelectTrigger>
             <SelectContent>
@@ -209,20 +317,54 @@ export function FeaturesManager() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={moduleFilter} onValueChange={setModuleFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All modules" />
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Modules</SelectItem>
-              {uniqueModules.map((module) => (
-                <SelectItem key={module} value={module}>
-                  {module.charAt(0).toUpperCase() + module.slice(1)}
+              <SelectItem value="all">All Categories</SelectItem>
+              {getEnumValues(FeatureCategory).map((category) => (
+                <SelectItem key={category} value={category}>
+                  {FeatureCategoryLabels[category as FeatureCategory]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Bulk Action Bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-4 mb-4 p-3 bg-muted rounded-md">
+            <span className="text-sm font-medium">
+              {selectedIds.size} feature{selectedIds.size > 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-2 ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openBulkActionDialog('activate')}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Activate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openBulkActionDialog('deactivate')}
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Deactivate
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         {isLoading ? (
@@ -247,9 +389,18 @@ export function FeaturesManager() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={
+                        filteredFeatures.length > 0 &&
+                        selectedIds.size === filteredFeatures.length
+                      }
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>Module</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -259,9 +410,20 @@ export function FeaturesManager() {
                 {filteredFeatures.map((feature) => {
                   const { className: tierClassName, label: tierLabel } =
                     getTierPresentation(feature.tier);
+                  const isSelected = selectedIds.has(feature.id);
 
                   return (
-                    <TableRow key={feature.id}>
+                    <TableRow
+                      key={feature.id}
+                      className={isSelected ? 'bg-muted/50' : undefined}
+                    >
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelectOne(feature.id)}
+                        aria-label={`Select ${feature.name}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{feature.name}</p>
@@ -271,18 +433,9 @@ export function FeaturesManager() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {feature.category}
+                      <Badge variant="outline">
+                        {getCategoryLabel(feature.category)}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {feature.module ? (
-                        <Badge variant="outline" className="capitalize">
-                          {feature.module}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">N/A</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <Badge className={tierClassName}>{tierLabel}</Badge>
@@ -310,8 +463,9 @@ export function FeaturesManager() {
                             <Eye className="mr-2 h-4 w-4" />
                             View & Edit
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleDelete(feature.id)}
+                            onClick={() => openDeleteDialog(feature)}
                             className="text-destructive"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
@@ -336,5 +490,71 @@ export function FeaturesManager() {
         )}
       </CardContent>
     </Card>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Feature</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete the feature &quot;{featureToDelete?.name}&quot;?
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              'Delete'
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Bulk Action Confirmation Dialog */}
+    <AlertDialog open={bulkActionDialogOpen} onOpenChange={setBulkActionDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {bulkAction === 'activate' ? 'Activate Features' : 'Deactivate Features'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to {bulkAction} {selectedIds.size} feature{selectedIds.size > 1 ? 's' : ''}?
+            {bulkAction === 'deactivate' && (
+              <span className="block mt-2 text-amber-600">
+                Deactivated features will not be available in the licensing system.
+              </span>
+            )}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isBulkUpdating}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleBulkAction}
+            disabled={isBulkUpdating}
+          >
+            {isBulkUpdating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {bulkAction === 'activate' ? 'Activating...' : 'Deactivating...'}
+              </>
+            ) : (
+              bulkAction === 'activate' ? 'Activate' : 'Deactivate'
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

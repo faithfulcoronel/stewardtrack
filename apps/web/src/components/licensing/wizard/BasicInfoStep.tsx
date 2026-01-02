@@ -179,13 +179,13 @@ export function BasicInfoStep({ data, onUpdate, onNext, mode = 'create' }: Basic
         </Label>
         <Input
           id="feature_code"
-          placeholder="e.g., member-management"
+          placeholder="e.g., members.core"
           value={data.feature_code || ''}
           onChange={(e) => onUpdate({ feature_code: e.target.value })}
           disabled={isReadOnly}
         />
         <p className="text-sm text-muted-foreground">
-          Unique code for metadata mapping (kebab-case). Leave empty if not mapped to metadata.
+          Unique code for metadata mapping (dotted notation, e.g., module.feature). Leave empty if not mapped to metadata.
         </p>
       </div>
 

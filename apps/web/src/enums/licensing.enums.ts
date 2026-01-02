@@ -7,13 +7,16 @@
 
 /**
  * License Tier levels for product offerings and features
- * Determines the pricing and feature access level
+ * Hierarchy: Essential → Premium → Professional → Enterprise
+ *
+ * Note: Custom product offerings can be created by super-admins through the
+ * Product Offerings management UI with any combination of features.
  */
 export enum LicenseTier {
   ESSENTIAL = 'essential',
+  PREMIUM = 'premium',
   PROFESSIONAL = 'professional',
   ENTERPRISE = 'enterprise',
-  PREMIUM = 'premium',
 }
 
 /**
@@ -21,9 +24,9 @@ export enum LicenseTier {
  */
 export const LicenseTierLabels: Record<LicenseTier, string> = {
   [LicenseTier.ESSENTIAL]: 'Essential',
+  [LicenseTier.PREMIUM]: 'Premium',
   [LicenseTier.PROFESSIONAL]: 'Professional',
   [LicenseTier.ENTERPRISE]: 'Enterprise',
-  [LicenseTier.PREMIUM]: 'Premium',
 };
 
 /**
@@ -31,9 +34,30 @@ export const LicenseTierLabels: Record<LicenseTier, string> = {
  */
 export const LicenseTierColors: Record<LicenseTier, string> = {
   [LicenseTier.ESSENTIAL]: 'bg-gray-100 text-gray-800',
+  [LicenseTier.PREMIUM]: 'bg-amber-100 text-amber-800',
   [LicenseTier.PROFESSIONAL]: 'bg-blue-100 text-blue-800',
   [LicenseTier.ENTERPRISE]: 'bg-purple-100 text-purple-800',
-  [LicenseTier.PREMIUM]: 'bg-amber-100 text-amber-800',
+};
+
+/**
+ * License tier order (for comparison and sorting)
+ * Lower number = more basic tier
+ */
+export const LicenseTierOrder: Record<LicenseTier, number> = {
+  [LicenseTier.ESSENTIAL]: 1,
+  [LicenseTier.PREMIUM]: 2,
+  [LicenseTier.PROFESSIONAL]: 3,
+  [LicenseTier.ENTERPRISE]: 4,
+};
+
+/**
+ * License tier descriptions
+ */
+export const LicenseTierDescriptions: Record<LicenseTier, string> = {
+  [LicenseTier.ESSENTIAL]: 'Basic features for small churches (<100 members)',
+  [LicenseTier.PREMIUM]: 'Extended features for growing churches (100-300 members)',
+  [LicenseTier.PROFESSIONAL]: 'Full features for medium churches (300-500 members)',
+  [LicenseTier.ENTERPRISE]: 'Advanced features for large churches (500+ members)',
 };
 
 /**
@@ -67,6 +91,7 @@ export enum FeatureCategory {
   ANALYTICS = 'analytics',
   REPORTING = 'reporting',
   COMMUNICATION = 'communication',
+  NOTIFICATION = 'notification',
   INTEGRATION = 'integration',
   AUTOMATION = 'automation',
   SECURITY = 'security',
@@ -83,12 +108,56 @@ export const FeatureCategoryLabels: Record<FeatureCategory, string> = {
   [FeatureCategory.ANALYTICS]: 'Analytics',
   [FeatureCategory.REPORTING]: 'Reporting',
   [FeatureCategory.COMMUNICATION]: 'Communication',
+  [FeatureCategory.NOTIFICATION]: 'Notifications',
   [FeatureCategory.INTEGRATION]: 'Integration',
   [FeatureCategory.AUTOMATION]: 'Automation',
   [FeatureCategory.SECURITY]: 'Security',
   [FeatureCategory.CUSTOMIZATION]: 'Customization',
   [FeatureCategory.COLLABORATION]: 'Collaboration',
   [FeatureCategory.MANAGEMENT]: 'Management',
+};
+
+/**
+ * Alias mapping for category values that may exist in the database
+ * Maps alternative/legacy values to canonical enum values
+ */
+export const FeatureCategoryAliases: Record<string, FeatureCategory> = {
+  'notifications': FeatureCategory.NOTIFICATION,
+  'notify': FeatureCategory.NOTIFICATION,
+  'communications': FeatureCategory.COMMUNICATION,
+  'integrations': FeatureCategory.INTEGRATION,
+  'report': FeatureCategory.REPORTING,
+  'reports': FeatureCategory.REPORTING,
+  'manage': FeatureCategory.MANAGEMENT,
+  'admin': FeatureCategory.MANAGEMENT,
+  'custom': FeatureCategory.CUSTOMIZATION,
+  'collaborate': FeatureCategory.COLLABORATION,
+  'secure': FeatureCategory.SECURITY,
+  'automate': FeatureCategory.AUTOMATION,
+};
+
+/**
+ * Normalize a category value to a valid FeatureCategory enum value
+ * Handles case-insensitivity and common aliases
+ */
+export const normalizeFeatureCategory = (category: string | null | undefined): string => {
+  if (!category) return '';
+
+  const normalized = category.trim().toLowerCase();
+
+  // Check if it's already a valid enum value
+  const enumValues = Object.values(FeatureCategory) as string[];
+  if (enumValues.includes(normalized)) {
+    return normalized;
+  }
+
+  // Check aliases
+  if (normalized in FeatureCategoryAliases) {
+    return FeatureCategoryAliases[normalized];
+  }
+
+  // Return as-is (will show as unknown in dropdown but won't break)
+  return normalized;
 };
 
 /**

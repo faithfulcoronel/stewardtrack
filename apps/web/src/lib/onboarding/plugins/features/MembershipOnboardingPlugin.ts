@@ -94,9 +94,9 @@ const DEFAULT_MEMBERSHIP_STAGES = [
  * MembershipOnboardingPlugin
  *
  * Seeds default membership types, stages, and discipleship pathways when a tenant
- * registers with the member-management feature licensed.
+ * registers with the members.core feature licensed.
  *
- * Feature code: 'member-management' (maps to feature_catalog.code)
+ * Feature code: 'members.core' (maps to feature_catalog.code)
  *
  * This plugin creates:
  * - Default membership types (Member, Regular Attendee, Visitor, etc.)
@@ -108,7 +108,7 @@ const DEFAULT_MEMBERSHIP_STAGES = [
  */
 @injectable()
 export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
-  readonly featureCode = 'member-management';
+  readonly featureCode = 'members.core';
   readonly name = 'Member Management Feature';
   readonly description = 'Seeds default membership types, stages, and discipleship pathways for new tenants';
   readonly priority = 10; // Run early since other features may depend on membership
@@ -128,14 +128,16 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Check if this plugin should execute
-   * Runs if 'member-management' feature is in the granted features list
+   * Runs if 'members.core' feature is in the granted features list
    */
   override async shouldExecute(context: FeatureOnboardingContext): Promise<boolean> {
-    // Check for exact 'member-management' feature or any member-related feature
+    // Check for exact 'members.core' feature or any member-related feature
     const hasMemberManagementFeature = context.grantedFeatures.some(
       (feature) =>
-        feature === 'member-management' ||
+        feature === 'members.core' ||
+        feature === 'member-management' || // Legacy support
         feature === 'community' ||
+        feature.startsWith('members.') ||
         feature.startsWith('member-') ||
         feature.startsWith('community_')
     );
