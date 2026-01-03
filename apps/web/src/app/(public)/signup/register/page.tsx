@@ -224,52 +224,33 @@ function RegisterFormContent() {
 
     setIsRegistering(true);
 
+    // Check if this is a free/trial offering (no payment required)
+    const isTrial = selectedOffering?.offering_type === 'trial';
+    const isFree = selectedOffering?.offering_type === 'free' ||
+      (selectedOffering?.metadata as any)?.pricing?.is_free;
+
+    // Also check if price is 0
+    const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
+    const priceIsZero = !priceInfo || priceInfo.price === 0;
+
+    // Prepare registration data for the processing page
+    const registrationData = {
+      ...formData,
+      offeringId,
+      isTrial,
+      isFree,
+      priceIsZero,
+    };
+
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          offeringId,
-        }),
-      });
+      // Encode registration data as base64 for URL-safe transmission
+      const encodedData = btoa(JSON.stringify(registrationData));
 
-      const result = await response.json();
-
-      if (result.success) {
-        // Check if this is a free/trial offering (no payment required)
-        const isFreeOrTrial = selectedOffering && (
-          selectedOffering.offering_type === 'trial' ||
-          selectedOffering.offering_type === 'free' ||
-          (selectedOffering.metadata as any)?.pricing?.is_free
-        );
-
-        // Also check if price is 0
-        const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
-        const isPriceZero = !priceInfo || priceInfo.price === 0;
-
-        if (isFreeOrTrial || isPriceZero) {
-          // Free/Trial: Go directly to onboarding
-          toast.success('Registration successful! Redirecting to onboarding...');
-          router.push('/onboarding');
-        } else {
-          // Paid plan: Redirect to checkout for payment
-          toast.success('Registration successful! Redirecting to payment...');
-          const checkoutParams = new URLSearchParams({
-            tenant_id: result.data.tenantId,
-            offering_id: offeringId!,
-            email: formData.email,
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-          });
-          router.push(`/signup/checkout?${checkoutParams.toString()}`);
-        }
-      } else {
-        toast.error(result.error || 'Registration failed');
-      }
+      // Redirect to processing page which will handle the registration
+      window.location.href = `/signup/register/processing?data=${encodedData}`;
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Registration failed. Please try again.');
-    } finally {
+      toast.error('Failed to process registration. Please try again.');
       setIsRegistering(false);
     }
   }
@@ -399,9 +380,47 @@ function RegisterFormContent() {
 
                 <h3 className="text-2xl font-bold text-white capitalize mb-2">
                   {selectedOffering.tier} Plan
+                  {selectedOffering.offering_type === 'trial' && (
+                    <span className="ml-2 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white align-middle">
+                      FREE TRIAL
+                    </span>
+                  )}
                 </h3>
 
-                {offeringDiscount ? (
+                {/* Trial Pricing Display */}
+                {selectedOffering.offering_type === 'trial' ? (
+                  <div className="mb-4">
+                    {/* Trial Badge */}
+                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-xl p-4 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-4xl font-bold text-white">Free</span>
+                        <span className="text-lg text-white/70">
+                          for {(selectedOffering.metadata as any)?.trial_days || 14} days
+                        </span>
+                      </div>
+                      <p className="text-sm text-green-200">
+                        No credit card required to start your trial
+                      </p>
+                    </div>
+
+                    {/* After Trial Pricing */}
+                    <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                      <p className="text-xs text-white/60 mb-1">After trial ends:</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xl font-bold text-white">
+                          {formatPriceValue(
+                            (selectedOffering.metadata as any)?.converts_to_price || 1090,
+                            'PHP'
+                          )}
+                        </span>
+                        <span className="text-sm text-white/70">/month</span>
+                      </div>
+                      <p className="text-xs text-white/50 mt-1">
+                        You&apos;ll be notified before your trial ends. Cancel anytime.
+                      </p>
+                    </div>
+                  </div>
+                ) : offeringDiscount ? (
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-4xl font-bold text-white">
@@ -701,7 +720,14 @@ function RegisterFormContent() {
                     className="w-full"
                     disabled={isRegistering}
                   >
-                    {isRegistering ? 'Creating Account...' : 'Create your account'}
+                    {isRegistering ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      'Create your account'
+                    )}
                   </Button>
                 </div>
 

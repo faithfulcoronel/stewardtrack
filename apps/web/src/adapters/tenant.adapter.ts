@@ -48,6 +48,21 @@ export interface TenantAdminInfo {
   last_name: string;
 }
 
+export interface TenantCleanupResult {
+  success: boolean;
+  deletedRecords: {
+    userRoles: number;
+    rolePermissions: number;
+    roles: number;
+    permissions: number;
+    featureGrants: number;
+    encryptionKeys: number;
+    tenantUsers: number;
+    tenant: boolean;
+  };
+  errors: string[];
+}
+
 export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
   updateSubscription(tier: string, cycle: 'monthly' | 'annual'): Promise<unknown>;
@@ -62,6 +77,8 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   createTenantWithServiceRole(tenantData: Partial<Tenant>): Promise<Tenant>;
   createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void>;
   deleteTenantWithServiceRole(tenantId: string): Promise<void>;
+  /** Comprehensive cleanup of all tenant data for rollback scenarios */
+  deleteAllTenantDataForCleanup(tenantId: string): Promise<TenantCleanupResult>;
   fetchPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
   getTenantStatus(tenantId: string): Promise<any>;
 
@@ -294,6 +311,150 @@ export class TenantAdapter
     if (error) {
       throw new Error(`Failed to delete tenant: ${error.message}`);
     }
+  }
+
+  /**
+   * Comprehensive cleanup of all tenant data for registration rollback.
+   *
+   * Deletes in order to respect foreign key constraints:
+   * 1. user_roles (references roles)
+   * 2. role_permissions (references roles and permissions)
+   * 3. roles (tenant-scoped)
+   * 4. permissions (tenant-scoped)
+   * 5. tenant_feature_grants
+   * 6. tenant_encryption_keys
+   * 7. tenant_users
+   * 8. tenant record
+   */
+  async deleteAllTenantDataForCleanup(tenantId: string): Promise<TenantCleanupResult> {
+    const serviceSupabase = await getSupabaseServiceClient();
+    const result: TenantCleanupResult = {
+      success: true,
+      deletedRecords: {
+        userRoles: 0,
+        rolePermissions: 0,
+        roles: 0,
+        permissions: 0,
+        featureGrants: 0,
+        encryptionKeys: 0,
+        tenantUsers: 0,
+        tenant: false,
+      },
+      errors: [],
+    };
+
+    // 1. Get tenant-scoped role IDs first (needed for user_roles and role_permissions cleanup)
+    const { data: roles } = await serviceSupabase
+      .from('roles')
+      .select('id')
+      .eq('tenant_id', tenantId);
+
+    const roleIds = roles?.map((r: { id: string }) => r.id) || [];
+
+    // 2. Delete user_roles for tenant-scoped roles
+    if (roleIds.length > 0) {
+      try {
+        const { data } = await serviceSupabase
+          .from('user_roles')
+          .delete()
+          .in('role_id', roleIds)
+          .select('id');
+        result.deletedRecords.userRoles = data?.length || 0;
+      } catch (error) {
+        result.errors.push(`user_roles: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // 3. Delete role_permissions for tenant-scoped roles
+    if (roleIds.length > 0) {
+      try {
+        const { data } = await serviceSupabase
+          .from('role_permissions')
+          .delete()
+          .in('role_id', roleIds)
+          .select('id');
+        result.deletedRecords.rolePermissions = data?.length || 0;
+      } catch (error) {
+        result.errors.push(`role_permissions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // 4. Delete tenant-scoped roles
+    try {
+      const { data } = await serviceSupabase
+        .from('roles')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .select('id');
+      result.deletedRecords.roles = data?.length || 0;
+    } catch (error) {
+      result.errors.push(`roles: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // 5. Delete tenant-scoped permissions
+    try {
+      const { data } = await serviceSupabase
+        .from('permissions')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .select('id');
+      result.deletedRecords.permissions = data?.length || 0;
+    } catch (error) {
+      result.errors.push(`permissions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // 6. Delete feature grants
+    try {
+      const { data } = await serviceSupabase
+        .from('tenant_feature_grants')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .select('id');
+      result.deletedRecords.featureGrants = data?.length || 0;
+    } catch (error) {
+      result.errors.push(`tenant_feature_grants: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // 7. Delete encryption keys
+    try {
+      const { error } = await serviceSupabase
+        .from('tenant_encryption_keys')
+        .delete()
+        .eq('tenant_id', tenantId);
+      if (!error) {
+        result.deletedRecords.encryptionKeys = 1; // Can't get count, assume 1
+      }
+    } catch (error) {
+      result.errors.push(`tenant_encryption_keys: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // 8. Delete tenant-user relationships
+    try {
+      const { data } = await serviceSupabase
+        .from('tenant_users')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .select('id');
+      result.deletedRecords.tenantUsers = data?.length || 0;
+    } catch (error) {
+      result.errors.push(`tenant_users: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // 9. Delete the tenant record
+    try {
+      const { error } = await serviceSupabase
+        .from('tenants')
+        .delete()
+        .eq('id', tenantId);
+      if (!error) {
+        result.deletedRecords.tenant = true;
+      }
+    } catch (error) {
+      result.errors.push(`tenant: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    result.success = result.errors.length === 0;
+    return result;
   }
 
   /**

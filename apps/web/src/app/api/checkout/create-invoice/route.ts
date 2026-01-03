@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { PaymentService } from '@/services/PaymentService';
+import { PaymentService, DiscountInfo } from '@/services/PaymentService';
 import { LicensingService } from '@/services/LicensingService';
+import { DiscountService } from '@/services/DiscountService';
 import { PRIMARY_CURRENCY } from '@/lib/currency';
 
 /**
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
     // Get services from DI container
     const paymentService = container.get<PaymentService>(TYPES.PaymentService);
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+    const discountService = container.get<DiscountService>(TYPES.DiscountService);
 
     // Check if Xendit is configured
     if (!paymentService.isConfigured()) {
@@ -82,6 +84,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check for applicable automatic discounts
+    let finalAmount = priceInfo.price;
+    let discountInfo: DiscountInfo | undefined;
+
+    try {
+      const discountResult = await discountService.applyBestDiscount(
+        offeringId,
+        priceInfo.price,
+        priceInfo.currency
+      );
+
+      if (discountResult.success && discountResult.discount) {
+        finalAmount = discountResult.discountedPrice;
+        discountInfo = {
+          discount_id: discountResult.discount.discount_id,
+          discount_code: undefined, // Automatic discounts don't have codes
+          discount_name: discountResult.discount.discount_name,
+          discount_type: discountResult.discount.discount_type as 'coupon' | 'automatic',
+          calculation_type: discountResult.discount.calculation_type as 'percentage' | 'fixed_amount',
+          discount_value: discountResult.discount.discount_value,
+          discount_amount: discountResult.discountAmount,
+          original_price: priceInfo.price,
+        };
+        console.log(`[Checkout API] Applied discount: ${discountResult.discount.discount_name}, saving ${discountResult.discountAmount} ${priceInfo.currency}`);
+      }
+    } catch (discountError) {
+      // Log but don't fail - proceed without discount
+      console.warn('[Checkout API] Failed to check for discounts:', discountError);
+    }
+
     // Generate external ID for payment tracking
     const externalId = `SUB-${tenantId}-${Date.now()}`;
 
@@ -90,12 +122,12 @@ export async function POST(request: NextRequest) {
     const successUrl = `${baseUrl}/signup/success?external_id=${externalId}`;
     const failureUrl = `${baseUrl}/signup/failed?external_id=${externalId}`;
 
-    // Create payment invoice with the same externalId used in callback URLs
+    // Create payment invoice with discounted amount
     const { invoice, payment } = await paymentService.createSubscriptionPayment({
       tenantId,
       offeringId: offering.id,
       offeringName: offering.name,
-      amount: priceInfo.price,
+      amount: finalAmount,
       currency: priceInfo.currency,
       payerEmail,
       payerName,
@@ -103,6 +135,7 @@ export async function POST(request: NextRequest) {
       successUrl,
       failureUrl,
       externalId,
+      discount: discountInfo,
     });
 
     return NextResponse.json({
@@ -112,6 +145,11 @@ export async function POST(request: NextRequest) {
       payment_id: payment.id,
       amount: payment.amount,
       currency: payment.currency,
+      original_amount: discountInfo ? priceInfo.price : undefined,
+      discount_applied: discountInfo ? {
+        name: discountInfo.discount_name,
+        amount: discountInfo.discount_amount,
+      } : undefined,
       expires_at: invoice.expiry_date,
     });
   } catch (error: any) {

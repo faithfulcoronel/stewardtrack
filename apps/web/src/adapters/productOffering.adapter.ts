@@ -69,6 +69,92 @@ export class ProductOfferingAdapter
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
 
+  /**
+   * Override fetchById to skip tenant_id filter.
+   * product_offerings is a global table without tenant_id column.
+   */
+  public async fetchById(id: string): Promise<ProductOffering | null> {
+    const supabase = await this.getSupabaseClient();
+
+    // Use 'any' to bypass strict typing since product_offerings is not in the typed schema
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - not found
+        return null;
+      }
+      throw new Error(`Failed to fetch product offering: ${error.message}`);
+    }
+
+    return data as ProductOffering;
+  }
+
+  /**
+   * Override fetch to skip tenant_id filter.
+   * product_offerings is a global table without tenant_id column.
+   */
+  public async fetch(options: QueryOptions = {}): Promise<{ data: ProductOffering[]; count: number | null }> {
+    const supabase = await this.getSupabaseClient();
+
+    // Build the query without tenant_id filter (global table)
+    // Use 'any' to bypass strict typing since product_offerings is not in the typed schema
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query: any = (supabase as any)
+      .from(this.tableName)
+      .select(options.select || this.defaultSelect, { count: 'exact' })
+      .is('deleted_at', null);
+
+    if (options.filters) {
+      Object.entries(options.filters).forEach(([key, filter]) => {
+        if (filter !== undefined && filter !== null) {
+          if (typeof filter === 'object' && 'operator' in filter) {
+            const op = filter.operator;
+            const value = filter.value as string;
+            const arrayValue = filter.value as string[];
+            if (op === 'eq') query = query.eq(key, value);
+            else if (op === 'neq') query = query.neq(key, value);
+            else if (op === 'gt') query = query.gt(key, value);
+            else if (op === 'gte') query = query.gte(key, value);
+            else if (op === 'lt') query = query.lt(key, value);
+            else if (op === 'lte') query = query.lte(key, value);
+            else if (op === 'like') query = query.like(key, value);
+            else if (op === 'ilike') query = query.ilike(key, value);
+            else if (op === 'in') query = query.in(key, arrayValue);
+          } else {
+            query = query.eq(key, filter);
+          }
+        }
+      });
+    }
+
+    if (options.order) {
+      query = query.order(options.order.column, {
+        ascending: options.order.ascending ?? true
+      });
+    }
+
+    if (options.pagination) {
+      const { page, pageSize } = options.pagination;
+      const start = (page - 1) * pageSize;
+      query = query.range(start, start + pageSize - 1);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      throw new Error(`Failed to fetch product offerings: ${error.message}`);
+    }
+
+    return { data: (data || []) as ProductOffering[], count };
+  }
+
   private normalizeCount(value: unknown): number | null {
     if (value === null || value === undefined) {
       return null;

@@ -26,6 +26,8 @@ export class OnboardingProgressAdapter
     church_details_data,
     rbac_setup_data,
     feature_tour_data,
+    payment_data,
+    complete_data,
     metadata,
     created_at,
     updated_at,

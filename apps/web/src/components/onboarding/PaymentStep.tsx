@@ -136,19 +136,47 @@ export default function PaymentStep({
   const offering = subscriptionData?.currentOffering;
 
   // Check if offering has a price - look for resolved_price or prices array
-  const getOfferingPrice = (): { price: number; currency: string } | null => {
+  const getOfferingPrice = (): {
+    price: number;
+    currency: string;
+    hasDiscount: boolean;
+    discountedPrice?: number;
+    discountLabel?: string;
+    originalPrice?: number;
+    discountName?: string;
+  } | null => {
     if (!offering) return null;
 
     // Try resolved_price first (from subscription status API)
     if (offering.resolved_price !== undefined && offering.resolved_price !== null) {
-      return { price: offering.resolved_price, currency: offering.resolved_currency || PRIMARY_CURRENCY };
+      const basePrice = offering.resolved_price;
+      const currency = offering.resolved_currency || PRIMARY_CURRENCY;
+
+      // Check if there's a discount
+      if (offering.discount?.has_discount) {
+        const discountLabel = offering.discount.calculation_type === 'percentage'
+          ? `${offering.discount.discount_value}% OFF`
+          : `${formatPrice(offering.discount.discount_value, currency)} OFF`;
+
+        return {
+          price: offering.discount.discounted_price,
+          currency,
+          hasDiscount: true,
+          discountedPrice: offering.discount.discounted_price,
+          discountLabel,
+          originalPrice: basePrice,
+          discountName: offering.discount.discount_name,
+        };
+      }
+
+      return { price: basePrice, currency, hasDiscount: false };
     }
 
     // Try prices array
     if (offering.prices && Array.isArray(offering.prices) && offering.prices.length > 0) {
       const activePrice = offering.prices.find((p: any) => p.is_active);
       if (activePrice) {
-        return { price: activePrice.price, currency: activePrice.currency };
+        return { price: activePrice.price, currency: activePrice.currency, hasDiscount: false };
       }
     }
 
@@ -205,9 +233,32 @@ export default function PaymentStep({
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">Amount</span>
               <div className="text-right">
-                <div className="text-2xl font-bold text-foreground">
-                  {isFreeOrTrial ? 'Free' : formatPrice(offeringPriceInfo!.price, offeringPriceInfo!.currency)}
-                </div>
+                {isFreeOrTrial ? (
+                  <div className="text-2xl font-bold text-foreground">Free</div>
+                ) : offeringPriceInfo?.hasDiscount ? (
+                  <>
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className="text-lg text-muted-foreground line-through">
+                        {formatPrice(offeringPriceInfo.originalPrice!, offeringPriceInfo.currency)}
+                      </span>
+                      <Badge variant="destructive" className="text-xs">
+                        {offeringPriceInfo.discountLabel}
+                      </Badge>
+                    </div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {formatPrice(offeringPriceInfo.price, offeringPriceInfo.currency)}
+                    </div>
+                    {offeringPriceInfo.discountName && (
+                      <div className="text-xs text-green-600">
+                        {offeringPriceInfo.discountName}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-2xl font-bold text-foreground">
+                    {formatPrice(offeringPriceInfo!.price, offeringPriceInfo!.currency)}
+                  </div>
+                )}
                 {!isFreeOrTrial && offering.billing_cycle && (
                   <div className="text-sm text-muted-foreground">
                     per {offering.billing_cycle}
