@@ -3,7 +3,7 @@
  *
  * Entry point for member analytics and operational dashboards.
  *
- * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
  */
 
 import type { Metadata } from "next";
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default async function MembershipDashboardPage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view", "members:manage"], "any", {
+  const gate = Gate.withPermission(["members:view", "members:edit"], "any", {
     fallbackPath: "/unauthorized?reason=members_access",
   });
 

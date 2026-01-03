@@ -287,6 +287,9 @@ export class PermissionDeploymentService {
    * Handles:
    * 1. Create/update tenant permission record
    * 2. Apply role templates (assign to appropriate roles)
+   *
+   * NOTE: Uses elevated access methods to bypass RLS for super admin operations.
+   * This is necessary when a super admin assigns a license to a tenant they don't belong to.
    */
   private async deployPermission(
     tenantId: string,
@@ -309,9 +312,9 @@ export class PermissionDeploymentService {
     };
 
     try {
-      // 1. Check if permission already exists for this tenant
+      // 1. Check if permission already exists for this tenant (using elevated access)
       console.log(`[PERMISSION DEPLOY]          Checking if permission exists in tenant RBAC...`);
-      const existingPermission = await this.permissionRepository.findByCode(
+      const existingPermission = await this.permissionRepository.findByCodeWithElevatedAccess(
         tenantId,
         featurePermission.permission_code
       );
@@ -346,14 +349,14 @@ export class PermissionDeploymentService {
           console.log(`[PERMISSION DEPLOY]          Creating tenant permission:`, permissionData);
 
           if (existingPermission && options.forceReplace) {
-            console.log(`[PERMISSION DEPLOY]          Updating existing permission...`);
-            tenantPermission = await this.permissionRepository.update(
+            console.log(`[PERMISSION DEPLOY]          Updating existing permission (elevated access)...`);
+            tenantPermission = await this.permissionRepository.updateWithElevatedAccess(
               existingPermission.id,
               permissionData
             );
           } else {
-            console.log(`[PERMISSION DEPLOY]          Creating new permission...`);
-            tenantPermission = await this.permissionRepository.create(permissionData);
+            console.log(`[PERMISSION DEPLOY]          Creating new permission (elevated access)...`);
+            tenantPermission = await this.permissionRepository.createWithElevatedAccess(permissionData);
           }
 
           deployResult.permissionCreated = true;
@@ -368,8 +371,8 @@ export class PermissionDeploymentService {
 
       // 2. Apply role templates (if not skipped)
       if (!options.skipRoleTemplates) {
-        console.log(`[PERMISSION DEPLOY]          Fetching role templates for permission ${featurePermission.id}...`);
-        const templates = await this.featurePermissionRepository.getRoleTemplates(
+        console.log(`[PERMISSION DEPLOY]          Fetching role templates for permission ${featurePermission.id} (elevated access)...`);
+        const templates = await this.featurePermissionRepository.getRoleTemplatesWithElevatedAccess(
           featurePermission.id
         );
         console.log(`[PERMISSION DEPLOY]          Found ${templates.length} role templates`);
@@ -378,21 +381,37 @@ export class PermissionDeploymentService {
           templates.forEach((t, idx) => {
             console.log(`[PERMISSION DEPLOY]          Template ${idx + 1}: role_key=${t.role_key}, recommended=${t.is_recommended}`);
           });
-        }
 
-        for (const template of templates) {
+          for (const template of templates) {
+            const assigned = await this.applyRoleTemplate(
+              tenantId,
+              tenantPermission!.id,
+              template,
+              options
+            );
+
+            if (assigned) {
+              deployResult.roleAssignments++;
+              console.log(`[PERMISSION DEPLOY]          ✓ Role assignment successful`);
+            } else {
+              console.log(`[PERMISSION DEPLOY]          ✗ Role assignment failed or skipped`);
+            }
+          }
+        } else {
+          // FALLBACK: If no templates exist, always assign to tenant_admin
+          console.log(`[PERMISSION DEPLOY]          No role templates found. Using fallback: assign to tenant_admin`);
           const assigned = await this.applyRoleTemplate(
             tenantId,
             tenantPermission!.id,
-            template,
+            { role_key: 'tenant_admin', is_recommended: true, reason: 'Fallback: no templates defined' } as any,
             options
           );
 
           if (assigned) {
             deployResult.roleAssignments++;
-            console.log(`[PERMISSION DEPLOY]          ✓ Role assignment successful`);
+            console.log(`[PERMISSION DEPLOY]          ✓ Fallback: assigned permission to tenant_admin`);
           } else {
-            console.log(`[PERMISSION DEPLOY]          ✗ Role assignment failed or skipped`);
+            console.log(`[PERMISSION DEPLOY]          ✗ Fallback: failed to assign to tenant_admin`);
           }
         }
       } else {
@@ -413,6 +432,10 @@ export class PermissionDeploymentService {
   /**
    * Apply a role template to a tenant
    * Finds the tenant's role by metadata_key and assigns the permission
+   * If the role doesn't exist, creates it first.
+   *
+   * NOTE: Uses elevated access methods to bypass RLS for super admin operations.
+   * This is necessary when a super admin assigns a license to a tenant they don't belong to.
    */
   private async applyRoleTemplate(
     tenantId: string,
@@ -423,28 +446,46 @@ export class PermissionDeploymentService {
     console.log(`[PERMISSION DEPLOY]             >> applyRoleTemplate() for role_key=${template.role_key}`);
 
     try {
-      // 1. Find tenant role by metadata_key
+      // 1. Find tenant role by metadata_key (using elevated access)
       // Template.role_key is like "tenant_admin", role.metadata_key is like "role_tenant_admin"
       const metadataKey = template.role_key.startsWith('role_')
         ? template.role_key
         : `role_${template.role_key}`;
 
-      console.log(`[PERMISSION DEPLOY]                Searching for role with metadata_key: ${metadataKey}`);
-      const tenantRole = await this.roleRepository.findByMetadataKey(tenantId, metadataKey);
+      console.log(`[PERMISSION DEPLOY]                Searching for role with metadata_key: ${metadataKey} (elevated access)`);
+      let tenantRole = await this.roleRepository.findByMetadataKeyWithElevatedAccess(tenantId, metadataKey);
 
+      // 2. If role doesn't exist, create it
       if (!tenantRole) {
-        console.warn(`[PERMISSION DEPLOY]                WARNING: Role not found with metadata_key=${metadataKey}`);
-        console.warn(
-          `Role with metadata_key ${metadataKey} not found for tenant ${tenantId}. Skipping role template.`
-        );
-        return false;
+        console.log(`[PERMISSION DEPLOY]                Role not found with metadata_key=${metadataKey}. Creating...`);
+
+        if (!options.dryRun) {
+          // Map role_key to human-readable name and configuration
+          const roleConfig = this.getRoleConfigForKey(template.role_key);
+
+          console.log(`[PERMISSION DEPLOY]                Creating role: ${roleConfig.name} (${metadataKey})`);
+          tenantRole = await this.roleRepository.createRoleWithElevatedAccess(
+            {
+              name: roleConfig.name,
+              description: roleConfig.description,
+              scope: roleConfig.scope,
+              metadata_key: metadataKey,
+              is_delegatable: roleConfig.is_delegatable,
+            },
+            tenantId
+          );
+          console.log(`[PERMISSION DEPLOY]                ✓ Created role: ${tenantRole.name} (id=${tenantRole.id})`);
+        } else {
+          console.log(`[DRY RUN] Would create role with metadata_key=${metadataKey}`);
+          return false;
+        }
+      } else {
+        console.log(`[PERMISSION DEPLOY]                ✓ Found tenant role: ${tenantRole.name} (id=${tenantRole.id})`);
       }
 
-      console.log(`[PERMISSION DEPLOY]                ✓ Found tenant role: ${tenantRole.name} (id=${tenantRole.id})`);
-
-      // 2. Check if role already has this permission
+      // 3. Check if role already has this permission (using elevated access)
       console.log(`[PERMISSION DEPLOY]                Checking if role already has permission ${permissionId}...`);
-      const existing = await this.rolePermissionRepository.findByRoleAndPermission(
+      const existing = await this.rolePermissionRepository.findByRoleAndPermissionWithElevatedAccess(
         tenantRole.id,
         permissionId
       );
@@ -456,10 +497,10 @@ export class PermissionDeploymentService {
 
       console.log(`[PERMISSION DEPLOY]                Permission not yet assigned. Proceeding with assignment...`);
 
-      // 3. Assign permission to role
+      // 4. Assign permission to role (using elevated access)
       if (!options.dryRun) {
-        console.log(`[PERMISSION DEPLOY]                Assigning permission ${permissionId} to role ${tenantRole.id}...`);
-        await this.rolePermissionRepository.assign(tenantRole.id, permissionId);
+        console.log(`[PERMISSION DEPLOY]                Assigning permission ${permissionId} to role ${tenantRole.id} (elevated access)...`);
+        await this.rolePermissionRepository.assignWithElevatedAccess(tenantRole.id, permissionId, tenantId);
         console.log(`[PERMISSION DEPLOY]                ✓ Successfully assigned permission to role ${tenantRole.name}`);
         return true;
       } else {
@@ -475,6 +516,67 @@ export class PermissionDeploymentService {
       );
       return false;
     }
+  }
+
+  /**
+   * Get role configuration for a given role_key
+   * Maps role_key to human-readable name and settings
+   */
+  private getRoleConfigForKey(roleKey: string): {
+    name: string;
+    description: string;
+    scope: 'tenant' | 'delegated';
+    is_delegatable: boolean;
+  } {
+    // Normalize the role_key (remove 'role_' prefix if present)
+    const normalizedKey = roleKey.startsWith('role_') ? roleKey.substring(5) : roleKey;
+
+    // Map role keys to configurations (matches seedDefaultRBAC.ts)
+    const roleConfigs: Record<string, { name: string; description: string; scope: 'tenant' | 'delegated'; is_delegatable: boolean }> = {
+      tenant_admin: {
+        name: 'Tenant Administrator',
+        description: 'Full administrative access to all church management features',
+        scope: 'tenant',
+        is_delegatable: false,
+      },
+      staff: {
+        name: 'Staff Member',
+        description: 'Extended access for church staff members',
+        scope: 'tenant',
+        is_delegatable: true,
+      },
+      volunteer: {
+        name: 'Volunteer',
+        description: 'Limited access for church volunteers',
+        scope: 'tenant',
+        is_delegatable: true,
+      },
+      member: {
+        name: 'Church Member',
+        description: 'Basic access for church members',
+        scope: 'tenant',
+        is_delegatable: false,
+      },
+    };
+
+    // Return the config for the role_key, or a default config
+    return roleConfigs[normalizedKey] || {
+      name: this.formatRoleName(normalizedKey),
+      description: `Auto-created role for ${normalizedKey}`,
+      scope: 'tenant',
+      is_delegatable: true,
+    };
+  }
+
+  /**
+   * Convert a role_key to a human-readable name
+   * e.g., "tenant_admin" → "Tenant Admin"
+   */
+  private formatRoleName(roleKey: string): string {
+    return roleKey
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   /**

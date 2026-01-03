@@ -31,6 +31,8 @@ export interface IFeaturePermissionRepository {
   getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
   isPermissionCodeAvailable(permissionCode: string, excludeFeatureId?: string): Promise<boolean>;
   deleteByFeatureId(featureId: string): Promise<void>;
+  /** Get role templates with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY */
+  getRoleTemplatesWithElevatedAccess(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
 }
 
 @injectable()
@@ -103,6 +105,14 @@ export class FeaturePermissionRepository extends BaseRepository<FeaturePermissio
    */
   async isPermissionCodeAvailable(permissionCode: string, excludeFeatureId?: string): Promise<boolean> {
     return await this.adapter.isPermissionCodeAvailable(permissionCode, excludeFeatureId);
+  }
+
+  /**
+   * Get role templates with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to get permission templates.
+   */
+  async getRoleTemplatesWithElevatedAccess(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
+    return await this.adapter.getRoleTemplatesWithElevatedAccess(featurePermissionId);
   }
 
   /**

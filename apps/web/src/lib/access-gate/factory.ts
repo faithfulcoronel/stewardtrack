@@ -102,7 +102,7 @@ export class AccessGateFactory {
 
   /**
    * Create a gate that grants RBAC access to super admins, tenant admins, or users
-   * with the explicit rbac:manage permission.
+   * with RBAC management permissions (rbac:assign or rbac:roles_edit).
    */
   static rbacAdmin(config: AccessGateConfig = {}) {
     const fallbackPath = config.fallbackPath ?? '/unauthorized?reason=rbac_manage_required';
@@ -110,7 +110,7 @@ export class AccessGateFactory {
     const gates = [
       AccessGateFactory.superAdminOnly({ fallbackPath }),
       AccessGateFactory.tenantAdminOnly({ fallbackPath }),
-      AccessGateFactory.withPermission('rbac:manage', 'all', { fallbackPath }),
+      AccessGateFactory.withPermission(['rbac:assign', 'rbac:roles_edit'], 'any', { fallbackPath }),
     ];
 
     return new CompositeAccessGate(gates, {

@@ -23,7 +23,7 @@ FEATURE: Planning Event Management
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
   featureCode="events.core"
-  requiredPermissions="members:manage"
+  requiredPermissions="members:edit"
   locale="en-US">
 
   <Page id="admin-community-planning-event-manage">

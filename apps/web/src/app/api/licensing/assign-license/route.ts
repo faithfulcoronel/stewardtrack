@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import type { LicensingService } from '@/services/LicensingService';
-import type { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
+import type { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { authUtils } from '@/utils/authUtils';
 
 /**
  * POST /api/licensing/assign-license
  *
- * Manually assigns a product offering to a tenant
+ * Assigns a product offering to a tenant using the ProductOfferingDeploymentService.
+ * This service orchestrates the full deployment including:
+ * - Granting/revoking features based on the new offering
+ * - Syncing role permissions to match the new feature set
  *
  * Request Body:
  * - tenantId: string - The tenant to assign the license to
@@ -18,7 +20,7 @@ import { authUtils } from '@/utils/authUtils';
  * Response:
  * - success: boolean
  * - message: string
- * - data?: AssignmentResult
+ * - data?: TenantDeploymentResult
  */
 export async function POST(request: Request) {
   try {
@@ -46,44 +48,56 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get the licensing service
-    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+    // Get the ProductOfferingDeploymentService for orchestrated deployment
+    const deploymentService = container.get<ProductOfferingDeploymentService>(
+      TYPES.ProductOfferingDeploymentService
+    );
 
-    // Assign the license
-    const result = await licensingService.assignLicenseToTenant(
+    // Deploy the offering to the tenant
+    // This handles feature grants/revokes and role permission sync in one orchestrated call
+    const result = await deploymentService.deployOfferingToTenant(
       tenantId,
       offeringId,
       user.id,
-      notes
+      {
+        syncRolePermissions: true,
+        dryRun: false,
+      }
     );
 
-    // ⭐ AUTO-SYNC: Deploy permissions for newly licensed features
-    try {
-      const permissionDeploymentService = container.get<PermissionDeploymentService>(
-        TYPES.PermissionDeploymentService
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.errors.join(', ') || 'Failed to assign license',
+        },
+        { status: 500 }
       );
-
-      const deploymentSummary = await permissionDeploymentService.syncTenantPermissions(tenantId);
-
-      console.log(`Permission sync for tenant ${tenantId} after license assignment:`, {
-        totalFeatures: deploymentSummary.totalFeatures,
-        permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
-        roleAssignments: deploymentSummary.totalRoleAssignments,
-        surfaceBindings: deploymentSummary.totalSurfaceBindings,
-      });
-
-      if (deploymentSummary.errors.length > 0) {
-        console.warn('Permission sync warnings:', deploymentSummary.errors);
-      }
-    } catch (syncError) {
-      console.error('Failed to sync permissions after license assignment:', syncError);
-      // Non-fatal - license assignment still succeeded
     }
+
+    console.log(`License deployment for tenant ${tenantId}:`, {
+      tenantName: result.tenantName,
+      featuresGranted: result.featuresGranted,
+      featuresRevoked: result.featuresRevoked,
+      permissionsAdded: result.permissionsAdded,
+      permissionsRemoved: result.permissionsRemoved,
+      rolesUpdated: result.rolesUpdated,
+    });
 
     return NextResponse.json({
       success: true,
       message: 'License assigned successfully and permissions synchronized',
-      data: result,
+      data: {
+        assignment_id: tenantId, // For compatibility
+        tenant_id: result.tenantId,
+        tenant_name: result.tenantName,
+        offering_id: offeringId,
+        features_granted: result.featuresGranted,
+        features_revoked: result.featuresRevoked,
+        permissions_added: result.permissionsAdded,
+        permissions_removed: result.permissionsRemoved,
+        roles_updated: result.rolesUpdated,
+      },
     });
   } catch (error) {
     console.error('Error assigning license:', error);

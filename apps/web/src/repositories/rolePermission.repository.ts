@@ -46,6 +46,16 @@ export interface IRolePermissionRepository {
    * Bulk revoke permissions from a role
    */
   revokeMany(roleId: string, permissionIds: string[]): Promise<void>;
+
+  /**
+   * Assign permission with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY
+   */
+  assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission>;
+
+  /**
+   * Find by role and permission with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY
+   */
+  findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null>;
 }
 
 @injectable()
@@ -84,5 +94,21 @@ export class RolePermissionRepository implements IRolePermissionRepository {
 
   async revokeMany(roleId: string, permissionIds: string[]): Promise<void> {
     return await this.rolePermissionAdapter.revokeMany(roleId, permissionIds);
+  }
+
+  /**
+   * Assign permission with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to assign permissions to tenant roles.
+   */
+  async assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission> {
+    return await this.rolePermissionAdapter.assignWithElevatedAccess(roleId, permissionId, tenantId);
+  }
+
+  /**
+   * Find by role and permission with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to check existing role permissions.
+   */
+  async findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null> {
+    return await this.rolePermissionAdapter.findByRoleAndPermissionWithElevatedAccess(roleId, permissionId);
   }
 }

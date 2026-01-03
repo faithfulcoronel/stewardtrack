@@ -47,7 +47,7 @@ Phase 2 implements RESTful API endpoints for managing feature permissions and ro
 ```json
 {
   "permission": {
-    "permission_code": "members:manage",
+    "permission_code": "members:edit",
     "display_name": "Manage Members",
     "description": "Create, update, and delete members",
     "is_required": false

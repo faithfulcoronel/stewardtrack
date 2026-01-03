@@ -18,6 +18,7 @@ import type {
   DbFeaturePermissionWithTemplates
 } from '@/models/featurePermission.model';
 import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface IFeaturePermissionAdapter extends IBaseAdapter<FeaturePermission> {
   getByFeatureId(featureId: string): Promise<FeaturePermission[]>;
@@ -25,6 +26,8 @@ export interface IFeaturePermissionAdapter extends IBaseAdapter<FeaturePermissio
   getWithTemplates(featureId: string): Promise<DbFeaturePermissionWithTemplates[]>;
   getRoleTemplates(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
   isPermissionCodeAvailable(permissionCode: string, excludeFeatureId?: string): Promise<boolean>;
+  /** Get role templates with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY */
+  getRoleTemplatesWithElevatedAccess(featurePermissionId: string): Promise<PermissionRoleTemplate[]>;
 }
 
 @injectable()
@@ -372,6 +375,48 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
       return data === true;
     } catch (error: any) {
       throw new Error(`Failed to check permission code availability: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get role templates with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to get permission templates.
+   */
+  async getRoleTemplatesWithElevatedAccess(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
+    try {
+      console.log(`[ROLE TEMPLATE ADAPTER] >> getRoleTemplatesWithElevatedAccess() called with featurePermissionId: ${featurePermissionId}`);
+      const supabase = await getSupabaseServiceClient();
+
+      console.log(`[ROLE TEMPLATE ADAPTER] Executing query on permission_role_templates (elevated access)...`);
+      const { data, error } = await supabase
+        .from('permission_role_templates')
+        .select('*')
+        .eq('feature_permission_id', featurePermissionId)
+        .order('role_key');
+
+      console.log(`[ROLE TEMPLATE ADAPTER] Query result:`, {
+        featurePermissionId,
+        count: data?.length || 0,
+        error: error ? { code: error.code, message: error.message, details: error.details } : null
+      });
+
+      if (data && data.length > 0) {
+        console.log(`[ROLE TEMPLATE ADAPTER] Found role templates:`, data.map((t: any) => ({
+          id: t.id,
+          role_key: t.role_key,
+          is_recommended: t.is_recommended
+        })));
+      }
+
+      if (error) {
+        console.error(`[ROLE TEMPLATE ADAPTER] Query error:`, error);
+        throw new Error(error.message);
+      }
+
+      return (data || []) as PermissionRoleTemplate[];
+    } catch (error: any) {
+      console.error(`[ROLE TEMPLATE ADAPTER] Exception:`, error);
+      throw new Error(`Failed to get role templates with elevated access: ${error.message}`);
     }
   }
 }

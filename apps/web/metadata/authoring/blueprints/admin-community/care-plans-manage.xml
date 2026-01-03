@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="care-plans/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="care.plans" requiredPermissions="members:manage" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="care-plans/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="care.plans" requiredPermissions="members:edit" locale="en-US">
   <Page id="admin-community-care-plans-manage">
     <Title>Manage care plan</Title>
     <Regions>

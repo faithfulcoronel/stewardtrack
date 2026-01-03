@@ -3,7 +3,8 @@
  *
  * Operational monitoring for RBAC changes and metadata publishing status.
  *
- * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or rbac:manage permission.
+ * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or users with
+ * rbac:audit_view permission (from rbac.management feature).
  */
 
 import { Metadata } from 'next';

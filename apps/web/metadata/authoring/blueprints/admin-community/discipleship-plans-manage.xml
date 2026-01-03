@@ -63,7 +63,7 @@ FORM FIELD STRUCTURE (from handler):
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
   featureCode="discipleship.plans"
-  requiredPermissions="members:manage"
+  requiredPermissions="members:edit"
   locale="en-US">
 
   <Page id="admin-community-discipleship-plans-manage">

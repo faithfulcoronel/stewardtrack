@@ -130,7 +130,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 - [ ] Confirm all 4 pages are defined (dashboard, list, manage, profile)
 - [ ] Check component registry has all required member/account components
 - [ ] Validate dataSources are properly configured
-- [ ] Verify RBAC rules in metadata (permissions required: `members:view`, `members:manage`)
+- [ ] Verify RBAC rules in metadata (permissions required: `members:view`, `members:edit`)
 - [ ] Run `npm run metadata:compile` to ensure no validation errors
 
 ### Phase 2: Functional Testing (Days 3-5)
@@ -257,7 +257,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 
 **Verify Permission Guards:**
 - [ ] Unauthorized users cannot access member/account routes
-- [ ] API endpoints enforce `members:view` and `members:manage` permissions
+- [ ] API endpoints enforce `members:view` and `members:edit` permissions
 - [ ] API endpoints enforce `accounts:read` and `accounts:write` permissions
 - [ ] UI hides/disables actions based on user permissions
 - [ ] Error messages display for permission denied (403 status)
@@ -272,7 +272,7 @@ The following modules must have metadata definitions and follow the Dashboard â†
 **Verify Metadata RBAC Rules:**
 - [ ] Members Dashboard XML has `<rbac>` section with required permissions
 - [ ] Members List XML enforces `members:view` permission
-- [ ] Members AddEdit XML enforces `members:manage` permission
+- [ ] Members AddEdit XML enforces `members:edit` permission
 - [ ] Members Profile XML enforces `members:view` permission
 - [ ] Metadata resolver blocks access when permission/feature missing
 

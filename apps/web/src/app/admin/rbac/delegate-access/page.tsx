@@ -2,11 +2,13 @@
  * Delegate Access Dashboard Page
  *
  * Workspace for delegating scoped administrative access.
+ * Requires rbac.delegation feature (Enterprise tier).
  *
- * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or rbac:manage permission.
+ * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or users with
+ * rbac:delegate permission (from rbac.delegation feature).
  */
 
-import { Gate } from '@/lib/access-gate';
+import { Gate, any } from '@/lib/access-gate';
 import { ProtectedPage } from '@/components/access-gate';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import { DelegateAccessDashboard } from '@/components/admin/rbac/DelegateAccessDashboard';
@@ -14,9 +16,13 @@ import { DelegateAccessDashboard } from '@/components/admin/rbac/DelegateAccessD
 export default async function DelegateAccessPage() {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.rbacAdmin({
-    fallbackPath: '/unauthorized?reason=rbac_manage_required',
-  });
+  const gate = any(
+    Gate.superAdminOnly(),
+    Gate.tenantAdminOnly(),
+    Gate.withPermission('rbac:delegate', 'all', {
+      fallbackPath: '/unauthorized?reason=delegation_required',
+    })
+  );
 
   return (
     <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>

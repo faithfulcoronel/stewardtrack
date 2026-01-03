@@ -71,7 +71,10 @@ export class UserRoleManagementRepository extends BaseRepository<UserRole> imple
   }
 
   async getUserWithRoles(userId: string, tenantId: string): Promise<UserWithRoles | null> {
-    return await this.userRoleAdapter.getUserWithRoles(userId, tenantId);
+    console.log(`[UserRoleRepository.getUserWithRoles] Calling adapter with userId=${userId}, tenantId=${tenantId}`);
+    const result = await this.userRoleAdapter.getUserWithRoles(userId, tenantId);
+    console.log(`[UserRoleRepository.getUserWithRoles] Adapter returned:`, result);
+    return result;
   }
 
   async removeUserRole(userId: string, roleId: string, tenantId: string): Promise<any> {

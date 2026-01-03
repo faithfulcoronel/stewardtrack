@@ -18,6 +18,7 @@ import { LicensingService } from '@/services/LicensingService';
 import { PermissionValidationService } from '@/services/PermissionValidationService';
 import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
+import { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
 import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
@@ -272,6 +273,11 @@ container
 container
   .bind<PermissionDeploymentService>(TYPES.PermissionDeploymentService)
   .to(PermissionDeploymentService)
+  .inRequestScope();
+
+container
+  .bind<ProductOfferingDeploymentService>(TYPES.ProductOfferingDeploymentService)
+  .to(ProductOfferingDeploymentService)
   .inRequestScope();
 
 container

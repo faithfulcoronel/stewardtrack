@@ -284,7 +284,7 @@ Utility functions for permission checks:
 ```typescript
 import { hasPermission, getEffectivePermissions } from '@/lib/rbac/permissionHelpers';
 
-const canEdit = await hasPermission(userId, 'members:manage', tenantId);
+const canEdit = await hasPermission(userId, 'members:edit', tenantId);
 const permissions = await getEffectivePermissions(userId, tenantId);
 ```
 

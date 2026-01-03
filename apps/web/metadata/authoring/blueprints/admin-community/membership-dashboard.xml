@@ -158,7 +158,7 @@
         </Config>
       </Action>
       <Action id="launch-new-member" kind="link">
-        <RBAC requirePermissions="members:manage" />
+        <RBAC requirePermissions="members:edit" />
         <Config>
           <Label>Add new member</Label>
           <Url>/admin/members/manage</Url>

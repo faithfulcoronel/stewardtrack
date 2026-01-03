@@ -27,10 +27,25 @@ import {
   RefreshCw,
   UserCheck,
   ExternalLink,
-  Loader2
+  Loader2,
+  Shield
 } from 'lucide-react';
 import { LinkUserForm } from '../user-member-link/LinkUserForm';
 import { AuditTrail } from '../user-member-link/AuditTrail';
+import { AssignRoleDialog } from './AssignRoleDialog';
+
+interface Role {
+  id: string;
+  name: string;
+  scope: string;
+  is_system: boolean;
+}
+
+interface UserRole {
+  role_id: string;
+  assigned_at: string;
+  expires_at?: string;
+}
 
 interface User {
   id: string;
@@ -42,6 +57,8 @@ interface User {
   is_linked: boolean;
   member_id?: string;
   member_name?: string;
+  roles?: Role[];
+  user_roles?: UserRole[];
 }
 
 interface Member {
@@ -105,6 +122,10 @@ export function UserManagement() {
   const [unlinkingUserId, setUnlinkingUserId] = useState<string | null>(null);
   const [resendingInvitationId, setResendingInvitationId] = useState<string | null>(null);
 
+  // Role assignment dialog state
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [selectedUserForRoles, setSelectedUserForRoles] = useState<User | null>(null);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -128,7 +149,39 @@ export function UserManagement() {
       ]);
 
       // The search endpoint returns data in 'results' field, not 'data'
-      if (usersData.results) setUsers(usersData.results);
+      let usersWithRoles: User[] = [];
+      if (usersData.results) {
+        // Fetch roles for each user
+        usersWithRoles = await Promise.all(
+          usersData.results.map(async (user: User) => {
+            try {
+              const rolesRes = await fetch(`/api/rbac/users/${user.id}/roles`);
+              const rolesData = await rolesRes.json();
+              console.log(`[UserManagement] Roles response for user ${user.id}:`, rolesData);
+              if (rolesData.success && rolesData.data) {
+                // The API returns UserWithRoles which has 'roles' array directly
+                const roles = rolesData.data.roles || [];
+                console.log(`[UserManagement] Extracted roles for user ${user.id}:`, roles);
+                return {
+                  ...user,
+                  roles,
+                  user_roles: roles.map((r: Role) => ({
+                    role_id: r.id,
+                    assigned_at: new Date().toISOString()
+                  }))
+                };
+              } else {
+                console.log(`[UserManagement] No roles data or failed for user ${user.id}:`, rolesData);
+              }
+            } catch (err) {
+              console.error(`Failed to fetch roles for user ${user.id}:`, err);
+            }
+            return { ...user, roles: [], user_roles: [] };
+          })
+        );
+        console.log('[UserManagement] Users with roles:', usersWithRoles);
+        setUsers(usersWithRoles);
+      }
       if (membersData.success) setMembers(membersData.data);
       if (invitationsData.success) setInvitations(invitationsData.data);
       if (statsData.success) setStats(statsData.data);
@@ -439,6 +492,7 @@ export function UserManagement() {
                   <TableRow>
                     <TableHead>User</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Roles</TableHead>
                     <TableHead>Member Profile</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -459,6 +513,28 @@ export function UserManagement() {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles && user.roles.length > 0 ? (
+                            user.roles.map((role) => (
+                              <Badge
+                                key={role.id}
+                                variant="outline"
+                                className={
+                                  role.scope === 'system'
+                                    ? 'bg-violet-500/10 text-violet-700 border-violet-500/20 dark:text-violet-400'
+                                    : 'bg-primary/10 text-primary border-primary/20'
+                                }
+                              >
+                                <Shield className="h-3 w-3 mr-1" />
+                                {role.name}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No roles</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         {user.is_linked ? (
                           <div className="flex items-center gap-2">
                             <Link2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -478,12 +554,24 @@ export function UserManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedUserForRoles(user);
+                              setShowRoleDialog(true);
+                            }}
+                            title="Assign Roles"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
                           {user.is_linked ? (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleUnlinkUser(user.id)}
                               disabled={unlinkingUserId === user.id}
+                              title="Unlink from member"
                             >
                               {unlinkingUserId === user.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -505,6 +593,7 @@ export function UserManagement() {
                                 });
                                 setShowLinkDialog(true);
                               }}
+                              title="Link to member"
                             >
                               <Link2 className="h-4 w-4" />
                             </Button>
@@ -761,6 +850,24 @@ export function UserManagement() {
           <AuditTrail />
         </TabsContent>
       </Tabs>
+
+      {/* Role Assignment Dialog */}
+      {selectedUserForRoles && (
+        <AssignRoleDialog
+          open={showRoleDialog}
+          onOpenChange={(open) => {
+            setShowRoleDialog(open);
+            if (!open) setSelectedUserForRoles(null);
+          }}
+          userId={selectedUserForRoles.id}
+          userName={`${selectedUserForRoles.first_name || ''} ${selectedUserForRoles.last_name || ''}`.trim() || 'User'}
+          userEmail={selectedUserForRoles.email}
+          currentRoles={selectedUserForRoles.user_roles || []}
+          onSuccess={() => {
+            loadData();
+          }}
+        />
+      )}
     </div>
   );
 }

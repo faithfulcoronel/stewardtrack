@@ -4,17 +4,18 @@ import { TYPES } from '@/lib/types';
 import { RbacService } from '@/services/rbac.service';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     userId: string;
     roleId: string;
-  };
+  }>;
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { userId, roleId } = await params;
     const rbacService = container.get<RbacService>(TYPES.RbacService);
 
-    await rbacService.revokeRole(params.userId, params.roleId);
+    await rbacService.revokeRole(userId, roleId);
 
     return NextResponse.json({
       success: true,

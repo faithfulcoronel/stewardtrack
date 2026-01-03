@@ -3,7 +3,7 @@
  *
  * Create or edit care plan records with status, priority, and follow-up scheduling.
  *
- * SECURITY: Protected by AccessGate requiring members:manage permission.
+ * SECURITY: Protected by AccessGate requiring members:edit permission.
  */
 
 import type { Metadata } from "next";
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default async function CarePlanManagePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:manage"], "any", {
+  const gate = Gate.withPermission(["members:edit"], "any", {
     fallbackPath: "/unauthorized?reason=members_manage",
   });
 

@@ -7,6 +7,7 @@ import { TYPES } from '@/lib/types';
 export interface ITenantFeatureGrantRepository extends BaseRepository<TenantFeatureGrant> {
   getTenantFeatureGrants(tenantId: string): Promise<TenantFeatureGrant[]>;
   getByTenantId(tenantId: string): Promise<TenantFeatureGrant[]>;
+  deleteByTenantId(tenantId: string): Promise<number>;
 }
 
 @injectable()
@@ -23,5 +24,9 @@ export class TenantFeatureGrantRepository extends BaseRepository<TenantFeatureGr
 
   async getByTenantId(tenantId: string): Promise<TenantFeatureGrant[]> {
     return await this.tenantFeatureGrantAdapter.getTenantFeatureGrants(tenantId);
+  }
+
+  async deleteByTenantId(tenantId: string): Promise<number> {
+    return await this.tenantFeatureGrantAdapter.deleteByTenantId(tenantId);
   }
 }

@@ -56,20 +56,9 @@ function storePosition(position: Position) {
 export function ThemeFloater() {
   const pathname = usePathname();
   const { palettes, palette, setPalette, mode, setMode, resolvedMode, mounted } = useTheme();
-  const activePalette = mounted ? palette : DEFAULT_THEME_ID;
-  const activeMode = mounted ? mode : "system";
-  const resolved = mounted ? resolvedMode : "light";
-
-  // Hide on public/landing pages
-  const isHiddenPath = HIDDEN_PATHS.some(path =>
-    pathname === path || pathname?.startsWith("/signup/")
-  );
-
-  if (isHiddenPath) {
-    return null;
-  }
 
   // Draggable state - position is relative to bottom-right corner
+  // All hooks must be called before any conditional returns
   const [position, setPosition] = useState<Position>(DEFAULT_POSITION);
   const [isDragging, setIsDragging] = useState(false);
   const [hasDragged, setHasDragged] = useState(false);
@@ -174,6 +163,20 @@ export function ThemeFloater() {
   const handleTouchEnd = useCallback(() => {
     handleDragEnd();
   }, [handleDragEnd]);
+
+  // Derived values (computed after hooks, before conditional return)
+  const activePalette = mounted ? palette : DEFAULT_THEME_ID;
+  const activeMode = mounted ? mode : "system";
+  const resolved = mounted ? resolvedMode : "light";
+
+  // Hide on public/landing pages
+  const isHiddenPath = HIDDEN_PATHS.some(path =>
+    pathname === path || pathname?.startsWith("/signup/")
+  );
+
+  if (isHiddenPath) {
+    return null;
+  }
 
   // Get the current mode icon for the button
   const CurrentModeIcon = modes.find(m => m.id === activeMode)?.icon ?? Palette;

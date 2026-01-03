@@ -3,7 +3,7 @@
  *
  * Detailed profile view combining engagement, giving, and serving history.
  *
- * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
  */
 
 import type { Metadata } from "next";
@@ -42,7 +42,7 @@ function isValidUUID(str: string): boolean {
 export default async function MemberProfilePage({ params, searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view", "members:manage"], "any", {
+  const gate = Gate.withPermission(["members:view", "members:edit"], "any", {
     fallbackPath: "/unauthorized?reason=members_access",
   });
 

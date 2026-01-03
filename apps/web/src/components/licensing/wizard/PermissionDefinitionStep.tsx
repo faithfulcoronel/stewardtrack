@@ -110,9 +110,9 @@ export function PermissionDefinitionStep({
         display_order: 0,
       },
       {
-        permission_code: `${category}:manage`,
-        display_name: 'Manage',
-        description: `Manage ${data.name} (create, update, delete)`,
+        permission_code: `${category}:edit`,
+        display_name: 'Edit',
+        description: `Edit ${data.name} (create, update, delete)`,
         is_required: false,
         display_order: 1,
       },
@@ -299,7 +299,7 @@ export function PermissionDefinitionStep({
         <code className="text-sm">
           {`{category}:{action}`}
           <br />
-          Example: members:view, finance:manage, events:export
+          Example: members:view, finance:edit, events:export
           <br />
           Rules: lowercase, use underscores for multi-word terms
         </code>

@@ -10,7 +10,7 @@
  *   - CREATE: /admin/community/discipleship-plans/manage
  *   - EDIT:   /admin/community/discipleship-plans/manage?discipleshipPlanId=xxx
  *
- * SECURITY: Protected by AccessGate requiring members:manage permission.
+ * SECURITY: Protected by AccessGate requiring members:edit permission.
  *
  * METADATA ROUTE: admin-community/discipleship-plans/manage
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/discipleship-plans-manage.xml
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
 export default async function DiscipleshipPlanManagePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:manage"], "any", {
+  const gate = Gate.withPermission(["members:edit"], "any", {
     fallbackPath: "/unauthorized?reason=members_manage",
   });
 
