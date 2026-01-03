@@ -363,9 +363,9 @@ export class FeaturePermissionService {
         recommended_roles: ['tenant_admin', 'staff'],
       },
       {
-        permission_code: 'feature:manage',
-        display_name: 'Manage',
-        description: 'Manage feature (create, update, delete)',
+        permission_code: 'feature:edit',
+        display_name: 'Edit',
+        description: 'Edit feature (create, update, delete)',
         is_required: false,
         recommended_roles: ['tenant_admin'],
       },

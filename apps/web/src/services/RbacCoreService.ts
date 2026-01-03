@@ -209,12 +209,17 @@ export class RbacCoreService {
    * Retrieves a user with all their assigned roles
    */
   async getUserWithRoles(userId: string, tenantId?: string): Promise<UserWithRoles | null> {
+    console.log(`[RbacCoreService.getUserWithRoles] Called with userId=${userId}, tenantId=${tenantId}`);
     const effectiveTenantId = tenantId || await tenantUtils.getTenantId();
+    console.log(`[RbacCoreService.getUserWithRoles] effectiveTenantId=${effectiveTenantId}`);
     if (!effectiveTenantId) {
+      console.log(`[RbacCoreService.getUserWithRoles] No tenant context, throwing error`);
       throw new Error('No tenant context available');
     }
 
-    return await this.userRoleRepository.getUserWithRoles(userId, effectiveTenantId);
+    const result = await this.userRoleRepository.getUserWithRoles(userId, effectiveTenantId);
+    console.log(`[RbacCoreService.getUserWithRoles] Repository returned:`, result);
+    return result;
   }
 
   /**

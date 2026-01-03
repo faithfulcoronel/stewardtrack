@@ -67,7 +67,7 @@ Create a new permission for a feature with optional role templates.
 ```json
 {
   "permission": {
-    "permission_code": "members:manage",
+    "permission_code": "members:edit",
     "display_name": "Manage Members",
     "description": "Create, update, and delete members",
     "is_required": false,
@@ -96,7 +96,7 @@ Create a new permission for a feature with optional role templates.
     "permission": {
       "id": "uuid",
       "feature_id": "uuid",
-      "permission_code": "members:manage",
+      "permission_code": "members:edit",
       "display_name": "Manage Members",
       "description": "Create, update, and delete members",
       "category": "members",
@@ -321,7 +321,7 @@ Get suggested permissions for a feature based on its surface_id.
       "recommended_roles": ["tenant_admin", "staff", "volunteer"]
     },
     {
-      "permission_code": "members:manage",
+      "permission_code": "members:edit",
       "display_name": "Manage",
       "description": "Manage Members Directory (create, update, delete)",
       "is_required": false,

@@ -154,35 +154,72 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
 
   async getUserWithRoles(userId: string, tenantId: string): Promise<UserWithRoles | null> {
     const supabase = await this.getSupabaseClient();
-    const { data: userData, error: userError } = await supabase
-      .from('tenant_users')
-      .select(`
-        user:users (
-          id,
-          email,
-          first_name,
-          last_name
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .single();
+    console.log(`[getUserWithRoles] Called with userId=${userId}, tenantId=${tenantId}`);
 
-    if (userError || !userData || !userData.user) {
-      return null;
+    // Use get_user_profiles RPC to fetch user data from auth.users
+    let user: { id: string; email: string; first_name?: string; last_name?: string } | null = null;
+
+    // Try get_user_profiles RPC first
+    try {
+      const { data: userProfiles, error: profileError } = await supabase
+        .rpc('get_user_profiles', { user_ids: [userId] });
+
+      console.log(`[getUserWithRoles] get_user_profiles result:`, { userProfiles, profileError });
+
+      if (!profileError && userProfiles && userProfiles.length > 0) {
+        const profile = userProfiles[0];
+        user = {
+          id: profile.id,
+          email: profile.email,
+          first_name: profile.raw_user_meta_data?.first_name || profile.raw_user_meta_data?.firstName || '',
+          last_name: profile.raw_user_meta_data?.last_name || profile.raw_user_meta_data?.lastName || ''
+        };
+        console.log(`[getUserWithRoles] Found user via get_user_profiles RPC:`, user);
+      }
+    } catch (rpcError) {
+      console.error(`[getUserWithRoles] get_user_profiles RPC error:`, rpcError);
     }
 
-    const roles = await this.getUserRoles(userId, tenantId);
-    const effectivePermissions = await this.getUserEffectivePermissions(userId, tenantId);
+    // Fallback: try get_tenant_users RPC
+    if (!user) {
+      console.log(`[getUserWithRoles] Trying get_tenant_users RPC as fallback`);
+      try {
+        const { data: tenantUsers, error: tenantError } = await supabase
+          .rpc('get_tenant_users', { p_tenant_id: tenantId });
 
-    // Handle case where user might be an array (shouldn't happen with .single() but type-safe)
-    const user = Array.isArray(userData.user) ? userData.user[0] : userData.user;
+        console.log(`[getUserWithRoles] get_tenant_users result:`, { count: tenantUsers?.length, tenantError });
+
+        if (!tenantError && tenantUsers) {
+          const matchingUser = tenantUsers.find((u: any) => u.id === userId || u.user_id === userId);
+          if (matchingUser) {
+            user = {
+              id: matchingUser.id || matchingUser.user_id,
+              email: matchingUser.email,
+              first_name: matchingUser.first_name || matchingUser.raw_user_meta_data?.first_name || '',
+              last_name: matchingUser.last_name || matchingUser.raw_user_meta_data?.last_name || ''
+            };
+            console.log(`[getUserWithRoles] Found user via get_tenant_users RPC:`, user);
+          }
+        }
+      } catch (fallbackError) {
+        console.error(`[getUserWithRoles] get_tenant_users RPC error:`, fallbackError);
+      }
+    }
 
     if (!user) {
+      console.log(`[getUserWithRoles] No user found after all attempts, returning null`);
       return null;
     }
 
-    return {
+    // Get roles for this user in this tenant
+    console.log(`[getUserWithRoles] Fetching roles for user`);
+    const roles = await this.getUserRoles(userId, tenantId);
+    console.log(`[getUserWithRoles] Got roles:`, roles);
+
+    const effectivePermissions = await this.getUserEffectivePermissions(userId, tenantId);
+    console.log(`[getUserWithRoles] Got ${effectivePermissions.length} effective permissions`);
+
+    const result = {
       id: user.id,
       email: user.email,
       first_name: user.first_name,
@@ -190,6 +227,8 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
       roles,
       effective_permissions: effectivePermissions
     };
+    console.log(`[getUserWithRoles] Returning result:`, result);
+    return result;
   }
 
   async getUsersWithRole(roleId: string, tenantId: string): Promise<any[]> {

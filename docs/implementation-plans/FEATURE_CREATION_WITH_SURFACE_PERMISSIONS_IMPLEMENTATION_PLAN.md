@@ -31,7 +31,7 @@
 ## Executive Summary
 
 ### Purpose
-Enable Product Owners to create and manage features in the Licensing Studio with associated **surface IDs** and **permission definitions** (rights like `members:view`, `members:manage`). These permissions can then be assigned to any role by Tenant Admins through the RBAC system, allowing flexible access control based on licensed features.
+Enable Product Owners to create and manage features in the Licensing Studio with associated **surface IDs** and **permission definitions** (rights like `members:view`, `members:edit`). These permissions can then be assigned to any role by Tenant Admins through the RBAC system, allowing flexible access control based on licensed features.
 
 ### Goals
 1. **Product Owner Empowerment**: Define features with surface IDs and required permissions
@@ -242,7 +242,7 @@ await gate.verify(userId);
 const gate = Gate.withPermission(['members:view', 'members:export'], 'all');
 
 // Check for any of several permissions
-const gate = Gate.withPermission(['members:edit', 'members:manage'], 'any');
+const gate = Gate.withPermission(['members:edit', 'members:edit'], 'any');
 ```
 
 #### FR-6: Permission Discovery & Documentation
@@ -2079,7 +2079,7 @@ await gate.verify(userId);
 const gate = Gate.withPermission(['members:view', 'members:export'], 'all');
 
 // Check for any permission
-const gate = Gate.withPermission(['members:edit', 'members:manage'], 'any');
+const gate = Gate.withPermission(['members:edit', 'members:edit'], 'any');
 
 // In API route
 export const DELETE = gateProtected(

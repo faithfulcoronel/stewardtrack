@@ -60,7 +60,7 @@ User authenticated to app.stewardtrack.com
   "email": "admin@mycollection.church",
   "tenant_id": "tenant-uuid-here",
   "tenant_name": "My Collection Church",
-  "permissions": ["members:view", "members:manage", "finance:read"],
+  "permissions": ["members:view", "members:edit", "finance:read"],
   "roles": ["tenant_admin"],
   "iat": 1704067800,
   "exp": 1704068700,
@@ -1020,7 +1020,7 @@ container.bind<ITenantRepository>(TYPES.ITenantRepository).to(TenantRepository).
       "email": "admin@mycollection.church",
       "tenantId": "tenant-uuid-here",
       "tenantName": "My Collection Church",
-      "permissions": ["members:view", "members:manage", "finance:read"],
+      "permissions": ["members:view", "members:edit", "finance:read"],
       "roles": ["tenant_admin"]
     }
   }
@@ -1439,7 +1439,7 @@ export async function POST(request: NextRequest) {
       "lastName": "Doe",
       "tenantId": "tenant-uuid-here",
       "tenantName": "My Collection Church",
-      "permissions": ["members:view", "members:manage", "finance:read"],
+      "permissions": ["members:view", "members:edit", "finance:read"],
       "roles": ["tenant_admin"]
     }
   }

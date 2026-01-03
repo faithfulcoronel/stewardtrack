@@ -13,6 +13,10 @@ export interface IRoleRepository extends BaseRepository<Role> {
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
   getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
   findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null>;
+  /** Find role by metadata key with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY */
+  findByMetadataKeyWithElevatedAccess(tenantId: string, metadataKey: string): Promise<Role | null>;
+  /** Create role with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY */
+  createRoleWithElevatedAccess(data: CreateRoleDto, tenantId: string): Promise<Role>;
 }
 
 @injectable()
@@ -51,5 +55,21 @@ export class RoleRepository extends BaseRepository<Role> implements IRoleReposit
 
   async findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null> {
     return await this.roleAdapter.findByMetadataKey(tenantId, metadataKey);
+  }
+
+  /**
+   * Find role by metadata key with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to find tenant roles.
+   */
+  async findByMetadataKeyWithElevatedAccess(tenantId: string, metadataKey: string): Promise<Role | null> {
+    return await this.roleAdapter.findByMetadataKeyWithElevatedAccess(tenantId, metadataKey);
+  }
+
+  /**
+   * Create role with elevated access (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during license assignment to create tenant roles.
+   */
+  async createRoleWithElevatedAccess(data: CreateRoleDto, tenantId: string): Promise<Role> {
+    return await this.roleAdapter.createRoleWithElevatedAccess(data, tenantId);
   }
 }

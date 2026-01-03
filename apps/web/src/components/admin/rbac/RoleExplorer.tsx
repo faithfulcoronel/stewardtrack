@@ -7,7 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -31,7 +39,8 @@ import {
   Layout,
   Layers,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import type { Role, CreateRoleDto } from '@/models/rbac.model';
@@ -66,6 +75,10 @@ export function RoleExplorer() {
   const [isSimpleView, setIsSimpleView] = useState(false);
   const [isManagePermissionsOpen, setIsManagePermissionsOpen] = useState(false);
   const [managingPermissionsRole, setManagingPermissionsRole] = useState<RoleWithStats | null>(null);
+
+  // Delete confirmation dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<RoleWithStats | null>(null);
 
   // Loading states for async operations
   const [isCreatingRole, setIsCreatingRole] = useState(false);
@@ -198,12 +211,17 @@ export function RoleExplorer() {
     }
   };
 
-  const handleDeleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
+  const handleDeleteClick = (role: RoleWithStats) => {
+    setRoleToDelete(role);
+    setIsDeleteDialogOpen(true);
+  };
 
-    setDeletingRoleId(roleId);
+  const handleDeleteRole = async () => {
+    if (!roleToDelete) return;
+
+    setDeletingRoleId(roleToDelete.id);
     try {
-      const response = await fetch(`/api/rbac/roles/${roleId}`, {
+      const response = await fetch(`/api/rbac/roles/${roleToDelete.id}`, {
         method: 'DELETE'
       });
 
@@ -214,6 +232,8 @@ export function RoleExplorer() {
           title: 'Success',
           description: 'Role deleted successfully'
         });
+        setIsDeleteDialogOpen(false);
+        setRoleToDelete(null);
         loadData();
       } else {
         toast({
@@ -636,7 +656,7 @@ export function RoleExplorer() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleDeleteRole(role.id)}
+                                onClick={() => handleDeleteClick(role)}
                                 disabled={deletingRoleId === role.id}
                               >
                                 {deletingRoleId === role.id ? (
@@ -692,6 +712,62 @@ export function RoleExplorer() {
         onSubmit={handleUpdateRole}
         isUpdating={isUpdatingRole}
       />
+
+      {/* Delete Role Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Role
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the role <strong>&quot;{roleToDelete?.name}&quot;</strong>?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {roleToDelete && (roleToDelete.user_count ?? 0) > 0 && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                This role is currently assigned to {roleToDelete.user_count} user(s).
+                Deleting it will remove the role from all assigned users.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setRoleToDelete(null);
+              }}
+              disabled={deletingRoleId !== null}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteRole}
+              disabled={deletingRoleId !== null}
+            >
+              {deletingRoleId !== null ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Role
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

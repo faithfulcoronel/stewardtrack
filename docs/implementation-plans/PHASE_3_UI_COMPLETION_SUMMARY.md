@@ -454,7 +454,7 @@ Invalid:
 1. Click "Use Suggestions" (auto-creates 3 permissions)
 2. Review generated permissions:
    - members:view (View) ✓ Required
-   - members:manage (Manage)
+   - members:edit (Manage)
    - members:export (Export)
 3. Click Next
 ```
@@ -463,7 +463,7 @@ Invalid:
 ```
 1. Review auto-assigned roles:
    - members:view → [tenant_admin, staff, volunteer]
-   - members:manage → [tenant_admin, staff]
+   - members:edit → [tenant_admin, staff]
    - members:export → [tenant_admin]
 2. Adjust if needed
 3. Click Next

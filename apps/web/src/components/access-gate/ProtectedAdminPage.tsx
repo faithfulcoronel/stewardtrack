@@ -178,8 +178,9 @@ export const FinanceProtectedPage = createProtectedPage({
 
 /**
  * Preset: RBAC Management Page Protection
+ * Uses rbac:assign permission (from rbac.management feature)
  */
 export const RBACProtectedPage = createProtectedPage({
-  permission: 'rbac:manage',
+  permission: 'rbac:assign',
   requireTenant: true,
 });

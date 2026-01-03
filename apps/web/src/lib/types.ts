@@ -18,6 +18,7 @@ export const TYPES = {
   PermissionValidationService: Symbol.for('PermissionValidationService'),
   FeaturePermissionService: Symbol.for('FeaturePermissionService'),
   PermissionDeploymentService: Symbol.for('PermissionDeploymentService'),
+  ProductOfferingDeploymentService: Symbol.for('ProductOfferingDeploymentService'),
 
   // Registration Service
   RegistrationService: Symbol.for('RegistrationService'),

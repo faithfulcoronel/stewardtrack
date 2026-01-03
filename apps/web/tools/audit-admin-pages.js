@@ -22,7 +22,7 @@ const PAGE_CATEGORIES = {
   },
   members: {
     pattern: /members/,
-    protection: "Gate.withPermission(['members:view', 'members:manage'], 'any')",
+    protection: "Gate.withPermission(['members:view', 'members:edit'], 'any')",
     requireTenant: true,
   },
   finance: {
@@ -37,7 +37,7 @@ const PAGE_CATEGORIES = {
   },
   rbac: {
     pattern: /(rbac|security)/,
-    protection: "Gate.withPermission('rbac:manage')",
+    protection: "Gate.withPermission(['rbac:assign', 'rbac:roles_edit'], 'any')",
     requireTenant: true,
   },
   settings: {

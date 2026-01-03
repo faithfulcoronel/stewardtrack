@@ -4,6 +4,7 @@ import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { Role, CreateRoleDto, UpdateRoleDto, RoleWithPermissions } from '@/models/rbac.model';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface IRoleAdapter extends IBaseAdapter<Role> {
   createRole(data: CreateRoleDto, tenantId: string): Promise<Role>;
@@ -14,6 +15,10 @@ export interface IRoleAdapter extends IBaseAdapter<Role> {
   getRoleWithPermissions(id: string, tenantId: string): Promise<RoleWithPermissions | null>;
   getRoleStatistics(tenantId: string, includeSystem?: boolean): Promise<Role[]>;
   findByMetadataKey(tenantId: string, metadataKey: string): Promise<Role | null>;
+  /** Find role by metadata key with elevated access (bypasses RLS) for super admin operations */
+  findByMetadataKeyWithElevatedAccess(tenantId: string, metadataKey: string): Promise<Role | null>;
+  /** Create role with elevated access (bypasses RLS) for super admin operations */
+  createRoleWithElevatedAccess(data: CreateRoleDto, tenantId: string): Promise<Role>;
 }
 
 type RoleFlagFields = Pick<Role, "is_system" | "is_delegatable">;
@@ -285,5 +290,59 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
     }
 
     return this.enrichRole(data) as Role | null;
+  }
+
+  /**
+   * Find role by metadata key with elevated access (bypasses RLS).
+   * This allows finding roles in any tenant for super admin operations.
+   */
+  async findByMetadataKeyWithElevatedAccess(tenantId: string, metadataKey: string): Promise<Role | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('metadata_key', metadataKey)
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find role by metadata_key with elevated access: ${error.message}`);
+    }
+
+    return this.enrichRole(data) as Role | null;
+  }
+
+  /**
+   * Create role with elevated access (bypasses RLS).
+   * This allows creating roles in any tenant for super admin operations.
+   */
+  async createRoleWithElevatedAccess(data: CreateRoleDto, tenantId: string): Promise<Role> {
+    const supabase = await getSupabaseServiceClient();
+    const scope = this.normalizeRoleScope(data.scope);
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .insert({
+        tenant_id: tenantId,
+        name: data.name,
+        description: data.description ?? null,
+        metadata_key: data.metadata_key ?? null,
+        scope
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create role with elevated access: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Failed to create role with elevated access: missing response payload');
+    }
+
+    const role = this.enrichRole(result);
+    return role as Role;
   }
 }

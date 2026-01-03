@@ -8,7 +8,7 @@
 
 Phase 1 establishes the foundational layer for enabling Product Owners to create features with surface IDs and permission definitions in the Licensing Studio. This phase implements a **permission-centric model** where:
 
-- **Product Owner** defines permissions (e.g., `members:view`, `members:manage`) for each feature
+- **Product Owner** defines permissions (e.g., `members:view`, `members:edit`) for each feature
 - **System** provides default role templates (sensible permission-to-role mappings)
 - **Tenant Admin** can customize which roles get which permissions in their organization
 
@@ -243,7 +243,7 @@ Supabase (Database)
 
 **Flow:**
 1. Product Owner creates feature in Licensing Studio
-2. Product Owner defines permissions (e.g., `members:view`, `members:manage`)
+2. Product Owner defines permissions (e.g., `members:view`, `members:edit`)
 3. Product Owner provides default role templates (e.g., `members:view` → `['tenant_admin', 'staff']`)
 4. System stores in global tables
 5. Tenant licenses feature

@@ -480,7 +480,7 @@ INSERT INTO permissions (name, display_name, description, category, is_system)
 VALUES
   -- Members
   ('members:view', 'View Members', 'View member profiles and directory', 'members', TRUE),
-  ('members:manage', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
+  ('members:edit', 'Manage Members', 'Create, update, and delete members', 'members', TRUE),
   ('members:export', 'Export Members', 'Export member data', 'members', TRUE),
 
   -- Finance
@@ -691,7 +691,7 @@ export function MemberActions() {
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeatures();
 
-  const canEdit = hasPermission('members:manage') && hasFeature('member_management');
+  const canEdit = hasPermission('members:edit') && hasFeature('member_management');
 
   return (
     <Button disabled={!canEdit}>Edit</Button>
@@ -712,7 +712,7 @@ export class MemberService {
     const hasPermission = await this.rbacService.userHasPermission(
       userId,
       tenantId,
-      'members:manage'
+      'members:edit'
     );
 
     if (!hasPermission) {

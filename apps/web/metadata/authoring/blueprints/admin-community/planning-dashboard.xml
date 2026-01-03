@@ -150,7 +150,7 @@ FEATURE: Planning Dashboard
         </Config>
       </Action>
       <Action id="add-event" kind="link">
-        <RBAC requirePermissions="members:manage" />
+        <RBAC requirePermissions="members:edit" />
         <Config>
           <Label>Add event</Label>
           <Url>/admin/community/planning/manage</Url>

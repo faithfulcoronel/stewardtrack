@@ -3,7 +3,8 @@
  *
  * Provides tools for managing roles, bundles, and permission hierarchies.
  *
- * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or rbac:manage permission.
+ * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or users with
+ * rbac:assign or rbac:roles_edit permissions (from rbac.management feature).
  */
 
 import { Metadata } from 'next';

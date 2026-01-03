@@ -98,6 +98,21 @@ export class RegistrationPage {
   }
 
   /**
+   * Wait for redirect to processing page
+   * This is the first step after form submission
+   */
+  async waitForProcessingPageRedirect() {
+    await this.page.waitForURL(/\/signup\/register\/processing/, { timeout: 10000 });
+  }
+
+  /**
+   * Check if we're on the processing page
+   */
+  async isOnProcessingPage(): Promise<boolean> {
+    return this.page.url().includes('/signup/register/processing');
+  }
+
+  /**
    * Check if password mismatch error is visible
    */
   async hasPasswordMismatchError(): Promise<boolean> {

@@ -12,6 +12,24 @@ import {
   SupportedCurrency,
   getCurrencySelectOptions,
 } from "@/lib/currency";
+import { Badge } from "@/components/ui/badge";
+
+interface OfferingDiscount {
+  offeringId: string;
+  discount: {
+    id: string;
+    code: string;
+    name: string;
+    calculation_type: 'percentage' | 'fixed';
+    discount_value: number;
+    badge_text?: string;
+    banner_text?: string;
+    ends_at?: string;
+  };
+  originalPrice: number;
+  discountedPrice: number;
+  discountAmount: number;
+}
 
 function PricingContent() {
   const { currency, setCurrency, isLoading: isCurrencyDetecting } = useCurrency();
@@ -19,6 +37,45 @@ function PricingContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [offeringDiscounts, setOfferingDiscounts] = useState<Map<string, OfferingDiscount>>(new Map());
+
+  const loadDiscountForOffering = useCallback(async (offering: ProductOfferingWithFeatures, offeringCurrency: string) => {
+    try {
+      const anyOffering = offering as any;
+      const price = anyOffering.resolved_price ?? anyOffering.prices?.[0]?.price ?? 0;
+
+      if (price <= 0) return null;
+
+      const response = await fetch('/api/licensing/discounts/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: offering.id,
+          amount: price,
+          currency: offeringCurrency,
+        }),
+      });
+
+      if (!response.ok) return null;
+
+      const result = await response.json();
+      // API returns data wrapped in a `data` object
+      const data = result.data || result;
+      if (result.success && data.discount) {
+        return {
+          offeringId: offering.id,
+          discount: data.discount,
+          originalPrice: data.originalPrice,
+          discountedPrice: data.discountedPrice,
+          discountAmount: data.discountAmount,
+        } as OfferingDiscount;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading discount for offering:', error);
+      return null;
+    }
+  }, []);
 
   const loadOfferings = useCallback(async () => {
     try {
@@ -29,13 +86,27 @@ function PricingContent() {
       if (result.success) {
         const activeOfferings = result.data.filter((o: ProductOfferingWithFeatures) => o.is_active);
         setAllOfferings(activeOfferings);
+
+        // Load discounts for all offerings in parallel
+        const discountPromises = activeOfferings.map((offering: ProductOfferingWithFeatures) =>
+          loadDiscountForOffering(offering, currency)
+        );
+        const discountResults = await Promise.all(discountPromises);
+
+        const discountsMap = new Map<string, OfferingDiscount>();
+        discountResults.forEach((discount) => {
+          if (discount) {
+            discountsMap.set(discount.offeringId, discount);
+          }
+        });
+        setOfferingDiscounts(discountsMap);
       }
     } catch (error) {
       console.error('Error loading offerings:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [currency]);
+  }, [currency, loadDiscountForOffering]);
 
   // Find trial offering (for "Start Free Trial" CTA on paid tiers)
   const trialOffering = allOfferings.find(o => o.offering_type === 'trial');
@@ -266,14 +337,66 @@ function PricingContent() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{formatPrice(offering)}</span>
-                      {hasPrice(offering) && (
-                        <span className={`text-sm ${offering.is_featured ? 'text-green-100' : 'text-gray-500'}`}>
-                          {getBillingPeriod(offering)}
-                        </span>
-                      )}
-                    </div>
+                    {/* Price with discount display */}
+                    {(() => {
+                      const discount = offeringDiscounts.get(offering.id);
+                      const priceInfo = getOfferingPrice(offering);
+
+                      if (discount) {
+                        // Get badge text - prefer badge_text, then calculate
+                        const badgeText = discount.discount.badge_text ||
+                          (discount.discount.calculation_type === 'percentage'
+                            ? `${discount.discount.discount_value}% OFF`
+                            : `Save ${formatCurrency(discount.discountAmount, priceInfo?.currency as SupportedCurrency || currency)}`);
+
+                        return (
+                          <div className="space-y-2">
+                            {/* Discounted price first - more prominent */}
+                            <div className="flex items-baseline gap-2">
+                              <span className={`text-3xl font-bold ${offering.is_featured ? 'text-white' : 'text-gray-900'}`}>
+                                {formatCurrency(discount.discountedPrice, priceInfo?.currency as SupportedCurrency || currency)}
+                              </span>
+                              {hasPrice(offering) && (
+                                <span className={`text-sm ${offering.is_featured ? 'text-green-100' : 'text-gray-500'}`}>
+                                  {getBillingPeriod(offering)}
+                                </span>
+                              )}
+                            </div>
+                            {/* Original price with strikethrough and badge */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-base line-through ${offering.is_featured ? 'text-green-200/70' : 'text-gray-400'}`}>
+                                {formatCurrency(discount.originalPrice, priceInfo?.currency as SupportedCurrency || currency)}
+                              </span>
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                                offering.is_featured
+                                  ? 'bg-yellow-400 text-gray-900'
+                                  : 'bg-red-500 text-white'
+                              }`}>
+                                {badgeText}
+                              </span>
+                            </div>
+                            {/* Discount name/promo */}
+                            {discount.discount.name && (
+                              <p className={`text-xs font-medium ${offering.is_featured ? 'text-yellow-300' : 'text-red-500'}`}>
+                                {discount.discount.name}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      // No discount - show regular price
+                      return (
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold">{formatPrice(offering)}</span>
+                          {hasPrice(offering) && (
+                            <span className={`text-sm ${offering.is_featured ? 'text-green-100' : 'text-gray-500'}`}>
+                              {getBillingPeriod(offering)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <p className={`mt-4 text-sm ${offering.is_featured ? 'text-green-50' : 'text-gray-500'}`}>
                       {offering.description}
                     </p>
@@ -313,7 +436,7 @@ function PricingContent() {
                       {/* Primary: Start Free Trial */}
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Link
-                          href={`/signup?offering=${trialOffering!.id}`}
+                          href={`/signup/register?offering=${trialOffering!.id}`}
                           className={`
                             w-full py-3 px-6 rounded-lg font-bold text-sm transition-colors text-center block
                             ${offering.is_featured
@@ -327,7 +450,7 @@ function PricingContent() {
                       </motion.div>
                       {/* Secondary: Subscribe directly */}
                       <Link
-                        href={`/signup?offering=${offering.id}`}
+                        href={`/signup/register?offering=${offering.id}`}
                         className={`
                           w-full py-2 px-6 rounded-lg text-xs font-medium transition-colors text-center block
                           ${offering.is_featured
@@ -342,7 +465,7 @@ function PricingContent() {
                   ) : (
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Link
-                        href={`/signup?offering=${offering.id}`}
+                        href={`/signup/register?offering=${offering.id}`}
                         className={`
                           w-full py-3 px-6 rounded-lg font-bold text-sm transition-colors text-center block
                           ${offering.is_featured

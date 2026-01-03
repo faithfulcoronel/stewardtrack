@@ -3,7 +3,8 @@
  *
  * Central hub for managing roles, permissions, and access control.
  *
- * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or rbac:manage permission.
+ * SECURITY: Protected by AccessGate allowing super admins, tenant admins, or users with
+ * rbac:assign or rbac:roles_edit permissions (from rbac.management feature).
  */
 
 import { Metadata } from 'next';

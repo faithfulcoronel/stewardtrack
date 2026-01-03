@@ -20,7 +20,18 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Building2, CheckCircle, XCircle, ChevronRight, Plus, Minus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Loader2,
+  Building2,
+  CheckCircle,
+  XCircle,
+  ChevronRight,
+  Plus,
+  Minus,
+  Package,
+  ArrowRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { ProductOffering } from '@/models/productOffering.model';
 import type { TenantForAssignment } from '@/models/licenseAssignment.model';
@@ -196,21 +207,26 @@ export function AssignLicenseDialog({
   function getTierColor(tier: string) {
     switch (tier?.toLowerCase()) {
       case 'starter':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800';
       case 'professional':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
       case 'enterprise':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Assign License to Church</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-1.5">
+              <Package className="h-4 w-4 text-primary" />
+            </div>
+            Assign License to Church
+          </DialogTitle>
           <DialogDescription>
             {step === 1
               ? 'Step 1 of 2: Select the church and product offering'
@@ -219,13 +235,16 @@ export function AssignLicenseDialog({
         </DialogHeader>
 
         {step === 1 ? (
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
             {/* Tenant Selection */}
             <div className="space-y-2">
-              <Label htmlFor="tenant">Church</Label>
+              <Label htmlFor="tenant" className="text-foreground">
+                Church
+              </Label>
               {isLoadingTenants ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-4 w-48" />
                 </div>
               ) : (
                 <>
@@ -234,17 +253,17 @@ export function AssignLicenseDialog({
                     onValueChange={setSelectedTenantId}
                     disabled={!!preSelectedTenantId}
                   >
-                    <SelectTrigger id="tenant">
+                    <SelectTrigger id="tenant" className="w-full">
                       <SelectValue placeholder="Select a church..." />
                     </SelectTrigger>
                     <SelectContent>
                       {tenants.map((tenant) => (
                         <SelectItem key={tenant.tenant_id} value={tenant.tenant_id}>
                           <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-gray-400" />
-                            <span>{tenant.tenant_name}</span>
+                            <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="truncate">{tenant.tenant_name}</span>
                             {tenant.current_offering_name && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-xs shrink-0">
                                 {tenant.current_offering_name}
                               </Badge>
                             )}
@@ -254,9 +273,8 @@ export function AssignLicenseDialog({
                     </SelectContent>
                   </Select>
                   {selectedTenant?.current_offering_name && (
-                    <p className="text-sm text-gray-600">
-                      Current: {selectedTenant.current_offering_name} (
-                      {selectedTenant.feature_count} features)
+                    <p className="text-sm text-muted-foreground">
+                      Current: {selectedTenant.current_offering_name} ({selectedTenant.feature_count} features)
                     </p>
                   )}
                 </>
@@ -265,14 +283,14 @@ export function AssignLicenseDialog({
 
             {/* Offering Selection */}
             <div className="space-y-2">
-              <Label htmlFor="offering">New Product Offering</Label>
+              <Label htmlFor="offering" className="text-foreground">
+                New Product Offering
+              </Label>
               {isLoadingOfferings ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
+                <Skeleton className="h-10 w-full" />
               ) : (
                 <Select value={selectedOfferingId} onValueChange={setSelectedOfferingId}>
-                  <SelectTrigger id="offering">
+                  <SelectTrigger id="offering" className="w-full">
                     <SelectValue placeholder="Select an offering..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -281,11 +299,8 @@ export function AssignLicenseDialog({
                       .map((offering) => (
                         <SelectItem key={offering.id} value={offering.id}>
                           <div className="flex items-center gap-2">
-                            <span>{offering.name}</span>
-                            <Badge
-                              variant="outline"
-                              className={getTierColor(offering.tier)}
-                            >
+                            <span className="truncate">{offering.name}</span>
+                            <Badge variant="outline" className={`text-xs shrink-0 ${getTierColor(offering.tier)}`}>
                               {offering.tier}
                             </Badge>
                           </div>
@@ -298,36 +313,56 @@ export function AssignLicenseDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes" className="text-foreground">
+                Notes (Optional)
+              </Label>
               <Textarea
                 id="notes"
                 placeholder="Add any notes about this assignment..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
+                className="resize-none"
               />
             </div>
           </div>
         ) : (
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
             {/* Confirmation Details */}
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 sm:p-4 space-y-3">
               <div>
-                <div className="text-sm text-gray-600">Church</div>
-                <div className="font-medium">{selectedTenant?.tenant_name}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Church</div>
+                <div className="font-medium text-foreground flex items-center gap-2 mt-1">
+                  <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                  {selectedTenant?.tenant_name}
+                </div>
               </div>
 
               <div>
-                <div className="text-sm text-gray-600">License Change</div>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="text-xs sm:text-sm text-muted-foreground">License Change</div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
                   {selectedTenant?.current_offering_name ? (
                     <>
-                      <span>{selectedTenant.current_offering_name}</span>
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{selectedOffering?.name}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {selectedTenant.current_offering_name}
+                        </Badge>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground sm:hidden rotate-90" />
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={`text-xs ${getTierColor(selectedOffering?.tier || '')}`}>
+                          {selectedOffering?.name}
+                        </Badge>
+                      </div>
                     </>
                   ) : (
-                    <span className="font-medium">{selectedOffering?.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`text-xs ${getTierColor(selectedOffering?.tier || '')}`}>
+                        {selectedOffering?.name}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">(New Assignment)</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -335,26 +370,27 @@ export function AssignLicenseDialog({
 
             {/* Feature Changes */}
             <div className="space-y-3">
-              <h4 className="font-medium">Feature Changes</h4>
+              <h4 className="font-medium text-foreground text-sm sm:text-base">Feature Changes</h4>
 
               {isLoadingFeatures ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <div className="space-y-3">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
                 </div>
               ) : featureChanges ? (
                 <div className="space-y-3">
                   {featureChanges.features_to_add.length > 0 && (
-                    <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <Plus className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-900">
+                        <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-300">
                           New Features ({featureChanges.features_to_add.length})
                         </span>
                       </div>
-                      <ul className="space-y-1">
+                      <ul className="space-y-1.5">
                         {featureChanges.features_to_add.map((feature) => (
-                          <li key={feature.id} className="text-sm text-green-800 flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <li key={feature.id} className="text-xs sm:text-sm text-green-800 dark:text-green-400 flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" />
                             <span>{feature.name}</span>
                           </li>
                         ))}
@@ -363,17 +399,17 @@ export function AssignLicenseDialog({
                   )}
 
                   {featureChanges.features_to_remove.length > 0 && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <Minus className="h-4 w-4 text-red-600" />
-                        <span className="text-sm font-medium text-red-900">
+                        <Minus className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="text-xs sm:text-sm font-medium text-red-900 dark:text-red-300">
                           Features Being Removed ({featureChanges.features_to_remove.length})
                         </span>
                       </div>
-                      <ul className="space-y-1">
+                      <ul className="space-y-1.5">
                         {featureChanges.features_to_remove.map((feature) => (
-                          <li key={feature.id} className="text-sm text-red-800 flex items-start gap-2">
-                            <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <li key={feature.id} className="text-xs sm:text-sm text-red-800 dark:text-red-400 flex items-start gap-2">
+                            <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
                             <span>{feature.name}</span>
                           </li>
                         ))}
@@ -382,26 +418,34 @@ export function AssignLicenseDialog({
                   )}
 
                   {featureChanges.features_to_keep.length > 0 && (
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                    <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">
+                        <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <span className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300">
                           Existing Features ({featureChanges.features_to_keep.length})
                         </span>
                       </div>
-                      <p className="text-sm text-blue-800">
+                      <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-400">
                         These features will remain active
                       </p>
                     </div>
                   )}
+
+                  {featureChanges.features_to_add.length === 0 &&
+                    featureChanges.features_to_remove.length === 0 &&
+                    featureChanges.features_to_keep.length === 0 && (
+                      <div className="rounded-lg border border-border bg-muted/30 p-3 text-center">
+                        <p className="text-sm text-muted-foreground">No feature changes</p>
+                      </div>
+                    )}
                 </div>
               ) : null}
             </div>
 
             {notes && (
               <div className="space-y-2">
-                <div className="text-sm text-gray-600">Notes</div>
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
+                <div className="text-xs sm:text-sm text-muted-foreground">Notes</div>
+                <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs sm:text-sm text-foreground">
                   {notes}
                 </div>
               </div>
@@ -409,15 +453,20 @@ export function AssignLicenseDialog({
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
           {step === 1 ? (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleNext}
                 disabled={!selectedTenantId || !selectedOfferingId || isLoadingTenants || isLoadingOfferings}
+                className="w-full sm:w-auto"
               >
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -425,10 +474,19 @@ export function AssignLicenseDialog({
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleBack} disabled={isAssigning}>
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={isAssigning}
+                className="w-full sm:w-auto"
+              >
                 Back
               </Button>
-              <Button onClick={handleConfirm} disabled={isAssigning || isLoadingFeatures}>
+              <Button
+                onClick={handleConfirm}
+                disabled={isAssigning || isLoadingFeatures}
+                className="w-full sm:w-auto"
+              >
                 {isAssigning ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

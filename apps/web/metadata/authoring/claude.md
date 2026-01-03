@@ -296,7 +296,7 @@ metadata/authoring/
 <accessControl>
   <permissions>
     <permission>members:view</permission>
-    <permission>members:manage</permission>
+    <permission>members:edit</permission>
   </permissions>
   <roles>
     <role>tenant_admin</role>
@@ -409,7 +409,7 @@ metadata/authoring/
 
   <!-- Conditional Rendering -->
   <conditions>
-    <condition type="permission" value="members:manage" />
+    <condition type="permission" value="members:edit" />
     <condition type="feature" value="advanced_tables" />
   </conditions>
 

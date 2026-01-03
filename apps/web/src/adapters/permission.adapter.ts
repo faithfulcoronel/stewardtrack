@@ -4,6 +4,7 @@ import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { Permission } from '@/models/rbac.model';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 /**
  * Permission Adapter - Handles permission queries
@@ -14,6 +15,12 @@ export interface IPermissionAdapter extends IBaseAdapter<Permission> {
   getPermission(id: string): Promise<Permission | null>;
   findByCode(tenantId: string, code: string): Promise<Permission | null>;
   getByTenantId(tenantId: string): Promise<Permission[]>;
+  /** Create permission with elevated access (bypasses RLS) for super admin operations */
+  createWithElevatedAccess(data: Partial<Permission>): Promise<Permission>;
+  /** Update permission with elevated access (bypasses RLS) for super admin operations */
+  updateWithElevatedAccess(id: string, data: Partial<Permission>): Promise<Permission>;
+  /** Find permission by code with elevated access (bypasses RLS) for super admin operations */
+  findByCodeWithElevatedAccess(tenantId: string, code: string): Promise<Permission | null>;
 }
 
 @injectable()
@@ -97,5 +104,67 @@ export class PermissionAdapter extends BaseAdapter<Permission> implements IPermi
     }
 
     return data || [];
+  }
+
+  /**
+   * Create permission with elevated access (bypasses RLS) for super admin operations.
+   * This allows creating permissions for any tenant, not just the current user's tenant.
+   */
+  async createWithElevatedAccess(data: Partial<Permission>): Promise<Permission> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .insert(data)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create permission with elevated access: ${error.message}`);
+    }
+
+    return result as Permission;
+  }
+
+  /**
+   * Update permission with elevated access (bypasses RLS) for super admin operations.
+   * This allows updating permissions for any tenant, not just the current user's tenant.
+   */
+  async updateWithElevatedAccess(id: string, data: Partial<Permission>): Promise<Permission> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update permission with elevated access: ${error.message}`);
+    }
+
+    return result as Permission;
+  }
+
+  /**
+   * Find permission by code with elevated access (bypasses RLS) for super admin operations.
+   * This allows querying permissions for any tenant.
+   */
+  async findByCodeWithElevatedAccess(tenantId: string, code: string): Promise<Permission | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('code', code)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find permission by code with elevated access: ${error.message}`);
+    }
+
+    return data;
   }
 }

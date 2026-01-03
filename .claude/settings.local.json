@@ -67,7 +67,8 @@
       "Bash(timeout 120 pnpm build:web:*)",
       "Bash(pnpm metadata:compile:*)",
       "Bash(pnpm exec tsc:*)",
-      "Bash(timeout 180 pnpm build:web:*)"
+      "Bash(timeout 180 pnpm build:web:*)",
+      "Bash(more:*)"
     ],
     "deny": [],
     "ask": []

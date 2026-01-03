@@ -11,6 +11,7 @@ import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { RolePermission } from '@/models/rbac.model';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface IRolePermissionAdapter {
   assign(roleId: string, permissionId: string): Promise<RolePermission>;
@@ -20,6 +21,10 @@ export interface IRolePermissionAdapter {
   getRolesByPermission(permissionId: string): Promise<RolePermission[]>;
   assignMany(roleId: string, permissionIds: string[]): Promise<RolePermission[]>;
   revokeMany(roleId: string, permissionIds: string[]): Promise<void>;
+  /** Assign permission with elevated access (bypasses RLS) for super admin operations */
+  assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission>;
+  /** Find by role and permission with elevated access (bypasses RLS) */
+  findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null>;
 }
 
 @injectable()
@@ -207,5 +212,58 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
     if (error) {
       throw new Error(`Failed to bulk revoke permissions: ${error.message}`);
     }
+  }
+
+  /**
+   * Assign permission with elevated access (bypasses RLS) for super admin operations.
+   * This allows assigning permissions to roles in any tenant.
+   */
+  async assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission> {
+    const supabase = await getSupabaseServiceClient();
+
+    // Check if already assigned
+    const existing = await this.findByRoleAndPermissionWithElevatedAccess(roleId, permissionId);
+    if (existing) {
+      return existing;
+    }
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .insert({
+        tenant_id: tenantId,
+        role_id: roleId,
+        permission_id: permissionId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to assign permission with elevated access: ${error.message}`);
+    }
+
+    return data as RolePermission;
+  }
+
+  /**
+   * Find by role and permission with elevated access (bypasses RLS).
+   */
+  async findByRoleAndPermissionWithElevatedAccess(
+    roleId: string,
+    permissionId: string
+  ): Promise<RolePermission | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('role_id', roleId)
+      .eq('permission_id', permissionId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to find role permission with elevated access: ${error.message}`);
+    }
+
+    return data as RolePermission | null;
   }
 }
