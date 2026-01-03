@@ -1,7 +1,12 @@
+import 'server-only';
+import 'reflect-metadata';
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { RegistrationService } from '@/services/RegistrationService';
+
+// Force Node.js runtime for this route (needed for inversify)
+export const runtime = 'nodejs';
 
 interface RegistrationRequest {
   email: string;

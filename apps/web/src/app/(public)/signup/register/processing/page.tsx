@@ -26,10 +26,12 @@ interface RegistrationStep {
   label: string;
   description: string;
   icon: React.ElementType;
+  estimatedSeconds: number; // Estimated time for this step
 }
 
 /**
  * Registration Steps - mirrors the backend RegistrationService steps
+ * Estimated times are based on typical backend processing durations
  */
 const REGISTRATION_STEPS: RegistrationStep[] = [
   {
@@ -37,38 +39,47 @@ const REGISTRATION_STEPS: RegistrationStep[] = [
     label: 'Validating Information',
     description: 'Checking your details',
     icon: Shield,
+    estimatedSeconds: 1,
   },
   {
     id: 'auth',
     label: 'Creating Account',
     description: 'Setting up your login credentials',
     icon: User,
+    estimatedSeconds: 2,
   },
   {
     id: 'tenant',
     label: 'Setting Up Organization',
     description: 'Creating your church workspace',
     icon: Building2,
+    estimatedSeconds: 2,
   },
   {
     id: 'encryption',
     label: 'Securing Your Data',
     description: 'Generating encryption keys',
     icon: Key,
+    estimatedSeconds: 3,
   },
   {
     id: 'features',
     label: 'Activating Features',
     description: 'Provisioning your plan features',
     icon: Settings,
+    estimatedSeconds: 4,
   },
   {
     id: 'roles',
     label: 'Configuring Access',
-    description: 'Setting up user roles',
+    description: 'Setting up user roles and permissions',
     icon: Users,
+    estimatedSeconds: 8,
   },
 ];
+
+// Calculate total estimated time
+const TOTAL_ESTIMATED_SECONDS = REGISTRATION_STEPS.reduce((sum, step) => sum + step.estimatedSeconds, 0);
 
 type StepStatus = 'pending' | 'processing' | 'completed' | 'error';
 
@@ -101,18 +112,76 @@ function RegistrationProgressContent() {
   } | null>(null);
   const [registrationData, setRegistrationData] = useState<any>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(TOTAL_ESTIMATED_SECONDS);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+
+  // Timer for both elapsed and remaining time
+  useEffect(() => {
+    if (overallStatus !== 'processing' || !hasStarted) return;
+
+    // Set start time when processing begins
+    if (!startTime) {
+      setStartTime(Date.now());
+    }
+
+    const timer = setInterval(() => {
+      setRemainingSeconds((prev) => Math.max(0, prev - 1));
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [overallStatus, hasStarted, startTime]);
+
+  // Update remaining time when step changes
+  useEffect(() => {
+    if (overallStatus !== 'processing') return;
+
+    // Calculate remaining time from current step onwards
+    const remainingSteps = REGISTRATION_STEPS.slice(currentStepIndex);
+    const remaining = remainingSteps.reduce((sum, step) => sum + step.estimatedSeconds, 0);
+    setRemainingSeconds(remaining);
+  }, [currentStepIndex, overallStatus]);
+
+  /**
+   * Format seconds to human readable time
+   */
+  const formatRemainingTime = (seconds: number): string => {
+    if (seconds <= 0) return 'Almost done...';
+    if (seconds < 60) return `~${seconds} second${seconds !== 1 ? 's' : ''} remaining`;
+    const minutes = Math.ceil(seconds / 60);
+    return `~${minutes} minute${minutes !== 1 ? 's' : ''} remaining`;
+  };
+
+  /**
+   * Format elapsed time in MM:SS format
+   */
+  const formatElapsedTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Decode registration data on mount
   useEffect(() => {
+    console.log('[Processing] Page loaded, encodedData:', encodedData ? 'present' : 'missing');
+
     if (encodedData) {
       try {
-        const decoded = JSON.parse(atob(encodedData));
+        // Decode UTF-8 safe base64 (reverse of TextEncoder + btoa)
+        const binaryString = atob(encodedData);
+        const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+        const decoder = new TextDecoder();
+        const decoded = JSON.parse(decoder.decode(bytes));
+        console.log('[Processing] Successfully decoded registration data');
         setRegistrationData(decoded);
-      } catch {
+      } catch (err) {
+        console.error('[Processing] Failed to decode registration data:', err);
         setErrorMessage('Invalid registration data. Please try again.');
         setOverallStatus('error');
       }
     } else {
+      console.log('[Processing] No encoded data in URL');
       setErrorMessage('No registration data found. Redirecting...');
       setOverallStatus('error');
       setTimeout(() => router.push('/signup'), 2000);
@@ -366,6 +435,33 @@ function RegistrationProgressContent() {
                 ? errorMessage || 'Something went wrong'
                 : 'Please wait while we prepare everything for you'}
           </p>
+          {overallStatus === 'processing' && hasStarted && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-3 space-y-1"
+            >
+              <p className="text-sm text-[#179a65] dark:text-green-400 font-medium">
+                {formatRemainingTime(remainingSeconds)}
+              </p>
+              <p
+                className="text-xs text-gray-400 dark:text-gray-500 font-mono"
+                data-testid="elapsed-time"
+              >
+                Elapsed: {formatElapsedTime(elapsedSeconds)}
+              </p>
+            </motion.div>
+          )}
+          {overallStatus === 'success' && elapsedSeconds > 0 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-mono"
+              data-testid="total-elapsed-time"
+            >
+              Completed in {formatElapsedTime(elapsedSeconds)}
+            </motion.p>
+          )}
         </div>
 
         {/* Steps Card */}
@@ -439,8 +535,8 @@ function RegistrationProgressContent() {
 
                     {/* Status indicator */}
                     {state.status === 'processing' && (
-                      <span className="text-xs font-medium text-[#179a65] dark:text-green-400">
-                        Processing...
+                      <span className="text-xs font-medium text-[#179a65] dark:text-green-400 whitespace-nowrap">
+                        ~{step.estimatedSeconds}s
                       </span>
                     )}
                   </motion.div>

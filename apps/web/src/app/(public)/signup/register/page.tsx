@@ -138,6 +138,7 @@ function RegisterFormContent() {
   async function loadDiscount(offering: ProductOffering) {
     try {
       const priceInfo = getOfferingPrice(offering);
+      console.log('[Register] Loading discount for offering:', offering.id, 'price:', priceInfo);
       if (!priceInfo || priceInfo.price === 0) return;
 
       const response = await fetch('/api/licensing/discounts/apply', {
@@ -150,14 +151,15 @@ function RegisterFormContent() {
         }),
       });
       const result = await response.json();
+      console.log('[Register] Discount response:', result);
 
-      if (result.success && result.data.discount) {
+      if (result.success && result.data?.discount) {
         setOfferingDiscount({
           offeringId: offering.id,
           discount: result.data.discount,
-          originalPrice: result.data.originalPrice,
-          discountedPrice: result.data.discountedPrice,
-          discountAmount: result.data.discountAmount,
+          originalPrice: result.data.originalPrice ?? priceInfo.price,
+          discountedPrice: result.data.discountedPrice ?? priceInfo.price,
+          discountAmount: result.data.discountAmount ?? 0,
         });
       }
     } catch (error) {
@@ -211,46 +213,58 @@ function RegisterFormContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    console.log('[Register] Form submitted, selectedOffering:', selectedOffering?.id, 'billing_cycle:', selectedOffering?.billing_cycle);
 
     if (!validateForm()) {
+      console.log('[Register] Form validation failed');
       toast.error('Please correct the errors in the form');
       return;
     }
 
     if (!offeringId) {
+      console.log('[Register] No offering ID');
       toast.error('No plan selected');
       return;
     }
 
+    console.log('[Register] Starting registration process');
     setIsRegistering(true);
 
-    // Check if this is a free/trial offering (no payment required)
-    const isTrial = selectedOffering?.offering_type === 'trial';
-    const isFree = selectedOffering?.offering_type === 'free' ||
-      (selectedOffering?.metadata as any)?.pricing?.is_free;
-
-    // Also check if price is 0
-    const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
-    const priceIsZero = !priceInfo || priceInfo.price === 0;
-
-    // Prepare registration data for the processing page
-    const registrationData = {
-      ...formData,
-      offeringId,
-      isTrial,
-      isFree,
-      priceIsZero,
-    };
-
     try {
-      // Encode registration data as base64 for URL-safe transmission
-      const encodedData = btoa(JSON.stringify(registrationData));
+      // Check if this is a free/trial offering (no payment required)
+      const isTrial = selectedOffering?.offering_type === 'trial';
+      const isFree = selectedOffering?.offering_type === 'free' ||
+        (selectedOffering?.metadata as any)?.pricing?.is_free;
 
+      // Also check if price is 0
+      const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
+      const priceIsZero = !priceInfo || priceInfo.price === 0;
+
+      // Prepare registration data for the processing page
+      const registrationData = {
+        ...formData,
+        offeringId,
+        isTrial,
+        isFree,
+        priceIsZero,
+      };
+
+      // Encode registration data as base64 for URL-safe transmission
+      // Use TextEncoder for proper UTF-8 support (handles special characters like accents)
+      const jsonString = JSON.stringify(registrationData);
+      console.log('[Register] Registration data prepared, size:', jsonString.length);
+
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(jsonString);
+      const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+      const encodedData = btoa(binaryString);
+
+      console.log('[Register] Redirecting to processing page, encoded size:', encodedData.length);
       // Redirect to processing page which will handle the registration
       window.location.href = `/signup/register/processing?data=${encodedData}`;
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Failed to process registration. Please try again.');
+      console.error('[Register] Registration error:', error);
+      toast.error(`Failed to process registration: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsRegistering(false);
     }
   }
@@ -437,10 +451,10 @@ function RegisterFormContent() {
                         {formatPrice(selectedOffering)}
                       </span>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-gray-900">
-                        {offeringDiscount.discount.badge_text ||
-                          (offeringDiscount.discount.calculation_type === 'percentage'
-                            ? `${offeringDiscount.discount.discount_value}% OFF`
-                            : `Save ${formatPriceValue(offeringDiscount.discountAmount, getOfferingPrice(selectedOffering)?.currency || 'PHP')}`
+                        {offeringDiscount.discount?.badge_text ||
+                          (offeringDiscount.discount?.calculation_type === 'percentage'
+                            ? `${offeringDiscount.discount?.discount_value || 0}% OFF`
+                            : `Save ${formatPriceValue(offeringDiscount.discountAmount || 0, getOfferingPrice(selectedOffering)?.currency || 'PHP')}`
                           )}
                       </span>
                     </div>
