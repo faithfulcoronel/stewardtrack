@@ -4,6 +4,7 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { PaymentService } from '@/services/PaymentService';
 import type { LicensingService } from '@/services/LicensingService';
+import type { DiscountService } from '@/services/DiscountService';
 import { getCurrentTenantId } from '@/lib/server/context';
 import { TenantService } from '@/services/TenantService';
 import { PRIMARY_CURRENCY } from '@/lib/currency';
@@ -34,6 +35,7 @@ export async function GET() {
     const licensingService = container.get<LicensingService>(TYPES.LicensingService);
     const paymentService = container.get<PaymentService>(TYPES.PaymentService);
     const tenantService = container.get<TenantService>(TYPES.TenantService);
+    const discountService = container.get<DiscountService>(TYPES.DiscountService);
 
     let tenant: any;
     try {
@@ -81,6 +83,44 @@ export async function GET() {
             }
           }
 
+          // Check for applicable discounts
+          let discountInfo: {
+            has_discount: boolean;
+            discount_name?: string;
+            discount_type?: string;
+            calculation_type?: string;
+            discount_value?: number;
+            discount_amount?: number;
+            discounted_price?: number;
+            original_price?: number;
+          } = { has_discount: false };
+
+          if (resolvedPrice > 0) {
+            try {
+              const discountResult = await discountService.applyBestDiscount(
+                tenant.subscription_offering_id,
+                resolvedPrice,
+                resolvedCurrency
+              );
+
+              if (discountResult.success && discountResult.discount) {
+                discountInfo = {
+                  has_discount: true,
+                  discount_name: discountResult.discount.discount_name,
+                  discount_type: discountResult.discount.discount_type,
+                  calculation_type: discountResult.discount.calculation_type,
+                  discount_value: discountResult.discount.discount_value,
+                  discount_amount: discountResult.discountAmount,
+                  discounted_price: discountResult.discountedPrice,
+                  original_price: resolvedPrice,
+                };
+              }
+            } catch (discountError) {
+              console.error('Error fetching discount:', discountError);
+              // Non-fatal: continue without discount info
+            }
+          }
+
           currentOffering = {
             id: offering.id,
             name: offering.name,
@@ -89,6 +129,7 @@ export async function GET() {
             resolved_price: resolvedPrice,
             resolved_currency: resolvedCurrency,
             prices: prices || [],
+            discount: discountInfo,
           };
         }
       }

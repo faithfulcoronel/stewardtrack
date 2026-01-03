@@ -10,6 +10,8 @@ export interface OnboardingProgress {
   church_details_data: Record<string, any>;
   rbac_setup_data: Record<string, any>;
   feature_tour_data: Record<string, any>;
+  payment_data: Record<string, any>;
+  complete_data: Record<string, any>;
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
@@ -29,6 +31,8 @@ export interface CreateOnboardingProgressInput {
   church_details_data?: Record<string, any>;
   rbac_setup_data?: Record<string, any>;
   feature_tour_data?: Record<string, any>;
+  payment_data?: Record<string, any>;
+  complete_data?: Record<string, any>;
   metadata?: Record<string, any>;
 }
 
@@ -41,5 +45,7 @@ export interface UpdateOnboardingProgressInput {
   church_details_data?: Record<string, any>;
   rbac_setup_data?: Record<string, any>;
   feature_tour_data?: Record<string, any>;
+  payment_data?: Record<string, any>;
+  complete_data?: Record<string, any>;
   metadata?: Record<string, any>;
 }

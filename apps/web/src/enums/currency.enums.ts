@@ -488,39 +488,61 @@ export function formatCurrency(
 }
 
 /**
- * Convert amount to Xendit format (handles currencies without decimals)
+ * Convert amount to Xendit format
+ *
+ * IMPORTANT: Xendit's requirements vary by currency:
+ * - PHP, IDR: Amount in whole currency units (pesos, rupiah) - NO conversion needed
+ * - USD, EUR, GBP, etc.: Amount in smallest unit (cents) - multiply by 100
+ *
+ * This is different from many payment gateways that expect cents for all currencies.
  */
 export function toXenditAmount(amount: number, currency: string): number {
   const info = getCurrencyInfo(currency);
 
   if (!info) {
-    // Default: multiply by 100 (cents)
+    // Default: assume cents for unknown currencies
     return Math.round(amount * 100);
   }
 
-  // Currencies without decimals (PHP, IDR, JPY, KRW, VND, TWD)
+  // PHP and IDR: Xendit expects whole currency units (pesos, rupiah)
+  // These are the primary Xendit-supported local currencies
+  if (currency === 'PHP' || currency === 'IDR') {
+    return Math.round(amount);
+  }
+
+  // JPY, KRW, VND, TWD: No decimals, whole units
   if (info.decimalPlaces === 0) {
     return Math.round(amount);
   }
 
-  // Currencies with decimals - Xendit expects cents/smallest unit
+  // USD, EUR, GBP, etc. via Global Account: Convert to cents
   return Math.round(amount * Math.pow(10, info.decimalPlaces));
 }
 
 /**
  * Convert from Xendit format back to display amount
+ *
+ * Inverse of toXenditAmount - converts Xendit amounts back to display format.
  */
 export function fromXenditAmount(xenditAmount: number, currency: string): number {
   const info = getCurrencyInfo(currency);
 
   if (!info) {
+    // Default: assume cents for unknown currencies
     return xenditAmount / 100;
   }
 
+  // PHP and IDR: Xendit uses whole currency units, no conversion needed
+  if (currency === 'PHP' || currency === 'IDR') {
+    return xenditAmount;
+  }
+
+  // JPY, KRW, VND, TWD: No decimals, whole units
   if (info.decimalPlaces === 0) {
     return xenditAmount;
   }
 
+  // USD, EUR, GBP, etc.: Convert from cents back to whole units
   return xenditAmount / Math.pow(10, info.decimalPlaces);
 }
 

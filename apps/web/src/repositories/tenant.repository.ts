@@ -7,12 +7,13 @@ import type {
   TenantUserData,
   SubscriptionUpdateParams,
   TenantAdminInfo,
+  TenantCleanupResult,
 } from '@/adapters/tenant.adapter';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 
 // Re-export types for convenience
-export type { PublicProductOffering, TenantUserData, SubscriptionUpdateParams, TenantAdminInfo };
+export type { PublicProductOffering, TenantUserData, SubscriptionUpdateParams, TenantAdminInfo, TenantCleanupResult };
 
 export interface ITenantRepository extends BaseRepository<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -27,6 +28,8 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
   createTenantForRegistration(tenantData: Partial<Tenant>): Promise<Tenant>;
   createTenantUserRelationship(tenantUserData: TenantUserData): Promise<void>;
   deleteTenantForCleanup(tenantId: string): Promise<void>;
+  /** Comprehensive cleanup of all tenant data for registration rollback */
+  deleteAllTenantDataForCleanup(tenantId: string): Promise<TenantCleanupResult>;
   getPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null>;
   getTenantStatus(tenantId: string): Promise<{
     roles: { count: number; data: any[]; error?: string };
@@ -102,6 +105,10 @@ export class TenantRepository
 
   async deleteTenantForCleanup(tenantId: string): Promise<void> {
     return this.tenantAdapter.deleteTenantWithServiceRole(tenantId);
+  }
+
+  async deleteAllTenantDataForCleanup(tenantId: string): Promise<TenantCleanupResult> {
+    return this.tenantAdapter.deleteAllTenantDataForCleanup(tenantId);
   }
 
   async getPublicProductOffering(offeringId: string): Promise<PublicProductOffering | null> {

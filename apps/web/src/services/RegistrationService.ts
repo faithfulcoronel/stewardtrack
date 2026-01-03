@@ -153,7 +153,9 @@ export class RegistrationService {
       // ===== STEP 5: Create tenant =====
       // For trial offerings, get trial duration from metadata (default 14 days)
       const isTrial = offering.offering_type === 'trial';
-      const trialDays = isTrial ? (offering.metadata?.trial_days || 14) : 0;
+      const trialDays: number = isTrial
+        ? (typeof offering.metadata?.trial_days === 'number' ? offering.metadata.trial_days : 14)
+        : 0;
       const trialEndDate = isTrial
         ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
         : null;
@@ -296,40 +298,47 @@ export class RegistrationService {
   }
 
   /**
-   * Cleanup tenant and user records on registration failure
+   * Cleanup tenant and user records on registration failure.
+   *
+   * Performs comprehensive rollback of all registration artifacts via the tenant repository:
+   * 1. User roles (user_roles table)
+   * 2. Role permissions (role_permissions table for tenant-scoped roles)
+   * 3. Roles (roles table for tenant-scoped roles)
+   * 4. Permissions (permissions table for tenant-scoped permissions)
+   * 5. Feature grants (tenant_feature_grants table)
+   * 6. Encryption keys (tenant_encryption_keys table)
+   * 7. Tenant-user relationships (tenant_users table)
+   * 8. Tenant record (tenants table)
+   * 9. Auth user (Supabase auth.users)
    */
   private async cleanup(userId: string | null, tenantId: string | null): Promise<void> {
-    const cleanupResults: string[] = [];
+    console.log(`[Registration Cleanup] Starting cleanup for userId=${userId}, tenantId=${tenantId}`);
 
     try {
-      // Clean up tenant and related records
+      // Clean up all tenant-related records via repository
       if (tenantId) {
-        try {
-          await this.tenantRepository.deleteTenantForCleanup(tenantId);
-          cleanupResults.push(`Deleted tenant ${tenantId}`);
-        } catch (error) {
-          cleanupResults.push(`Failed to delete tenant: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
+        const cleanupResult = await this.tenantRepository.deleteAllTenantDataForCleanup(tenantId);
+
+        console.log(`[Registration Cleanup] Tenant data cleanup:`, {
+          success: cleanupResult.success,
+          deletedRecords: cleanupResult.deletedRecords,
+          errors: cleanupResult.errors,
+        });
       }
 
-      // Clean up auth user
+      // Clean up auth user (do this last as it's in a separate system)
       if (userId) {
         const { error: authDeleteError } = await this.authRepository.deleteUser(userId);
 
         if (authDeleteError) {
-          cleanupResults.push(`Failed to delete auth user: ${authDeleteError.message}`);
+          console.error(`[Registration Cleanup] Failed to delete auth user: ${authDeleteError.message}`);
         } else {
-          cleanupResults.push(`Deleted auth user ${userId}`);
+          console.log(`[Registration Cleanup] Deleted auth user ${userId}`);
         }
       }
 
-      // Log cleanup results
-      if (cleanupResults.length > 0) {
-        console.log(`Cleanup completed: ${cleanupResults.join(', ')}`);
-      }
     } catch (cleanupError) {
-      console.error('Failed to cleanup after error:', cleanupError);
-      console.error('Partial cleanup results:', cleanupResults);
+      console.error('[Registration Cleanup] Critical error during cleanup:', cleanupError);
     }
   }
 }
