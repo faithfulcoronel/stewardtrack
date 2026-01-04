@@ -18,7 +18,7 @@ variables:
     value: 'true'
   - name: PLAYWRIGHT_TEST_BASE_URL
     value: 'http://localhost:3000'
-  - name: pnpm_config_cache
+  - name: PNPM_STORE_PATH
     value: $(Pipeline.Workspace)/.pnpm-store
   - name: nodeVersion
     value: '20.x'
@@ -44,12 +44,17 @@ stages:
               npm install -g pnpm@9.15.0
             displayName: 'Install pnpm'
 
+          - script: |
+              mkdir -p $(PNPM_STORE_PATH)
+              pnpm config set store-dir $(PNPM_STORE_PATH)
+            displayName: 'Configure pnpm store'
+
           - task: Cache@2
             inputs:
               key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
               restoreKeys: |
                 pnpm | "$(Agent.OS)"
-              path: $(pnpm_config_cache)
+              path: $(PNPM_STORE_PATH)
             displayName: 'Cache pnpm packages'
 
           - script: pnpm install --frozen-lockfile
@@ -90,12 +95,17 @@ stages:
           - script: npm install -g pnpm@9.15.0
             displayName: 'Install pnpm'
 
+          - script: |
+              mkdir -p $(PNPM_STORE_PATH)
+              pnpm config set store-dir $(PNPM_STORE_PATH)
+            displayName: 'Configure pnpm store'
+
           - task: Cache@2
             inputs:
               key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
               restoreKeys: |
                 pnpm | "$(Agent.OS)"
-              path: $(pnpm_config_cache)
+              path: $(PNPM_STORE_PATH)
             displayName: 'Cache pnpm packages'
 
           - script: pnpm install --frozen-lockfile
