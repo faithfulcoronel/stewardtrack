@@ -25,6 +25,10 @@ export interface IRolePermissionAdapter {
   assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission>;
   /** Find by role and permission with elevated access (bypasses RLS) */
   findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null>;
+  /** Batch assign permissions to a role with elevated access using upsert (bypasses RLS) */
+  batchAssignWithElevatedAccess(
+    assignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
+  ): Promise<{ inserted: number; skipped: number }>;
 }
 
 @injectable()
@@ -265,5 +269,50 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
     }
 
     return data as RolePermission | null;
+  }
+
+  /**
+   * Batch assign permissions to roles with elevated access using upsert.
+   * This significantly reduces database round-trips by:
+   * 1. Using upsert (INSERT ... ON CONFLICT DO NOTHING) to avoid check-then-insert race conditions
+   * 2. Batching multiple assignments into a single query
+   *
+   * @param assignments Array of role-permission assignments to create
+   * @returns Count of inserted and skipped assignments
+   */
+  async batchAssignWithElevatedAccess(
+    assignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
+  ): Promise<{ inserted: number; skipped: number }> {
+    if (assignments.length === 0) {
+      return { inserted: 0, skipped: 0 };
+    }
+
+    const supabase = await getSupabaseServiceClient();
+
+    // Prepare data for upsert
+    const insertData = assignments.map(a => ({
+      tenant_id: a.tenantId,
+      role_id: a.roleId,
+      permission_id: a.permissionId,
+    }));
+
+    // Use upsert with onConflict to skip existing records
+    // The role_permissions table has a unique constraint on (tenant_id, role_id, permission_id)
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .upsert(insertData, {
+        onConflict: 'tenant_id,role_id,permission_id',
+        ignoreDuplicates: true,
+      })
+      .select();
+
+    if (error) {
+      throw new Error(`Failed to batch assign permissions with elevated access: ${error.message}`);
+    }
+
+    const inserted = data?.length ?? 0;
+    const skipped = assignments.length - inserted;
+
+    return { inserted, skipped };
   }
 }

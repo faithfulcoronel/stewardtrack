@@ -1,14 +1,10 @@
 import 'server-only';
 
-import { injectable, inject } from 'inversify';
-import { TYPES } from '@/lib/types';
-import type { IMembershipTypeRepository } from '@/repositories/membershipType.repository';
-import type { IMembershipStageRepository } from '@/repositories/membershipStage.repository';
-import type { IDiscipleshipPathwayRepository } from '@/repositories/discipleshipPathway.repository';
+import { injectable } from 'inversify';
 import { DEFAULT_DISCIPLESHIP_PATHWAYS } from '@/models/discipleshipPathway.model';
 import { BaseFeatureOnboardingPlugin } from '../BaseFeatureOnboardingPlugin';
 import type { FeatureOnboardingContext, FeatureOnboardingResult } from '../types';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 /**
  * Default membership types to seed for new tenants
@@ -113,19 +109,6 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   readonly description = 'Seeds default membership types, stages, and discipleship pathways for new tenants';
   readonly priority = 10; // Run early since other features may depend on membership
 
-  constructor(
-    @inject(TYPES.IMembershipTypeRepository)
-    private membershipTypeRepository: IMembershipTypeRepository,
-
-    @inject(TYPES.IMembershipStageRepository)
-    private membershipStageRepository: IMembershipStageRepository,
-
-    @inject(TYPES.IDiscipleshipPathwayRepository)
-    private discipleshipPathwayRepository: IDiscipleshipPathwayRepository
-  ) {
-    super();
-  }
-
   /**
    * Check if this plugin should execute
    * Runs if 'members.core' feature is in the granted features list
@@ -191,9 +174,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Seed default membership types for the tenant
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async seedMembershipTypes(context: FeatureOnboardingContext): Promise<number> {
     let created = 0;
+    const supabase = await getSupabaseServiceClient();
 
     for (const typeData of DEFAULT_MEMBERSHIP_TYPES) {
       try {
@@ -206,14 +191,22 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
           continue;
         }
 
-        await this.membershipTypeRepository.create({
-          ...typeData,
-          tenant_id: context.tenantId,
-          is_system: true,
-          is_active: true,
-          created_by: context.userId,
-          updated_by: context.userId,
-        } as Partial<{ id: string; code: string; name: string; description: string | null; is_system: boolean; is_active: boolean; sort_order: number; tenant_id: string; created_by: string; updated_by: string }>);
+        const { error } = await supabase
+          .from('membership_type')
+          .insert({
+            ...typeData,
+            tenant_id: context.tenantId,
+            is_system: true,
+            is_active: true,
+            created_by: context.userId,
+            updated_by: context.userId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          throw new Error(error.message);
+        }
 
         created++;
         console.log(
@@ -233,9 +226,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Seed default membership stages for the tenant
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async seedMembershipStages(context: FeatureOnboardingContext): Promise<number> {
     let created = 0;
+    const supabase = await getSupabaseServiceClient();
 
     for (const stageData of DEFAULT_MEMBERSHIP_STAGES) {
       try {
@@ -248,14 +243,22 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
           continue;
         }
 
-        await this.membershipStageRepository.create({
-          ...stageData,
-          tenant_id: context.tenantId,
-          is_system: true,
-          is_active: true,
-          created_by: context.userId,
-          updated_by: context.userId,
-        } as Partial<{ id: string; code: string; name: string; description: string | null; is_system: boolean; is_active: boolean; sort_order: number; tenant_id: string; created_by: string; updated_by: string }>);
+        const { error } = await supabase
+          .from('membership_stage')
+          .insert({
+            ...stageData,
+            tenant_id: context.tenantId,
+            is_system: true,
+            is_active: true,
+            created_by: context.userId,
+            updated_by: context.userId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          throw new Error(error.message);
+        }
 
         created++;
         console.log(
@@ -275,11 +278,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Check if a membership type already exists
-   * Uses direct Supabase query to bypass tenant context requirement during onboarding
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async checkExistingType(tenantId: string, code: string): Promise<boolean> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = await getSupabaseServiceClient();
       const { data, error } = await supabase
         .from('membership_type')
         .select('id')
@@ -300,11 +303,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Check if a membership stage already exists
-   * Uses direct Supabase query to bypass tenant context requirement during onboarding
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async checkExistingStage(tenantId: string, code: string): Promise<boolean> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = await getSupabaseServiceClient();
       const { data, error } = await supabase
         .from('membership_stage')
         .select('id')
@@ -326,9 +329,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   /**
    * Seed default discipleship pathways for the tenant
    * These represent spiritual growth tracks like Growth Track, Leadership, etc.
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async seedDiscipleshipPathways(context: FeatureOnboardingContext): Promise<number> {
     let created = 0;
+    const supabase = await getSupabaseServiceClient();
 
     for (const pathwayData of DEFAULT_DISCIPLESHIP_PATHWAYS) {
       try {
@@ -341,13 +346,21 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
           continue;
         }
 
-        await this.discipleshipPathwayRepository.create({
-          ...pathwayData,
-          tenant_id: context.tenantId,
-          is_active: true,
-          created_by: context.userId,
-          updated_by: context.userId,
-        } as Partial<{ id: string; code: string; name: string; description: string | null; is_active: boolean; display_order: number; tenant_id: string; created_by: string; updated_by: string }>);
+        const { error } = await supabase
+          .from('discipleship_pathways')
+          .insert({
+            ...pathwayData,
+            tenant_id: context.tenantId,
+            is_active: true,
+            created_by: context.userId,
+            updated_by: context.userId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          throw new Error(error.message);
+        }
 
         created++;
         console.log(
@@ -367,11 +380,11 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
   /**
    * Check if a discipleship pathway already exists
-   * Uses direct Supabase query to bypass tenant context requirement during onboarding
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
    */
   private async checkExistingPathway(tenantId: string, code: string): Promise<boolean> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = await getSupabaseServiceClient();
       const { data, error } = await supabase
         .from('discipleship_pathways')
         .select('id')

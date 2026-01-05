@@ -18,15 +18,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.stewardtrack.app',
   appName: 'StewardTrack',
-  webDir: '../web/.next', // Not used when server.url is set
+  webDir: 'dist', // Empty folder since app loads from server URL
 
   // Server configuration - REQUIRED for apps with API routes
   server: {
-    // Development: Use your local IP address (find with ipconfig/ifconfig)
-    // Production: Use your deployed URL (e.g., 'https://app.stewardtrack.com')
-    url: 'https://stewardtrack.com', // Your local network IP for physical device
-    cleartext: true, // Allow HTTP for development (use HTTPS in production)
-    // For iOS simulator, use your Mac's local IP instead
+    // Production URL
+    url: 'https://stewardtrack.com',
+    cleartext: false, // HTTPS only for production
   },
 
   plugins: {
@@ -75,7 +73,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: process.env.NODE_ENV === 'development',
+    webContentsDebuggingEnabled: false, // Disabled for production
     // Background color for the WebView
     backgroundColor: '#ffffff',
     // Build variants
@@ -85,7 +83,7 @@ const config: CapacitorConfig = {
   },
 
   // Logging configuration
-  loggingBehavior: process.env.NODE_ENV === 'development' ? 'debug' : 'production',
+  loggingBehavior: 'production',
 };
 
 export default config;

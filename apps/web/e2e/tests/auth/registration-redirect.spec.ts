@@ -295,9 +295,9 @@ test.describe('Registration Redirect by Billing Cycle', () => {
       const successHeading = page.getByRole('heading', { name: /Account Created/i });
       const errorHeading = page.getByRole('heading', { name: /Registration Failed/i });
 
-      // Wait for any completion state
+      // Wait for any completion state (use .first() to handle case where multiple elements match)
       await expect(
-        totalElapsedElement.or(successHeading).or(errorHeading)
+        totalElapsedElement.or(successHeading).or(errorHeading).first()
       ).toBeVisible({ timeout: 90000 });
 
       // Check if successful

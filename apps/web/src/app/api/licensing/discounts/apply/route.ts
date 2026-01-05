@@ -15,7 +15,25 @@ import { DEFAULT_CURRENCY } from '@/lib/currency';
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Parse request body with defensive error handling
+    let body: { offeringId?: string; amount?: number; currency?: string };
+    try {
+      const text = await request.text();
+      if (!text || text.trim() === '') {
+        return NextResponse.json(
+          { success: false, error: 'Request body is empty' },
+          { status: 400 }
+        );
+      }
+      body = JSON.parse(text);
+    } catch (parseError) {
+      console.error('[Discounts Apply API] JSON parse error:', parseError);
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
     const { offeringId, amount, currency = DEFAULT_CURRENCY } = body;
 
     if (!offeringId || amount === undefined) {

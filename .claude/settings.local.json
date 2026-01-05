@@ -68,7 +68,9 @@
       "Bash(pnpm metadata:compile:*)",
       "Bash(pnpm exec tsc:*)",
       "Bash(timeout 180 pnpm build:web:*)",
-      "Bash(more:*)"
+      "Bash(more:*)",
+      "Bash(./gradlew:*)",
+      "Bash(timeout 180 pnpm exec tsc:*)"
     ],
     "deny": [],
     "ask": []
