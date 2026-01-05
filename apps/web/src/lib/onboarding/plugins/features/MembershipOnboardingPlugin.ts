@@ -87,9 +87,21 @@ const DEFAULT_MEMBERSHIP_STAGES = [
 ];
 
 /**
+ * Default membership center to seed for new tenants
+ * Every tenant gets a "Main" center as their primary location
+ */
+const DEFAULT_MEMBERSHIP_CENTER = {
+  code: 'main',
+  name: 'Main',
+  description: 'Primary church location',
+  is_primary: true,
+  sort_order: 1,
+};
+
+/**
  * MembershipOnboardingPlugin
  *
- * Seeds default membership types, stages, and discipleship pathways when a tenant
+ * Seeds default membership types, stages, centers, and discipleship pathways when a tenant
  * registers with the members.core feature licensed.
  *
  * Feature code: 'members.core' (maps to feature_catalog.code)
@@ -97,6 +109,7 @@ const DEFAULT_MEMBERSHIP_STAGES = [
  * This plugin creates:
  * - Default membership types (Member, Regular Attendee, Visitor, etc.)
  * - Default membership stages (First Time Guest, Connected, Growing, etc.)
+ * - Default membership center ("Main" - primary church location)
  * - Default discipleship pathways (Growth Track, Leadership, Foundations, etc.)
  *
  * All records are marked as is_system=true so users know they are defaults
@@ -106,7 +119,7 @@ const DEFAULT_MEMBERSHIP_STAGES = [
 export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   readonly featureCode = 'members.core';
   readonly name = 'Member Management Feature';
-  readonly description = 'Seeds default membership types, stages, and discipleship pathways for new tenants';
+  readonly description = 'Seeds default membership types, stages, center, and discipleship pathways for new tenants';
   readonly priority = 10; // Run early since other features may depend on membership
 
   /**
@@ -141,6 +154,7 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
   ): Promise<FeatureOnboardingResult> {
     let typesCreated = 0;
     let stagesCreated = 0;
+    let centersCreated = 0;
     let pathwaysCreated = 0;
 
     try {
@@ -150,17 +164,21 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
       // Create membership stages
       stagesCreated = await this.seedMembershipStages(context);
 
+      // Create default membership center ("Main")
+      centersCreated = await this.seedMembershipCenter(context);
+
       // Create discipleship pathways
       pathwaysCreated = await this.seedDiscipleshipPathways(context);
 
-      const totalCreated = typesCreated + stagesCreated + pathwaysCreated;
+      const totalCreated = typesCreated + stagesCreated + centersCreated + pathwaysCreated;
 
       return this.successResult(
-        `Created ${typesCreated} membership types, ${stagesCreated} membership stages, and ${pathwaysCreated} discipleship pathways`,
+        `Created ${typesCreated} membership types, ${stagesCreated} membership stages, ${centersCreated} membership center, and ${pathwaysCreated} discipleship pathways`,
         totalCreated,
         {
           membershipTypesCreated: typesCreated,
           membershipStagesCreated: stagesCreated,
+          membershipCentersCreated: centersCreated,
           discipleshipPathwaysCreated: pathwaysCreated,
         }
       );
@@ -318,6 +336,81 @@ export class MembershipOnboardingPlugin extends BaseFeatureOnboardingPlugin {
 
       if (error) {
         console.warn(`[MembershipOnboardingPlugin] Error checking existing stage: ${error.message}`);
+        return false;
+      }
+      return (data?.length ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Seed default membership center for the tenant
+   * Creates a "Main" center as the primary church location
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
+   */
+  private async seedMembershipCenter(context: FeatureOnboardingContext): Promise<number> {
+    const supabase = await getSupabaseServiceClient();
+    const centerData = DEFAULT_MEMBERSHIP_CENTER;
+
+    try {
+      // Check if center already exists (idempotent)
+      const existing = await this.checkExistingCenter(context.tenantId, centerData.code);
+      if (existing) {
+        console.log(
+          `[MembershipOnboardingPlugin] Membership center '${centerData.code}' already exists, skipping`
+        );
+        return 0;
+      }
+
+      const { error } = await supabase
+        .from('membership_center')
+        .insert({
+          ...centerData,
+          tenant_id: context.tenantId,
+          is_system: true,
+          is_active: true,
+          created_by: context.userId,
+          updated_by: context.userId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      console.log(
+        `[MembershipOnboardingPlugin] Created membership center: ${centerData.name}`
+      );
+      return 1;
+    } catch (error) {
+      console.error(
+        `[MembershipOnboardingPlugin] Failed to create membership center '${centerData.code}':`,
+        error
+      );
+      // Non-fatal - continue with onboarding
+      return 0;
+    }
+  }
+
+  /**
+   * Check if a membership center already exists
+   * Uses service role client to bypass RLS during onboarding (runs in setImmediate without auth context)
+   */
+  private async checkExistingCenter(tenantId: string, code: string): Promise<boolean> {
+    try {
+      const supabase = await getSupabaseServiceClient();
+      const { data, error } = await supabase
+        .from('membership_center')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('code', code)
+        .is('deleted_at', null)
+        .limit(1);
+
+      if (error) {
+        console.warn(`[MembershipOnboardingPlugin] Error checking existing center: ${error.message}`);
         return false;
       }
       return (data?.length ?? 0) > 0;

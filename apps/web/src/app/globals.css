@@ -7,6 +7,7 @@
 /* Fonts are linked in layout head */
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant landscape (@media (orientation: landscape));
 
 @theme inline {
   --color-background: hsl(var(--background));

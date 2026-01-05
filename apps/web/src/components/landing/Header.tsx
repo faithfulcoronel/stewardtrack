@@ -65,20 +65,20 @@ export function LandingHeader() {
       className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center pt-4 md:pt-8 px-4 pointer-events-none"
     >
       {/* The header container */}
-      <div className="bg-white/90 backdrop-blur-md rounded-full shadow-lg pl-6 pr-4 py-3 flex items-center justify-between gap-4 md:gap-8 pointer-events-auto border border-gray-100 max-w-full md:max-w-none w-full md:w-auto">
+      <div className="bg-white/90 backdrop-blur-md rounded-full shadow-lg pl-4 sm:pl-6 pr-2 sm:pr-4 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 md:gap-8 pointer-events-auto border border-gray-100 max-w-full md:max-w-none w-full md:w-auto">
 
         {/* Logo */}
         <Link
           href="/"
           onClick={handleLogoClick}
-          className="flex-shrink-0"
+          className="flex-shrink-0 flex items-center"
         >
           <Image
             src="/landing/logo-light.png"
             alt="StewardTrack"
             width={160}
             height={32}
-            className="h-6 md:h-8 w-auto"
+            className="h-5 sm:h-6 md:h-8 w-auto"
           />
         </Link>
 
