@@ -36,7 +36,24 @@ interface RegistrationRequest {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: RegistrationRequest = await request.json();
+    // Parse request body with defensive error handling
+    let body: RegistrationRequest;
+    try {
+      const text = await request.text();
+      if (!text || text.trim() === '') {
+        return NextResponse.json(
+          { success: false, error: 'Request body is empty' },
+          { status: 400 }
+        );
+      }
+      body = JSON.parse(text);
+    } catch (parseError) {
+      console.error('[Register API] JSON parse error:', parseError);
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
 
     // Get RegistrationService from container
     const registrationService = container.get<RegistrationService>(TYPES.RegistrationService);

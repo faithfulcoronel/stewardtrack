@@ -18,7 +18,7 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { FeaturePermission, PermissionRoleTemplate } from '@/models/featurePermission.model';
-import type { Permission, Role } from '@/models/rbac.model';
+import type { Permission } from '@/models/rbac.model';
 import type { IPermissionRepository } from '@/repositories/permission.repository';
 import type { IRoleRepository } from '@/repositories/role.repository';
 import type { IRolePermissionRepository } from '@/repositories/rolePermission.repository';
@@ -250,20 +250,22 @@ export class PermissionDeploymentService {
         });
       });
 
-      // 3. Deploy each permission
+      // 3. Deploy each permission (create/update tenant permission records)
+      // Collect role assignments for batch processing
+      const pendingRoleAssignments: Array<{ roleId: string; permissionId: string; tenantId: string }> = [];
+
       for (const featPerm of featurePermissions) {
-        const deployed = await this.deployPermission(
+        const deployed = await this.deployPermissionWithBatchCollection(
           tenantId,
           featureId,
           featPerm,
-          options
+          options,
+          pendingRoleAssignments
         );
 
         if (deployed.permissionCreated) {
           result.permissionsDeployed++;
         }
-
-        result.roleAssignments += deployed.roleAssignments;
 
         if (deployed.errors.length > 0) {
           result.errors.push(...deployed.errors);
@@ -271,6 +273,21 @@ export class PermissionDeploymentService {
         if (deployed.warnings.length > 0) {
           result.warnings.push(...deployed.warnings);
         }
+      }
+
+      // 4. Batch insert all role-permission assignments at once
+      if (pendingRoleAssignments.length > 0 && !options.dryRun) {
+        console.log(`[PERMISSION DEPLOY]    Step 4: Batch inserting ${pendingRoleAssignments.length} role assignments...`);
+        try {
+          const batchResult = await this.rolePermissionRepository.batchAssignWithElevatedAccess(pendingRoleAssignments);
+          result.roleAssignments = batchResult.inserted;
+          console.log(`[PERMISSION DEPLOY]    ✓ Batch insert complete: ${batchResult.inserted} inserted, ${batchResult.skipped} skipped (already existed)`);
+        } catch (batchError: any) {
+          console.error(`[PERMISSION DEPLOY]    ERROR in batch insert:`, batchError);
+          result.errors.push(`Batch role assignment failed: ${batchError.message}`);
+        }
+      } else if (pendingRoleAssignments.length > 0) {
+        console.log(`[PERMISSION DEPLOY]    [DRY RUN] Would batch insert ${pendingRoleAssignments.length} role assignments`);
       }
 
       result.success = result.errors.length === 0;
@@ -430,12 +447,165 @@ export class PermissionDeploymentService {
   }
 
   /**
+   * Deploy a SINGLE permission to tenant (optimized version)
+   * Instead of immediately inserting role assignments, collects them for batch processing.
+   * This significantly reduces database round-trips.
+   */
+  private async deployPermissionWithBatchCollection(
+    tenantId: string,
+    featureId: string,
+    featurePermission: FeaturePermission,
+    options: DeploymentOptions,
+    pendingAssignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
+  ): Promise<{
+    permissionCreated: boolean;
+    errors: string[];
+    warnings: string[];
+  }> {
+    console.log(`[PERMISSION DEPLOY]       >> deployPermissionWithBatchCollection() for ${featurePermission.permission_code}`);
+
+    const deployResult = {
+      permissionCreated: false,
+      errors: [] as string[],
+      warnings: [] as string[],
+    };
+
+    try {
+      // 1. Check if permission already exists for this tenant (using elevated access)
+      const existingPermission = await this.permissionRepository.findByCodeWithElevatedAccess(
+        tenantId,
+        featurePermission.permission_code
+      );
+
+      let tenantPermission: Permission;
+
+      if (existingPermission && !options.forceReplace) {
+        deployResult.warnings.push(
+          `Permission ${featurePermission.permission_code} already exists for tenant ${tenantId}`
+        );
+        tenantPermission = existingPermission;
+      } else {
+        if (!options.dryRun) {
+          const [category, action] = featurePermission.permission_code.split(':');
+
+          const permissionData = {
+            code: featurePermission.permission_code,
+            name: featurePermission.display_name,
+            description: featurePermission.description,
+            module: category || 'general',
+            action: action || 'execute',
+            is_active: true,
+            tenant_id: tenantId,
+            source: 'license_feature',
+            source_reference: featureId,
+          };
+
+          if (existingPermission && options.forceReplace) {
+            tenantPermission = await this.permissionRepository.updateWithElevatedAccess(
+              existingPermission.id,
+              permissionData
+            );
+          } else {
+            tenantPermission = await this.permissionRepository.createWithElevatedAccess(permissionData);
+          }
+
+          deployResult.permissionCreated = true;
+        } else {
+          return deployResult;
+        }
+      }
+
+      // 2. Collect role assignments (don't insert yet - will be batched)
+      if (!options.skipRoleTemplates) {
+        const templates = await this.featurePermissionRepository.getRoleTemplatesWithElevatedAccess(
+          featurePermission.id
+        );
+
+        if (templates.length > 0) {
+          for (const template of templates) {
+            const roleId = await this.ensureRoleExistsAndGetId(tenantId, template, options);
+            if (roleId) {
+              pendingAssignments.push({
+                roleId,
+                permissionId: tenantPermission!.id,
+                tenantId,
+              });
+            }
+          }
+        } else {
+          // Fallback: assign to tenant_admin
+          const roleId = await this.ensureRoleExistsAndGetId(
+            tenantId,
+            { role_key: 'tenant_admin', is_recommended: true } as PermissionRoleTemplate,
+            options
+          );
+          if (roleId) {
+            pendingAssignments.push({
+              roleId,
+              permissionId: tenantPermission!.id,
+              tenantId,
+            });
+          }
+        }
+      }
+
+      console.log(`[PERMISSION DEPLOY]       << deployPermissionWithBatchCollection() complete`);
+    } catch (error: any) {
+      console.error(`[PERMISSION DEPLOY]       ERROR in deployPermissionWithBatchCollection():`, error);
+      deployResult.errors.push(
+        `Failed to deploy permission ${featurePermission.permission_code}: ${error.message}`
+      );
+    }
+
+    return deployResult;
+  }
+
+  /**
+   * Ensure a role exists for the given template and return its ID.
+   * Creates the role if it doesn't exist.
+   * Returns null if in dry run mode and role doesn't exist.
+   */
+  private async ensureRoleExistsAndGetId(
+    tenantId: string,
+    template: PermissionRoleTemplate,
+    options: DeploymentOptions
+  ): Promise<string | null> {
+    const metadataKey = template.role_key.startsWith('role_')
+      ? template.role_key
+      : `role_${template.role_key}`;
+
+    let tenantRole = await this.roleRepository.findByMetadataKeyWithElevatedAccess(tenantId, metadataKey);
+
+    if (!tenantRole) {
+      if (!options.dryRun) {
+        const roleConfig = this.getRoleConfigForKey(template.role_key);
+        tenantRole = await this.roleRepository.createRoleWithElevatedAccess(
+          {
+            name: roleConfig.name,
+            description: roleConfig.description,
+            scope: roleConfig.scope,
+            metadata_key: metadataKey,
+            is_delegatable: roleConfig.is_delegatable,
+          },
+          tenantId
+        );
+      } else {
+        return null;
+      }
+    }
+
+    return tenantRole.id;
+  }
+
+  /**
    * Apply a role template to a tenant
    * Finds the tenant's role by metadata_key and assigns the permission
    * If the role doesn't exist, creates it first.
    *
    * NOTE: Uses elevated access methods to bypass RLS for super admin operations.
    * This is necessary when a super admin assigns a license to a tenant they don't belong to.
+   *
+   * @deprecated Use deployPermissionWithBatchCollection + batchAssignWithElevatedAccess instead
    */
   private async applyRoleTemplate(
     tenantId: string,
@@ -525,14 +695,14 @@ export class PermissionDeploymentService {
   private getRoleConfigForKey(roleKey: string): {
     name: string;
     description: string;
-    scope: 'tenant' | 'delegated';
+    scope: 'system' | 'tenant' | 'campus' | 'ministry';
     is_delegatable: boolean;
   } {
     // Normalize the role_key (remove 'role_' prefix if present)
     const normalizedKey = roleKey.startsWith('role_') ? roleKey.substring(5) : roleKey;
 
     // Map role keys to configurations (matches seedDefaultRBAC.ts)
-    const roleConfigs: Record<string, { name: string; description: string; scope: 'tenant' | 'delegated'; is_delegatable: boolean }> = {
+    const roleConfigs: Record<string, { name: string; description: string; scope: 'system' | 'tenant' | 'campus' | 'ministry'; is_delegatable: boolean }> = {
       tenant_admin: {
         name: 'Tenant Administrator',
         description: 'Full administrative access to all church management features',

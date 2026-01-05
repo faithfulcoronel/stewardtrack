@@ -56,6 +56,14 @@ export interface IRolePermissionRepository {
    * Find by role and permission with elevated access (bypasses RLS) - FOR SUPER ADMIN USE ONLY
    */
   findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null>;
+
+  /**
+   * Batch assign permissions to roles with elevated access using upsert (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during registration to efficiently assign all permissions.
+   */
+  batchAssignWithElevatedAccess(
+    assignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
+  ): Promise<{ inserted: number; skipped: number }>;
 }
 
 @injectable()
@@ -110,5 +118,16 @@ export class RolePermissionRepository implements IRolePermissionRepository {
    */
   async findByRoleAndPermissionWithElevatedAccess(roleId: string, permissionId: string): Promise<RolePermission | null> {
     return await this.rolePermissionAdapter.findByRoleAndPermissionWithElevatedAccess(roleId, permissionId);
+  }
+
+  /**
+   * Batch assign permissions to roles with elevated access using upsert (bypasses RLS).
+   * FOR SUPER ADMIN USE ONLY - Used during registration to efficiently assign all permissions.
+   * Uses upsert to avoid check-then-insert race conditions and reduces database round-trips.
+   */
+  async batchAssignWithElevatedAccess(
+    assignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
+  ): Promise<{ inserted: number; skipped: number }> {
+    return await this.rolePermissionAdapter.batchAssignWithElevatedAccess(assignments);
   }
 }

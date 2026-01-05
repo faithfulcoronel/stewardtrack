@@ -118,6 +118,9 @@ stages:
               targetPath: 'apps/web/.next'
             displayName: 'Download web build'
 
+          - script: pnpm metadata:compile
+            displayName: 'Compile metadata (required for runtime)'
+
           - script: cd apps/web && npx playwright install --with-deps chromium
             displayName: 'Install Playwright browsers'
 
