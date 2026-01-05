@@ -157,8 +157,9 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
 
     const familyPromise = tenantFilter(
       supabase
-        .from('family_relationships')
-        .select('id', { count: 'exact', head: true }),
+        .from('families')
+        .select('id', { count: 'exact', head: true })
+        .is('deleted_at', null),
     );
 
     const [totalRes, newRes, visitorStatusRes, familyRes] = await Promise.all([

@@ -1,20 +1,45 @@
 import { BaseModel } from '@/models/base.model';
 import { MemberHousehold } from '@/models/memberHousehold.model';
+import type { FamilyMember, FamilyRole } from '@/models/familyMember.model';
 
 export type PreferredContactMethod = 'email' | 'phone' | 'text' | 'mail';
+
+/**
+ * Family input data for creating/updating member's family association
+ */
+export interface FamilyInput {
+  id?: string | null;
+  name?: string | null;
+  address_street?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+  member_names?: string[];
+  role?: FamilyRole;
+  isPrimary?: boolean;
+}
 
 export interface Member extends BaseModel {
   first_name: string;
   last_name: string;
   middle_name?: string | null;
   preferred_name?: string | null;
-  contact_number: string;
-  address: string;
+  contact_number?: string | null;
+  /** @deprecated Use address_street, address_city, address_state, address_postal_code instead */
+  address?: string | null;
+  // New split address fields
+  address_street?: string | null;
+  address_street2?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+  address_country?: string | null;
   email?: string | null;
   membership_type_id: string;
   membership_status_id: string;
   membership_center_id?: string | null;
   membership_date: string | null;
+  /** @deprecated Use family relationships via family_members table instead */
   household_id?: string | null;
   envelope_number?: string | null;
   birthday: string | null;
@@ -88,5 +113,14 @@ export interface Member extends BaseModel {
     code: string;
     is_primary?: boolean | null;
   } | null;
+  /** @deprecated Use family instead */
   household?: MemberHousehold | null;
+
+  // New family system fields
+  /** Family input for creating/updating the member's family association */
+  family?: FamilyInput | null;
+  /** Primary family membership record (populated from family_members table) */
+  primaryFamily?: FamilyMember | null;
+  /** All family memberships (populated from family_members table) */
+  families?: FamilyMember[] | null;
 }

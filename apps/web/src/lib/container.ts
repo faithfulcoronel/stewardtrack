@@ -30,6 +30,7 @@ import { UserRoleService } from '@/services/UserRoleService';
 import { TenantService } from '@/services/TenantService';
 import { SupabaseSettingService, type SettingService } from '@/services/SettingService';
 import { MemberHouseholdService } from '@/services/MemberHouseholdService';
+import { FamilyService } from '@/services/FamilyService';
 import { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
 import { DiscipleshipPathwayService } from '@/services/DiscipleshipPathwayService';
@@ -118,6 +119,8 @@ import { EncryptionKeyRepository, type IEncryptionKeyRepository } from '@/reposi
 // Adapters
 import { MemberAdapter, type IMemberAdapter } from '@/adapters/member.adapter';
 import { MemberHouseholdAdapter, type IMemberHouseholdAdapter } from '@/adapters/memberHousehold.adapter';
+import { FamilyAdapter, type IFamilyAdapter } from '@/adapters/family.adapter';
+import { FamilyMemberAdapter, type IFamilyMemberAdapter } from '@/adapters/familyMember.adapter';
 import { MemberCarePlanAdapter, type IMemberCarePlanAdapter } from '@/adapters/memberCarePlan.adapter';
 import { MemberDiscipleshipPlanAdapter, type IMemberDiscipleshipPlanAdapter } from '@/adapters/memberDiscipleshipPlan.adapter';
 import { DiscipleshipPathwayAdapter, type IDiscipleshipPathwayAdapter } from '@/adapters/discipleshipPathway.adapter';
@@ -134,6 +137,8 @@ import { SettingAdapter, type ISettingAdapter } from '@/adapters/setting.adapter
 // Repositories
 import { MemberRepository, type IMemberRepository } from '@/repositories/member.repository';
 import { MemberHouseholdRepository, type IMemberHouseholdRepository } from '@/repositories/memberHousehold.repository';
+import { FamilyRepository, type IFamilyRepository } from '@/repositories/family.repository';
+import { FamilyMemberRepository, type IFamilyMemberRepository } from '@/repositories/familyMember.repository';
 import { MemberCarePlanRepository, type IMemberCarePlanRepository } from '@/repositories/memberCarePlan.repository';
 import { MemberDiscipleshipPlanRepository, type IMemberDiscipleshipPlanRepository } from '@/repositories/memberDiscipleshipPlan.repository';
 import { DiscipleshipPathwayRepository, type IDiscipleshipPathwayRepository } from '@/repositories/discipleshipPathway.repository';
@@ -579,6 +584,13 @@ container.bind<IMemberRepository>(TYPES.IMemberRepository).to(MemberRepository).
 container.bind<IMemberHouseholdAdapter>(TYPES.IMemberHouseholdAdapter).to(MemberHouseholdAdapter).inRequestScope();
 container.bind<IMemberHouseholdRepository>(TYPES.IMemberHouseholdRepository).to(MemberHouseholdRepository).inRequestScope();
 container.bind<MemberHouseholdService>(TYPES.MemberHouseholdService).to(MemberHouseholdService).inRequestScope();
+
+// ==================== FAMILY MANAGEMENT ====================
+container.bind<IFamilyAdapter>(TYPES.IFamilyAdapter).to(FamilyAdapter).inRequestScope();
+container.bind<IFamilyRepository>(TYPES.IFamilyRepository).to(FamilyRepository).inRequestScope();
+container.bind<IFamilyMemberAdapter>(TYPES.IFamilyMemberAdapter).to(FamilyMemberAdapter).inRequestScope();
+container.bind<IFamilyMemberRepository>(TYPES.IFamilyMemberRepository).to(FamilyMemberRepository).inRequestScope();
+container.bind<FamilyService>(TYPES.FamilyService).to(FamilyService).inRequestScope();
 
 // ==================== MEMBER CARE PLAN ====================
 container.bind<IMemberCarePlanAdapter>(TYPES.IMemberCarePlanAdapter).to(MemberCarePlanAdapter).inRequestScope();

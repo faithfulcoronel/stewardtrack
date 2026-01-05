@@ -2,12 +2,14 @@ import type { MetadataActionExecution, MetadataActionResult } from "../../types"
 import { tenantUtils } from "@/utils/tenantUtils";
 
 import type { Member } from "@/models/member.model";
+import type { FamilyRole } from "@/models/familyMember.model";
 
 import { ManageMemberRequestParser } from "./request";
 import { MemberManageResourceFactory } from "./resourceFactory";
-import { MemberFormMapper } from "./mapper";
+import { MemberFormMapper, type FamilyMembershipInput } from "./mapper";
 import { ManageMemberResultBuilder } from "./result";
 import { FieldValidationError, handleError } from "@/utils/errorHandler";
+import type { FamilyService } from "@/services/FamilyService";
 
 export class ManageMemberAction {
   constructor(
@@ -16,6 +18,73 @@ export class ManageMemberAction {
     private readonly mapper = new MemberFormMapper(),
     private readonly resultBuilder = new ManageMemberResultBuilder(),
   ) {}
+
+  /**
+   * Sync family memberships for a member
+   * Uses the FamilyService to add/remove/update family memberships
+   */
+  private async syncFamilyMemberships(
+    familyService: FamilyService,
+    memberId: string,
+    tenantId: string,
+    memberships: FamilyMembershipInput[]
+  ): Promise<void> {
+    console.log('[ManageMemberAction] Syncing family memberships for member:', memberId);
+    console.log('[ManageMemberAction] New memberships:', memberships);
+
+    try {
+      // Get current family memberships
+      const currentMemberships = await familyService.getMemberFamilies(memberId, tenantId);
+      const currentFamilyIds = new Set(currentMemberships.map(m => m.family_id));
+      const newFamilyIds = new Set(memberships.map(m => m.familyId));
+
+      // Remove memberships that are no longer in the list
+      for (const current of currentMemberships) {
+        if (!newFamilyIds.has(current.family_id)) {
+          console.log('[ManageMemberAction] Removing family membership:', current.family_id);
+          await familyService.removeMemberFromFamily(current.family_id, memberId, tenantId);
+        }
+      }
+
+      // Add or update memberships
+      for (const membership of memberships) {
+        if (!membership.familyId) continue;
+
+        if (currentFamilyIds.has(membership.familyId)) {
+          // Update existing membership
+          console.log('[ManageMemberAction] Updating family membership:', membership.familyId);
+          await familyService.updateMemberRole(
+            membership.familyId,
+            memberId,
+            tenantId,
+            membership.role as FamilyRole
+          );
+          // Update primary status if needed
+          if (membership.isPrimary) {
+            await familyService.setPrimaryFamily(memberId, membership.familyId, tenantId);
+          }
+        } else {
+          // Add new membership
+          console.log('[ManageMemberAction] Adding family membership:', membership.familyId);
+          await familyService.addMemberToFamily(
+            membership.familyId,
+            memberId,
+            tenantId,
+            {
+              isPrimary: membership.isPrimary,
+              role: membership.role as FamilyRole,
+            }
+          );
+        }
+      }
+
+      console.log('[ManageMemberAction] Family memberships synced successfully');
+    } catch (error) {
+      console.error('[ManageMemberAction] Failed to sync family memberships:', error);
+      // Don't throw - family sync failure shouldn't block member save
+      // The member data has already been saved successfully
+    }
+  }
 
   async execute(execution: MetadataActionExecution): Promise<MetadataActionResult> {
     const parseResult = this.requestParser.parse(execution.input);
@@ -43,6 +112,7 @@ export class ManageMemberAction {
       }
 
       const memberPayload = mappingResult.data.payload;
+      const familyMemberships = mappingResult.data.familyMemberships;
 
       let record: Member;
       if (request.memberId) {
@@ -52,6 +122,17 @@ export class ManageMemberAction {
       }
 
       const targetId = record.id ?? request.memberId ?? null;
+
+      // Sync family memberships if provided
+      if (targetId && familyMemberships !== undefined) {
+        await this.syncFamilyMemberships(
+          resources.familyService,
+          targetId,
+          tenantId,
+          familyMemberships
+        );
+      }
+
       const result = this.resultBuilder.build(execution.config, request.mode ?? null, targetId);
 
       return {

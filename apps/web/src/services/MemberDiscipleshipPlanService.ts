@@ -32,6 +32,7 @@ import type { IMemberRepository } from '@/repositories/member.repository';
 import type { MemberDiscipleshipPlan } from '@/models/memberDiscipleshipPlan.model';
 import type { INotificationBusService } from '@/services/notification/NotificationBusService';
 import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import type { PlanningService } from '@/services/PlanningService';
 import { randomUUID } from 'crypto';
 
 @injectable()
@@ -43,6 +44,8 @@ export class MemberDiscipleshipPlanService {
     private memberRepo: IMemberRepository,
     @inject(TYPES.NotificationBusService)
     private notificationBus: INotificationBusService,
+    @inject(TYPES.PlanningService)
+    private planningService: PlanningService,
   ) {}
 
   // ==================== TENANT-SCOPED QUERIES ====================
@@ -148,6 +151,15 @@ export class MemberDiscipleshipPlanService {
       await this.sendDiscipleshipPlanAssignedNotification(plan);
     }
 
+    // Auto-sync to calendar if there's a target date
+    if (plan.target_date) {
+      try {
+        await this.planningService.syncDiscipleshipPlanEvent(plan);
+      } catch (error) {
+        console.error('Failed to sync discipleship plan to calendar:', error);
+      }
+    }
+
     return plan;
   }
 
@@ -220,7 +232,21 @@ export class MemberDiscipleshipPlanService {
     id: string,
     data: Partial<MemberDiscipleshipPlan>
   ): Promise<MemberDiscipleshipPlan> {
-    return this.repo.update(id, data);
+    const plan = await this.repo.update(id, data);
+
+    // Auto-sync to calendar
+    try {
+      if (plan.target_date) {
+        await this.planningService.syncDiscipleshipPlanEvent(plan);
+      } else {
+        // Remove calendar event if target date was cleared
+        await this.planningService.removeDiscipleshipPlanEvent(plan.id);
+      }
+    } catch (error) {
+      console.error('Failed to sync discipleship plan to calendar:', error);
+    }
+
+    return plan;
   }
 
   /**

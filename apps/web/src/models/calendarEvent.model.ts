@@ -4,6 +4,8 @@ import { CalendarCategory } from '@/models/calendarCategory.model';
 export type CalendarEventType =
   | 'care_plan'
   | 'discipleship'
+  | 'birthday'
+  | 'anniversary'
   | 'meeting'
   | 'service'
   | 'event'
@@ -24,6 +26,8 @@ export type CalendarEventVisibility = 'private' | 'team' | 'public';
 export type CalendarEventSourceType =
   | 'member_care_plans'
   | 'member_discipleship_plans'
+  | 'member_birthday'
+  | 'member_anniversary'
   | 'church_events'
   | 'meetings'
   | 'services'

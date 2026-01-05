@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="families/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="families.core" requiredPermissions="members:view" locale="en-US">
+  <Page id="admin-community-families-list">
+    <Title>Family directory</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="launch-new-family"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="families-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Family roster</Prop>
+            <Prop name="description" kind="static">Search and manage family records with members and address information.</Prop>
+            <Prop name="rows" kind="binding" contract="familiesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="familiesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="familiesTable.filters"/>
+            <Prop name="actions" kind="binding" contract="familiesTable.actions"/>
+            <Prop name="emptyState" kind="static">{"title": "No families found", "description": "Try adjusting your search or create a new family record."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.families.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="familiesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="table.rows" description="Binding for families-grid.rows"/>
+          <Field name="columns" path="table.columns" description="Binding for families-grid.columns"/>
+          <Field name="filters" path="table.filters" description="Binding for families-grid.filters"/>
+          <Field name="actions" path="table.actions" description="Binding for families-grid.actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.families.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="launch-new-family" kind="link">
+        <Config>
+          <Label>Add family</Label>
+          <Url>/admin/community/families/manage</Url>
+        </Config>
+      </Action>
+      <Action id="open-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/members</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

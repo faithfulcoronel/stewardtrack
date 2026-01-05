@@ -151,9 +151,10 @@ export function AdminDiscipleshipPlansCard(props: AdminDiscipleshipPlansCardProp
             <p className="text-sm font-medium text-muted-foreground">Active journeys</p>
             <div className="space-y-2">
               {recentItems.map((item) => (
-                <div
+                <Link
                   key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/30 transition-colors"
+                  href={`/admin/community/discipleship-plans/${item.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <Badge
@@ -180,7 +181,7 @@ export function AdminDiscipleshipPlansCard(props: AdminDiscipleshipPlansCardProp
                       Target: {new Date(item.targetDate).toLocaleDateString()}
                     </p>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           </div>

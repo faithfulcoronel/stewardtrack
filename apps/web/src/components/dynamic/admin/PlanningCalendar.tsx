@@ -26,6 +26,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  Cake,
+  Gift,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -105,6 +107,7 @@ export interface PlanningCalendarProps {
   onDateSelect?: (date: Date) => void;
   onCreateEvent?: () => void;
   onSync?: () => Promise<void>;
+  onDateRangeChange?: (startDate: Date, endDate: Date) => void;
 }
 
 // Helper functions
@@ -180,6 +183,8 @@ const getCategoryIcon = (iconName?: string | null): React.ComponentType<{ classN
     bell: Bell,
     calendar: CalendarIcon,
     circle: Circle,
+    cake: Cake,
+    gift: Gift,
   };
   return icons[iconName || 'circle'] || Circle;
 };
@@ -223,14 +228,17 @@ const getStatusIcon = (status: string): React.ComponentType<{ className?: string
   }
 };
 
-const getSourceUrl = (sourceType?: string | null, sourceId?: string | null, memberId?: string | null): string | null => {
+const getSourceUrl = (sourceType?: string | null, sourceId?: string | null, _memberId?: string | null): string | null => {
   if (!sourceType || !sourceId) return null;
 
   switch (sourceType) {
     case 'member_care_plans':
-      return memberId ? `/admin/community/care-plans/manage/${memberId}` : '/admin/community/care-plans/list';
+      return `/admin/community/care-plans/manage?carePlanId=${sourceId}`;
     case 'member_discipleship_plans':
-      return memberId ? `/admin/community/discipleship-plans/manage/${memberId}` : '/admin/community/discipleship-plans/list';
+      return `/admin/community/discipleship-plans/manage?discipleshipPlanId=${sourceId}`;
+    case 'member_birthday':
+    case 'member_anniversary':
+      return `/admin/community/membership/manage?memberId=${sourceId}`;
     default:
       return null;
   }
@@ -242,6 +250,10 @@ const getSourceLabel = (sourceType?: string | null): string => {
       return 'Care Plan';
     case 'member_discipleship_plans':
       return 'Discipleship Plan';
+    case 'member_birthday':
+      return 'Birthday';
+    case 'member_anniversary':
+      return 'Wedding Anniversary';
     default:
       return 'Source';
   }
@@ -533,6 +545,7 @@ export function PlanningCalendar({
   onDateSelect,
   onCreateEvent,
   onSync,
+  onDateRangeChange,
 }: PlanningCalendarProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -567,6 +580,51 @@ export function PlanningCalendar({
       setViewMode(urlView);
     }
   }, [searchParams, viewMode]);
+
+  // Calculate date range based on current view and notify parent
+  useEffect(() => {
+    if (!onDateRangeChange) return;
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (viewMode === 'month') {
+      // For month view, get the full calendar grid (includes days from prev/next month)
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      // Start from Sunday of the week containing the first day
+      startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+
+      // End on Saturday of the week containing the last day
+      endDate = new Date(lastDay);
+      endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+    } else if (viewMode === 'week') {
+      // For week view, get the current week
+      startDate = new Date(currentDate);
+      startDate.setDate(currentDate.getDate() - currentDate.getDay());
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+    } else if (viewMode === 'day') {
+      // For day view, just the current day
+      startDate = new Date(currentDate);
+      endDate = new Date(currentDate);
+    } else {
+      // Agenda view - get next 90 days
+      startDate = new Date();
+      endDate = new Date();
+      endDate.setDate(endDate.getDate() + 90);
+    }
+
+    // Set times to start/end of day
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    onDateRangeChange(startDate, endDate);
+  }, [currentDate, viewMode, onDateRangeChange]);
 
   // Filter events by selected categories
   const filteredEvents = useMemo(() => {

@@ -23,7 +23,7 @@ interface StatusBarHandlerProps {
 export function StatusBarHandler({
   style = "dark",
   backgroundColor = "#ffffff",
-  overlaysWebView = true,
+  overlaysWebView = false,
 }: StatusBarHandlerProps) {
   useEffect(() => {
     if (!isNative()) return;

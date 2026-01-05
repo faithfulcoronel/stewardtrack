@@ -26,6 +26,10 @@ import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
 import type { MemberCarePlan } from '@/models/memberCarePlan.model';
 import type { MemberDiscipleshipPlan } from '@/models/memberDiscipleshipPlan.model';
+import type { FamilyService } from '@/services/FamilyService';
+import type { TenantService } from '@/services/TenantService';
+import type { FamilyMember } from '@/models/familyMember.model';
+import { tenantUtils } from '@/utils/tenantUtils';
 import {
   fetchMembershipFilterOptions,
   fetchMembershipLookupGroups,
@@ -43,6 +47,7 @@ import { adminCommunityCarePlansHandlers } from './admin-community-careplans';
 import { adminCommunityDashboardHandlers } from './admin-community-dashboard';
 import { adminCommunityDiscipleshipHandlers } from './admin-community-discipleship';
 import { adminCommunityPlanningHandlers } from './admin-community-planning';
+import { adminCommunityFamiliesHandlers } from './admin-community-families';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -171,6 +176,25 @@ type MemberManageRecord = {
     members?: string[];
     address?: HouseholdAddress | null;
   } | null;
+  // New family system fields
+  family?: {
+    id?: string | null;
+    name?: string | null;
+    members?: string[];
+    address_street?: string | null;
+    address_city?: string | null;
+    address_state?: string | null;
+    address_postal_code?: string | null;
+  } | null;
+  familyId?: string | null;
+  familyRole?: string | null;
+  isPrimaryFamily?: boolean;
+  // Member address fields (separate from family address)
+  addressStreet?: string | null;
+  addressCity?: string | null;
+  addressState?: string | null;
+  addressPostal?: string | null;
+  addressCountry?: string | null;
 };
 
 type FormMembershipStageKey = 'active' | 'new' | 'care' | 'inactive';
@@ -230,6 +254,20 @@ interface MemberProfileRecord extends MemberDirectoryRecord {
     members?: string[];
     address?: HouseholdAddress | null;
   };
+  /** Primary family from the new family system */
+  family?: {
+    id?: string | null;
+    name?: string | null;
+    role?: string | null;
+    isPrimary?: boolean;
+    members?: Array<{
+      id: string;
+      name: string;
+      role: string;
+      isPrimary: boolean;
+    }>;
+    address?: HouseholdAddress | null;
+  } | null;
   admin?: {
     steward?: string | null;
     lastReview?: string | null;
@@ -980,6 +1018,12 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
       lastReview: lastReview ?? '',
     },
     household: householdDetails,
+    // Member address fields (from split columns)
+    addressStreet: member.address_street ?? null,
+    addressCity: member.address_city ?? null,
+    addressState: member.address_state ?? null,
+    addressPostal: member.address_postal_code ?? null,
+    addressCountry: member.address_country ?? 'Philippines',
   } satisfies MemberManageRecord;
 }
 
@@ -1418,7 +1462,13 @@ async function buildMemberProfileRecord(
   const carePlanService = container.get<MemberCarePlanService>(TYPES.MemberCarePlanService);
   const discipleshipPlanService = container.get<MemberDiscipleshipPlanService>(TYPES.MemberDiscipleshipPlanService);
 
-  const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows, memberCarePlans, memberDiscipleshipPlans] = await Promise.all([
+  // Fetch family service for new family system
+  const familyService = container.get<FamilyService>(TYPES.FamilyService);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  const tenantId = tenant?.id ?? null;
+
+  const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows, memberCarePlans, memberDiscipleshipPlans, primaryFamilyMembership] = await Promise.all([
     fetchHouseholdMembers(service, member),
     fetchGivingProfile(service, member.id),
     fetchCarePlan(service, member.id),
@@ -1426,6 +1476,7 @@ async function buildMemberProfileRecord(
     fetchMilestones(service, member.id),
     carePlanService.getCarePlansByMember(member.id),
     discipleshipPlanService.getPlansByMember(member.id),
+    tenantId ? familyService.getPrimaryFamily(member.id, tenantId) : Promise.resolve(null),
   ]);
 
   const fullName = formatFullName(member.first_name ?? null, member.last_name ?? null);
@@ -1513,16 +1564,55 @@ async function buildMemberProfileRecord(
     householdMembers.length ? householdMembers : filterNonEmpty([fullName, preferredName])
   );
   const fallbackAddress = parseAddress(member.address ?? null);
+  // Use member's split address fields if household address is not available
+  const memberAddress = {
+    street: member.address_street ?? fallbackAddress?.street ?? null,
+    city: member.address_city ?? fallbackAddress?.city ?? null,
+    state: member.address_state ?? fallbackAddress?.state ?? null,
+    postalCode: member.address_postal_code ?? fallbackAddress?.postalCode ?? null,
+  };
   const householdAddress = member.household
     ? {
-        street: member.household.address_street ?? fallbackAddress?.street ?? null,
-        city: member.household.address_city ?? fallbackAddress?.city ?? null,
-        state: member.household.address_state ?? fallbackAddress?.state ?? null,
-        postalCode: member.household.address_postal_code ?? fallbackAddress?.postalCode ?? null,
+        street: member.household.address_street ?? memberAddress.street ?? null,
+        city: member.household.address_city ?? memberAddress.city ?? null,
+        state: member.household.address_state ?? memberAddress.state ?? null,
+        postalCode: member.household.address_postal_code ?? memberAddress.postalCode ?? null,
       }
-    : fallbackAddress;
+    : memberAddress;
   const dataSteward = (member.data_steward ?? '').trim() || null;
   const lastReview = formatFullDate(member.last_review_at ?? null);
+
+  // Build family data from new family system
+  let familyData: MemberProfileRecord['family'] = null;
+  if (primaryFamilyMembership && primaryFamilyMembership.family && tenantId) {
+    try {
+      const familyMembers = await familyService.getFamilyMembers(primaryFamilyMembership.family_id, tenantId);
+      const membersList = familyMembers.map((fm: FamilyMember) => ({
+        id: fm.member_id,
+        name: fm.member
+          ? formatFullName(fm.member.first_name ?? null, fm.member.last_name ?? null) || 'Unknown'
+          : 'Unknown',
+        role: fm.role ?? 'other',
+        isPrimary: fm.is_primary ?? false,
+      }));
+
+      familyData = {
+        id: primaryFamilyMembership.family_id,
+        name: primaryFamilyMembership.family.name ?? null,
+        role: primaryFamilyMembership.role ?? 'other',
+        isPrimary: primaryFamilyMembership.is_primary ?? false,
+        members: membersList,
+        address: {
+          street: primaryFamilyMembership.family.address_street ?? memberAddress.street ?? null,
+          city: primaryFamilyMembership.family.address_city ?? memberAddress.city ?? null,
+          state: primaryFamilyMembership.family.address_state ?? memberAddress.state ?? null,
+          postalCode: primaryFamilyMembership.family.address_postal_code ?? memberAddress.postalCode ?? null,
+        },
+      };
+    } catch (familyError) {
+      console.warn('[buildMemberProfileRecord] Failed to fetch family members:', familyError);
+    }
+  }
 
   return {
     // DirectoryMember required fields
@@ -1574,6 +1664,7 @@ async function buildMemberProfileRecord(
       members: householdList,
       address: householdAddress,
     },
+    family: familyData,
     contact: {
       email: member.email ?? null,
       phone: member.contact_number ?? null,
@@ -1659,27 +1750,131 @@ async function resolveMembershipLookups(
   }
 }
 
+interface FamilyOptionRecord {
+  id: string;
+  name: string;
+  address_street?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+  member_count?: number;
+}
+
+interface FamilyMembershipRecord {
+  familyId: string;
+  familyName: string;
+  role: 'head' | 'spouse' | 'child' | 'dependent' | 'other';
+  isPrimary: boolean;
+  address_street?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+}
+
 async function resolveMembershipManage(
   request: ServiceDataSourceRequest
-): Promise<{ records: MemberManageRecord[] }> {
+): Promise<{
+  records: MemberManageRecord[];
+  familyOptions: FamilyOptionRecord[];
+  familyMemberships: FamilyMembershipRecord[];
+}> {
   const fallback = cloneManageRecords(request.config.value);
+  const emptyResult = { records: [], familyOptions: [], familyMemberships: [] };
+
   try {
     const memberId = firstParam(request.params.memberId);
     const limit = toNumber(request.config.limit, memberId ? 1 : 5);
     const service = createMemberProfileService();
     const members = await service.getMembers({ memberId, limit });
-    if (!members.length) {
-      return { records: fallback };
+
+    // Fetch tenant ID and family service
+    const tenantId = await tenantUtils.getTenantId();
+    const familyService = container.get<FamilyService>(TYPES.FamilyService);
+
+    // Fetch all families for the tenant (for the family picker)
+    let familyOptions: FamilyOptionRecord[] = [];
+    if (tenantId) {
+      try {
+        const allFamilies = await familyService.getFamiliesByTenant(tenantId);
+        familyOptions = allFamilies.map((family) => ({
+          id: family.id!,
+          name: family.name || 'Unnamed Family',
+          address_street: family.address_street ?? null,
+          address_city: family.address_city ?? null,
+          address_state: family.address_state ?? null,
+          address_postal_code: family.address_postal_code ?? null,
+          member_count: family.member_count ?? 0,
+        }));
+      } catch (familyError) {
+        console.warn('[resolveMembershipManage] Failed to fetch family options:', familyError);
+      }
     }
 
-    const records = members.map((member) => toMembershipManageRecord(member));
-    return { records };
+    if (!members.length) {
+      return { records: fallback, familyOptions, familyMemberships: [] };
+    }
+
+    // Fetch family memberships for the first member (primary record)
+    let familyMemberships: FamilyMembershipRecord[] = [];
+    const primaryMember = members[0];
+
+    if (tenantId && primaryMember?.id) {
+      try {
+        const memberFamilies = await familyService.getMemberFamilies(primaryMember.id, tenantId);
+        familyMemberships = memberFamilies.map((fm: FamilyMember) => ({
+          familyId: fm.family_id,
+          familyName: fm.family?.name || 'Unknown Family',
+          role: fm.role as FamilyMembershipRecord['role'],
+          isPrimary: fm.is_primary ?? false,
+          address_street: fm.family?.address_street ?? null,
+          address_city: fm.family?.address_city ?? null,
+          address_state: fm.family?.address_state ?? null,
+          address_postal_code: fm.family?.address_postal_code ?? null,
+        }));
+      } catch (familyError) {
+        console.warn('[resolveMembershipManage] Failed to fetch family memberships:', familyError);
+      }
+    }
+
+    const records = await Promise.all(
+      members.map(async (member) => {
+        const baseRecord = toMembershipManageRecord(member);
+
+        // Fetch family membership for this member
+        if (tenantId && member.id) {
+          try {
+            const primaryFamily = await familyService.getPrimaryFamily(member.id, tenantId);
+            if (primaryFamily && primaryFamily.family) {
+              const family = primaryFamily.family;
+              baseRecord.family = {
+                id: family.id ?? null,
+                name: family.name ?? null,
+                members: [], // Member names are fetched separately if needed
+                address_street: family.address_street ?? null,
+                address_city: family.address_city ?? null,
+                address_state: family.address_state ?? null,
+                address_postal_code: family.address_postal_code ?? null,
+              };
+              baseRecord.familyId = family.id ?? null;
+              baseRecord.familyRole = primaryFamily.role ?? 'other';
+              baseRecord.isPrimaryFamily = primaryFamily.is_primary ?? true;
+            }
+          } catch (familyError) {
+            console.warn('[resolveMembershipManage] Failed to fetch family data:', familyError);
+          }
+        }
+
+        return baseRecord;
+      })
+    );
+
+    return { records, familyOptions, familyMemberships };
   } catch (error) {
     console.error('Failed to resolve membership manage data source', error);
     if (fallback.length) {
-      return { records: fallback };
+      return { records: fallback, familyOptions: [], familyMemberships: [] };
     }
-    return { records: [] };
+    return emptyResult;
   }
 }
 
@@ -1695,4 +1890,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   ...adminCommunityDashboardHandlers,
   ...adminCommunityDiscipleshipHandlers,
   ...adminCommunityPlanningHandlers,
+  ...adminCommunityFamiliesHandlers,
 };

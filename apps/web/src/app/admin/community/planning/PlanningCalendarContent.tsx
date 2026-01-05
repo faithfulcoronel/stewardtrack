@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlanningCalendar, type CalendarEvent, type CalendarCategory } from '@/components/dynamic/admin/PlanningCalendar';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,12 +24,19 @@ export function PlanningCalendarContent() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const fetchCalendarData = useCallback(async () => {
+  // Track current date range to avoid duplicate fetches
+  const currentRangeRef = useRef<string>('');
+
+  const fetchCalendarData = useCallback(async (startDate: Date, endDate: Date) => {
+    // Create a key for this date range to avoid duplicate fetches
+    const rangeKey = `${startDate.toISOString()}-${endDate.toISOString()}`;
+    if (currentRangeRef.current === rangeKey) {
+      return; // Already fetched this range
+    }
+    currentRangeRef.current = rangeKey;
+
     try {
       setIsLoading(true);
-      const now = new Date();
-      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endDate = new Date(now.getFullYear(), now.getMonth() + 2, 0);
 
       const response = await fetch(
         `/api/community/planning/calendar?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
@@ -65,6 +72,15 @@ export function PlanningCalendarContent() {
     }
   }, [toast]);
 
+  // Track the last date range for refreshing after sync
+  const lastDateRangeRef = useRef<{ start: Date; end: Date } | null>(null);
+
+  // Handle date range changes from calendar navigation
+  const handleDateRangeChange = useCallback((startDate: Date, endDate: Date) => {
+    lastDateRangeRef.current = { start: startDate, end: endDate };
+    fetchCalendarData(startDate, endDate);
+  }, [fetchCalendarData]);
+
   const handleSync = useCallback(async () => {
     try {
       const response = await fetch('/api/community/planning/sync', {
@@ -82,8 +98,12 @@ export function PlanningCalendarContent() {
         description: result.message,
       });
 
-      // Refresh calendar data
-      await fetchCalendarData();
+      // Refresh calendar data for current date range
+      if (lastDateRangeRef.current) {
+        // Clear the range key to force a refetch
+        currentRangeRef.current = '';
+        await fetchCalendarData(lastDateRangeRef.current.start, lastDateRangeRef.current.end);
+      }
     } catch (error) {
       console.error('Error syncing events:', error);
       toast({
@@ -114,10 +134,6 @@ export function PlanningCalendarContent() {
     router.push('/admin/community/planning/manage');
   }, [router]);
 
-  useEffect(() => {
-    fetchCalendarData();
-  }, [fetchCalendarData]);
-
   return (
     <PlanningCalendar
       events={data?.events || []}
@@ -127,6 +143,7 @@ export function PlanningCalendarContent() {
       onDateSelect={handleDateSelect}
       onCreateEvent={handleCreateEvent}
       onSync={handleSync}
+      onDateRangeChange={handleDateRangeChange}
     />
   );
 }

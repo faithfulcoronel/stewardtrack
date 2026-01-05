@@ -1,15 +1,15 @@
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
-import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.adapter';
+import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
 import {
   CalendarEvent,
   CalendarEventFilters,
   CalendarEventView,
-  CalendarEventType,
 } from '@/models/calendarEvent.model';
 import type { AuditService } from '@/services/AuditService';
 import type { TenantService } from '@/services/TenantService';
+import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { TYPES } from '@/lib/types';
 import { TenantContextError } from '@/utils/errorHandler';
 
@@ -25,6 +25,8 @@ export interface ICalendarEventAdapter extends IBaseAdapter<CalendarEvent> {
   getEventsForCalendarView(startDate: string, endDate: string): Promise<CalendarEventView[]>;
   syncFromCarePlans(): Promise<number>;
   syncFromDiscipleshipPlans(): Promise<number>;
+  syncFromMemberBirthdays(): Promise<number>;
+  syncFromMemberAnniversaries(): Promise<number>;
 }
 
 @injectable()
@@ -34,7 +36,8 @@ export class CalendarEventAdapter
 {
   constructor(
     @inject(TYPES.AuditService) private auditService: AuditService,
-    @inject(TYPES.TenantService) private tenantService: TenantService
+    @inject(TYPES.TenantService) private tenantService: TenantService,
+    @inject(TYPES.EncryptionService) private encryptionService: EncryptionService
   ) {
     super();
   }
@@ -45,6 +48,43 @@ export class CalendarEventAdapter
       throw new TenantContextError('No tenant context available');
     }
     return tenant.id;
+  }
+
+  /**
+   * Decrypt member first_name and last_name fields
+   * Returns the decrypted name or the original value if decryption fails
+   */
+  private async decryptMemberName(
+    tenantId: string,
+    firstName: string | null,
+    lastName: string | null
+  ): Promise<{ firstName: string; lastName: string }> {
+    let decryptedFirstName = firstName || '';
+    let decryptedLastName = lastName || '';
+
+    try {
+      // Check if the value looks encrypted (format: version.iv.authTag.ciphertext)
+      const isEncrypted = (value: string) => {
+        if (!value) return false;
+        const parts = value.split('.');
+        return parts.length === 4 && !isNaN(parseInt(parts[0]));
+      };
+
+      if (firstName && isEncrypted(firstName)) {
+        const decrypted = await this.encryptionService.decrypt(firstName, tenantId, 'first_name');
+        decryptedFirstName = decrypted || firstName;
+      }
+
+      if (lastName && isEncrypted(lastName)) {
+        const decrypted = await this.encryptionService.decrypt(lastName, tenantId, 'last_name');
+        decryptedLastName = decrypted || lastName;
+      }
+    } catch (error) {
+      console.error('[CalendarEventAdapter] Failed to decrypt member name:', error);
+      // Return original values on error
+    }
+
+    return { firstName: decryptedFirstName, lastName: decryptedLastName };
   }
 
   protected tableName = 'calendar_events';
@@ -406,14 +446,50 @@ export class CalendarEventAdapter
       .maybeSingle();
 
     for (const plan of carePlans) {
-      // Check if event already exists (more efficient than fetching full records)
-      const exists = await this.existsBySource('member_care_plans', plan.id);
+      // Get existing event for this source (if any)
+      const { data: existingEvents } = await supabase
+        .from(this.tableName)
+        .select('id, start_at, title, description, priority')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'member_care_plans')
+        .eq('source_id', plan.id)
+        .is('deleted_at', null)
+        .limit(1);
 
-      if (!exists) {
-        // Create new event only if it doesn't exist
+      const existingEvent = existingEvents?.[0];
+      const newTitle = `Care Plan: ${plan.status_label || plan.status_code || 'Follow-up'}`;
+      const newPriority = plan.priority || 'normal';
+
+      if (existingEvent) {
+        // Check if any data has changed (date, title, description, or priority)
+        const dateChanged = existingEvent.start_at !== plan.follow_up_at;
+        const titleChanged = existingEvent.title !== newTitle;
+        const descriptionChanged = existingEvent.description !== plan.details;
+        const priorityChanged = existingEvent.priority !== newPriority;
+
+        if (dateChanged || titleChanged || descriptionChanged || priorityChanged) {
+          // Update existing event with new data
+          const { error: updateError } = await supabase
+            .from(this.tableName)
+            .update({
+              title: newTitle,
+              description: plan.details,
+              start_at: plan.follow_up_at,
+              priority: newPriority,
+              assigned_to: plan.assigned_to,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingEvent.id);
+
+          if (!updateError) {
+            syncedCount++;
+          }
+        }
+      } else {
+        // Create new event
         const { error: insertError } = await supabase.from(this.tableName).insert({
           tenant_id: tenantId,
-          title: `Care Plan: ${plan.status_label || plan.status_code || 'Follow-up'}`,
+          title: newTitle,
           description: plan.details,
           start_at: plan.follow_up_at,
           all_day: false,
@@ -421,7 +497,7 @@ export class CalendarEventAdapter
           category_id: category?.id || null,
           event_type: 'care_plan',
           status: 'scheduled',
-          priority: plan.priority || 'normal',
+          priority: newPriority,
           source_type: 'member_care_plans',
           source_id: plan.id,
           member_id: plan.member_id,
@@ -473,14 +549,50 @@ export class CalendarEventAdapter
       .maybeSingle();
 
     for (const plan of discipleshipPlans) {
-      // Check if event already exists (more efficient than fetching full records)
-      const exists = await this.existsBySource('member_discipleship_plans', plan.id);
+      // Get existing event for this source (if any)
+      const { data: existingEvents } = await supabase
+        .from(this.tableName)
+        .select('id, start_at, title, description')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'member_discipleship_plans')
+        .eq('source_id', plan.id)
+        .is('deleted_at', null)
+        .limit(1);
 
-      if (!exists) {
-        // Create new event only if it doesn't exist
+      const existingEvent = existingEvents?.[0];
+      const newTitle = `Discipleship: ${plan.pathway || plan.status || 'Milestone'}`;
+
+      if (existingEvent) {
+        // Check if any data has changed (date, title, or description)
+        const dateChanged = existingEvent.start_at !== plan.target_date;
+        const titleChanged = existingEvent.title !== newTitle;
+        const descriptionChanged = existingEvent.description !== plan.notes;
+
+        if (dateChanged || titleChanged || descriptionChanged) {
+          // Update existing event with new data
+          // Also ensure source_id and member_id are correct (fixes legacy data issues)
+          const { error: updateError } = await supabase
+            .from(this.tableName)
+            .update({
+              title: newTitle,
+              description: plan.notes,
+              start_at: plan.target_date,
+              source_id: plan.id,
+              member_id: plan.member_id,
+              metadata: { mentor_name: plan.mentor_name },
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingEvent.id);
+
+          if (!updateError) {
+            syncedCount++;
+          }
+        }
+      } else {
+        // Create new event
         const { error: insertError } = await supabase.from(this.tableName).insert({
           tenant_id: tenantId,
-          title: `Discipleship: ${plan.pathway || plan.status || 'Milestone'}`,
+          title: newTitle,
           description: plan.notes,
           start_at: plan.target_date,
           all_day: true,
@@ -503,6 +615,246 @@ export class CalendarEventAdapter
           updated_at: new Date().toISOString(),
         });
 
+        if (!insertError) {
+          syncedCount++;
+        }
+      }
+    }
+
+    return syncedCount;
+  }
+
+  async syncFromMemberBirthdays(): Promise<number> {
+    const tenantId = await this.getTenantId();
+    const supabase = await this.getSupabaseClient();
+    let syncedCount = 0;
+
+    // Fetch active members with birthdays
+    const { data: members, error: membersError } = await supabase
+      .from('members')
+      .select('id, first_name, last_name, birthday')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null)
+      .not('birthday', 'is', null);
+
+    console.log('[syncFromMemberBirthdays] Found members with birthdays:', members?.length ?? 0, membersError ? `Error: ${membersError.message}` : '');
+
+    if (membersError) {
+      throw new Error(`Failed to fetch members for birthday sync: ${membersError.message}`);
+    }
+
+    if (!members) return 0;
+
+    // Get the birthday category
+    const { data: category } = await supabase
+      .from('calendar_categories')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('code', 'birthday')
+      .maybeSingle();
+
+    console.log('[syncFromMemberBirthdays] Birthday category:', category?.id ?? 'NOT FOUND');
+
+    for (const member of members) {
+      // Use member.id as source_id (source_type differentiates birthday from anniversary)
+      const sourceId = member.id;
+
+      // Decrypt member name (PII fields are encrypted)
+      const { firstName, lastName } = await this.decryptMemberName(
+        tenantId,
+        member.first_name,
+        member.last_name
+      );
+
+      // Get existing event for this source (if any)
+      const { data: existingEvents } = await supabase
+        .from(this.tableName)
+        .select('id, start_at, title')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'member_birthday')
+        .eq('source_id', sourceId)
+        .is('deleted_at', null)
+        .limit(1);
+
+      const existingEvent = existingEvents?.[0];
+      const memberName = `${firstName} ${lastName}`;
+      const newTitle = `🎂 ${memberName}'s Birthday`;
+
+      // For birthdays, we use the current year's occurrence
+      const birthdayDate = new Date(member.birthday);
+      const currentYear = new Date().getFullYear();
+      const thisYearBirthday = new Date(currentYear, birthdayDate.getMonth(), birthdayDate.getDate());
+      const startAt = thisYearBirthday.toISOString();
+
+      console.log('[syncFromMemberBirthdays] Processing member:', memberName, 'sourceId:', sourceId, 'existingEvent:', existingEvent?.id ?? 'NONE');
+
+      const newDescription = `Birthday celebration for ${memberName}`;
+
+      if (existingEvent) {
+        // Always update to ensure decrypted names are used
+        const { error: updateError } = await supabase
+          .from(this.tableName)
+          .update({
+            title: newTitle,
+            description: newDescription,
+            start_at: startAt,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingEvent.id);
+
+        console.log('[syncFromMemberBirthdays] Update result:', updateError ? `ERROR: ${updateError.message}` : 'SUCCESS');
+        if (!updateError) {
+          syncedCount++;
+        }
+      } else {
+        // Create new recurring birthday event
+        const { error: insertError } = await supabase.from(this.tableName).insert({
+          tenant_id: tenantId,
+          title: newTitle,
+          description: newDescription,
+          start_at: startAt,
+          all_day: true,
+          timezone: 'UTC',
+          category_id: category?.id || null,
+          event_type: 'birthday',
+          status: 'scheduled',
+          priority: 'normal',
+          source_type: 'member_birthday',
+          source_id: sourceId,
+          member_id: member.id,
+          assigned_to: null,
+          is_recurring: true,
+          recurrence_rule: 'FREQ=YEARLY',
+          is_private: false,
+          visibility: 'team',
+          tags: ['birthday', 'celebration'],
+          metadata: { original_date: member.birthday },
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        console.log('[syncFromMemberBirthdays] Insert result:', insertError ? `ERROR: ${insertError.message}` : 'SUCCESS');
+        if (!insertError) {
+          syncedCount++;
+        }
+      }
+    }
+
+    return syncedCount;
+  }
+
+  async syncFromMemberAnniversaries(): Promise<number> {
+    const tenantId = await this.getTenantId();
+    const supabase = await this.getSupabaseClient();
+    let syncedCount = 0;
+
+    // Fetch active members with anniversaries
+    const { data: members, error: membersError } = await supabase
+      .from('members')
+      .select('id, first_name, last_name, anniversary')
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null)
+      .not('anniversary', 'is', null);
+
+    console.log('[syncFromMemberAnniversaries] Found members with anniversaries:', members?.length ?? 0, membersError ? `Error: ${membersError.message}` : '');
+
+    if (membersError) {
+      throw new Error(`Failed to fetch members for anniversary sync: ${membersError.message}`);
+    }
+
+    if (!members) return 0;
+
+    // Get the anniversary category
+    const { data: category } = await supabase
+      .from('calendar_categories')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('code', 'anniversary')
+      .maybeSingle();
+
+    console.log('[syncFromMemberAnniversaries] Anniversary category:', category?.id ?? 'NOT FOUND');
+
+    for (const member of members) {
+      // Use member.id as source_id (source_type differentiates birthday from anniversary)
+      const sourceId = member.id;
+
+      // Decrypt member name (PII fields are encrypted)
+      const { firstName, lastName } = await this.decryptMemberName(
+        tenantId,
+        member.first_name,
+        member.last_name
+      );
+
+      // Get existing event for this source (if any)
+      const { data: existingEvents } = await supabase
+        .from(this.tableName)
+        .select('id, start_at, title')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'member_anniversary')
+        .eq('source_id', sourceId)
+        .is('deleted_at', null)
+        .limit(1);
+
+      const existingEvent = existingEvents?.[0];
+      const memberName = `${firstName} ${lastName}`;
+      const newTitle = `💍 ${memberName}'s Wedding Anniversary`;
+
+      // For anniversaries, we use the current year's occurrence
+      const anniversaryDate = new Date(member.anniversary);
+      const currentYear = new Date().getFullYear();
+      const thisYearAnniversary = new Date(currentYear, anniversaryDate.getMonth(), anniversaryDate.getDate());
+      const startAt = thisYearAnniversary.toISOString();
+
+      console.log('[syncFromMemberAnniversaries] Processing member:', memberName, 'sourceId:', sourceId, 'existingEvent:', existingEvent?.id ?? 'NONE');
+
+      const newDescription = `Wedding anniversary celebration for ${memberName}`;
+
+      if (existingEvent) {
+        // Always update to ensure decrypted names are used
+        const { error: updateError } = await supabase
+          .from(this.tableName)
+          .update({
+            title: newTitle,
+            description: newDescription,
+            start_at: startAt,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingEvent.id);
+
+        console.log('[syncFromMemberAnniversaries] Update result:', updateError ? `ERROR: ${updateError.message}` : 'SUCCESS');
+        if (!updateError) {
+          syncedCount++;
+        }
+      } else {
+        // Create new recurring anniversary event
+        const { error: insertError } = await supabase.from(this.tableName).insert({
+          tenant_id: tenantId,
+          title: newTitle,
+          description: newDescription,
+          start_at: startAt,
+          all_day: true,
+          timezone: 'UTC',
+          category_id: category?.id || null,
+          event_type: 'anniversary',
+          status: 'scheduled',
+          priority: 'normal',
+          source_type: 'member_anniversary',
+          source_id: sourceId,
+          member_id: member.id,
+          assigned_to: null,
+          is_recurring: true,
+          recurrence_rule: 'FREQ=YEARLY',
+          is_private: false,
+          visibility: 'team',
+          tags: ['anniversary', 'celebration'],
+          metadata: { original_date: member.anniversary },
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        console.log('[syncFromMemberAnniversaries] Insert result:', insertError ? `ERROR: ${insertError.message}` : 'SUCCESS');
         if (!insertError) {
           syncedCount++;
         }

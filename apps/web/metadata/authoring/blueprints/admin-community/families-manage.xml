@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="families/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="families.core" requiredPermissions="members:edit" locale="en-US">
+  <Page id="admin-community-families-manage">
+    <Title>Manage family record</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+        <Component id="family-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="familyForm.title"/>
+            <Prop name="description" kind="binding" contract="familyForm.description"/>
+            <Prop name="fields" kind="binding" contract="familyForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="familyForm.initialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="familyForm.submitLabel"/>
+            <Prop name="mode" kind="binding" contract="familyForm.mode"/>
+            <Prop name="contextParams" kind="binding" contract="familyForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-family"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.families.manage.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="familyForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for family-form.title"/>
+          <Field name="description" path="form.description" description="Binding for family-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for family-form.fields"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for family-form.initialValues"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for family-form.submitLabel"/>
+          <Field name="mode" path="form.mode" description="Binding for family-form.mode"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for family-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.families.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-family" kind="metadata.service">
+        <Config>
+          <Handler>admin-community.families.manage.save</Handler>
+          <SuccessMessage>Family saved successfully.</SuccessMessage>
+          <CreateMessage>Family created successfully.</CreateMessage>
+          <UpdateMessage>Family updated successfully.</UpdateMessage>
+          <ErrorMessage>Failed to save family. Please try again.</ErrorMessage>
+          <IdentifierKey>familyId</IdentifierKey>
+          <IdentifierCandidates>
+            <Array>
+              <Value>familyId</Value>
+              <Value>data.familyId</Value>
+              <Value>params.familyId</Value>
+            </Array>
+          </IdentifierCandidates>
+          <RedirectTemplate>/admin/community/families/{{familyId}}</RedirectTemplate>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/families</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

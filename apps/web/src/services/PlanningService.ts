@@ -135,10 +135,12 @@ export class PlanningService {
 
   // ==================== SYNC OPERATIONS ====================
 
-  async syncAllSources(): Promise<{ carePlans: number; discipleshipPlans: number }> {
+  async syncAllSources(): Promise<{ carePlans: number; discipleshipPlans: number; birthdays: number; anniversaries: number }> {
     const carePlans = await this.eventRepo.syncFromCarePlans();
     const discipleshipPlans = await this.eventRepo.syncFromDiscipleshipPlans();
-    return { carePlans, discipleshipPlans };
+    const birthdays = await this.eventRepo.syncFromMemberBirthdays();
+    const anniversaries = await this.eventRepo.syncFromMemberAnniversaries();
+    return { carePlans, discipleshipPlans, birthdays, anniversaries };
   }
 
   async syncCarePlans(): Promise<number> {
@@ -147,6 +149,331 @@ export class PlanningService {
 
   async syncDiscipleshipPlans(): Promise<number> {
     return this.eventRepo.syncFromDiscipleshipPlans();
+  }
+
+  async syncBirthdays(): Promise<number> {
+    return this.eventRepo.syncFromMemberBirthdays();
+  }
+
+  async syncAnniversaries(): Promise<number> {
+    return this.eventRepo.syncFromMemberAnniversaries();
+  }
+
+  // ==================== SINGLE ITEM SYNC ====================
+
+  /**
+   * Sync a single care plan to the calendar (create or update)
+   * Call this when a care plan is created or updated
+   */
+  async syncCarePlanEvent(carePlan: {
+    id: string;
+    member_id: string;
+    status_label?: string | null;
+    status_code?: string | null;
+    follow_up_at?: string | null;
+    priority?: string | null;
+    details?: string | null;
+    assigned_to?: string | null;
+    is_active?: boolean;
+  }): Promise<void> {
+    // Skip if no follow-up date
+    if (!carePlan.follow_up_at) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('care_plan');
+    const title = `Care Plan: ${carePlan.status_label || carePlan.status_code || 'Follow-up'}`;
+
+    // Check if event already exists
+    const existingEvents = await this.eventRepo.getBySource('member_care_plans', carePlan.id);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        description: carePlan.details,
+        start_at: carePlan.follow_up_at,
+        priority: (carePlan.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal',
+        assigned_to: carePlan.assigned_to,
+        source_id: carePlan.id,
+        member_id: carePlan.member_id,
+        is_active: carePlan.is_active !== false,
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: carePlan.details,
+        start_at: carePlan.follow_up_at,
+        all_day: false,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'care_plan',
+        status: 'scheduled',
+        priority: (carePlan.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal',
+        source_type: 'member_care_plans',
+        source_id: carePlan.id,
+        member_id: carePlan.member_id,
+        assigned_to: carePlan.assigned_to,
+        is_recurring: false,
+        is_private: false,
+        visibility: 'team',
+        tags: ['care-plan', 'follow-up'],
+        metadata: {},
+        is_active: true,
+      });
+    }
+  }
+
+  /**
+   * Sync a single discipleship plan to the calendar (create or update)
+   * Call this when a discipleship plan is created or updated
+   */
+  async syncDiscipleshipPlanEvent(plan: {
+    id: string;
+    member_id: string;
+    pathway?: string | null;
+    status?: string | null;
+    target_date?: string | null;
+    mentor_name?: string | null;
+    notes?: string | null;
+  }): Promise<void> {
+    // Skip if no target date
+    if (!plan.target_date) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('discipleship');
+    const title = `Discipleship: ${plan.pathway || plan.status || 'Milestone'}`;
+
+    // Check if event already exists
+    const existingEvents = await this.eventRepo.getBySource('member_discipleship_plans', plan.id);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        description: plan.notes,
+        start_at: plan.target_date,
+        source_id: plan.id,
+        member_id: plan.member_id,
+        metadata: { mentor_name: plan.mentor_name },
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: plan.notes,
+        start_at: plan.target_date,
+        all_day: true,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'discipleship',
+        status: 'scheduled',
+        priority: 'normal',
+        source_type: 'member_discipleship_plans',
+        source_id: plan.id,
+        member_id: plan.member_id,
+        assigned_to: null,
+        is_recurring: false,
+        is_private: false,
+        visibility: 'team',
+        tags: ['discipleship', 'milestone'],
+        metadata: { mentor_name: plan.mentor_name },
+        is_active: true,
+      });
+    }
+  }
+
+  /**
+   * Sync a member's birthday to the calendar (create or update)
+   * Call this when a member is created or their birthday is updated
+   */
+  async syncMemberBirthdayEvent(member: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    birthday?: string | null;
+  }): Promise<void> {
+    // Skip if no birthday
+    if (!member.birthday) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('birthday');
+    const title = `🎂 ${member.first_name} ${member.last_name}'s Birthday`;
+    // Use member.id as source_id (source_type differentiates birthday from anniversary)
+    const sourceId = member.id;
+
+    // Calculate this year's birthday
+    const birthDate = new Date(member.birthday);
+    const now = new Date();
+    let birthdayThisYear = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+
+    // If birthday has passed this year, use next year
+    if (birthdayThisYear < now) {
+      birthdayThisYear = new Date(now.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
+    }
+
+    // Check if event already exists
+    const existingEvents = await this.eventRepo.getBySource('member_birthday', sourceId);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        start_at: birthdayThisYear.toISOString(),
+        source_id: sourceId,
+        member_id: member.id,
+        is_recurring: true,
+        recurrence_rule: 'FREQ=YEARLY',
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: `Birthday celebration for ${member.first_name} ${member.last_name}`,
+        start_at: birthdayThisYear.toISOString(),
+        all_day: true,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'birthday',
+        status: 'scheduled',
+        priority: 'normal',
+        source_type: 'member_birthday',
+        source_id: sourceId,
+        member_id: member.id,
+        assigned_to: null,
+        is_recurring: true,
+        recurrence_rule: 'FREQ=YEARLY',
+        is_private: false,
+        visibility: 'team',
+        tags: ['birthday', 'celebration'],
+        metadata: { original_date: member.birthday },
+        is_active: true,
+      });
+    }
+  }
+
+  /**
+   * Sync a member's wedding anniversary to the calendar (create or update)
+   * Call this when a member is created or their anniversary date is updated
+   */
+  async syncMemberAnniversaryEvent(member: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    anniversary?: string | null;
+  }): Promise<void> {
+    // Skip if no anniversary date
+    if (!member.anniversary) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('anniversary');
+    const title = `💍 ${member.first_name} ${member.last_name}'s Wedding Anniversary`;
+    // Use member.id as source_id (source_type differentiates birthday from anniversary)
+    const sourceId = member.id;
+
+    // Calculate this year's anniversary
+    const anniversaryDate = new Date(member.anniversary);
+    const now = new Date();
+    let anniversaryThisYear = new Date(now.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
+
+    // If anniversary has passed this year, use next year
+    if (anniversaryThisYear < now) {
+      anniversaryThisYear = new Date(now.getFullYear() + 1, anniversaryDate.getMonth(), anniversaryDate.getDate());
+    }
+
+    // Calculate years married
+    const yearsSinceWedding = anniversaryThisYear.getFullYear() - anniversaryDate.getFullYear();
+
+    // Check if event already exists
+    const existingEvents = await this.eventRepo.getBySource('member_anniversary', sourceId);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        description: `${yearsSinceWedding} year${yearsSinceWedding !== 1 ? 's' : ''} married`,
+        start_at: anniversaryThisYear.toISOString(),
+        source_id: sourceId,
+        member_id: member.id,
+        is_recurring: true,
+        recurrence_rule: 'FREQ=YEARLY',
+        metadata: { original_date: member.anniversary, years_married: yearsSinceWedding },
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: `${yearsSinceWedding} year${yearsSinceWedding !== 1 ? 's' : ''} married`,
+        start_at: anniversaryThisYear.toISOString(),
+        all_day: true,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'anniversary',
+        status: 'scheduled',
+        priority: 'normal',
+        source_type: 'member_anniversary',
+        source_id: sourceId,
+        member_id: member.id,
+        assigned_to: null,
+        is_recurring: true,
+        recurrence_rule: 'FREQ=YEARLY',
+        is_private: false,
+        visibility: 'team',
+        tags: ['anniversary', 'celebration'],
+        metadata: { original_date: member.anniversary, years_married: yearsSinceWedding },
+        is_active: true,
+      });
+    }
+  }
+
+  /**
+   * Remove calendar event for a care plan (when deleted)
+   */
+  async removeCarePlanEvent(carePlanId: string): Promise<void> {
+    const existingEvents = await this.eventRepo.getBySource('member_care_plans', carePlanId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
+  }
+
+  /**
+   * Remove calendar event for a discipleship plan (when deleted)
+   */
+  async removeDiscipleshipPlanEvent(planId: string): Promise<void> {
+    const existingEvents = await this.eventRepo.getBySource('member_discipleship_plans', planId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
+  }
+
+  /**
+   * Remove calendar event for a member's birthday (when member deleted or birthday cleared)
+   */
+  async removeMemberBirthdayEvent(memberId: string): Promise<void> {
+    // Use member.id as source_id (source_type differentiates birthday from anniversary)
+    const existingEvents = await this.eventRepo.getBySource('member_birthday', memberId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
+  }
+
+  /**
+   * Remove calendar event for a member's anniversary (when member deleted or anniversary cleared)
+   */
+  async removeMemberAnniversaryEvent(memberId: string): Promise<void> {
+    // Use member.id as source_id (source_type differentiates birthday from anniversary)
+    const existingEvents = await this.eventRepo.getBySource('member_anniversary', memberId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
   }
 
   // ==================== DASHBOARD & STATS ====================
@@ -299,6 +626,8 @@ export class PlanningService {
     const byType: Record<CalendarEventType, number> = {
       care_plan: 0,
       discipleship: 0,
+      birthday: 0,
+      anniversary: 0,
       meeting: 0,
       service: 0,
       event: 0,

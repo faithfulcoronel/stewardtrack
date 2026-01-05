@@ -1,14 +1,28 @@
 import { z } from "zod";
 
-import type { Member } from "@/models/member.model";
-import type { MemberHousehold } from "@/models/memberHousehold.model";
+import type { Member, FamilyInput } from "@/models/member.model";
+import type { FamilyRole } from "@/models/familyMember.model";
 import type { MetadataActionResult } from "../../types";
 
 import type { ManageMemberRequest } from "./request";
 import type { MemberManageResources } from "./resourceFactory";
 
+/**
+ * Family membership input from the FamilyMembershipManager component
+ */
+export interface FamilyMembershipInput {
+  familyId: string;
+  familyName: string;
+  role: FamilyRole;
+  isPrimary: boolean;
+  address_street?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+}
+
 type MemberFormMappingResult =
-  | { success: true; data: { payload: Partial<Member> } }
+  | { success: true; data: { payload: Partial<Member>; familyMemberships?: FamilyMembershipInput[] } }
   | { success: false; error: MetadataActionResult };
 
 type FormStageKey = "active" | "new" | "care" | "inactive";
@@ -336,79 +350,127 @@ export class MemberFormMapper {
       }
     }
 
-    const hasHouseholdIdField = this.hasField(values, "householdId");
-    console.log('[MemberFormMapper] hasHouseholdIdField:', hasHouseholdIdField);
-    console.log('[MemberFormMapper] householdId value:', values?.householdId);
-    console.log('[MemberFormMapper] addressStreet value:', values?.addressStreet);
-    console.log('[MemberFormMapper] preferredName value:', values?.preferredName);
+    // Family memberships handling (new multi-family system via FamilyMembershipManager)
+    let familyMemberships: FamilyMembershipInput[] | undefined;
+    if (this.hasField(values, "familyMemberships")) {
+      const rawMemberships = values.familyMemberships;
+      console.log('[MemberFormMapper] familyMemberships value:', rawMemberships);
 
-    const householdName = this.hasField(values, "householdName")
-      ? this.cleanString(values.householdName)
-      : null;
-    const addressStreet = this.hasField(values, "addressStreet")
-      ? this.cleanString(values.addressStreet)
-      : null;
-    const addressCity = this.hasField(values, "addressCity")
-      ? this.cleanString(values.addressCity)
-      : null;
-    const addressState = this.hasField(values, "addressState")
-      ? this.cleanString(values.addressState)
-      : null;
-    const addressPostal = this.hasField(values, "addressPostal")
-      ? this.cleanString(values.addressPostal)
-      : null;
-    const householdMembers = this.hasField(values, "householdMembers")
-      ? this.toTags(values.householdMembers)
-      : [];
-    const householdId = this.hasField(values, "householdId")
-      ? this.cleanString(values.householdId)
-      : null;
+      if (Array.isArray(rawMemberships)) {
+        familyMemberships = rawMemberships
+          .filter((m): m is Record<string, unknown> => m !== null && typeof m === 'object')
+          .map((m) => ({
+            familyId: String(m.familyId || ''),
+            familyName: String(m.familyName || ''),
+            role: this.toFamilyRole(m.role),
+            isPrimary: this.toBoolean(m.isPrimary),
+            address_street: m.address_street ? String(m.address_street) : null,
+            address_city: m.address_city ? String(m.address_city) : null,
+            address_state: m.address_state ? String(m.address_state) : null,
+            address_postal_code: m.address_postal_code ? String(m.address_postal_code) : null,
+          }))
+          .filter((m) => m.familyId); // Only include entries with valid family IDs
 
-    const includeHousehold =
-      householdId !== null ||
-      householdName !== null ||
-      addressStreet !== null ||
-      addressCity !== null ||
-      addressState !== null ||
-      addressPostal !== null ||
-      householdMembers.length > 0;
-
-    if (includeHousehold) {
-      const householdPayload: Partial<MemberHousehold> = {};
-      if (householdId) {
-        householdPayload.id = householdId;
+        // Note: We no longer auto-fill member address from family address here.
+        // The member's address fields are separate from family address.
+        // Auto-fill happens in the UI (AdminMemberWorkspace) when selecting a primary family.
       }
-      householdPayload.name = householdName;
-      householdPayload.address_street = addressStreet;
-      householdPayload.address_city = addressCity;
-      householdPayload.address_state = addressState;
-      householdPayload.address_postal_code = addressPostal;
-      householdPayload.member_names = householdMembers;
-      payload.household = householdPayload as MemberHousehold;
-    } else if (hasHouseholdIdField && householdId === null) {
-      payload.household = null;
     }
 
-    // Also update the member's direct address field when address components change
-    // This ensures consistency between household address and member address
-    if (addressStreet !== null || addressCity !== null || addressState !== null || addressPostal !== null) {
-      const addressParts = [
-        addressStreet,
-        addressCity && addressState ? `${addressCity}, ${addressState}` : (addressCity || addressState),
-        addressPostal
-      ].filter(Boolean);
-      payload.address = addressParts.join(', ') || '';
+    // Legacy family fields handling (for backwards compatibility)
+    const hasFamilyIdField = this.hasField(values, "familyId");
+    const hasLegacyFamilyFields = hasFamilyIdField || this.hasField(values, "familyName");
+
+    // Only process legacy fields if we don't have the new familyMemberships array
+    if (!familyMemberships && hasLegacyFamilyFields) {
+      console.log('[MemberFormMapper] Processing legacy family fields');
+      console.log('[MemberFormMapper] hasFamilyIdField:', hasFamilyIdField);
+      console.log('[MemberFormMapper] familyId value:', values?.familyId);
+      console.log('[MemberFormMapper] addressStreet value:', values?.addressStreet);
+      console.log('[MemberFormMapper] familyRole value:', values?.familyRole);
+      console.log('[MemberFormMapper] isPrimaryFamily value:', values?.isPrimaryFamily);
+
+      const familyName = this.hasField(values, "familyName")
+        ? this.cleanString(values.familyName)
+        : null;
+      const addressStreet = this.hasField(values, "addressStreet")
+        ? this.cleanString(values.addressStreet)
+        : null;
+      const addressCity = this.hasField(values, "addressCity")
+        ? this.cleanString(values.addressCity)
+        : null;
+      const addressState = this.hasField(values, "addressState")
+        ? this.cleanString(values.addressState)
+        : null;
+      const addressPostal = this.hasField(values, "addressPostal")
+        ? this.cleanString(values.addressPostal)
+        : null;
+      const familyMembers = this.hasField(values, "familyMembers")
+        ? this.toTags(values.familyMembers)
+        : [];
+      const familyId = this.hasField(values, "familyId")
+        ? this.cleanString(values.familyId)
+        : null;
+      const familyRole = this.hasField(values, "familyRole")
+        ? this.toFamilyRole(values.familyRole)
+        : 'other';
+      const isPrimaryFamily = this.hasField(values, "isPrimaryFamily")
+        ? this.toBoolean(values.isPrimaryFamily)
+        : true;
+
+      const includeFamily =
+        familyId !== null ||
+        familyName !== null ||
+        addressStreet !== null ||
+        addressCity !== null ||
+        addressState !== null ||
+        addressPostal !== null ||
+        familyMembers.length > 0;
+
+      if (includeFamily) {
+        const familyPayload: FamilyInput = {
+          role: familyRole,
+          isPrimary: isPrimaryFamily,
+        };
+        if (familyId) {
+          familyPayload.id = familyId;
+        }
+        familyPayload.name = familyName;
+        familyPayload.address_street = addressStreet;
+        familyPayload.address_city = addressCity;
+        familyPayload.address_state = addressState;
+        familyPayload.address_postal_code = addressPostal;
+        familyPayload.member_names = familyMembers;
+        payload.family = familyPayload;
+      } else if (hasFamilyIdField && familyId === null) {
+        payload.family = null;
+      }
+
+      // Note: We no longer combine address fields into the legacy 'address' column.
+      // The split address columns are used directly, and the database trigger
+      // will sync them to the combined 'address' column for backwards compatibility.
+    }
+
+    // Handle direct member address fields (from Address section)
+    // Map form fields to new split address columns
+    if (this.hasField(values, "addressStreet")) {
+      payload.address_street = this.cleanString(values.addressStreet);
+    }
+    if (this.hasField(values, "addressCity")) {
+      payload.address_city = this.cleanString(values.addressCity);
+    }
+    if (this.hasField(values, "addressState")) {
+      payload.address_state = this.cleanString(values.addressState);
+    }
+    if (this.hasField(values, "addressPostal")) {
+      payload.address_postal_code = this.cleanString(values.addressPostal);
+    }
+    if (this.hasField(values, "addressCountry")) {
+      payload.address_country = this.cleanString(values.addressCountry);
     }
 
     // Ensure required fields have valid defaults for new members
     if (!isEditMode) {
-      // Address field is required by database (NOT NULL constraint)
-      if (!payload.contact_number) {
-        payload.contact_number = '';
-      }
-      if (!payload.address) {
-        payload.address = '';
-      }
       if (!payload.gender) {
         payload.gender = 'other';
       }
@@ -422,7 +484,7 @@ export class MemberFormMapper {
 
     return {
       success: true,
-      data: { payload },
+      data: { payload, familyMemberships },
     } satisfies MemberFormMappingResult;
   }
 
@@ -565,6 +627,18 @@ export class MemberFormMapper {
       return normalized as Member['marital_status'];
     }
     return undefined;
+  }
+
+  private toFamilyRole(value: unknown): FamilyRole {
+    const normalized = this.cleanString(value)?.toLowerCase();
+    if (!normalized) {
+      return 'other';
+    }
+    const validRoles: FamilyRole[] = ['head', 'spouse', 'child', 'dependent', 'other'];
+    if (validRoles.includes(normalized as FamilyRole)) {
+      return normalized as FamilyRole;
+    }
+    return 'other';
   }
 
   private findStageId(stages: MemberManageResources["stages"], stageValue: string | null): string | null {

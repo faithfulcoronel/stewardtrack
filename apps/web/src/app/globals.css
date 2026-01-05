@@ -757,8 +757,13 @@ body.platform-android {
 }
 
 body.platform-android.is-native {
-  /* Ensure safe area is applied for Android native */
-  --safe-area-top: max(env(safe-area-inset-top, 0px), 28px);
+  /*
+   * When overlaysWebView is false (default for Android), the WebView does NOT
+   * draw under the status bar, so we don't need extra padding-top.
+   * The status bar plugin handles the offset natively.
+   * We only need safe-area-bottom for gesture navigation.
+   */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Touch-optimized interactive elements */

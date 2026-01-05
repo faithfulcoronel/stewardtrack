@@ -63,6 +63,12 @@ export class MemberAdapter
     email,
     contact_number,
     address,
+    address_street,
+    address_street2,
+    address_city,
+    address_state,
+    address_postal_code,
+    address_country,
     membership_date,
     household_id,
     anniversary,
@@ -428,6 +434,10 @@ export class MemberAdapter
     const tenantId = await this.getTenantId();
     const userId = await this.getUserId();
 
+    // Family handling is done in MemberService layer - just remove from payload
+    delete payload.family;
+
+    // Legacy household handling - still supported for backwards compatibility
     const householdInput = payload.household as Partial<MemberHousehold> | undefined;
     delete payload.household;
 

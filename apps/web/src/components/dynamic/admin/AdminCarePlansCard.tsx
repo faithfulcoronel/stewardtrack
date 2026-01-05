@@ -19,6 +19,7 @@ export interface CarePlanMetric {
 export interface CarePlanItem {
   id: string;
   memberId?: string | null;
+  memberName?: string | null;
   status?: string | null;
   priority?: string | null;
   assignedTo?: string | null;
@@ -121,9 +122,10 @@ export function AdminCarePlansCard(props: AdminCarePlansCardProps) {
             <p className="text-sm font-medium text-muted-foreground">Recent care plans</p>
             <div className="space-y-2">
               {recentItems.map((item) => (
-                <div
+                <Link
                   key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/30 transition-colors"
+                  href={`/admin/community/care-plans/${item.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <Badge
@@ -133,11 +135,11 @@ export function AdminCarePlansCard(props: AdminCarePlansCardProps) {
                         item.priority ? priorityColors[item.priority.toLowerCase()] : priorityColors.medium
                       )}
                     >
-                      {item.priority || 'Medium'}
+                      {item.priority || 'medium'}
                     </Badge>
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        {item.status || 'Active'}
+                        {item.memberName || 'Unknown member'}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {item.assignedTo ? `Assigned to ${item.assignedTo}` : 'Unassigned'}
@@ -149,7 +151,7 @@ export function AdminCarePlansCard(props: AdminCarePlansCardProps) {
                       Follow-up: {new Date(item.followUpAt).toLocaleDateString()}
                     </p>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           </div>

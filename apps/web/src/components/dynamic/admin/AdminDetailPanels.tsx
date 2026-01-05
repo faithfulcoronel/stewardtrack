@@ -243,7 +243,7 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
       </div>
 
       <Dialog open={dialogState.open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto" showCloseButton>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" showCloseButton>
           <DialogHeader>
             <DialogTitle>{dialogState.actionLabel || "Update section"}</DialogTitle>
             <DialogDescription>

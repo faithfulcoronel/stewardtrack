@@ -63,24 +63,24 @@ async function resolveDashboardHero(
   const carePlanStats = await carePlanService.getCarePlanStats();
 
   // Format real metrics
-  const totalHouseholds = metrics.familyCount || 0;
+  const totalFamilies = metrics.familyCount || 0;
   const engagementRate = metrics.totalMembers > 0
     ? Math.round((metrics.totalMembers - (metrics.visitorCount || 0)) / metrics.totalMembers * 100)
     : 0;
 
   return {
     eyebrow: 'Community health pulse',
-    headline: 'Shepherd every household with real-time ministry insight',
+    headline: 'Shepherd every family with real-time ministry insight',
     description: 'Monitor membership vitality, giving momentum, and care commitments across all centers in one workspace.',
     highlights: [
       'Map the journey from first-time guests to covenant members with automated stage tracking.',
-      'Surface households at financial risk before pledges lapse and route them to center pastors.',
+      'Surface families at financial risk before pledges lapse and route them to center pastors.',
       'Keep every ministry aligned with dashboards tailored for elders, finance teams, and care leads.',
     ],
     metrics: [
       {
-        label: 'Active households',
-        value: totalHouseholds.toLocaleString(),
+        label: 'Active families',
+        value: totalFamilies.toLocaleString(),
         caption: `${engagementRate}% engaged over the last 30 days.`,
       },
       {
@@ -130,7 +130,7 @@ async function resolveDashboardKpis(
         changeLabel: 'this month',
         trend: metrics.newMembers > 0 ? 'up' : 'flat',
         tone: metrics.newMembers > 0 ? 'positive' : 'neutral',
-        description: `${metrics.familyCount || 0} households in the community.`,
+        description: `${metrics.familyCount || 0} families in the community.`,
       },
       {
         id: 'kpi-visitors',
@@ -197,18 +197,18 @@ async function resolveDashboardQuickLinks(
       {
         id: 'link-directory',
         title: 'Membership directory',
-        description: 'Filter households, stages, and pastoral assignments to steward discipleship.',
+        description: 'Filter members, stages, and pastoral assignments to steward discipleship.',
         href: '/admin/members/list',
         badge: 'Directory',
         stat: `${(metrics.totalMembers || 0).toLocaleString()} active members`,
       },
       {
-        id: 'link-households',
-        title: 'Household directory',
-        description: 'Manage household records, envelope numbers, and family addresses.',
-        href: '/admin/community/households/list',
-        badge: 'Households',
-        stat: `${(metrics.familyCount || 0).toLocaleString()} households`,
+        id: 'link-families',
+        title: 'Family directory',
+        description: 'Manage family records, members, and addresses.',
+        href: '/admin/community/families/list',
+        badge: 'Families',
+        stat: `${(metrics.familyCount || 0).toLocaleString()} families`,
       },
       {
         id: 'link-care',
@@ -221,7 +221,7 @@ async function resolveDashboardQuickLinks(
       {
         id: 'link-new-member',
         title: 'Add new member',
-        description: 'Register a new member with full profile, household, and care plan setup.',
+        description: 'Register a new member with full profile, family, and care plan setup.',
         href: '/admin/members/manage',
         badge: 'Quick Action',
         stat: `${metrics.newMembers || 0} new this month`,

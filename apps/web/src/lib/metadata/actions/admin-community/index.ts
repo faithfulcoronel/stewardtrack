@@ -5,6 +5,7 @@ import { handleMembershipLookupQuickCreate } from "./manage-member/lookupCreate"
 import { householdsActionHandlers } from "./households";
 import { carePlansActionHandlers } from "./careplans";
 import { discipleshipActionHandlers } from "./discipleship";
+import { familiesActionHandlers } from "./families";
 
 export const adminCommunityActionHandlers: Record<string, MetadataActionHandler> = {
   "admin-community.members.manage.saveMember": handleMemberManageExecution,
@@ -12,6 +13,7 @@ export const adminCommunityActionHandlers: Record<string, MetadataActionHandler>
   ...householdsActionHandlers,
   ...carePlansActionHandlers,
   ...discipleshipActionHandlers,
+  ...familiesActionHandlers,
 };
 
 export { ManageMemberAction };
