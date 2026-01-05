@@ -3,7 +3,7 @@ import { MetadataCompiler } from './pipeline/compiler';
 import type { CompileTimeContext } from './pipeline/types';
 
 async function main() {
-  const rootDir = process.cwd();
+  const rootDir = path.resolve(__dirname, '..', '..');
   const context: CompileTimeContext = {
     paths: {
       rootDir,

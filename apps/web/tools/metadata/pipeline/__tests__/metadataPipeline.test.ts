@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, mock } from 'node:test';
+import { describe, it, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'path';
 import os from 'os';
@@ -78,8 +78,7 @@ describe('XmlSchemaValidator', () => {
     );
 
     const originalReadFile = fs.readFile;
-    const readFileMock = mock.method(fs, 'readFile', async (...args) => {
-      // @ts-expect-error - forwarding variadic args to original function
+    const readFileMock = mock.method(fs, 'readFile', async (...args: Parameters<typeof fs.readFile>) => {
       return await originalReadFile.apply(fs, args);
     });
 
@@ -115,7 +114,7 @@ describe('XmlSchemaValidator', () => {
 
     const validator = new XmlSchemaValidator(xsdPath);
     await assert.rejects(
-      () => validator.validate('<root><child>Hello</child></root>', path.join(tempDir, 'file.xml')),
+      () => validator.validate('<root><child>Hello</child></root>', path.join(tempDir!, 'file.xml')),
       /XSD validation failed[\s\S]*other/,
     );
   });
@@ -187,7 +186,7 @@ describe('RegistryPublisher', () => {
     };
 
     const publisher = new RegistryPublisher(context);
-    const manifest = { generatedAt: new Date().toISOString(), entries: {} as Record<string, unknown> };
+    const manifest = await publisher.loadManifest();
     const definition = {
       schemaVersion: '1.0.0',
       contentVersion: '1.0.1',
@@ -350,7 +349,7 @@ describe('validateCanonicalDefinition', () => {
       dataSources: [
         {
           id: 'users',
-          kind: 'static',
+          kind: 'static' as const,
         },
       ],
       actions: [
@@ -367,7 +366,7 @@ describe('validateCanonicalDefinition', () => {
     const invalid = {
       ...baseDefinition,
       schemaVersion: 'invalid',
-    };
+    } as const;
     assert.throws(() => validateCanonicalDefinition(invalid, 'file.xml'), /Invalid schemaVersion/);
 
     const missingMetadata = {
@@ -376,7 +375,7 @@ describe('validateCanonicalDefinition', () => {
         ...baseDefinition.layer,
         module: '',
       },
-    };
+    } as const;
     assert.throws(() => validateCanonicalDefinition(missingMetadata, 'file.xml'), /Missing module/);
   });
 
@@ -410,13 +409,13 @@ describe('validateCanonicalDefinition', () => {
                 id: 'hero',
                 type: 'hero',
                 props: {
-                  title: { kind: 'binding', source: 'missing' },
+                  title: { kind: 'binding', source: 'missing' } as const,
                 },
               },
             ],
           },
         ],
-        dataSources: baseDefinition.page.dataSources?.slice(0, 0),
+        dataSources: [] as typeof baseDefinition.page.dataSources,
       },
     };
     assert.throws(() => validateCanonicalDefinition(unresolved, 'file.xml'), /Binding to unknown data source/);
