@@ -10,6 +10,8 @@ import type { IMemberRepository } from "@/repositories/member.repository";
 import type { TenantService } from "@/services/TenantService";
 import type { AuthorizationService } from "@/services/AuthorizationService";
 
+export const dynamic = "force-dynamic";
+
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
   {
