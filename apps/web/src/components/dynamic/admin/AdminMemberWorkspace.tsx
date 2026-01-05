@@ -21,6 +21,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { normalizeList, renderAction, type ActionConfig } from "../shared";
 import { AdminDetailPanels, type DetailPanel } from "./AdminDetailPanels";
 import { AdminLookupQuickCreate } from "./AdminLookupQuickCreate";
+import { FamilyMembershipManager, type FamilyOption, type FamilyMembership } from "./FamilyMembershipManager";
 import { useAdminFormController } from "./useAdminFormController";
 import { renderFieldInput, type ControllerRender } from "./fieldRenderers";
 import type {
@@ -91,7 +92,11 @@ export interface WorkspaceListSection extends WorkspaceSectionBase {
   viewAllLabel?: string | null;
 }
 
-export type WorkspaceSectionConfig = WorkspacePanelSection | WorkspaceFormSection | WorkspaceListSection;
+export interface WorkspaceFamilyManagerSection extends WorkspaceSectionBase {
+  kind: "familyManager";
+}
+
+export type WorkspaceSectionConfig = WorkspacePanelSection | WorkspaceFormSection | WorkspaceListSection | WorkspaceFamilyManagerSection;
 
 export interface WorkspaceTabConfig {
   id: string;
@@ -109,6 +114,9 @@ export interface WorkspaceFormConfig {
   mode?: AdminFormMode | null;
   footnote?: string | null;
   lookupOptions?: Record<string, FormFieldOption[] | { items?: FormFieldOption[] } | null> | null;
+  familyOptions?: FamilyOption[] | null;
+  familyMemberships?: FamilyMembership[] | null;
+  onCreateFamily?: (name: string) => Promise<FamilyOption | null>;
 }
 
 export interface AdminMemberWorkspaceProps {
@@ -130,6 +138,23 @@ interface HouseholdOption {
     state?: string | null;
     postalCode?: string | null;
   };
+}
+
+// Type guard functions (defined before components that use them)
+function isFormSection(section: WorkspaceSectionConfig): section is WorkspaceFormSection {
+  return (section as WorkspaceFormSection).kind === "form";
+}
+
+function isListSection(section: WorkspaceSectionConfig): section is WorkspaceListSection {
+  return (section as WorkspaceListSection).kind === "list";
+}
+
+function isFamilyManagerSection(section: WorkspaceSectionConfig): section is WorkspaceFamilyManagerSection {
+  return (section as WorkspaceFamilyManagerSection).kind === "familyManager";
+}
+
+function isPanelSection(section: WorkspaceSectionConfig): section is WorkspacePanelSection {
+  return !isFormSection(section) && !isListSection(section) && !isFamilyManagerSection(section);
 }
 
 export function AdminMemberWorkspace(props: AdminMemberWorkspaceProps) {
@@ -624,6 +649,120 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
   const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
 
+  // Family membership management state
+  const [familyOptions, setFamilyOptions] = React.useState<FamilyOption[]>(
+    () => form?.familyOptions ?? []
+  );
+  const [familyMemberships, setFamilyMemberships] = React.useState<FamilyMembership[]>(
+    () => form?.familyMemberships ?? []
+  );
+
+  // Sync family options from form config
+  React.useEffect(() => {
+    if (form?.familyOptions) {
+      setFamilyOptions(form.familyOptions);
+    }
+  }, [form?.familyOptions]);
+
+  // Sync family memberships from form config
+  React.useEffect(() => {
+    if (form?.familyMemberships) {
+      setFamilyMemberships(form.familyMemberships);
+    }
+  }, [form?.familyMemberships]);
+
+  const handleFamilyMembershipsChange = React.useCallback(
+    (memberships: FamilyMembership[]) => {
+      setFamilyMemberships(memberships);
+      // Store in form values for submission
+      controller.setValue("familyMemberships", memberships, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      // Auto-fill address from primary family (only if address fields are empty)
+      const primaryMembership = memberships.find((m) => m.isPrimary);
+      if (primaryMembership) {
+        // Find the family details from familyOptions
+        const primaryFamily = familyOptions.find((f) => f.id === primaryMembership.familyId);
+        if (primaryFamily) {
+          // Get current address values
+          const currentStreet = controller.getValues("addressStreet");
+          const currentCity = controller.getValues("addressCity");
+          const currentState = controller.getValues("addressState");
+          const currentPostal = controller.getValues("addressPostal");
+
+          // Only auto-fill if the field is empty
+          if (!currentStreet && primaryFamily.address_street) {
+            controller.setValue("addressStreet", primaryFamily.address_street, { shouldDirty: true });
+          }
+          if (!currentCity && primaryFamily.address_city) {
+            controller.setValue("addressCity", primaryFamily.address_city, { shouldDirty: true });
+          }
+          if (!currentState && primaryFamily.address_state) {
+            controller.setValue("addressState", primaryFamily.address_state, { shouldDirty: true });
+          }
+          if (!currentPostal && primaryFamily.address_postal_code) {
+            controller.setValue("addressPostal", primaryFamily.address_postal_code, { shouldDirty: true });
+          }
+        }
+      }
+    },
+    [controller, familyOptions]
+  );
+
+  const [isCreatingFamily, setIsCreatingFamily] = React.useState(false);
+
+  const handleCreateFamily = React.useCallback(
+    async (name: string): Promise<FamilyOption | null> => {
+      setIsCreatingFamily(true);
+      try {
+        // Call the quick create action with correct API format
+        const response = await fetch("/api/metadata/actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: {
+              id: "admin-community.families.quickCreate",
+              kind: "metadata.service",
+              handler: "admin-community.families.quickCreate",
+            },
+            input: { name },
+            context: { params: {} },
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || result.message || "Failed to create family");
+        }
+
+        if (result.success && result.data?.family) {
+          // Add the new family to the available options
+          const newFamily = result.data.family;
+          setFamilyOptions((prev) => [...prev, newFamily]);
+          toast.success(result.message || `Family "${name}" created successfully`);
+          return newFamily;
+        }
+
+        throw new Error(result.message || "Failed to create family");
+      } catch (error) {
+        console.error("[handleCreateFamily] Error:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to create family");
+        return null;
+      } finally {
+        setIsCreatingFamily(false);
+      }
+    },
+    []
+  );
+
+  // Register familyMemberships field
+  React.useEffect(() => {
+    controller.register("familyMemberships");
+  }, [controller]);
+
   const setHouseholdMembers = React.useCallback(
     (members: string[], options?: { dirty?: boolean }) => {
       const currentValue = controller.getValues("householdMembers");
@@ -849,11 +988,13 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
       const panelSections = allSections.filter(isPanelSection);
       const listSections = allSections.filter(isListSection);
       const editableSections = allSections.filter(isFormSection);
+      const familyManagerSections = allSections.filter(isFamilyManagerSection);
       return {
         ...tab,
         panelSections,
         listSections,
         editableSections: editableSections as WorkspaceFormSection[],
+        familyManagerSections: familyManagerSections as WorkspaceFamilyManagerSection[],
       };
     });
   }, [tabs]);
@@ -1116,6 +1257,18 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                   </div>
                 ))}
 
+                {tab.familyManagerSections.map((section) => (
+                  <FamilyMembershipManager
+                    key={section.id ?? `${tab.id}-family-manager`}
+                    title={section.title ?? "Family Memberships"}
+                    description={section.description ?? undefined}
+                    families={familyOptions}
+                    memberships={familyMemberships}
+                    onChange={handleFamilyMembershipsChange}
+                    onCreateFamily={handleCreateFamily}
+                  />
+                ))}
+
                 {tab.editableSections.length > 0 && (
                   <Accordion
                     type="multiple"
@@ -1298,18 +1451,6 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
       </Dialog>
     </section>
   );
-}
-
-function isFormSection(section: WorkspaceSectionConfig): section is WorkspaceFormSection {
-  return (section as WorkspaceFormSection).kind === "form";
-}
-
-function isListSection(section: WorkspaceSectionConfig): section is WorkspaceListSection {
-  return (section as WorkspaceListSection).kind === "list";
-}
-
-function isPanelSection(section: WorkspaceSectionConfig): section is WorkspacePanelSection {
-  return !isFormSection(section) && !isListSection(section);
 }
 
 function WorkspaceListSectionRenderer({ section }: { section: WorkspaceListSection }) {

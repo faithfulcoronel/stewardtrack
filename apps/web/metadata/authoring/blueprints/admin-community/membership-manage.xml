@@ -18,7 +18,7 @@
                 const records = data.membershipRecords?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
-                return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? &apos;member&apos;}&apos;s profile` : &apos;Create a new household profile&apos;;
+                return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? &apos;member&apos;}&apos;s profile` : &apos;Create a new member profile&apos;;
               })()
             </Prop>
             <Prop name="description" kind="static">Align membership data with pastoral care, serving teams, and financial commitments from one form.</Prop>
@@ -136,7 +136,7 @@
                   : records.find((item) =&gt; item.id === params.memberId) ?? fallback;
                 const profile = record.profile ?? {};
                 const demographics = profile.demographics ?? record.demographics ?? {};
-                const household = record.household ?? {};
+                const family = record.family ?? record.household ?? {};
                 const contact = record.contact ?? {};
                 const emergency = record.emergency ?? {};
                 const discipleship = record.discipleship ?? {};
@@ -150,12 +150,12 @@
                   : Array.isArray(record.tags)
                     ? record.tags
                     : [];
-                const membersSource = Array.isArray(household.members)
-                  ? household.members
-                  : Array.isArray(profile.household?.members)
-                    ? profile.household.members
-                    : profile.householdMembers;
-                const members = Array.isArray(membersSource) ? membersSource : [];
+                const familyMembersSource = Array.isArray(family.members)
+                  ? family.members
+                  : Array.isArray(profile.family?.members)
+                    ? profile.family.members
+                    : profile.familyMembers;
+                const familyMembers = Array.isArray(familyMembersSource) ? familyMembersSource : [];
                 const groupsSource = Array.isArray(discipleship.additionalGroups)
                   ? discipleship.additionalGroups
                   : profile.additionalGroups;
@@ -189,7 +189,9 @@
                             ? carePlan.prayerRequests
                             : &apos;&apos;;
 
-                const householdId = household.id ?? profile.household?.id ?? record.householdId ?? &apos;&apos;;
+                const familyId = family.id ?? profile.family?.id ?? record.familyId ?? &apos;&apos;;
+                const familyRole = record.familyRole ?? profile.familyRole ?? &apos;other&apos;;
+                const isPrimaryFamily = record.isPrimaryFamily ?? profile.isPrimaryFamily ?? true;
                 const initialValues = {
                   profilePhoto,
                   memberId: record.id ?? &apos;&apos;,
@@ -200,14 +202,17 @@
                   maritalStatus: profile.maritalStatus ?? demographics.maritalStatus ?? &apos;single&apos;,
                   anniversary: profile.anniversary ?? demographics.anniversary ?? &apos;&apos;,
                   occupation: profile.occupation ?? demographics.occupation ?? &apos;&apos;,
-                  householdName: profile.householdName ?? household.name ?? &apos;&apos;,
+                  familyName: profile.familyName ?? family.name ?? &apos;&apos;,
                   envelopeNumber: profile.envelopeNumber ?? record.envelopeNumber ?? &apos;&apos;,
-                  addressStreet: profile.addressStreet ?? household.address?.street ?? &apos;&apos;,
-                  addressCity: profile.addressCity ?? household.address?.city ?? &apos;&apos;,
-                  addressState: profile.addressState ?? household.address?.state ?? &apos;&apos;,
-                  addressPostal: profile.addressPostal ?? household.address?.postalCode ?? &apos;&apos;,
-                  householdMembers: Array.isArray(members) ? members : [],
-                  householdId: typeof householdId === &apos;string&apos; ? householdId : &apos;&apos;,
+                  addressStreet: record.addressStreet ?? profile.addressStreet ?? family.address?.street ?? family.address_street ?? &apos;&apos;,
+                  addressCity: record.addressCity ?? profile.addressCity ?? family.address?.city ?? family.address_city ?? &apos;&apos;,
+                  addressState: record.addressState ?? profile.addressState ?? family.address?.state ?? family.address_state ?? &apos;&apos;,
+                  addressPostal: record.addressPostal ?? profile.addressPostal ?? family.address?.postalCode ?? family.address_postal_code ?? &apos;&apos;,
+                  addressCountry: record.addressCountry ?? profile.addressCountry ?? &apos;Philippines&apos;,
+                  familyMembers: Array.isArray(familyMembers) ? familyMembers : [],
+                  familyId: typeof familyId === &apos;string&apos; ? familyId : &apos;&apos;,
+                  familyRole: familyRole,
+                  isPrimaryFamily: isPrimaryFamily,
                   email: profile.email ?? contact.email ?? &apos;&apos;,
                   phone: profile.phone ?? contact.phone ?? &apos;&apos;,
                   preferredContact: profile.preferredContact ?? contact.preferred ?? &apos;Email&apos;,
@@ -263,10 +268,12 @@
                   initialValues.maritalStatus = &apos;single&apos;;
                   initialValues.anniversary = &apos;&apos;;
                   initialValues.occupation = &apos;&apos;;
-                  initialValues.householdName = &apos;&apos;;
+                  initialValues.familyName = &apos;&apos;;
                   initialValues.envelopeNumber = &apos;&apos;;
-                  initialValues.householdMembers = [];
-                  initialValues.householdId = &apos;&apos;;
+                  initialValues.familyMembers = [];
+                  initialValues.familyId = &apos;&apos;;
+                  initialValues.familyRole = &apos;other&apos;;
+                  initialValues.isPrimaryFamily = true;
                   initialValues.addressStreet = &apos;&apos;;
                   initialValues.addressCity = &apos;&apos;;
                   initialValues.addressState = &apos;&apos;;
@@ -320,6 +327,8 @@
                 return {
                   initialValues,
                   lookupOptions,
+                  familyOptions: data.membershipRecords?.familyOptions ?? [],
+                  familyMemberships: data.membershipRecords?.familyMemberships ?? [],
                   submitLabel: isCreate ? &apos;Create member&apos; : &apos;Save changes&apos;,
                   mode: isCreate ? &apos;create&apos; : &apos;edit&apos;,
                   submitAction: actions[&apos;save-member&apos;] ?? null,
@@ -396,7 +405,7 @@
                     </Field>
                   </Object>
                 </Field>
-                <Field name="household">
+                <Field name="family">
                   <Object>
                     <Field name="name">
                       <Value>Johnson Family</Value>
@@ -661,13 +670,13 @@
                     <Field name="occupation">
                       <Value>Operations director</Value>
                     </Field>
-                    <Field name="householdName">
+                    <Field name="familyName">
                       <Value>Johnson Family</Value>
                     </Field>
                     <Field name="envelopeNumber">
                       <Value>2041</Value>
                     </Field>
-                    <Field name="householdMembers">
+                    <Field name="familyMembers">
                       <Array>
                         <Value>Avery Johnson</Value>
                         <Value>Jordan Johnson</Value>
@@ -910,10 +919,10 @@
                     </Field>
                   </Object>
                 </Field>
-                <Field name="household">
+                <Field name="family">
                   <Object>
                     <Field name="name">
-                      <Value>Ruiz Household</Value>
+                      <Value>Ruiz Family</Value>
                     </Field>
                     <Field name="envelopeNumber">
                       <Value>Pending</Value>
@@ -1115,13 +1124,13 @@
                     <Field name="maritalStatus">
                       <Value>single</Value>
                     </Field>
-                    <Field name="householdName">
-                      <Value>Ruiz Household</Value>
+                    <Field name="familyName">
+                      <Value>Ruiz Family</Value>
                     </Field>
                     <Field name="envelopeNumber">
                       <Value>Pending</Value>
                     </Field>
-                    <Field name="householdMembers">
+                    <Field name="familyMembers">
                       <Array>
                         <Value>Elena Ruiz</Value>
                       </Array>
@@ -1323,10 +1332,10 @@
                     </Field>
                   </Object>
                 </Field>
-                <Field name="household">
+                <Field name="family">
                   <Object>
                     <Field name="name">
-                      <Value>Lee Household</Value>
+                      <Value>Lee Family</Value>
                     </Field>
                     <Field name="envelopeNumber">
                       <Value>1088</Value>
@@ -1541,13 +1550,13 @@
                     <Field name="lastName">
                       <Value>Lee</Value>
                     </Field>
-                    <Field name="householdName">
-                      <Value>Lee Household</Value>
+                    <Field name="familyName">
+                      <Value>Lee Family</Value>
                     </Field>
                     <Field name="envelopeNumber">
                       <Value>1088</Value>
                     </Field>
-                    <Field name="householdMembers">
+                    <Field name="familyMembers">
                       <Array>
                         <Value>Samuel Lee</Value>
                         <Value>Dana Lee</Value>
@@ -1842,7 +1851,7 @@
                   <Value>Profile basics</Value>
                 </Field>
                 <Field name="description">
-                  <Value>Identity, household, and preferred communication details.</Value>
+                  <Value>Identity, family, and preferred communication details.</Value>
                 </Field>
                 <Field name="sections">
                   <Array>
@@ -1857,7 +1866,7 @@
                         <Value>Identity &amp; profile</Value>
                       </Field>
                       <Field name="helperText">
-                        <Value>Capture household names and demographics to power personal touches and statements.</Value>
+                        <Value>Capture family names and demographics to power personal touches and statements.</Value>
                       </Field>
                       <Field name="fields">
                         <Array>
@@ -1940,7 +1949,7 @@
                               <Value>half</Value>
                             </Field>
                             <Field name="helperText">
-                              <Value>Envelope numbers are assigned per individual, not per household.</Value>
+                              <Value>Envelope numbers are assigned per individual, not per family.</Value>
                             </Field>
                           </Object>
                           <Object>
@@ -2040,104 +2049,16 @@
                     </Object>
                     <Object>
                       <Field name="kind">
-                        <Value>form</Value>
+                        <Value>familyManager</Value>
                       </Field>
                       <Field name="id">
-                        <Value>household</Value>
+                        <Value>familyMemberships</Value>
                       </Field>
                       <Field name="title">
-                        <Value>Household</Value>
+                        <Value>Family Memberships</Value>
                       </Field>
-                      <Field name="fields">
-                        <Array>
-                          <Object>
-                            <Field name="name">
-                              <Value>householdName</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Household name</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>householdMembers</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Household members</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>tags</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                            <Field name="helperText">
-                              <Value>Use nicknames and ages to personalize care.</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>addressStreet</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Street address</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>addressCity</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>City</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>addressState</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>State</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>addressPostal</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Postal code</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                        </Array>
+                      <Field name="description">
+                        <Value>Manage family associations for this member. A member can belong to multiple families but only one can be their primary.</Value>
                       </Field>
                     </Object>
                     <Object>
@@ -2164,9 +2085,6 @@
                             </Field>
                             <Field name="colSpan">
                               <Value>half</Value>
-                            </Field>
-                            <Field name="required">
-                              <Value>true</Value>
                             </Field>
                           </Object>
                           <Object>
@@ -2226,6 +2144,100 @@
                                   </Field>
                                 </Object>
                               </Array>
+                            </Field>
+                          </Object>
+                        </Array>
+                      </Field>
+                    </Object>
+                    <Object>
+                      <Field name="kind">
+                        <Value>form</Value>
+                      </Field>
+                      <Field name="id">
+                        <Value>address</Value>
+                      </Field>
+                      <Field name="title">
+                        <Value>Address</Value>
+                      </Field>
+                      <Field name="helperText">
+                        <Value>Member&apos;s mailing address. This will auto-fill when you select a primary family.</Value>
+                      </Field>
+                      <Field name="fields">
+                        <Array>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressStreet</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Street address</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>full</Value>
+                            </Field>
+                            <Field name="placeholder">
+                              <Value>123 Main St</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressCity</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>City</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressState</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>State</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>quarter</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressPostal</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Postal code</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>quarter</Value>
+                            </Field>
+                          </Object>
+                          <Object>
+                            <Field name="name">
+                              <Value>addressCountry</Value>
+                            </Field>
+                            <Field name="label">
+                              <Value>Country</Value>
+                            </Field>
+                            <Field name="type">
+                              <Value>text</Value>
+                            </Field>
+                            <Field name="colSpan">
+                              <Value>half</Value>
+                            </Field>
+                            <Field name="placeholder">
+                              <Value>Philippines</Value>
                             </Field>
                           </Object>
                         </Array>

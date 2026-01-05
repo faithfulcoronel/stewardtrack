@@ -70,7 +70,14 @@
       "Bash(timeout 180 pnpm build:web:*)",
       "Bash(more:*)",
       "Bash(./gradlew:*)",
-      "Bash(timeout 180 pnpm exec tsc:*)"
+      "Bash(timeout 180 pnpm exec tsc:*)",
+      "Bash(del:*)",
+      "Bash(timeout 180 npx tsc:*)",
+      "Bash(pnpm --filter @stewardtrack/web exec npx tsc:*)",
+      "Bash(pnpm sync:*)",
+      "Bash(timeout 180 node_modules/.bin/tsc:*)",
+      "Bash(node_modules/.bin/tsc:*)",
+      "Bash(timeout 180 pnpm:*)"
     ],
     "deny": [],
     "ask": []

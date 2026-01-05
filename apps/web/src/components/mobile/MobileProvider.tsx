@@ -21,6 +21,8 @@ interface MobileProviderProps {
   showNavigationProgress?: boolean;
   /** Navigation progress bar color */
   progressColor?: string;
+  /** Whether status bar should overlay web content (default: false on Android, true on iOS) */
+  statusBarOverlaysWebView?: boolean;
 }
 
 /**
@@ -42,7 +44,12 @@ export function MobileProvider({
   adjustBodyForKeyboard = true,
   showNavigationProgress = true,
   progressColor,
+  statusBarOverlaysWebView,
 }: MobileProviderProps) {
+  // Determine overlay behavior: Android defaults to false (prevents content under status bar),
+  // iOS defaults to true (uses safe area padding instead)
+  const platform = getPlatform();
+  const overlaysWebView = statusBarOverlaysWebView ?? (platform !== "android");
   // Hide splash screen when app is ready
   useEffect(() => {
     if (!isNative()) return;
@@ -103,7 +110,7 @@ export function MobileProvider({
       <StatusBarHandler
         style={statusBarStyle}
         backgroundColor={statusBarBackgroundColor}
-        overlaysWebView={true}
+        overlaysWebView={overlaysWebView}
       />
 
       {/* Navigation handling */}

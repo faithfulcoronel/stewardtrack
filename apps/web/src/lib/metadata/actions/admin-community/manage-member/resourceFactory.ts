@@ -15,6 +15,7 @@ import { MembershipTypeAdapter } from "@/adapters/membershipType.adapter";
 import { MembershipTypeRepository } from "@/repositories/membershipType.repository";
 import { MembershipCenterAdapter } from "@/adapters/membershipCenter.adapter";
 import { MembershipCenterRepository } from "@/repositories/membershipCenter.repository";
+import type { FamilyService } from "@/services/FamilyService";
 import type { RequestContext } from "@/lib/server/context";
 import type { BaseAdapter } from "@/adapters/base.adapter";
 import type { MembershipStage } from "@/models/membershipStage.model";
@@ -23,6 +24,7 @@ import type { MembershipCenter } from "@/models/membershipCenter.model";
 
 export interface MemberManageResources {
   memberService: MemberService;
+  familyService: FamilyService;
   stages: MembershipStage[];
   types: MembershipType[];
   centers: MembershipCenter[];
@@ -34,6 +36,7 @@ export class MemberManageResourceFactory {
     const auditService = new SupabaseAuditService();
 
     const memberService = this.createMemberService(context, auditService);
+    const familyService = container.get<FamilyService>(TYPES.FamilyService);
     const stageRepository = this.createMembershipStageRepository(context, auditService);
     const typeRepository = this.createMembershipTypeRepository(context, auditService);
     const centerRepository = this.createMembershipCenterRepository(context, auditService);
@@ -46,6 +49,7 @@ export class MemberManageResourceFactory {
 
     return {
       memberService,
+      familyService,
       stages,
       types,
       centers,

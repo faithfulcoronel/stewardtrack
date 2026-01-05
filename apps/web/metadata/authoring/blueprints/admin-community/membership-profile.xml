@@ -132,7 +132,10 @@
                 const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
                 const targetId = record.id ?? params.memberId ?? &apos;&apos;;
                 const manageUrl = (section) =&gt; `/admin/members/manage?memberId=${targetId}&amp;section=${section}`;
-                const address = record.household?.address ?? {};
+                const address = record.family?.address ?? record.household?.address ?? {};
+                const familyMembers = record.family?.members ?? [];
+                const familyName = record.family?.name ?? record.household?.name ?? null;
+                const familyRole = record.family?.role ?? &apos;other&apos;;
                 const envelope = record.envelopeNumber ? `Envelope #${record.envelopeNumber}` : &apos;No envelope assigned&apos;;
                 const attendancePercent = record.attendance?.twelveWeekAttendance ?? 0;
                 const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : &apos;Attendance unknown&apos;;
@@ -149,10 +152,10 @@
                       {
                         kind: &apos;panel&apos;,
                         id: &apos;identity&apos;,
-                        title: &apos;Identity &amp; household&apos;,
+                        title: &apos;Identity &amp; family&apos;,
                         summary: {
-                          label: &apos;Household&apos;,
-                          value: record.household?.name ?? record.fullName ?? &apos;Household profile&apos;,
+                          label: &apos;Family&apos;,
+                          value: familyName ?? record.fullName ?? &apos;Family profile&apos;,
                           description: envelope,
                         },
                         panels: [
@@ -169,15 +172,30 @@
                             ]
                           },
                           {
-                            id: &apos;household&apos;,
-                            title: &apos;Household &amp; contact&apos;,
-                            action: { id: &apos;edit-household&apos;, config: { label: &apos;Edit household&apos;, url: manageUrl(&apos;household&apos;), variant: &apos;ghost&apos; } },
+                            id: &apos;family&apos;,
+                            title: &apos;Family &amp; contact&apos;,
                             items: [
-                              { label: &apos;Household members&apos;, type: &apos;chips&apos;, items: record.household?.members ?? [] },
+                              { label: &apos;Family&apos;, type: &apos;link&apos;, href: record.family?.id ? `/admin/community/families/${record.family.id}` : undefined, value: familyName ?? &apos;No family assigned&apos; },
+                              { label: &apos;Family members&apos;, type: &apos;chips&apos;, items: familyMembers.length &gt; 0 ? familyMembers.map(m =&gt; m.name) : (record.household?.members ?? []) },
+                              { label: &apos;Role in family&apos;, value: (() =&gt; {
+                                const roleLabels = { head: &apos;Head of Family&apos;, spouse: &apos;Spouse&apos;, child: &apos;Child&apos;, dependent: &apos;Dependent&apos;, other: &apos;Member&apos; };
+                                return roleLabels[familyRole] ?? &apos;Member&apos;;
+                              })() },
                               { label: &apos;Preferred contact&apos;, value: record.contact?.preferred ?? &apos;Email&apos; },
                               { label: &apos;Email&apos;, type: &apos;link&apos;, href: record.contact?.email ? `mailto:${record.contact.email}` : undefined, value: record.contact?.email ?? &apos;—&apos; },
                               { label: &apos;Mobile&apos;, value: record.contact?.phone ?? &apos;—&apos; },
-                              { label: &apos;Address&apos;, type: &apos;multiline&apos;, value: address.street ? `${address.street}\n${address.city}, ${address.state} ${address.postalCode}` : &apos;No address on file&apos; }
+                              { label: &apos;Address&apos;, type: &apos;multiline&apos;, value: (() =&gt; {
+                                if (!address.street &amp;&amp; !address.city &amp;&amp; !address.state &amp;&amp; !address.postalCode) {
+                                  return &apos;No address on file&apos;;
+                                }
+                                const line1 = address.street || &apos;&apos;;
+                                const cityPart = address.city || &apos;&apos;;
+                                const statePart = address.state || &apos;&apos;;
+                                const postalPart = address.postalCode || &apos;&apos;;
+                                const line2Parts = [cityPart, statePart].filter(Boolean).join(&apos;, &apos;);
+                                const line2 = line2Parts ? (postalPart ? `${line2Parts} ${postalPart}` : line2Parts) : postalPart;
+                                return [line1, line2].filter(Boolean).join(&apos;\n&apos;) || &apos;No address on file&apos;;
+                              })() }
                             ]
                           }
                         ]

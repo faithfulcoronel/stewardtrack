@@ -20,6 +20,13 @@ export interface MemberRow {
   email?: string | null;
   contact_number?: string | null;
   address?: unknown;
+  // New split address columns
+  address_street?: string | null;
+  address_street2?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_postal_code?: string | null;
+  address_country?: string | null;
   household_id?: string | null;
   membership_date?: string | null;
   birthday?: string | null;
@@ -272,6 +279,12 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           email,
           contact_number,
           address,
+          address_street,
+          address_street2,
+          address_city,
+          address_state,
+          address_postal_code,
+          address_country,
           envelope_number,
           household_id,
           membership_date,
@@ -395,6 +408,11 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
     return decrypted;
   }
 
+  /**
+   * Fetches household relationships for a member.
+   * Now uses the new family_members table instead of family_relationships.
+   * Returns family members in the same format as the old household relationships.
+   */
   async fetchHouseholdRelationships(
     memberId: string,
     tenantId: string | null
@@ -402,28 +420,63 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
     const supabase = await this.getSupabaseClient();
     const resolvedTenantId = await this.resolveTenantId(tenantId);
 
-    let query = supabase
-      .from('family_relationships')
+    // First, get the member's primary family
+    let familyQuery = supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('member_id', memberId)
+      .eq('is_primary', true)
+      .eq('is_active', true)
+      .limit(1);
+
+    if (resolvedTenantId) {
+      familyQuery = familyQuery.eq('tenant_id', resolvedTenantId);
+    }
+
+    const { data: familyData, error: familyError } = await familyQuery;
+
+    if (familyError) {
+      console.warn('[MemberProfileAdapter] Failed to fetch primary family:', familyError);
+      return [];
+    }
+
+    const primaryFamilyId = familyData?.[0]?.family_id;
+    if (!primaryFamilyId) {
+      // No primary family, return empty array
+      return [];
+    }
+
+    // Get all members of the primary family
+    let membersQuery = supabase
+      .from('family_members')
       .select(
         `
           member_id,
-          related_member_id,
-          member:member_id(first_name,last_name,preferred_name),
-          related_member:related_member_id(first_name,last_name,preferred_name)
+          member:members!family_members_member_id_fkey(first_name,last_name,preferred_name)
         `
       )
-      .or(`member_id.eq.${memberId},related_member_id.eq.${memberId}`);
+      .eq('family_id', primaryFamilyId)
+      .eq('is_active', true)
+      .neq('member_id', memberId); // Exclude the current member
 
     if (resolvedTenantId) {
-      query = query.eq('tenant_id', resolvedTenantId);
+      membersQuery = membersQuery.eq('tenant_id', resolvedTenantId);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      throw error;
+    const { data: membersData, error: membersError } = await membersQuery;
+
+    if (membersError) {
+      console.warn('[MemberProfileAdapter] Failed to fetch family members:', membersError);
+      return [];
     }
 
-    return (data ?? []) as HouseholdRelationshipRow[];
+    // Transform family_members data to HouseholdRelationshipRow format
+    return (membersData ?? []).map((fm) => ({
+      member_id: memberId,
+      related_member_id: fm.member_id,
+      member: null, // The current member - not needed since we already know who they are
+      related_member: fm.member as { first_name?: string | null; last_name?: string | null; preferred_name?: string | null } | null,
+    })) as HouseholdRelationshipRow[];
   }
 
   async fetchGivingProfile(

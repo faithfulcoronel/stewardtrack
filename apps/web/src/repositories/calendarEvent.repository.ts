@@ -17,6 +17,8 @@ export interface ICalendarEventRepository extends BaseRepository<CalendarEvent> 
   getEventsForCalendarView(startDate: string, endDate: string): Promise<CalendarEventView[]>;
   syncFromCarePlans(): Promise<number>;
   syncFromDiscipleshipPlans(): Promise<number>;
+  syncFromMemberBirthdays(): Promise<number>;
+  syncFromMemberAnniversaries(): Promise<number>;
 }
 
 @injectable()
@@ -77,5 +79,13 @@ export class CalendarEventRepository
 
   async syncFromDiscipleshipPlans(): Promise<number> {
     return this.calendarEventAdapter.syncFromDiscipleshipPlans();
+  }
+
+  async syncFromMemberBirthdays(): Promise<number> {
+    return this.calendarEventAdapter.syncFromMemberBirthdays();
+  }
+
+  async syncFromMemberAnniversaries(): Promise<number> {
+    return this.calendarEventAdapter.syncFromMemberAnniversaries();
   }
 }

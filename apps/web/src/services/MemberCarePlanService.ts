@@ -9,6 +9,7 @@ import type { CrudService } from '@/services/CrudService';
 import type { INotificationBusService } from '@/services/notification/NotificationBusService';
 import { NotificationEventType } from '@/models/notification/notificationEvent.model';
 import type { NotificationPriority } from '@/models/notification/notification.model';
+import type { PlanningService } from '@/services/PlanningService';
 import { randomUUID } from 'crypto';
 
 @injectable()
@@ -20,6 +21,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
     private memberRepo: IMemberRepository,
     @inject(TYPES.NotificationBusService)
     private notificationBus: INotificationBusService,
+    @inject(TYPES.PlanningService)
+    private planningService: PlanningService,
   ) {}
 
   /**
@@ -191,6 +194,15 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
       await this.sendCarePlanAssignedNotification(carePlan);
     }
 
+    // Auto-sync to calendar if there's a follow-up date
+    if (carePlan.follow_up_at) {
+      try {
+        await this.planningService.syncCarePlanEvent(carePlan);
+      } catch (error) {
+        console.error('Failed to sync care plan to calendar:', error);
+      }
+    }
+
     return carePlan;
   }
 
@@ -261,7 +273,21 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
     id: string,
     data: Partial<MemberCarePlan>
   ): Promise<MemberCarePlan> {
-    return this.repo.update(id, data);
+    const carePlan = await this.repo.update(id, data);
+
+    // Auto-sync to calendar
+    try {
+      if (carePlan.follow_up_at) {
+        await this.planningService.syncCarePlanEvent(carePlan);
+      } else {
+        // Remove calendar event if follow-up date was cleared
+        await this.planningService.removeCarePlanEvent(carePlan.id);
+      }
+    } catch (error) {
+      console.error('Failed to sync care plan to calendar:', error);
+    }
+
+    return carePlan;
   }
 
   /**

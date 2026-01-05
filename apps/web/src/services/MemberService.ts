@@ -20,13 +20,17 @@ import { TYPES } from '@/lib/types';
 import type { IMemberRepository } from '@/repositories/member.repository';
 import type { IAccountRepository } from '@/repositories/account.repository';
 import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
-import type { Member } from '@/models/member.model';
+import type { Member, FamilyInput } from '@/models/member.model';
 import { QueryOptions, FilterCondition } from '@/adapters/base.adapter';
 import type { CrudService } from '@/services/CrudService';
 import { MemberValidator } from '@/validators/member.validator';
 import { validateOrThrow } from '@/utils/validation';
 import type { INotificationBusService } from '@/services/notification/NotificationBusService';
 import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import type { FamilyService } from '@/services/FamilyService';
+import type { FamilyRole } from '@/models/familyMember.model';
+import type { PlanningService } from '@/services/PlanningService';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 @injectable()
 export class MemberService implements CrudService<Member> {
@@ -39,6 +43,10 @@ export class MemberService implements CrudService<Member> {
     private ftRepo: IFinancialTransactionRepository,
     @inject(TYPES.NotificationBusService)
     private notificationBus: INotificationBusService,
+    @inject(TYPES.FamilyService)
+    private familyService: FamilyService,
+    @inject(TYPES.PlanningService)
+    private planningService: PlanningService,
   ) {}
 
   find(options: QueryOptions = {}) {
@@ -71,24 +79,152 @@ export class MemberService implements CrudService<Member> {
     fieldsToRemove: string[] = [],
   ) {
     validateOrThrow(MemberValidator, data);
-    const member = await this.repo.create(data, relations, fieldsToRemove);
+
+    // Extract family input before passing to repository
+    const familyInput = data.family;
+    const memberData = { ...data };
+    delete memberData.family;
+
+    const member = await this.repo.create(memberData, relations, fieldsToRemove);
+
+    // Handle family linking after member is created
+    if (familyInput !== undefined) {
+      await this.handleFamilyLinking(member.id!, familyInput);
+    }
 
     // Send notification if member has a linked user account
     if (member.user_id) {
       await this.sendMemberJoinedNotification(member);
     }
 
+    // Auto-sync birthday and anniversary to calendar
+    await this.syncMemberCalendarEvents(member);
+
     return member;
   }
 
-  update(
+  async update(
     id: string,
     data: Partial<Member>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
     validateOrThrow(MemberValidator, data);
-    return this.repo.update(id, data, relations, fieldsToRemove);
+
+    // Extract family input before passing to repository
+    const familyInput = data.family;
+    const memberData = { ...data };
+    delete memberData.family;
+
+    const member = await this.repo.update(id, memberData, relations, fieldsToRemove);
+
+    // Handle family linking after member is updated
+    if (familyInput !== undefined) {
+      await this.handleFamilyLinking(id, familyInput);
+    }
+
+    // Auto-sync birthday and anniversary to calendar if they were updated
+    if (data.birthday !== undefined || data.anniversary !== undefined) {
+      await this.syncMemberCalendarEvents(member);
+    }
+
+    return member;
+  }
+
+  /**
+   * Handle family linking for a member
+   * Creates or updates family association based on FamilyInput
+   */
+  private async handleFamilyLinking(memberId: string, familyInput: FamilyInput | null | undefined): Promise<void> {
+    const tenantId = await tenantUtils.getTenantId();
+    if (!tenantId) {
+      console.warn('[MemberService] No tenant context for family linking');
+      return;
+    }
+
+    // If familyInput is null, remove all family associations
+    if (familyInput === null) {
+      const existingFamilies = await this.familyService.getMemberFamilies(memberId, tenantId);
+      for (const family of existingFamilies) {
+        await this.familyService.removeMemberFromFamily(family.family_id, memberId, tenantId);
+      }
+      return;
+    }
+
+    // If no family input, nothing to do
+    if (!familyInput) {
+      return;
+    }
+
+    let familyId = familyInput.id;
+    const role: FamilyRole = familyInput.role ?? 'other';
+    const isPrimary = familyInput.isPrimary ?? true;
+
+    // Create or update the family
+    if (familyId) {
+      // Update existing family with new data if provided
+      const updateData: Record<string, unknown> = {};
+      if (familyInput.name !== undefined) updateData.name = familyInput.name;
+      if (familyInput.address_street !== undefined) updateData.address_street = familyInput.address_street;
+      if (familyInput.address_city !== undefined) updateData.address_city = familyInput.address_city;
+      if (familyInput.address_state !== undefined) updateData.address_state = familyInput.address_state;
+      if (familyInput.address_postal_code !== undefined) updateData.address_postal_code = familyInput.address_postal_code;
+
+      if (Object.keys(updateData).length > 0) {
+        await this.familyService.updateFamily(familyId, updateData);
+      }
+    } else if (familyInput.name) {
+      // Create new family if name is provided but no ID
+      const newFamily = await this.familyService.createFamily({
+        tenant_id: tenantId,
+        name: familyInput.name,
+        address_street: familyInput.address_street,
+        address_city: familyInput.address_city,
+        address_state: familyInput.address_state,
+        address_postal_code: familyInput.address_postal_code,
+      });
+      familyId = newFamily.id;
+    } else {
+      // No family ID and no name - check if member has existing primary family
+      const existingPrimary = await this.familyService.getPrimaryFamily(memberId, tenantId);
+      if (existingPrimary) {
+        familyId = existingPrimary.family_id;
+        // Update address on existing family if provided
+        const updateData: Record<string, unknown> = {};
+        if (familyInput.address_street !== undefined) updateData.address_street = familyInput.address_street;
+        if (familyInput.address_city !== undefined) updateData.address_city = familyInput.address_city;
+        if (familyInput.address_state !== undefined) updateData.address_state = familyInput.address_state;
+        if (familyInput.address_postal_code !== undefined) updateData.address_postal_code = familyInput.address_postal_code;
+
+        if (Object.keys(updateData).length > 0) {
+          await this.familyService.updateFamily(familyId, updateData);
+        }
+      } else {
+        // No existing family and no name provided - nothing to do
+        return;
+      }
+    }
+
+    if (!familyId) {
+      return;
+    }
+
+    // Check if member is already in this family
+    const isMember = await this.familyService.isMemberInFamily(familyId, memberId, tenantId);
+
+    if (isMember) {
+      // Update role if member is already in family
+      await this.familyService.updateMemberRole(familyId, memberId, tenantId, role);
+      if (isPrimary) {
+        await this.familyService.setPrimaryFamily(memberId, familyId, tenantId);
+      }
+    } else {
+      // Add member to family
+      await this.familyService.addMemberToFamily(familyId, memberId, tenantId, {
+        role,
+        isPrimary,
+      });
+    }
   }
 
   delete(id: string) {
@@ -407,6 +543,41 @@ export class MemberService implements CrudService<Member> {
     } catch (error) {
       // Log error but don't fail the member creation
       console.error('Failed to send member joined notification:', error);
+    }
+  }
+
+  /**
+   * Sync member's birthday and anniversary to the calendar
+   */
+  private async syncMemberCalendarEvents(member: Member): Promise<void> {
+    try {
+      // Sync birthday
+      if (member.birthday) {
+        await this.planningService.syncMemberBirthdayEvent({
+          id: member.id!,
+          first_name: member.first_name,
+          last_name: member.last_name,
+          birthday: member.birthday,
+        });
+      } else {
+        // Remove birthday event if date was cleared
+        await this.planningService.removeMemberBirthdayEvent(member.id!);
+      }
+
+      // Sync anniversary
+      if (member.anniversary) {
+        await this.planningService.syncMemberAnniversaryEvent({
+          id: member.id!,
+          first_name: member.first_name,
+          last_name: member.last_name,
+          anniversary: member.anniversary,
+        });
+      } else {
+        // Remove anniversary event if date was cleared
+        await this.planningService.removeMemberAnniversaryEvent(member.id!);
+      }
+    } catch (error) {
+      console.error('Failed to sync member calendar events:', error);
     }
   }
 }

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       synced: result,
-      message: `Synced ${result.carePlans} care plan events and ${result.discipleshipPlans} discipleship events`,
+      message: `Synced ${result.carePlans} care plans, ${result.discipleshipPlans} discipleship plans, ${result.birthdays} birthdays, and ${result.anniversaries} anniversaries`,
     });
   } catch (error) {
     console.error('Error syncing calendar events:', error);

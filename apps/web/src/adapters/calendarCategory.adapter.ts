@@ -162,10 +162,12 @@ export class CalendarCategoryAdapter
     const defaultCategories = [
       { code: 'care_plan', name: 'Care Plans', color: '#EF4444', icon: 'heart', sort_order: 1, is_system: true },
       { code: 'discipleship', name: 'Discipleship', color: '#8B5CF6', icon: 'book-open', sort_order: 2, is_system: true },
-      { code: 'meeting', name: 'Meetings', color: '#3B82F6', icon: 'users', sort_order: 3, is_system: true },
-      { code: 'service', name: 'Services', color: '#10B981', icon: 'church', sort_order: 4, is_system: true },
-      { code: 'event', name: 'Events', color: '#F59E0B', icon: 'calendar', sort_order: 5, is_system: true },
-      { code: 'reminder', name: 'Reminders', color: '#6B7280', icon: 'bell', sort_order: 6, is_system: true },
+      { code: 'birthday', name: 'Birthdays', color: '#EC4899', icon: 'cake', sort_order: 3, is_system: true },
+      { code: 'anniversary', name: 'Anniversaries', color: '#F97316', icon: 'gift', sort_order: 4, is_system: true },
+      { code: 'meeting', name: 'Meetings', color: '#3B82F6', icon: 'users', sort_order: 5, is_system: true },
+      { code: 'service', name: 'Services', color: '#10B981', icon: 'church', sort_order: 6, is_system: true },
+      { code: 'event', name: 'Events', color: '#F59E0B', icon: 'calendar', sort_order: 7, is_system: true },
+      { code: 'reminder', name: 'Reminders', color: '#6B7280', icon: 'bell', sort_order: 8, is_system: true },
       { code: 'general', name: 'General', color: '#64748B', icon: 'circle', sort_order: 99, is_system: true },
     ];
 

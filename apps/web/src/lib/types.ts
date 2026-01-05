@@ -240,6 +240,13 @@ export const TYPES = {
   IncomeExpenseTransactionService: Symbol.for('IncomeExpenseTransactionService'),
   LicenseFeatureService: Symbol.for('LicenseFeatureService'),
   MemberHouseholdService: Symbol.for('MemberHouseholdService'),
+
+  // Family Management
+  IFamilyAdapter: Symbol.for('IFamilyAdapter'),
+  IFamilyRepository: Symbol.for('IFamilyRepository'),
+  IFamilyMemberAdapter: Symbol.for('IFamilyMemberAdapter'),
+  IFamilyMemberRepository: Symbol.for('IFamilyMemberRepository'),
+  FamilyService: Symbol.for('FamilyService'),
   MemberProfileService: Symbol.for('MemberProfileService'),
   MemberCarePlanService: Symbol.for('MemberCarePlanService'),
   MemberDiscipleshipPlanService: Symbol.for('MemberDiscipleshipPlanService'),
