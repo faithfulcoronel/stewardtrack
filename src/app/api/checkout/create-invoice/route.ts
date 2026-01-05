@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { PaymentService } from '@/services/PaymentService';
+import { getCurrentUser } from '@/lib/server/context';
 
 /**
  * POST /api/checkout/create-invoice
@@ -22,17 +23,22 @@ import { PaymentService } from '@/services/PaymentService';
  */
 
 export async function POST(request: NextRequest) {
+  
   try {
+    const $user = await getCurrentUser();
     const body = await request.json();
-    const { tenantId, offeringId, payerEmail, payerName } = body;
+    const { tenantId, currentOffering, payerEmail, payerName } = body;
 
     // Validate required fields
-    if (!tenantId || !offeringId || !payerEmail || !payerName) {
+    if (!tenantId || !currentOffering || !payerName) {
       return NextResponse.json(
-        { error: 'Missing required fields: tenantId, offeringId, payerEmail, payerName' },
+        { error: 'Missing required fields: tenantId, currentOffering, payerName' },
         { status: 400 }
       );
     }
+
+    console.log('CURRENT OFFERING')
+    console.log(currentOffering)
 
     // Get payment service from DI container
     const paymentService = container.get<PaymentService>(TYPES.PaymentService);
@@ -46,22 +52,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Get offering details
-    const { createSupabaseServerClient } = await import('@/lib/supabase/server');
-    const supabase = await createSupabaseServerClient();
+    // const { createSupabaseServerClient } = await import('@/lib/supabase/server');
+    // const supabase = await createSupabaseServerClient();
 
-    const { data: offering, error: offeringError }:any = await supabase
-      .from('product_offerings')
-      .select('*')
-      .eq('id', offeringId)
-      .single();
+    // const { data: offering, error: offeringError }:any = await supabase
+    //   .from('product_offerings')
+    //   .select('*')
+    //   .eq('id', offeringId)
+    //   .single();
 
-    if (offeringError || !offering) {
-      return NextResponse.json(
-        { error: 'Invalid offering ID' },
-        { status: 404 }
-      );
-    }
+    // if (offeringError || !offering) {
+    //   return NextResponse.json(
+    //     { error: 'Invalid offering ID' },
+    //     { status: 404 }
+    //   );
+    // }
 
+    
     let externalId = `SUB-${tenantId}-${Date.now()}`;
     // Build success and failure URLs
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -71,12 +78,13 @@ export async function POST(request: NextRequest) {
     // Create payment invoice
     const { invoice, payment } = await paymentService.createSubscriptionPayment({
       tenantId,
-      offeringId: offering.id,
-      offeringName: offering.name,
-      amount: offering.base_price,
-      payerEmail,
+      externalId: externalId,
+      offeringId: currentOffering.id,
+      offeringName: currentOffering.name,
+      amount: currentOffering.base_price,
+      payerEmail: `${$user.email}`,
       payerName,
-      billingCycle: offering.billing_cycle,
+      billingCycle: currentOffering.billing_cycle,
       successUrl,
       failureUrl,
     });

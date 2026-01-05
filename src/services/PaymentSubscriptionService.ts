@@ -252,10 +252,12 @@ export class PaymentSubscriptionService {
     const profile = (adminUser as any).profiles;
     const payerName = `${profile.first_name} ${profile.last_name}`.trim();
     const payerEmail = profile.email;
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
     // Create payment invoice
     await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: targetOfferingId,
       offeringName: offering.name,
       amount: offering.base_price,
@@ -324,10 +326,12 @@ export class PaymentSubscriptionService {
     const profile = (adminUser as any).profiles;
     const payerName = `${profile.first_name} ${profile.last_name}`.trim();
     const payerEmail = profile.email;
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
     // Create payment for new plan
     const { invoice } = await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: newOfferingId,
       offeringName: newOffering.name,
       amount: paymentAmount,
@@ -398,10 +402,12 @@ export class PaymentSubscriptionService {
     const profile = (adminUser as any).profiles;
     const payerName = `${profile.first_name} ${profile.last_name}`.trim();
     const payerEmail = profile.email;
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
     // Create renewal payment
     await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: status.subscription_offering_id,
       offeringName: offering.name,
       amount: offering.base_price,

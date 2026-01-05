@@ -16,6 +16,7 @@ import type { SubscriptionPayment } from '@/models/subscriptionPayment.model';
 
 export interface CreatePaymentParams {
   tenantId: string;
+  externalId:string;
   offeringId: string;
   offeringName: string;
   amount: number;
@@ -215,6 +216,7 @@ export class PaymentService {
     // Create new payment with same details
     return this.createSubscriptionPayment({
       tenantId: failedPayment.tenant_id,
+      externalId: failedPayment.external_id,
       offeringId: failedPayment.offering_id,
       offeringName: metadata?.offering_name || failedPayment.offering.name,
       amount: failedPayment.amount,

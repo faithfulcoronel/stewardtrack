@@ -5,6 +5,7 @@ import { TYPES } from '@/lib/types';
 import type { PaymentService } from '@/services/PaymentService';
 import type { LicensingService } from '@/services/LicensingService';
 import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentUser } from '@/lib/server/context';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Tenant } from '@/models/tenant.model';
 import { TenantService } from '@/services/TenantService';
@@ -28,6 +29,7 @@ export async function GET() {
   try {
     // Get current tenant ID
     const tenantId = await getCurrentTenantId();
+    const $user =  await getCurrentUser();
 
     if (!tenantId) {
       return NextResponse.json({ error: 'No tenant context available' }, { status: 400 });

@@ -377,6 +377,7 @@ export class XenditService {
    */
   async createSubscriptionInvoice(params: {
     tenantId: string;
+    externalId:string;
     offeringId: string;
     offeringName: string;
     amount: number;
@@ -394,7 +395,7 @@ export class XenditService {
     const surname = names.length > 1 ? names[names.length - 1] : '';
 
     return this.createInvoice({
-      external_id: externalId,
+      external_id: params.externalId,
       amount: this.formatAmount(params.amount),
       payer_email: params.payerEmail,
       description,
