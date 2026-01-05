@@ -240,5 +240,287 @@ test.describe('Registration Flow', () => {
       await registrationPage.register(testData);
       await registrationPage.waitForSuccessfulRegistration();
     });
+
+    test('should handle unicode characters in church name', async ({ registrationPage }) => {
+      const testData = generateRegistrationData({
+        churchName: '교회 Church 日本語 Église',
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+
+    test('should handle hyphenated names', async ({ registrationPage }) => {
+      const testData = generateRegistrationData({
+        firstName: 'Mary-Jane',
+        lastName: 'Watson-Parker',
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+
+    test('should handle minimum length inputs', async ({ registrationPage }) => {
+      const timestamp = Date.now();
+      const testData = generateRegistrationData({
+        firstName: 'A',
+        lastName: 'B',
+        churchName: `C ${timestamp}`,
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+  });
+
+  test.describe('Different Plan Selections', () => {
+    test('should register with free plan', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Try to select free plan specifically
+      const freePlanVisible = await signupPage.freePlanButton.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (freePlanVisible) {
+        await signupPage.selectFreePlan();
+      } else {
+        // Fall back to first plan
+        await signupPage.selectFirstPlan();
+      }
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+
+      // Verify successful registration
+      expect(page.url()).toMatch(/\/(onboarding|admin|dashboard)/);
+    });
+
+    test('should register with professional plan if available', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Wait for plans to load and check if professional tier is visible
+      const proPlanVisible = await signupPage.isTierVisible('professional');
+
+      if (!proPlanVisible) {
+        // Skip if professional plan not available
+        test.skip();
+        return;
+      }
+
+      await signupPage.selectPlanByTier('professional');
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+
+      // Professional plan may redirect to checkout or onboarding
+      await page.waitForURL(/\/(onboarding|admin|dashboard|checkout)/, { timeout: 90000 });
+    });
+
+    test('should register with enterprise plan if available', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Wait for plans to load and check if enterprise tier is visible
+      const enterprisePlanVisible = await signupPage.isTierVisible('enterprise');
+
+      if (!enterprisePlanVisible) {
+        // Skip if enterprise plan not available
+        test.skip();
+        return;
+      }
+
+      await signupPage.selectPlanByTier('enterprise');
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+
+      // Enterprise plan may redirect to contact sales, checkout, or onboarding
+      await page.waitForURL(/\/(onboarding|admin|dashboard|checkout|contact)/, { timeout: 90000 });
+    });
+
+    test('should register with premium plan if available', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Wait for plans to load and check if premium tier is visible
+      const premiumPlanVisible = await signupPage.isTierVisible('premium');
+
+      if (!premiumPlanVisible) {
+        // Skip if premium plan not available
+        test.skip();
+        return;
+      }
+
+      await signupPage.selectPlanByTier('premium');
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+
+      // Premium plan may redirect to checkout or onboarding
+      await page.waitForURL(/\/(onboarding|admin|dashboard|checkout)/, { timeout: 90000 });
+    });
+  });
+
+  test.describe('Billing Cycle Selection', () => {
+    test('should register with monthly billing cycle', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Check if billing toggle is visible
+      const monthlyToggleVisible = await signupPage.monthlyToggle.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (monthlyToggleVisible) {
+        await signupPage.selectMonthlyBilling();
+      }
+
+      await signupPage.selectFirstPlan();
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+
+      expect(page.url()).toMatch(/\/(onboarding|admin|dashboard|checkout)/);
+    });
+
+    test('should register with annual billing cycle', async ({ page, signupPage, registrationPage }) => {
+      await signupPage.goto();
+
+      // Check if billing toggle is visible
+      const annualToggleVisible = await signupPage.annualToggle.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (annualToggleVisible) {
+        await signupPage.selectAnnualBilling();
+      }
+
+      await signupPage.selectFirstPlan();
+
+      const testData = generateRegistrationData();
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+
+      expect(page.url()).toMatch(/\/(onboarding|admin|dashboard|checkout)/);
+    });
+  });
+
+  test.describe('Processing Page Behavior', () => {
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
+    });
+
+    test('should show processing page during registration', async ({ page, registrationPage }) => {
+      const testData = generateRegistrationData();
+
+      await registrationPage.fillRegistrationForm(testData);
+      await registrationPage.submit();
+
+      // Should redirect to processing page first
+      await registrationPage.waitForProcessingPageRedirect();
+
+      // Verify we're on the processing page
+      const isOnProcessing = await registrationPage.isOnProcessingPage();
+      expect(isOnProcessing).toBe(true);
+
+      // Then wait for final redirect
+      await page.waitForURL(/\/(onboarding|admin|dashboard)/, { timeout: 90000 });
+    });
+
+    test('should show progress steps on processing page', async ({ page, registrationPage }) => {
+      const testData = generateRegistrationData();
+
+      await registrationPage.fillRegistrationForm(testData);
+      await registrationPage.submit();
+
+      // Wait for processing page
+      await registrationPage.waitForProcessingPageRedirect();
+
+      // Check for progress indicators
+      const progressHeading = page.getByRole('heading', { name: /setting up|creating|processing/i });
+      await expect(progressHeading.first()).toBeVisible({ timeout: 5000 });
+
+      // Wait for completion
+      await page.waitForURL(/\/(onboarding|admin|dashboard)/, { timeout: 90000 });
+    });
+  });
+
+  test.describe('Error Recovery', () => {
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
+    });
+
+    test('should preserve form data after validation error', async ({ page, registrationPage }) => {
+      const testData = generateRegistrationData({
+        password: 'mismatch1',
+        confirmPassword: 'mismatch2',
+      });
+
+      await registrationPage.fillRegistrationForm(testData);
+      await registrationPage.submit();
+
+      // Wait for validation
+      await page.waitForTimeout(1000);
+
+      // Check that email field still has the value
+      const emailValue = await registrationPage.emailField.inputValue();
+      expect(emailValue).toBe(testData.email);
+
+      // Check church name is preserved
+      const churchNameValue = await registrationPage.churchNameField.inputValue();
+      expect(churchNameValue).toBe(testData.churchName);
+
+      // Check first name is preserved
+      const firstNameValue = await registrationPage.firstNameField.inputValue();
+      expect(firstNameValue).toBe(testData.firstName);
+
+      // Check last name is preserved
+      const lastNameValue = await registrationPage.lastNameField.inputValue();
+      expect(lastNameValue).toBe(testData.lastName);
+    });
+  });
+
+  test.describe('Input Validation Edge Cases', () => {
+    test.beforeEach(async ({ signupPage }) => {
+      await signupPage.goto();
+      await signupPage.selectFirstPlan();
+    });
+
+    test('should accept email with plus sign', async ({ registrationPage }) => {
+      const timestamp = Date.now();
+      const testData = generateRegistrationData({
+        email: `test+${timestamp}@example.com`,
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+
+    test('should accept email with subdomain', async ({ registrationPage }) => {
+      const timestamp = Date.now();
+      const testData = generateRegistrationData({
+        email: `test-${timestamp}@mail.example.com`,
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+
+    test('should handle password at minimum length', async ({ registrationPage }) => {
+      // Assuming minimum password length is 8 with complexity requirements
+      const testData = generateRegistrationData({
+        password: 'Test123!',
+        confirmPassword: 'Test123!',
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
+
+    test('should accept strong password with special characters', async ({ registrationPage }) => {
+      const testData = generateRegistrationData({
+        password: 'Str0ng!@#$%^&*()P@ss',
+        confirmPassword: 'Str0ng!@#$%^&*()P@ss',
+      });
+
+      await registrationPage.register(testData);
+      await registrationPage.waitForSuccessfulRegistration();
+    });
   });
 });
