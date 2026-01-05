@@ -4,6 +4,12 @@ import { Page, Locator } from '@playwright/test';
  * Page Object Model for Signup/Pricing Page
  *
  * Encapsulates all selectors and actions for the pricing/plan selection page
+ *
+ * Note: The signup page dynamically loads pricing plans from the API.
+ * Each plan card has:
+ * - A heading with the tier name (Essential, Premium, Professional, Enterprise)
+ * - A "Choose Plan" or "Get Started Free" button
+ * - Optional "Start X-Day Free Trial" button for tiers with trial
  */
 export class SignupPage {
   readonly page: Page;
@@ -15,6 +21,7 @@ export class SignupPage {
   readonly trialPlanButton: Locator;
   readonly professionalPlanButton: Locator;
   readonly enterprisePlanButton: Locator;
+  readonly premiumPlanButton: Locator;
   readonly billingToggle: Locator;
   readonly monthlyToggle: Locator;
   readonly annualToggle: Locator;
@@ -25,11 +32,16 @@ export class SignupPage {
     this.pageHeading = page.getByRole('heading', { name: /pricing|choose.*plan|get started/i });
     this.planCards = page.locator('[data-testid="pricing-card"], .pricing-card');
 
-    // Plan selection buttons
-    this.freePlanButton = page.getByRole('button', { name: /free|get started.*free/i }).first();
-    this.trialPlanButton = page.getByRole('button', { name: /trial|start.*trial/i }).first();
-    this.professionalPlanButton = page.getByRole('button', { name: /professional|get started.*professional/i }).first();
-    this.enterprisePlanButton = page.getByRole('button', { name: /enterprise|get started.*enterprise/i }).first();
+    // Plan selection buttons - these match the button text used in the signup page
+    // "Get Started Free" for free plans, "Choose Plan" for paid plans, "Start X-Day Free Trial" for trials
+    this.freePlanButton = page.getByRole('button', { name: /get started free/i }).first();
+    this.trialPlanButton = page.getByRole('button', { name: /start.*free trial/i }).first();
+
+    // For paid plans, we need to find the card by tier heading and then click the button inside
+    // The button text is "Choose Plan" or "or Subscribe Now" for all paid plans
+    this.professionalPlanButton = page.locator('div').filter({ has: page.getByRole('heading', { name: /professional/i }) }).getByRole('button', { name: /choose plan|subscribe/i }).first();
+    this.enterprisePlanButton = page.locator('div').filter({ has: page.getByRole('heading', { name: /enterprise/i }) }).getByRole('button', { name: /choose plan|subscribe/i }).first();
+    this.premiumPlanButton = page.locator('div').filter({ has: page.getByRole('heading', { name: /premium/i }) }).getByRole('button', { name: /choose plan|subscribe|trial/i }).first();
 
     // Billing cycle toggle
     this.billingToggle = page.locator('[data-testid="billing-toggle"], [role="tablist"]').first();
@@ -119,5 +131,66 @@ export class SignupPage {
       await this.selectAnnualBilling();
     }
     await this.selectFirstPlan();
+  }
+
+  /**
+   * Select premium plan
+   */
+  async selectPremiumPlan() {
+    await this.premiumPlanButton.click();
+  }
+
+  /**
+   * Select a plan by tier name
+   * This finds the card with the tier heading and clicks the first available button
+   */
+  async selectPlanByTier(tier: 'essential' | 'premium' | 'professional' | 'enterprise') {
+    // Wait for plans to load
+    await this.page.waitForTimeout(1000);
+
+    // Find the card with the tier heading
+    const tierCard = this.page.locator('div').filter({
+      has: this.page.getByRole('heading', { name: new RegExp(tier, 'i') })
+    });
+
+    // Find and click any button in the card (trial, choose plan, or get started)
+    const button = tierCard.getByRole('button').first();
+    await button.click();
+  }
+
+  /**
+   * Check if a specific tier plan is visible
+   */
+  async isTierVisible(tier: 'essential' | 'premium' | 'professional' | 'enterprise'): Promise<boolean> {
+    // Wait for plans to load
+    await this.page.waitForTimeout(1000);
+
+    const tierHeading = this.page.getByRole('heading', { name: new RegExp(`^${tier}$`, 'i') });
+    return await tierHeading.isVisible({ timeout: 3000 }).catch(() => false);
+  }
+
+  /**
+   * Get all visible tier names
+   */
+  async getVisibleTiers(): Promise<string[]> {
+    // Wait for plans to load
+    await this.page.waitForTimeout(1000);
+
+    // Get all h3 headings that contain tier names
+    const tierHeadings = this.page.locator('h3').filter({
+      hasText: /essential|premium|professional|enterprise/i
+    });
+
+    const count = await tierHeadings.count();
+    const tiers: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const text = await tierHeadings.nth(i).textContent();
+      if (text) {
+        tiers.push(text.toLowerCase().trim());
+      }
+    }
+
+    return tiers;
   }
 }

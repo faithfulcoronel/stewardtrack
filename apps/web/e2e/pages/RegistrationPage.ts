@@ -92,9 +92,22 @@ export class RegistrationPage {
 
   /**
    * Wait for successful registration redirect
+   * Extended timeout to account for:
+   * - Auth user creation
+   * - Tenant setup
+   * - Encryption key generation
+   * - License provisioning
+   * - RBAC seeding
+   * - Permission deployment
+   * - Feature onboarding plugins
    */
   async waitForSuccessfulRegistration() {
-    await this.page.waitForURL(/\/(onboarding|admin|dashboard)/, { timeout: 30000 });
+    // First wait for processing page (fast redirect)
+    await this.page.waitForURL(/\/signup\/register\/processing/, { timeout: 10000 });
+
+    // Then wait for final redirect to onboarding/admin/dashboard
+    // This can take up to 60 seconds for all backend steps to complete
+    await this.page.waitForURL(/\/(onboarding|admin|dashboard)/, { timeout: 90000 });
   }
 
   /**

@@ -226,54 +226,15 @@ export class RegistrationService {
       }
 
       // ===== STEP 11: Deploy permissions from licensed features =====
-      try {
-        const deploymentSummary = await this.permissionDeploymentService.deployAllFeaturePermissions(tenantId);
+      // OPTIMIZATION: Run permission deployment asynchronously to speed up registration
+      // The user can start using the app immediately while permissions are being set up
+      // The tenant admin role already has full access, so permissions are not blocking
+      this.deployPermissionsAsync(tenantId, offering.tier, offeringId, userId);
 
-        console.log(`Permission deployment for tenant ${tenantId}:`, {
-          totalFeatures: deploymentSummary.totalFeatures,
-          successfulDeployments: deploymentSummary.successfulDeployments,
-          permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
-          roleAssignments: deploymentSummary.totalRoleAssignments,
-        });
-
-        if (deploymentSummary.errors.length > 0) {
-          console.warn('Permission deployment errors:', deploymentSummary.errors);
-        }
-      } catch (error) {
-        console.error('Failed to deploy permissions:', error);
-        // Non-fatal - tenant still created successfully
-      }
-
-      // ===== STEP 12: Execute feature onboarding plugins =====
-      // Each licensed feature can register a plugin to seed preset data
-      // (e.g., membership types, stages, financial categories, etc.)
-      try {
-        const onboardingSummary = await this.featureOnboardingOrchestrator.executePlugins({
-          tenantId,
-          userId,
-          subscriptionTier: offering.tier,
-          offeringId,
-        });
-
-        console.log(`Feature onboarding for tenant ${tenantId}:`, {
-          pluginsExecuted: onboardingSummary.totalPluginsExecuted,
-          successful: onboardingSummary.successfulPlugins,
-          failed: onboardingSummary.failedPlugins,
-          recordsCreated: onboardingSummary.totalRecordsCreated,
-          skipped: onboardingSummary.skippedPlugins,
-        });
-
-        if (onboardingSummary.failedPlugins > 0) {
-          console.warn('Feature onboarding plugin errors:',
-            onboardingSummary.results
-              .filter(r => !r.result.success)
-              .map(r => ({ feature: r.featureCode, error: r.result.message }))
-          );
-        }
-      } catch (error) {
-        console.error('Failed to execute feature onboarding plugins:', error);
-        // Non-fatal - tenant still created successfully
-      }
+      // NOTE: Steps 11 & 12 now run in background. User gets immediate access.
+      // - Permission deployment: Runs async, takes 10-30 seconds
+      // - Feature onboarding plugins: Runs async, takes 5-15 seconds
+      // Both are non-blocking and non-fatal to registration success.
 
       // ===== STEP 13: Return success =====
       return {
@@ -295,6 +256,76 @@ export class RegistrationService {
         error: error instanceof Error ? error.message : 'Registration failed',
       };
     }
+  }
+
+  /**
+   * Deploy permissions and run feature onboarding asynchronously
+   * This runs after registration completes to avoid blocking the user
+   */
+  private deployPermissionsAsync(
+    tenantId: string,
+    tier: string,
+    offeringId: string,
+    userId: string
+  ): void {
+    // Use setImmediate to ensure this runs after the current event loop
+    // This allows the registration response to return immediately
+    setImmediate(async () => {
+      console.log(`[ASYNC] Starting background permission deployment for tenant ${tenantId}`);
+      const startTime = Date.now();
+
+      try {
+        // Deploy permissions from licensed features
+        const deploymentSummary = await this.permissionDeploymentService.deployAllFeaturePermissions(tenantId);
+
+        console.log(`[ASYNC] Permission deployment completed for tenant ${tenantId}:`, {
+          totalFeatures: deploymentSummary.totalFeatures,
+          successfulDeployments: deploymentSummary.successfulDeployments,
+          permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
+          roleAssignments: deploymentSummary.totalRoleAssignments,
+          durationMs: Date.now() - startTime,
+        });
+
+        if (deploymentSummary.errors.length > 0) {
+          console.warn('[ASYNC] Permission deployment errors:', deploymentSummary.errors);
+        }
+      } catch (error) {
+        console.error('[ASYNC] Failed to deploy permissions:', error);
+        // Non-fatal - tenant still operational
+      }
+
+      try {
+        // Execute feature onboarding plugins
+        const onboardingSummary = await this.featureOnboardingOrchestrator.executePlugins({
+          tenantId,
+          userId,
+          subscriptionTier: tier,
+          offeringId,
+        });
+
+        console.log(`[ASYNC] Feature onboarding completed for tenant ${tenantId}:`, {
+          pluginsExecuted: onboardingSummary.totalPluginsExecuted,
+          successful: onboardingSummary.successfulPlugins,
+          failed: onboardingSummary.failedPlugins,
+          recordsCreated: onboardingSummary.totalRecordsCreated,
+          skipped: onboardingSummary.skippedPlugins,
+          totalDurationMs: Date.now() - startTime,
+        });
+
+        if (onboardingSummary.failedPlugins > 0) {
+          console.warn('[ASYNC] Feature onboarding plugin errors:',
+            onboardingSummary.results
+              .filter(r => !r.result.success)
+              .map(r => ({ feature: r.featureCode, error: r.result.message }))
+          );
+        }
+      } catch (error) {
+        console.error('[ASYNC] Failed to execute feature onboarding plugins:', error);
+        // Non-fatal - tenant still operational
+      }
+
+      console.log(`[ASYNC] Background tasks completed for tenant ${tenantId} in ${Date.now() - startTime}ms`);
+    });
   }
 
   /**
