@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Shield, CheckCircle2, Users, Loader2 } from "lucide-react";
 
@@ -46,9 +46,24 @@ function BackgroundVectors() {
   );
 }
 
-export default function LoginPage() {
+function LoadingFallback() {
+  return (
+    <div className="relative overflow-hidden min-h-[calc(100vh-200px)]">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#179a65] via-green-600 to-[#0F766E]" />
+      <div className="relative z-10 flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    </div>
+  );
+}
+
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isChecking, setIsChecking] = useState(true);
+
+  // Get the redirectTo parameter from URL (set by admin layout when unauthenticated)
+  const redirectTo = searchParams.get('redirectTo') || '/admin';
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -56,7 +71,8 @@ export default function LoginPage() {
         const response = await fetch('/api/auth/status');
         const data = await response.json();
         if (data.authenticated) {
-          router.replace('/admin');
+          // Redirect to the intended destination or default to /admin
+          router.replace(redirectTo);
           return;
         }
       } catch (error) {
@@ -67,7 +83,7 @@ export default function LoginPage() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, redirectTo]);
 
   if (isChecking) {
     return (
@@ -191,7 +207,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <SignInForm />
+              <SignInForm redirectTo={redirectTo} />
 
               <div className="mt-6 space-y-4">
                 <div className="relative">
@@ -249,5 +265,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

@@ -78,7 +78,8 @@
       "Bash(timeout 180 node_modules/.bin/tsc:*)",
       "Bash(node_modules/.bin/tsc:*)",
       "Bash(timeout 180 pnpm:*)",
-      "Bash(pnpm sync:android:*)"
+      "Bash(pnpm sync:android:*)",
+      "Bash(pnpm run lint)"
     ],
     "deny": [],
     "ask": []

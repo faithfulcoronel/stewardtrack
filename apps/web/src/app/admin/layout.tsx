@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Gate } from "@/lib/access-gate";
 
 import { type AdminNavSection } from "@/components/admin/sidebar-nav";
@@ -43,7 +44,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "Administration",
     items: [
       { title: "Security", href: "/admin/security", icon: "security" },
-      { title: "RBAC Management", href: "/admin/security/rbac", icon: "security" },
+      { title: "Access Control", href: "/admin/security/rbac", icon: "security" },
       { title: "Settings", href: "/admin/settings", icon: "settings" },
     ],
   },
@@ -71,7 +72,30 @@ export default async function AdminLayout({
   const authResult = await authService.checkAuthentication();
 
   if (!authResult.authorized || !authResult.user) {
-    redirect("/login");
+    // Get the current URL to redirect back after login
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") || headersList.get("x-invoke-path");
+    const fullUrl = headersList.get("x-url") || headersList.get("referer");
+
+    // Try to extract the path from available headers
+    let redirectTo = "/admin";
+    if (pathname && pathname.startsWith("/admin")) {
+      redirectTo = pathname;
+    } else if (fullUrl) {
+      try {
+        const url = new URL(fullUrl);
+        if (url.pathname.startsWith("/admin")) {
+          redirectTo = url.pathname + url.search;
+        }
+      } catch {
+        // Invalid URL, use default
+      }
+    }
+
+    const loginUrl = redirectTo !== "/admin"
+      ? `/login?redirectTo=${encodeURIComponent(redirectTo)}`
+      : "/login";
+    redirect(loginUrl);
   }
 
   const user = authResult.user;
