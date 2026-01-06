@@ -193,12 +193,14 @@ export function DynamicSidebar({
             ))}
           </div>
         </div>
-        <div
-          className="border-t border-white/20 px-4 py-4 text-xs"
-          style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 70%, transparent)" }}
-        >
-          Copyright {new Date().getFullYear()} StewardTrack
-        </div>
+        {showLabels && (
+          <div
+            className="border-t border-white/20 px-4 py-4 text-xs"
+            style={{ color: "color-mix(in srgb, var(--sidebar-foreground) 70%, transparent)" }}
+          >
+            Copyright {new Date().getFullYear()} StewardTrack
+          </div>
+        )}
       </aside>
     </>
   );
