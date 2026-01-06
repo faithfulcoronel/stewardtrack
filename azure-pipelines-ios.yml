@@ -66,12 +66,6 @@ stages:
             clean: true
             fetchDepth: 0
 
-          # Select Xcode version
-          - task: UseXcode@1
-            displayName: 'Select Xcode $(xcodeVersion)'
-            inputs:
-              version: '$(xcodeVersion)'
-
           # Setup Node.js
           - task: UseNode@1
             displayName: 'Setup Node.js $(nodeVersion)'
