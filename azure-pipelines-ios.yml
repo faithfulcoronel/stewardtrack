@@ -1,0 +1,288 @@
+# Azure DevOps Pipeline for StewardTrack iOS App
+# Builds and archives the Capacitor iOS app
+# https://docs.microsoft.com/azure/devops/pipelines/languages/xcode
+
+trigger:
+  branches:
+    include:
+      - master
+      - main
+      - release/*
+  paths:
+    include:
+      - apps/web/**
+      - apps/mobile/**
+      - packages/**
+      - pnpm-lock.yaml
+
+pr:
+  branches:
+    include:
+      - master
+      - main
+  paths:
+    include:
+      - apps/web/**
+      - apps/mobile/**
+      - packages/**
+
+variables:
+  - name: nodeVersion
+    value: '20.x'
+  - name: pnpmVersion
+    value: '9.15.0'
+  - name: xcodeVersion
+    value: '15'
+  - name: scheme
+    value: 'App'
+  - name: configuration
+    value: 'Release'
+  - name: sdk
+    value: 'iphoneos'
+  - name: iosProjectPath
+    value: 'apps/mobile/ios/App'
+  - name: xcworkspacePath
+    value: 'apps/mobile/ios/App/App.xcworkspace'
+  - name: exportMethod
+    value: 'app-store' # Options: app-store, ad-hoc, enterprise, development
+  - name: archivePath
+    value: '$(Build.ArtifactStagingDirectory)/StewardTrack.xcarchive'
+  - name: exportPath
+    value: '$(Build.ArtifactStagingDirectory)/export'
+
+pool:
+  vmImage: 'macos-14' # macOS Sonoma with Xcode 15
+
+stages:
+  - stage: Build
+    displayName: 'Build iOS App'
+    jobs:
+      - job: BuildiOS
+        displayName: 'Build and Archive iOS'
+        timeoutInMinutes: 60
+        steps:
+          # Checkout source code
+          - checkout: self
+            clean: true
+            fetchDepth: 0
+
+          # Select Xcode version
+          - task: UseXcode@1
+            displayName: 'Select Xcode $(xcodeVersion)'
+            inputs:
+              version: '$(xcodeVersion)'
+
+          # Setup Node.js
+          - task: UseNode@1
+            displayName: 'Setup Node.js $(nodeVersion)'
+            inputs:
+              version: '$(nodeVersion)'
+
+          # Install pnpm
+          - script: |
+              corepack enable
+              corepack prepare pnpm@$(pnpmVersion) --activate
+            displayName: 'Install pnpm $(pnpmVersion)'
+
+          # Cache pnpm store
+          - task: Cache@2
+            displayName: 'Cache pnpm store'
+            inputs:
+              key: 'pnpm | "$(Agent.OS)" | pnpm-lock.yaml'
+              restoreKeys: |
+                pnpm | "$(Agent.OS)"
+              path: $(Pipeline.Workspace)/.pnpm-store
+
+          # Configure pnpm store
+          - script: |
+              pnpm config set store-dir $(Pipeline.Workspace)/.pnpm-store
+            displayName: 'Configure pnpm store'
+
+          # Install dependencies
+          - script: |
+              pnpm install --frozen-lockfile
+            displayName: 'Install dependencies'
+
+          # Build shared packages
+          - script: |
+              pnpm build:packages
+            displayName: 'Build shared packages'
+
+          # Build web app (required for Capacitor sync)
+          - script: |
+              pnpm build:web
+            displayName: 'Build web application'
+            env:
+              NEXT_PUBLIC_SUPABASE_URL: $(NEXT_PUBLIC_SUPABASE_URL)
+              NEXT_PUBLIC_SUPABASE_ANON_KEY: $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+              NODE_ENV: production
+
+          # Sync Capacitor iOS project
+          - script: |
+              cd apps/mobile
+              pnpm cap sync ios
+            displayName: 'Sync Capacitor iOS'
+
+          # Cache CocoaPods
+          - task: Cache@2
+            displayName: 'Cache CocoaPods'
+            inputs:
+              key: 'cocoapods | "$(Agent.OS)" | $(iosProjectPath)/Podfile.lock'
+              restoreKeys: |
+                cocoapods | "$(Agent.OS)"
+              path: $(iosProjectPath)/Pods
+
+          # Install CocoaPods dependencies
+          - script: |
+              cd $(iosProjectPath)
+              pod install --repo-update
+            displayName: 'Install CocoaPods'
+
+          # Install Apple certificate and provisioning profile
+          - task: InstallAppleCertificate@2
+            displayName: 'Install Apple Certificate'
+            inputs:
+              certSecureFile: '$(P12_CERTIFICATE_FILE)'
+              certPwd: '$(P12_PASSWORD)'
+              keychain: 'temp'
+              deleteCert: true
+
+          - task: InstallAppleProvisioningProfile@1
+            displayName: 'Install Provisioning Profile'
+            inputs:
+              provisioningProfileLocation: 'secureFiles'
+              provProfileSecureFile: '$(PROVISIONING_PROFILE_FILE)'
+              removeProfile: true
+
+          # Build iOS app
+          - task: Xcode@5
+            displayName: 'Build iOS App'
+            inputs:
+              actions: 'build'
+              scheme: '$(scheme)'
+              sdk: '$(sdk)'
+              configuration: '$(configuration)'
+              xcWorkspacePath: '$(xcworkspacePath)'
+              xcodeVersion: 'specifyPath'
+              xcodeDeveloperDir: '/Applications/Xcode_$(xcodeVersion).app/Contents/Developer'
+              packageApp: false
+              signingOption: 'manual'
+              signingIdentity: '$(APPLE_CERTIFICATE_SIGNING_IDENTITY)'
+              provisioningProfileUuid: '$(APPLE_PROV_PROFILE_UUID)'
+              args: '-allowProvisioningUpdates CODE_SIGN_STYLE=Manual'
+
+          # Archive iOS app
+          - task: Xcode@5
+            displayName: 'Archive iOS App'
+            inputs:
+              actions: 'archive'
+              scheme: '$(scheme)'
+              sdk: '$(sdk)'
+              configuration: '$(configuration)'
+              xcWorkspacePath: '$(xcworkspacePath)'
+              xcodeVersion: 'specifyPath'
+              xcodeDeveloperDir: '/Applications/Xcode_$(xcodeVersion).app/Contents/Developer'
+              archivePath: '$(archivePath)'
+              packageApp: false
+              signingOption: 'manual'
+              signingIdentity: '$(APPLE_CERTIFICATE_SIGNING_IDENTITY)'
+              provisioningProfileUuid: '$(APPLE_PROV_PROFILE_UUID)'
+              args: '-allowProvisioningUpdates CODE_SIGN_STYLE=Manual'
+
+          # Export IPA
+          - task: Xcode@5
+            displayName: 'Export IPA'
+            inputs:
+              actions: '-exportArchive'
+              archivePath: '$(archivePath)'
+              exportPath: '$(exportPath)'
+              exportOptions: 'plist'
+              exportOptionsPlist: '$(iosProjectPath)/ExportOptions.plist'
+              xcodeVersion: 'specifyPath'
+              xcodeDeveloperDir: '/Applications/Xcode_$(xcodeVersion).app/Contents/Developer'
+
+          # Publish build artifacts
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish IPA Artifact'
+            inputs:
+              pathToPublish: '$(exportPath)'
+              artifactName: 'ios-ipa'
+              publishLocation: 'Container'
+
+          # Publish archive (optional, for debugging)
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Archive'
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+            inputs:
+              pathToPublish: '$(archivePath)'
+              artifactName: 'ios-archive'
+              publishLocation: 'Container'
+
+  - stage: Deploy
+    displayName: 'Deploy to App Store Connect'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    jobs:
+      - deployment: DeployToTestFlight
+        displayName: 'Deploy to TestFlight'
+        environment: 'ios-testflight'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: ios-ipa
+
+                # Upload to App Store Connect using Fastlane
+                - script: |
+                    brew install fastlane
+                    fastlane pilot upload \
+                      --ipa "$(Pipeline.Workspace)/ios-ipa/StewardTrack.ipa" \
+                      --username "$(APPLE_ID)" \
+                      --skip_waiting_for_build_processing true
+                  displayName: 'Upload to TestFlight'
+                  env:
+                    FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $(APP_SPECIFIC_PASSWORD)
+                    FASTLANE_SESSION: $(FASTLANE_SESSION)
+
+# ============================================================================
+# SETUP INSTRUCTIONS
+# ============================================================================
+#
+# Required Pipeline Variables (set in Azure DevOps Library or Pipeline Settings):
+#
+# 1. Environment Variables for Web Build:
+#    - NEXT_PUBLIC_SUPABASE_URL: Your Supabase project URL
+#    - NEXT_PUBLIC_SUPABASE_ANON_KEY: Supabase anonymous key
+#
+# 2. Secure Files (upload in Library > Secure files):
+#    - P12_CERTIFICATE_FILE: Your .p12 certificate file name
+#    - PROVISIONING_PROFILE_FILE: Your .mobileprovision file name
+#
+# 3. Pipeline Variables:
+#    - P12_PASSWORD: Password for the .p12 certificate (secret)
+#    - APPLE_CERTIFICATE_SIGNING_IDENTITY: e.g., "Apple Distribution: Your Company (TEAMID)"
+#    - APPLE_PROV_PROFILE_UUID: UUID from provisioning profile
+#
+# 4. For App Store Deployment:
+#    - APPLE_ID: Your Apple Developer account email
+#    - APP_SPECIFIC_PASSWORD: App-specific password for Apple ID
+#    - FASTLANE_SESSION: (optional) Fastlane session for 2FA
+#
+# 5. Create ExportOptions.plist in apps/mobile/ios/App/:
+#    <?xml version="1.0" encoding="UTF-8"?>
+#    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+#    <plist version="1.0">
+#    <dict>
+#        <key>method</key>
+#        <string>app-store</string>
+#        <key>teamID</key>
+#        <string>YOUR_TEAM_ID</string>
+#        <key>uploadBitcode</key>
+#        <false/>
+#        <key>uploadSymbols</key>
+#        <true/>
+#    </dict>
+#    </plist>
+#
+# ============================================================================
