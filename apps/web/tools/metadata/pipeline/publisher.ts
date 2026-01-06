@@ -65,7 +65,8 @@ export class RegistryPublisher {
     if (!shouldWrite) {
       return;
     }
-    const compiledPath = path.relative(this.context.paths.rootDir, this.getCompiledPath(definition));
+    // Use forward slashes for cross-platform compatibility (Windows paths work with forward slashes)
+    const compiledPath = path.relative(this.context.paths.rootDir, this.getCompiledPath(definition)).split(path.sep).join('/');
     const pointer: ManifestEntry = {
       key: computeManifestKey(definition.layer),
       kind: definition.kind,
@@ -83,7 +84,8 @@ export class RegistryPublisher {
 
   private updateManifest(manifest: ManifestFile, definition: CanonicalDefinition): void {
     const key = computeManifestKey(definition.layer);
-    const compiledPath = path.relative(this.context.paths.rootDir, this.getCompiledPath(definition));
+    // Use forward slashes for cross-platform compatibility (Windows paths work with forward slashes)
+    const compiledPath = path.relative(this.context.paths.rootDir, this.getCompiledPath(definition)).split(path.sep).join('/');
     const entry: ManifestEntry = {
       key,
       kind: definition.kind,
