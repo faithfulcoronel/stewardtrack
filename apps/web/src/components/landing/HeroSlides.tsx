@@ -108,14 +108,14 @@ export function HeroSlide1({ isActive = true }: HeroSlideProps) {
       </div>
 
       {/* Text Content - Center */}
-      <div className="absolute top-[20%] landscape:top-[25%] md:top-[15%] left-0 w-full z-30 flex justify-center px-4 pointer-events-none">
+      <div className="absolute top-[20%] sm:top-[15%] max-sm:landscape:top-[25%] left-0 w-full z-30 flex justify-center px-4 pointer-events-none">
         <motion.div
           initial={{ y: 50, opacity: 0 }}
           animate={isActive ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center text-white max-w-4xl drop-shadow-xl"
         >
-          <h1 className="text-2xl landscape:text-xl sm:text-3xl md:text-5xl lg:text-[56px] font-bold leading-[1.1] text-white">
+          <h1 className="text-2xl max-sm:landscape:text-xl sm:text-3xl md:text-5xl lg:text-[56px] font-bold leading-[1.1] text-white">
             Is Church Accounting taking up <br className="hidden sm:block" />
             much of your God-given time?
           </h1>
@@ -152,16 +152,16 @@ export function HeroSlide2({ isActive = false }: HeroSlideProps) {
       </div>
 
       {/* Text Content - Right Aligned */}
-      <div className="absolute top-[20%] landscape:top-[25%] md:top-[18%] right-0 md:right-[5%] lg:right-[8%] w-full md:w-auto z-30 flex flex-col items-center md:items-end px-4 pointer-events-none">
+      <div className="absolute top-[20%] sm:top-[18%] max-sm:landscape:top-[25%] right-0 md:right-[5%] lg:right-[8%] w-full md:w-auto z-30 flex flex-col items-center md:items-end px-4 pointer-events-none">
         <motion.div
           initial={{ x: 50, opacity: 0 }}
           animate={isActive ? { x: 0, opacity: 1 } : { x: 50, opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center md:text-right text-white max-w-lg drop-shadow-xl pointer-events-auto"
         >
-          <h2 className="text-2xl landscape:text-lg sm:text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-4 landscape:mb-2 md:mb-6 text-white">
-            Because caring for <br className="hidden landscape:hidden sm:block" />
-            God&apos;s work shouldn&apos;t <br className="hidden landscape:hidden sm:block" />
+          <h2 className="text-2xl max-sm:landscape:text-lg sm:text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-4 max-sm:landscape:mb-2 sm:mb-6 text-white">
+            Because caring for <br className="hidden max-sm:landscape:hidden sm:block" />
+            God&apos;s work shouldn&apos;t <br className="hidden max-sm:landscape:hidden sm:block" />
             feel complicated.
           </h2>
 
@@ -209,16 +209,16 @@ export function HeroSlide3({ isActive = false }: HeroSlideProps) {
       </div>
 
       {/* Text Content - Left Aligned */}
-      <div className="absolute top-[20%] landscape:top-[25%] md:top-[20%] left-0 md:left-[5%] lg:left-[8%] w-full md:w-auto z-30 flex flex-col items-center md:items-start px-4 pointer-events-none">
+      <div className="absolute top-[20%] sm:top-[20%] max-sm:landscape:top-[25%] left-0 md:left-[5%] lg:left-[8%] w-full md:w-auto z-30 flex flex-col items-center md:items-start px-4 pointer-events-none">
         <motion.div
           initial={{ x: -50, opacity: 0 }}
           animate={isActive ? { x: 0, opacity: 1 } : { x: -50, opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center md:text-left text-white max-w-lg drop-shadow-xl pointer-events-auto"
         >
-          <h2 className="text-2xl landscape:text-lg sm:text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-4 landscape:mb-2 md:mb-6 text-white">
-            Because you deserve to <br className="hidden landscape:hidden sm:block" />
-            focus on what truly <br className="hidden landscape:hidden sm:block" />
+          <h2 className="text-2xl max-sm:landscape:text-lg sm:text-3xl md:text-4xl lg:text-[42px] font-bold leading-[1.2] mb-4 max-sm:landscape:mb-2 sm:mb-6 text-white">
+            Because you deserve to <br className="hidden max-sm:landscape:hidden sm:block" />
+            focus on what truly <br className="hidden max-sm:landscape:hidden sm:block" />
             matters, not paperwork.
           </h2>
 
