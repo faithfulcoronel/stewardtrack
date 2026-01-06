@@ -34,7 +34,7 @@
       "outputs": ["playwright-report/**", "test-results/**"]
     },
     "metadata:compile": {
-      "outputs": ["metadata/compiled/**"]
+      "outputs": ["metadata/compiled/**", "metadata/registry/**"]
     },
     "metadata:types": {
       "outputs": ["src/types/metadata/**"]
