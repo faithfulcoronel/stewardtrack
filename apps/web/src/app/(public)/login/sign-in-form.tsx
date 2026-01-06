@@ -22,12 +22,18 @@ function SubmitButton() {
   );
 }
 
-export function SignInForm() {
+interface SignInFormProps {
+  redirectTo?: string;
+}
+
+export function SignInForm({ redirectTo = '/admin' }: SignInFormProps) {
   const [state, formAction] = useActionState(signInWithPassword, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form action={formAction} className="space-y-6">
+      {/* Hidden field to pass redirectTo to server action */}
+      <input type="hidden" name="redirectTo" value={redirectTo} />
       <div className="space-y-2">
         <label className="block text-sm font-medium text-foreground" htmlFor="email">
           Email address
