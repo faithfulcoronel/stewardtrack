@@ -65,6 +65,10 @@ import {
   FamilyMembershipManager,
   type FamilyMembershipManagerProps,
 } from '@/components/dynamic/admin/FamilyMembershipManager';
+import {
+  MemberQRCode,
+  type MemberQRCodeProps,
+} from '@/components/dynamic/admin/MemberQRCode';
 
 function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
@@ -212,5 +216,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<FamilyMembershipManagerProps>(FamilyMembershipManager, 'FamilyMembershipManagerRenderer'),
+  },
+  {
+    type: 'MemberQRCode',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberQRCodeProps>(MemberQRCode, 'MemberQRCodeRenderer'),
   },
 ];

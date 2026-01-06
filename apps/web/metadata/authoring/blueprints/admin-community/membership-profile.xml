@@ -436,6 +436,28 @@
             </Prop>
           </Props>
         </Component>
+        <Component id="member-qr-code" type="MemberQRCode">
+          <Props>
+            <Prop name="memberId" kind="expression">
+              (() =&gt; {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                return record.id ?? params.memberId ?? '';
+              })()
+            </Prop>
+            <Prop name="memberName" kind="expression">
+              (() =&gt; {
+                const records = data.memberDirectory?.records ?? [];
+                const fallback = records[0] ?? {};
+                const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
+                return record.fullName ?? 'Member';
+              })()
+            </Prop>
+            <Prop name="title" kind="static">Member QR Code</Prop>
+            <Prop name="description" kind="static">Scan this QR code to quickly identify this member. Download to share or print.</Prop>
+          </Props>
+        </Component>
         <Component id="profile-timeline" type="AdminActivityTimeline">
           <Props>
             <Prop name="title" kind="static">Recent milestones</Prop>
