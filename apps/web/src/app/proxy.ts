@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Middleware that adds request path information to headers.
+ * Proxy that adds request path information to headers.
  * This enables server components to access the current URL path.
+ *
+ * Migrated from middleware.ts to proxy.ts for Next.js 16 compatibility.
+ * See: https://nextjs.org/docs/messages/middleware-to-proxy
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Add the current pathname to headers for server components

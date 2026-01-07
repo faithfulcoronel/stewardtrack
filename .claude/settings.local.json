@@ -79,7 +79,11 @@
       "Bash(node_modules/.bin/tsc:*)",
       "Bash(timeout 180 pnpm:*)",
       "Bash(pnpm sync:android:*)",
-      "Bash(pnpm run lint)"
+      "Bash(pnpm run lint)",
+      "Bash(cd:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm list:*)",
+      "Bash(git -C \"c:/Users/CortanatechSolutions/source/repos/github/stewardtrack\" status apps/web/src/middleware.ts)"
     ],
     "deny": [],
     "ask": []

@@ -20,7 +20,11 @@ const getEnv = (): EnvConfig => {
 
 export async function createSupabaseServerClient(): Promise<SupabaseClient> {
   const env = getEnv();
- 
+
+  if (!env) {
+    throw new Error("Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)");
+  }
+
   const cookieStore = await cookies();
   const { url, anonKey } = env;
 
