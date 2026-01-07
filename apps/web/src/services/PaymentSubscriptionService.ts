@@ -35,8 +35,11 @@ export class PaymentSubscriptionService {
     @inject(TYPES.PaymentService) private paymentService: PaymentService,
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
     @inject(TYPES.TenantService) private tenantService: TenantService,
-    @inject(TYPES.ITenantRepository) private tenantRepository: ITenantRepository
+    @inject(TYPES.ITenantRepository)
+        private tenantRepository: ITenantRepository,
   ) {}
+
+  
 
   /**
    * Get subscription status for a tenant
@@ -243,10 +246,11 @@ export class PaymentSubscriptionService {
 
     const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
     const payerEmail = adminUser.email;
-
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
     // Create payment invoice
     await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: targetOfferingId,
       offeringName: offering.name,
       amount: priceInfo.price,
@@ -311,10 +315,12 @@ export class PaymentSubscriptionService {
 
     const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
     const payerEmail = adminUser.email;
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
     // Create payment for new plan
     await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: newOfferingId,
       offeringName: newOffering.name,
       amount: paymentAmount,
@@ -387,10 +393,12 @@ export class PaymentSubscriptionService {
 
     const payerName = `${adminUser.first_name} ${adminUser.last_name}`.trim();
     const payerEmail = adminUser.email;
+    const externalId = `SUB-${tenantId}-${Date.now()}`;
 
     // Create renewal payment
     await this.paymentService.createSubscriptionPayment({
       tenantId,
+      externalId: externalId,
       offeringId: status.subscription_offering_id,
       offeringName: offering.name,
       amount: priceInfo.price,

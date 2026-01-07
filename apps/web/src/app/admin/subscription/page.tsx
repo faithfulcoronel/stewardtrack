@@ -85,7 +85,7 @@ export default function SubscriptionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tenantId: subscription.tenant.id,
-          offeringId: subscription.currentOffering.id,
+          currentOffering: subscription.currentOffering,
           payerEmail: "user@example.com", // TODO: Get from user profile
           payerName: subscription.tenant.church_name,
         }),
@@ -380,7 +380,7 @@ export default function SubscriptionPage() {
       {/* No Active Subscription - Payment Options */}
       {(!subscription.latestPayment ||
         (subscription.latestPayment.status !== "paid" &&
-         subscription.latestPayment.status !== "settled")) && (
+         subscription.latestPayment.status !== "settled" && subscription.latestPayment?.status !== "pending" && subscription.latestPayment?.status !== "failed" && subscription.latestPayment?.status !== "expired")) && (
         <Card className="border-yellow-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-yellow-600">
