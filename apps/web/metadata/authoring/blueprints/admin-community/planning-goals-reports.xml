@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+GOALS PROGRESS REPORTS PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the progress reports page for goals and objectives.
+Provides detailed analytics, progress trends, and achievement metrics.
+
+FEATURE: Goals Progress Reports
+- Overall progress summary metrics
+- Progress by category breakdown
+- Status distribution charts
+- Timeline of recent achievements
+- Export capabilities
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/reports"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="goals:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-reports">
+    <Title>Progress Reports</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with report overview
+        -->
+        <Component id="reports-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="reportsHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="reportsHero.headline"/>
+            <Prop name="description" kind="binding" contract="reportsHero.description"/>
+            <Prop name="metrics" kind="binding" contract="reportsHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="back-to-goals"/>
+            <Prop name="secondaryCta" kind="action" actionId="export-report"/>
+          </Props>
+        </Component>
+
+        <!--
+        SUMMARY METRICS: High-level achievement statistics
+        -->
+        <Component id="reports-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Achievement Summary</Prop>
+            <Prop name="description" kind="static">Overall progress metrics across all goals and objectives.</Prop>
+            <Prop name="metrics" kind="binding" contract="reportsSummary.items"/>
+          </Props>
+        </Component>
+
+        <!--
+        PROGRESS BY CATEGORY: Breakdown of progress per goal category
+        -->
+        <Component id="category-progress" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Progress by Category</Prop>
+            <Prop name="description" kind="static">Goal achievement metrics grouped by strategic category.</Prop>
+            <Prop name="rows" kind="binding" contract="categoryProgress.rows"/>
+            <Prop name="columns" kind="binding" contract="categoryProgress.columns"/>
+            <Prop name="emptyState" kind="binding" contract="categoryProgress.emptyState"/>
+          </Props>
+        </Component>
+
+        <!--
+        STATUS DISTRIBUTION: Goals grouped by status
+        -->
+        <Component id="status-distribution" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Status Distribution</Prop>
+            <Prop name="description" kind="static">Current status of all goals and objectives.</Prop>
+            <Prop name="rows" kind="binding" contract="statusDistribution.rows"/>
+            <Prop name="columns" kind="binding" contract="statusDistribution.columns"/>
+            <Prop name="emptyState" kind="binding" contract="statusDistribution.emptyState"/>
+          </Props>
+        </Component>
+
+        <!--
+        KEY RESULTS OVERVIEW: Summary of key result performance
+        -->
+        <Component id="key-results-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Key Results Performance</Prop>
+            <Prop name="description" kind="static">Track measurable outcomes across all goals.</Prop>
+            <Prop name="metrics" kind="binding" contract="keyResultsSummary.items"/>
+          </Props>
+        </Component>
+
+        <!--
+        RECENT ACHIEVEMENTS: Timeline of completed goals and milestones
+        -->
+        <Component id="recent-achievements" type="GoalStatusTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent Achievements</Prop>
+            <Prop name="description" kind="static">Goals and key results completed recently.</Prop>
+            <Prop name="events" kind="binding" contract="recentAchievements.items"/>
+            <Prop name="maxEvents" kind="static">10</Prop>
+            <Prop name="showRelativeTime" kind="static">true</Prop>
+            <Prop name="variant" kind="static">default</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        OVERDUE ITEMS: Goals and key results that need attention
+        -->
+        <Component id="overdue-items" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Items Needing Attention</Prop>
+            <Prop name="description" kind="static">Overdue key results and at-risk goals that require updates.</Prop>
+            <Prop name="rows" kind="binding" contract="overdueItems.rows"/>
+            <Prop name="columns" kind="binding" contract="overdueItems.columns"/>
+            <Prop name="emptyState" kind="binding" contract="overdueItems.emptyState"/>
+            <Prop name="onRowClick" kind="action" actionId="view-item"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="reportsHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Reports page eyebrow"/>
+          <Field name="headline" path="headline" description="Reports headline"/>
+          <Field name="description" path="description" description="Reports description"/>
+          <Field name="metrics" path="metrics" description="Hero metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Summary metrics -->
+      <DataSource id="reportsSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Achievement summary metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.summary</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Progress by category -->
+      <DataSource id="categoryProgress" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Category progress rows"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="emptyState" path="emptyState" description="Empty state"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.categoryProgress</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Status distribution -->
+      <DataSource id="statusDistribution" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Status distribution rows"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="emptyState" path="emptyState" description="Empty state"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.statusDistribution</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Key results summary -->
+      <DataSource id="keyResultsSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Key results performance metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.keyResultsSummary</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Recent achievements timeline -->
+      <DataSource id="recentAchievements" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Recent achievement events"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.recentAchievements</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Overdue items -->
+      <DataSource id="overdueItems" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Overdue items rows"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="emptyState" path="emptyState" description="Empty state"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.reports.overdueItems</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="back-to-goals" kind="link">
+        <Config>
+          <Label>Back to Goals</Label>
+          <Url>/admin/community/planning/goals</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="export-report" kind="link">
+        <Config>
+          <Label>Export Report</Label>
+          <Url>/admin/community/planning/goals/reports/export</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-item" kind="link">
+        <Config>
+          <Label>View</Label>
+          <Url>{{params.href}}</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

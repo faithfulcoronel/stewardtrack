@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+GOAL CATEGORIES MANAGEMENT PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page provides CRUD functionality for goal categories.
+Churches can manage their goal categories to organize strategic goals.
+
+ROUTE: /admin/community/planning/goals/categories
+
+PERMISSIONS:
+  - goals:view - Required to view the page
+  - goals:create - Required to create/edit/delete categories
+
+FEATURES:
+  - List all categories with color swatches and icons
+  - Inline add/edit forms
+  - Delete with usage check
+  - System categories are read-only
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/categories"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="goals:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-categories">
+    <Title>Goal categories</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with navigation
+        -->
+        <Component id="categories-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">simple</Prop>
+            <Prop name="eyebrow" kind="static">Goals &amp; Objectives</Prop>
+            <Prop name="headline" kind="static">Manage categories</Prop>
+            <Prop name="description" kind="static">Organize your goals with custom categories. Each category can have a unique color and icon.</Prop>
+            <Prop name="primaryCta" kind="action" actionId="add-category"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-goals"/>
+          </Props>
+        </Component>
+
+        <!--
+        CATEGORIES LIST: Data grid showing all categories
+        -->
+        <Component id="categories-list" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Categories</Prop>
+            <Prop name="description" kind="static">Categories help organize goals by ministry area or theme</Prop>
+            <Prop name="rows" kind="binding" contract="categoriesList.rows"/>
+            <Prop name="columns" kind="binding" contract="categoriesList.columns"/>
+            <Prop name="actions" kind="binding" contract="categoriesList.actions"/>
+            <Prop name="emptyState" kind="binding" contract="categoriesList.emptyState"/>
+          </Props>
+        </Component>
+
+        <!--
+        CATEGORY FORM: For creating/editing categories
+        This is shown as a modal/dialog triggered by actions
+        -->
+        <Component id="category-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="categoryForm.title"/>
+            <Prop name="description" kind="binding" contract="categoryForm.description"/>
+            <Prop name="fields" kind="binding" contract="categoryForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="categoryForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="categoryForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="categoryForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-category"/>
+            <Prop name="isDialog" kind="static">true</Prop>
+            <Prop name="dialogTrigger" kind="binding" contract="categoryForm.dialogTrigger"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      CATEGORIES LIST DATA SOURCE
+      Returns all categories with formatting for display
+      -->
+      <DataSource id="categoriesList" kind="service">
+        <Contract>
+          <Field name="rows" path="categories.rows" description="Category rows"/>
+          <Field name="columns" path="categories.columns" description="Column definitions"/>
+          <Field name="actions" path="categories.actions" description="Row actions"/>
+          <Field name="emptyState" path="categories.emptyState" description="Empty state config"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.categories.list</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      CATEGORY FORM DATA SOURCE
+      Returns form configuration for create/edit
+      -->
+      <DataSource id="categoryForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Form title"/>
+          <Field name="description" path="form.description" description="Form description"/>
+          <Field name="fields" path="form.fields" description="Form field definitions"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Submit button label"/>
+          <Field name="initialValues" path="form.initialValues" description="Initial form values"/>
+          <Field name="contextParams" path="form.contextParams" description="Context params for save"/>
+          <Field name="dialogTrigger" path="form.dialogTrigger" description="Dialog trigger state"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.categories.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="add-category" kind="link">
+        <RBAC requirePermissions="goals:create" />
+        <Config>
+          <Label>Add category</Label>
+          <Url>/admin/community/planning/goals/categories/create</Url>
+        </Config>
+      </Action>
+
+      <Action id="back-to-goals" kind="link">
+        <Config>
+          <Label>Back to goals</Label>
+          <Url>/admin/community/planning/goals</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+
+      <Action id="save-category" kind="service">
+        <RBAC requirePermissions="goals:create" />
+        <Config>
+          <Handler>admin-community.planning.goals.categories.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/categories</Navigate>
+            <ShowToast>Category saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save category. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+
+      <Action id="delete-category" kind="service">
+        <RBAC requirePermissions="goals:create" />
+        <Config>
+          <Handler>admin-community.planning.goals.categories.delete</Handler>
+          <ConfirmMessage>Are you sure you want to delete this category? This action cannot be undone.</ConfirmMessage>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/categories</Navigate>
+            <ShowToast>Category deleted successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to delete category. It may be in use by goals.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

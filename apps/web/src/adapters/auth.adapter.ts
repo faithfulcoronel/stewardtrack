@@ -5,7 +5,8 @@ import { AuthError, AuthResponse } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { getCachedUser, getCachedAdminRole } from '@/lib/auth/authCache';
+import { getCachedUser, getCachedAdminRole, isCachedSuperAdmin } from '@/lib/auth/authCache';
+import { UnauthorizedError } from '@/utils/errorHandler';
 
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
@@ -67,7 +68,12 @@ export class AuthAdapter implements IAuthAdapter {
   }
 
   async deleteUser(userId: string) {
-    // Admin operation - requires service role
+    // Admin operation - requires super admin privileges
+    const isSuperAdmin = await isCachedSuperAdmin();
+    if (!isSuperAdmin) {
+      throw new UnauthorizedError('Deleting users requires super admin privileges');
+    }
+
     const supabase = await this.getServiceClient();
     return supabase.auth.admin.deleteUser(userId);
   }

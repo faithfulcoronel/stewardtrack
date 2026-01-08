@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+GOALS & OBJECTIVES PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the goals and objectives page that allows churches
+to set strategic goals, track ministry objectives, and measure key results
+with progress updates.
+
+FEATURE: Goals & Objectives
+- Dashboard with goal health metrics and status overview
+- Goal list with filtering by category, status, owner
+- Progress tracking with visual indicators
+- Quick actions for creating goals and recording progress
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="goals:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals">
+    <Title>Goals &amp; Objectives</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="goals-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="goalsHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="goalsHero.headline"/>
+            <Prop name="description" kind="binding" contract="goalsHero.description"/>
+            <Prop name="metrics" kind="binding" contract="goalsHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-goal"/>
+            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+          </Props>
+        </Component>
+
+        <!--
+        KPI METRICS: Goal health statistics
+        -->
+        <Component id="goals-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Goal health overview</Prop>
+            <Prop name="description" kind="static">Track progress across all strategic goals and ministry objectives.</Prop>
+            <Prop name="metrics" kind="binding" contract="goalsMetrics.items"/>
+            <Prop name="footnote" kind="static">Progress calculated from key result completion rates.</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        QUICK LINKS: Navigation to goals features
+        -->
+        <Component id="goals-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Goals tools</Prop>
+            <Prop name="description" kind="static">Manage categories, view reports, and configure goal settings.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="goalsQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="goalsQuickLinks.actions"/>
+          </Props>
+        </Component>
+
+        <!--
+        GOAL CARDS: Visual card-based display of active goals
+        Uses the mobile-first GoalCard component with progress rings
+        -->
+        <Component id="goals-cards" type="GoalCard">
+          <Props>
+            <Prop name="goals" kind="binding" contract="goalsCards.items"/>
+            <Prop name="variant" kind="static">default</Prop>
+            <Prop name="showProgress" kind="static">true</Prop>
+            <Prop name="showActions" kind="static">true</Prop>
+            <Prop name="baseUrl" kind="static">/admin/community/planning/goals</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        GOALS TABLE: Data grid for detailed list view (alternative to cards)
+        -->
+        <Component id="goals-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">All goals</Prop>
+            <Prop name="description" kind="static">Church-wide strategic goals and ministry objectives in table format.</Prop>
+            <Prop name="rows" kind="binding" contract="goalsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="goalsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="goalsTable.filters"/>
+            <Prop name="actions" kind="binding" contract="goalsTable.actions"/>
+            <Prop name="emptyState" kind="binding" contract="goalsTable.emptyState"/>
+          </Props>
+        </Component>
+
+        <!--
+        UPCOMING UPDATES: Key results needing progress updates
+        -->
+        <Component id="upcoming-updates" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Updates due this week</Prop>
+            <Prop name="description" kind="static">Key results that need progress updates based on their update frequency.</Prop>
+            <Prop name="accentLabel" kind="static">Action required</Prop>
+            <Prop name="events" kind="binding" contract="upcomingUpdates.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="goalsHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Goals module eyebrow text"/>
+          <Field name="headline" path="headline" description="Goals headline"/>
+          <Field name="description" path="description" description="Goals description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- KPI metrics -->
+      <DataSource id="goalsMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Goal health metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.metrics</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Quick links -->
+      <DataSource id="goalsQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.quickLinks</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Goal cards data (for visual card display) -->
+      <DataSource id="goalsCards" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Goal card data for GoalCard component"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.cards</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Goals table data -->
+      <DataSource id="goalsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Goal rows for data grid"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="filters" path="filters" description="Filter configuration"/>
+          <Field name="actions" path="actions" description="Row actions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.table</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Upcoming updates timeline -->
+      <DataSource id="upcomingUpdates" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Key results needing updates"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.upcomingUpdates</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-goal" kind="link">
+        <RBAC requirePermissions="goals:create" />
+        <Config>
+          <Label>Create goal</Label>
+          <Url>/admin/community/planning/goals/create</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="open-dashboard" kind="link">
+        <Config>
+          <Label>Planning dashboard</Label>
+          <Url>/admin/community/planning</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="manage-categories" kind="link">
+        <RBAC requirePermissions="goals:edit" />
+        <Config>
+          <Label>Manage categories</Label>
+          <Url>/admin/community/planning/goals/categories</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="record-progress" kind="link">
+        <RBAC requirePermissions="key_results:record_progress" />
+        <Config>
+          <Label>Record progress</Label>
+          <Url>/admin/community/planning/goals/progress</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -43,6 +43,44 @@ export function AdminFormSection(props: AdminFormSectionProps) {
   const { fields, form, handleSubmit, formErrors } = useAdminFormController(props);
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
   const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
+  // Track which derived fields have been manually edited by user
+  const [manuallyEditedDerivedFields, setManuallyEditedDerivedFields] = React.useState<Set<string>>(new Set());
+
+  // Handle deriveSlugFrom: auto-generate slug fields from source fields
+  React.useEffect(() => {
+    // Build a map of source fields to their dependent derived fields
+    const deriveMappings: Array<{ sourceField: string; targetField: string }> = [];
+    for (const field of fields) {
+      if (field.deriveSlugFrom) {
+        deriveMappings.push({
+          sourceField: field.deriveSlugFrom,
+          targetField: field.name,
+        });
+      }
+    }
+
+    if (deriveMappings.length === 0) return;
+
+    // Subscribe to form value changes
+    const subscription = form.watch((values, { name }) => {
+      if (!name) return;
+
+      // Check if the changed field is a source for any derived field
+      for (const mapping of deriveMappings) {
+        if (mapping.sourceField === name && !manuallyEditedDerivedFields.has(mapping.targetField)) {
+          const sourceValue = values[mapping.sourceField];
+          if (typeof sourceValue === 'string') {
+            const slugValue = slugify(sourceValue);
+            form.setValue(mapping.targetField as never, slugValue as never, {
+              shouldDirty: true,
+            });
+          }
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fields, form, manuallyEditedDerivedFields]);
 
   const augmentedFields = React.useMemo(() => {
     return fields.map((field) => {
@@ -306,4 +344,12 @@ function ensureQuickCreateAction(field: FormFieldConfig): FormFieldQuickCreateCo
     ...quickCreate,
     action,
   } satisfies FormFieldQuickCreateConfig;
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
 }

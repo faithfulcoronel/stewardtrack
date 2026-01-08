@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+GOALS DETAIL PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page displays detailed information about a single goal record including
+its objectives, key results, and progress history.
+It's accessed via /admin/community/planning/goals/[goalId]
+
+ROUTE PARAMETERS:
+The dynamic [goalId] segment from the URL is passed to service handlers
+via request.params.goalId. This allows handlers to fetch the specific
+goal for display.
+
+PAGE STRUCTURE:
+  1. HeroSection      - Shows goal title, category, status, and key metrics
+  2. SummaryPanels    - Displays detailed goal information in organized panels
+  3. ObjectivesList   - Shows objectives linked to this goal
+  4. KeyResultsList   - Shows key results with progress visualization
+  5. ActivityTimeline - Progress updates and recent activity
+
+PERMISSIONS:
+  - goals:view       - Required to view the page
+  - goals:edit       - Required to edit the goal
+  - goals:delete     - Required to delete the goal
+  - objectives:manage - Required to add/edit objectives
+  - key_results:manage - Required to add/edit key results
+  - key_results:record_progress - Required to record progress updates
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/detail"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="goals:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-detail">
+    <Title>Goal details</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Dynamic header showing goal-specific information
+
+        The hero displays:
+          - Goal title in the headline
+          - Category and status in description
+          - Key metrics (progress, objectives count, key results count)
+
+        Note: Data is resolved dynamically based on goalId from URL params.
+        -->
+        <Component id="goal-detail-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="goalDetailHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="goalDetailHero.headline"/>
+            <Prop name="description" kind="binding" contract="goalDetailHero.description"/>
+            <Prop name="metrics" kind="binding" contract="goalDetailHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-goal"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-goals"/>
+          </Props>
+        </Component>
+
+        <!--
+        SUMMARY PANELS: Organized display of goal details
+
+        AdminSummaryPanelsSection renders multiple panels, each containing
+        labeled fields. Panel structure from handler:
+          {
+            panels: [
+              {
+                id: 'goal-info',
+                title: 'Goal details',
+                columns: 2,
+                items: [
+                  { label: 'Category', value: 'Spiritual Growth', type: 'badge' },
+                  { label: 'Status', value: 'On Track', type: 'badge' },
+                  { label: 'Owner', value: 'Pastor John', type: 'text' },
+                  ...
+                ]
+              },
+              ...
+            ]
+          }
+
+        Item types: 'text', 'badge', 'date', 'multiline', 'link', 'progress'
+        -->
+        <Component id="goal-summary" type="AdminSummaryPanelsSection">
+          <Props>
+            <Prop name="title" kind="static">Goal overview</Prop>
+            <Prop name="description" kind="static">Complete goal information and progress tracking</Prop>
+            <Prop name="panels" kind="binding" contract="goalSummary.panels"/>
+          </Props>
+        </Component>
+
+        <!--
+        OKR TREE VIEW: Hierarchical visualization of objectives and key results
+
+        Uses the mobile-first OKRTreeView component which displays:
+          - Expandable objectives list
+          - Nested key results under each objective
+          - Progress indicators at each level
+          - Quick actions for adding items and recording progress
+        -->
+        <Component id="goal-okr-tree" type="OKRTreeView">
+          <Props>
+            <Prop name="goal" kind="binding" contract="goalOkrTree.goal"/>
+            <Prop name="defaultExpanded" kind="static">true</Prop>
+            <Prop name="showActions" kind="static">true</Prop>
+            <Prop name="baseUrl" kind="static">/admin/community/planning/goals</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        KEY RESULTS PROGRESS CARDS: Visual progress tracking for direct key results
+
+        Uses the mobile-first KeyResultProgressCard component which displays:
+          - Progress bars with color coding
+          - Current vs target values
+          - Update frequency and due dates
+          - Quick update buttons
+        -->
+        <Component id="goal-key-results" type="KeyResultProgressCard">
+          <Props>
+            <Prop name="keyResults" kind="binding" contract="goalKeyResultsCards.items"/>
+            <Prop name="variant" kind="static">default</Prop>
+            <Prop name="showUpdateButton" kind="static">true</Prop>
+            <Prop name="showParent" kind="static">false</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        GOAL STATUS TIMELINE: Visual timeline of goal activity
+
+        Uses the mobile-first GoalStatusTimeline component which shows:
+          - Progress updates with visual indicators
+          - Status changes with before/after badges
+          - Milestone achievements
+          - User attribution and timestamps
+        -->
+        <Component id="goal-activity" type="GoalStatusTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent activity</Prop>
+            <Prop name="description" kind="static">Progress updates and changes for this goal</Prop>
+            <Prop name="events" kind="binding" contract="goalTimeline.events"/>
+            <Prop name="maxEvents" kind="static">10</Prop>
+            <Prop name="showLoadMore" kind="static">true</Prop>
+            <Prop name="showRelativeTime" kind="static">true</Prop>
+            <Prop name="variant" kind="static">default</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      GOAL DETAIL HERO DATA SOURCE
+
+      Handler receives request.params.goalId from URL.
+      Returns: { hero: { eyebrow, headline, description, metrics } }
+
+      Metrics structure:
+        [
+          { label: 'Progress', value: '75%', caption: 'Overall completion' },
+          { label: 'Objectives', value: '4', caption: 'Linked objectives' },
+          { label: 'Key Results', value: '8', caption: 'Active key results' },
+          { label: 'Target Date', value: 'Dec 31, 2026', caption: 'Goal deadline' }
+        ]
+      -->
+      <DataSource id="goalDetailHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for goal-detail-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for goal-detail-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for goal-detail-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for goal-detail-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.detail.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      SUMMARY PANELS DATA SOURCE
+
+      Returns organized panels of goal information.
+      Each panel has: id, title, description (optional), columns, items[]
+      -->
+      <DataSource id="goalSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for goal-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.detail.summary</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      OKR TREE VIEW DATA SOURCE
+
+      Returns full goal hierarchy for OKRTreeView component.
+      Includes objectives and nested key results.
+      -->
+      <DataSource id="goalOkrTree" kind="service">
+        <Contract>
+          <Field name="goal" path="okrTree.goal" description="Full goal hierarchy for OKRTreeView"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.detail.okrTree</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      KEY RESULTS CARDS DATA SOURCE
+
+      Returns key results in format suitable for KeyResultProgressCard.
+      -->
+      <DataSource id="goalKeyResultsCards" kind="service">
+        <Contract>
+          <Field name="items" path="keyResultsCards.items" description="Key results for KeyResultProgressCard"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.detail.keyResultsCards</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      GOAL TIMELINE DATA SOURCE
+
+      Returns events in format suitable for GoalStatusTimeline.
+      -->
+      <DataSource id="goalTimeline" kind="service">
+        <Contract>
+          <Field name="events" path="timeline.events" description="Timeline events for GoalStatusTimeline"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.detail.timeline</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <!--
+    ACTIONS: Navigation and goal management
+
+    Note the {{params.goalId}} template in URLs - resolved at runtime.
+    -->
+    <Actions>
+      <Action id="edit-goal" kind="link">
+        <RBAC requirePermissions="goals:edit" />
+        <Config>
+          <Label>Edit goal</Label>
+          <Url>/admin/community/planning/goals/create?goalId={{params.goalId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-goals" kind="link">
+        <Config>
+          <Label>Back to goals</Label>
+          <Url>/admin/community/planning/goals</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="add-objective" kind="link">
+        <RBAC requirePermissions="objectives:manage" />
+        <Config>
+          <Label>Add objective</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}/objectives/create</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="add-key-result" kind="link">
+        <RBAC requirePermissions="key_results:manage" />
+        <Config>
+          <Label>Add key result</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}/key-results/create</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="record-progress" kind="link">
+        <RBAC requirePermissions="key_results:record_progress" />
+        <Config>
+          <Label>Record progress</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}/progress</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="delete-goal" kind="service">
+        <RBAC requirePermissions="goals:delete" />
+        <Config>
+          <Handler>admin-community.planning.goals.detail.delete</Handler>
+          <ConfirmMessage>Are you sure you want to delete this goal? This action cannot be undone.</ConfirmMessage>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals</Navigate>
+            <ShowToast>Goal deleted successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to delete goal. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

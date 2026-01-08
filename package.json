@@ -26,6 +26,6 @@
   },
   "devDependencies": {
     "rimraf": "^5.0.0",
-    "turbo": "^2.3.0"
+    "turbo": "^2.7.3"
   }
 }

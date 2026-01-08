@@ -84,16 +84,21 @@ const resolveCarePlansListTable: ServiceDataSourceHandler = async (_request) => 
 
   const carePlans = await carePlanService.getCarePlansForTenant();
 
-  // Fetch member names for all care plans using the dashboard service (has tenant context)
+  // Fetch member names for all care plans AND assigned members using the dashboard service
   const memberIds = [...new Set(carePlans.map((cp) => cp.member_id).filter(Boolean))] as string[];
-  const memberMap = await buildMemberNameMap(memberIds);
+  const assignedMemberIds = [...new Set(carePlans.map((cp) => cp.assigned_to_member_id).filter(Boolean))] as string[];
+  const allMemberIds = [...new Set([...memberIds, ...assignedMemberIds])];
+  const memberMap = await buildMemberNameMap(allMemberIds);
 
   const rows = carePlans.map((carePlan) => ({
     id: carePlan.id,
     memberName: carePlan.member_id ? memberMap.get(carePlan.member_id) || 'Unknown member' : 'Unknown member',
     status: carePlan.status_label || carePlan.status_code || 'Unknown',
     priority: carePlan.priority || '—',
-    assignedTo: carePlan.assigned_to || 'Unassigned',
+    // Use assigned_to_member_id if available, fall back to legacy assigned_to text
+    assignedTo: carePlan.assigned_to_member_id
+      ? memberMap.get(carePlan.assigned_to_member_id) || 'Unknown member'
+      : carePlan.assigned_to || 'Unassigned',
     followUpAt: carePlan.follow_up_at || '—',
     isActive: carePlan.is_active,
     createdAt: carePlan.created_at,
@@ -257,7 +262,8 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
         memberId: carePlan.member_id || '',
         statusCode: carePlan.status_code || 'active',
         statusLabel: carePlan.status_label || '',
-        assignedTo: carePlan.assigned_to || '',
+        // Use assigned_to_member_id for proper UUID reference, fall back to legacy assigned_to
+        assignedTo: carePlan.assigned_to_member_id || carePlan.assigned_to || '',
         followUpAt: carePlan.follow_up_at || '',
         priority: carePlan.priority || 'medium',
         details: carePlan.details || '',
@@ -273,9 +279,11 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
         {
           name: 'memberId',
           label: 'Member',
-          type: 'select',
+          type: 'combobox',
           colSpan: 'half',
           placeholder: 'Select member',
+          searchPlaceholder: 'Search members...',
+          emptyMessage: 'No members found.',
           helperText: 'Member this care plan is for',
           required: true,
           options: memberOptions,
@@ -312,10 +320,13 @@ const resolveCarePlanManageForm: ServiceDataSourceHandler = async (request) => {
         {
           name: 'assignedTo',
           label: 'Assigned to',
-          type: 'text',
+          type: 'combobox',
           colSpan: 'half',
-          placeholder: 'Enter staff member name',
+          placeholder: 'Select staff member',
+          searchPlaceholder: 'Search staff members...',
+          emptyMessage: 'No staff members found.',
           helperText: 'Staff member responsible for this care plan',
+          options: memberOptions,
         },
         {
           name: 'followUpAt',
@@ -374,7 +385,8 @@ const saveCarePlan: ServiceDataSourceHandler = async (request) => {
     member_id: params.memberId,
     status_code: params.statusCode,
     status_label: params.statusLabel || null,
-    assigned_to: params.assignedTo || null,
+    // Store in new UUID column for proper foreign key reference
+    assigned_to_member_id: params.assignedTo || null,
     follow_up_at: params.followUpAt || null,
     priority: params.priority || null,
     details: params.details || null,
@@ -419,6 +431,15 @@ const resolveCarePlanProfileHero: ServiceDataSourceHandler = async (request) => 
   // Fetch the member name using the dashboard service (has tenant context)
   const memberName = await getMemberName(carePlan.member_id);
 
+  // Fetch assigned member name if using UUID reference
+  let assignedToName = 'Unassigned';
+  if (carePlan.assigned_to_member_id) {
+    assignedToName = await getMemberName(carePlan.assigned_to_member_id);
+  } else if (carePlan.assigned_to) {
+    // Fall back to legacy text value
+    assignedToName = carePlan.assigned_to;
+  }
+
   return {
     hero: {
       eyebrow: 'Care plan details · Community module',
@@ -437,7 +458,7 @@ const resolveCarePlanProfileHero: ServiceDataSourceHandler = async (request) => 
         },
         {
           label: 'Assigned to',
-          value: carePlan.assigned_to || 'Unassigned',
+          value: assignedToName,
           caption: 'Staff member',
         },
       ],
@@ -463,6 +484,15 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
   // Fetch the member name using the dashboard service (has tenant context)
   const memberName = await getMemberName(carePlan.member_id);
 
+  // Fetch assigned member name if using UUID reference
+  let assignedToName = 'Unassigned';
+  if (carePlan.assigned_to_member_id) {
+    assignedToName = await getMemberName(carePlan.assigned_to_member_id);
+  } else if (carePlan.assigned_to) {
+    // Fall back to legacy text value
+    assignedToName = carePlan.assigned_to;
+  }
+
   return {
     summary: {
       panels: [
@@ -475,7 +505,7 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
             { label: 'Member', value: memberName, type: 'text' },
             { label: 'Status', value: carePlan.status_label || carePlan.status_code, type: 'badge' },
             { label: 'Priority', value: carePlan.priority || '—', type: 'text' },
-            { label: 'Assigned to', value: carePlan.assigned_to || 'Unassigned', type: 'text' },
+            { label: 'Assigned to', value: assignedToName, type: 'text' },
             { label: 'Active', value: carePlan.is_active ? 'Yes' : 'No', type: 'text' },
             { label: 'Membership stage', value: carePlan.membership_stage_id || '—', type: 'text' },
           ],
@@ -534,11 +564,18 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
 
   const carePlans = await carePlanService.getCarePlansByMember(memberId);
 
+  // Fetch member names for assigned members
+  const assignedMemberIds = [...new Set(carePlans.map((cp) => cp.assigned_to_member_id).filter(Boolean))] as string[];
+  const memberMap = await buildMemberNameMap(assignedMemberIds);
+
   const rows = carePlans.map((carePlan) => ({
     id: carePlan.id,
     status: carePlan.status_label || carePlan.status_code || 'Unknown',
     priority: carePlan.priority || '—',
-    assignedTo: carePlan.assigned_to || 'Unassigned',
+    // Use assigned_to_member_id if available, fall back to legacy assigned_to text
+    assignedTo: carePlan.assigned_to_member_id
+      ? memberMap.get(carePlan.assigned_to_member_id) || 'Unknown member'
+      : carePlan.assigned_to || 'Unassigned',
     followUpAt: carePlan.follow_up_at || '—',
     isActive: carePlan.is_active,
     createdAt: carePlan.created_at,
@@ -594,7 +631,11 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
     const followUp = carePlan.follow_up_at
       ? `Follow-up: ${new Date(carePlan.follow_up_at).toLocaleDateString()}`
       : null;
-    const assignedTo = carePlan.assigned_to ? `Assigned to: ${carePlan.assigned_to}` : null;
+    // Use assigned_to_member_id if available, fall back to legacy assigned_to text
+    const assignedToName = carePlan.assigned_to_member_id
+      ? memberMap.get(carePlan.assigned_to_member_id) || 'Unknown member'
+      : carePlan.assigned_to || null;
+    const assignedTo = assignedToName ? `Assigned to: ${assignedToName}` : null;
     const descriptionParts = [followUp, assignedTo].filter(Boolean);
 
     return {
@@ -635,17 +676,22 @@ const resolveDashboardCarePlansCard: ServiceDataSourceHandler = async (_request)
   const activeCarePlans = await carePlanService.getActiveCarePlansForTenant();
   const upcomingFollowUps = await carePlanService.getUpcomingFollowUpsForTenant();
 
-  // Fetch member names for recent care plans using the dashboard service (has tenant context)
+  // Fetch member names for recent care plans AND assigned members using the dashboard service
   const recentCarePlans = activeCarePlans.slice(0, 5);
   const memberIds = [...new Set(recentCarePlans.map((cp) => cp.member_id).filter(Boolean))] as string[];
-  const memberMap = await buildMemberNameMap(memberIds);
+  const assignedMemberIds = [...new Set(recentCarePlans.map((cp) => cp.assigned_to_member_id).filter(Boolean))] as string[];
+  const allMemberIds = [...new Set([...memberIds, ...assignedMemberIds])];
+  const memberMap = await buildMemberNameMap(allMemberIds);
 
   const recentCarePlansWithNames = recentCarePlans.map((carePlan) => ({
     id: carePlan.id,
     memberName: carePlan.member_id ? memberMap.get(carePlan.member_id) || 'Unknown member' : 'Unknown member',
     status: carePlan.status_label || carePlan.status_code || 'Unknown',
     priority: carePlan.priority || 'Medium',
-    assignedTo: carePlan.assigned_to || 'Unassigned',
+    // Use assigned_to_member_id if available, fall back to legacy assigned_to text
+    assignedTo: carePlan.assigned_to_member_id
+      ? memberMap.get(carePlan.assigned_to_member_id) || 'Unknown member'
+      : carePlan.assigned_to || 'Unassigned',
     followUpAt: carePlan.follow_up_at,
     isActive: carePlan.is_active,
   }));

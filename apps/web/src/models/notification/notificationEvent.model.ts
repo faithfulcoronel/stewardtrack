@@ -56,6 +56,13 @@ export enum NotificationEventType {
   LICENSE_EXPIRED = 'license.expired',
   LICENSE_UPGRADED = 'license.upgraded',
 
+  // Goals & Objectives Events
+  GOAL_ASSIGNED = 'goal.assigned',
+  GOAL_STATUS_CHANGED = 'goal.status_changed',
+  OBJECTIVE_ASSIGNED = 'objective.assigned',
+  KEY_RESULT_UPDATE_DUE = 'key_result.update_due',
+  KEY_RESULT_COMPLETED = 'key_result.completed',
+
   // System Events
   SYSTEM_MAINTENANCE = 'system.maintenance',
   SYSTEM_ANNOUNCEMENT = 'system.announcement',
@@ -149,6 +156,7 @@ export const DEFAULT_CHANNELS_BY_CATEGORY: Record<NotificationCategory, Delivery
   finance: ['in_app', 'email'],
   event: ['in_app', 'email', 'push'],
   communication: ['in_app', 'push'],
+  planning: ['in_app', 'email', 'push'],
 };
 
 /**

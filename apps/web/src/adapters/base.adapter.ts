@@ -12,9 +12,10 @@ import { FilterOperator } from '@/lib/repository/types';
 import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
 import type { FilterCondition, QueryOptions } from '@/lib/repository/query';
 import type { RequestContext } from '@/lib/server/context';
-import { handleError, TenantContextError } from '@/utils/errorHandler';
+import { handleError, TenantContextError, UnauthorizedError } from '@/utils/errorHandler';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { handleSupabaseError } from '@/utils/supabaseErrorHandler';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 @injectable()
 export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
@@ -51,6 +52,44 @@ export class BaseAdapter<T extends BaseModel> implements IBaseAdapter<T> {
    */
   protected async isSuperAdmin(): Promise<boolean> {
     return isCachedSuperAdmin();
+  }
+
+  /**
+   * Get Supabase service role client with super admin protection.
+   *
+   * SECURITY: This method MUST only be used for operations that require
+   * bypassing RLS policies. It enforces that the current user is a super admin
+   * before granting access to the service role client.
+   *
+   * @throws UnauthorizedError if the current user is not a super admin
+   * @returns Supabase client with service role privileges
+   */
+  protected async getSupabaseServiceClientWithProtection(): Promise<SupabaseClient> {
+    const isSuperAdmin = await this.isSuperAdmin();
+
+    if (!isSuperAdmin) {
+      throw new UnauthorizedError(
+        'Service role operations require super admin privileges'
+      );
+    }
+
+    return getSupabaseServiceClient();
+  }
+
+  /**
+   * Ensure the current user is a super admin.
+   * Use this method at the start of any operation that requires elevated privileges.
+   *
+   * @throws UnauthorizedError if the current user is not a super admin
+   */
+  protected async ensureSuperAdmin(): Promise<void> {
+    const isSuperAdmin = await this.isSuperAdmin();
+
+    if (!isSuperAdmin) {
+      throw new UnauthorizedError(
+        'This operation requires super admin privileges'
+      );
+    }
   }
 
   /**

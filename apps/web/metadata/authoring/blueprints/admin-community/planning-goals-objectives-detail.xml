@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+OBJECTIVE DETAIL PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page displays objective details (read-only) with its key results.
+Users can navigate to edit page or add key results from here.
+
+ROUTE: /admin/community/planning/goals/{goalId}/objectives/{objectiveId}
+
+PAGE STRUCTURE:
+  - Hero: Objective title, status, progress, and navigation
+  - Summary: Read-only display of objective details
+  - Key Results: List of attached key results with progress tracking
+  - Danger Zone: Delete option (for users with manage permission)
+
+PERMISSIONS:
+  - objectives:view - Required to view
+  - objectives:manage - Required to edit/delete
+  - key_results:manage - Required to add key results
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/objectives/detail"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="objectives:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-objectives-detail">
+    <Title>Objective Details</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Objective header with status and progress
+
+        Shows objective title, parent goal, status badge, and progress ring.
+        Includes back navigation to goal detail page and edit button.
+        -->
+        <Component id="detail-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="detailHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="detailHero.headline"/>
+            <Prop name="description" kind="binding" contract="detailHero.description"/>
+            <Prop name="metrics" kind="binding" contract="detailHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="back-to-goal"/>
+            <Prop name="secondaryCta" kind="action" actionId="edit-objective"/>
+          </Props>
+        </Component>
+
+        <!--
+        SUMMARY SECTION: Read-only objective details
+
+        Displays objective information in a summary card format.
+        Shows description, priority, status, due date, responsible person.
+        -->
+        <Component id="objective-summary" type="SummaryCard">
+          <Props>
+            <Prop name="title" kind="static">Objective Details</Prop>
+            <Prop name="items" kind="binding" contract="objectiveSummary.items"/>
+          </Props>
+        </Component>
+
+        <!--
+        KEY RESULTS SECTION: List of key results
+
+        Shows all key results attached to this objective with progress tracking.
+        Each key result shows current/target values and allows recording updates.
+        -->
+        <Component id="key-results-list" type="KeyResultProgressCard">
+          <Props>
+            <Prop name="keyResults" kind="binding" contract="keyResultsList.items"/>
+            <Prop name="showUpdateButton" kind="static">true</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        ADD KEY RESULT BUTTON
+        -->
+        <Component id="add-key-result-btn" type="ActionButton">
+          <Props>
+            <Prop name="label" kind="static">Add Key Result</Prop>
+            <Prop name="variant" kind="static">outline</Prop>
+            <Prop name="action" kind="action" actionId="add-key-result"/>
+          </Props>
+        </Component>
+
+        <!--
+        DELETE SECTION: Danger zone
+
+        Allows deleting the objective (with confirmation).
+        Only shown to users with objectives:manage permission.
+        -->
+        <Component id="delete-section" type="DangerZone">
+          <Props>
+            <Prop name="title" kind="static">Delete Objective</Prop>
+            <Prop name="description" kind="static">Once deleted, this objective and all its key results will be permanently removed.</Prop>
+            <Prop name="confirmText" kind="binding" contract="deleteSection.confirmText"/>
+            <Prop name="deleteAction" kind="action" actionId="delete-objective"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      DETAIL HERO DATA SOURCE
+
+      Returns objective header information including:
+        - Eyebrow: Parent goal name
+        - Headline: Objective title
+        - Description: Status and progress summary
+        - Metrics: Progress %, key results count, due date
+      -->
+      <DataSource id="detailHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Parent goal name"/>
+          <Field name="headline" path="hero.headline" description="Objective title"/>
+          <Field name="description" path="hero.description" description="Status summary"/>
+          <Field name="metrics" path="hero.metrics" description="Progress metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.detail.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      OBJECTIVE SUMMARY DATA SOURCE
+
+      Returns read-only summary items for the objective.
+      -->
+      <DataSource id="objectiveSummary" kind="service">
+        <Contract>
+          <Field name="items" path="summary.items" description="Summary display items"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.detail.summary</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      KEY RESULTS LIST DATA SOURCE
+
+      Returns list of key results attached to this objective.
+      Each item includes progress tracking information.
+      -->
+      <DataSource id="keyResultsList" kind="service">
+        <Contract>
+          <Field name="items" path="keyResults.items" description="List of key results"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.detail.keyResults</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      DELETE SECTION DATA SOURCE
+
+      Returns confirmation text for delete action.
+      -->
+      <DataSource id="deleteSection" kind="service">
+        <Contract>
+          <Field name="confirmText" path="delete.confirmText" description="Text user must type to confirm"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.detail.delete</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <!--
+      BACK TO GOAL: Navigate to parent goal
+      -->
+      <Action id="back-to-goal" kind="link">
+        <Config>
+          <Label>Back to Goal</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+
+      <!--
+      EDIT OBJECTIVE: Navigate to edit page
+      -->
+      <Action id="edit-objective" kind="link">
+        <Config>
+          <Label>Edit</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}/objectives/create?objectiveId={{params.objectiveId}}</Url>
+          <Variant>outline</Variant>
+        </Config>
+      </Action>
+
+      <!--
+      ADD KEY RESULT: Navigate to key result create page
+      -->
+      <Action id="add-key-result" kind="link">
+        <Config>
+          <Label>Add Key Result</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}/objectives/{{params.objectiveId}}/key-results/create</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+
+      <!--
+      DELETE OBJECTIVE: Remove objective and its key results
+      -->
+      <Action id="delete-objective" kind="service">
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.delete</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/{{params.goalId}}</Navigate>
+            <ShowToast>Objective deleted successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to delete objective. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

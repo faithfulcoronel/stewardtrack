@@ -10,6 +10,7 @@ export type CalendarEventType =
   | 'service'
   | 'event'
   | 'reminder'
+  | 'goal'
   | 'general';
 
 export type CalendarEventStatus =
@@ -31,6 +32,9 @@ export type CalendarEventSourceType =
   | 'church_events'
   | 'meetings'
   | 'services'
+  | 'goals'
+  | 'objectives'
+  | 'key_results'
   | null;
 
 export interface CalendarEvent extends BaseModel {

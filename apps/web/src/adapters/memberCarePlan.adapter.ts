@@ -46,6 +46,7 @@ export class MemberCarePlanAdapter
     status_code,
     status_label,
     assigned_to,
+    assigned_to_member_id,
     follow_up_at,
     closed_at,
     priority,

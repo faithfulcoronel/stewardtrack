@@ -15,6 +15,16 @@ FEATURE: Planning Dashboard
 - Stats overview for upcoming events
 - Integration with care plans and discipleship
 
+COMPONENT: PlanningDashboard
+The PlanningDashboard is a self-contained dynamic component that:
+- Fetches its own data from /api/community/planning/calendar
+- Displays stats grid (4 KPI cards)
+- Shows quick actions (Sync from Plans, Open Calendar)
+- Renders feature cards (Calendar, Goals & Objectives, Attendance)
+- Shows upcoming events list with hover cards
+- Shows needs attention / overdue section
+- Includes event detail dialog
+
 ================================================================================
 -->
 <PageDefinition
@@ -22,7 +32,7 @@ FEATURE: Planning Dashboard
   module="admin-community"
   route="planning/dashboard"
   schemaVersion="1.0.0"
-  contentVersion="1.0.0"
+  contentVersion="1.1.0"
   featureCode="events.core"
   requiredPermissions="members:view"
   locale="en-US">
@@ -33,130 +43,13 @@ FEATURE: Planning Dashboard
     <Regions>
       <Region id="main">
         <!--
-        HERO SECTION: Dashboard header with key stats
+        PLANNING DASHBOARD: Self-contained component matching original design
+        Component fetches its own data and handles all interactions
         -->
-        <Component id="planning-hero" type="HeroSection">
-          <Props>
-            <Prop name="variant" kind="static">split</Prop>
-            <Prop name="eyebrow" kind="binding" contract="planningHero.eyebrow"/>
-            <Prop name="headline" kind="binding" contract="planningHero.headline"/>
-            <Prop name="description" kind="binding" contract="planningHero.description"/>
-            <Prop name="highlights" kind="binding" contract="planningHero.highlights"/>
-            <Prop name="metrics" kind="binding" contract="planningHero.metrics"/>
-            <Prop name="primaryCta" kind="action" actionId="open-calendar"/>
-            <Prop name="secondaryCta" kind="action" actionId="sync-events"/>
-          </Props>
-        </Component>
-
-        <!--
-        KPI METRICS: Planning statistics
-        -->
-        <Component id="planning-kpis" type="AdminMetricCards">
-          <Props>
-            <Prop name="title" kind="static">Planning overview</Prop>
-            <Prop name="description" kind="static">Track upcoming events, follow-ups, and engagement across your church community.</Prop>
-            <Prop name="metrics" kind="binding" contract="planningMetrics.items"/>
-            <Prop name="footnote" kind="static">Data aggregated from care plans, discipleship milestones, and scheduled events.</Prop>
-          </Props>
-        </Component>
-
-        <!--
-        QUICK LINKS: Navigation to planning features
-        -->
-        <Component id="planning-quick-links" type="AdminQuickLinks">
-          <Props>
-            <Prop name="title" kind="static">Planning tools</Prop>
-            <Prop name="description" kind="static">Access calendar, goals tracking, and attendance management from one place.</Prop>
-            <Prop name="columns" kind="static">3</Prop>
-            <Prop name="links" kind="binding" contract="planningQuickLinks.items"/>
-            <Prop name="actions" kind="binding" contract="planningQuickLinks.actions"/>
-          </Props>
-        </Component>
-
-        <!--
-        UPCOMING EVENTS: Timeline of what's coming
-        -->
-        <Component id="upcoming-timeline" type="AdminActivityTimeline">
-          <Props>
-            <Prop name="title" kind="static">Upcoming this week</Prop>
-            <Prop name="description" kind="static">Care plan follow-ups, discipleship milestones, and scheduled events requiring attention.</Prop>
-            <Prop name="accentLabel" kind="static">Next 7 days</Prop>
-            <Prop name="events" kind="binding" contract="upcomingTimeline.items"/>
-          </Props>
-        </Component>
+        <Component id="planning-dashboard" type="PlanningDashboard" />
       </Region>
     </Regions>
 
-    <DataSources>
-      <!-- Hero section data -->
-      <DataSource id="planningHero" kind="service">
-        <Contract>
-          <Field name="eyebrow" path="eyebrow" description="Dashboard eyebrow text"/>
-          <Field name="headline" path="headline" description="Dashboard headline"/>
-          <Field name="description" path="description" description="Dashboard description"/>
-          <Field name="highlights" path="highlights" description="Feature highlights list"/>
-          <Field name="metrics" path="metrics" description="Key metrics display"/>
-        </Contract>
-        <Config>
-          <Handler>admin-community.planning.dashboard.hero</Handler>
-        </Config>
-      </DataSource>
-
-      <!-- KPI metrics -->
-      <DataSource id="planningMetrics" kind="service">
-        <Contract>
-          <Field name="items" path="items" description="Planning metric cards"/>
-        </Contract>
-        <Config>
-          <Handler>admin-community.planning.dashboard.metrics</Handler>
-        </Config>
-      </DataSource>
-
-      <!-- Quick links -->
-      <DataSource id="planningQuickLinks" kind="service">
-        <Contract>
-          <Field name="items" path="items" description="Quick link navigation cards"/>
-          <Field name="actions" path="actions" description="Quick action buttons"/>
-        </Contract>
-        <Config>
-          <Handler>admin-community.planning.dashboard.quickLinks</Handler>
-        </Config>
-      </DataSource>
-
-      <!-- Upcoming timeline -->
-      <DataSource id="upcomingTimeline" kind="service">
-        <Contract>
-          <Field name="items" path="items" description="Upcoming events timeline"/>
-        </Contract>
-        <Config>
-          <Handler>admin-community.planning.dashboard.upcoming</Handler>
-        </Config>
-      </DataSource>
-    </DataSources>
-
-    <Actions>
-      <Action id="open-calendar" kind="link">
-        <Config>
-          <Label>Open calendar</Label>
-          <Url>/admin/community/planning/calendar</Url>
-          <Variant>primary</Variant>
-        </Config>
-      </Action>
-      <Action id="sync-events" kind="service">
-        <Config>
-          <Label>Sync events</Label>
-          <Handler>admin-community.planning.sync</Handler>
-          <Variant>secondary</Variant>
-        </Config>
-      </Action>
-      <Action id="add-event" kind="link">
-        <RBAC requirePermissions="members:edit" />
-        <Config>
-          <Label>Add event</Label>
-          <Url>/admin/community/planning/manage</Url>
-          <Variant>secondary</Variant>
-        </Config>
-      </Action>
-    </Actions>
+    <!-- No DataSources or Actions needed - component is self-contained -->
   </Page>
 </PageDefinition>

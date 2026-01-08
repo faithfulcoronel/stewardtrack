@@ -12,6 +12,7 @@ import type { TenantService } from '@/services/TenantService';
 import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { TYPES } from '@/lib/types';
 import { TenantContextError } from '@/utils/errorHandler';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface ICalendarEventAdapter extends IBaseAdapter<CalendarEvent> {
   getAll(): Promise<CalendarEvent[]>;
@@ -419,17 +420,22 @@ export class CalendarEventAdapter
 
   async syncFromCarePlans(): Promise<number> {
     const tenantId = await this.getTenantId();
-    const supabase = await this.getSupabaseClient();
+    // Use service client to bypass RLS for reading care plans
+    // This is a system-level sync operation that needs access regardless of user permissions
+    const serviceClient = await getSupabaseServiceClient();
     let syncedCount = 0;
 
-    // Fetch care plans with follow-up dates
-    const { data: carePlans, error: carePlansError } = await supabase
+    // Fetch care plans with follow-up dates using service client (bypasses RLS)
+    // Include both legacy assigned_to and new assigned_to_member_id columns
+    const { data: carePlans, error: carePlansError } = await serviceClient
       .from('member_care_plans')
-      .select('id, member_id, status_label, status_code, follow_up_at, priority, details, assigned_to')
+      .select('id, member_id, status_label, status_code, follow_up_at, priority, details, assigned_to, assigned_to_member_id')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .is('deleted_at', null)
       .not('follow_up_at', 'is', null);
+
+    console.log('[syncFromCarePlans] Found care plans:', carePlans?.length ?? 0, carePlansError ? `Error: ${carePlansError.message}` : '');
 
     if (carePlansError) {
       throw new Error(`Failed to fetch care plans for sync: ${carePlansError.message}`);
@@ -437,17 +443,19 @@ export class CalendarEventAdapter
 
     if (!carePlans) return 0;
 
-    // Get the care_plan category
-    const { data: category } = await supabase
+    // Get the care_plan category using service client
+    const { data: category } = await serviceClient
       .from('calendar_categories')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('code', 'care_plan')
       .maybeSingle();
 
+    console.log('[syncFromCarePlans] Care plan category:', category?.id ?? 'NOT FOUND');
+
     for (const plan of carePlans) {
-      // Get existing event for this source (if any)
-      const { data: existingEvents } = await supabase
+      // Get existing event for this source (if any) using service client
+      const { data: existingEvents } = await serviceClient
         .from(this.tableName)
         .select('id, start_at, title, description, priority')
         .eq('tenant_id', tenantId)
@@ -460,6 +468,13 @@ export class CalendarEventAdapter
       const newTitle = `Care Plan: ${plan.status_label || plan.status_code || 'Follow-up'}`;
       const newPriority = plan.priority || 'normal';
 
+      // Use the new assigned_to_member_id column (UUID) if available
+      // Fall back to legacy assigned_to text field and store in metadata
+      const assignedToUuid = plan.assigned_to_member_id || null;
+      const assignedToName = !plan.assigned_to_member_id && plan.assigned_to ? plan.assigned_to : null;
+
+      console.log('[syncFromCarePlans] Processing plan:', plan.id, 'existingEvent:', existingEvent?.id ?? 'NONE');
+
       if (existingEvent) {
         // Check if any data has changed (date, title, description, or priority)
         const dateChanged = existingEvent.start_at !== plan.follow_up_at;
@@ -468,26 +483,28 @@ export class CalendarEventAdapter
         const priorityChanged = existingEvent.priority !== newPriority;
 
         if (dateChanged || titleChanged || descriptionChanged || priorityChanged) {
-          // Update existing event with new data
-          const { error: updateError } = await supabase
+          // Update existing event with new data using service client
+          const { error: updateError } = await serviceClient
             .from(this.tableName)
             .update({
               title: newTitle,
               description: plan.details,
               start_at: plan.follow_up_at,
               priority: newPriority,
-              assigned_to: plan.assigned_to,
+              assigned_to: assignedToUuid,
+              metadata: assignedToName ? { assigned_to_name: assignedToName } : {},
               updated_at: new Date().toISOString(),
             })
             .eq('id', existingEvent.id);
 
+          console.log('[syncFromCarePlans] Update result:', updateError ? `ERROR: ${updateError.message}` : 'SUCCESS');
           if (!updateError) {
             syncedCount++;
           }
         }
       } else {
-        // Create new event
-        const { error: insertError } = await supabase.from(this.tableName).insert({
+        // Create new event using service client
+        const { error: insertError } = await serviceClient.from(this.tableName).insert({
           tenant_id: tenantId,
           title: newTitle,
           description: plan.details,
@@ -501,17 +518,18 @@ export class CalendarEventAdapter
           source_type: 'member_care_plans',
           source_id: plan.id,
           member_id: plan.member_id,
-          assigned_to: plan.assigned_to,
+          assigned_to: assignedToUuid,
           is_recurring: false,
           is_private: false,
           visibility: 'team',
           tags: ['care-plan', 'follow-up'],
-          metadata: {},
+          metadata: assignedToName ? { assigned_to_name: assignedToName } : {},
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
 
+        console.log('[syncFromCarePlans] Insert result:', insertError ? `ERROR: ${insertError.message}` : 'SUCCESS');
         if (!insertError) {
           syncedCount++;
         }
@@ -523,16 +541,20 @@ export class CalendarEventAdapter
 
   async syncFromDiscipleshipPlans(): Promise<number> {
     const tenantId = await this.getTenantId();
-    const supabase = await this.getSupabaseClient();
+    // Use service client to bypass RLS for reading discipleship plans
+    // This is a system-level sync operation that needs access regardless of user permissions
+    const serviceClient = await getSupabaseServiceClient();
     let syncedCount = 0;
 
-    // Fetch discipleship plans with target dates
-    const { data: discipleshipPlans, error: plansError } = await supabase
+    // Fetch discipleship plans with target dates using service client (bypasses RLS)
+    const { data: discipleshipPlans, error: plansError } = await serviceClient
       .from('member_discipleship_plans')
       .select('id, member_id, pathway, status, target_date, mentor_name, notes')
       .eq('tenant_id', tenantId)
       .is('deleted_at', null)
       .not('target_date', 'is', null);
+
+    console.log('[syncFromDiscipleshipPlans] Found discipleship plans:', discipleshipPlans?.length ?? 0, plansError ? `Error: ${plansError.message}` : '');
 
     if (plansError) {
       throw new Error(`Failed to fetch discipleship plans for sync: ${plansError.message}`);
@@ -540,17 +562,19 @@ export class CalendarEventAdapter
 
     if (!discipleshipPlans) return 0;
 
-    // Get the discipleship category
-    const { data: category } = await supabase
+    // Get the discipleship category using service client
+    const { data: category } = await serviceClient
       .from('calendar_categories')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('code', 'discipleship')
       .maybeSingle();
 
+    console.log('[syncFromDiscipleshipPlans] Discipleship category:', category?.id ?? 'NOT FOUND');
+
     for (const plan of discipleshipPlans) {
-      // Get existing event for this source (if any)
-      const { data: existingEvents } = await supabase
+      // Get existing event for this source (if any) using service client
+      const { data: existingEvents } = await serviceClient
         .from(this.tableName)
         .select('id, start_at, title, description')
         .eq('tenant_id', tenantId)
@@ -562,6 +586,8 @@ export class CalendarEventAdapter
       const existingEvent = existingEvents?.[0];
       const newTitle = `Discipleship: ${plan.pathway || plan.status || 'Milestone'}`;
 
+      console.log('[syncFromDiscipleshipPlans] Processing plan:', plan.id, 'existingEvent:', existingEvent?.id ?? 'NONE');
+
       if (existingEvent) {
         // Check if any data has changed (date, title, or description)
         const dateChanged = existingEvent.start_at !== plan.target_date;
@@ -569,9 +595,9 @@ export class CalendarEventAdapter
         const descriptionChanged = existingEvent.description !== plan.notes;
 
         if (dateChanged || titleChanged || descriptionChanged) {
-          // Update existing event with new data
+          // Update existing event with new data using service client
           // Also ensure source_id and member_id are correct (fixes legacy data issues)
-          const { error: updateError } = await supabase
+          const { error: updateError } = await serviceClient
             .from(this.tableName)
             .update({
               title: newTitle,
@@ -584,13 +610,14 @@ export class CalendarEventAdapter
             })
             .eq('id', existingEvent.id);
 
+          console.log('[syncFromDiscipleshipPlans] Update result:', updateError ? `ERROR: ${updateError.message}` : 'SUCCESS');
           if (!updateError) {
             syncedCount++;
           }
         }
       } else {
-        // Create new event
-        const { error: insertError } = await supabase.from(this.tableName).insert({
+        // Create new event using service client
+        const { error: insertError } = await serviceClient.from(this.tableName).insert({
           tenant_id: tenantId,
           title: newTitle,
           description: plan.notes,
@@ -615,6 +642,7 @@ export class CalendarEventAdapter
           updated_at: new Date().toISOString(),
         });
 
+        console.log('[syncFromDiscipleshipPlans] Insert result:', insertError ? `ERROR: ${insertError.message}` : 'SUCCESS');
         if (!insertError) {
           syncedCount++;
         }
@@ -626,11 +654,13 @@ export class CalendarEventAdapter
 
   async syncFromMemberBirthdays(): Promise<number> {
     const tenantId = await this.getTenantId();
-    const supabase = await this.getSupabaseClient();
+    // Use service client to bypass RLS for reading members
+    // This is a system-level sync operation that needs access regardless of user permissions
+    const serviceClient = await getSupabaseServiceClient();
     let syncedCount = 0;
 
-    // Fetch active members with birthdays
-    const { data: members, error: membersError } = await supabase
+    // Fetch active members with birthdays using service client (bypasses RLS)
+    const { data: members, error: membersError } = await serviceClient
       .from('members')
       .select('id, first_name, last_name, birthday')
       .eq('tenant_id', tenantId)
@@ -645,8 +675,8 @@ export class CalendarEventAdapter
 
     if (!members) return 0;
 
-    // Get the birthday category
-    const { data: category } = await supabase
+    // Get the birthday category using service client
+    const { data: category } = await serviceClient
       .from('calendar_categories')
       .select('id')
       .eq('tenant_id', tenantId)
@@ -666,8 +696,8 @@ export class CalendarEventAdapter
         member.last_name
       );
 
-      // Get existing event for this source (if any)
-      const { data: existingEvents } = await supabase
+      // Get existing event for this source (if any) using service client
+      const { data: existingEvents } = await serviceClient
         .from(this.tableName)
         .select('id, start_at, title')
         .eq('tenant_id', tenantId)
@@ -691,8 +721,8 @@ export class CalendarEventAdapter
       const newDescription = `Birthday celebration for ${memberName}`;
 
       if (existingEvent) {
-        // Always update to ensure decrypted names are used
-        const { error: updateError } = await supabase
+        // Always update to ensure decrypted names are used - using service client
+        const { error: updateError } = await serviceClient
           .from(this.tableName)
           .update({
             title: newTitle,
@@ -707,8 +737,8 @@ export class CalendarEventAdapter
           syncedCount++;
         }
       } else {
-        // Create new recurring birthday event
-        const { error: insertError } = await supabase.from(this.tableName).insert({
+        // Create new recurring birthday event using service client
+        const { error: insertError } = await serviceClient.from(this.tableName).insert({
           tenant_id: tenantId,
           title: newTitle,
           description: newDescription,
@@ -746,11 +776,13 @@ export class CalendarEventAdapter
 
   async syncFromMemberAnniversaries(): Promise<number> {
     const tenantId = await this.getTenantId();
-    const supabase = await this.getSupabaseClient();
+    // Use service client to bypass RLS for reading members
+    // This is a system-level sync operation that needs access regardless of user permissions
+    const serviceClient = await getSupabaseServiceClient();
     let syncedCount = 0;
 
-    // Fetch active members with anniversaries
-    const { data: members, error: membersError } = await supabase
+    // Fetch active members with anniversaries using service client (bypasses RLS)
+    const { data: members, error: membersError } = await serviceClient
       .from('members')
       .select('id, first_name, last_name, anniversary')
       .eq('tenant_id', tenantId)
@@ -765,8 +797,8 @@ export class CalendarEventAdapter
 
     if (!members) return 0;
 
-    // Get the anniversary category
-    const { data: category } = await supabase
+    // Get the anniversary category using service client
+    const { data: category } = await serviceClient
       .from('calendar_categories')
       .select('id')
       .eq('tenant_id', tenantId)
@@ -786,8 +818,8 @@ export class CalendarEventAdapter
         member.last_name
       );
 
-      // Get existing event for this source (if any)
-      const { data: existingEvents } = await supabase
+      // Get existing event for this source (if any) using service client
+      const { data: existingEvents } = await serviceClient
         .from(this.tableName)
         .select('id, start_at, title')
         .eq('tenant_id', tenantId)
@@ -811,8 +843,8 @@ export class CalendarEventAdapter
       const newDescription = `Wedding anniversary celebration for ${memberName}`;
 
       if (existingEvent) {
-        // Always update to ensure decrypted names are used
-        const { error: updateError } = await supabase
+        // Always update to ensure decrypted names are used - using service client
+        const { error: updateError } = await serviceClient
           .from(this.tableName)
           .update({
             title: newTitle,
@@ -827,8 +859,8 @@ export class CalendarEventAdapter
           syncedCount++;
         }
       } else {
-        // Create new recurring anniversary event
-        const { error: insertError } = await supabase.from(this.tableName).insert({
+        // Create new recurring anniversary event using service client
+        const { error: insertError } = await serviceClient.from(this.tableName).insert({
           tenant_id: tenantId,
           title: newTitle,
           description: newDescription,

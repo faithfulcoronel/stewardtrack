@@ -245,7 +245,13 @@ export class FileSystemMetadataRegistry implements MetadataRegistry {
   private async loadDefinition(compiledPath: string): Promise<CanonicalPageDefinition> {
     const absolutePath = path.isAbsolute(compiledPath) ? compiledPath : path.join(this.rootDir, compiledPath);
     const raw = await fs.readFile(absolutePath, 'utf-8');
-    const parsed = JSON.parse(raw) as unknown;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      console.error(`[MetadataRegistry] Failed to parse JSON at ${absolutePath}:`, error);
+      throw new Error(`Invalid JSON in metadata file ${absolutePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
     const validator = await this.getValidator();
     if (!validator(parsed)) {
       const message = (validator.errors ?? []).map((err) => `${err.instancePath} ${err.message ?? ''}`.trim()).join('\n');

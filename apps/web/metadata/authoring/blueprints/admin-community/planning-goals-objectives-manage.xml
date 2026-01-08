@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+OBJECTIVES MANAGE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page provides create/edit functionality for objectives under a goal.
+The URL pattern includes the goalId to establish parent-child relationship.
+
+ROUTES:
+  - CREATE: /admin/community/planning/goals/{goalId}/objectives/create
+  - EDIT:   /admin/community/planning/goals/{goalId}/objectives/create?objectiveId=xxx
+
+MODE DETECTION:
+Service handlers check for objectiveId in request.params:
+  - If present: Load existing objective, show "Edit" mode
+  - If absent: Show empty form, "Create" mode
+
+FORM ARCHITECTURE:
+AdminFormSection component handles:
+  - Dynamic field generation from handler
+  - Form validation
+  - Submit action invocation
+  - Success/error toast notifications
+  - Post-save navigation
+
+PERMISSIONS:
+  - objectives:create - Required to create a new objective
+  - objectives:edit   - Required to edit an existing objective
+
+FORM FIELDS:
+  - title (required): Objective title
+  - description: Detailed objective description
+  - responsible_id: Person responsible for the objective
+  - priority: Priority level (low, normal, high, urgent)
+  - due_date: Objective deadline
+  - weight: Relative weight for progress calculation
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/objectives/create"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="objectives:manage"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-objectives-manage">
+    <Title>Manage objective</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Mode-aware header
+
+        In create mode: "Add a new objective"
+        In edit mode:   "Update objective details"
+
+        The handler checks for objectiveId to determine mode.
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!--
+        FORM SECTION: Dynamic form for create/edit
+
+        AdminFormSection renders form fields based on handler response.
+        Key props:
+          - fields: Array of field definitions
+          - initialValues: Pre-populated values (for edit mode)
+          - submitAction: Action to call on form submit
+          - contextParams: Additional params passed to save handler
+        -->
+        <Component id="objective-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="objectiveForm.title"/>
+            <Prop name="description" kind="binding" contract="objectiveForm.description"/>
+            <Prop name="fields" kind="binding" contract="objectiveForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="objectiveForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="objectiveForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="objectiveForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-objective"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      MANAGE HERO DATA SOURCE
+
+      Returns mode-aware header content.
+      Handler checks request.params.objectiveId for mode detection.
+      Also uses request.params.goalId for context.
+      -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      FORM DATA SOURCE
+
+      Returns form configuration including:
+        - Field definitions (type, validation, options)
+        - Initial values (empty for create, populated for edit)
+        - Submit button label
+        - Context params for save handler (includes goalId)
+      -->
+      <DataSource id="objectiveForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for objective-form.title"/>
+          <Field name="description" path="form.description" description="Binding for objective-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for objective-form.fields"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for objective-form.submitLabel"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for objective-form.initialValues"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for objective-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <!--
+    ACTIONS: Form submission and navigation
+
+    SAVE ACTION (kind="service"):
+      - Calls a service handler to persist form data
+      - OnSuccess: Navigate to goal detail page, show toast
+      - OnError: Show error toast
+
+    The {{goalId}} in Navigate URL comes from context params.
+    -->
+    <Actions>
+      <Action id="save-objective" kind="service">
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/{{params.goalId}}</Navigate>
+            <ShowToast>Objective saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save objective. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

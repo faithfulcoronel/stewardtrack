@@ -278,6 +278,21 @@ export const TYPES = {
   IDiscountAdapter: Symbol.for('IDiscountAdapter'),
   IDiscountRepository: Symbol.for('IDiscountRepository'),
   DiscountService: Symbol.for('DiscountService'),
+
+  // Goals & Objectives Feature
+  IGoalCategoryAdapter: Symbol.for('IGoalCategoryAdapter'),
+  IGoalCategoryRepository: Symbol.for('IGoalCategoryRepository'),
+  IGoalAdapter: Symbol.for('IGoalAdapter'),
+  IGoalRepository: Symbol.for('IGoalRepository'),
+  IObjectiveAdapter: Symbol.for('IObjectiveAdapter'),
+  IObjectiveRepository: Symbol.for('IObjectiveRepository'),
+  IKeyResultAdapter: Symbol.for('IKeyResultAdapter'),
+  IKeyResultRepository: Symbol.for('IKeyResultRepository'),
+  IKeyResultProgressUpdateAdapter: Symbol.for('IKeyResultProgressUpdateAdapter'),
+  IKeyResultProgressUpdateRepository: Symbol.for('IKeyResultProgressUpdateRepository'),
+  GoalCategoryService: Symbol.for('GoalCategoryService'),
+  GoalsService: Symbol.for('GoalsService'),
+  GoalMetricsService: Symbol.for('GoalMetricsService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

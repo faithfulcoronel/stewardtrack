@@ -12,6 +12,389 @@ import type {
   CalendarEventPriority,
 } from '@/models/calendarEvent.model';
 
+// ==================== DASHBOARD PAGE HANDLERS ====================
+
+/**
+ * Resolves the hero section for the planning dashboard.
+ * Returns eyebrow, headline, description, highlights, and key metrics.
+ */
+const resolveDashboardHero: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+  const stats = await planningService.getDashboardStats();
+
+  return {
+    eyebrow: 'Planning · Community management',
+    headline: 'Planning dashboard',
+    description: 'Coordinate church activities, track follow-ups, and stay organized with a unified planning system.',
+    highlights: [
+      { text: 'Calendar view for all events', icon: '📅' },
+      { text: 'Care plan follow-up tracking', icon: '❤️' },
+      { text: 'Discipleship milestone reminders', icon: '📖' },
+    ],
+    metrics: [
+      { label: 'Upcoming', value: String(stats.upcomingEvents), caption: 'Next 7 days' },
+      { label: 'Care Plans', value: String(stats.carePlanEvents), caption: 'Follow-ups scheduled' },
+      { label: 'Discipleship', value: String(stats.discipleshipEvents), caption: 'Milestones tracked' },
+      { label: 'Completed', value: String(stats.completedThisWeek), caption: 'This week' },
+    ],
+  };
+};
+
+/**
+ * Resolves the metrics cards for the planning dashboard.
+ * Returns KPI metrics for planning overview.
+ */
+const resolveDashboardMetrics: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+  const stats = await planningService.getDashboardStats();
+
+  return {
+    items: [
+      {
+        id: 'upcoming-events',
+        label: 'Upcoming Events',
+        value: String(stats.upcomingEvents),
+        description: 'Events in the next 7 days',
+        icon: '📅',
+        tone: stats.upcomingEvents > 0 ? 'informative' : 'neutral',
+      },
+      {
+        id: 'care-plan-followups',
+        label: 'Care Plan Follow-ups',
+        value: String(stats.carePlanEvents),
+        description: 'Pastoral care scheduled',
+        icon: '❤️',
+        tone: stats.carePlanEvents > 0 ? 'informative' : 'neutral',
+      },
+      {
+        id: 'discipleship-milestones',
+        label: 'Discipleship Milestones',
+        value: String(stats.discipleshipEvents),
+        description: 'Growth journey checkpoints',
+        icon: '📖',
+        tone: stats.discipleshipEvents > 0 ? 'informative' : 'neutral',
+      },
+      {
+        id: 'completed-this-week',
+        label: 'Completed This Week',
+        value: String(stats.completedThisWeek),
+        description: 'Events marked complete',
+        icon: '✅',
+        tone: stats.completedThisWeek > 0 ? 'positive' : 'neutral',
+      },
+    ],
+  };
+};
+
+/**
+ * Resolves the quick links for the planning dashboard.
+ * Returns navigation cards for planning tools: Calendar, Goals & Objectives, Attendance.
+ */
+const resolveDashboardQuickLinks: ServiceDataSourceHandler = async () => {
+  return {
+    items: [
+      {
+        id: 'calendar',
+        title: 'Calendar',
+        description: 'View and manage all events, follow-ups, and milestones in one unified calendar.',
+        href: '/admin/community/planning/calendar',
+        icon: '📅',
+      },
+      {
+        id: 'goals',
+        title: 'Goals & Objectives',
+        description: 'Set and track church-wide goals, ministry objectives, and key results.',
+        href: '/admin/community/planning/goals',
+        icon: '🎯',
+      },
+      {
+        id: 'attendance',
+        title: 'Attendance',
+        description: 'Track service and event attendance, analyze trends, and manage capacity.',
+        href: '/admin/community/planning/attendance',
+        icon: '👥',
+        badge: 'Coming Soon',
+      },
+    ],
+    actions: [],
+  };
+};
+
+/**
+ * Resolves the upcoming events timeline for the dashboard.
+ * Returns the next 7 days of events as timeline items.
+ */
+const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+
+  // Get events for the next 7 days
+  const now = new Date();
+  const weekAhead = new Date();
+  weekAhead.setDate(now.getDate() + 7);
+
+  const events = await planningService.getEventsByDateRange(
+    now.toISOString(),
+    weekAhead.toISOString()
+  );
+
+  // Sort by date and take first 10
+  const sortedEvents = events
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+    .slice(0, 10);
+
+  // Map to timeline event format
+  const items = sortedEvents.map((event) => {
+    const eventDate = new Date(event.start_at);
+    const isToday = eventDate.toDateString() === now.toDateString();
+    const isTomorrow = eventDate.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+
+    let dateLabel = eventDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    if (isToday) dateLabel = 'Today';
+    if (isTomorrow) dateLabel = 'Tomorrow';
+
+    const timeLabel = event.all_day ? 'All day' : eventDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    // Determine status based on event properties
+    let status: 'scheduled' | 'attention' | 'completed' | 'new' = 'scheduled';
+    if (event.status === 'completed') {
+      status = 'completed';
+    } else if (event.priority === 'urgent' || event.priority === 'high') {
+      status = 'attention';
+    }
+
+    // Determine icon based on event type
+    let icon = '📅';
+    if (event.event_type === 'care_plan') icon = '❤️';
+    else if (event.event_type === 'discipleship') icon = '📖';
+    else if (event.event_type === 'meeting') icon = '👥';
+    else if (event.event_type === 'service') icon = '⛪';
+
+    return {
+      id: event.id,
+      title: event.title,
+      description: event.member_name ? `With ${event.member_name}` : event.description || undefined,
+      date: dateLabel,
+      timeAgo: timeLabel,
+      category: event.event_type.replace('_', ' '),
+      status,
+      icon,
+    };
+  });
+
+  return { items };
+};
+
+/**
+ * Handles the sync events action from the planning dashboard.
+ * Triggers a sync from care plans and discipleship plans to the calendar.
+ */
+const handleSyncEvents: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+
+  try {
+    const result = await planningService.syncFromPlans();
+    return {
+      success: true,
+      message: `Synced ${result.synced} events from care plans and discipleship plans.`,
+      synced: result.synced,
+    };
+  } catch (error) {
+    console.error('[handleSyncEvents] Failed to sync events:', error);
+    return {
+      success: false,
+      message: 'Failed to sync events. Please try again.',
+    };
+  }
+};
+
+// ==================== CALENDAR PAGE HANDLERS ====================
+
+/**
+ * Resolves the hero section for the planning calendar page.
+ * Returns stats-panel variant with calendar metrics.
+ */
+const resolveCalendarHero: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+  const stats = await planningService.getDashboardStats();
+
+  return {
+    hero: {
+      eyebrow: 'Calendar · Planning module',
+      headline: 'Planning calendar',
+      description: 'View and manage all events, follow-ups, and milestones in one unified calendar.',
+      metrics: [
+        { label: 'Total Events', value: String(stats.totalEvents), caption: 'In calendar' },
+        { label: 'Upcoming', value: String(stats.upcomingEvents), caption: 'Next 7 days' },
+        { label: 'Overdue', value: String(stats.overdueEvents), caption: stats.overdueEvents > 0 ? 'Needs attention' : 'All clear' },
+      ],
+    },
+  };
+};
+
+/**
+ * Resolves the calendar data for the PlanningCalendar component.
+ * Returns events, categories, and loading state.
+ */
+const resolveCalendarData: ServiceDataSourceHandler = async (request) => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+
+  // Get date range from request params or default to current month
+  const now = new Date();
+  const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const defaultEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const startDate = (request.params?.startDate as string) || defaultStartDate.toISOString();
+  const endDate = (request.params?.endDate as string) || defaultEndDate.toISOString();
+
+  const [events, categories] = await Promise.all([
+    planningService.getEventsByDateRange(startDate, endDate),
+    planningService.getCategories(),
+  ]);
+
+  // Map events to CalendarEvent format expected by PlanningCalendar component
+  const calendarEvents = events.map((event) => ({
+    id: event.id,
+    title: event.title,
+    description: event.description,
+    location: event.location,
+    start: event.start_at,
+    end: event.end_at,
+    allDay: event.all_day,
+    categoryId: event.category_id,
+    categoryName: event.category_name || undefined,
+    categoryColor: event.category_color || '#6366f1',
+    categoryIcon: event.category_icon || undefined,
+    eventType: event.event_type,
+    status: event.status,
+    priority: event.priority,
+    sourceType: event.source_type,
+    sourceId: event.source_id,
+    memberId: event.member_id,
+    memberName: event.member_name,
+    assignedToId: event.assigned_to_id,
+    assignedToName: event.assigned_to_name,
+    isRecurring: false,
+    isPrivate: false,
+    tags: event.tags || [],
+  }));
+
+  return {
+    calendar: {
+      events: calendarEvents,
+      categories: categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        code: cat.code,
+        color: cat.color,
+        icon: cat.icon,
+      })),
+      isLoading: false,
+    },
+  };
+};
+
+/**
+ * Resolves the upcoming events for the calendar page sidebar.
+ * Returns metric cards for upcoming items requiring attention.
+ */
+const resolveCalendarUpcoming: ServiceDataSourceHandler = async () => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  const planningService = container.get<PlanningService>(TYPES.PlanningService);
+
+  // Get events for the next 7 days
+  const now = new Date();
+  const weekAhead = new Date();
+  weekAhead.setDate(now.getDate() + 7);
+
+  const events = await planningService.getEventsByDateRange(
+    now.toISOString(),
+    weekAhead.toISOString()
+  );
+
+  // Count by type
+  const carePlanCount = events.filter(e => e.event_type === 'care_plan').length;
+  const discipleshipCount = events.filter(e => e.event_type === 'discipleship').length;
+  const urgentCount = events.filter(e => e.priority === 'urgent' || e.priority === 'high').length;
+
+  return {
+    items: [
+      {
+        id: 'care-plan-followups',
+        label: 'Care Plan Follow-ups',
+        value: String(carePlanCount),
+        description: 'Pastoral care this week',
+        icon: '❤️',
+        tone: carePlanCount > 0 ? 'informative' : 'neutral',
+      },
+      {
+        id: 'discipleship-milestones',
+        label: 'Discipleship Milestones',
+        value: String(discipleshipCount),
+        description: 'Growth checkpoints',
+        icon: '📖',
+        tone: discipleshipCount > 0 ? 'informative' : 'neutral',
+      },
+      {
+        id: 'urgent-items',
+        label: 'Urgent Items',
+        value: String(urgentCount),
+        description: 'High priority events',
+        icon: '⚠️',
+        tone: urgentCount > 0 ? 'negative' : 'positive',
+      },
+    ],
+  };
+};
+
 // ==================== EVENT MANAGE PAGE HANDLERS ====================
 
 const resolveEventManageHero: ServiceDataSourceHandler = async (request) => {
@@ -378,6 +761,19 @@ const saveEvent: ServiceDataSourceHandler = async (request) => {
 
 // Export all handlers
 export const adminCommunityPlanningHandlers: Record<string, ServiceDataSourceHandler> = {
+  // Dashboard handlers
+  'admin-community.planning.dashboard.hero': resolveDashboardHero,
+  'admin-community.planning.dashboard.metrics': resolveDashboardMetrics,
+  'admin-community.planning.dashboard.quickLinks': resolveDashboardQuickLinks,
+  'admin-community.planning.dashboard.upcoming': resolveDashboardUpcoming,
+  'admin-community.planning.sync': handleSyncEvents,
+
+  // Calendar handlers
+  'admin-community.planning.calendar.hero': resolveCalendarHero,
+  'admin-community.planning.calendar.data': resolveCalendarData,
+  'admin-community.planning.calendar.upcoming': resolveCalendarUpcoming,
+
+  // Event manage handlers
   'admin-community.planning.event.manage.hero': resolveEventManageHero,
   'admin-community.planning.event.manage.form': resolveEventManageForm,
   'admin-community.planning.event.manage.save': saveEvent,

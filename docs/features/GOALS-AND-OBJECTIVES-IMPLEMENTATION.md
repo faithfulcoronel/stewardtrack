@@ -2246,6 +2246,153 @@ interface MetricLinkSelectorProps {
 // - "None" option for manual tracking
 ```
 
+### 6.3 Dynamic UI Components (Phase 5b)
+
+The following mobile-first, theme-aware components were implemented as part of the metadata-driven architecture. They are registered in `admin.tsx` and can be used in XML blueprints.
+
+#### GoalProgressRing
+
+```tsx
+interface GoalProgressRingProps {
+  progress: number;              // 0-100
+  size?: number;                 // Default: 120px
+  strokeWidth?: number;          // Default: 8px
+  status?: ProgressRingStatus;   // Determines color
+  showLabel?: boolean;           // Show percentage
+  label?: string;                // Custom label
+  animationDuration?: number;    // Default: 1000ms
+}
+
+type ProgressRingStatus = "draft" | "active" | "on_track" | "at_risk" | "behind" | "completed" | "cancelled";
+
+// Features:
+// - SVG-based circular progress indicator
+// - Status-aware colors (emerald/sky/amber/destructive)
+// - Smooth CSS animations
+// - Touch feedback with scale transform
+// - ARIA progressbar role for accessibility
+```
+
+#### GoalCard
+
+```tsx
+interface GoalCardProps {
+  goal?: GoalCardData;           // Single goal
+  goals?: GoalCardData[];        // List mode
+  variant?: "default" | "compact" | "featured";
+  showProgress?: boolean;
+  showActions?: boolean;
+  baseUrl?: string;
+  onViewDetails?: (goalId: string) => void;
+  onRecordProgress?: (goalId: string) => void;
+}
+
+// Features:
+// - Responsive grid (1-col mobile → 3-col desktop)
+// - Embedded GoalProgressRing
+// - Category color indicator strip
+// - Status badges with semantic colors
+// - Tag display with overflow handling
+// - Quick action buttons
+// - Empty state with call-to-action
+```
+
+#### KeyResultProgressCard
+
+```tsx
+interface KeyResultProgressCardProps {
+  keyResult?: KeyResultData;     // Single KR
+  keyResults?: KeyResultData[];  // List mode
+  variant?: "default" | "compact" | "inline";
+  showUpdateButton?: boolean;
+  showParent?: boolean;
+  onUpdateProgress?: (keyResultId: string) => void;
+}
+
+// Features:
+// - Progress bar with color coding by percentage
+// - Current vs target value display with formatting
+// - Metric type support (number, percentage, currency, boolean)
+// - Update frequency and due date indicators
+// - Auto-linked badge for system-connected metrics
+// - Inline variant for compact displays
+```
+
+#### OKRTreeView
+
+```tsx
+interface OKRTreeViewProps {
+  goal?: GoalNode;               // Single goal hierarchy
+  goals?: GoalNode[];            // Multiple goals
+  defaultExpanded?: boolean;
+  showActions?: boolean;
+  baseUrl?: string;
+  onAddObjective?: (goalId: string) => void;
+  onAddKeyResult?: (parentId: string, parentType: "goal" | "objective") => void;
+  onRecordProgress?: (keyResultId: string) => void;
+}
+
+// Features:
+// - Hierarchical tree: Goal → Objectives → Key Results
+// - Collapsible/expandable sections
+// - Progress indicators at each level
+// - Inline key result mini-progress rings
+// - Quick actions for adding items
+// - Status dots with semantic colors
+// - Keyboard navigation support
+```
+
+#### GoalStatusTimeline
+
+```tsx
+interface GoalStatusTimelineProps {
+  title?: string;
+  description?: string;
+  events?: TimelineEvent[];
+  maxEvents?: number;            // Default: 10
+  showLoadMore?: boolean;
+  showRelativeTime?: boolean;    // "2h ago" vs full date
+  variant?: "default" | "compact" | "minimal";
+  onLoadMore?: () => void;
+}
+
+type TimelineEventType =
+  | "goal_created" | "goal_updated" | "status_changed"
+  | "progress_recorded" | "objective_added" | "key_result_added"
+  | "milestone_reached" | "comment_added" | "assignment_changed";
+
+// Features:
+// - Visual timeline with connecting lines
+// - Event type icons and colors
+// - Before/after badges for status changes
+// - Progress percentage badges
+// - User attribution
+// - Relative timestamps with full date tooltip
+// - Load more pagination
+```
+
+#### XML Blueprint Usage Example
+
+```xml
+<!-- In planning-goals-detail.xml -->
+<Component id="goal-okr-tree" type="OKRTreeView">
+  <Props>
+    <Prop name="goal" kind="binding" contract="goalOkrTree.goal"/>
+    <Prop name="defaultExpanded" kind="static">true</Prop>
+    <Prop name="showActions" kind="static">true</Prop>
+    <Prop name="baseUrl" kind="static">/admin/community/planning/goals</Prop>
+  </Props>
+</Component>
+
+<Component id="goal-activity" type="GoalStatusTimeline">
+  <Props>
+    <Prop name="events" kind="binding" contract="goalTimeline.events"/>
+    <Prop name="maxEvents" kind="static">10</Prop>
+    <Prop name="showLoadMore" kind="static">true</Prop>
+  </Props>
+</Component>
+```
+
 ---
 
 ## 7. Auto-Linked Metrics
@@ -2404,68 +2551,122 @@ Goals appear in the Planning Calendar with:
 
 ## 11. Implementation Phases
 
-### Phase 1: Database & Core Infrastructure (Est. 3-4 days)
+### Phase 1: Database & Core Infrastructure ✅ COMPLETED
 
 **Deliverables:**
-- [ ] Database migration with all tables
-- [ ] RLS policies
-- [ ] Default permissions
-- [ ] All model files
-- [ ] All adapter files
-- [ ] All repository files
-- [ ] GoalsService, GoalCategoryService, GoalMetricsService
-- [ ] DI container registration
+- [x] Database migration with all tables (`20260108000000_create_goals_objectives_system.sql`)
+- [x] RLS policies
+- [x] Default permissions
+- [x] All model files (goal, goalCategory, objective, keyResult, keyResultProgressUpdate)
+- [x] All adapter files (5 adapters with tenant resolution at adapter level)
+- [x] All repository files (5 repositories)
+- [x] GoalsService, GoalCategoryService, GoalMetricsService
+- [x] DI container registration (TYPES and container bindings)
 
 **Dependencies:** None
 
-### Phase 2: API Routes (Est. 2-3 days)
+### Phase 2: API Routes ✅ COMPLETED
 
 **Deliverables:**
-- [ ] Goals CRUD endpoints
-- [ ] Objectives CRUD endpoints
-- [ ] Key Results CRUD endpoints
-- [ ] Progress update endpoints
-- [ ] Categories endpoints
-- [ ] Dashboard endpoint
-- [ ] Available metrics endpoint
+- [x] Goals CRUD endpoints (`/api/community/planning/goals`, `/api/community/planning/goals/[goalId]`)
+- [x] Objectives CRUD endpoints (`/api/community/planning/goals/[goalId]/objectives`, `/api/community/planning/goals/objectives/[objectiveId]`)
+- [x] Key Results CRUD endpoints (`/api/community/planning/goals/objectives/[objectiveId]/key-results`, `/api/community/planning/goals/key-results/[keyResultId]`)
+- [x] Progress update endpoints (`/api/community/planning/goals/key-results/[keyResultId]/progress`)
+- [x] Categories endpoints (`/api/community/planning/goals/categories`, `/api/community/planning/goals/categories/[categoryId]`)
+- [x] Dashboard endpoint (`/api/community/planning/goals/dashboard`)
+- [x] Available metrics endpoint (`/api/community/planning/goals/available-metrics`) (completed in Phase 5)
 
 **Dependencies:** Phase 1
 
-### Phase 3: UI - Dashboard & List (Est. 3-4 days)
+### Phase 3: UI - Dashboard & List ✅ COMPLETED
 
 **Deliverables:**
-- [ ] Goals dashboard page
-- [ ] Goals list page
-- [ ] Filter components
-- [ ] Goal card component
-- [ ] Status badge component
-- [ ] Enable Goals card in Planning dashboard
+- [x] Goals dashboard page (`apps/web/src/app/admin/community/planning/goals/page.tsx`)
+- [x] Goals page content component (`GoalsPageContent.tsx`)
+- [x] XML metadata blueprint (`planning-goals.xml`)
+- [x] Service handlers for metadata data sources (`admin-community-goals.ts`)
+- [x] Stat cards and status badges
+- [x] Goals table with filters (status, category, search)
+- [x] Quick links navigation
+- [x] Enable Goals card in Planning dashboard (removed "Coming Soon" flag)
 
 **Dependencies:** Phase 2
 
-### Phase 4: UI - Detail & Create (Est. 4-5 days)
+### Phase 4: UI - Detail & Create ✅ COMPLETED
 
 **Deliverables:**
-- [ ] Goal detail page
-- [ ] Goal create wizard (6 steps)
-- [ ] Objective card component
-- [ ] Key result card component
-- [ ] Progress update dialog
-- [ ] Progress chart component
+- [x] Goal detail page (`apps/web/src/app/admin/community/planning/goals/[goalId]/page.tsx`)
+- [x] Goal create/edit page (`apps/web/src/app/admin/community/planning/goals/create/page.tsx`)
+- [x] XML metadata blueprint for detail (`planning-goals-detail.xml`)
+- [x] XML metadata blueprint for create/edit (`planning-goals-manage.xml`)
+- [x] Service handlers for detail data sources (hero, summary, objectives, keyResults, activity)
+- [x] Service handlers for manage actions (form, save)
+- [x] Delete goal action handler
+- [x] Progress visualization in key results grid
 
 **Dependencies:** Phase 3
 
-### Phase 5: Auto-Metrics & Categories (Est. 2-3 days)
+### Phase 5: Auto-Metrics & Categories ✅ COMPLETED
 
 **Deliverables:**
-- [ ] Category manager component
-- [ ] Metric link selector component
-- [ ] Auto-metric refresh functionality
-- [ ] Available metrics endpoint enhancement
+- [x] Category management pages (`apps/web/src/app/admin/community/planning/goals/categories/page.tsx`, `categories/create/page.tsx`)
+- [x] XML metadata blueprint for category list (`planning-goals-categories.xml`)
+- [x] XML metadata blueprint for category create/edit (`planning-goals-categories-manage.xml`)
+- [x] Service handlers for category management (list, form, save, delete, manage.hero, manage.form, manage.save)
+- [x] Available metrics API endpoint (`/api/community/planning/goals/available-metrics/route.ts`)
+- [x] 20+ system metrics defined across 8 categories (Membership, Households, Attendance, Financial, Care, Discipleship, Events, Volunteers)
+- [x] Color and icon selection options for categories (10 colors, 12 icons)
 
 **Dependencies:** Phase 4
 
-### Phase 6: Notifications & Calendar (Est. 2-3 days)
+### Phase 5b: Dynamic UI Components ✅ COMPLETED
+
+**Deliverables:**
+- [x] `GoalProgressRing` - Circular SVG progress indicator with status-aware colors
+- [x] `GoalCard` - Goal card with progress ring, status badges, category indicators, and quick actions
+- [x] `KeyResultProgressCard` - Key result display with progress bars, current/target values, and update buttons
+- [x] `OKRTreeView` - Hierarchical tree view of goals → objectives → key results with expand/collapse
+- [x] `GoalStatusTimeline` - Visual timeline of goal activity with event type icons and metadata
+- [x] Component registration in `admin.tsx` (namespace: admin, version: 1.0.0)
+- [x] Updated XML blueprints to use new components (`planning-goals.xml`, `planning-goals-detail.xml`)
+
+**Component Features:**
+| Component | Mobile-First | Theme-Aware | Touch Optimized | Accessibility |
+|-----------|-------------|-------------|-----------------|---------------|
+| GoalProgressRing | ✅ | ✅ Status colors | ✅ Scale feedback | ✅ ARIA progressbar |
+| GoalCard | ✅ 1-3 col grid | ✅ CSS variables | ✅ 44px targets | ✅ Semantic HTML |
+| KeyResultProgressCard | ✅ Stack/inline | ✅ Progress colors | ✅ Touch actions | ✅ Labels |
+| OKRTreeView | ✅ Collapsible | ✅ Border colors | ✅ Expandable | ✅ Keyboard nav |
+| GoalStatusTimeline | ✅ Compact variant | ✅ Event colors | ✅ Load more | ✅ Time elements |
+
+**Dependencies:** Phase 5
+
+### Phase 5c: Service Handler Integration ✅ COMPLETED
+
+**Deliverables:**
+- [x] `resolveGoalsCards` - Service handler for GoalCard component (goals list page)
+- [x] `resolveGoalOkrTree` - Service handler for OKRTreeView component (goal detail page)
+- [x] `resolveGoalKeyResultsCards` - Service handler for KeyResultProgressCard component
+- [x] `resolveGoalTimeline` - Service handler for GoalStatusTimeline component
+- [x] All handlers registered in `adminCommunityGoalsHandlers` export
+
+**Handler Registrations:**
+| Handler Key | Component | Page |
+|------------|-----------|------|
+| `admin-community.planning.goals.cards` | GoalCard | Goals list |
+| `admin-community.planning.goals.detail.okrTree` | OKRTreeView | Goal detail |
+| `admin-community.planning.goals.detail.keyResultsCards` | KeyResultProgressCard | Goal detail |
+| `admin-community.planning.goals.detail.timeline` | GoalStatusTimeline | Goal detail |
+
+**Data Transformations:**
+- `resolveGoalsCards`: Transforms Goal[] → GoalCardData[] with category, status, progress, counts
+- `resolveGoalOkrTree`: Builds full hierarchy with objectives and nested key results
+- `resolveGoalKeyResultsCards`: Maps KeyResult[] → KeyResultData[] with metric formatting
+- `resolveGoalTimeline`: Aggregates progress updates into TimelineEvent[] with user attribution
+
+**Dependencies:** Phase 5b
+
+### Phase 6: Notifications & Calendar
 
 **Deliverables:**
 - [ ] Notification templates
@@ -2473,7 +2674,7 @@ Goals appear in the Planning Calendar with:
 - [ ] Calendar sync functionality
 - [ ] User notification preferences
 
-**Dependencies:** Phase 5
+**Dependencies:** Phase 5c
 
 ### Phase 7: Testing & Polish (Est. 2-3 days)
 
@@ -2497,92 +2698,93 @@ apps/web/
 ├── src/
 │   ├── app/
 │   │   ├── admin/community/planning/goals/
-│   │   │   ├── page.tsx
-│   │   │   ├── metadata.ts
-│   │   │   ├── list/
-│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx                    # ✅ Goals dashboard
+│   │   │   ├── metadata.ts                 # ✅ Metadata renderer
 │   │   │   ├── [goalId]/
-│   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx                # ✅ Goal detail view
 │   │   │   ├── create/
-│   │   │   │   └── page.tsx
-│   │   │   └── components/
-│   │   │       ├── GoalsDashboard.tsx
-│   │   │       ├── GoalsListView.tsx
-│   │   │       ├── GoalDetailView.tsx
-│   │   │       ├── GoalCreateWizard.tsx
-│   │   │       ├── GoalCard.tsx
-│   │   │       ├── GoalStatusBadge.tsx
-│   │   │       ├── GoalFilters.tsx
-│   │   │       ├── ObjectiveCard.tsx
-│   │   │       ├── KeyResultCard.tsx
-│   │   │       ├── KeyResultProgressChart.tsx
-│   │   │       ├── ProgressUpdateDialog.tsx
-│   │   │       ├── CategoryManager.tsx
-│   │   │       └── MetricLinkSelector.tsx
+│   │   │   │   └── page.tsx                # ✅ Goal create/edit
+│   │   │   └── categories/
+│   │   │       ├── page.tsx                # ✅ Categories list
+│   │   │       └── create/
+│   │   │           └── page.tsx            # ✅ Category create/edit
 │   │   │
 │   │   └── api/community/planning/goals/
-│   │       ├── route.ts
+│   │       ├── route.ts                    # ✅ Goals list/create
 │   │       ├── [goalId]/
-│   │       │   ├── route.ts
+│   │       │   ├── route.ts                # ✅ Goal CRUD
 │   │       │   └── objectives/
-│   │       │       └── route.ts
+│   │       │       └── route.ts            # ✅ Objectives list/create
 │   │       ├── objectives/
 │   │       │   └── [objectiveId]/
-│   │       │       ├── route.ts
+│   │       │       ├── route.ts            # ✅ Objective CRUD
 │   │       │       └── key-results/
-│   │       │           └── route.ts
+│   │       │           └── route.ts        # ✅ Key results list/create
 │   │       ├── key-results/
 │   │       │   └── [keyResultId]/
-│   │       │       ├── route.ts
+│   │       │       ├── route.ts            # ✅ Key result CRUD
 │   │       │       └── progress/
-│   │       │           └── route.ts
+│   │       │           └── route.ts        # ✅ Progress updates
 │   │       ├── categories/
-│   │       │   ├── route.ts
+│   │       │   ├── route.ts                # ✅ Categories list/create
 │   │       │   └── [categoryId]/
-│   │       │       └── route.ts
+│   │       │       └── route.ts            # ✅ Category CRUD
 │   │       ├── dashboard/
-│   │       │   └── route.ts
+│   │       │   └── route.ts                # ✅ Dashboard stats
 │   │       ├── available-metrics/
-│   │       │   └── route.ts
+│   │       │   └── route.ts                # ✅ System metrics for auto-linking
 │   │       └── sync-calendar/
-│   │           └── route.ts
+│   │           └── route.ts                # 🔲 Phase 6
 │   │
-│   ├── models/
-│   │   ├── goal.model.ts
-│   │   ├── goalCategory.model.ts
-│   │   ├── objective.model.ts
-│   │   ├── keyResult.model.ts
-│   │   └── keyResultProgressUpdate.model.ts
+│   ├── models/goals/
+│   │   └── index.ts                        # ✅ All goal models (combined file)
 │   │
-│   ├── adapters/
-│   │   ├── goal.adapter.ts
-│   │   ├── goalCategory.adapter.ts
-│   │   ├── objective.adapter.ts
-│   │   ├── keyResult.adapter.ts
-│   │   └── keyResultProgressUpdate.adapter.ts
+│   ├── adapters/goals/
+│   │   ├── goal.adapter.ts                 # ✅
+│   │   ├── goalCategory.adapter.ts         # ✅
+│   │   ├── objective.adapter.ts            # ✅
+│   │   ├── keyResult.adapter.ts            # ✅
+│   │   └── keyResultProgressUpdate.adapter.ts # ✅
 │   │
-│   ├── repositories/
-│   │   ├── goal.repository.ts
-│   │   ├── goalCategory.repository.ts
-│   │   ├── objective.repository.ts
-│   │   ├── keyResult.repository.ts
-│   │   └── keyResultProgressUpdate.repository.ts
+│   ├── repositories/goals/
+│   │   ├── goal.repository.ts              # ✅
+│   │   ├── goalCategory.repository.ts      # ✅
+│   │   ├── objective.repository.ts         # ✅
+│   │   ├── keyResult.repository.ts         # ✅
+│   │   └── keyResultProgressUpdate.repository.ts # ✅
 │   │
-│   ├── services/
-│   │   ├── GoalsService.ts
-│   │   ├── GoalCategoryService.ts
-│   │   └── GoalMetricsService.ts
+│   ├── services/goals/
+│   │   └── GoalsService.ts                 # ✅ Includes category and metrics methods
+│   │
+│   ├── components/dynamic/admin/goals/     # ✅ Phase 5b - Dynamic UI Components
+│   │   ├── index.ts                        # ✅ Barrel exports
+│   │   ├── GoalProgressRing.tsx            # ✅ Circular progress indicator
+│   │   ├── GoalCard.tsx                    # ✅ Goal card with actions
+│   │   ├── KeyResultProgressCard.tsx       # ✅ Key result progress display
+│   │   ├── OKRTreeView.tsx                 # ✅ Hierarchical tree view
+│   │   └── GoalStatusTimeline.tsx          # ✅ Activity timeline
 │   │
 │   └── lib/
-│       ├── types.ts (add symbols)
-│       └── container.ts (register services)
+│       ├── types.ts                        # ✅ Goal type symbols added
+│       ├── container.ts                    # ✅ Services registered
+│       ├── metadata/services/
+│       │   └── admin-community-goals.ts    # ✅ Service handlers for metadata
+│       └── metadata/components/
+│           └── admin.tsx                   # ✅ Component registration (5 goal components)
+│
+├── metadata/authoring/blueprints/admin-community/
+│   ├── planning-goals.xml                  # ✅ Dashboard/list page
+│   ├── planning-goals-detail.xml           # ✅ Goal detail page
+│   ├── planning-goals-manage.xml           # ✅ Goal create/edit page
+│   ├── planning-goals-categories.xml       # ✅ Categories list page
+│   └── planning-goals-categories-manage.xml # ✅ Category create/edit page
 │
 └── supabase/
     └── migrations/
-        └── YYYYMMDDHHMMSS_create_goals_objectives_system.sql
+        └── 20260108000000_create_goals_objectives_system.sql # ✅
 
 e2e/
-└── goals/
+└── goals/                                  # 🔲 Phase 7
     ├── goals-crud.spec.ts
     ├── goals-progress.spec.ts
     └── goals-dashboard.spec.ts
