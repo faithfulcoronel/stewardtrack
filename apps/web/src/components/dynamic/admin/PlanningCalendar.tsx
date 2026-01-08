@@ -25,6 +25,7 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  ArrowLeft,
   ArrowRight,
   Cake,
   Gift,
@@ -46,12 +47,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   HoverCard,
   HoverCardContent,
@@ -103,6 +98,7 @@ export interface PlanningCalendarProps {
   categories?: CalendarCategory[];
   isLoading?: boolean;
   initialView?: ViewMode;
+  backUrl?: string;
   onEventClick?: (event: CalendarEvent) => void;
   onDateSelect?: (date: Date) => void;
   onCreateEvent?: () => void;
@@ -175,18 +171,31 @@ const formatDate = (date: Date): string => {
   });
 };
 
-const getCategoryIcon = (iconName?: string | null): React.ComponentType<{ className?: string; style?: React.CSSProperties }> => {
-  const icons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-    heart: Heart,
-    'book-open': BookOpen,
-    users: Users,
-    bell: Bell,
-    calendar: CalendarIcon,
-    circle: Circle,
-    cake: Cake,
-    gift: Gift,
-  };
-  return icons[iconName || 'circle'] || Circle;
+// Helper component to render category icons
+const CategoryIcon: React.FC<{
+  iconName?: string | null;
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({ iconName, className, style }) => {
+  switch (iconName) {
+    case 'heart':
+      return <Heart className={className} style={style} />;
+    case 'book-open':
+      return <BookOpen className={className} style={style} />;
+    case 'users':
+      return <Users className={className} style={style} />;
+    case 'bell':
+      return <Bell className={className} style={style} />;
+    case 'calendar':
+      return <CalendarIcon className={className} style={style} />;
+    case 'cake':
+      return <Cake className={className} style={style} />;
+    case 'gift':
+      return <Gift className={className} style={style} />;
+    case 'circle':
+    default:
+      return <Circle className={className} style={style} />;
+  }
 };
 
 const getPriorityColor = (priority: string): string => {
@@ -215,16 +224,20 @@ const getPriorityBadgeVariant = (priority: string): 'destructive' | 'default' | 
   }
 };
 
-const getStatusIcon = (status: string): React.ComponentType<{ className?: string }> => {
+// Helper component to render status icons
+const StatusIcon: React.FC<{
+  status: string;
+  className?: string;
+}> = ({ status, className }) => {
   switch (status) {
     case 'completed':
-      return CheckCircle2;
+      return <CheckCircle2 className={className} />;
     case 'cancelled':
-      return XCircle;
+      return <XCircle className={className} />;
     case 'overdue':
-      return AlertCircle;
+      return <AlertCircle className={className} />;
     default:
-      return Circle;
+      return <Circle className={className} />;
   }
 };
 
@@ -270,8 +283,6 @@ const formatFullDate = (date: Date): string => {
 
 // Event Tooltip Content Component
 const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
-  const Icon = getCategoryIcon(event.categoryIcon);
-  const StatusIcon = getStatusIcon(event.status);
   const sourceUrl = getSourceUrl(event.sourceType, event.sourceId, event.memberId);
 
   return (
@@ -288,7 +299,7 @@ const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
           className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
           style={{ backgroundColor: `${event.categoryColor}15` }}
         >
-          <Icon className="w-4 h-4" style={{ color: event.categoryColor }} />
+          <CategoryIcon iconName={event.categoryIcon} className="w-4 h-4" style={{ color: event.categoryColor }} />
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-sm text-foreground line-clamp-2">{event.title}</h4>
@@ -339,7 +350,7 @@ const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
 
         {/* Status */}
         <div className="flex items-center gap-2 text-muted-foreground">
-          <StatusIcon className="w-3.5 h-3.5 flex-shrink-0" />
+          <StatusIcon status={event.status} className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="capitalize">{event.status}</span>
         </div>
 
@@ -382,8 +393,6 @@ const EventCard: React.FC<{
   compact?: boolean;
   onClick?: () => void;
 }> = ({ event, compact = false, onClick }) => {
-  const Icon = getCategoryIcon(event.categoryIcon);
-
   if (compact) {
     return (
       <HoverCard openDelay={300} closeDelay={100}>
@@ -423,7 +432,7 @@ const EventCard: React.FC<{
               className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: `${event.categoryColor}20` }}
             >
-              <Icon className="w-5 h-5" style={{ color: event.categoryColor }} />
+              <CategoryIcon iconName={event.categoryIcon} className="w-5 h-5" style={{ color: event.categoryColor }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -537,10 +546,11 @@ const isValidViewMode = (view: string | null): view is ViewMode => {
 
 // Main Calendar Component
 export function PlanningCalendar({
-  events = [],
-  categories = [],
-  isLoading = false,
+  events: propEvents,
+  categories: propCategories,
+  isLoading: propIsLoading,
   initialView,
+  backUrl = '/admin/community/planning',
   onEventClick,
   onDateSelect,
   onCreateEvent,
@@ -550,6 +560,18 @@ export function PlanningCalendar({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Self-contained state for when props are not provided
+  const [selfEvents, setSelfEvents] = useState<CalendarEvent[]>([]);
+  const [selfCategories, setSelfCategories] = useState<CalendarCategory[]>([]);
+  const [selfIsLoading, setSelfIsLoading] = useState(false);
+  const [isSelfContained] = useState(!propEvents && !onDateRangeChange);
+  const currentRangeRef = React.useRef<string>('');
+
+  // Use props if provided, otherwise use self-managed state
+  const events = propEvents ?? selfEvents;
+  const categories = propCategories ?? selfCategories;
+  const isLoading = propIsLoading ?? selfIsLoading;
 
   // Get initial view from URL param, prop, or default to 'month'
   const getInitialView = (): ViewMode => {
@@ -564,6 +586,110 @@ export function PlanningCalendar({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Self-contained data fetching
+  const fetchCalendarData = useCallback(async (startDate: Date, endDate: Date) => {
+    if (!isSelfContained) return;
+
+    // Create a key for this date range to avoid duplicate fetches
+    const rangeKey = `${startDate.toISOString()}-${endDate.toISOString()}`;
+    if (currentRangeRef.current === rangeKey) {
+      return; // Already fetched this range
+    }
+    currentRangeRef.current = rangeKey;
+
+    try {
+      setSelfIsLoading(true);
+
+      const response = await fetch(
+        `/api/community/planning/calendar?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch calendar data');
+      }
+
+      const result = await response.json();
+
+      // Transform events to have Date objects
+      const fetchedEvents = result.events.map((event: { start: string | Date; end: string | Date | null; [key: string]: unknown }) => ({
+        ...event,
+        start: new Date(event.start),
+        end: event.end ? new Date(event.end) : null,
+      }));
+
+      setSelfEvents(fetchedEvents);
+      setSelfCategories(result.categories || []);
+    } catch (error) {
+      console.error('Error fetching calendar data:', error);
+    } finally {
+      setSelfIsLoading(false);
+    }
+  }, [isSelfContained]);
+
+  // Self-contained sync handler
+  const handleSelfSync = useCallback(async () => {
+    try {
+      setIsSyncing(true);
+      const response = await fetch('/api/community/planning/sync', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync events');
+      }
+
+      // Refresh calendar data - clear range key to force refetch
+      currentRangeRef.current = '';
+
+      // Trigger refetch based on current view
+      let startDate: Date;
+      let endDate: Date;
+
+      if (viewMode === 'month') {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+        endDate = new Date(lastDay);
+        endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+      } else if (viewMode === 'week') {
+        startDate = new Date(currentDate);
+        startDate.setDate(currentDate.getDate() - currentDate.getDay());
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+      } else if (viewMode === 'day') {
+        startDate = new Date(currentDate);
+        endDate = new Date(currentDate);
+      } else {
+        startDate = new Date();
+        endDate = new Date();
+        endDate.setDate(endDate.getDate() + 90);
+      }
+
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      await fetchCalendarData(startDate, endDate);
+    } catch (error) {
+      console.error('Error syncing events:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [viewMode, currentDate, fetchCalendarData]);
+
+  // Auto-sync on initial load for self-contained mode
+  const hasInitialSyncRef = React.useRef(false);
+  useEffect(() => {
+    if (isSelfContained && !hasInitialSyncRef.current) {
+      hasInitialSyncRef.current = true;
+      // Trigger sync on initial load to ensure events from care plans,
+      // discipleship plans, birthdays, and anniversaries are up-to-date
+      handleSelfSync();
+    }
+  }, [isSelfContained, handleSelfSync]);
 
   // Update URL when view mode changes
   const handleViewModeChange = useCallback((newView: ViewMode) => {
@@ -581,10 +707,8 @@ export function PlanningCalendar({
     }
   }, [searchParams, viewMode]);
 
-  // Calculate date range based on current view and notify parent
+  // Calculate date range based on current view and notify parent or fetch data
   useEffect(() => {
-    if (!onDateRangeChange) return;
-
     let startDate: Date;
     let endDate: Date;
 
@@ -623,8 +747,13 @@ export function PlanningCalendar({
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
 
-    onDateRangeChange(startDate, endDate);
-  }, [currentDate, viewMode, onDateRangeChange]);
+    // Either notify parent or fetch data ourselves
+    if (onDateRangeChange) {
+      onDateRangeChange(startDate, endDate);
+    } else if (isSelfContained) {
+      fetchCalendarData(startDate, endDate);
+    }
+  }, [currentDate, viewMode, onDateRangeChange, isSelfContained, fetchCalendarData]);
 
   // Filter events by selected categories
   const filteredEvents = useMemo(() => {
@@ -745,6 +874,28 @@ export function PlanningCalendar({
 
   return (
     <div className="space-y-4">
+      {/* Back button - shown above calendar when backUrl is provided */}
+      {backUrl && (
+        <div className="flex items-center">
+          <Link href={backUrl}>
+            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Title section - shown in self-contained mode */}
+      {isSelfContained && (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Planning Calendar</h1>
+          <p className="text-muted-foreground">
+            Central view for all upcoming events, care plans, and discipleship milestones.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -831,16 +982,24 @@ export function PlanningCalendar({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Sync Button */}
-          {onSync && (
-            <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing}>
+          {/* Sync Button - show for both prop-based and self-contained mode */}
+          {(onSync || isSelfContained) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSync ? handleSync : handleSelfSync}
+              disabled={isSyncing}
+            >
               {isSyncing ? 'Syncing...' : 'Sync'}
             </Button>
           )}
 
-          {/* Create Event Button */}
-          {onCreateEvent && (
-            <Button size="sm" onClick={onCreateEvent}>
+          {/* Create Event Button - show for both prop-based and self-contained mode */}
+          {(onCreateEvent || isSelfContained) && (
+            <Button
+              size="sm"
+              onClick={onCreateEvent || (() => router.push('/admin/community/planning/manage'))}
+            >
               <Plus className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Add Event</span>
             </Button>
@@ -851,15 +1010,12 @@ export function PlanningCalendar({
       {/* Category Legend */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-3">
-          {categories.slice(0, 6).map((category) => {
-            const Icon = getCategoryIcon(category.icon);
-            return (
-              <div key={category.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Icon className="w-3 h-3" style={{ color: category.color }} />
-                <span>{category.name}</span>
-              </div>
-            );
-          })}
+          {categories.slice(0, 6).map((category) => (
+            <div key={category.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CategoryIcon iconName={category.icon} className="w-3 h-3" style={{ color: category.color }} />
+              <span>{category.name}</span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -937,225 +1093,218 @@ export function PlanningCalendar({
       {/* Event Detail Dialog - Modern Mobile-First Design */}
       <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
         <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
-          {selectedEvent && (() => {
-            const Icon = getCategoryIcon(selectedEvent.categoryIcon);
-            const StatusIcon = getStatusIcon(selectedEvent.status);
-            const sourceUrl = getSourceUrl(selectedEvent.sourceType, selectedEvent.sourceId, selectedEvent.memberId);
-            const sourceLabel = getSourceLabel(selectedEvent.sourceType);
-
-            return (
-              <>
-                {/* Colored Header Banner */}
+          {selectedEvent && (
+            <>
+              {/* Colored Header Banner */}
+              <div
+                className="h-24 sm:h-28 relative"
+                style={{
+                  background: `linear-gradient(135deg, ${selectedEvent.categoryColor} 0%, ${selectedEvent.categoryColor}dd 100%)`,
+                }}
+              >
+                {/* Decorative pattern overlay */}
                 <div
-                  className="h-24 sm:h-28 relative"
+                  className="absolute inset-0 opacity-10"
                   style={{
-                    background: `linear-gradient(135deg, ${selectedEvent.categoryColor} 0%, ${selectedEvent.categoryColor}dd 100%)`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                   }}
-                >
-                  {/* Decorative pattern overlay */}
-                  <div
-                    className="absolute inset-0 opacity-10"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    }}
-                  />
+                />
 
-                  {/* Floating icon */}
-                  <div className="absolute -bottom-6 left-6">
-                    <div
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-lg flex items-center justify-center bg-card border-4 border-background"
+                {/* Floating icon */}
+                <div className="absolute -bottom-6 left-6">
+                  <div
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-lg flex items-center justify-center bg-card border-4 border-background"
+                  >
+                    <CategoryIcon iconName={selectedEvent.categoryIcon} className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: selectedEvent.categoryColor }} />
+                  </div>
+                </div>
+
+                {/* Priority indicator */}
+                {selectedEvent.priority !== 'normal' && (
+                  <div className="absolute top-4 right-4">
+                    <Badge
+                      variant={getPriorityBadgeVariant(selectedEvent.priority)}
+                      className="text-xs font-semibold shadow-sm capitalize"
                     >
-                      <Icon className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: selectedEvent.categoryColor }} />
+                      {selectedEvent.priority} Priority
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              {/* Content Area */}
+              <div className="px-6 pt-10 pb-6">
+                {/* Title & Type */}
+                <DialogHeader className="space-y-2 text-left">
+                  <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight pr-8">
+                    {selectedEvent.title}
+                  </DialogTitle>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="capitalize"
+                      style={{ borderColor: selectedEvent.categoryColor, color: selectedEvent.categoryColor }}
+                    >
+                      {selectedEvent.eventType.replace('_', ' ')}
+                    </Badge>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <StatusIcon status={selectedEvent.status} className="w-4 h-4" />
+                      <span className="capitalize">{selectedEvent.status}</span>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <Separator className="my-5" />
+
+                {/* Details Section */}
+                <div className="space-y-4">
+                  {/* Date & Time Card */}
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${selectedEvent.categoryColor}15` }}
+                    >
+                      <CalendarIcon className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{formatFullDate(selectedEvent.start)}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {selectedEvent.allDay ? (
+                          'All day event'
+                        ) : (
+                          <>
+                            {formatTime(selectedEvent.start)}
+                            {selectedEvent.end && ` - ${formatTime(selectedEvent.end)}`}
+                          </>
+                        )}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Priority indicator */}
-                  {selectedEvent.priority !== 'normal' && (
-                    <div className="absolute top-4 right-4">
-                      <Badge
-                        variant={getPriorityBadgeVariant(selectedEvent.priority)}
-                        className="text-xs font-semibold shadow-sm capitalize"
-                      >
-                        {selectedEvent.priority} Priority
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content Area */}
-                <div className="px-6 pt-10 pb-6">
-                  {/* Title & Type */}
-                  <DialogHeader className="space-y-2 text-left">
-                    <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight pr-8">
-                      {selectedEvent.title}
-                    </DialogTitle>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="capitalize"
-                        style={{ borderColor: selectedEvent.categoryColor, color: selectedEvent.categoryColor }}
-                      >
-                        {selectedEvent.eventType.replace('_', ' ')}
-                      </Badge>
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <StatusIcon className="w-4 h-4" />
-                        <span className="capitalize">{selectedEvent.status}</span>
-                      </div>
-                    </div>
-                  </DialogHeader>
-
-                  <Separator className="my-5" />
-
-                  {/* Details Section */}
-                  <div className="space-y-4">
-                    {/* Date & Time Card */}
+                  {/* Member Info Card */}
+                  {selectedEvent.memberName && (
                     <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: `${selectedEvent.categoryColor}15` }}
                       >
-                        <CalendarIcon className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
+                        <User className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{formatFullDate(selectedEvent.start)}</p>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          {selectedEvent.allDay ? (
-                            'All day event'
-                          ) : (
-                            <>
-                              {formatTime(selectedEvent.start)}
-                              {selectedEvent.end && ` - ${formatTime(selectedEvent.end)}`}
-                            </>
-                          )}
-                        </p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Member</p>
+                        <p className="font-semibold text-base mt-0.5">{selectedEvent.memberName}</p>
                       </div>
                     </div>
-
-                    {/* Member Info Card */}
-                    {selectedEvent.memberName && (
-                      <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
-                        <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: `${selectedEvent.categoryColor}15` }}
-                        >
-                          <User className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Member</p>
-                          <p className="font-semibold text-base mt-0.5">{selectedEvent.memberName}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Location */}
-                    {selectedEvent.location && (
-                      <div className="flex items-center gap-3 text-sm">
-                        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span>{selectedEvent.location}</span>
-                      </div>
-                    )}
-
-                    {/* Assigned To */}
-                    {selectedEvent.assignedToName && (
-                      <div className="flex items-center gap-3 text-sm">
-                        <Users className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span>Assigned to <span className="font-medium">{selectedEvent.assignedToName}</span></span>
-                      </div>
-                    )}
-
-                    {/* Description */}
-                    {selectedEvent.description && (
-                      <div className="pt-2">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">Description</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {selectedEvent.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {selectedEvent.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {selectedEvent.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            <Tag className="w-3 h-3 mr-1" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Source Plan Link - CTA Section */}
-                  {sourceUrl && (
-                    <>
-                      <Separator className="my-5" />
-                      <div
-                        className="p-4 rounded-xl border-2 border-dashed transition-colors hover:border-primary/50"
-                        style={{ borderColor: `${selectedEvent.categoryColor}40` }}
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                              style={{ backgroundColor: `${selectedEvent.categoryColor}15` }}
-                            >
-                              {selectedEvent.sourceType === 'member_care_plans' ? (
-                                <Heart className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
-                              ) : (
-                                <BookOpen className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">Source</p>
-                              <p className="font-semibold text-sm truncate">{sourceLabel}</p>
-                            </div>
-                          </div>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="flex-shrink-0 gap-1.5"
-                            style={{
-                              backgroundColor: selectedEvent.categoryColor,
-                              color: 'white',
-                            }}
-                          >
-                            <Link href={sourceUrl}>
-                              View Plan
-                              <ArrowRight className="w-4 h-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </>
                   )}
 
-                  {/* Footer Actions */}
-                  <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-border/50">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedEvent(null)}
-                    >
-                      Close
-                    </Button>
-                    {sourceUrl && (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="default"
-                      >
-                        <Link href={sourceUrl}>
-                          <ExternalLink className="w-4 h-4 mr-1.5" />
-                          Open {sourceLabel}
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
+                  {/* Location */}
+                  {selectedEvent.location && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span>{selectedEvent.location}</span>
+                    </div>
+                  )}
+
+                  {/* Assigned To */}
+                  {selectedEvent.assignedToName && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Users className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span>Assigned to <span className="font-medium">{selectedEvent.assignedToName}</span></span>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {selectedEvent.description && (
+                    <div className="pt-2">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">Description</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {selectedEvent.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {selectedEvent.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {selectedEvent.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          <Tag className="w-3 h-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </>
-            );
-          })()}
+
+                {/* Source Plan Link - CTA Section */}
+                {getSourceUrl(selectedEvent.sourceType, selectedEvent.sourceId, selectedEvent.memberId) && (
+                  <>
+                    <Separator className="my-5" />
+                    <div
+                      className="p-4 rounded-xl border-2 border-dashed transition-colors hover:border-primary/50"
+                      style={{ borderColor: `${selectedEvent.categoryColor}40` }}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: `${selectedEvent.categoryColor}15` }}
+                          >
+                            {selectedEvent.sourceType === 'member_care_plans' ? (
+                              <Heart className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
+                            ) : (
+                              <BookOpen className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground">Source</p>
+                            <p className="font-semibold text-sm truncate">{getSourceLabel(selectedEvent.sourceType)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          asChild
+                          size="sm"
+                          className="flex-shrink-0 gap-1.5"
+                          style={{
+                            backgroundColor: selectedEvent.categoryColor,
+                            color: 'white',
+                          }}
+                        >
+                          <Link href={getSourceUrl(selectedEvent.sourceType, selectedEvent.sourceId, selectedEvent.memberId)!}>
+                            View Plan
+                            <ArrowRight className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Footer Actions */}
+                <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-border/50">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedEvent(null)}
+                  >
+                    Close
+                  </Button>
+                  {getSourceUrl(selectedEvent.sourceType, selectedEvent.sourceId, selectedEvent.memberId) && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="default"
+                    >
+                      <Link href={getSourceUrl(selectedEvent.sourceType, selectedEvent.sourceId, selectedEvent.memberId)!}>
+                        <ExternalLink className="w-4 h-4 mr-1.5" />
+                        Open {getSourceLabel(selectedEvent.sourceType)}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

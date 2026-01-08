@@ -5,6 +5,7 @@ export type AdminFormMode = "create" | "edit";
 export interface FormFieldOption {
   label: string;
   value: string;
+  description?: string;
 }
 
 export interface FormFieldQuickCreateConfig {
@@ -25,6 +26,7 @@ export interface FormFieldConfig {
     | "date"
     | "datetime"
     | "select"
+    | "combobox"
     | "textarea"
     | "richtext"
     | "currency"
@@ -45,6 +47,12 @@ export interface FormFieldConfig {
   quickCreate?: FormFieldQuickCreateConfig | null;
   disabled?: boolean | null;
   readOnly?: boolean | null;
+  /** Auto-generate this field's value as a slug from another field (e.g., 'name') */
+  deriveSlugFrom?: string | null;
+  /** Placeholder for combobox search input */
+  searchPlaceholder?: string | null;
+  /** Message shown when no results found in combobox */
+  emptyMessage?: string | null;
 }
 
 export interface AdminFormSectionProps {

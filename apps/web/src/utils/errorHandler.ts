@@ -10,6 +10,13 @@ export class TenantContextError extends Error {
   }
 }
 
+export class UnauthorizedError extends Error {
+  constructor(message = 'Unauthorized access') {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
 export class FieldValidationError extends Error {
   readonly field: string;
 

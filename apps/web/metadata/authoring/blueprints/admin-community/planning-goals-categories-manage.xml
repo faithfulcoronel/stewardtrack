@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+GOAL CATEGORY CREATE/EDIT PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page provides create/edit functionality for a single goal category.
+It serves two modes:
+  - CREATE: /admin/community/planning/goals/categories/create (no query param)
+  - EDIT:   /admin/community/planning/goals/categories/create?categoryId=xxx
+
+PERMISSIONS:
+  - goals:create - Required to create/edit categories
+
+FORM FIELDS:
+  - name (required): Category name
+  - code: Unique code (auto-generated if not provided)
+  - description: Category description
+  - color: Hex color for display
+  - icon: Icon name for display
+  - sort_order: Display order
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/categories/create"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="goals:create"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-categories-manage">
+    <Title>Manage category</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Mode-aware header
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">simple</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="primaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!--
+        FORM SECTION: Category form
+        -->
+        <Component id="category-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="categoryForm.title"/>
+            <Prop name="description" kind="binding" contract="categoryForm.description"/>
+            <Prop name="fields" kind="binding" contract="categoryForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="categoryForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="categoryForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="categoryForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-category"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      MANAGE HERO DATA SOURCE
+      -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Hero eyebrow text"/>
+          <Field name="headline" path="hero.headline" description="Hero headline"/>
+          <Field name="description" path="hero.description" description="Hero description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.categories.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      FORM DATA SOURCE
+      -->
+      <DataSource id="categoryForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Form title"/>
+          <Field name="description" path="form.description" description="Form description"/>
+          <Field name="fields" path="form.fields" description="Form fields"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Submit button label"/>
+          <Field name="initialValues" path="form.initialValues" description="Initial values"/>
+          <Field name="contextParams" path="form.contextParams" description="Context params"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.categories.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="save-category" kind="service">
+        <Config>
+          <Handler>admin-community.planning.goals.categories.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/categories</Navigate>
+            <ShowToast>Category saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save category. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/goals/categories</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

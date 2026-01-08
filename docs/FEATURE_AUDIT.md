@@ -1,9 +1,9 @@
 # StewardTrack Feature Audit Document
 
-**Version:** 1.4
+**Version:** 1.5
 **Date:** January 2026
 **Purpose:** Comprehensive inventory of all implemented pages, features, permissions, and license tiers
-**Last Updated:** Added serving.core and giving.profiles features with RBAC permissions
+**Last Updated:** Added goals.core feature with OKR tracking, notifications, and calendar integration
 
 ---
 
@@ -25,23 +25,23 @@
 
 | Category | Count |
 |----------|-------|
-| Total Pages | 57 |
-| Admin Pages | 44 |
+| Total Pages | 63 |
+| Admin Pages | 50 |
 | Public Pages | 9 |
 | Protected Pages | 4 |
-| API Routes | 126 |
-| Metadata Blueprints | 129 |
-| Licensable Features | 25 |
-| Proposed Permissions | 81+ |
+| API Routes | 138 |
+| Metadata Blueprints | 133 |
+| Licensable Features | 26 |
+| Proposed Permissions | 91+ |
 
 ### License Tier Distribution
 
 | Tier | Core Features | Premium Enhancements | Target Audience |
 |------|---------------|----------------------|-----------------|
-| Essential | 11 | 0 | Small churches (<100 members) |
-| Premium | 11 | 6 | Growing churches (100-300 members) |
-| Professional | 11 | 12 | Medium churches (300-500 members) |
-| Enterprise | 11 | 17 | Large churches/multi-campus (500+ members) |
+| Essential | 12 | 0 | Small churches (<100 members) |
+| Premium | 12 | 6 | Growing churches (100-300 members) |
+| Professional | 12 | 12 | Medium churches (300-500 members) |
+| Enterprise | 12 | 18 | Large churches/multi-campus (500+ members) |
 
 > **Note:** Custom product offerings can be created by super-admins with any feature combination.
 
@@ -159,6 +159,7 @@ Essential → Premium → Professional → Enterprise
 ### 4. Community & Events
 - Event Planning
 - Event Registration
+- Goals & Objectives (OKR Tracking)
 
 ### 5. Communications
 - Notifications
@@ -248,6 +249,54 @@ Essential → Premium → Professional → Enterprise
 - `/admin/community/planning` - Module hub
 - `/admin/community/planning/calendar` - Calendar view
 - `/admin/community/planning/manage` - Create/edit events
+
+---
+
+#### Feature: `goals.core`
+**Display Name:** Goals & Objectives
+**Category:** Management
+**Description:** Strategic goal setting, OKR tracking, and progress monitoring with calendar integration
+**Tier:** Essential (Core) - Available to ALL tiers
+
+| Permission Code | Display Name | Description | Required |
+|-----------------|--------------|-------------|----------|
+| `goals:view` | View Goals | View goals and objectives | Yes |
+| `goals:view_leadership` | View Leadership Goals | View leadership-level visibility goals | No |
+| `goals:view_all` | View All Goals | View all goals including private | No |
+| `goals:create` | Create Goals | Create new goals | Yes |
+| `goals:edit` | Edit Goals | Modify existing goals | Yes |
+| `goals:delete` | Delete Goals | Remove goals | No |
+| `objectives:manage` | Manage Objectives | Create, edit, and delete objectives | Yes |
+| `key_results:manage` | Manage Key Results | Create, edit, and delete key results | Yes |
+| `key_results:record_progress` | Record Progress | Record progress updates on key results | Yes |
+
+**Pages:**
+- `/admin/community/planning/goals` - Goals dashboard
+- `/admin/community/planning/goals/[goalId]` - Goal detail view
+- `/admin/community/planning/goals/create` - Create/edit goal
+- `/admin/community/planning/goals/categories` - Category management
+- `/admin/community/planning/goals/categories/create` - Create/edit category
+
+**API Endpoints:**
+- `GET/POST /api/community/planning/goals` - List/create goals
+- `GET/PUT/DELETE /api/community/planning/goals/[goalId]` - Goal CRUD
+- `GET/POST /api/community/planning/goals/[goalId]/objectives` - Objectives
+- `GET/PUT/DELETE /api/community/planning/goals/objectives/[objectiveId]` - Objective CRUD
+- `GET/POST /api/community/planning/goals/objectives/[objectiveId]/key-results` - Key results
+- `GET/PUT/DELETE /api/community/planning/goals/key-results/[keyResultId]` - Key result CRUD
+- `GET/POST /api/community/planning/goals/key-results/[keyResultId]/progress` - Progress updates
+- `GET/POST/PUT/DELETE /api/community/planning/goals/categories/[categoryId]` - Categories
+- `GET /api/community/planning/goals/dashboard` - Dashboard stats
+- `GET /api/community/planning/goals/available-metrics` - Auto-linkable metrics
+
+**Features:**
+- Hierarchical OKR structure (Goals → Objectives → Key Results)
+- Tenant-customizable goal categories with colors and icons
+- Progress tracking with visual indicators (rings, bars, timelines)
+- Auto-linked metrics from system data (member count, donations, etc.)
+- Notification integration (assignments, status changes, update reminders)
+- Calendar integration (goal target dates, objective due dates sync to calendar)
+- Activity timeline with progress history
 
 ---
 
@@ -755,6 +804,9 @@ Essential → Premium → Professional → Enterprise
 | Groups | `groups:` | Group management |
 | Care | `care:` | Care plan operations |
 | Discipleship | `discipleship:` | Discipleship plan operations |
+| Goals | `goals:` | Strategic goal management |
+| Objectives | `objectives:` | Objective management |
+| Key Results | `key_results:` | Key result and progress tracking |
 | Serving | `serving:` | Volunteer serving assignments |
 | Giving | `giving:` | Member giving profiles |
 | Events | `events:` | Event management |
@@ -782,6 +834,7 @@ Essential → Premium → Professional → Enterprise
 | Care Plans | 4 pages | Complete |
 | Discipleship Plans | 4 pages | Complete |
 | Events | 3 pages | Complete |
+| Goals & Objectives | 5 pages | Complete |
 | RBAC | 6 pages | Complete |
 | Settings | 3 pages | Complete |
 | Dashboard | 1 page | Complete |
@@ -791,7 +844,7 @@ Essential → Premium → Professional → Enterprise
 
 | Tier | Core Features (All Tiers) | Tier-Specific Enhancements |
 |------|---------------------------|---------------------------|
-| **Essential** | `members.core`, `households.core`, `groups.core`, `events.core`, `finance.core`, `notifications.core`, `integrations.email`, `rbac.core`, `settings.core`, `dashboard.core`, `reports.core` | — |
+| **Essential** | `members.core`, `households.core`, `groups.core`, `events.core`, `goals.core`, `finance.core`, `notifications.core`, `integrations.email`, `rbac.core`, `settings.core`, `dashboard.core`, `reports.core` | — |
 | **Premium** | All Core | `members.invitations`, `members.export`, `care.plans`, `discipleship.plans`, `events.registration`, `notifications.push` |
 | **Professional** | All Core + Premium | `finance.management`, `finance.budgets`, `integrations.sms`, `integrations.email_advanced`, `rbac.management`, `members.bulk`, `serving.core`, `giving.profiles` |
 | **Enterprise** | All Core + Premium + Professional | `rbac.multi_role`, `rbac.delegation`, `rbac.audit_export`, `limits.unlimited`, `integrations.api`, `reports.advanced`, `notifications.scheduled` |
@@ -808,6 +861,7 @@ Essential → Premium → Professional → Enterprise
 | `households.core` | `households:view`, `households:create`, `households:edit`, `households:delete`, `households:manage_members` |
 | `groups.core` | `groups:view`, `groups:create`, `groups:edit`, `groups:delete`, `groups:members` |
 | `events.core` | `events:view`, `events:create`, `events:edit`, `events:delete`, `events:publish` |
+| `goals.core` | `goals:view`, `goals:view_leadership`, `goals:view_all`, `goals:create`, `goals:edit`, `goals:delete`, `objectives:manage`, `key_results:manage`, `key_results:record_progress` |
 | `finance.core` | `finance:view`, `finance:view_summary` |
 | `notifications.core` | `notifications:view`, `notifications:manage`, `notifications:preferences`, `notifications:send` |
 | `integrations.email` | `integrations:email_view`, `integrations:email_send` |
@@ -862,6 +916,7 @@ Essential → Premium → Professional → Enterprise
 | **Households** | Full Access | ✓ | ✓ | ✓ |
 | **Groups** | Full Access | ✓ | ✓ | ✓ |
 | **Events** | Basic Events | + Registration | ✓ | ✓ |
+| **Goals & OKRs** | Full Access | ✓ | ✓ | ✓ |
 | **Finance** | View Only | ✓ | + Full Management | Unlimited |
 | **Budgets** | — | — | Full Access | ✓ |
 | **Care Plans** | — | Full Access | ✓ | ✓ |
@@ -878,4 +933,4 @@ Essential → Premium → Professional → Enterprise
 
 ---
 
-*Document generated by Claude Code audit - January 2026 (v1.4)*
+*Document generated by Claude Code audit - January 2026 (v1.5)*

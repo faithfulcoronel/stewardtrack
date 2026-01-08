@@ -619,6 +619,178 @@ export class PlanningService {
     });
   }
 
+  // ==================== GOALS CALENDAR SYNC ====================
+
+  /**
+   * Sync a goal's target date to the calendar (create or update)
+   * Call this when a goal is created or its target_date is updated
+   */
+  async syncGoalEvent(goal: {
+    id: string;
+    title: string;
+    description?: string | null;
+    target_date?: string | null;
+    owner_id?: string | null;
+    status?: string | null;
+    category_name?: string | null;
+    visibility?: string | null;
+  }): Promise<void> {
+    // Skip if no target date
+    if (!goal.target_date) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('goals');
+    const title = `Goal Target: ${goal.title}`;
+
+    // Map goal status to calendar priority
+    const priorityMap: Record<string, 'low' | 'normal' | 'high' | 'urgent'> = {
+      draft: 'low',
+      active: 'normal',
+      on_track: 'normal',
+      at_risk: 'high',
+      behind: 'urgent',
+      completed: 'low',
+      cancelled: 'low',
+    };
+    const priority = priorityMap[goal.status || 'active'] || 'normal';
+
+    // Check if event already exists
+    const existingEvents = await this.eventRepo.getBySource('goals', goal.id);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        description: goal.description,
+        start_at: goal.target_date,
+        priority,
+        assigned_to: goal.owner_id,
+        source_id: goal.id,
+        is_active: goal.status !== 'completed' && goal.status !== 'cancelled',
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: goal.description || `Target deadline for goal: ${goal.title}`,
+        start_at: goal.target_date,
+        all_day: true,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'goal',
+        status: 'scheduled',
+        priority,
+        source_type: 'goals',
+        source_id: goal.id,
+        member_id: null,
+        assigned_to: goal.owner_id,
+        is_recurring: false,
+        is_private: goal.visibility === 'private',
+        visibility: goal.visibility === 'private' ? 'private' : 'team',
+        tags: ['goal', 'target-date', goal.category_name || 'strategic'].filter(Boolean) as string[],
+        metadata: { categoryName: goal.category_name },
+        is_active: goal.status !== 'completed' && goal.status !== 'cancelled',
+      });
+    }
+  }
+
+  /**
+   * Remove a goal event from the calendar
+   * Call this when a goal is deleted
+   */
+  async removeGoalEvent(goalId: string): Promise<void> {
+    const existingEvents = await this.eventRepo.getBySource('goals', goalId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
+  }
+
+  /**
+   * Sync an objective's due date to the calendar (create or update)
+   * Call this when an objective is created or its due_date is updated
+   */
+  async syncObjectiveEvent(objective: {
+    id: string;
+    title: string;
+    description?: string | null;
+    due_date?: string | null;
+    responsible_id?: string | null;
+    status?: string | null;
+    priority?: string | null;
+    goal_id: string;
+    goal_title: string;
+  }): Promise<void> {
+    // Skip if no due date
+    if (!objective.due_date) {
+      return;
+    }
+
+    const category = await this.getCategoryByCode('goals');
+    const title = `Objective Due: ${objective.title}`;
+
+    // Map objective priority to calendar priority
+    const priorityMap: Record<string, 'low' | 'normal' | 'high' | 'urgent'> = {
+      low: 'low',
+      normal: 'normal',
+      high: 'high',
+      urgent: 'urgent',
+    };
+    const priority = priorityMap[objective.priority || 'normal'] || 'normal';
+
+    // Check if event already exists (objectives use source_type='objectives' and source_id=UUID)
+    const existingEvents = await this.eventRepo.getBySource('objectives', objective.id);
+    const existingEvent = existingEvents[0];
+
+    if (existingEvent) {
+      // Update existing event
+      await this.eventRepo.update(existingEvent.id, {
+        title,
+        description: `${objective.description || ''}\n\nGoal: ${objective.goal_title}`,
+        start_at: objective.due_date,
+        priority,
+        assigned_to: objective.responsible_id,
+        source_id: objective.id,
+        is_active: objective.status !== 'completed' && objective.status !== 'cancelled',
+      });
+    } else {
+      // Create new event
+      await this.eventRepo.create({
+        title,
+        description: `${objective.description || ''}\n\nGoal: ${objective.goal_title}`,
+        start_at: objective.due_date,
+        all_day: true,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'goal',
+        status: 'scheduled',
+        priority,
+        source_type: 'objectives',
+        source_id: objective.id,
+        member_id: null,
+        assigned_to: objective.responsible_id,
+        is_recurring: false,
+        is_private: false,
+        visibility: 'team',
+        tags: ['goal', 'objective', 'due-date'],
+        metadata: { goalId: objective.goal_id, goalTitle: objective.goal_title },
+        is_active: objective.status !== 'completed' && objective.status !== 'cancelled',
+      });
+    }
+  }
+
+  /**
+   * Remove an objective event from the calendar
+   * Call this when an objective is deleted
+   */
+  async removeObjectiveEvent(objectiveId: string): Promise<void> {
+    const existingEvents = await this.eventRepo.getBySource('objectives', objectiveId);
+    for (const event of existingEvents) {
+      await this.eventRepo.delete(event.id);
+    }
+  }
+
   // ==================== REPORTS ====================
 
   async getEventsByType(): Promise<Record<CalendarEventType, number>> {
@@ -632,6 +804,7 @@ export class PlanningService {
       service: 0,
       event: 0,
       reminder: 0,
+      goal: 0,
       general: 0,
     };
 

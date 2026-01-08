@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+KEY RESULTS MANAGE PAGE (OBJECTIVE-LEVEL) - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+PURPOSE:
+This page provides create/edit functionality for key results linked to objectives.
+The URL pattern includes both goalId and objectiveId to establish parent hierarchy.
+
+ROUTES:
+  - CREATE: /admin/community/planning/goals/{goalId}/objectives/{objectiveId}/key-results/create
+  - EDIT:   /admin/community/planning/goals/{goalId}/objectives/{objectiveId}/key-results/create?keyResultId=xxx
+
+MODE DETECTION:
+Service handlers check for keyResultId in request.params:
+  - If present: Load existing key result, show "Edit" mode
+  - If absent: Show empty form, "Create" mode
+
+FORM ARCHITECTURE:
+AdminFormSection component handles:
+  - Dynamic field generation from handler
+  - Form validation
+  - Submit action invocation
+  - Success/error toast notifications
+  - Post-save navigation
+
+PERMISSIONS:
+  - key_results:manage - Required to create/edit key results
+
+FORM FIELDS:
+  - title (required): Key result title
+  - description: Detailed description
+  - metric_type: Type of metric (number, percentage, currency, boolean)
+  - target_value (required): Target value to achieve
+  - starting_value: Starting/baseline value
+  - unit_label: Unit of measurement (e.g., "members", "$", "%")
+  - update_frequency: How often progress should be recorded
+  - responsible_id: Person responsible for tracking
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/goals/objectives/key-results/create"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="events.core"
+  requiredPermissions="key_results:manage"
+  locale="en-US">
+
+  <Page id="admin-community-planning-goals-objectives-key-results-manage">
+    <Title>Manage key result</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Mode-aware header
+
+        In create mode: "Add a new key result"
+        In edit mode:   "Update key result details"
+
+        The handler checks for keyResultId to determine mode.
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!--
+        FORM SECTION: Dynamic form for create/edit
+
+        AdminFormSection renders form fields based on handler response.
+        Key props:
+          - fields: Array of field definitions
+          - initialValues: Pre-populated values (for edit mode)
+          - submitAction: Action to call on form submit
+          - contextParams: Additional params passed to save handler
+        -->
+        <Component id="key-result-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="keyResultForm.title"/>
+            <Prop name="description" kind="binding" contract="keyResultForm.description"/>
+            <Prop name="fields" kind="binding" contract="keyResultForm.fields"/>
+            <Prop name="submitLabel" kind="binding" contract="keyResultForm.submitLabel"/>
+            <Prop name="initialValues" kind="binding" contract="keyResultForm.initialValues"/>
+            <Prop name="contextParams" kind="binding" contract="keyResultForm.contextParams"/>
+            <Prop name="submitAction" kind="action" actionId="save-key-result"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!--
+      MANAGE HERO DATA SOURCE
+
+      Returns mode-aware header content.
+      Handler checks request.params.keyResultId for mode detection.
+      Also uses request.params.goalId and objectiveId for context.
+      -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.keyResults.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!--
+      FORM DATA SOURCE
+
+      Returns form configuration including:
+        - Field definitions (type, validation, options)
+        - Initial values (empty for create, populated for edit)
+        - Submit button label
+        - Context params for save handler (includes goalId and objectiveId)
+      -->
+      <DataSource id="keyResultForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for key-result-form.title"/>
+          <Field name="description" path="form.description" description="Binding for key-result-form.description"/>
+          <Field name="fields" path="form.fields" description="Binding for key-result-form.fields"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for key-result-form.submitLabel"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for key-result-form.initialValues"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for key-result-form.contextParams"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.keyResults.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <!--
+    ACTIONS: Form submission and navigation
+
+    SAVE ACTION (kind="service"):
+      - Calls a service handler to persist form data
+      - OnSuccess: Navigate to objective detail page, show toast
+      - OnError: Show error toast
+
+    The {{goalId}} and {{objectiveId}} in Navigate URL come from context params.
+    -->
+    <Actions>
+      <Action id="save-key-result" kind="service">
+        <Config>
+          <Handler>admin-community.planning.goals.objectives.keyResults.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/{{params.goalId}}</Navigate>
+            <ShowToast>Key result saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save key result. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/goals/{{params.goalId}}</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

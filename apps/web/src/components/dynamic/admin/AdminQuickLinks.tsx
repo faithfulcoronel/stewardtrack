@@ -1,5 +1,22 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Calendar,
+  Church,
+  DollarSign,
+  FileText,
+  FolderOpen,
+  Heart,
+  MessageSquare,
+  Settings,
+  Shield,
+  Target,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +24,42 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import { normalizeList, renderAction, type ActionConfig } from "../shared";
+
+/**
+ * Map icon name strings to Lucide icon components.
+ * Add more icons as needed.
+ */
+const iconMap: Record<string, LucideIcon> = {
+  FolderOpen,
+  BarChart3,
+  Calendar,
+  Users,
+  DollarSign,
+  MessageSquare,
+  Settings,
+  Shield,
+  FileText,
+  Heart,
+  BookOpen,
+  Bell,
+  Church,
+  Target,
+  // Lowercase aliases for flexibility
+  folderopen: FolderOpen,
+  barchart3: BarChart3,
+  calendar: Calendar,
+  users: Users,
+  "dollar-sign": DollarSign,
+  "message-square": MessageSquare,
+  settings: Settings,
+  shield: Shield,
+  "file-text": FileText,
+  heart: Heart,
+  book: BookOpen,
+  bell: Bell,
+  church: Church,
+  target: Target,
+};
 
 export interface QuickLinkItem {
   id?: string | null;
@@ -65,7 +118,10 @@ export function AdminQuickLinks(props: AdminQuickLinksProps) {
                 <div className="flex items-center justify-between gap-3">
                   <CardTitle className="text-base font-semibold text-foreground">
                     <span className="flex items-center gap-2">
-                      {link.icon && <span aria-hidden>{link.icon}</span>}
+                      {link.icon && (() => {
+                        const Icon = iconMap[link.icon];
+                        return Icon ? <Icon className="h-5 w-5 text-muted-foreground" aria-hidden /> : null;
+                      })()}
                       <span>{link.title}</span>
                     </span>
                   </CardTitle>

@@ -139,6 +139,7 @@ export function PlanningCalendarContent() {
       events={data?.events || []}
       categories={data?.categories || []}
       isLoading={isLoading}
+      backUrl="/admin/community/planning"
       onEventClick={handleEventClick}
       onDateSelect={handleDateSelect}
       onCreateEvent={handleCreateEvent}

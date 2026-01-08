@@ -5,6 +5,8 @@ import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { Role, CreateRoleDto, UpdateRoleDto, RoleWithPermissions } from '@/models/rbac.model';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { isCachedSuperAdmin } from '@/lib/auth/authCache';
+import { UnauthorizedError } from '@/utils/errorHandler';
 
 export interface IRoleAdapter extends IBaseAdapter<Role> {
   createRole(data: CreateRoleDto, tenantId: string): Promise<Role>;
@@ -295,8 +297,14 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
   /**
    * Find role by metadata key with elevated access (bypasses RLS).
    * This allows finding roles in any tenant for super admin operations.
+   * @throws UnauthorizedError if the current user is not a super admin
    */
   async findByMetadataKeyWithElevatedAccess(tenantId: string, metadataKey: string): Promise<Role | null> {
+    const isSuperAdmin = await isCachedSuperAdmin();
+    if (!isSuperAdmin) {
+      throw new UnauthorizedError('Finding roles with elevated access requires super admin privileges');
+    }
+
     const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
@@ -317,8 +325,14 @@ export class RoleAdapter extends BaseAdapter<Role> implements IRoleAdapter {
   /**
    * Create role with elevated access (bypasses RLS).
    * This allows creating roles in any tenant for super admin operations.
+   * @throws UnauthorizedError if the current user is not a super admin
    */
   async createRoleWithElevatedAccess(data: CreateRoleDto, tenantId: string): Promise<Role> {
+    const isSuperAdmin = await isCachedSuperAdmin();
+    if (!isSuperAdmin) {
+      throw new UnauthorizedError('Creating roles with elevated access requires super admin privileges');
+    }
+
     const supabase = await getSupabaseServiceClient();
     const scope = this.normalizeRoleScope(data.scope);
 

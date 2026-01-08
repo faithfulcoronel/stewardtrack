@@ -60,6 +60,40 @@ import { DiscountAdapter, type IDiscountAdapter } from '@/adapters/discount.adap
 import { DiscountRepository, type IDiscountRepository } from '@/repositories/discount.repository';
 import { DiscountService } from '@/services/DiscountService';
 
+// Goals & Objectives Feature
+import {
+  GoalCategoryAdapter,
+  GoalAdapter,
+  ObjectiveAdapter,
+  KeyResultAdapter,
+  KeyResultProgressUpdateAdapter,
+  type IGoalCategoryAdapter,
+  type IGoalAdapter,
+  type IObjectiveAdapter,
+  type IKeyResultAdapter,
+  type IKeyResultProgressUpdateAdapter,
+} from '@/adapters/goals';
+import {
+  GoalCategoryRepository,
+  GoalRepository,
+  ObjectiveRepository,
+  KeyResultRepository,
+  KeyResultProgressUpdateRepository,
+  type IGoalCategoryRepository,
+  type IGoalRepository,
+  type IObjectiveRepository,
+  type IKeyResultRepository,
+  type IKeyResultProgressUpdateRepository,
+} from '@/repositories/goals';
+import {
+  GoalCategoryService,
+  GoalsService,
+  GoalMetricsService,
+  type IGoalCategoryService,
+  type IGoalsService,
+  type IGoalMetricsService,
+} from '@/services/goals';
+
 // Notification System
 import { NotificationAdapter, type INotificationAdapter } from '@/adapters/notification.adapter';
 import { NotificationQueueAdapter, type INotificationQueueAdapter } from '@/adapters/notificationQueue.adapter';
@@ -693,5 +727,25 @@ container.bind<AdminDashboardService>(TYPES.AdminDashboardService).to(AdminDashb
 container.bind<IDiscountAdapter>(TYPES.IDiscountAdapter).to(DiscountAdapter).inRequestScope();
 container.bind<IDiscountRepository>(TYPES.IDiscountRepository).to(DiscountRepository).inRequestScope();
 container.bind<DiscountService>(TYPES.DiscountService).to(DiscountService).inRequestScope();
+
+// ==================== GOALS & OBJECTIVES ====================
+// Adapters
+container.bind<IGoalCategoryAdapter>(TYPES.IGoalCategoryAdapter).to(GoalCategoryAdapter).inRequestScope();
+container.bind<IGoalAdapter>(TYPES.IGoalAdapter).to(GoalAdapter).inRequestScope();
+container.bind<IObjectiveAdapter>(TYPES.IObjectiveAdapter).to(ObjectiveAdapter).inRequestScope();
+container.bind<IKeyResultAdapter>(TYPES.IKeyResultAdapter).to(KeyResultAdapter).inRequestScope();
+container.bind<IKeyResultProgressUpdateAdapter>(TYPES.IKeyResultProgressUpdateAdapter).to(KeyResultProgressUpdateAdapter).inRequestScope();
+
+// Repositories
+container.bind<IGoalCategoryRepository>(TYPES.IGoalCategoryRepository).to(GoalCategoryRepository).inRequestScope();
+container.bind<IGoalRepository>(TYPES.IGoalRepository).to(GoalRepository).inRequestScope();
+container.bind<IObjectiveRepository>(TYPES.IObjectiveRepository).to(ObjectiveRepository).inRequestScope();
+container.bind<IKeyResultRepository>(TYPES.IKeyResultRepository).to(KeyResultRepository).inRequestScope();
+container.bind<IKeyResultProgressUpdateRepository>(TYPES.IKeyResultProgressUpdateRepository).to(KeyResultProgressUpdateRepository).inRequestScope();
+
+// Services
+container.bind<IGoalCategoryService>(TYPES.GoalCategoryService).to(GoalCategoryService).inRequestScope();
+container.bind<IGoalsService>(TYPES.GoalsService).to(GoalsService).inRequestScope();
+container.bind<IGoalMetricsService>(TYPES.GoalMetricsService).to(GoalMetricsService).inRequestScope();
 
 export { container };

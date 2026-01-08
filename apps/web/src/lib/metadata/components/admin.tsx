@@ -69,6 +69,34 @@ import {
   MemberQRCode,
   type MemberQRCodeProps,
 } from '@/components/dynamic/admin/MemberQRCode';
+import {
+  GoalProgressRing,
+  type GoalProgressRingProps,
+} from '@/components/dynamic/admin/goals/GoalProgressRing';
+import {
+  GoalCard,
+  type GoalCardProps,
+} from '@/components/dynamic/admin/goals/GoalCard';
+import {
+  KeyResultProgressCard,
+  type KeyResultProgressCardProps,
+} from '@/components/dynamic/admin/goals/KeyResultProgressCard';
+import {
+  OKRTreeView,
+  type OKRTreeViewProps,
+} from '@/components/dynamic/admin/goals/OKRTreeView';
+import {
+  GoalStatusTimeline,
+  type GoalStatusTimelineProps,
+} from '@/components/dynamic/admin/goals/GoalStatusTimeline';
+import {
+  PlanningCalendar,
+  type PlanningCalendarProps,
+} from '@/components/dynamic/admin/PlanningCalendar';
+import {
+  PlanningDashboard,
+  type PlanningDashboardProps,
+} from '@/components/dynamic/admin/PlanningDashboard';
 
 function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
@@ -222,5 +250,49 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MemberQRCodeProps>(MemberQRCode, 'MemberQRCodeRenderer'),
+  },
+  // Goals & Objectives Components
+  {
+    type: 'GoalProgressRing',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<GoalProgressRingProps>(GoalProgressRing, 'GoalProgressRingRenderer'),
+  },
+  {
+    type: 'GoalCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<GoalCardProps>(GoalCard, 'GoalCardRenderer'),
+  },
+  {
+    type: 'KeyResultProgressCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<KeyResultProgressCardProps>(KeyResultProgressCard, 'KeyResultProgressCardRenderer'),
+  },
+  {
+    type: 'OKRTreeView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<OKRTreeViewProps>(OKRTreeView, 'OKRTreeViewRenderer'),
+  },
+  {
+    type: 'GoalStatusTimeline',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<GoalStatusTimelineProps>(GoalStatusTimeline, 'GoalStatusTimelineRenderer'),
+  },
+  // Planning Components
+  {
+    type: 'PlanningCalendar',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<PlanningCalendarProps>(PlanningCalendar, 'PlanningCalendarRenderer'),
+  },
+  {
+    type: 'PlanningDashboard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<PlanningDashboardProps>(PlanningDashboard, 'PlanningDashboardRenderer'),
   },
 ];

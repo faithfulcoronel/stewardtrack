@@ -25,6 +25,7 @@ import { useMetadataClientContext } from "@/lib/metadata/context";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 
 function isTagsField(field: FormFieldConfig): boolean {
   return field.type === "tags" || field.name === "tags";
@@ -343,6 +344,8 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
       );
     case "select": {
       const options = normalizeList<FormFieldOption>(field.options);
+      // Filter out options with empty string values as Radix Select doesn't allow them
+      const validOptions = options.filter((option) => option.value !== "");
       return (
         <Select
           value={String(controller.value ?? "")}
@@ -353,13 +356,35 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
             <SelectValue placeholder={basePlaceholder || "Choose"} />
           </SelectTrigger>
           <SelectContent>
-            {options.map((option) => (
+            {validOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+      );
+    }
+    case "combobox": {
+      const options = normalizeList<FormFieldOption>(field.options);
+      // Convert to ComboboxOption format (adding optional description from option)
+      const comboboxOptions: ComboboxOption[] = options
+        .filter((option) => option.value !== "")
+        .map((option) => ({
+          value: option.value,
+          label: option.label,
+          description: (option as ComboboxOption).description,
+        }));
+      return (
+        <Combobox
+          options={comboboxOptions}
+          value={String(controller.value ?? "")}
+          onChange={(value) => controller.onChange(value)}
+          placeholder={basePlaceholder || "Select..."}
+          searchPlaceholder={field.searchPlaceholder || "Search..."}
+          emptyMessage={field.emptyMessage || "No results found."}
+          disabled={!isInteractive}
+        />
       );
     }
     case "image":

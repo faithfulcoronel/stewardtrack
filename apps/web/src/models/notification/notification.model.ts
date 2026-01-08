@@ -20,7 +20,8 @@ export type NotificationCategory =
   | 'member'
   | 'finance'
   | 'event'
-  | 'communication';
+  | 'communication'
+  | 'planning';
 
 /**
  * Notification priority - affects delivery order and styling
