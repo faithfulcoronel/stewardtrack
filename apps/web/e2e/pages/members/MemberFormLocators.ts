@@ -8,11 +8,15 @@ export class MemberFormLocators {
   readonly page: Page;
 
   // ==================== TABS ====================
+  // Note: Form has 5 tabs (Profile, Engagement, Emergency, Serving, Admin)
+  // Finance tab was removed in Phase 4 simplification
+  // Care tab renamed to Emergency
   readonly profileBasicsTab: Locator;
   readonly engagementTab: Locator;
-  readonly careTab: Locator;
+  readonly emergencyTab: Locator;  // Renamed from careTab
+  readonly careTab: Locator;       // Legacy alias for emergencyTab
   readonly servingTab: Locator;
-  readonly financeTab: Locator;
+  readonly financeTab: Locator;    // Deprecated - tab no longer exists
   readonly adminTab: Locator;
 
   // ==================== ACCORDION SECTIONS ====================
@@ -126,12 +130,13 @@ export class MemberFormLocators {
   constructor(page: Page) {
     this.page = page;
 
-    // Tabs
-    this.profileBasicsTab = page.getByRole('tab', { name: /profile.*basics/i });
+    // Tabs (5 tabs: Profile, Engagement, Emergency, Serving, Admin)
+    this.profileBasicsTab = page.getByRole('tab', { name: /profile/i });
     this.engagementTab = page.getByRole('tab', { name: /engagement/i });
-    this.careTab = page.getByRole('tab', { name: /^care$/i });
+    this.emergencyTab = page.getByRole('tab', { name: /emergency/i });
+    this.careTab = this.emergencyTab; // Legacy alias - Care tab renamed to Emergency
     this.servingTab = page.getByRole('tab', { name: /serving/i });
-    this.financeTab = page.getByRole('tab', { name: /finance/i });
+    this.financeTab = page.getByRole('tab', { name: /finance/i }); // Deprecated - may not exist
     this.adminTab = page.getByRole('tab', { name: /admin/i });
 
     // Accordion sections

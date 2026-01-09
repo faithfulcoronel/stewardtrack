@@ -124,13 +124,20 @@ export class ManageMemberAction {
       const targetId = record.id ?? request.memberId ?? null;
 
       // Sync family memberships if provided
+      console.log('[ManageMemberAction] Checking if we should sync family memberships');
+      console.log('[ManageMemberAction] targetId:', targetId);
+      console.log('[ManageMemberAction] familyMemberships:', familyMemberships);
+      console.log('[ManageMemberAction] familyMemberships !== undefined:', familyMemberships !== undefined);
       if (targetId && familyMemberships !== undefined) {
+        console.log('[ManageMemberAction] Calling syncFamilyMemberships');
         await this.syncFamilyMemberships(
           resources.familyService,
           targetId,
           tenantId,
           familyMemberships
         );
+      } else {
+        console.log('[ManageMemberAction] Skipping syncFamilyMemberships - condition not met');
       }
 
       const result = this.resultBuilder.build(execution.config, request.mode ?? null, targetId);

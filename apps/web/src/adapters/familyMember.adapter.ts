@@ -282,6 +282,7 @@ export class FamilyMemberAdapter
 
   /**
    * Remove a member from a family (soft delete by setting is_active = false)
+   * Uses a SECURITY DEFINER function to bypass RLS while checking permissions internally
    */
   async removeMemberFromFamily(
     familyId: string,
@@ -290,19 +291,22 @@ export class FamilyMemberAdapter
   ): Promise<void> {
     const supabase = await this.getSupabaseClient();
 
-    const { error } = await supabase
-      .from(this.tableName)
-      .update({
-        is_active: false,
-        left_at: new Date().toISOString().split('T')[0],
-        updated_at: new Date().toISOString(),
-      })
-      .eq('family_id', familyId)
-      .eq('member_id', memberId)
-      .eq('tenant_id', tenantId);
+    // Call the SECURITY DEFINER function that bypasses RLS but checks permissions internally
+    const { data, error } = await supabase.rpc('remove_member_from_family', {
+      p_family_id: familyId,
+      p_member_id: memberId,
+      p_tenant_id: tenantId,
+    });
 
     if (error) {
       throw new Error(`Failed to remove member from family: ${error.message}`);
+    }
+
+    // The function returns a JSONB object with success/error
+    const result = data as { success: boolean; error?: string; rows_affected?: number };
+
+    if (!result.success) {
+      throw new Error(`Failed to remove member from family: ${result.error || 'Unknown error'}`);
     }
   }
 

@@ -19,6 +19,8 @@ import { getCurrentTenantId, getCurrentUserId } from "@/lib/server/context";
 import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { MemberProfileRepository } from "@/repositories/memberProfile.repository";
+import type { MemberCarePlanService } from "@/services/MemberCarePlanService";
+import type { MemberDiscipleshipPlanService } from "@/services/MemberDiscipleshipPlanService";
 import { getUserPermissionCodes } from "@/lib/rbac/permissionHelpers";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +32,11 @@ import {
   MemberProfileCard,
   type CardDetailItem,
 } from "@/components/dynamic/member/MemberProfileCard";
-import { MemberCareSummaryCard } from "@/components/dynamic/member/MemberCareSummaryCard";
+import {
+  MemberCareSummaryCard,
+  type CarePlanSummary,
+  type DiscipleshipPlanSummary,
+} from "@/components/dynamic/member/MemberCareSummaryCard";
 import { MemberQRCode } from "@/components/dynamic/admin/MemberQRCode";
 import { encodeShortUrlToken } from "@/lib/tokens/shortUrlTokens";
 
@@ -113,6 +119,12 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
 
   const member = members[0];
 
+  // Fetch family members (household relationships)
+  const householdRelationships = await memberProfileRepo.fetchHouseholdRelationships(
+    memberId,
+    tenantId
+  );
+
   // Permission-based visibility checks using inline array checks
   const hasAny = (perms: string[]) => perms.some(p => userPermissions.includes(p));
 
@@ -121,6 +133,53 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
   const canViewCare = hasAny(["care:view", "members:manage"]);
   const canViewDiscipleship = hasAny(["discipleship:view", "members:manage"]);
   const canViewAdmin = hasAny(["members:manage", "admin:full", "tenant:admin"]);
+
+  // Fetch care and discipleship plans if user has permissions
+  let carePlanSummary: CarePlanSummary | null = null;
+  let discipleshipPlanSummary: DiscipleshipPlanSummary | null = null;
+
+  if (canViewCare) {
+    try {
+      const carePlanService = container.get<MemberCarePlanService>(
+        TYPES.MemberCarePlanService
+      );
+      const carePlans = await carePlanService.getCarePlansByMember(memberId);
+      // Get the most recent active care plan
+      const activePlan = carePlans.find((p) => p.is_active) || carePlans[0];
+      if (activePlan) {
+        carePlanSummary = {
+          id: activePlan.id,
+          status: activePlan.status_label ?? activePlan.status_code ?? "Active",
+          statusVariant: activePlan.is_active ? "success" : "neutral",
+          assignedTo: activePlan.assigned_to ?? null,
+          followUpDate: activePlan.follow_up_at ?? null,
+        };
+      }
+    } catch (error) {
+      console.error("Failed to fetch care plans:", error);
+    }
+  }
+
+  if (canViewDiscipleship) {
+    try {
+      const discipleshipService = container.get<MemberDiscipleshipPlanService>(
+        TYPES.MemberDiscipleshipPlanService
+      );
+      const discipleshipPlans = await discipleshipService.getPlansByMember(memberId);
+      // Get the most recent discipleship plan
+      const activePlan = discipleshipPlans[0];
+      if (activePlan) {
+        discipleshipPlanSummary = {
+          id: activePlan.id,
+          mentor: activePlan.mentor_name ?? null,
+          nextStep: activePlan.next_step ?? null,
+          currentPathway: activePlan.pathway ?? null,
+        };
+      }
+    } catch (error) {
+      console.error("Failed to fetch discipleship plans:", error);
+    }
+  }
 
   // Card-level edit permission check
   const canEditSelf = hasAny(["members:edit_self", "members:edit", "members:manage"]);
@@ -238,6 +297,23 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
         : undefined,
     });
   }
+  // Add family members with links to their profiles
+  if (householdRelationships.length > 0) {
+    for (const rel of householdRelationships) {
+      const relatedMember = rel.related_member;
+      if (relatedMember) {
+        const displayName = relatedMember.preferred_name
+          || `${relatedMember.first_name ?? ""} ${relatedMember.last_name ?? ""}`.trim()
+          || "Unknown";
+        familyItems.push({
+          label: "Family Member",
+          value: displayName,
+          type: "link",
+          href: `/admin/community/members/${rel.related_member_id}/view`,
+        });
+      }
+    }
+  }
 
   const engagementItems: CardDetailItem[] = [];
   if (member.serving_team) {
@@ -350,7 +426,7 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
   adminItems.push({ label: "Member ID", value: member.id });
 
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div className="container max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <MemberProfileHeader
         member={{
@@ -390,7 +466,7 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
       />
 
       {/* Cards Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Identity Card */}
         <MemberProfileCard
           variant="identity"
@@ -451,6 +527,8 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
         {(canViewCare || canViewDiscipleship) && (
           <MemberCareSummaryCard
             memberId={member.id}
+            carePlan={carePlanSummary}
+            discipleshipPlan={discipleshipPlanSummary}
             userPermissions={userPermissions}
             className="lg:col-span-2"
           />

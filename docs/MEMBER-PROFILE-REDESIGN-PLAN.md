@@ -571,16 +571,33 @@ For existing members with care/discipleship data in the members table:
 - **Security:** QR codes now use obfuscated tokens (XOR + base64url) instead of exposing UUIDs
 
 ### Phase 5: Mobile Optimization
-- [ ] Add responsive breakpoint styles
-- [ ] Implement bottom sheet edit dialogs
-- [ ] Optimize touch targets
+- [x] Add responsive breakpoint styles (container padding, grid gaps, button widths)
+- [ ] Implement bottom sheet edit dialogs (deferred - current edit links work well on mobile)
+- [x] Optimize touch targets (all buttons now min 44x44px with `touch-manipulation`)
 - [ ] Test on iOS and Android via Capacitor
-- [ ] Performance optimization for mobile networks
+- [x] Performance optimization (skeleton loading, progressive disclosure, will-change hints)
+- **Mobile Improvements Made:**
+  - All interactive elements now have 44px minimum touch targets
+  - Added `touch-manipulation` CSS for faster tap response
+  - Responsive padding: tighter on mobile (`px-3 py-4`), more spacious on desktop
+  - Photo change button visible by default on mobile (hover-only on desktop)
+  - Full-width primary action buttons on mobile, auto-width on desktop
+  - Grid gaps optimized: `gap-3` on mobile, `gap-4` on larger screens
 
 ### Phase 6: Polish & Testing
-- [ ] Accessibility audit (WCAG 2.1 AA)
+- [x] Accessibility audit (WCAG 2.1 AA)
+  - Added ARIA labels to expand/collapse buttons
+  - Added `aria-expanded` states for disclosure widgets
+  - Semantic HTML: `<dl>` for definition lists, `<dt>`/`<dd>` for metrics
+  - Focus rings on all interactive elements
+  - `role="status"` for empty state messages
+  - `role="region"` with aria-label for metrics section
 - [ ] Cross-browser testing
-- [ ] End-to-end tests with Playwright
+- [x] End-to-end tests with Playwright
+  - Updated `MemberFormLocators.ts` for 5-tab structure (removed Finance tab, renamed Care to Emergency)
+  - Updated `members-comprehensive.spec.ts` to remove Finance tab and deprecated field tests
+  - Updated `mobile-responsive.spec.ts` touch target threshold (40px → 44px WCAG 2.1 AA)
+  - Created `member-profile-view.spec.ts` for new card-based profile view
 - [ ] Documentation updates
 - [ ] User acceptance testing
 
@@ -604,6 +621,8 @@ For existing members with care/discipleship data in the members table:
 | `apps/web/src/app/admin/community/members/[memberId]/view/page.tsx` | Admin card-based profile view | ✅ Done |
 | `apps/web/src/app/admin/my-profile/page.tsx` | Self-service profile (uses admin layout) | ✅ Done |
 | `apps/web/src/app/portal/profile/page.tsx` | Redirect to `/admin/my-profile` | ✅ Done |
+| `apps/web/src/lib/tokens/shortUrlTokens.ts` | Generic short URL token encoding/decoding | ✅ Done |
+| `apps/web/src/app/s/[token]/page.tsx` | Generic short URL director (receptionist pattern) | ✅ Done |
 
 **Note:** Visibility utilities (`visibility.ts`) were NOT created as a separate module. Instead, permission checking is done via:
 1. Server-side: `getUserPermissionCodes()` from `@/lib/rbac/permissionHelpers` (access-gate framework)
@@ -897,4 +916,7 @@ interface MemberCareSummaryResponse {
 | 1.5.0 | 2026-01-09 | Claude | Unified layout: Removed separate portal layout; "My Profile" now uses admin layout with permission-based visibility; `/portal/profile` redirects to `/admin/my-profile` |
 | 1.6.0 | 2026-01-09 | Claude | Phase 3 navigation: `/admin/members/[memberId]` now redirects to new card-based view at `/admin/community/members/[memberId]/view`; fixed permission codes (underscore format) |
 | 1.7.0 | 2026-01-09 | Claude | Phase 4 complete: Simplified `membership-manage.xml` form - removed Finance tab, Care-notes section, discipleship fields; form now has 5 tabs (Profile, Engagement, Emergency, Serving, Admin) |
+| 1.8.0 | 2026-01-10 | Claude | Phase 4.5: QR code security - implemented generic short URL token system with receptionist pattern; removed redundant "Member Since" metric; cleanup of old files |
+| 1.9.0 | 2026-01-10 | Claude | Phase 5 & 6 partial: Mobile optimization (touch targets 44px, responsive styles, touch-manipulation) and accessibility audit (ARIA labels, semantic HTML, focus states) |
+| 1.9.1 | 2026-01-10 | Claude | Phase 6 E2E tests: Updated MemberFormLocators, members-comprehensive.spec.ts, mobile-responsive.spec.ts; created member-profile-view.spec.ts |
 

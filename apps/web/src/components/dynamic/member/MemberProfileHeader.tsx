@@ -111,7 +111,11 @@ export function MemberProfileHeader({
       {/* Navigation */}
       {backHref && (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="gap-2 text-muted-foreground">
+          <Button
+            variant="ghost"
+            asChild
+            className="gap-2 text-muted-foreground h-11 min-h-[44px] px-3 touch-manipulation"
+          >
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4" />
               {backLabel}
@@ -142,7 +146,7 @@ export function MemberProfileHeader({
               {canEditPhoto && (
                 <button
                   onClick={onPhotoChange}
-                  className="absolute bottom-0 right-0 rounded-full bg-primary p-2 text-primary-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute bottom-0 right-0 rounded-full bg-primary p-3 min-h-[44px] min-w-[44px] flex items-center justify-center text-primary-foreground shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-manipulation"
                   aria-label="Change photo"
                 >
                   <Camera className="h-4 w-4" />
@@ -200,10 +204,14 @@ export function MemberProfileHeader({
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center justify-center gap-2 sm:justify-end">
+          <div className="flex items-center justify-center gap-2 sm:justify-end w-full sm:w-auto">
             {primaryAction && (
               primaryAction.href ? (
-                <Button variant="default" size="sm" asChild className="gap-2">
+                <Button
+                  variant="default"
+                  asChild
+                  className="gap-2 h-11 min-h-[44px] px-4 flex-1 sm:flex-none touch-manipulation"
+                >
                   <Link href={primaryAction.href}>
                     {primaryAction.icon}
                     {primaryAction.label}
@@ -212,9 +220,8 @@ export function MemberProfileHeader({
               ) : (
                 <Button
                   variant="default"
-                  size="sm"
                   onClick={primaryAction.onClick}
-                  className="gap-2"
+                  className="gap-2 h-11 min-h-[44px] px-4 flex-1 sm:flex-none touch-manipulation"
                 >
                   {primaryAction.icon ?? <Pencil className="h-4 w-4" />}
                   {primaryAction.label}
@@ -224,7 +231,11 @@ export function MemberProfileHeader({
             {menuActions.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-11 w-11 min-h-[44px] min-w-[44px] touch-manipulation"
+                  >
                     <MoreVertical className="h-4 w-4" />
                     <span className="sr-only">More actions</span>
                   </Button>
@@ -235,7 +246,10 @@ export function MemberProfileHeader({
                       key={action.id}
                       onClick={action.onClick}
                       asChild={!!action.href}
-                      className={action.variant === "destructive" ? "text-destructive" : ""}
+                      className={cn(
+                        "min-h-[44px] touch-manipulation",
+                        action.variant === "destructive" ? "text-destructive" : ""
+                      )}
                     >
                       {action.href ? (
                         <Link href={action.href} className="flex items-center gap-2">
@@ -258,19 +272,19 @@ export function MemberProfileHeader({
 
         {/* Metrics */}
         {visibleMetrics.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-border/60">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:flex lg:gap-8">
+          <div className="mt-6 pt-6 border-t border-border/60" role="region" aria-label="Member metrics">
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:flex lg:gap-8">
               {visibleMetrics.map((metric, index) => (
                 <div key={metric.id ?? index} className="text-center lg:text-left">
-                  <p className="text-2xl font-semibold text-foreground">{metric.value}</p>
-                  <p
+                  <dd className="text-2xl font-semibold text-foreground">{metric.value}</dd>
+                  <dt
                     className={cn(
                       "text-sm",
                       metric.tone ? metricToneStyles[metric.tone] : "text-muted-foreground"
                     )}
                   >
                     {metric.label}
-                  </p>
+                  </dt>
                   {metric.description && (
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {metric.description}
@@ -278,7 +292,7 @@ export function MemberProfileHeader({
                   )}
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
         )}
       </div>

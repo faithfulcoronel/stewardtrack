@@ -197,6 +197,58 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
   }
 
   /**
+   * Fetch primary families for a list of member IDs
+   * Returns a Map of member_id -> family data
+   */
+  private async fetchPrimaryFamiliesForMembers(
+    memberIds: string[],
+    tenantId: string
+  ): Promise<Map<string, { id: string; name: string; address_street?: string | null; address_city?: string | null; address_state?: string | null; address_postal_code?: string | null; notes?: string | null }>> {
+    if (memberIds.length === 0) {
+      return new Map();
+    }
+
+    const supabase = await this.getSupabaseClient();
+
+    // Query family_members with family join for all members
+    const { data, error } = await supabase
+      .from('family_members')
+      .select(`
+        member_id,
+        family:families!family_members_family_id_fkey(
+          id,
+          name,
+          address_street,
+          address_city,
+          address_state,
+          address_postal_code,
+          notes
+        )
+      `)
+      .in('member_id', memberIds)
+      .eq('tenant_id', tenantId)
+      .eq('is_primary', true)
+      .eq('is_active', true);
+
+    if (error) {
+      console.warn('[MemberProfileAdapter] Failed to fetch primary families:', error);
+      return new Map();
+    }
+
+    // Build map of member_id -> family
+    const familyMap = new Map<string, { id: string; name: string; address_street?: string | null; address_city?: string | null; address_state?: string | null; address_postal_code?: string | null; notes?: string | null }>();
+
+    for (const row of data ?? []) {
+      const family = Array.isArray(row.family) ? row.family[0] : row.family;
+      if (family && row.member_id) {
+        familyMap.set(row.member_id, family);
+      }
+    }
+
+    return familyMap;
+  }
+
+  /**
    * Get PII field configuration for members table
    */
   private getPIIFields() {
@@ -340,17 +392,7 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           data_steward,
           last_review_at,
           encrypted_fields,
-          encryption_key_version,
-          household:household_id(
-            id,
-            name,
-            address_street,
-            address_city,
-            address_state,
-            address_postal_code,
-            member_names,
-            notes
-          )
+          encryption_key_version
         `
       )
       .is('deleted_at', null)
@@ -369,10 +411,10 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       throw error;
     }
 
-    // Transform household from array to single object (Supabase returns arrays for foreign key joins)
+    // Transform to MemberRow array
     const members = (data ?? []).map((row: any) => ({
       ...row,
-      household: Array.isArray(row.household) ? row.household[0] ?? null : row.household ?? null,
+      household: null, // Will be populated from family_members below
     })) as MemberRow[];
 
     console.log('[MemberProfileAdapter] Fetched members from DB:', {
@@ -396,6 +438,27 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       return members;
     }
 
+    // Fetch primary family for each member from family_members + families tables
+    const memberIds = members.map(m => m.id);
+    const familyData = await this.fetchPrimaryFamiliesForMembers(memberIds, effectiveTenantId);
+
+    // Attach family data to members
+    for (const member of members) {
+      const family = familyData.get(member.id);
+      if (family) {
+        member.household = {
+          id: family.id,
+          tenant_id: effectiveTenantId,
+          name: family.name,
+          address_street: family.address_street,
+          address_city: family.address_city,
+          address_state: family.address_state,
+          address_postal_code: family.address_postal_code,
+          notes: family.notes,
+        } as MemberHousehold;
+      }
+    }
+
     console.log('[MemberProfileAdapter] Starting decryption for', members.length, 'members');
 
     // Decrypt all members in parallel
@@ -412,6 +475,7 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
    * Fetches household relationships for a member.
    * Now uses the new family_members table instead of family_relationships.
    * Returns family members in the same format as the old household relationships.
+   * Decrypts PII fields (first_name, last_name, preferred_name) for related members.
    */
   async fetchHouseholdRelationships(
     memberId: string,
@@ -446,13 +510,13 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       return [];
     }
 
-    // Get all members of the primary family
+    // Get all members of the primary family (include encrypted_fields for decryption)
     let membersQuery = supabase
       .from('family_members')
       .select(
         `
           member_id,
-          member:members!family_members_member_id_fkey(first_name,last_name,preferred_name)
+          member:members!family_members_member_id_fkey(first_name,last_name,preferred_name,encrypted_fields)
         `
       )
       .eq('family_id', primaryFamilyId)
@@ -470,13 +534,51 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
       return [];
     }
 
-    // Transform family_members data to HouseholdRelationshipRow format
-    return (membersData ?? []).map((fm) => ({
-      member_id: memberId,
-      related_member_id: fm.member_id,
-      member: null, // The current member - not needed since we already know who they are
-      related_member: fm.member as { first_name?: string | null; last_name?: string | null; preferred_name?: string | null } | null,
-    })) as HouseholdRelationshipRow[];
+    // Transform and decrypt family_members data
+    const results: HouseholdRelationshipRow[] = [];
+
+    for (const fm of membersData ?? []) {
+      let relatedMember = fm.member as { first_name?: string | null; last_name?: string | null; preferred_name?: string | null; encrypted_fields?: string[] } | null;
+
+      // Decrypt PII fields if needed
+      if (relatedMember && resolvedTenantId) {
+        const encryptedFields = relatedMember.encrypted_fields;
+        const firstName = relatedMember.first_name;
+        const looksEncrypted = firstName && typeof firstName === 'string' &&
+                              firstName.match(/^\d+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+$/);
+
+        if (looksEncrypted || (encryptedFields && encryptedFields.length > 0)) {
+          try {
+            const decrypted = await this.encryptionService.decryptFields(
+              relatedMember,
+              resolvedTenantId,
+              this.getPIIFields()
+            );
+            relatedMember = {
+              first_name: decrypted.first_name as string | null,
+              last_name: decrypted.last_name as string | null,
+              preferred_name: decrypted.preferred_name as string | null,
+            };
+          } catch (error) {
+            console.error('[MemberProfileAdapter] Failed to decrypt family member:', error);
+            // Keep original values if decryption fails
+          }
+        }
+      }
+
+      results.push({
+        member_id: memberId,
+        related_member_id: fm.member_id,
+        member: null, // The current member - not needed since we already know who they are
+        related_member: relatedMember ? {
+          first_name: relatedMember.first_name,
+          last_name: relatedMember.last_name,
+          preferred_name: relatedMember.preferred_name,
+        } : null,
+      });
+    }
+
+    return results;
   }
 
   async fetchGivingProfile(

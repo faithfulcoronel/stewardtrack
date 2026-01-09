@@ -27,7 +27,7 @@ test.describe('Mobile Responsive Tests', () => {
 
       await page.goto('/');
 
-      // Check that buttons meet minimum touch target size (44x44px)
+      // Check that buttons meet minimum touch target size (44x44px per WCAG 2.1 AA)
       const buttons = page.locator('button');
       const count = await buttons.count();
 
@@ -36,8 +36,8 @@ test.describe('Mobile Responsive Tests', () => {
         if (await button.isVisible()) {
           const box = await button.boundingBox();
           if (box) {
-            // Allow some tolerance for padding
-            expect(box.height).toBeGreaterThanOrEqual(40);
+            // Minimum 44px touch target per WCAG 2.1 AA guidelines
+            expect(box.height).toBeGreaterThanOrEqual(44);
           }
         }
       }

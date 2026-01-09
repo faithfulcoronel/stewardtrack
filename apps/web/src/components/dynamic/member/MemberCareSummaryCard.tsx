@@ -136,9 +136,8 @@ export function MemberCareSummaryCard({
                   </dl>
                   <Button
                     variant="ghost"
-                    size="sm"
                     asChild
-                    className="w-full justify-between text-primary hover:text-primary"
+                    className="w-full justify-between text-primary hover:text-primary h-11 min-h-[44px] touch-manipulation"
                   >
                     <Link
                       href={`/admin/community/care-plans/${carePlan.id}`}
@@ -194,9 +193,8 @@ export function MemberCareSummaryCard({
                   </dl>
                   <Button
                     variant="ghost"
-                    size="sm"
                     asChild
-                    className="w-full justify-between text-primary hover:text-primary"
+                    className="w-full justify-between text-primary hover:text-primary h-11 min-h-[44px] touch-manipulation"
                   >
                     <Link
                       href={`/admin/community/discipleship-plans/${discipleshipPlan.id}`}

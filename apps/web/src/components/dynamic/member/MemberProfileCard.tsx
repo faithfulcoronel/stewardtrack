@@ -196,7 +196,7 @@ export function MemberProfileCard({
   const hasContent = visibleItems.length > 0;
 
   return (
-    <Card className={cn("border-border/60 transition-shadow hover:shadow-sm", className)}>
+    <Card className={cn("border-border/60 transition-shadow hover:shadow-sm will-change-auto", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -212,14 +212,14 @@ export function MemberProfileCard({
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {canEdit && (
               editHref ? (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   asChild
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                  className="h-11 w-11 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground"
                 >
                   <Link href={editHref}>
                     <Pencil className="h-4 w-4" />
@@ -229,9 +229,9 @@ export function MemberProfileCard({
               ) : (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={handleEdit}
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                  className="h-11 w-11 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="h-4 w-4" />
                   <span className="sr-only">Edit</span>
@@ -241,16 +241,17 @@ export function MemberProfileCard({
             {hasContent && visibleItems.length > 3 && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={handleToggle}
-                className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                aria-expanded={!isCollapsed}
+                aria-label={isCollapsed ? "Show all items" : "Show fewer items"}
+                className="h-11 w-11 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground"
               >
                 {isCollapsed ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
                   <ChevronUp className="h-4 w-4" />
                 )}
-                <span className="sr-only">{isCollapsed ? "Expand" : "Collapse"}</span>
               </Button>
             )}
           </div>
@@ -258,11 +259,11 @@ export function MemberProfileCard({
       </CardHeader>
       <CardContent className="pt-0">
         {!hasContent ? (
-          <p className="text-sm text-muted-foreground italic py-2">
+          <p className="text-sm text-muted-foreground italic py-2" role="status">
             {emptyMessage ?? "No information available"}
           </p>
         ) : (
-          <dl className="space-y-3">
+          <dl className="space-y-3" aria-label={`${displayTitle} details`}>
             {(isCollapsed ? visibleItems.slice(0, 3) : visibleItems).map((item, index) => (
               <div key={index} className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                 <dt className="text-sm font-medium text-muted-foreground min-w-[120px] sm:max-w-[120px] flex-shrink-0">
@@ -276,7 +277,8 @@ export function MemberProfileCard({
             {isCollapsed && visibleItems.length > 3 && (
               <button
                 onClick={handleToggle}
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-2"
+                aria-expanded="false"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-2 py-2 min-h-[44px] touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
               >
                 + {visibleItems.length - 3} more
               </button>

@@ -90,7 +90,9 @@
       "Bash(git checkout:*)",
       "Bash(timeout 30 pnpm dev:web:*)",
       "Bash(node:*)",
-      "Bash(pnpm --filter @stewardtrack/web metadata:compile:*)"
+      "Bash(pnpm --filter @stewardtrack/web metadata:compile:*)",
+      "Bash(timeout 60 npx tsc:*)",
+      "Bash(pnpm --filter @stewardtrack/web exec tsc --noEmit --skipLibCheck)"
     ],
     "deny": [],
     "ask": []

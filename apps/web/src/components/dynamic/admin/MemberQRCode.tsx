@@ -188,9 +188,8 @@ export function MemberQRCode({
         </div>
         <Button
           variant="outline"
-          size="sm"
           onClick={handleDownload}
-          className="gap-2"
+          className="gap-2 h-11 min-h-[44px] px-4 touch-manipulation"
         >
           <Download className="size-4" />
           Download QR Code
