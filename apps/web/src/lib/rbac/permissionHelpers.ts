@@ -143,3 +143,30 @@ export async function checkTenantAdmin(): Promise<boolean> {
   const adminRole = await getUserAdminRole();
   return adminRole === 'tenant_admin';
 }
+
+/**
+ * Gets all permission codes for a user
+ *
+ * @param userId - User ID to get permissions for
+ * @param tenantId - Optional tenant ID (defaults to current tenant)
+ * @returns Promise<string[]> - Array of permission codes the user has
+ *
+ * @example
+ * const permissions = await getUserPermissionCodes(userId);
+ * if (permissions.includes('members:edit')) {
+ *   // User can edit members
+ * }
+ */
+export async function getUserPermissionCodes(
+  userId: string,
+  tenantId?: string
+): Promise<string[]> {
+  const userRoleService = container.get<UserRoleService>(TYPES.UserRoleService);
+  const result = await userRoleService.getUserPermissions(userId, tenantId);
+  // Extract permission codes from the permissions array
+  const permissions = result.permissions;
+  if (!permissions || !Array.isArray(permissions)) {
+    return [];
+  }
+  return permissions.map((p: { code: string }) => p.code);
+}

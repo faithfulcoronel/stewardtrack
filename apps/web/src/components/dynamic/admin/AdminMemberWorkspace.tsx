@@ -673,12 +673,17 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
 
   const handleFamilyMembershipsChange = React.useCallback(
     (memberships: FamilyMembership[]) => {
+      console.log('[AdminMemberWorkspace] handleFamilyMembershipsChange called with:', memberships);
+      console.log('[AdminMemberWorkspace] Number of memberships:', memberships.length);
       setFamilyMemberships(memberships);
       // Store in form values for submission
       controller.setValue("familyMemberships", memberships, {
         shouldDirty: true,
         shouldValidate: true,
       });
+      // Verify the value was set
+      const verifyValue = controller.getValues("familyMemberships");
+      console.log('[AdminMemberWorkspace] Controller familyMemberships after setValue:', verifyValue);
 
       // Auto-fill address from primary family (only if address fields are empty)
       const primaryMembership = memberships.find((m) => m.isPrimary);
@@ -762,6 +767,21 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   React.useEffect(() => {
     controller.register("familyMemberships");
   }, [controller]);
+
+  // Initialize familyMemberships in controller when component mounts
+  // This ensures the form data includes familyMemberships on submission
+  // Use a ref to ensure we only initialize once, not on every re-render
+  const familyMembershipsInitializedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!familyMembershipsInitializedRef.current && form?.familyMemberships) {
+      console.log('[AdminMemberWorkspace] Initializing familyMemberships in controller:', form.familyMemberships);
+      controller.setValue("familyMemberships", form.familyMemberships, {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+      familyMembershipsInitializedRef.current = true;
+    }
+  }, [controller, form?.familyMemberships]);
 
   const setHouseholdMembers = React.useCallback(
     (members: string[], options?: { dirty?: boolean }) => {

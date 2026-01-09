@@ -352,9 +352,14 @@ export class MemberFormMapper {
 
     // Family memberships handling (new multi-family system via FamilyMembershipManager)
     let familyMemberships: FamilyMembershipInput[] | undefined;
+    console.log('[MemberFormMapper] Checking for familyMemberships in values');
+    console.log('[MemberFormMapper] hasField familyMemberships:', this.hasField(values, "familyMemberships"));
+    console.log('[MemberFormMapper] values keys:', values ? Object.keys(values) : 'values is null/undefined');
     if (this.hasField(values, "familyMemberships")) {
       const rawMemberships = values.familyMemberships;
       console.log('[MemberFormMapper] familyMemberships value:', rawMemberships);
+      console.log('[MemberFormMapper] familyMemberships is array:', Array.isArray(rawMemberships));
+      console.log('[MemberFormMapper] familyMemberships length:', Array.isArray(rawMemberships) ? rawMemberships.length : 'N/A');
 
       if (Array.isArray(rawMemberships)) {
         familyMemberships = rawMemberships

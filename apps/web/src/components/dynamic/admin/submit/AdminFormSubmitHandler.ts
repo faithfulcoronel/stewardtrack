@@ -201,6 +201,9 @@ export class AdminFormSubmitHandler {
   private buildActionPayload(values: Record<string, unknown>): Record<string, unknown> {
     console.log('[AdminFormSubmitHandler] values.addressStreet:', values.addressStreet);
     console.log('[AdminFormSubmitHandler] values.preferredName:', values.preferredName);
+    console.log('[AdminFormSubmitHandler] values.familyMemberships:', values.familyMemberships);
+    console.log('[AdminFormSubmitHandler] familyMemberships is array:', Array.isArray(values.familyMemberships));
+    console.log('[AdminFormSubmitHandler] familyMemberships length:', Array.isArray(values.familyMemberships) ? values.familyMemberships.length : 'N/A');
 
     const payload: Record<string, unknown> = {
       mode: this.mode ?? null,

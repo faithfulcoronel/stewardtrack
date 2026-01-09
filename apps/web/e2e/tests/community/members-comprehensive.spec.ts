@@ -5,12 +5,14 @@ import { generateMemberData, generateComprehensiveMemberData } from '../../pages
  * Comprehensive Member Management E2E Tests
  *
  * Tests all form fields across all tabs in the member manage page:
- * - Profile basics (Identity, Household, Contact)
+ * - Profile (Identity, Household, Contact)
  * - Engagement (Communities, Gifts & Interests)
- * - Care (Pastoral Notes, Emergency Contact)
+ * - Emergency (Emergency Contact) - formerly "Care" tab
  * - Serving (Assignment, Leadership)
- * - Finance (Giving, Admin)
  * - Admin (Membership, Segmentation)
+ *
+ * NOTE: Finance tab was removed in Phase 4 form simplification.
+ * Pastoral notes and discipleship fields moved to dedicated modules.
  *
  * Test Case: AB#399 - Create and Edit Member
  */
@@ -104,46 +106,25 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
       }
 
       // Gifts & Interests section
+      // Note: discipleshipNextStep and prayerFocus fields removed in Phase 4 simplification
       const giftsVisible = await membersPage.giftsInterestsSection.isVisible({ timeout: 2000 }).catch(() => false);
       if (giftsVisible) {
         await membersPage.expandAccordionSection(membersPage.giftsInterestsSection);
-
-        const nextStepVisible = await membersPage.discipleshipNextStepInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (nextStepVisible) {
-          await membersPage.discipleshipNextStepInput.fill(testData.engagement!.discipleshipNextStep!);
-        }
-
-        const prayerFocusVisible = await membersPage.prayerFocusInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (prayerFocusVisible) {
-          await membersPage.prayerFocusInput.fill(testData.engagement!.prayerFocus!);
-        }
+        // Fields in this section are now managed via dedicated modules
+        console.log('Gifts & Interests section expanded - fields now in dedicated modules');
       }
 
       await page.screenshot({ path: `e2e/screenshots/create-member-engagement-filled-${timestamp}.png` });
 
-      // ==================== TAB 3: CARE ====================
-      console.log('Filling Care tab...');
-      await membersPage.navigateToTab('care');
+      // ==================== TAB 3: EMERGENCY ====================
+      // Note: Renamed from "Care" tab in Phase 4 simplification
+      // Pastoral notes moved to Care Plans module
+      console.log('Filling Emergency tab...');
+      await membersPage.navigateToTab('care'); // Uses legacy alias
       await page.waitForTimeout(500);
 
-      // Pastoral Notes section
-      const pastoralVisible = await membersPage.pastoralNotesSection.isVisible({ timeout: 3000 }).catch(() => false);
-      if (pastoralVisible) {
-        await membersPage.expandAccordionSection(membersPage.pastoralNotesSection);
-
-        const notesVisible = await membersPage.pastoralNotesInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (notesVisible) {
-          await membersPage.pastoralNotesInput.fill(testData.care!.pastoralNotes!);
-        }
-
-        const prayerReqVisible = await membersPage.prayerRequestsInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (prayerReqVisible) {
-          await membersPage.prayerRequestsInput.fill(testData.care!.prayerRequests!);
-        }
-      }
-
       // Emergency Contact section
-      const emergencyVisible = await membersPage.emergencyContactSection.isVisible({ timeout: 2000 }).catch(() => false);
+      const emergencyVisible = await membersPage.emergencyContactSection.isVisible({ timeout: 3000 }).catch(() => false);
       if (emergencyVisible) {
         await membersPage.expandAccordionSection(membersPage.emergencyContactSection);
 
@@ -161,14 +142,9 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
         if (ecPhoneVisible) {
           await membersPage.emergencyPhoneInput.fill(testData.care!.emergencyPhone!);
         }
-
-        const physicianVisible = await membersPage.physicianInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (physicianVisible) {
-          await membersPage.physicianInput.fill(testData.care!.physician!);
-        }
       }
 
-      await page.screenshot({ path: `e2e/screenshots/create-member-care-filled-${timestamp}.png` });
+      await page.screenshot({ path: `e2e/screenshots/create-member-emergency-filled-${timestamp}.png` });
 
       // ==================== TAB 4: SERVING ====================
       console.log('Filling Serving tab...');
@@ -219,51 +195,10 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
 
       await page.screenshot({ path: `e2e/screenshots/create-member-serving-filled-${timestamp}.png` });
 
-      // ==================== TAB 5: FINANCE ====================
-      console.log('Filling Finance tab...');
-      await membersPage.navigateToTab('finance');
-      await page.waitForTimeout(500);
+      // NOTE: Finance tab was removed in Phase 4 form simplification
+      // Finance/giving data is now managed in the dedicated Giving module
 
-      // Giving section
-      const givingVisible = await membersPage.givingSection.isVisible({ timeout: 3000 }).catch(() => false);
-      if (givingVisible) {
-        await membersPage.expandAccordionSection(membersPage.givingSection);
-
-        const recurringVisible = await membersPage.recurringGivingInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (recurringVisible) {
-          await membersPage.recurringGivingInput.fill(testData.finance!.recurringGiving!);
-        }
-
-        const pledgeVisible = await membersPage.pledgeAmountInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (pledgeVisible) {
-          await membersPage.pledgeAmountInput.fill(testData.finance!.pledgeAmount!);
-        }
-
-        const campaignVisible = await membersPage.pledgeCampaignInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (campaignVisible) {
-          await membersPage.pledgeCampaignInput.fill(testData.finance!.pledgeCampaign!);
-        }
-
-        const fundVisible = await membersPage.primaryFundInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (fundVisible) {
-          await membersPage.primaryFundInput.fill(testData.finance!.primaryFund!);
-        }
-      }
-
-      // Finance Admin section
-      const financeAdminVisible = await membersPage.financeAdminSection.isVisible({ timeout: 2000 }).catch(() => false);
-      if (financeAdminVisible) {
-        await membersPage.expandAccordionSection(membersPage.financeAdminSection);
-
-        const notesVisible = await membersPage.financeNotesInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (notesVisible) {
-          await membersPage.financeNotesInput.fill(testData.finance!.financeNotes!);
-        }
-      }
-
-      await page.screenshot({ path: `e2e/screenshots/create-member-finance-filled-${timestamp}.png` });
-
-      // ==================== TAB 6: ADMIN ====================
+      // ==================== TAB 5: ADMIN ====================
       console.log('Filling Admin tab...');
       await membersPage.navigateToTab('admin');
       await page.waitForTimeout(500);
@@ -448,36 +383,22 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
         }
       }
 
+      // Note: Gifts & Interests section fields moved to dedicated modules in Phase 4
       const giftsVisible = await membersPage.giftsInterestsSection.isVisible({ timeout: 2000 }).catch(() => false);
       if (giftsVisible) {
         await membersPage.expandAccordionSection(membersPage.giftsInterestsSection);
-
-        const nextStepVisible = await membersPage.discipleshipNextStepInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (nextStepVisible) {
-          await membersPage.discipleshipNextStepInput.clear();
-          await membersPage.discipleshipNextStepInput.fill(`Updated next step${updateSuffix}`);
-        }
+        console.log('Gifts & Interests section expanded');
       }
 
       await page.screenshot({ path: `e2e/screenshots/edit-member-engagement-updated-${timestamp}.png` });
 
-      // ==================== TAB 3: CARE - VERIFY & UPDATE ====================
-      console.log('Updating Care tab...');
-      await membersPage.navigateToTab('care');
+      // ==================== TAB 3: EMERGENCY - VERIFY & UPDATE ====================
+      // Note: Renamed from "Care" tab, pastoral notes moved to Care Plans module
+      console.log('Updating Emergency tab...');
+      await membersPage.navigateToTab('care'); // Uses legacy alias
       await page.waitForTimeout(500);
 
-      const pastoralVisible = await membersPage.pastoralNotesSection.isVisible({ timeout: 3000 }).catch(() => false);
-      if (pastoralVisible) {
-        await membersPage.expandAccordionSection(membersPage.pastoralNotesSection);
-
-        const notesVisible = await membersPage.pastoralNotesInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (notesVisible) {
-          await membersPage.pastoralNotesInput.clear();
-          await membersPage.pastoralNotesInput.fill(`Updated pastoral notes${updateSuffix}`);
-        }
-      }
-
-      const emergencyVisible = await membersPage.emergencyContactSection.isVisible({ timeout: 2000 }).catch(() => false);
+      const emergencyVisible = await membersPage.emergencyContactSection.isVisible({ timeout: 3000 }).catch(() => false);
       if (emergencyVisible) {
         await membersPage.expandAccordionSection(membersPage.emergencyContactSection);
 
@@ -488,7 +409,7 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
         }
       }
 
-      await page.screenshot({ path: `e2e/screenshots/edit-member-care-updated-${timestamp}.png` });
+      await page.screenshot({ path: `e2e/screenshots/edit-member-emergency-updated-${timestamp}.png` });
 
       // ==================== TAB 4: SERVING - VERIFY & UPDATE ====================
       console.log('Updating Serving tab...');
@@ -519,36 +440,10 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
 
       await page.screenshot({ path: `e2e/screenshots/edit-member-serving-updated-${timestamp}.png` });
 
-      // ==================== TAB 5: FINANCE - VERIFY & UPDATE ====================
-      console.log('Updating Finance tab...');
-      await membersPage.navigateToTab('finance');
-      await page.waitForTimeout(500);
+      // NOTE: Finance tab was removed in Phase 4 form simplification
+      // Finance/giving data is now managed in the dedicated Giving module
 
-      const givingVisible = await membersPage.givingSection.isVisible({ timeout: 3000 }).catch(() => false);
-      if (givingVisible) {
-        await membersPage.expandAccordionSection(membersPage.givingSection);
-
-        const pledgeVisible = await membersPage.pledgeAmountInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (pledgeVisible) {
-          await membersPage.pledgeAmountInput.clear();
-          await membersPage.pledgeAmountInput.fill('5000');
-        }
-      }
-
-      const financeAdminVisible = await membersPage.financeAdminSection.isVisible({ timeout: 2000 }).catch(() => false);
-      if (financeAdminVisible) {
-        await membersPage.expandAccordionSection(membersPage.financeAdminSection);
-
-        const notesVisible = await membersPage.financeNotesInput.isVisible({ timeout: 2000 }).catch(() => false);
-        if (notesVisible) {
-          await membersPage.financeNotesInput.clear();
-          await membersPage.financeNotesInput.fill(`Updated finance notes${updateSuffix}`);
-        }
-      }
-
-      await page.screenshot({ path: `e2e/screenshots/edit-member-finance-updated-${timestamp}.png` });
-
-      // ==================== TAB 6: ADMIN - VERIFY & UPDATE ====================
+      // ==================== TAB 5: ADMIN - VERIFY & UPDATE ====================
       console.log('Updating Admin tab...');
       await membersPage.navigateToTab('admin');
       await page.waitForTimeout(500);
@@ -636,13 +531,13 @@ test.describe('Member Management - Comprehensive Form Tests', () => {
       await membersPage.gotoEditMember(testMemberId);
       await membersPage.isFormLoaded();
 
-      // Verify all tabs are visible
+      // Verify all tabs are visible (5 tabs after Phase 4 simplification)
+      // Finance tab was removed, Care renamed to Emergency
       const tabs = [
-        { name: 'Profile basics', locator: membersPage.profileBasicsTab },
+        { name: 'Profile', locator: membersPage.profileBasicsTab },
         { name: 'Engagement', locator: membersPage.engagementTab },
-        { name: 'Care', locator: membersPage.careTab },
+        { name: 'Emergency', locator: membersPage.careTab }, // Uses legacy alias
         { name: 'Serving', locator: membersPage.servingTab },
-        { name: 'Finance', locator: membersPage.financeTab },
         { name: 'Admin', locator: membersPage.adminTab },
       ];
 

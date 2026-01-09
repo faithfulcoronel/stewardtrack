@@ -23,6 +23,7 @@ export interface ICalendarEventAdapter extends IBaseAdapter<CalendarEvent> {
   existsBySource(sourceType: string, sourceId: string): Promise<boolean>;
   getByMember(memberId: string): Promise<CalendarEvent[]>;
   getUpcoming(days?: number): Promise<CalendarEvent[]>;
+  getOverdueEvents(limit?: number): Promise<CalendarEventView[]>;
   getEventsForCalendarView(startDate: string, endDate: string): Promise<CalendarEventView[]>;
   syncFromCarePlans(): Promise<number>;
   syncFromDiscipleshipPlans(): Promise<number>;
@@ -383,6 +384,80 @@ export class CalendarEventAdapter
     }
 
     return (data as unknown as CalendarEvent[]) || [];
+  }
+
+  async getOverdueEvents(limit: number = 10): Promise<CalendarEventView[]> {
+    const tenantId = await this.getTenantId();
+    const supabase = await this.getSupabaseClient();
+
+    const now = new Date();
+
+    // Get overdue events (past events that are not completed/cancelled)
+    // Use !member_id hint to specify which FK to use since calendar_events has both member_id and assigned_to referencing members
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(`
+        ${this.defaultSelect},
+        category:calendar_categories(id, name, code, color, icon),
+        member:members!member_id(id, first_name, last_name)
+      `)
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .neq('status', 'cancelled')
+      .neq('status', 'completed')
+      .lt('start_at', now.toISOString())
+      .order('start_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw new Error(`Failed to find overdue calendar events: ${error.message}`);
+    }
+
+    if (!data) return [];
+
+    // Transform to CalendarEventView with decrypted member names
+    const events: CalendarEventView[] = [];
+    for (const event of data as unknown as Array<CalendarEvent & { member?: { id: string; first_name: string | null; last_name: string | null } }>) {
+      let memberName: string | null = null;
+
+      if (event.member) {
+        const { firstName, lastName } = await this.decryptMemberName(
+          tenantId,
+          event.member.first_name,
+          event.member.last_name
+        );
+        memberName = `${firstName} ${lastName}`.trim() || null;
+      }
+
+      events.push({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        start: new Date(event.start_at),
+        end: event.end_at ? new Date(event.end_at) : null,
+        allDay: event.all_day,
+        categoryId: event.category_id,
+        categoryName: event.category?.name || null,
+        categoryColor: event.category?.color || '#EF4444',
+        categoryIcon: event.category?.icon || null,
+        eventType: event.event_type,
+        status: 'overdue',
+        priority: event.priority,
+        sourceType: event.source_type,
+        sourceId: event.source_id,
+        memberId: event.member_id,
+        memberName,
+        assignedToId: event.assigned_to,
+        assignedToName: null,
+        isRecurring: event.is_recurring,
+        isPrivate: event.is_private,
+        tags: event.tags,
+      });
+    }
+
+    return events;
   }
 
   async getEventsForCalendarView(

@@ -134,7 +134,22 @@ export function useAdminFormController(props: AdminFormSectionProps) {
   const handleSubmit = React.useMemo(
     () =>
       form.handleSubmit(async (values) => {
-        await submitHandler.handleSubmit(values);
+        console.log('[useAdminFormController] Form submit - all values:', values);
+        console.log('[useAdminFormController] familyMemberships in values:', values.familyMemberships);
+
+        // Get familyMemberships from form.getValues() since it might be a dynamically registered field
+        // that's not included in the default form values
+        const familyMemberships = form.getValues('familyMemberships');
+        console.log('[useAdminFormController] familyMemberships from getValues:', familyMemberships);
+
+        // Merge the dynamically registered familyMemberships into the values
+        const mergedValues = {
+          ...values,
+          familyMemberships: familyMemberships !== undefined ? familyMemberships : values.familyMemberships,
+        };
+        console.log('[useAdminFormController] Merged values familyMemberships:', mergedValues.familyMemberships);
+
+        await submitHandler.handleSubmit(mergedValues);
       }),
     [form, submitHandler],
   );
@@ -148,7 +163,7 @@ export function useAdminFormController(props: AdminFormSectionProps) {
 }
 
 // Hidden fields that should be included in form values even without explicit form fields
-const HIDDEN_FORM_FIELDS = ['householdId', 'memberId'] as const;
+const HIDDEN_FORM_FIELDS = ['householdId', 'memberId', 'familyMemberships'] as const;
 
 function buildDefaultValues(
   fields: FormFieldConfig[],

@@ -541,6 +541,180 @@ WHERE status IS NULL;
 COMMIT;
 ```
 
+### Pattern 8: Add New Feature with Permissions (IMPORTANT)
+
+When adding a new feature with permissions, follow this exact pattern. **Reference:** `20260108100000_add_goals_core_feature.sql`
+
+**CRITICAL RULES:**
+1. **Permission Code Format**: Must match regex `^[a-z_]+:[a-z_]+$` - lowercase letters and underscores ONLY (no hyphens!)
+   - ✅ `members:view_self` (correct - underscore)
+   - ❌ `members:view-self` (WRONG - hyphen will fail constraint)
+2. **Helper Functions**: Create and DROP helper functions within the same migration (they don't persist)
+3. **All 5 Steps Required**: Follow all steps to ensure complete feature setup
+
+```sql
+-- =============================================================================
+-- Migration: Add <Feature Name> Feature
+-- =============================================================================
+-- Description of what this feature adds
+-- Feature: <feature.code>
+-- Tier: Essential/Premium/Professional/Enterprise
+-- Permissions:
+-- - <category>:<action> - Description
+-- =============================================================================
+
+BEGIN;
+
+-- =============================================================================
+-- STEP 1: Add feature to feature_catalog
+-- =============================================================================
+INSERT INTO feature_catalog (code, name, category, description, tier, is_active, phase)
+VALUES (
+  '<feature.code>',
+  '<Feature Display Name>',
+  '<category>',
+  '<description>',
+  'essential', -- or 'premium', 'professional', 'enterprise'
+  true,
+  'ga'
+)
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  category = EXCLUDED.category,
+  description = EXCLUDED.description,
+  tier = EXCLUDED.tier,
+  is_active = EXCLUDED.is_active,
+  deleted_at = NULL,
+  updated_at = now();
+
+-- =============================================================================
+-- STEP 2: Add permissions to feature_permissions
+-- =============================================================================
+-- Create helper function (will be dropped at end)
+CREATE OR REPLACE FUNCTION insert_<feature>_permission(
+  p_feature_code text,
+  p_permission_code text,
+  p_display_name text,
+  p_description text,
+  p_is_required boolean DEFAULT true,
+  p_display_order integer DEFAULT 0
+)
+RETURNS void AS $$
+DECLARE
+  v_feature_id uuid;
+  v_category text;
+  v_action text;
+BEGIN
+  SELECT id INTO v_feature_id
+  FROM feature_catalog
+  WHERE code = p_feature_code AND deleted_at IS NULL;
+
+  IF v_feature_id IS NULL THEN
+    RAISE NOTICE 'Feature not found: %', p_feature_code;
+    RETURN;
+  END IF;
+
+  v_category := split_part(p_permission_code, ':', 1);
+  v_action := split_part(p_permission_code, ':', 2);
+
+  INSERT INTO feature_permissions (
+    feature_id, permission_code, display_name, description,
+    category, action, is_required, display_order
+  )
+  VALUES (
+    v_feature_id, p_permission_code, p_display_name, p_description,
+    v_category, v_action, p_is_required, p_display_order
+  )
+  ON CONFLICT (feature_id, permission_code) DO UPDATE SET
+    display_name = EXCLUDED.display_name,
+    description = EXCLUDED.description,
+    category = EXCLUDED.category,
+    action = EXCLUDED.action,
+    is_required = EXCLUDED.is_required,
+    display_order = EXCLUDED.display_order,
+    updated_at = now();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert permissions (use underscores, NOT hyphens!)
+SELECT insert_<feature>_permission('<feature.code>', '<category>:<action>', '<Display Name>', '<Description>', true, 1);
+
+-- Clean up helper function
+DROP FUNCTION IF EXISTS insert_<feature>_permission(text, text, text, text, boolean, integer);
+
+-- =============================================================================
+-- STEP 3: Link feature to product offerings (all tiers)
+-- =============================================================================
+-- Essential tier
+INSERT INTO product_offering_features (offering_id, feature_id, is_required)
+SELECT po.id, fc.id, true
+FROM product_offerings po
+CROSS JOIN feature_catalog fc
+WHERE po.tier = 'essential'
+  AND fc.code = '<feature.code>'
+  AND fc.deleted_at IS NULL
+  AND fc.is_active = true
+ON CONFLICT DO NOTHING;
+
+-- Repeat for 'premium', 'professional', 'enterprise' tiers...
+
+-- =============================================================================
+-- STEP 4: Add permission role templates
+-- =============================================================================
+-- Uses direct INSERT since helper function was cleaned up in seed migration
+INSERT INTO permission_role_templates (feature_permission_id, role_key, is_recommended, reason)
+SELECT
+  fp.id,
+  r.role_key,
+  true,
+  r.reason
+FROM feature_permissions fp
+JOIN feature_catalog fc ON fp.feature_id = fc.id
+CROSS JOIN (
+  VALUES
+    ('<category>:<action>', 'member', 'Reason'),
+    ('<category>:<action>', 'volunteer', 'Reason'),
+    ('<category>:<action>', 'staff', 'Reason'),
+    ('<category>:<action>', 'tenant_admin', 'Reason')
+) AS r(permission_code, role_key, reason)
+WHERE fp.permission_code = r.permission_code
+  AND fc.deleted_at IS NULL
+ON CONFLICT (feature_permission_id, role_key) DO UPDATE SET
+  is_recommended = EXCLUDED.is_recommended,
+  reason = EXCLUDED.reason,
+  updated_at = now();
+
+-- =============================================================================
+-- STEP 5: Grant feature to existing tenants
+-- =============================================================================
+INSERT INTO tenant_feature_grants (tenant_id, feature_id, grant_source, starts_at)
+SELECT DISTINCT
+  t.id,
+  fc.id,
+  'direct',
+  CURRENT_DATE
+FROM tenants t
+CROSS JOIN feature_catalog fc
+WHERE fc.code = '<feature.code>'
+  AND fc.deleted_at IS NULL
+  AND t.deleted_at IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM tenant_feature_grants tfg
+    WHERE tfg.tenant_id = t.id
+      AND tfg.feature_id = fc.id
+  )
+ON CONFLICT DO NOTHING;
+
+COMMIT;
+```
+
+**Key Tables Involved:**
+- `feature_catalog` - Feature definitions (code, name, tier, etc.)
+- `feature_permissions` - Permissions for each feature (CHECK constraint on permission_code format!)
+- `product_offering_features` - Links features to product offerings
+- `permission_role_templates` - Default role assignments for permissions
+- `tenant_feature_grants` - Grants features to tenants
+
 ## Common Migration Tasks
 
 ### Creating a New Table

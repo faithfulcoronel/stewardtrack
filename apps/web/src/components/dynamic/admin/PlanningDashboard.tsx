@@ -459,9 +459,54 @@ function UpcomingEventItem({ event, onClick }: { event: UpcomingEvent; onClick: 
   );
 }
 
+// Overdue event item with red styling and days overdue indicator
+function OverdueEventItem({ event, onClick }: { event: UpcomingEvent; onClick: () => void }) {
+  const eventDate = new Date(event.start);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  eventDate.setHours(0, 0, 0, 0);
+  const daysOverdue = Math.floor((today.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  return (
+    <HoverCard openDelay={300} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <button
+          onClick={onClick}
+          className="flex items-center gap-3 py-2 w-full text-left hover:bg-red-50/50 dark:hover:bg-red-950/30 rounded-lg px-2 -mx-2 transition-colors cursor-pointer"
+        >
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-100 dark:bg-red-950/50"
+          >
+            <AlertCircle className="w-4 h-4 text-red-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate text-red-700 dark:text-red-400">{event.title}</p>
+            <p className="text-xs text-red-600 dark:text-red-500">
+              {daysOverdue === 0 ? 'Due today' : daysOverdue === 1 ? '1 day overdue' : `${daysOverdue} days overdue`}
+              {event.memberName && ` • ${event.memberName}`}
+            </p>
+          </div>
+          <Badge variant="destructive" className="flex-shrink-0 text-[10px] px-1.5 py-0.5">
+            Overdue
+          </Badge>
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent
+        side="left"
+        align="start"
+        className="p-0 overflow-hidden"
+        sideOffset={8}
+      >
+        <EventTooltipContent event={event} />
+      </HoverCardContent>
+    </HoverCard>
+  );
+}
+
 export function PlanningDashboard({ className }: PlanningDashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [overdueEvents, setOverdueEvents] = useState<UpcomingEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<UpcomingEvent | null>(null);
@@ -500,6 +545,13 @@ export function PlanningDashboard({ className }: PlanningDashboardProps) {
         start: new Date(event.start),
       })).slice(0, 5);
       setUpcomingEvents(events);
+
+      // Set overdue events
+      const overdue = (result.overdueEvents || []).map((event: { start: string | Date; [key: string]: unknown }) => ({
+        ...event,
+        start: new Date(event.start),
+      }));
+      setOverdueEvents(overdue);
     } catch (error) {
       console.error('Error fetching planning data:', error);
       toast({
@@ -663,27 +715,43 @@ export function PlanningDashboard({ className }: PlanningDashboardProps) {
                   Overdue items and urgent priorities
                 </CardDescription>
               </div>
+              {overdueEvents.length > 0 && (
+                <Link href="/admin/community/planning/calendar?filter=overdue">
+                  <Button variant="ghost" size="sm">
+                    View All
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            {stats?.overdueEvents && stats.overdueEvents > 0 ? (
+            {isLoading ? (
               <div className="space-y-3">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : overdueEvents.length > 0 ? (
+              <div className="space-y-3">
+                {/* Summary banner */}
                 <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-900">
-                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-red-700 dark:text-red-400">
-                      {stats.overdueEvents} overdue {stats.overdueEvents === 1 ? 'event' : 'events'}
+                      {stats?.overdueEvents || overdueEvents.length} overdue {(stats?.overdueEvents || overdueEvents.length) === 1 ? 'item' : 'items'}
                     </p>
                     <p className="text-sm text-red-600 dark:text-red-500">
-                      Past follow-ups requiring immediate attention
+                      Requiring immediate attention
                     </p>
                   </div>
                 </div>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/admin/community/planning/calendar?filter=overdue">
-                    View Overdue Items
-                  </Link>
-                </Button>
+                {/* List of overdue events */}
+                <div className="divide-y">
+                  {overdueEvents.map((event) => (
+                    <OverdueEventItem key={event.id} event={event} onClick={() => setSelectedEvent(event)} />
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 // Import step components
@@ -15,6 +16,7 @@ import RBACSetupStep from '@/components/onboarding/RBACSetupStep';
 import FeatureTourStep from '@/components/onboarding/FeatureTourStep';
 import PaymentStep from '@/components/onboarding/PaymentStep';
 import CompleteStep from '@/components/onboarding/CompleteStep';
+import { PaymentHandleModal } from '@/components/payment-handler/PaymentHandleModal';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome', component: WelcomeStep },
@@ -25,16 +27,60 @@ const STEPS = [
   { id: 'complete', title: 'Complete', component: CompleteStep },
 ];
 
-export default function OnboardingPage() {
+// Loading fallback for Suspense boundary
+function OnboardingLoading() {
+  return (
+    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <Skeleton className="h-9 w-64 mx-auto mb-2" />
+          <Skeleton className="h-5 w-80 mx-auto" />
+        </div>
+        <div className="mb-8">
+          <Skeleton className="h-2 w-full" />
+        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <Skeleton className="h-7 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-48 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Main onboarding content that uses useSearchParams
+function OnboardingContent() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [onboardingData, setOnboardingData] = useState<Record<string, any>>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const searchParams = useSearchParams();
 
   const CurrentStepComponent = STEPS[currentStep].component;
   const progress = ((currentStep + 1) / STEPS.length) * 100;
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === STEPS.length - 1;
+
+  const payment = searchParams.get("payment");
+  const step = searchParams.get("step")
+
+  useEffect(() => {
+      // Show success modal when payment parameter has a value
+      if (payment != null) {
+        setShowSuccessModal(true);
+      } else {
+        setShowSuccessModal(false);
+      }
+
+      if(step == 'payment') {
+        setCurrentStep(4);
+      }
+    }, [payment, step]);
 
   async function saveProgress(stepData: any) {
     try {
@@ -60,6 +106,14 @@ export default function OnboardingPage() {
 
   async function handleNext(stepData: any) {
     setIsSaving(true);
+
+    // Remove payment parameter from URL
+    if(step == 'payment') {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("step");
+    
+      router.replace(`/onboarding${params.toString() ? `?${params.toString()}` : ""}`);
+    }
 
     try {
       // Save step data to state
@@ -111,6 +165,17 @@ export default function OnboardingPage() {
       setIsSaving(false);
     }
   }
+
+  const handleCloseButton = () => {
+    setShowSuccessModal(false)
+    router.replace(`/onboarding?step=payment`);
+    setCurrentStep(4);
+  }
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+    router.replace(`/onboarding?step=payment`);
+    setCurrentStep(4);
+  };
 
   return (
     <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
@@ -210,6 +275,22 @@ export default function OnboardingPage() {
           )}
         </div>
       </div>
+      <PaymentHandleModal
+          open={showSuccessModal}
+          onOpenChange={handleCloseButton}
+          paymentId={payment || undefined}
+          onClose={handleCloseModal}
+          source='onboarding'
+        />
     </div>
+  );
+}
+
+// Page export wrapped in Suspense for useSearchParams
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingLoading />}>
+      <OnboardingContent />
+    </Suspense>
   );
 }
