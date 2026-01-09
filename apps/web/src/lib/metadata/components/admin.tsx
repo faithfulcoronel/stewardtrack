@@ -97,16 +97,32 @@ import {
   PlanningDashboard,
   type PlanningDashboardProps,
 } from '@/components/dynamic/admin/PlanningDashboard';
+import {
+  MemberProfileCard,
+  type MemberProfileCardProps,
+} from '@/components/dynamic/member/MemberProfileCard';
+import {
+  MemberProfileHeader,
+  type MemberProfileHeaderProps,
+} from '@/components/dynamic/member/MemberProfileHeader';
+import {
+  MemberProfileLayout,
+  type MemberProfileLayoutProps,
+} from '@/components/dynamic/member/MemberProfileLayout';
+import {
+  MemberCareSummaryCard,
+  type MemberCareSummaryCardProps,
+} from '@/components/dynamic/member/MemberCareSummaryCard';
 
-function withoutChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
-  const Renderer = (props: Record<string, unknown>) => <Component {...(props as Props)} />;
+function withoutChildren<Props extends Record<string, unknown>>(Component: React.ComponentType<Props>, displayName: string) {
+  const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
   Renderer.displayName = displayName;
   return Renderer;
 }
 
-function withChildren<Props>(Component: React.ComponentType<Props>, displayName: string) {
+function withChildren<Props extends Record<string, unknown>>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>, children: React.ReactNode) => (
-    <Component {...(props as Props)}>{children}</Component>
+    <Component {...(props as unknown as Props)}>{children}</Component>
   );
   Renderer.displayName = displayName;
   return Renderer;
@@ -294,5 +310,30 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<PlanningDashboardProps>(PlanningDashboard, 'PlanningDashboardRenderer'),
+  },
+  // Member Profile Components (Mobile-first, card-based)
+  {
+    type: 'MemberProfileCard',
+    namespace: 'member',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberProfileCardProps>(MemberProfileCard, 'MemberProfileCardRenderer'),
+  },
+  {
+    type: 'MemberProfileHeader',
+    namespace: 'member',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberProfileHeaderProps>(MemberProfileHeader, 'MemberProfileHeaderRenderer'),
+  },
+  {
+    type: 'MemberProfileLayout',
+    namespace: 'member',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberProfileLayoutProps>(MemberProfileLayout, 'MemberProfileLayoutRenderer'),
+  },
+  {
+    type: 'MemberCareSummaryCard',
+    namespace: 'member',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberCareSummaryCardProps>(MemberCareSummaryCard, 'MemberCareSummaryCardRenderer'),
   },
 ];

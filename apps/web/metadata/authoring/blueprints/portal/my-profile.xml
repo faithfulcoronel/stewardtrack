@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="portal" route="profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="members.self-service" requiredPermissions="members:view_self" locale="en-US">
+  <Page id="portal-my-profile">
+    <Title>My Profile</Title>
+    <Regions>
+      <Region id="main">
+        <!-- Profile Header -->
+        <Component id="profile-header" type="MemberProfileHeader">
+          <Props>
+            <Prop name="member" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                return {
+                  id: profile.id,
+                  firstName: profile.firstName ?? '',
+                  lastName: profile.lastName ?? '',
+                  preferredName: profile.preferredName,
+                  photoUrl: profile.photoUrl,
+                  stage: null,
+                  center: profile.membershipCenter,
+                  membershipType: profile.membershipType,
+                  joinDate: profile.membershipDate
+                };
+              })()
+            </Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="metrics" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                const metrics = [];
+
+                if (profile.serving?.nextServeAt) {
+                  metrics.push({
+                    id: 'next-serve',
+                    label: 'Next Serving',
+                    value: new Date(profile.serving.nextServeAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                    tone: 'info'
+                  });
+                }
+
+                if (profile.smallGroups?.length > 0) {
+                  metrics.push({
+                    id: 'groups',
+                    label: 'Groups',
+                    value: String(profile.smallGroups.length),
+                    tone: 'positive'
+                  });
+                }
+
+                return metrics;
+              })()
+            </Prop>
+            <Prop name="backHref" kind="static">/portal</Prop>
+            <Prop name="backLabel" kind="static">Back to Portal</Prop>
+          </Props>
+        </Component>
+
+        <!-- Profile Cards Grid -->
+        <Component id="profile-layout" type="MemberProfileLayout">
+          <Props>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="header" kind="static" />
+            <Prop name="cards" kind="expression">null</Prop>
+          </Props>
+        </Component>
+
+        <!-- Contact Card -->
+        <Component id="contact-card" type="MemberProfileCard">
+          <Props>
+            <Prop name="variant" kind="static">contact</Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="title" kind="static">Contact Information</Prop>
+            <Prop name="canEdit" kind="expression">data.selfProfile?.permissions?.canEditContact ?? true</Prop>
+            <Prop name="editHref" kind="static">/portal/profile/edit?section=contact</Prop>
+            <Prop name="items" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                return [
+                  { label: 'Email', value: profile.email, type: 'text' },
+                  { label: 'Phone', value: profile.contactNumber, type: 'text' },
+                  { label: 'Preferred Contact', value: profile.preferredContact, type: 'badge' },
+                  { label: 'Address', value: [profile.addressStreet, profile.addressCity, profile.addressState, profile.addressPostalCode].filter(Boolean).join(', '), type: 'text' }
+                ].filter(item => item.value);
+              })()
+            </Prop>
+            <Prop name="emptyMessage" kind="static">No contact information on file. Add your contact details.</Prop>
+          </Props>
+        </Component>
+
+        <!-- Family Card -->
+        <Component id="family-card" type="MemberProfileCard">
+          <Props>
+            <Prop name="variant" kind="static">family</Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="title" kind="static">My Family</Prop>
+            <Prop name="canEdit" kind="static">false</Prop>
+            <Prop name="items" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                const family = profile.family ?? {};
+                const members = family.members ?? [];
+                return [
+                  { label: 'Family Name', value: family.name, type: 'text' },
+                  { label: 'Role', value: family.role, type: 'badge' },
+                  { label: 'Members', value: members.map(m => m.name).join(', '), type: 'chips' }
+                ].filter(item => item.value);
+              })()
+            </Prop>
+            <Prop name="emptyMessage" kind="static">Not part of a family unit. Contact the church office to update.</Prop>
+          </Props>
+        </Component>
+
+        <!-- Church Life Card -->
+        <Component id="church-life-card" type="MemberProfileCard">
+          <Props>
+            <Prop name="variant" kind="static">engagement</Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="title" kind="static">Church Life</Prop>
+            <Prop name="canEdit" kind="expression">data.selfProfile?.permissions?.canEditInterests ?? true</Prop>
+            <Prop name="editHref" kind="static">/portal/profile/edit?section=interests</Prop>
+            <Prop name="items" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                const serving = profile.serving ?? {};
+                return [
+                  { label: 'Serving Team', value: serving.team, type: 'badge', variant: 'info' },
+                  { label: 'Role', value: serving.role, type: 'text' },
+                  { label: 'Next Serving', value: serving.nextServeAt ? new Date(serving.nextServeAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : null, type: 'text' },
+                  { label: 'Groups', value: (profile.smallGroups ?? []).join(', '), type: 'chips' },
+                  { label: 'Spiritual Gifts', value: (profile.spiritualGifts ?? []).join(', '), type: 'chips' },
+                  { label: 'Ministry Interests', value: (profile.ministryInterests ?? []).join(', '), type: 'chips' }
+                ].filter(item => item.value);
+              })()
+            </Prop>
+            <Prop name="emptyMessage" kind="static">Not yet connected to groups or serving teams. Explore ways to get involved!</Prop>
+          </Props>
+        </Component>
+
+        <!-- Emergency Contact Card -->
+        <Component id="emergency-card" type="MemberProfileCard">
+          <Props>
+            <Prop name="variant" kind="static">emergency</Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="title" kind="static">Emergency Contact</Prop>
+            <Prop name="canEdit" kind="expression">data.selfProfile?.permissions?.canEditEmergency ?? true</Prop>
+            <Prop name="editHref" kind="static">/portal/profile/edit?section=emergency</Prop>
+            <Prop name="items" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                const emergency = profile.emergencyContact ?? {};
+                return [
+                  { label: 'Name', value: emergency.name, type: 'text' },
+                  { label: 'Phone', value: emergency.phone, type: 'text' },
+                  { label: 'Relationship', value: emergency.relationship, type: 'badge' }
+                ].filter(item => item.value);
+              })()
+            </Prop>
+            <Prop name="emptyMessage" kind="static">No emergency contact on file. Please add one for safety.</Prop>
+          </Props>
+        </Component>
+
+        <!-- Personal Info Card -->
+        <Component id="identity-card" type="MemberProfileCard">
+          <Props>
+            <Prop name="variant" kind="static">identity</Prop>
+            <Prop name="userPermissions" kind="static">["members:view_self", "members:edit_self"]</Prop>
+            <Prop name="title" kind="static">Personal Information</Prop>
+            <Prop name="canEdit" kind="static">true</Prop>
+            <Prop name="editHref" kind="static">/portal/profile/edit?section=personal</Prop>
+            <Prop name="items" kind="expression">
+              (() => {
+                const profile = data.selfProfile ?? {};
+                return [
+                  { label: 'Preferred Name', value: profile.preferredName, type: 'text' },
+                  { label: 'Birthday', value: profile.birthday ? new Date(profile.birthday).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : null, type: 'text' },
+                  { label: 'Anniversary', value: profile.anniversary ? new Date(profile.anniversary).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : null, type: 'text' },
+                  { label: 'Marital Status', value: profile.maritalStatus, type: 'badge' },
+                  { label: 'Occupation', value: profile.occupation, type: 'text' }
+                ].filter(item => item.value);
+              })()
+            </Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="selfProfile" kind="service">
+        <Config>
+          <service>portal/profile</service>
+          <method>getSelfProfile</method>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-contact" kind="navigate">
+        <Config>
+          <url>/portal/profile/edit?section=contact</url>
+        </Config>
+      </Action>
+      <Action id="edit-emergency" kind="navigate">
+        <Config>
+          <url>/portal/profile/edit?section=emergency</url>
+        </Config>
+      </Action>
+      <Action id="edit-interests" kind="navigate">
+        <Config>
+          <url>/portal/profile/edit?section=interests</url>
+        </Config>
+      </Action>
+      <Action id="edit-personal" kind="navigate">
+        <Config>
+          <url>/portal/profile/edit?section=personal</url>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

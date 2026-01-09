@@ -19,6 +19,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "General",
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
+      { title: "My Profile", href: "/admin/my-profile", icon: "customers" },
       // { title: "Announcements", href: "/admin/announcements", icon: "modules" },
       // { title: "Support", href: "/admin/support", icon: "support" },
       // { title: "Documentation", href: "/admin/docs", icon: "docs" },
@@ -195,6 +196,11 @@ async function filterSectionsWithAccessGate(
       if (item.title === 'Licensing Studio') {
         const gate = Gate.superAdminOnly();
         hasAccess = await gate.allows(userId);
+      }
+      // My Profile - visible to all authenticated users (self-service)
+      else if (item.href === '/admin/my-profile') {
+        // All authenticated users can view their own profile
+        hasAccess = true;
       }
       // Members - requires permission
       else if (item.href.includes('/members')) {
