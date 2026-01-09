@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams  } from "next/navigation";
+import { PaymentHandleModal } from "@/components/payment-handler/PaymentHandleModal";
 
 interface SubscriptionData {
   hasActiveSubscription: boolean;
@@ -43,15 +45,49 @@ interface SubscriptionData {
   };
 }
 
+interface PaymentTransaction {
+  id: string;
+  external_id: string;
+  xendit_invoice_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  invoice_url: string | null;
+  payment_method: string | null;
+  payment_channel: string | null;
+  payer_email: string | null;
+  description: string | null;
+  paid_at: string | null;
+  failed_at: string | null;
+  failure_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  metadata: any;
+}
+
 export default function SubscriptionPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const searchParams = useSearchParams();
+  const payment = searchParams.get("payment");
 
   useEffect(() => {
     fetchSubscriptionData();
   }, []);
+
+  useEffect(() => {
+    // Show success modal when payment parameter has a value
+    if (payment != null) {
+      setShowSuccessModal(true);
+    } else {
+      setShowSuccessModal(false);
+    }
+  }, [payment]);
 
   const fetchSubscriptionData = async () => {
     try {
@@ -60,14 +96,36 @@ export default function SubscriptionPage() {
       if (!response.ok) {
         throw new Error("Failed to fetch subscription data");
       }
-      
+
 
       const data = await response.json();
       setSubscription(data);
+
+      // Fetch transactions if there's a payment summary
+      if (data.paymentSummary && data.paymentSummary.payment_count > 0) {
+        fetchTransactions();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      setLoadingTransactions(true);
+      const response = await fetch("/api/subscription/transactions?limit=50");
+      if (!response.ok) {
+        throw new Error("Failed to fetch transactions");
+      }
+
+      const data = await response.json();
+      setTransactions(data.transactions || []);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+    } finally {
+      setLoadingTransactions(false);
     }
   };
 
@@ -88,6 +146,7 @@ export default function SubscriptionPage() {
           offeringId: subscription.currentOffering.id,
           payerEmail: "user@example.com", // TODO: Get from user profile
           payerName: subscription.tenant.church_name,
+          redirectContext: "admin-subscription",
         }),
       });
 
@@ -95,7 +154,9 @@ export default function SubscriptionPage() {
       
       if (data.invoice_url) {
         // Redirect to Xendit payment page
-        window.location.href = data.invoice_url;
+        // window.location.href = data.invoice_url;
+        // Open payment page in new tab
+        window.open(data.invoice_url, "_blank");
       } else {
         alert("Failed to create payment invoice. Please try again.");
       }
@@ -103,6 +164,11 @@ export default function SubscriptionPage() {
       console.error("Payment error:", error);
       alert("An error occurred. Please try again.");
     }
+  };
+
+  const handleRenewSubscription = async () => {
+    // Renew subscription - creates new invoice for renewal
+    await handleProceedToPayment();
   };
 
   const handleRetryPayment = () => {
@@ -158,6 +224,15 @@ export default function SubscriptionPage() {
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleCloseButton = () => {
+    setShowSuccessModal(false)
+    router.replace(`/admin/subscription`);
+  }
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+    router.replace(`/admin/subscription`);
   };
 
   if (loading) {
@@ -285,6 +360,21 @@ export default function SubscriptionPage() {
                 </p>
               </div>
             </div>
+
+            {/* Renew Subscription Button */}
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Need to renew your subscription?</p>
+                <p className="text-xs text-muted-foreground">
+                  Create a new invoice to continue your subscription
+                </p>
+              </div>
+              <Button onClick={handleRenewSubscription} variant="outline">
+                <CreditCard className="mr-2 size-4" />
+                Renew Subscription
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -348,7 +438,7 @@ export default function SubscriptionPage() {
             <CardTitle>Payment Summary</CardTitle>
             <CardDescription>Overview of all payment transactions</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 border rounded-lg">
                 <p className="text-sm font-medium text-muted-foreground">Total Paid</p>
@@ -373,6 +463,89 @@ export default function SubscriptionPage() {
                 <p className="text-2xl font-bold">{subscription.paymentSummary.payment_count}</p>
               </div>
             </div>
+
+            {/* Transaction History Table */}
+            <div className="space-y-4">
+              <Separator />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Transaction History</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  View all payment transactions for your subscription
+                </p>
+              </div>
+
+              {loadingTransactions ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-sm text-muted-foreground">Loading transactions...</p>
+                  </div>
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-8 border rounded-lg">
+                  <p className="text-muted-foreground">No transactions found</p>
+                </div>
+              ) : (
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Transaction ID</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment Channel</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell className="font-medium">
+                            {formatDate(transaction.paid_at || transaction.created_at)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="text-xs text-muted-foreground">
+                                {transaction.external_id}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            {formatCurrency(transaction.amount, transaction.currency)}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                          <TableCell>
+                            {transaction.payment_channel ? (
+                              <span className="capitalize">
+                                {transaction.payment_channel.replace(/_/g, " ")}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">N/A</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {transaction.invoice_url && (
+                              <Button variant="ghost" size="sm" asChild>
+                                <a
+                                  href={transaction.invoice_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1"
+                                >
+                                  View
+                                  <ExternalLink className="size-3" />
+                                </a>
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -380,7 +553,7 @@ export default function SubscriptionPage() {
       {/* No Active Subscription - Payment Options */}
       {(!subscription.latestPayment ||
         (subscription.latestPayment.status !== "paid" &&
-         subscription.latestPayment.status !== "settled")) && (
+         subscription.latestPayment.status !== "settled" && subscription.latestPayment?.status !== "pending" && subscription.latestPayment?.status !== "failed" && subscription.latestPayment?.status !== "expired")) && (
         <Card className="border-yellow-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-yellow-600">
@@ -456,6 +629,15 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Payment Success Modal */}
+      <PaymentHandleModal
+        open={showSuccessModal}
+        onOpenChange={handleCloseButton}
+        paymentId={payment || undefined}
+        onClose={handleCloseModal}
+        source="admin/subscription"
+      />
     </div>
   );
 }

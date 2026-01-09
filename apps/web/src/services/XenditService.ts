@@ -466,6 +466,7 @@ export class XenditService {
    */
   async createSubscriptionInvoice(params: {
     tenantId: string;
+    externalId:string;
     offeringId: string;
     offeringName: string;
     amount: number;
@@ -475,7 +476,6 @@ export class XenditService {
     billingCycle: 'monthly' | 'annual' | 'lifetime';
     successUrl: string;
     failureUrl: string;
-    externalId?: string;
     /** Original amount in customer's preferred currency (for tracking) */
     originalAmount?: number;
     /** Original currency requested by customer */
@@ -516,7 +516,7 @@ export class XenditService {
     const formattedAmount = this.formatAmount(params.amount, effectiveCurrency);
 
     return this.createInvoice({
-      external_id: externalId,
+      external_id: params.externalId,
       amount: formattedAmount,
       payer_email: params.payerEmail,
       description,
