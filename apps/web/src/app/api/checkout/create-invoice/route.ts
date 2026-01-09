@@ -5,6 +5,7 @@ import { PaymentService, DiscountInfo } from '@/services/PaymentService';
 import { LicensingService } from '@/services/LicensingService';
 import { DiscountService } from '@/services/DiscountService';
 import { PRIMARY_CURRENCY } from '@/lib/currency';
+import { getCurrentUser } from '@/lib/server/context';
 
 /**
  * POST /api/checkout/create-invoice
@@ -27,13 +28,13 @@ import { PRIMARY_CURRENCY } from '@/lib/currency';
 
 export async function POST(request: NextRequest) {
   try {
+    const $user = await getCurrentUser();
     const body = await request.json();
-    const { tenantId, offeringId, payerEmail, payerName, currency: requestedCurrency } = body;
-
+    const { tenantId, offeringId, payerEmail, payerName, currency: requestedCurrency, redirectContext } = body;
     // Validate required fields
-    if (!tenantId || !offeringId || !payerEmail || !payerName) {
+    if (!tenantId || !offeringId || !payerName) {
       return NextResponse.json(
-        { error: 'Missing required fields: tenantId, offeringId, payerEmail, payerName' },
+        { error: 'Missing required fields: tenantId, offeringId, payerName' },
         { status: 400 }
       );
     }
@@ -119,8 +120,8 @@ export async function POST(request: NextRequest) {
 
     // Build success and failure URLs with external_id for payment verification
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const successUrl = `${baseUrl}/signup/success?external_id=${externalId}`;
-    const failureUrl = `${baseUrl}/signup/failed?external_id=${externalId}`;
+    const successUrl = redirectContext === 'admin-subscription' ? `${baseUrl}/admin/subscription?payment=true&external_id=${externalId}` : `${baseUrl}/onboarding?payment=true&step=payment&external_id=${externalId}`;
+    const failureUrl = redirectContext === 'admin-subscription' ? `${baseUrl}/admin/subscription?payment=true&external_id=${externalId}&ailed_payment=true` : `${baseUrl}/onboarding?payment=true&step=payment&external_id=${externalId}`;
 
     // Create payment invoice with discounted amount
     const { invoice, payment } = await paymentService.createSubscriptionPayment({
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
       offeringName: offering.name,
       amount: finalAmount,
       currency: priceInfo.currency,
-      payerEmail,
+      payerEmail: `${$user.email}`,
       payerName,
       billingCycle: offering.billing_cycle || 'monthly',
       successUrl,

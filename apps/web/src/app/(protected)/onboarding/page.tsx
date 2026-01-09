@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 // Import step components
@@ -15,6 +15,7 @@ import RBACSetupStep from '@/components/onboarding/RBACSetupStep';
 import FeatureTourStep from '@/components/onboarding/FeatureTourStep';
 import PaymentStep from '@/components/onboarding/PaymentStep';
 import CompleteStep from '@/components/onboarding/CompleteStep';
+import { PaymentHandleModal } from '@/components/payment-handler/PaymentHandleModal';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome', component: WelcomeStep },
@@ -30,11 +31,29 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [onboardingData, setOnboardingData] = useState<Record<string, any>>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const searchParams = useSearchParams();
 
   const CurrentStepComponent = STEPS[currentStep].component;
   const progress = ((currentStep + 1) / STEPS.length) * 100;
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === STEPS.length - 1;
+
+  const payment = searchParams.get("payment");
+  const step = searchParams.get("step")
+
+  useEffect(() => {
+      // Show success modal when payment parameter has a value
+      if (payment != null) {
+        setShowSuccessModal(true);
+      } else {
+        setShowSuccessModal(false);
+      }
+
+      if(step == 'payment') {
+        setCurrentStep(4);
+      }
+    }, [payment, step]);
 
   async function saveProgress(stepData: any) {
     try {
@@ -60,6 +79,14 @@ export default function OnboardingPage() {
 
   async function handleNext(stepData: any) {
     setIsSaving(true);
+
+    // Remove payment parameter from URL
+    if(step == 'payment') {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("step");
+    
+      router.replace(`/onboarding${params.toString() ? `?${params.toString()}` : ""}`);
+    }
 
     try {
       // Save step data to state
@@ -111,6 +138,17 @@ export default function OnboardingPage() {
       setIsSaving(false);
     }
   }
+
+  const handleCloseButton = () => {
+    setShowSuccessModal(false)
+    router.replace(`/onboarding?step=payment`);
+    setCurrentStep(4);
+  }
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+    router.replace(`/onboarding?step=payment`);
+    setCurrentStep(4);
+  };
 
   return (
     <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
@@ -210,6 +248,13 @@ export default function OnboardingPage() {
           )}
         </div>
       </div>
+      <PaymentHandleModal
+          open={showSuccessModal}
+          onOpenChange={handleCloseButton}
+          paymentId={payment || undefined}
+          onClose={handleCloseModal}
+          source='onboarding'
+        />
     </div>
   );
 }

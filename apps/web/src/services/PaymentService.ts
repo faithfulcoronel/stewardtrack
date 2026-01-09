@@ -27,7 +27,6 @@ export interface DiscountInfo {
 
 export interface CreatePaymentParams {
   tenantId: string;
-  externalId:string;
   offeringId: string;
   offeringName: string;
   amount: number;
