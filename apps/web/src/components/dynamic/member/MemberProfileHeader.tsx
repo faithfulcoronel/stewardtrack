@@ -126,13 +126,19 @@ export function MemberProfileHeader({
           {/* Left: Avatar and Info */}
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
             {/* Avatar */}
-            <div className="relative group">
-              <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-lg">
-                <AvatarImage src={member.photoUrl ?? undefined} alt={displayName} />
-                <AvatarFallback className="text-2xl font-medium bg-primary/10 text-primary">
-                  {getInitials(member.firstName, member.lastName)}
-                </AvatarFallback>
-              </Avatar>
+            <div className="relative group flex-shrink-0 self-center sm:self-start">
+              <div className="size-24 sm:size-28 aspect-square rounded-full border-4 border-background shadow-lg overflow-hidden">
+                <Avatar className="size-full">
+                  <AvatarImage
+                    src={member.photoUrl ?? undefined}
+                    alt={displayName}
+                    className="size-full object-cover"
+                  />
+                  <AvatarFallback className="size-full text-2xl font-medium bg-primary/10 text-primary">
+                    {getInitials(member.firstName, member.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               {canEditPhoto && (
                 <button
                   onClick={onPhotoChange}

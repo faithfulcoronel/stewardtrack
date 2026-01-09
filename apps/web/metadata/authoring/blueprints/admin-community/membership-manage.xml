@@ -21,7 +21,7 @@
                 return params.memberId ? `Update ${record.profile?.fullName ?? record.fullName ?? &apos;member&apos;}&apos;s profile` : &apos;Create a new member profile&apos;;
               })()
             </Prop>
-            <Prop name="description" kind="static">Align membership data with pastoral care, serving teams, and financial commitments from one form.</Prop>
+            <Prop name="description" kind="static">Manage core membership data including identity, contact, family, engagement, serving assignments, and emergency contacts.</Prop>
             <Prop name="image" kind="expression">
               (() =&gt; {
                 if (!params.memberId) {
@@ -49,15 +49,15 @@
                   return [
                     { label: &apos;Mode&apos;, value: &apos;Create new record&apos;, caption: &apos;Member ID assigned after approval&apos; },
                     { label: &apos;Center&apos;, value: &apos;Assign center&apos;, caption: &apos;Choose from the form below&apos; },
-                    { label: &apos;Recurring giving&apos;, value: &apos;$0&apos;, caption: &apos;Not enrolled&apos; }
+                    { label: &apos;Status&apos;, value: &apos;New member&apos;, caption: &apos;Set membership stage below&apos; }
                   ];
                 }
                 const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
-                const formatCurrency = (value) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: value &gt;= 1000 ? 0 : 2 }).format(value ?? 0);
+                const stageLabel = record.stageKey ? record.stageKey.charAt(0).toUpperCase() + record.stageKey.slice(1) : &apos;Unknown&apos;;
                 return [
                   { label: &apos;Mode&apos;, value: &apos;Edit existing record&apos;, caption: `Member ID ${record.id}` },
                   { label: &apos;Center&apos;, value: record.center ?? &apos;Downtown Center&apos;, caption: &apos;Can be changed below&apos; },
-                  { label: &apos;Recurring giving&apos;, value: formatCurrency(record.giving?.recurring?.amount ?? 0), caption: record.giving?.recurring?.frequency ?? &apos;Not enrolled&apos; }
+                  { label: &apos;Status&apos;, value: stageLabel, caption: record.membershipTypeKey ?? &apos;Membership type&apos; }
                 ];
               })()
             </Prop>
@@ -224,10 +224,7 @@
                   lastAttendance: profile.lastAttendance ?? discipleship.lastAttendance ?? &apos;&apos;,
                   spiritualGifts: Array.isArray(gifts) ? gifts : [],
                   ministryInterests: Array.isArray(interests) ? interests : [],
-                  discipleshipNextStep: profile.discipleshipNextStep ?? discipleship.nextStep ?? &apos;&apos;,
-                  prayerFocus: profile.prayerFocus ?? carePlan.prayerFocus ?? discipleship.prayerFocus ?? &apos;&apos;,
-                  pastoralNotes: profile.notes ?? &apos;&apos;,
-                  prayerRequests: formattedPrayerRequests,
+                  // discipleshipNextStep, prayerFocus, pastoralNotes, prayerRequests removed - managed in dedicated modules
                   emergencyContact: profile.emergencyContact ?? emergency.contact ?? &apos;&apos;,
                   emergencyRelationship: profile.emergencyRelationship ?? emergency.relationship ?? &apos;&apos;,
                   emergencyPhone: profile.emergencyPhone ?? emergency.phone ?? &apos;&apos;,
@@ -241,15 +238,7 @@
                   teamFocus: profile.teamFocus ?? serving.teamFocus ?? &apos;&apos;,
                   reportsTo: profile.reportsTo ?? serving.reportsTo ?? serving.coach ?? &apos;&apos;,
                   lastHuddle: profile.lastHuddle ?? serving.lastHuddle ?? &apos;&apos;,
-                  recurringGiving: profile.recurringGiving ?? giving.recurring?.amount ?? &apos;&apos;,
-                  recurringFrequency: profile.recurringFrequency ?? giving.recurring?.frequencyKey ?? giving.recurring?.frequency ?? &apos;monthly&apos;,
-                  recurringMethod: profile.recurringMethod ?? giving.recurring?.method ?? &apos;ach&apos;,
-                  pledgeAmount: profile.pledgeAmount ?? giving.pledge ?? &apos;&apos;,
-                  pledgeCampaign: profile.pledgeCampaign ?? giving.campaign ?? &apos;&apos;,
-                  primaryFund: profile.primaryFund ?? giving.primaryFund ?? &apos;&apos;,
-                  statementPreference: profile.statementPreference ?? giving.statementPreference ?? &apos;email&apos;,
-                  capacityTier: profile.capacityTier ?? giving.tier ?? &apos;mid&apos;,
-                  financeNotes: profile.financeNotes ?? giving.notes ?? &apos;&apos;,
+                  // Giving/finance fields removed - deferred to dedicated Giving module
                   stage: profile.stageId ?? record.stageId ?? defaultStageId,
                   membershipType: profile.membershipTypeId ?? record.membershipTypeId ?? defaultTypeId,
                   center: profile.centerId ?? record.centerId ?? defaultCenterId,
@@ -289,10 +278,6 @@
                   initialValues.lastAttendance = &apos;&apos;;
                   initialValues.spiritualGifts = [];
                   initialValues.ministryInterests = [];
-                  initialValues.discipleshipNextStep = &apos;&apos;;
-                  initialValues.prayerFocus = &apos;&apos;;
-                  initialValues.pastoralNotes = &apos;&apos;;
-                  initialValues.prayerRequests = &apos;&apos;;
                   initialValues.emergencyContact = &apos;&apos;;
                   initialValues.emergencyRelationship = &apos;&apos;;
                   initialValues.emergencyPhone = &apos;&apos;;
@@ -306,15 +291,6 @@
                   initialValues.teamFocus = &apos;&apos;;
                   initialValues.reportsTo = &apos;&apos;;
                   initialValues.lastHuddle = &apos;&apos;;
-                  initialValues.recurringGiving = &apos;&apos;;
-                  initialValues.recurringFrequency = &apos;monthly&apos;;
-                  initialValues.recurringMethod = &apos;ach&apos;;
-                  initialValues.pledgeAmount = &apos;&apos;;
-                  initialValues.pledgeCampaign = &apos;&apos;;
-                  initialValues.primaryFund = &apos;&apos;;
-                  initialValues.statementPreference = &apos;email&apos;;
-                  initialValues.capacityTier = &apos;mid&apos;;
-                  initialValues.financeNotes = &apos;&apos;;
                   initialValues.stage = defaultStageId;
                   initialValues.membershipType = defaultTypeId;
                   initialValues.center = defaultCenterId;
@@ -335,7 +311,7 @@
                   cancelAction: params.memberId
                     ? { id: &apos;cancel-edit&apos;, config: { label: &apos;Back to profile&apos;, url: `/admin/members/${params.memberId}`, variant: &apos;ghost&apos; } }
                     : { id: &apos;cancel-create&apos;, config: { label: &apos;Back to list&apos;, url: &apos;/admin/members/list&apos;, variant: &apos;ghost&apos; } },
-                  footnote: &apos;Submitting the form drafts changes for pastoral review. Finance admins receive a notification for giving updates.&apos;
+                  footnote: &apos;Changes are saved immediately. Pastoral care and discipleship data are managed in their dedicated modules.&apos;
                 };
               })()
             </Prop>
@@ -2403,34 +2379,8 @@
                               <Value>full</Value>
                             </Field>
                           </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>discipleshipNextStep</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Next discipleship step</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>textarea</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>prayerFocus</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Prayer focus</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
+                          <!-- discipleshipNextStep removed: Managed in Discipleship Plans module -->
+                          <!-- prayerFocus removed: Managed in Care Plans module -->
                         </Array>
                       </Field>
                     </Object>
@@ -2442,56 +2392,14 @@
                   <Value>care</Value>
                 </Field>
                 <Field name="label">
-                  <Value>Care</Value>
+                  <Value>Emergency</Value>
                 </Field>
                 <Field name="description">
-                  <Value>Care plans, emergency contacts, and pastoral notes.</Value>
+                  <Value>Emergency contacts and physician information. Pastoral notes and care plans are managed in the Care Plans module.</Value>
                 </Field>
                 <Field name="sections">
                   <Array>
-                    <Object>
-                      <Field name="kind">
-                        <Value>form</Value>
-                      </Field>
-                      <Field name="id">
-                        <Value>care-notes</Value>
-                      </Field>
-                      <Field name="title">
-                        <Value>Pastoral notes</Value>
-                      </Field>
-                      <Field name="fields">
-                        <Array>
-                          <Object>
-                            <Field name="name">
-                              <Value>pastoralNotes</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Confidential notes</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>textarea</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>prayerRequests</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Prayer requests</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>textarea</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                        </Array>
-                      </Field>
-                    </Object>
+                    <!-- Pastoral notes section removed: Managed in Care Plans module -->
                     <Object>
                       <Field name="kind">
                         <Value>form</Value>
@@ -2737,303 +2645,7 @@
                   </Array>
                 </Field>
               </Object>
-              <Object>
-                <Field name="id">
-                  <Value>finance</Value>
-                </Field>
-                <Field name="label">
-                  <Value>Finance</Value>
-                </Field>
-                <Field name="description">
-                  <Value>Giving commitments and finance admin preferences.</Value>
-                </Field>
-                <Field name="sections">
-                  <Array>
-                    <Object>
-                      <Field name="kind">
-                        <Value>form</Value>
-                      </Field>
-                      <Field name="id">
-                        <Value>finance-snapshot</Value>
-                      </Field>
-                      <Field name="title">
-                        <Value>Giving</Value>
-                      </Field>
-                      <Field name="fields">
-                        <Array>
-                          <Object>
-                            <Field name="name">
-                              <Value>recurringGiving</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Recurring amount</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>currency</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="placeholder">
-                              <Value>0.00</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>recurringFrequency</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Recurring frequency</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>select</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="options">
-                              <Array>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Weekly</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>weekly</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Biweekly</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>biweekly</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Monthly</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>monthly</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Quarterly</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>quarterly</Value>
-                                  </Field>
-                                </Object>
-                              </Array>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>recurringMethod</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Recurring method</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>select</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="options">
-                              <Array>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>ACH</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>ach</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Card</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>card</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Cash/Check</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>cash</Value>
-                                  </Field>
-                                </Object>
-                              </Array>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>pledgeAmount</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Pledge amount</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>currency</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="placeholder">
-                              <Value>0.00</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>pledgeCampaign</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Campaign</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>primaryFund</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Preferred fund</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>text</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                          </Object>
-                        </Array>
-                      </Field>
-                    </Object>
-                    <Object>
-                      <Field name="kind">
-                        <Value>form</Value>
-                      </Field>
-                      <Field name="id">
-                        <Value>finance-admin</Value>
-                      </Field>
-                      <Field name="title">
-                        <Value>Finance admin</Value>
-                      </Field>
-                      <Field name="fields">
-                        <Array>
-                          <Object>
-                            <Field name="name">
-                              <Value>statementPreference</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Statement delivery</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>select</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="options">
-                              <Array>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Email</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>email</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Paper</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>paper</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Email + Paper</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>both</Value>
-                                  </Field>
-                                </Object>
-                              </Array>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>capacityTier</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Capacity tier</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>select</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>half</Value>
-                            </Field>
-                            <Field name="options">
-                              <Array>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Legacy champion</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>legacy</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Mid-tier</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>mid</Value>
-                                  </Field>
-                                </Object>
-                                <Object>
-                                  <Field name="label">
-                                    <Value>Emerging giver</Value>
-                                  </Field>
-                                  <Field name="value">
-                                    <Value>emerging</Value>
-                                  </Field>
-                                </Object>
-                              </Array>
-                            </Field>
-                          </Object>
-                          <Object>
-                            <Field name="name">
-                              <Value>financeNotes</Value>
-                            </Field>
-                            <Field name="label">
-                              <Value>Finance notes</Value>
-                            </Field>
-                            <Field name="type">
-                              <Value>textarea</Value>
-                            </Field>
-                            <Field name="colSpan">
-                              <Value>full</Value>
-                            </Field>
-                          </Object>
-                        </Array>
-                      </Field>
-                    </Object>
-                  </Array>
-                </Field>
-              </Object>
+              <!-- Finance tab removed: Giving management deferred to dedicated Giving module -->
               <Object>
                 <Field name="id">
                   <Value>admin</Value>

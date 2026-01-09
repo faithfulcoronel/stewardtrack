@@ -31,6 +31,8 @@ import {
   type CardDetailItem,
 } from "@/components/dynamic/member/MemberProfileCard";
 import { MemberCareSummaryCard } from "@/components/dynamic/member/MemberCareSummaryCard";
+import { MemberQRCode } from "@/components/dynamic/admin/MemberQRCode";
+import { encodeShortUrlToken } from "@/lib/tokens/shortUrlTokens";
 
 type Awaitable<T> = T | Promise<T>;
 
@@ -153,18 +155,7 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
       tone: "positive",
     });
   }
-  if (member.membership_date) {
-    const years = Math.floor(
-      (Date.now() - new Date(member.membership_date).getTime()) /
-        (365.25 * 24 * 60 * 60 * 1000)
-    );
-    metrics.push({
-      id: "tenure",
-      label: "Member Since",
-      value: years > 0 ? `${years} years` : "New",
-      tone: "neutral",
-    });
-  }
+  // Note: "Member Since" date is shown in the Admin card, so not duplicated here
 
   // Build card items
   const identityItems: CardDetailItem[] = [];
@@ -476,6 +467,16 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
             items={adminItems}
           />
         )}
+
+        {/* QR Code Card */}
+        <MemberQRCode
+          memberId={member.id}
+          memberName={`${member.first_name ?? ""} ${member.last_name ?? ""}`.trim()}
+          token={encodeShortUrlToken("member", member.id)}
+          title="Member QR Code"
+          description="Scan to view this member's profile"
+          size={180}
+        />
       </div>
     </div>
   );

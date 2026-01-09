@@ -1,21 +1,13 @@
 /**
- * Member Profile Page
+ * Member Profile Page - Redirect to Card-Based View
  *
- * Detailed profile view combining engagement, giving, and serving history.
+ * Redirects to the new card-based member profile view.
+ * The legacy XML-driven profile can still be accessed at /admin/members/profile?memberId={id}
  *
  * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
  */
 
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Gate } from "@/lib/access-gate";
-import { ProtectedPage } from "@/components/access-gate";
-import { getCurrentTenantId, getCurrentUserId } from "@/lib/server/context";
-import { container } from "@/lib/container";
-import { TYPES } from "@/lib/types";
-import type { MemberProfileService } from "@/services/MemberProfileService";
-
-import { renderMembershipPage, type PageSearchParams } from "../metadata";
+import { redirect } from "next/navigation";
 
 type Awaitable<T> = T | Promise<T>;
 
@@ -25,12 +17,7 @@ interface PageParams {
 
 interface PageProps {
   params: Awaitable<PageParams>;
-  searchParams: Awaitable<PageSearchParams>;
 }
-
-export const metadata: Metadata = {
-  title: "Member profile | StewardTrack",
-};
 
 // UUID v4 regex pattern
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -39,41 +26,14 @@ function isValidUUID(str: string): boolean {
   return UUID_REGEX.test(str);
 }
 
-export default async function MemberProfilePage({ params, searchParams }: PageProps) {
-  const userId = await getCurrentUserId();
-  const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view", "members:edit"], "any", {
-    fallbackPath: "/unauthorized?reason=members_access",
-  });
+export default async function MemberProfilePage({ params }: PageProps) {
+  const resolvedParams = await Promise.resolve(params);
 
-  const [resolvedParams, resolvedSearchParams] = await Promise.all([
-    Promise.resolve(params),
-    Promise.resolve(searchParams),
-  ]);
-
-  // Validate UUID format before database query
+  // Validate UUID format before redirect
   if (!isValidUUID(resolvedParams.memberId)) {
-    notFound();
+    redirect("/admin/members/list");
   }
 
-  // Validate that the member exists before rendering the page
-  const memberProfileService = container.get<MemberProfileService>(TYPES.MemberProfileService);
-  const members = await memberProfileService.getMembers({ memberId: resolvedParams.memberId, limit: 1 });
-
-  if (!members.length) {
-    notFound();
-  }
-
-  const aggregatedSearchParams: PageSearchParams = {
-    ...resolvedSearchParams,
-    memberId: resolvedParams.memberId,
-  };
-
-  const { content } = await renderMembershipPage("members/profile", aggregatedSearchParams);
-
-  return (
-    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
-      <div className="space-y-10">{content}</div>
-    </ProtectedPage>
-  );
+  // Redirect to new card-based profile view
+  redirect(`/admin/community/members/${resolvedParams.memberId}/view`);
 }

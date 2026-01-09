@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
 import { useRouter, useSearchParams  } from "next/navigation";
@@ -65,7 +66,41 @@ interface PaymentTransaction {
   metadata: any;
 }
 
-export default function SubscriptionPage() {
+// Loading fallback for Suspense boundary
+function SubscriptionLoading() {
+  return (
+    <div className="container mx-auto py-8 px-4 space-y-6">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8" />
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Main subscription content that uses useSearchParams
+function SubscriptionContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -639,5 +674,14 @@ export default function SubscriptionPage() {
         source="admin/subscription"
       />
     </div>
+  );
+}
+
+// Page export wrapped in Suspense for useSearchParams
+export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={<SubscriptionLoading />}>
+      <SubscriptionContent />
+    </Suspense>
   );
 }

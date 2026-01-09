@@ -125,10 +125,10 @@ function DetailItemValue({ item }: { item: CardDetailItem }) {
       return (
         <Link
           href={item.href ?? "#"}
-          className="text-primary hover:underline inline-flex items-center gap-1"
+          className="text-primary hover:underline inline-flex items-center gap-1 break-all"
         >
-          {item.value}
-          <ExternalLink className="h-3 w-3" />
+          <span className="break-all">{item.value}</span>
+          <ExternalLink className="h-3 w-3 flex-shrink-0" />
         </Link>
       );
     case "chips":
@@ -153,7 +153,7 @@ function DetailItemValue({ item }: { item: CardDetailItem }) {
         </span>
       );
     default:
-      return <span className="text-foreground">{item.value}</span>;
+      return <span className="text-foreground break-all">{item.value}</span>;
   }
 }
 
@@ -265,10 +265,10 @@ export function MemberProfileCard({
           <dl className="space-y-3">
             {(isCollapsed ? visibleItems.slice(0, 3) : visibleItems).map((item, index) => (
               <div key={index} className="flex flex-col gap-1 sm:flex-row sm:gap-4">
-                <dt className="text-sm font-medium text-muted-foreground min-w-[120px] flex-shrink-0">
+                <dt className="text-sm font-medium text-muted-foreground min-w-[120px] sm:max-w-[120px] flex-shrink-0">
                   {item.label}
                 </dt>
-                <dd className="text-sm flex-1 min-w-0">
+                <dd className="text-sm flex-1 min-w-0 overflow-hidden">
                   <DetailItemValue item={item} />
                 </dd>
               </div>

@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 export interface MemberQRCodeProps {
   memberId: string;
   memberName: string;
+  /** Pre-generated short token for the member. If not provided, memberId is used directly (less secure). */
+  token?: string;
   title?: string;
   description?: string;
   size?: number;
@@ -27,19 +29,27 @@ function sanitizeFilename(name: string): string {
 export function MemberQRCode({
   memberId,
   memberName,
+  token,
   title = "Member QR Code",
   description = "Scan this QR code to identify this member.",
   size = 200,
   logoUrl = "/logo_square.svg",
-  baseUrl = "https://stewardtrack.com",
+  baseUrl,
 }: MemberQRCodeProps) {
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   // Calculate logo size (approximately 20% of QR code size)
   const logoSize = Math.floor(size * 0.2);
 
-  // Build the member profile URL
-  const memberProfileUrl = `${baseUrl}/admin/members/${memberId}`;
+  // Determine base URL: use prop, env var, or current origin
+  const resolvedBaseUrl = baseUrl
+    ?? process.env.NEXT_PUBLIC_APP_URL
+    ?? (typeof window !== "undefined" ? window.location.origin : "https://stewardtrack.com");
+
+  // Build the member profile URL - use short URL if token provided
+  const memberProfileUrl = token
+    ? `${resolvedBaseUrl}/s/${token}`
+    : `${resolvedBaseUrl}/admin/members/${memberId}`;
 
   const handleDownload = React.useCallback(async () => {
     const canvas = canvasRef.current?.querySelector("canvas");

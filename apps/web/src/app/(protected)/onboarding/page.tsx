@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -26,7 +27,33 @@ const STEPS = [
   { id: 'complete', title: 'Complete', component: CompleteStep },
 ];
 
-export default function OnboardingPage() {
+// Loading fallback for Suspense boundary
+function OnboardingLoading() {
+  return (
+    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <Skeleton className="h-9 w-64 mx-auto mb-2" />
+          <Skeleton className="h-5 w-80 mx-auto" />
+        </div>
+        <div className="mb-8">
+          <Skeleton className="h-2 w-full" />
+        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <Skeleton className="h-7 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-48 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Main onboarding content that uses useSearchParams
+function OnboardingContent() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -256,5 +283,14 @@ export default function OnboardingPage() {
           source='onboarding'
         />
     </div>
+  );
+}
+
+// Page export wrapped in Suspense for useSearchParams
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingLoading />}>
+      <OnboardingContent />
+    </Suspense>
   );
 }
