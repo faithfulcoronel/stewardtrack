@@ -19,10 +19,10 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "General",
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
-      { title: "Announcements", href: "/admin/announcements", icon: "modules" },
-      { title: "Support", href: "/admin/support", icon: "support" },
-      { title: "Documentation", href: "/admin/docs", icon: "docs" },
-      { title: "Modules", href: "/admin/modules", icon: "projects" },
+      // { title: "Announcements", href: "/admin/announcements", icon: "modules" },
+      // { title: "Support", href: "/admin/support", icon: "support" },
+      // { title: "Documentation", href: "/admin/docs", icon: "docs" },
+      // { title: "Modules", href: "/admin/modules", icon: "projects" },
     ],
   },
   {

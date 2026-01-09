@@ -28,6 +28,7 @@ export interface PlanningCalendarData {
   events: CalendarEventView[];
   categories: CalendarCategory[];
   stats: PlanningDashboardStats;
+  overdueEvents: CalendarEventView[];
 }
 
 @injectable()
@@ -67,6 +68,10 @@ export class PlanningService {
 
   async getUpcomingEvents(days: number = 7): Promise<CalendarEvent[]> {
     return this.eventRepo.getUpcoming(days);
+  }
+
+  async getOverdueEvents(limit: number = 10): Promise<CalendarEventView[]> {
+    return this.eventRepo.getOverdueEvents(limit);
   }
 
   async getEventsForMember(memberId: string): Promise<CalendarEvent[]> {
@@ -540,13 +545,14 @@ export class PlanningService {
     startDate: string,
     endDate: string
   ): Promise<PlanningCalendarData> {
-    const [events, categories, stats] = await Promise.all([
+    const [events, categories, stats, overdueEvents] = await Promise.all([
       this.getEventsForCalendarView(startDate, endDate),
       this.getCategories(),
       this.getDashboardStats(),
+      this.getOverdueEvents(5),
     ]);
 
-    return { events, categories, stats };
+    return { events, categories, stats, overdueEvents };
   }
 
   // ==================== QUICK ACTIONS ====================

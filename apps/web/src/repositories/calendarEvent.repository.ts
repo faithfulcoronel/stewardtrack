@@ -14,6 +14,7 @@ export interface ICalendarEventRepository extends BaseRepository<CalendarEvent> 
   getBySource(sourceType: string, sourceId: string): Promise<CalendarEvent[]>;
   getByMember(memberId: string): Promise<CalendarEvent[]>;
   getUpcoming(days?: number): Promise<CalendarEvent[]>;
+  getOverdueEvents(limit?: number): Promise<CalendarEventView[]>;
   getEventsForCalendarView(startDate: string, endDate: string): Promise<CalendarEventView[]>;
   syncFromCarePlans(): Promise<number>;
   syncFromDiscipleshipPlans(): Promise<number>;
@@ -67,6 +68,10 @@ export class CalendarEventRepository
 
   async getUpcoming(days?: number): Promise<CalendarEvent[]> {
     return this.calendarEventAdapter.getUpcoming(days);
+  }
+
+  async getOverdueEvents(limit?: number): Promise<CalendarEventView[]> {
+    return this.calendarEventAdapter.getOverdueEvents(limit);
   }
 
   async getEventsForCalendarView(startDate: string, endDate: string): Promise<CalendarEventView[]> {
