@@ -11,14 +11,16 @@ export type CalendarEventType =
   | 'event'
   | 'reminder'
   | 'goal'
-  | 'general';
+  | 'general'
+  | 'schedule';
 
 export type CalendarEventStatus =
   | 'scheduled'
   | 'in_progress'
   | 'completed'
   | 'cancelled'
-  | 'postponed';
+  | 'postponed'
+  | 'overdue';
 
 export type CalendarEventPriority = 'low' | 'normal' | 'high' | 'urgent';
 
@@ -35,6 +37,7 @@ export type CalendarEventSourceType =
   | 'goals'
   | 'objectives'
   | 'key_results'
+  | 'schedule_occurrence'
   | null;
 
 export interface CalendarEvent extends BaseModel {

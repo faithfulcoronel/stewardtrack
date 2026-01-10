@@ -26,6 +26,9 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { RecurrencePicker } from "@/components/ui/recurrence-picker";
+import { TimePicker, DateTimeRangePicker, type DateTimeRangeValue } from "@/components/ui/datetime-range-picker";
 
 function isTagsField(field: FormFieldConfig): boolean {
   return field.type === "tags" || field.name === "tags";
@@ -482,6 +485,66 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
           readOnly={readOnly}
         />
       );
+    case "color":
+      return (
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            name={`${field.name}-picker`}
+            value={controller.value === undefined ? "#6366f1" : String(controller.value)}
+            onChange={(event) => controller.onChange(event.target.value)}
+            disabled={disabled}
+            className="h-10 w-14 cursor-pointer rounded border border-input bg-background p-1"
+          />
+          <Input
+            name={field.name}
+            value={controller.value === undefined ? "" : String(controller.value)}
+            onChange={(event) => controller.onChange(event.target.value)}
+            placeholder={basePlaceholder || "#6366f1"}
+            disabled={disabled}
+            readOnly={readOnly}
+            className="flex-1"
+          />
+        </div>
+      );
+    case "icon":
+      return (
+        <IconPicker
+          value={controller.value === undefined ? "" : String(controller.value)}
+          onChange={(value) => controller.onChange(value)}
+          placeholder={basePlaceholder || "Select an icon"}
+          disabled={!isInteractive}
+        />
+      );
+    case "recurrence":
+      return (
+        <RecurrencePicker
+          value={controller.value === undefined ? "" : String(controller.value)}
+          onChange={(value) => controller.onChange(value)}
+          disabled={!isInteractive}
+        />
+      );
+    case "time":
+      return (
+        <TimePicker
+          value={controller.value === undefined ? "" : String(controller.value)}
+          onChange={(value) => controller.onChange(value)}
+          placeholder={basePlaceholder || "Select time"}
+          disabled={!isInteractive}
+        />
+      );
+    case "datetime-range": {
+      // Parse value as DateTimeRangeValue object or defaults
+      const dtValue = controller.value as DateTimeRangeValue | undefined;
+      return (
+        <DateTimeRangePicker
+          value={dtValue}
+          onChange={(value) => controller.onChange(value)}
+          showRecurring={false}
+          disabled={!isInteractive}
+        />
+      );
+    }
     case "text":
     default:
       return (

@@ -7,6 +7,7 @@ import type { ProductOfferingPrice } from '@/adapters/productOfferingPrice.adapt
 import type { ILicenseFeatureBundleRepository } from '@/repositories/licenseFeatureBundle.repository';
 import type { ILicenseAssignmentRepository } from '@/repositories/licenseAssignment.repository';
 import type { ITenantFeatureGrantRepository } from '@/repositories/tenantFeatureGrant.repository';
+import type { FeatureSyncResult } from '@/adapters/tenantFeatureGrant.adapter';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type {
   ProductOffering,
@@ -616,6 +617,56 @@ export class LicensingService {
     } catch (error) {
       console.error('Error getting feature change summary:', error);
       throw error;
+    }
+  }
+
+  // ==================== FEATURE SYNC METHODS ====================
+
+  /**
+   * Syncs a tenant's feature grants and permissions with their product subscription.
+   * This ensures the tenant has all features included in their offering,
+   * including any newly added features, and deploys the associated permissions.
+   *
+   * Use this when:
+   * - New features have been added to a product offering
+   * - A tenant is missing expected features or permissions
+   * - After registration if some features weren't deployed properly
+   *
+   * @param tenantId - Optional tenant ID (uses current tenant if not provided)
+   * @returns Sync result with counts of features and permissions deployed
+   */
+  async syncTenantSubscriptionFeatures(tenantId?: string): Promise<FeatureSyncResult> {
+    const effectiveTenantId = await this.resolveTenantId(tenantId);
+
+    try {
+      console.log(`[LicensingService] Starting feature sync for tenant ${effectiveTenantId}`);
+
+      const result = await this.tenantFeatureGrantRepository.syncTenantSubscriptionFeatures(
+        effectiveTenantId
+      );
+
+      if (result.success) {
+        console.log(`[LicensingService] Feature sync completed for tenant ${effectiveTenantId}:`, {
+          featuresAdded: result.features_added,
+          featuresAlreadyGranted: result.features_already_granted,
+          permissionsDeployed: result.permissions_deployed,
+          roleAssignmentsCreated: result.role_assignments_created,
+        });
+      } else {
+        console.error(`[LicensingService] Feature sync failed for tenant ${effectiveTenantId}:`, result.error);
+      }
+
+      return result;
+    } catch (error) {
+      console.error(`[LicensingService] Error syncing features for tenant ${effectiveTenantId}:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error during feature sync',
+        features_added: 0,
+        features_already_granted: 0,
+        permissions_deployed: 0,
+        role_assignments_created: 0,
+      };
     }
   }
 }

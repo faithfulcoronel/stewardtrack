@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/occurrences/detail"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-occurrence-detail">
+    <Title>Event Occurrence Details</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Hero section with occurrence info -->
+        <Component id="detail-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="detailHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="detailHero.headline"/>
+            <Prop name="description" kind="binding" contract="detailHero.description"/>
+            <Prop name="metrics" kind="binding" contract="detailHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="start-checkin"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-schedule"/>
+          </Props>
+        </Component>
+
+        <!-- Occurrence detail panels -->
+        <Component id="occurrence-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="columns" kind="static">2</Prop>
+            <Prop name="panels" kind="binding" contract="occurrenceSummary.panels"/>
+          </Props>
+        </Component>
+
+        <!-- Event QR Code -->
+        <Component id="event-qr" type="EventQRCode">
+          <Props>
+            <Prop name="occurrenceId" kind="binding" contract="occurrenceContext.occurrenceId"/>
+            <Prop name="occurrenceTitle" kind="binding" contract="occurrenceContext.occurrenceTitle"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+
+        <!-- Team assignments grid -->
+        <Component id="team-assignments" type="TeamAssignmentGrid">
+          <Props>
+            <Prop name="occurrenceId" kind="binding" contract="occurrenceContext.occurrenceId"/>
+            <Prop name="ministryId" kind="binding" contract="occurrenceContext.ministryId"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+
+        <!-- Registrations list -->
+        <Component id="registrations-list" type="RegistrationList">
+          <Props>
+            <Prop name="occurrenceId" kind="binding" contract="occurrenceContext.occurrenceId"/>
+            <Prop name="capacity" kind="binding" contract="occurrenceContext.capacity"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+
+        <!-- Attendance tracker -->
+        <Component id="attendance-tracker" type="AttendanceTracker">
+          <Props>
+            <Prop name="occurrenceId" kind="binding" contract="occurrenceContext.occurrenceId"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="detailHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for detail-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for detail-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for detail-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for detail-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.occurrences.detail.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Occurrence context for components -->
+      <DataSource id="occurrenceContext" kind="service">
+        <Contract>
+          <Field name="occurrenceId" path="context.occurrenceId" description="Occurrence ID"/>
+          <Field name="occurrenceTitle" path="context.occurrenceTitle" description="Occurrence title"/>
+          <Field name="ministryId" path="context.ministryId" description="Ministry ID"/>
+          <Field name="capacity" path="context.capacity" description="Event capacity"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.occurrences.detail.context</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Occurrence summary panels -->
+      <DataSource id="occurrenceSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for occurrence-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.occurrences.detail.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="start-checkin" kind="link">
+        <RBAC requirePermissions="scheduler:attendance" />
+        <Config>
+          <Label>Start Check-in</Label>
+          <Url>/admin/community/planning/scheduler/checkin?occurrenceId={{params.occurrenceId}}</Url>
+        </Config>
+      </Action>
+      <Action id="cancel-occurrence" kind="link">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Cancel Event</Label>
+          <Url>/admin/community/planning/scheduler/occurrences/{{params.occurrenceId}}/cancel</Url>
+          <Variant>destructive</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-schedule" kind="link">
+        <Config>
+          <Label>Back to Schedule</Label>
+          <Url>/admin/community/planning/scheduler/schedules/{{params.scheduleId}}</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

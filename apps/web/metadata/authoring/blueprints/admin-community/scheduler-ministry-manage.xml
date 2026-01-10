@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER MINISTRY MANAGE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the ministry add/edit form page for the scheduler module.
+Supports both creating new ministries and editing existing ones.
+
+FEATURE: Ministry Management Form
+- Create new ministries with all configuration options
+- Edit existing ministry details
+- Configure ministry schedule type, color, and settings
+
+SERVICE HANDLERS:
+- admin-community.scheduler.ministries.manage.hero
+- admin-community.scheduler.ministries.manage.form
+
+DYNAMIC BEHAVIOR:
+- When params.ministryId is present: Edit mode (loads existing ministry)
+- When params.ministryId is absent: Create mode (empty form)
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/ministries/manage"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="ministries.core"
+  requiredPermissions="ministries:manage"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-ministry-manage">
+    <Title>Manage ministry</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Hero section with context-aware title -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+
+        <!-- Ministry form -->
+        <Component id="ministry-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Ministry details</Prop>
+            <Prop name="description" kind="static">Configure the ministry's basic information and settings.</Prop>
+            <Prop name="mode" kind="binding" contract="ministryForm.mode"/>
+            <Prop name="fields" kind="binding" contract="ministryForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="ministryForm.initialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="ministryForm.submitLabel"/>
+            <Prop name="submitAction" kind="binding" contract="ministryForm.submitAction"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Ministry form configuration -->
+      <DataSource id="ministryForm" kind="service">
+        <Contract>
+          <Field name="mode" path="mode" description="Form mode: create or edit"/>
+          <Field name="fields" path="form.fields" description="Form field definitions"/>
+          <Field name="initialValues" path="form.initialValues" description="Initial form values"/>
+          <Field name="submitLabel" path="submitLabel" description="Submit button label"/>
+          <Field name="submitAction" path="submitAction" description="Submit action configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/scheduler/ministries</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -36,7 +36,8 @@ export async function renderResolvedPage(
     role,
     undefined,
     undefined,
-    context.searchParams
+    context.searchParams,
+    dataScope,
   );
   const regions = resolved.definition.page.regions ?? [];
 

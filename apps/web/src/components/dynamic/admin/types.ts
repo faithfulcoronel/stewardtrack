@@ -16,6 +16,18 @@ export interface FormFieldQuickCreateConfig {
   action?: ActionConfig | null;
 }
 
+/** Condition for conditional field visibility based on another field's value */
+export interface FieldVisibilityCondition {
+  /** The field name to watch */
+  field: string;
+  /** The value(s) that make this field visible */
+  equals?: unknown;
+  /** Show when the watched field is truthy */
+  isTruthy?: boolean;
+  /** Show when the watched field is falsy */
+  isFalsy?: boolean;
+}
+
 export interface FormFieldConfig {
   name: string;
   label?: string | null;
@@ -36,6 +48,11 @@ export interface FormFieldConfig {
     | "tags"
     | "image"
     | "hidden"
+    | "color"
+    | "icon"
+    | "time"
+    | "datetime-range"
+    | "recurrence"
     | null;
   placeholder?: string | null;
   helperText?: string | null;
@@ -53,6 +70,8 @@ export interface FormFieldConfig {
   searchPlaceholder?: string | null;
   /** Message shown when no results found in combobox */
   emptyMessage?: string | null;
+  /** Conditional visibility - show field only when condition is met */
+  visibleWhen?: FieldVisibilityCondition | null;
 }
 
 export interface AdminFormSectionProps {

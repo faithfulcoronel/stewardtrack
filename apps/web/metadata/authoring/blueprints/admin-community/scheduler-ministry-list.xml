@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER MINISTRY LIST PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the ministries list page for the scheduler module.
+Ministries are organizational groups that can have teams and schedules.
+
+FEATURE: Ministries Management
+- List all ministry groups with search and filtering
+- Create, edit, and delete ministries
+- Navigate to team management and schedules
+
+SERVICE HANDLERS:
+- admin-community.scheduler.ministries.list.hero
+- admin-community.scheduler.ministries.list.table
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/ministries/list"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="ministries.core"
+  requiredPermissions="ministries:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-ministry-list">
+    <Title>Ministry directory</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-ministry"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-scheduler"/>
+          </Props>
+        </Component>
+
+        <!--
+        MINISTRIES TABLE: Data grid for ministry list
+        -->
+        <Component id="ministries-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Ministry groups</Prop>
+            <Prop name="description" kind="static">View and manage ministry groups, teams, and schedules.</Prop>
+            <Prop name="rows" kind="binding" contract="ministriesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="ministriesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="ministriesTable.filters"/>
+            <Prop name="actions" kind="binding" contract="ministriesTable.actions"/>
+            <Prop name="emptyState" kind="static">{"title": "No ministries found", "description": "Create a ministry to start organizing your church's teams and schedules."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.list.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Ministries table data -->
+      <DataSource id="ministriesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Ministry rows for data grid"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="filters" path="filters" description="Filter configuration"/>
+          <Field name="actions" path="actions" description="Row actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-ministry" kind="link">
+        <RBAC requirePermissions="ministries:manage" />
+        <Config>
+          <Label>Add ministry</Label>
+          <Url>/admin/community/planning/scheduler/ministries/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-scheduler" kind="link">
+        <Config>
+          <Label>Back to scheduler</Label>
+          <Url>/admin/community/planning/scheduler</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

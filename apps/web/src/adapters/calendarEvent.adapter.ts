@@ -29,6 +29,14 @@ export interface ICalendarEventAdapter extends IBaseAdapter<CalendarEvent> {
   syncFromDiscipleshipPlans(): Promise<number>;
   syncFromMemberBirthdays(): Promise<number>;
   syncFromMemberAnniversaries(): Promise<number>;
+  syncFromScheduleOccurrences(): Promise<number>;
+  syncSingleOccurrence(occurrenceId: string): Promise<boolean>;
+  deleteBySource(sourceType: string, sourceId: string): Promise<boolean>;
+  // Reminder/Notification methods
+  createEventReminders(eventId: string, eventStartAt: string, recipientIds?: string[], reminderMinutes?: number[]): Promise<number>;
+  getPendingReminders(limit?: number): Promise<Array<{ id: string; event_id: string; remind_at: string; notification_type: string; recipient_id: string | null; event: CalendarEvent | null; }>>;
+  markReminderSent(reminderId: string): Promise<boolean>;
+  deleteEventReminders(eventId: string): Promise<boolean>;
 }
 
 @injectable()
@@ -969,5 +977,573 @@ export class CalendarEventAdapter
     }
 
     return syncedCount;
+  }
+
+  /**
+   * Sync all schedule occurrences to calendar events
+   * Creates/updates calendar events for each active schedule occurrence
+   */
+  async syncFromScheduleOccurrences(): Promise<number> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+    let syncedCount = 0;
+
+    // Fetch all active schedule occurrences with their schedule and ministry info
+    const { data: occurrences, error: occurrencesError } = await serviceClient
+      .from('schedule_occurrences')
+      .select(`
+        id,
+        schedule_id,
+        start_at,
+        end_at,
+        status,
+        title_override,
+        location_override,
+        notes,
+        capacity,
+        registration_count,
+        attendance_count,
+        ministry_schedules (
+          id,
+          title,
+          description,
+          location,
+          ministry_id,
+          event_type,
+          registration_enabled,
+          ministries (
+            id,
+            name
+          )
+        )
+      `)
+      .eq('tenant_id', tenantId)
+      .in('status', ['scheduled', 'confirmed'])
+      .gte('start_at', new Date().toISOString());
+
+    console.log('[syncFromScheduleOccurrences] Found occurrences:', occurrences?.length ?? 0, occurrencesError ? `Error: ${occurrencesError.message}` : '');
+
+    if (occurrencesError) {
+      throw new Error(`Failed to fetch schedule occurrences for sync: ${occurrencesError.message}`);
+    }
+
+    if (!occurrences) return 0;
+
+    // Get the schedule category (or create/use 'event' category)
+    const { data: category } = await serviceClient
+      .from('calendar_categories')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('code', 'event')
+      .maybeSingle();
+
+    console.log('[syncFromScheduleOccurrences] Event category:', category?.id ?? 'NOT FOUND');
+
+    for (const occurrence of occurrences as unknown as Array<{
+      id: string;
+      schedule_id: string;
+      start_at: string;
+      end_at: string | null;
+      status: string;
+      title_override: string | null;
+      location_override: string | null;
+      notes: string | null;
+      capacity: number | null;
+      registration_count: number;
+      attendance_count: number;
+      ministry_schedules: {
+        id: string;
+        title: string;
+        description: string | null;
+        location: string | null;
+        ministry_id: string;
+        event_type: string;
+        registration_enabled: boolean;
+        ministries: { id: string; name: string } | null;
+      } | null;
+    }>) {
+      const schedule = occurrence.ministry_schedules;
+      if (!schedule) continue;
+
+      // Get existing event for this source (if any)
+      const { data: existingEvents } = await serviceClient
+        .from(this.tableName)
+        .select('id, start_at, end_at, title, description, location, status')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'schedule_occurrence')
+        .eq('source_id', occurrence.id)
+        .is('deleted_at', null)
+        .limit(1);
+
+      const existingEvent = existingEvents?.[0];
+
+      // Build event data
+      const ministryName = schedule.ministries?.name || 'Ministry';
+      const eventTitle = occurrence.title_override || schedule.title;
+      const eventDescription = occurrence.notes || schedule.description || '';
+      const eventLocation = occurrence.location_override || schedule.location || '';
+      const eventStatus = occurrence.status === 'cancelled' ? 'cancelled' : 'scheduled';
+
+      // Build metadata with scheduler-specific info
+      const metadata = {
+        schedule_id: occurrence.schedule_id,
+        ministry_id: schedule.ministry_id,
+        ministry_name: ministryName,
+        event_type: schedule.event_type,
+        capacity: occurrence.capacity,
+        registration_count: occurrence.registration_count,
+        attendance_count: occurrence.attendance_count,
+        registration_enabled: schedule.registration_enabled,
+      };
+
+      console.log('[syncFromScheduleOccurrences] Processing occurrence:', occurrence.id, 'existingEvent:', existingEvent?.id ?? 'NONE');
+
+      if (existingEvent) {
+        // Check if any data has changed
+        const dateChanged = existingEvent.start_at !== occurrence.start_at || existingEvent.end_at !== occurrence.end_at;
+        const titleChanged = existingEvent.title !== eventTitle;
+        const descriptionChanged = existingEvent.description !== eventDescription;
+        const locationChanged = existingEvent.location !== eventLocation;
+        const statusChanged = existingEvent.status !== eventStatus;
+
+        if (dateChanged || titleChanged || descriptionChanged || locationChanged || statusChanged) {
+          const { error: updateError } = await serviceClient
+            .from(this.tableName)
+            .update({
+              title: eventTitle,
+              description: eventDescription,
+              location: eventLocation,
+              start_at: occurrence.start_at,
+              end_at: occurrence.end_at,
+              status: eventStatus,
+              metadata,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingEvent.id);
+
+          console.log('[syncFromScheduleOccurrences] Update result:', updateError ? `ERROR: ${updateError.message}` : 'SUCCESS');
+          if (!updateError) {
+            syncedCount++;
+          }
+        }
+      } else {
+        // Create new calendar event
+        const { error: insertError } = await serviceClient.from(this.tableName).insert({
+          tenant_id: tenantId,
+          title: eventTitle,
+          description: eventDescription,
+          location: eventLocation,
+          start_at: occurrence.start_at,
+          end_at: occurrence.end_at,
+          all_day: false,
+          timezone: 'UTC',
+          category_id: category?.id || null,
+          event_type: 'schedule',
+          status: eventStatus,
+          priority: 'normal',
+          source_type: 'schedule_occurrence',
+          source_id: occurrence.id,
+          member_id: null,
+          assigned_to: null,
+          is_recurring: false,
+          is_private: false,
+          visibility: 'public',
+          tags: ['scheduler', schedule.event_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
+          metadata,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        console.log('[syncFromScheduleOccurrences] Insert result:', insertError ? `ERROR: ${insertError.message}` : 'SUCCESS');
+        if (!insertError) {
+          syncedCount++;
+        }
+      }
+    }
+
+    return syncedCount;
+  }
+
+  /**
+   * Sync a single schedule occurrence to calendar
+   * Used when an occurrence is created or updated
+   */
+  async syncSingleOccurrence(occurrenceId: string): Promise<boolean> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+
+    // Fetch the specific occurrence with schedule and ministry info
+    const { data: occurrence, error: occurrenceError } = await serviceClient
+      .from('schedule_occurrences')
+      .select(`
+        id,
+        schedule_id,
+        start_at,
+        end_at,
+        status,
+        title_override,
+        location_override,
+        notes,
+        capacity,
+        registration_count,
+        attendance_count,
+        ministry_schedules (
+          id,
+          title,
+          description,
+          location,
+          ministry_id,
+          event_type,
+          registration_enabled,
+          ministries (
+            id,
+            name
+          )
+        )
+      `)
+      .eq('id', occurrenceId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (occurrenceError || !occurrence) {
+      console.error('[syncSingleOccurrence] Failed to fetch occurrence:', occurrenceError?.message);
+      return false;
+    }
+
+    const typedOccurrence = occurrence as unknown as {
+      id: string;
+      schedule_id: string;
+      start_at: string;
+      end_at: string | null;
+      status: string;
+      title_override: string | null;
+      location_override: string | null;
+      notes: string | null;
+      capacity: number | null;
+      registration_count: number;
+      attendance_count: number;
+      ministry_schedules: {
+        id: string;
+        title: string;
+        description: string | null;
+        location: string | null;
+        ministry_id: string;
+        event_type: string;
+        registration_enabled: boolean;
+        ministries: { id: string; name: string } | null;
+      } | null;
+    };
+
+    const schedule = typedOccurrence.ministry_schedules;
+    if (!schedule) return false;
+
+    // Get existing event
+    const { data: existingEvents } = await serviceClient
+      .from(this.tableName)
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('source_type', 'schedule_occurrence')
+      .eq('source_id', occurrenceId)
+      .is('deleted_at', null)
+      .limit(1);
+
+    const existingEvent = existingEvents?.[0];
+
+    // Get the event category
+    const { data: category } = await serviceClient
+      .from('calendar_categories')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('code', 'event')
+      .maybeSingle();
+
+    // Build event data
+    const ministryName = schedule.ministries?.name || 'Ministry';
+    const eventTitle = typedOccurrence.title_override || schedule.title;
+    const eventDescription = typedOccurrence.notes || schedule.description || '';
+    const eventLocation = typedOccurrence.location_override || schedule.location || '';
+
+    // Map occurrence status to calendar event status
+    let eventStatus: 'scheduled' | 'cancelled' | 'completed' = 'scheduled';
+    if (typedOccurrence.status === 'cancelled') {
+      eventStatus = 'cancelled';
+    } else if (typedOccurrence.status === 'completed') {
+      eventStatus = 'completed';
+    }
+
+    const metadata = {
+      schedule_id: typedOccurrence.schedule_id,
+      ministry_id: schedule.ministry_id,
+      ministry_name: ministryName,
+      event_type: schedule.event_type,
+      capacity: typedOccurrence.capacity,
+      registration_count: typedOccurrence.registration_count,
+      attendance_count: typedOccurrence.attendance_count,
+      registration_enabled: schedule.registration_enabled,
+    };
+
+    if (existingEvent) {
+      // Update existing event
+      const { error: updateError } = await serviceClient
+        .from(this.tableName)
+        .update({
+          title: eventTitle,
+          description: eventDescription,
+          location: eventLocation,
+          start_at: typedOccurrence.start_at,
+          end_at: typedOccurrence.end_at,
+          status: eventStatus,
+          metadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingEvent.id);
+
+      return !updateError;
+    } else {
+      // Create new calendar event
+      const { error: insertError } = await serviceClient.from(this.tableName).insert({
+        tenant_id: tenantId,
+        title: eventTitle,
+        description: eventDescription,
+        location: eventLocation,
+        start_at: typedOccurrence.start_at,
+        end_at: typedOccurrence.end_at,
+        all_day: false,
+        timezone: 'UTC',
+        category_id: category?.id || null,
+        event_type: 'schedule',
+        status: eventStatus,
+        priority: 'normal',
+        source_type: 'schedule_occurrence',
+        source_id: occurrenceId,
+        member_id: null,
+        assigned_to: null,
+        is_recurring: false,
+        is_private: false,
+        visibility: 'public',
+        tags: ['scheduler', schedule.event_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
+        metadata,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      return !insertError;
+    }
+  }
+
+  /**
+   * Delete calendar event by source type and ID
+   * Used when an occurrence is cancelled/deleted
+   */
+  async deleteBySource(sourceType: string, sourceId: string): Promise<boolean> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+
+    // Soft delete the calendar event
+    const { error } = await serviceClient
+      .from(this.tableName)
+      .update({
+        is_active: false,
+        status: 'cancelled',
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .eq('source_type', sourceType)
+      .eq('source_id', sourceId);
+
+    if (error) {
+      console.error('[deleteBySource] Failed to delete calendar event:', error.message);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Create reminders for a calendar event
+   * Typically creates reminders at 24h, 1h, and 15min before the event
+   */
+  async createEventReminders(
+    eventId: string,
+    eventStartAt: string,
+    recipientIds?: string[],
+    reminderMinutes: number[] = [1440, 60, 15] // 24h, 1h, 15min
+  ): Promise<number> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+    let createdCount = 0;
+
+    const eventStart = new Date(eventStartAt);
+
+    for (const minutesBefore of reminderMinutes) {
+      const remindAt = new Date(eventStart.getTime() - minutesBefore * 60 * 1000);
+
+      // Skip if reminder time is in the past
+      if (remindAt < new Date()) {
+        continue;
+      }
+
+      // Determine notification type based on time before event
+      const notificationType = minutesBefore >= 1440 ? 'email' : 'in_app';
+
+      // If recipient IDs provided, create reminder for each
+      if (recipientIds && recipientIds.length > 0) {
+        for (const recipientId of recipientIds) {
+          // Check if reminder already exists
+          const { data: existing } = await serviceClient
+            .from('calendar_event_reminders')
+            .select('id')
+            .eq('event_id', eventId)
+            .eq('recipient_id', recipientId)
+            .eq('minutes_before', minutesBefore)
+            .maybeSingle();
+
+          if (!existing) {
+            const { error } = await serviceClient.from('calendar_event_reminders').insert({
+              tenant_id: tenantId,
+              event_id: eventId,
+              remind_at: remindAt.toISOString(),
+              minutes_before: minutesBefore,
+              notification_type: notificationType,
+              recipient_id: recipientId,
+              is_sent: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+            if (!error) {
+              createdCount++;
+            }
+          }
+        }
+      } else {
+        // Create a general reminder (no specific recipient)
+        const { data: existing } = await serviceClient
+          .from('calendar_event_reminders')
+          .select('id')
+          .eq('event_id', eventId)
+          .eq('minutes_before', minutesBefore)
+          .is('recipient_id', null)
+          .maybeSingle();
+
+        if (!existing) {
+          const { error } = await serviceClient.from('calendar_event_reminders').insert({
+            tenant_id: tenantId,
+            event_id: eventId,
+            remind_at: remindAt.toISOString(),
+            minutes_before: minutesBefore,
+            notification_type: notificationType,
+            recipient_id: null,
+            is_sent: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+          if (!error) {
+            createdCount++;
+          }
+        }
+      }
+    }
+
+    return createdCount;
+  }
+
+  /**
+   * Get pending reminders that need to be sent
+   * Used by a scheduled job to send notifications
+   */
+  async getPendingReminders(limit: number = 100): Promise<Array<{
+    id: string;
+    event_id: string;
+    remind_at: string;
+    notification_type: string;
+    recipient_id: string | null;
+    event: CalendarEvent | null;
+  }>> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+
+    const now = new Date().toISOString();
+
+    const { data, error } = await serviceClient
+      .from('calendar_event_reminders')
+      .select(`
+        id,
+        event_id,
+        remind_at,
+        notification_type,
+        recipient_id,
+        calendar_events (*)
+      `)
+      .eq('tenant_id', tenantId)
+      .eq('is_sent', false)
+      .lte('remind_at', now)
+      .order('remind_at', { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      console.error('[getPendingReminders] Failed:', error.message);
+      return [];
+    }
+
+    return (data || []).map((r: unknown) => {
+      const reminder = r as {
+        id: string;
+        event_id: string;
+        remind_at: string;
+        notification_type: string;
+        recipient_id: string | null;
+        calendar_events: CalendarEvent | null;
+      };
+      return {
+        id: reminder.id,
+        event_id: reminder.event_id,
+        remind_at: reminder.remind_at,
+        notification_type: reminder.notification_type,
+        recipient_id: reminder.recipient_id,
+        event: reminder.calendar_events,
+      };
+    });
+  }
+
+  /**
+   * Mark a reminder as sent
+   */
+  async markReminderSent(reminderId: string): Promise<boolean> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+
+    const { error } = await serviceClient
+      .from('calendar_event_reminders')
+      .update({
+        is_sent: true,
+        sent_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reminderId)
+      .eq('tenant_id', tenantId);
+
+    return !error;
+  }
+
+  /**
+   * Delete reminders for an event
+   * Used when an event is cancelled/deleted
+   */
+  async deleteEventReminders(eventId: string): Promise<boolean> {
+    const tenantId = await this.getTenantId();
+    const serviceClient = await getSupabaseServiceClient();
+
+    const { error } = await serviceClient
+      .from('calendar_event_reminders')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('tenant_id', tenantId);
+
+    return !error;
   }
 }

@@ -92,7 +92,12 @@
       "Bash(node:*)",
       "Bash(pnpm --filter @stewardtrack/web metadata:compile:*)",
       "Bash(timeout 60 npx tsc:*)",
-      "Bash(pnpm --filter @stewardtrack/web exec tsc --noEmit --skipLibCheck)"
+      "Bash(pnpm --filter @stewardtrack/web exec tsc --noEmit --skipLibCheck)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\apps\\\\web\\\\metadata\\\\authoring\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm --filter @stewardtrack/web exec tsc:*)",
+      "Bash(pnpm --filter @stewardtrack/web lint:*)"
     ],
     "deny": [],
     "ask": []

@@ -74,6 +74,34 @@ import {
   type IKeyResultProgressUpdateAdapter,
 } from '@/adapters/goals';
 import {
+  MinistryAdapter,
+  type IMinistryAdapter,
+} from '@/adapters/ministry.adapter';
+import {
+  MinistryTeamAdapter,
+  type IMinistryTeamAdapter,
+} from '@/adapters/ministryTeam.adapter';
+import {
+  MinistryScheduleAdapter,
+  type IMinistryScheduleAdapter,
+} from '@/adapters/ministrySchedule.adapter';
+import {
+  ScheduleOccurrenceAdapter,
+  type IScheduleOccurrenceAdapter,
+} from '@/adapters/scheduleOccurrence.adapter';
+import {
+  ScheduleTeamAssignmentAdapter,
+  type IScheduleTeamAssignmentAdapter,
+} from '@/adapters/scheduleTeamAssignment.adapter';
+import {
+  ScheduleRegistrationAdapter,
+  type IScheduleRegistrationAdapter,
+} from '@/adapters/scheduleRegistration.adapter';
+import {
+  ScheduleAttendanceAdapter,
+  type IScheduleAttendanceAdapter,
+} from '@/adapters/scheduleAttendance.adapter';
+import {
   GoalCategoryRepository,
   GoalRepository,
   ObjectiveRepository,
@@ -85,6 +113,40 @@ import {
   type IKeyResultRepository,
   type IKeyResultProgressUpdateRepository,
 } from '@/repositories/goals';
+import {
+  MinistryRepository,
+  type IMinistryRepository,
+} from '@/repositories/ministry.repository';
+import {
+  MinistryTeamRepository,
+  type IMinistryTeamRepository,
+} from '@/repositories/ministryTeam.repository';
+import {
+  MinistryScheduleRepository,
+  type IMinistryScheduleRepository,
+} from '@/repositories/ministrySchedule.repository';
+import {
+  ScheduleOccurrenceRepository,
+  type IScheduleOccurrenceRepository,
+} from '@/repositories/scheduleOccurrence.repository';
+import {
+  ScheduleTeamAssignmentRepository,
+  type IScheduleTeamAssignmentRepository,
+} from '@/repositories/scheduleTeamAssignment.repository';
+import {
+  ScheduleRegistrationRepository,
+  type IScheduleRegistrationRepository,
+} from '@/repositories/scheduleRegistration.repository';
+import {
+  ScheduleAttendanceRepository,
+  type IScheduleAttendanceRepository,
+} from '@/repositories/scheduleAttendance.repository';
+// Scheduler Services
+import { MinistryService, type IMinistryService } from '@/services/MinistryService';
+import { SchedulerService, type ISchedulerService } from '@/services/SchedulerService';
+import { ScheduleOccurrenceService, type IScheduleOccurrenceService } from '@/services/ScheduleOccurrenceService';
+import { ScheduleRegistrationService, type IScheduleRegistrationService } from '@/services/ScheduleRegistrationService';
+import { ScheduleAttendanceService, type IScheduleAttendanceService } from '@/services/ScheduleAttendanceService';
 import {
   GoalCategoryService,
   GoalsService,
@@ -747,5 +809,31 @@ container.bind<IKeyResultProgressUpdateRepository>(TYPES.IKeyResultProgressUpdat
 container.bind<IGoalCategoryService>(TYPES.GoalCategoryService).to(GoalCategoryService).inRequestScope();
 container.bind<IGoalsService>(TYPES.GoalsService).to(GoalsService).inRequestScope();
 container.bind<IGoalMetricsService>(TYPES.GoalMetricsService).to(GoalMetricsService).inRequestScope();
+
+// ==================== SCHEDULER FEATURE ====================
+// Adapters
+container.bind<IMinistryAdapter>(TYPES.IMinistryAdapter).to(MinistryAdapter).inRequestScope();
+container.bind<IMinistryTeamAdapter>(TYPES.IMinistryTeamAdapter).to(MinistryTeamAdapter).inRequestScope();
+container.bind<IMinistryScheduleAdapter>(TYPES.IMinistryScheduleAdapter).to(MinistryScheduleAdapter).inRequestScope();
+container.bind<IScheduleOccurrenceAdapter>(TYPES.IScheduleOccurrenceAdapter).to(ScheduleOccurrenceAdapter).inRequestScope();
+container.bind<IScheduleTeamAssignmentAdapter>(TYPES.IScheduleTeamAssignmentAdapter).to(ScheduleTeamAssignmentAdapter).inRequestScope();
+container.bind<IScheduleRegistrationAdapter>(TYPES.IScheduleRegistrationAdapter).to(ScheduleRegistrationAdapter).inRequestScope();
+container.bind<IScheduleAttendanceAdapter>(TYPES.IScheduleAttendanceAdapter).to(ScheduleAttendanceAdapter).inRequestScope();
+
+// Repositories
+container.bind<IMinistryRepository>(TYPES.IMinistryRepository).to(MinistryRepository).inRequestScope();
+container.bind<IMinistryTeamRepository>(TYPES.IMinistryTeamRepository).to(MinistryTeamRepository).inRequestScope();
+container.bind<IMinistryScheduleRepository>(TYPES.IMinistryScheduleRepository).to(MinistryScheduleRepository).inRequestScope();
+container.bind<IScheduleOccurrenceRepository>(TYPES.IScheduleOccurrenceRepository).to(ScheduleOccurrenceRepository).inRequestScope();
+container.bind<IScheduleTeamAssignmentRepository>(TYPES.IScheduleTeamAssignmentRepository).to(ScheduleTeamAssignmentRepository).inRequestScope();
+container.bind<IScheduleRegistrationRepository>(TYPES.IScheduleRegistrationRepository).to(ScheduleRegistrationRepository).inRequestScope();
+container.bind<IScheduleAttendanceRepository>(TYPES.IScheduleAttendanceRepository).to(ScheduleAttendanceRepository).inRequestScope();
+
+// Services
+container.bind<IMinistryService>(TYPES.MinistryService).to(MinistryService).inRequestScope();
+container.bind<ISchedulerService>(TYPES.SchedulerService).to(SchedulerService).inRequestScope();
+container.bind<IScheduleOccurrenceService>(TYPES.ScheduleOccurrenceService).to(ScheduleOccurrenceService).inRequestScope();
+container.bind<IScheduleRegistrationService>(TYPES.ScheduleRegistrationService).to(ScheduleRegistrationService).inRequestScope();
+container.bind<IScheduleAttendanceService>(TYPES.ScheduleAttendanceService).to(ScheduleAttendanceService).inRequestScope();
 
 export { container };

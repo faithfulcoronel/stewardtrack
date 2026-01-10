@@ -28,6 +28,14 @@ Adapters in this directory:
 
 All adapters extend `BaseAdapter` and follow this structure:
 
+**IMPORTANT - Method Naming Convention:**
+When extending `IBaseAdapter<T>`, **do NOT** use method names that conflict with the base interface (`create`, `update`, `delete`). The base interface defines these with specific signatures:
+- `create(data: Partial<T>, relations?, fieldsToRemove?): Promise<T>`
+- `update(id: string, data: Partial<T>, relations?, fieldsToRemove?): Promise<T>`
+- `delete(id: string): Promise<void>`
+
+Instead, use **prefixed method names** like `createRole`, `updateRole`, `deleteRole` (following the entity name) to avoid TypeScript interface conflicts. This pattern is used throughout the codebase (see `role.adapter.ts` as reference).
+
 ```typescript
 import 'server-only';
 import { injectable, inject } from 'inversify';
@@ -37,9 +45,10 @@ import type { AuditService } from '@/services/AuditService';
 import type { MyModel, CreateMyDto, UpdateMyDto } from '@/models/my.model';
 
 export interface IMyAdapter extends IBaseAdapter<MyModel> {
-  create(data: CreateMyDto, tenantId: string): Promise<MyModel>;
-  update(id: string, data: UpdateMyDto, tenantId: string): Promise<MyModel>;
-  delete(id: string, tenantId: string): Promise<void>;
+  // Use prefixed method names to avoid conflicts with IBaseAdapter
+  createMyEntity(data: CreateMyDto, tenantId: string): Promise<MyModel>;
+  updateMyEntity(id: string, data: UpdateMyDto, tenantId: string): Promise<MyModel>;
+  deleteMyEntity(id: string, tenantId: string): Promise<void>;
   findById(id: string, tenantId: string): Promise<MyModel | null>;
   findAll(tenantId: string): Promise<MyModel[]>;
 }
@@ -55,7 +64,7 @@ export class MyAdapter extends BaseAdapter<MyModel> implements IMyAdapter {
   protected tableName = 'my_table';
   protected defaultSelect = `*`;
 
-  async create(data: CreateMyDto, tenantId: string): Promise<MyModel> {
+  async createMyEntity(data: CreateMyDto, tenantId: string): Promise<MyModel> {
     const supabase = await this.getSupabaseClient();
 
     const { data: result, error } = await supabase
@@ -440,7 +449,33 @@ Use `.select()` with explicit field lists:
 .select() // Missing parameter
 ```
 
-### 5. Use `.single()` for Unique Queries
+### 5. Supabase Type Casting Pattern
+
+**IMPORTANT:** When casting Supabase query results to model types, use `unknown` as an intermediate type to avoid TypeScript errors with `GenericStringError`:
+
+```typescript
+// WRONG: Direct type cast may fail with GenericStringError
+const { data, error } = await supabase.from('my_table').select('*');
+return data as MyModel[]; // TypeScript error: GenericStringError[] not assignable
+
+// CORRECT: Cast through unknown first
+const { data, error } = await supabase.from('my_table').select('*');
+return (data as unknown as MyModel[]) || [];
+
+// CORRECT: For single records
+const { data, error } = await supabase.from('my_table').select('*').single();
+const typedResult = data as unknown as MyModel;
+return typedResult;
+
+// CORRECT: For intermediate processing
+const { data, error } = await supabase.from('my_table').select('*');
+const typedData = data as unknown as MyModel[];
+const ids = typedData.map(m => m.id);
+```
+
+This pattern is necessary because Supabase's generated types may not perfectly align with your domain models, and TypeScript's strict type checking prevents direct casting.
+
+### 6. Use `.single()` for Unique Queries
 
 ```typescript
 // Expect single result

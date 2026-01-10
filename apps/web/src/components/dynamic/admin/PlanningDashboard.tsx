@@ -95,20 +95,27 @@ const featureCards: FeatureCard[] = [
     color: 'bg-blue-500',
   },
   {
+    title: 'Scheduler',
+    description: 'Manage ministry schedules, worship services, events with registrations and QR attendance.',
+    href: '/admin/community/planning/scheduler',
+    icon: ClipboardList,
+    color: 'bg-orange-500',
+  },
+  {
     title: 'Goals & Objectives',
     description: 'Set and track church-wide goals, ministry objectives, and key results.',
     href: '/admin/community/planning/goals',
     icon: Target,
     color: 'bg-purple-500',
   },
-  {
-    title: 'Attendance',
-    description: 'Track service and event attendance, analyze trends, and manage capacity.',
-    href: '/admin/community/planning/attendance',
-    icon: Users,
-    color: 'bg-green-500',
-    comingSoon: true,
-  },
+  // {
+  //   title: 'Attendance',
+  //   description: 'Track service and event attendance, analyze trends, and manage capacity.',
+  //   href: '/admin/community/planning/attendance',
+  //   icon: Users,
+  //   color: 'bg-green-500',
+  //   comingSoon: true,
+  // },
 ];
 
 // Helper functions for event display

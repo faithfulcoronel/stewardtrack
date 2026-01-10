@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="portal"
+  route="events/register"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.public"
+  locale="en-US">
+
+  <Page id="portal-event-registration">
+    <Title>Event Registration</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Public event registration component -->
+        <Component id="event-registration" type="PublicEventRegistration">
+          <Props>
+            <Prop name="occurrenceId" kind="binding" contract="registrationContext.occurrenceId"/>
+            <Prop name="className" kind="static">py-8 px-4</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Registration context -->
+      <DataSource id="registrationContext" kind="service">
+        <Contract>
+          <Field name="occurrenceId" path="context.occurrenceId" description="Occurrence ID from URL params"/>
+        </Contract>
+        <Config>
+          <Handler>portal.events.registration.context</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

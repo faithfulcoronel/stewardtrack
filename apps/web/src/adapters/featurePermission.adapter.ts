@@ -19,8 +19,6 @@ import type {
 } from '@/models/featurePermission.model';
 import type { IBaseAdapter } from '@/lib/repository/adapter.interfaces';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { isCachedSuperAdmin } from '@/lib/auth/authCache';
-import { UnauthorizedError } from '@/utils/errorHandler';
 
 export interface IFeaturePermissionAdapter extends IBaseAdapter<FeaturePermission> {
   getByFeatureId(featureId: string): Promise<FeaturePermission[]>;
@@ -382,17 +380,11 @@ export class FeaturePermissionAdapter extends BaseAdapter<FeaturePermission> imp
 
   /**
    * Get role templates with elevated access (bypasses RLS).
-   * FOR SUPER ADMIN USE ONLY - Used during license assignment to get permission templates.
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Uses the service client for system operations.
+   * Used during registration and permission deployment where user context may not be available.
    */
   async getRoleTemplatesWithElevatedAccess(featurePermissionId: string): Promise<PermissionRoleTemplate[]> {
     try {
-      // Ensure super admin access before using service role client
-      const isSuperAdmin = await isCachedSuperAdmin();
-      if (!isSuperAdmin) {
-        throw new UnauthorizedError('Getting role templates with elevated access requires super admin privileges');
-      }
-
       console.log(`[ROLE TEMPLATE ADAPTER] >> getRoleTemplatesWithElevatedAccess() called with featurePermissionId: ${featurePermissionId}`);
       const supabase = await getSupabaseServiceClient();
 

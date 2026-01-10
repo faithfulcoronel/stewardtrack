@@ -5,8 +5,6 @@ import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { Permission } from '@/models/rbac.model';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { isCachedSuperAdmin } from '@/lib/auth/authCache';
-import { UnauthorizedError } from '@/utils/errorHandler';
 
 /**
  * Permission Adapter - Handles permission queries
@@ -17,11 +15,11 @@ export interface IPermissionAdapter extends IBaseAdapter<Permission> {
   getPermission(id: string): Promise<Permission | null>;
   findByCode(tenantId: string, code: string): Promise<Permission | null>;
   getByTenantId(tenantId: string): Promise<Permission[]>;
-  /** Create permission with elevated access (bypasses RLS) for super admin operations */
+  /** Create permission with elevated access (bypasses RLS) */
   createWithElevatedAccess(data: Partial<Permission>): Promise<Permission>;
-  /** Update permission with elevated access (bypasses RLS) for super admin operations */
+  /** Update permission with elevated access (bypasses RLS) */
   updateWithElevatedAccess(id: string, data: Partial<Permission>): Promise<Permission>;
-  /** Find permission by code with elevated access (bypasses RLS) for super admin operations */
+  /** Find permission by code with elevated access (bypasses RLS) */
   findByCodeWithElevatedAccess(tenantId: string, code: string): Promise<Permission | null>;
 }
 
@@ -109,16 +107,11 @@ export class PermissionAdapter extends BaseAdapter<Permission> implements IPermi
   }
 
   /**
-   * Create permission with elevated access (bypasses RLS) for super admin operations.
-   * This allows creating permissions for any tenant, not just the current user's tenant.
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Create permission with elevated access (bypasses RLS).
+   * This allows creating permissions for any tenant using the service client.
+   * Used during registration and system operations where user context may not be available.
    */
   async createWithElevatedAccess(data: Partial<Permission>): Promise<Permission> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Creating permissions with elevated access requires super admin privileges');
-    }
-
     const supabase = await getSupabaseServiceClient();
 
     const { data: result, error } = await supabase
@@ -135,16 +128,11 @@ export class PermissionAdapter extends BaseAdapter<Permission> implements IPermi
   }
 
   /**
-   * Update permission with elevated access (bypasses RLS) for super admin operations.
-   * This allows updating permissions for any tenant, not just the current user's tenant.
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Update permission with elevated access (bypasses RLS).
+   * This allows updating permissions for any tenant using the service client.
+   * Used during registration and system operations where user context may not be available.
    */
   async updateWithElevatedAccess(id: string, data: Partial<Permission>): Promise<Permission> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Updating permissions with elevated access requires super admin privileges');
-    }
-
     const supabase = await getSupabaseServiceClient();
 
     const { data: result, error } = await supabase
@@ -162,16 +150,11 @@ export class PermissionAdapter extends BaseAdapter<Permission> implements IPermi
   }
 
   /**
-   * Find permission by code with elevated access (bypasses RLS) for super admin operations.
-   * This allows querying permissions for any tenant.
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Find permission by code with elevated access (bypasses RLS).
+   * This allows querying permissions for any tenant using the service client.
+   * Used during registration and system operations where user context may not be available.
    */
   async findByCodeWithElevatedAccess(tenantId: string, code: string): Promise<Permission | null> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Finding permissions with elevated access requires super admin privileges');
-    }
-
     const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase

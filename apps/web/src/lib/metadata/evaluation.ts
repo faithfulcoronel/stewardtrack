@@ -137,6 +137,7 @@ export function evaluateMetadataActions(
   roles?: string[],
   permissions?: string[],
   params?: Record<string, string | string[] | undefined>,
+  dataScope?: DataScope,
 ): ActionScope {
   const effectiveRoles = roles ?? [role];
   const effectivePermissions = permissions ?? [];
@@ -146,9 +147,19 @@ export function evaluateMetadataActions(
     }
     const config = normalizeRecord(action.config ?? {});
 
+    // Support both url and urlTemplate (UrlTemplate from XML becomes urlTemplate after camelCase)
+    let url = typeof config.url === 'string' ? config.url : null;
+    const urlTemplate = typeof config.urlTemplate === 'string' ? config.urlTemplate : null;
+
+    // Use urlTemplate if url is not set
+    if (!url && urlTemplate) {
+      url = urlTemplate;
+    }
+
     // Interpolate template variables in URL if present
-    if (typeof config.url === 'string' && params) {
-      config.url = interpolateTemplate(config.url, params);
+    if (url) {
+      url = interpolateTemplate(url, params ?? {}, dataScope ?? {});
+      config.url = url;
     }
 
     acc[action.id] = { ...action, config };
@@ -157,9 +168,13 @@ export function evaluateMetadataActions(
 }
 
 /**
- * Interpolate template variables like {{params.householdId}} in a string
+ * Interpolate template variables like {{params.householdId}} or {{scheduleContext.schedule.id}} in a string
  */
-function interpolateTemplate(template: string, params: Record<string, string | string[] | undefined>): string {
+function interpolateTemplate(
+  template: string,
+  params: Record<string, string | string[] | undefined>,
+  dataScope: DataScope = {},
+): string {
   return template.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
     const trimmed = expression.trim();
 
@@ -177,7 +192,15 @@ function interpolateTemplate(template: string, params: Record<string, string | s
       return Array.isArray(value) ? value[0] ?? match : String(value);
     }
 
-    // If not a params expression, return original
+    // Handle data scope expressions (e.g., scheduleContext.schedule.id)
+    // The expression format is: dataSourceId.path.to.property
+    const resolved = resolvePath(dataScope, trimmed);
+    if (resolved !== undefined && resolved !== null) {
+      return String(resolved);
+    }
+
+    // Log warning for unresolved template variables
+    console.warn(`Template variable ${expression} could not be resolved`);
     return match;
   });
 }

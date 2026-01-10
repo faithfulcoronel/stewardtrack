@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER MINISTRY PROFILE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the ministry profile/detail page for the scheduler module.
+Displays comprehensive ministry information including team members and schedules.
+
+FEATURE: Ministry Profile View
+- View ministry details and configuration
+- Manage team members with role assignments
+- View and create associated schedules
+
+SERVICE HANDLERS:
+- admin-community.scheduler.ministries.profile.hero
+- admin-community.scheduler.ministries.profile.context
+- admin-community.scheduler.ministries.profile.summary
+- admin-community.scheduler.ministries.profile.schedules
+- admin-community.scheduler.ministries.profile.availableMembers
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/ministries/profile"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="ministries.core"
+  requiredPermissions="ministries:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-ministry-profile">
+    <Title>Ministry profile</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Hero section with ministry info -->
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="profileHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="profileHero.headline"/>
+            <Prop name="description" kind="binding" contract="profileHero.description"/>
+            <Prop name="metrics" kind="binding" contract="profileHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-ministry"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+
+        <!-- Ministry detail panels -->
+        <Component id="ministry-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="columns" kind="static">2</Prop>
+            <Prop name="panels" kind="binding" contract="ministrySummary.panels"/>
+          </Props>
+        </Component>
+
+        <!-- Ministry team manager component -->
+        <Component id="ministry-team" type="MinistryTeamManager">
+          <Props>
+            <Prop name="ministryId" kind="binding" contract="ministryContext.ministryId"/>
+            <Prop name="ministryName" kind="binding" contract="ministryContext.ministryName"/>
+            <Prop name="availableMembers" kind="binding" contract="availableMembers.members"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+
+        <!-- Ministry schedules grid -->
+        <Component id="ministry-schedules" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Schedules</Prop>
+            <Prop name="description" kind="static">Recurring schedules associated with this ministry.</Prop>
+            <Prop name="rows" kind="binding" contract="schedulesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="schedulesTable.columns"/>
+            <Prop name="actions" kind="binding" contract="schedulesTable.actions"/>
+            <Prop name="primaryCta" kind="action" actionId="create-schedule"/>
+            <Prop name="emptyState" kind="static">{"title": "No schedules", "description": "Create a schedule to start planning events for this ministry."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="profileHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for profile-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for profile-hero.headline"/>
+          <Field name="description" path="description" description="Binding for profile-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for profile-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.profile.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Ministry context for team manager -->
+      <DataSource id="ministryContext" kind="service">
+        <Contract>
+          <Field name="ministryId" path="ministry.id" description="Ministry ID"/>
+          <Field name="ministryName" path="ministry.name" description="Ministry name"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.profile.context</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Ministry summary panels -->
+      <DataSource id="ministrySummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary" description="Binding for ministry-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.profile.summary</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Ministry schedules table -->
+      <DataSource id="schedulesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Binding for ministry-schedules.rows"/>
+          <Field name="columns" path="columns" description="Binding for ministry-schedules.columns"/>
+          <Field name="actions" path="actions" description="Binding for ministry-schedules.actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.profile.schedules</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Available members for team assignment -->
+      <DataSource id="availableMembers" kind="service">
+        <Contract>
+          <Field name="members" path="members" description="Available members from members table"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.ministries.profile.availableMembers</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="edit-ministry" kind="link">
+        <RBAC requirePermissions="ministries:manage" />
+        <Config>
+          <Label>Edit ministry</Label>
+          <Url>/admin/community/planning/scheduler/ministries/manage?ministryId={{params.ministryId}}</Url>
+        </Config>
+      </Action>
+      <Action id="create-schedule" kind="link">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Create schedule</Label>
+          <Url>/admin/community/planning/scheduler/schedules/manage?ministryId={{params.ministryId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to ministries</Label>
+          <Url>/admin/community/planning/scheduler/ministries</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

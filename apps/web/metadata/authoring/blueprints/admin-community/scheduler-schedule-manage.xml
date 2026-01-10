@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/schedules/manage"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:manage"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-schedule-manage">
+    <Title>Manage Schedule</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Hero section -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="secondaryCta" kind="action" actionId="cancel-manage"/>
+          </Props>
+        </Component>
+
+        <!-- Schedule form -->
+        <Component id="schedule-form" type="AdminFormSection">
+          <Props>
+            <Prop name="fields" kind="binding" contract="scheduleForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="scheduleForm.initialValues"/>
+            <Prop name="submitLabel" kind="binding" contract="scheduleForm.submitLabel"/>
+            <Prop name="mode" kind="binding" contract="scheduleForm.mode"/>
+            <Prop name="submitAction" kind="action" actionId="save-schedule"/>
+          </Props>
+        </Component>
+
+        <!-- Registration form builder (for schedules with registration) -->
+        <Component id="registration-form-builder" type="RegistrationFormBuilder">
+          <Props>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="description" description="Binding for manage-hero.description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.manage.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedule form configuration -->
+      <DataSource id="scheduleForm" kind="service">
+        <Contract>
+          <Field name="fields" path="form.fields" description="Binding for schedule-form.fields"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for schedule-form.initialValues"/>
+          <Field name="submitLabel" path="submitLabel" description="Binding for schedule-form.submitLabel"/>
+          <Field name="mode" path="mode" description="Binding for schedule-form.mode"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <!-- Save schedule -->
+      <Action id="save-schedule" kind="metadata.service">
+        <Config>
+          <Handler>admin-community.scheduler.schedules.manage.save</Handler>
+          <SuccessMessage>Schedule saved successfully.</SuccessMessage>
+          <CreateMessage>Schedule created successfully.</CreateMessage>
+          <UpdateMessage>Schedule updated successfully.</UpdateMessage>
+          <ErrorMessage>Failed to save schedule. Please try again.</ErrorMessage>
+          <IdentifierKey>scheduleId</IdentifierKey>
+          <IdentifierCandidates>
+            <Array>
+              <Value>scheduleId</Value>
+              <Value>data.scheduleId</Value>
+              <Value>params.scheduleId</Value>
+            </Array>
+          </IdentifierCandidates>
+          <RedirectTemplate>/admin/community/planning/scheduler/schedules/{{scheduleId}}</RedirectTemplate>
+        </Config>
+      </Action>
+
+      <!-- Cancel action -->
+      <Action id="cancel-manage" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/scheduler</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

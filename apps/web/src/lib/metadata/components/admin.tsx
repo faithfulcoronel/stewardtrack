@@ -113,6 +113,35 @@ import {
   MemberCareSummaryCard,
   type MemberCareSummaryCardProps,
 } from '@/components/dynamic/member/MemberCareSummaryCard';
+// Scheduler Components
+import {
+  SchedulerDashboard,
+  type SchedulerDashboardProps,
+  ScheduleCalendarView,
+  type ScheduleCalendarViewProps,
+  MinistryTeamManager,
+  type MinistryTeamManagerProps,
+  TeamAssignmentGrid,
+  type TeamAssignmentGridProps,
+  RegistrationFormBuilder,
+  type RegistrationFormBuilderProps,
+  RegistrationList,
+  type RegistrationListProps,
+  QRScannerView,
+  type QRScannerViewProps,
+  EventQRCode,
+  type EventQRCodeProps,
+  AttendanceTracker,
+  type AttendanceTrackerProps,
+  PublicEventRegistration,
+  type PublicEventRegistrationProps,
+  ScheduleListView,
+  type ScheduleListViewProps,
+  OccurrenceListView,
+  type OccurrenceListViewProps,
+  MinistryListView,
+  type MinistryListViewProps,
+} from '@/components/dynamic/admin/scheduler';
 
 function withoutChildren<Props extends Record<string, unknown>>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -335,5 +364,84 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'member',
     version: '1.0.0',
     renderer: withoutChildren<MemberCareSummaryCardProps>(MemberCareSummaryCard, 'MemberCareSummaryCardRenderer'),
+  },
+  // Scheduler Components
+  {
+    type: 'SchedulerDashboard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<SchedulerDashboardProps>(SchedulerDashboard, 'SchedulerDashboardRenderer'),
+  },
+  {
+    type: 'ScheduleCalendarView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ScheduleCalendarViewProps>(ScheduleCalendarView, 'ScheduleCalendarViewRenderer'),
+  },
+  {
+    type: 'MinistryTeamManager',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MinistryTeamManagerProps>(MinistryTeamManager, 'MinistryTeamManagerRenderer'),
+  },
+  {
+    type: 'TeamAssignmentGrid',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TeamAssignmentGridProps>(TeamAssignmentGrid, 'TeamAssignmentGridRenderer'),
+  },
+  {
+    type: 'RegistrationFormBuilder',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<RegistrationFormBuilderProps>(RegistrationFormBuilder, 'RegistrationFormBuilderRenderer'),
+  },
+  {
+    type: 'RegistrationList',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<RegistrationListProps>(RegistrationList, 'RegistrationListRenderer'),
+  },
+  {
+    type: 'QRScannerView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<QRScannerViewProps>(QRScannerView, 'QRScannerViewRenderer'),
+  },
+  {
+    type: 'EventQRCode',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<EventQRCodeProps>(EventQRCode, 'EventQRCodeRenderer'),
+  },
+  {
+    type: 'AttendanceTracker',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AttendanceTrackerProps>(AttendanceTracker, 'AttendanceTrackerRenderer'),
+  },
+  {
+    type: 'PublicEventRegistration',
+    namespace: 'portal',
+    version: '1.0.0',
+    renderer: withoutChildren<PublicEventRegistrationProps>(PublicEventRegistration, 'PublicEventRegistrationRenderer'),
+  },
+  {
+    type: 'ScheduleListView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ScheduleListViewProps>(ScheduleListView, 'ScheduleListViewRenderer'),
+  },
+  {
+    type: 'OccurrenceListView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<OccurrenceListViewProps>(OccurrenceListView, 'OccurrenceListViewRenderer'),
+  },
+  {
+    type: 'MinistryListView',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MinistryListViewProps>(MinistryListView, 'MinistryListViewRenderer'),
   },
 ];
