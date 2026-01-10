@@ -5,12 +5,24 @@ import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
 import type { TenantFeatureGrant } from '@/models/rbac.model';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { isCachedSuperAdmin } from '@/lib/auth/authCache';
-import { UnauthorizedError } from '@/utils/errorHandler';
+
+export interface FeatureSyncResult {
+  success: boolean;
+  error?: string;
+  offering_id?: string;
+  offering_tier?: string;
+  features_added: number;
+  features_already_granted: number;
+  permissions_deployed: number;
+  permissions_already_exist: number;
+  role_assignments_created: number;
+  roles_created: number;
+}
 
 export interface ITenantFeatureGrantAdapter extends IBaseAdapter<TenantFeatureGrant> {
   getTenantFeatureGrants(tenantId: string): Promise<TenantFeatureGrant[]>;
   deleteByTenantId(tenantId: string): Promise<number>;
+  syncTenantSubscriptionFeatures(tenantId: string): Promise<FeatureSyncResult>;
 }
 
 @injectable()
@@ -26,16 +38,10 @@ export class TenantFeatureGrantAdapter extends BaseAdapter<TenantFeatureGrant> i
 
   /**
    * Get tenant feature grants using elevated access (service role client).
-   * This bypasses RLS to allow super admin operations to query feature grants
+   * This bypasses RLS to allow system operations to query feature grants
    * for any tenant, not just the current user's tenant.
-   * @throws UnauthorizedError if the current user is not a super admin
    */
   async getTenantFeatureGrants(tenantId: string): Promise<TenantFeatureGrant[]> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Getting tenant feature grants requires super admin privileges');
-    }
-
     // Use service role client for elevated access - bypasses RLS
     const supabase = await getSupabaseServiceClient();
     const { data, error } = await supabase
@@ -54,16 +60,10 @@ export class TenantFeatureGrantAdapter extends BaseAdapter<TenantFeatureGrant> i
   }
 
   /**
-   * Override delete to use elevated access for super admin operations.
+   * Override delete to use elevated access for system operations.
    * Uses hard delete since tenant_feature_grants doesn't have soft delete columns.
-   * @throws UnauthorizedError if the current user is not a super admin
    */
   override async delete(id: string): Promise<void> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Deleting tenant feature grants requires super admin privileges');
-    }
-
     // Use service role client for elevated access
     const supabase = await getSupabaseServiceClient();
 
@@ -80,14 +80,8 @@ export class TenantFeatureGrantAdapter extends BaseAdapter<TenantFeatureGrant> i
   /**
    * Delete all feature grants for a specific tenant using elevated access.
    * This is more efficient than deleting one by one.
-   * @throws UnauthorizedError if the current user is not a super admin
    */
   async deleteByTenantId(tenantId: string): Promise<number> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Deleting tenant feature grants requires super admin privileges');
-    }
-
     // Use service role client for elevated access
     const supabase = await getSupabaseServiceClient();
 
@@ -114,5 +108,36 @@ export class TenantFeatureGrantAdapter extends BaseAdapter<TenantFeatureGrant> i
     }
 
     return count;
+  }
+
+  /**
+   * Sync tenant's feature grants with their product subscription offering.
+   * Uses RPC function for efficient database-level sync.
+   * This ensures the tenant has all features included in their offering,
+   * including any newly added features, and deploys the associated permissions.
+   */
+  async syncTenantSubscriptionFeatures(tenantId: string): Promise<FeatureSyncResult> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase.rpc('sync_tenant_subscription_features', {
+      p_tenant_id: tenantId,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        error: `Failed to sync features: ${error.message}`,
+        features_added: 0,
+        features_already_granted: 0,
+        permissions_deployed: 0,
+        permissions_already_exist: 0,
+        role_assignments_created: 0,
+        roles_created: 0,
+      };
+    }
+
+    // The RPC returns a JSONB object
+    const result = data as FeatureSyncResult;
+    return result;
   }
 }

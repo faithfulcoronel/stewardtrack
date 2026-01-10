@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER DASHBOARD PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the scheduler dashboard page that provides an overview
+of ministry scheduling activities including upcoming events, team assignments,
+and quick access to scheduler features.
+
+FEATURE: Scheduler Dashboard
+- Overview of upcoming schedule occurrences
+- Quick links to ministries, schedules, and calendar
+- Key metrics for attendance and registrations
+- Timeline of upcoming events
+
+SERVICE HANDLERS:
+- admin-community.scheduler.dashboard.hero
+- admin-community.scheduler.dashboard.quickLinks
+- admin-community.scheduler.dashboard.upcoming
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-dashboard">
+    <Title>Scheduler Dashboard</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="scheduler-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="schedulerHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="schedulerHero.headline"/>
+            <Prop name="description" kind="binding" contract="schedulerHero.description"/>
+            <Prop name="metrics" kind="binding" contract="schedulerHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-schedule"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-calendar"/>
+          </Props>
+        </Component>
+
+        <!--
+        QUICK LINKS: Navigation to scheduler features
+        -->
+        <Component id="scheduler-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Scheduler tools</Prop>
+            <Prop name="description" kind="static">Manage ministries, schedules, and track attendance.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="schedulerQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="schedulerQuickLinks.actions"/>
+          </Props>
+        </Component>
+
+        <!--
+        UPCOMING EVENTS: Timeline of scheduled occurrences
+        -->
+        <Component id="upcoming-events" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Upcoming events</Prop>
+            <Prop name="description" kind="static">Schedule occurrences in the next 7 days.</Prop>
+            <Prop name="accentLabel" kind="static">This week</Prop>
+            <Prop name="events" kind="binding" contract="upcomingEvents.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="schedulerHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Scheduler module eyebrow text"/>
+          <Field name="headline" path="headline" description="Dashboard headline"/>
+          <Field name="description" path="description" description="Dashboard description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Quick links -->
+      <DataSource id="schedulerQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.dashboard.quickLinks</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Upcoming events timeline -->
+      <DataSource id="upcomingEvents" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Upcoming schedule occurrences"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.dashboard.upcoming</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-schedule" kind="link">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Create schedule</Label>
+          <Url>/admin/community/planning/scheduler/schedules/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-calendar" kind="link">
+        <Config>
+          <Label>Calendar view</Label>
+          <Url>/admin/community/planning/scheduler/calendar</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="manage-ministries" kind="link">
+        <RBAC requirePermissions="ministries:manage" />
+        <Config>
+          <Label>Manage ministries</Label>
+          <Url>/admin/community/planning/scheduler/ministries</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-occurrences" kind="link">
+        <Config>
+          <Label>View occurrences</Label>
+          <Url>/admin/community/planning/scheduler/occurrences</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

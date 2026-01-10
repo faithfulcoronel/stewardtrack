@@ -99,7 +99,81 @@ The metadata system allows pages to be defined in XML and rendered dynamically w
 4. `interpreter.tsx` walks the merged definition and renders React components via component registry
 5. RBAC rules in metadata control component visibility per role
 
+#### IMPORTANT: Follow the Metadata XML Framework
+
+**All new admin pages MUST follow the Metadata XML framework.** This is a core architectural decision that enables:
+- Tenant-specific page customizations via overlays
+- Role-based component visibility
+- Dynamic page configuration without code changes
+- Consistent page structure across the application
+
+**Required steps for new pages:**
+1. Create XML blueprint in `apps/web/metadata/authoring/blueprints/<module>/<page>.xml`
+2. Define regions, components, dataSources, and actions in XML
+3. Register any new components in `src/lib/metadata/component-registry.ts`
+4. Create page route in `apps/web/src/app/admin/<module>/<page>/page.tsx` that uses `renderPage()` or similar resolver
+5. Run `pnpm metadata:compile` to compile and register the page
+6. Test the page at the appropriate route
+
+**Do NOT create pages that bypass the metadata system** by directly importing and rendering React components without an XML blueprint. This breaks the tenant customization and overlay system.
+
 **When adding/modifying metadata pages:** Always run `pnpm metadata:compile` before testing. The dev server does not auto-recompile metadata.
+
+#### Service-Based Data Binding (CRITICAL)
+
+**All XML-driven pages MUST use service-based data binding.** Do NOT create self-contained components that fetch their own data within XML blueprints. The metadata framework requires data to flow through service handlers.
+
+**Pattern:**
+```xml
+<Component id="hero" type="HeroSection">
+  <Props>
+    <Prop name="eyebrow" kind="binding" contract="heroData.eyebrow"/>
+    <Prop name="headline" kind="binding" contract="heroData.headline"/>
+    <Prop name="metrics" kind="binding" contract="heroData.metrics"/>
+  </Props>
+</Component>
+
+<DataSources>
+  <DataSource id="heroData" kind="service">
+    <Contract>
+      <Field name="eyebrow" path="eyebrow"/>
+      <Field name="headline" path="headline"/>
+      <Field name="metrics" path="metrics"/>
+    </Contract>
+    <Config>
+      <Handler>admin-community.module.page.section</Handler>
+    </Config>
+  </DataSource>
+</DataSources>
+```
+
+**Service Handler Requirements:**
+1. Create handlers in `apps/web/src/lib/metadata/services/admin-<module>.ts`
+2. Handler naming convention: `admin-community.<module>.<page>.<section>`
+   - Example: `admin-community.scheduler.ministries.list.hero`
+   - Example: `admin-community.planning.goals.list.table`
+3. Export handlers via `apps/web/src/lib/metadata/services/admin-community.ts`
+4. Handlers use InversifyJS container for tenant-aware data access
+
+**Key Service Handler Files:**
+- `apps/web/src/lib/metadata/services/admin-community.ts` → Main export aggregator
+- `apps/web/src/lib/metadata/services/admin-community-planning.ts` → Planning module handlers
+- `apps/web/src/lib/metadata/services/admin-community-scheduler.ts` → Scheduler module handlers
+
+**Common Component Patterns:**
+- `HeroSection` (variant: stats-panel) → eyebrow, headline, description, metrics
+- `AdminDataGridSection` → rows, columns, filters, actions, emptyState
+- `QuickLinks` → links array with title, description, href, icon
+- `Timeline` → events array for dashboards
+
+**Reference Implementations:**
+- Planning Goals: `metadata/authoring/blueprints/admin-community/planning-goals.xml`
+- Service handlers: `src/lib/metadata/services/admin-community-planning.ts`
+
+**Do NOT:**
+- Create components that call Supabase/APIs directly from XML blueprints
+- Use `kind="static"` for data that should come from the database
+- Bypass the service handler pattern with self-contained list/view components
 
 ### Multi-Tenancy
 

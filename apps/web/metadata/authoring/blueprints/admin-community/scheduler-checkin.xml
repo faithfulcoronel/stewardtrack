@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/checkin"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:attendance"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-checkin">
+    <Title>Check-in Station</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- QR Scanner view component (self-contained) -->
+        <Component id="qr-scanner" type="QRScannerView">
+          <Props>
+            <Prop name="className" kind="static">p-6</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <Actions>
+      <Action id="back-to-scheduler" kind="link">
+        <Config>
+          <Label>Back to Scheduler</Label>
+          <Url>/admin/community/planning/scheduler</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -30,21 +30,105 @@ import type {
   FormFieldConfig,
   FormFieldOption,
   FormFieldQuickCreateConfig,
+  FieldVisibilityCondition,
 } from "./types";
 import {
   buildFieldRowHelperMap,
   getFieldGridClassName,
   groupFieldsIntoRows,
 } from "./formLayout";
+import { useWatch, type Control } from "react-hook-form";
+import { useFormValues } from "@/lib/metadata/context";
 
 export type { AdminFormSectionProps, FormFieldConfig, FormFieldOption } from "./types";
+
+/**
+ * Check if a field should be visible based on its visibility condition
+ */
+function checkFieldVisibility(
+  condition: FieldVisibilityCondition | null | undefined,
+  watchedValue: unknown
+): boolean {
+  if (!condition) {
+    return true; // No condition means always visible
+  }
+
+  if (condition.isTruthy) {
+    return Boolean(watchedValue);
+  }
+
+  if (condition.isFalsy) {
+    return !watchedValue;
+  }
+
+  if (condition.equals !== undefined) {
+    return watchedValue === condition.equals;
+  }
+
+  return true;
+}
+
+/**
+ * Wrapper component that handles conditional field visibility.
+ * When no visibleWhen condition is set, renders children directly without any overhead.
+ */
+function ConditionalField({
+  field,
+  control,
+  children,
+}: {
+  field: FormFieldConfig;
+  control: Control<Record<string, unknown>>;
+  children: React.ReactNode;
+}) {
+  const condition = field.visibleWhen;
+
+  // If no condition, render children directly (backwards compatible - no overhead)
+  if (!condition) {
+    return <>{children}</>;
+  }
+
+  // Only use the hook when there's actually a condition to watch
+  return (
+    <ConditionalFieldWithWatch condition={condition} control={control}>
+      {children}
+    </ConditionalFieldWithWatch>
+  );
+}
+
+/**
+ * Inner component that watches a field and conditionally renders children.
+ * Separated to ensure useWatch is only called when needed.
+ */
+function ConditionalFieldWithWatch({
+  condition,
+  control,
+  children,
+}: {
+  condition: FieldVisibilityCondition;
+  control: Control<Record<string, unknown>>;
+  children: React.ReactNode;
+}) {
+  const watchedValue = useWatch({
+    control,
+    name: condition.field,
+  });
+
+  const isVisible = checkFieldVisibility(condition, watchedValue);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
 
 export function AdminFormSection(props: AdminFormSectionProps) {
   const { fields, form, handleSubmit, formErrors } = useAdminFormController(props);
   const [quickCreateOptions, setQuickCreateOptions] = React.useState<Record<string, FormFieldOption[]>>({});
   const [activeQuickCreateField, setActiveQuickCreateField] = React.useState<FormFieldConfig | null>(null);
   // Track which derived fields have been manually edited by user
-  const [manuallyEditedDerivedFields, setManuallyEditedDerivedFields] = React.useState<Set<string>>(new Set());
+  const [manuallyEditedDerivedFields, _setManuallyEditedDerivedFields] = React.useState<Set<string>>(new Set());
 
   // Handle deriveSlugFrom: auto-generate slug fields from source fields
   React.useEffect(() => {
@@ -81,6 +165,27 @@ export function AdminFormSection(props: AdminFormSectionProps) {
 
     return () => subscription.unsubscribe();
   }, [fields, form, manuallyEditedDerivedFields]);
+
+  // Publish form values to context for sibling components (e.g., RegistrationFormBuilder)
+  const formValuesContext = useFormValues();
+  React.useEffect(() => {
+    if (!formValuesContext) return;
+
+    const subscription = form.watch((values) => {
+      // Update context with all form values
+      for (const [key, value] of Object.entries(values)) {
+        formValuesContext.setValue(key, value);
+      }
+    });
+
+    // Initial sync
+    const currentValues = form.getValues();
+    for (const [key, value] of Object.entries(currentValues)) {
+      formValuesContext.setValue(key, value);
+    }
+
+    return () => subscription.unsubscribe();
+  }, [form, formValuesContext]);
 
   const augmentedFields = React.useMemo(() => {
     return fields.map((field) => {
@@ -205,22 +310,26 @@ export function AdminFormSection(props: AdminFormSectionProps) {
           )}
           <div className="grid gap-6 sm:grid-cols-2">
             {augmentedFields.map((field) => (
-              <FormField
+              <ConditionalField
                 key={field.name}
-                control={form.control}
-                name={field.name as never}
-                required={field.required === true}
-                rules={field.required === true ? { required: `${field.label ?? field.name} is required` } : undefined}
-                render={({ field: controller }) => {
-                  // Hidden fields don't need the FormItem wrapper - just render the input
-                  if (field.type === "hidden") {
-                    return renderFieldInput(field, controller as ControllerRender);
-                  }
+                field={field}
+                control={form.control as Control<Record<string, unknown>>}
+              >
+                <FormField
+                  control={form.control}
+                  name={field.name as never}
+                  required={field.required === true}
+                  rules={field.required === true ? { required: `${field.label ?? field.name} is required` } : undefined}
+                  render={({ field: controller }) => {
+                    // Hidden fields don't need the FormItem wrapper - just render the input
+                    if (field.type === "hidden") {
+                      return renderFieldInput(field, controller as ControllerRender);
+                    }
 
-                  return (
-                    <FormItem
-                      className={cn("space-y-3", getFieldGridClassName(field.colSpan ?? null))}
-                    >
+                    return (
+                      <FormItem
+                        className={cn("space-y-3", getFieldGridClassName(field.colSpan ?? null))}
+                      >
                       {field.label && <FormLabel className="text-sm font-semibold text-foreground">{field.label}</FormLabel>}
                       <FormControl>
                         {field.type === "select" && field.quickCreate ? (
@@ -269,6 +378,7 @@ export function AdminFormSection(props: AdminFormSectionProps) {
                   );
                 }}
               />
+              </ConditionalField>
             ))}
           </div>
 

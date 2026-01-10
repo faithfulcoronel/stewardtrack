@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER OCCURRENCES PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the occurrences list page for the scheduler module.
+Occurrences are specific event instances generated from schedules.
+
+FEATURE: Occurrences Management
+- List all schedule occurrences with search and filtering
+- View occurrence details and attendance
+- Cancel or reschedule occurrences
+- Access QR codes for check-in
+
+SERVICE HANDLERS:
+- admin-community.scheduler.occurrences.list.hero
+- admin-community.scheduler.occurrences.list.table
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/occurrences"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-occurrences">
+    <Title>Occurrences</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="occurrences-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="occurrencesHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="occurrencesHero.headline"/>
+            <Prop name="description" kind="binding" contract="occurrencesHero.description"/>
+            <Prop name="metrics" kind="binding" contract="occurrencesHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="view-calendar"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-scheduler"/>
+          </Props>
+        </Component>
+
+        <!--
+        OCCURRENCES TABLE: Data grid for occurrence list
+        -->
+        <Component id="occurrences-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Event occurrences</Prop>
+            <Prop name="description" kind="static">Specific event instances with attendance tracking and check-in.</Prop>
+            <Prop name="rows" kind="binding" contract="occurrencesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="occurrencesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="occurrencesTable.filters"/>
+            <Prop name="actions" kind="binding" contract="occurrencesTable.actions"/>
+            <Prop name="emptyState" kind="binding" contract="occurrencesTable.emptyState"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="occurrencesHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Module eyebrow text"/>
+          <Field name="headline" path="headline" description="Page headline"/>
+          <Field name="description" path="description" description="Page description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.occurrences.list.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Occurrences table data -->
+      <DataSource id="occurrencesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Occurrence rows for data grid"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="filters" path="filters" description="Filter configuration"/>
+          <Field name="actions" path="actions" description="Row actions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.occurrences.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="view-calendar" kind="link">
+        <Config>
+          <Label>Calendar view</Label>
+          <Url>/admin/community/planning/scheduler/calendar</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-scheduler" kind="link">
+        <Config>
+          <Label>Back to scheduler</Label>
+          <Url>/admin/community/planning/scheduler</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

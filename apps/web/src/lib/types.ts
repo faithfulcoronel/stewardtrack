@@ -293,6 +293,33 @@ export const TYPES = {
   GoalCategoryService: Symbol.for('GoalCategoryService'),
   GoalsService: Symbol.for('GoalsService'),
   GoalMetricsService: Symbol.for('GoalMetricsService'),
+
+  // Scheduler Feature - Ministry Management
+  IMinistryAdapter: Symbol.for('IMinistryAdapter'),
+  IMinistryRepository: Symbol.for('IMinistryRepository'),
+  IMinistryTeamAdapter: Symbol.for('IMinistryTeamAdapter'),
+  IMinistryTeamRepository: Symbol.for('IMinistryTeamRepository'),
+  IMinistryScheduleAdapter: Symbol.for('IMinistryScheduleAdapter'),
+  IMinistryScheduleRepository: Symbol.for('IMinistryScheduleRepository'),
+
+  // Scheduler Feature - Schedule Occurrences
+  IScheduleOccurrenceAdapter: Symbol.for('IScheduleOccurrenceAdapter'),
+  IScheduleOccurrenceRepository: Symbol.for('IScheduleOccurrenceRepository'),
+  IScheduleTeamAssignmentAdapter: Symbol.for('IScheduleTeamAssignmentAdapter'),
+  IScheduleTeamAssignmentRepository: Symbol.for('IScheduleTeamAssignmentRepository'),
+
+  // Scheduler Feature - Registrations & Attendance
+  IScheduleRegistrationAdapter: Symbol.for('IScheduleRegistrationAdapter'),
+  IScheduleRegistrationRepository: Symbol.for('IScheduleRegistrationRepository'),
+  IScheduleAttendanceAdapter: Symbol.for('IScheduleAttendanceAdapter'),
+  IScheduleAttendanceRepository: Symbol.for('IScheduleAttendanceRepository'),
+
+  // Scheduler Services
+  MinistryService: Symbol.for('MinistryService'),
+  SchedulerService: Symbol.for('SchedulerService'),
+  ScheduleOccurrenceService: Symbol.for('ScheduleOccurrenceService'),
+  ScheduleRegistrationService: Symbol.for('ScheduleRegistrationService'),
+  ScheduleAttendanceService: Symbol.for('ScheduleAttendanceService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

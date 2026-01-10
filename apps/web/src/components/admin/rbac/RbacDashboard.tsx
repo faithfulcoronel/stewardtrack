@@ -17,7 +17,9 @@ import {
   CheckCircle,
   HelpCircle,
   BookOpen,
-  Play
+  Play,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { RbacHelpGuide } from './RbacHelpGuide';
 import { ContextualHelp, QuickTip, HelpDialog, ProcessGuides, ProcessGuide } from './RbacHelper';
@@ -27,6 +29,7 @@ import { RoleCreationWizard } from './RoleCreationWizard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface DashboardStats {
   totalRoles: number;
@@ -60,6 +63,7 @@ export function RbacDashboard() {
 
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -107,6 +111,42 @@ export function RbacDashboard() {
       case 'pending': return 'text-yellow-600';
       case 'warning': return 'text-red-600';
       default: return 'text-gray-600';
+    }
+  };
+
+  const handleSyncFeatures = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/rbac/sync-features', {
+        method: 'POST',
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        const data = result.data;
+        if (data.features_added > 0 || data.permissions_deployed > 0) {
+          toast.success('Features synced successfully', {
+            description: `Added ${data.features_added} features, deployed ${data.permissions_deployed} permissions, created ${data.role_assignments_created} role assignments`,
+          });
+          // Refresh dashboard data to reflect changes
+          loadDashboardData();
+        } else {
+          toast.info('All features are in sync', {
+            description: 'Your tenant already has all features and permissions from your subscription',
+          });
+        }
+      } else {
+        toast.error('Sync failed', {
+          description: result.error || 'An error occurred while syncing features',
+        });
+      }
+    } catch (error) {
+      console.error('Error syncing features:', error);
+      toast.error('Sync failed', {
+        description: 'An unexpected error occurred',
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -457,6 +497,28 @@ export function RbacDashboard() {
                 </Link>
               </Card>
             </ContextualHelp>
+          </div>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-6">System Maintenance</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card
+              className={`cursor-pointer hover:shadow-md transition-shadow ${isSyncing ? 'opacity-75' : ''}`}
+              onClick={!isSyncing ? handleSyncFeatures : undefined}
+            >
+              <CardContent className="p-6 text-center">
+                {isSyncing ? (
+                  <Loader2 className="h-8 w-8 mx-auto mb-2 text-cyan-600 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-8 w-8 mx-auto mb-2 text-cyan-600" />
+                )}
+                <h3 className="font-semibold mb-1">Sync Subscription Features</h3>
+                <p className="text-xs text-gray-600">
+                  {isSyncing
+                    ? 'Syncing features and permissions...'
+                    : 'Ensure all features from your subscription are deployed'}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

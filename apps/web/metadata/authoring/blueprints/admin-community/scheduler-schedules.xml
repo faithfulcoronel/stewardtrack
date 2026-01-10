@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULER SCHEDULES PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the schedules list page for the scheduler module.
+Schedules are recurring event definitions that generate occurrences.
+
+FEATURE: Schedules Management
+- List all schedule definitions with search and filtering
+- Create, edit, and delete schedules
+- Generate occurrences from schedules
+- Navigate to occurrence details
+
+SERVICE HANDLERS:
+- admin-community.scheduler.schedules.list.hero
+- admin-community.scheduler.schedules.list.table
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/schedules"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-schedules">
+    <Title>Schedules</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="schedules-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="schedulesHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="schedulesHero.headline"/>
+            <Prop name="description" kind="binding" contract="schedulesHero.description"/>
+            <Prop name="metrics" kind="binding" contract="schedulesHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-schedule"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-scheduler"/>
+          </Props>
+        </Component>
+
+        <!--
+        SCHEDULES TABLE: Data grid for schedule list
+        -->
+        <Component id="schedules-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Schedule definitions</Prop>
+            <Prop name="description" kind="static">Recurring schedules that generate event occurrences.</Prop>
+            <Prop name="rows" kind="binding" contract="schedulesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="schedulesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="schedulesTable.filters"/>
+            <Prop name="actions" kind="binding" contract="schedulesTable.actions"/>
+            <Prop name="emptyState" kind="binding" contract="schedulesTable.emptyState"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="schedulesHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Module eyebrow text"/>
+          <Field name="headline" path="headline" description="Page headline"/>
+          <Field name="description" path="description" description="Page description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.list.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedules table data -->
+      <DataSource id="schedulesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Schedule rows for data grid"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="filters" path="filters" description="Filter configuration"/>
+          <Field name="actions" path="actions" description="Row actions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-schedule" kind="link">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Create schedule</Label>
+          <Url>/admin/community/planning/scheduler/schedules/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-scheduler" kind="link">
+        <Config>
+          <Label>Back to scheduler</Label>
+          <Url>/admin/community/planning/scheduler</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -748,6 +748,34 @@ export const componentRegistry = {
 - Invalid element nesting
 - Typos in element/attribute names
 
+### Issue: Empty Container Elements
+
+**Problem:** XSD validation fails with error like:
+```
+Element 'DataSources': Missing child element(s). Expected is ( DataSource ).
+```
+
+**Cause:** Empty container elements like `<DataSources />` or `<Actions />` are not allowed by the XSD schema. Container elements must either have at least one child element OR be omitted entirely.
+
+**Solution:** If a page doesn't need DataSources or Actions, simply omit the element entirely instead of including an empty one:
+
+```xml
+<!-- WRONG: Empty container elements -->
+<Page id="my-page">
+  <Regions>...</Regions>
+  <DataSources />  <!-- ❌ Not allowed - will fail validation -->
+  <Actions />      <!-- ❌ Not allowed - will fail validation -->
+</Page>
+
+<!-- CORRECT: Omit unused container elements -->
+<Page id="my-page">
+  <Regions>...</Regions>
+  <!-- No DataSources or Actions needed - just omit them entirely -->
+</Page>
+```
+
+**Note:** This applies to all container elements in the XSD schema that require child elements (DataSources, Actions, etc.)
+
 ### Issue: Component Not Found
 
 **Solution:** Register component in `src/lib/metadata/component-registry.ts`

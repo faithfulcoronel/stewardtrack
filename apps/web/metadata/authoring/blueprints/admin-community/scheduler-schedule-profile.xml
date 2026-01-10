@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+SCHEDULE PROFILE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the schedule profile/detail page for the scheduler module.
+Shows schedule information and list of occurrences.
+
+FEATURE: Schedule Profile
+- Display schedule details and summary
+- List schedule occurrences
+- Quick actions to edit or generate occurrences
+
+SERVICE HANDLERS:
+- admin-community.scheduler.schedules.profile.hero
+- admin-community.scheduler.schedules.profile.context
+- admin-community.scheduler.schedules.profile.summary
+- admin-community.scheduler.schedules.profile.occurrences
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/scheduler/schedules/profile"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="scheduler.core"
+  requiredPermissions="scheduler:view"
+  locale="en-US">
+
+  <Page id="admin-community-scheduler-schedule-profile">
+    <Title>Schedule Profile</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Schedule header with key metrics
+        -->
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="scheduleHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="scheduleHero.headline"/>
+            <Prop name="description" kind="binding" contract="scheduleHero.description"/>
+            <Prop name="metrics" kind="binding" contract="scheduleHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-schedule"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-schedules"/>
+          </Props>
+        </Component>
+
+        <!--
+        SCHEDULE SUMMARY: Key schedule information
+        -->
+        <Component id="schedule-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="columns" kind="static">2</Prop>
+            <Prop name="panels" kind="binding" contract="scheduleSummary.panels"/>
+          </Props>
+        </Component>
+
+        <!--
+        OCCURRENCES TABLE: List of schedule occurrences
+        -->
+        <Component id="occurrences-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Occurrences</Prop>
+            <Prop name="description" kind="static">Generated event occurrences from this schedule.</Prop>
+            <Prop name="rows" kind="binding" contract="scheduleOccurrences.rows"/>
+            <Prop name="columns" kind="binding" contract="scheduleOccurrences.columns"/>
+            <Prop name="actions" kind="binding" contract="scheduleOccurrences.actions"/>
+            <Prop name="emptyState" kind="binding" contract="scheduleOccurrences.emptyState"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="scheduleHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Module eyebrow text"/>
+          <Field name="headline" path="headline" description="Schedule name"/>
+          <Field name="description" path="description" description="Schedule description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.profile.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedule context -->
+      <DataSource id="scheduleContext" kind="service">
+        <Contract>
+          <Field name="schedule" path="schedule" description="Full schedule object"/>
+          <Field name="isNew" path="isNew" description="Is new schedule flag"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.profile.context</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedule summary panels -->
+      <DataSource id="scheduleSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary" description="Schedule summary panels for AdminDetailPanels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.profile.summary</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedule occurrences -->
+      <DataSource id="scheduleOccurrences" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Occurrence rows"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="actions" path="actions" description="Row actions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state config"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.profile.occurrences</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="edit-schedule" kind="link">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Edit schedule</Label>
+          <UrlTemplate>/admin/community/planning/scheduler/schedules/{{scheduleContext.schedule.id}}/edit</UrlTemplate>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-schedules" kind="link">
+        <Config>
+          <Label>Back to schedules</Label>
+          <Url>/admin/community/planning/scheduler/schedules</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="generate-occurrences" kind="metadata.service">
+        <RBAC requirePermissions="scheduler:manage" />
+        <Config>
+          <Label>Generate occurrences</Label>
+          <Handler>admin-community.scheduler.schedules.generateOccurrences</Handler>
+          <Variant>outline</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

@@ -12,8 +12,6 @@ import type { AuditService } from '@/services/AuditService';
 import type { RolePermission } from '@/models/rbac.model';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { isCachedSuperAdmin } from '@/lib/auth/authCache';
-import { UnauthorizedError } from '@/utils/errorHandler';
 
 export interface IRolePermissionAdapter {
   assign(roleId: string, permissionId: string): Promise<RolePermission>;
@@ -221,16 +219,11 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
   }
 
   /**
-   * Assign permission with elevated access (bypasses RLS) for super admin operations.
-   * This allows assigning permissions to roles in any tenant.
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Assign permission with elevated access (bypasses RLS).
+   * This allows assigning permissions to roles in any tenant using the service client.
+   * Used during registration and system operations where user context may not be available.
    */
   async assignWithElevatedAccess(roleId: string, permissionId: string, tenantId: string): Promise<RolePermission> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Assigning permissions with elevated access requires super admin privileges');
-    }
-
     const supabase = await getSupabaseServiceClient();
 
     // Check if already assigned
@@ -258,17 +251,12 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
 
   /**
    * Find by role and permission with elevated access (bypasses RLS).
-   * @throws UnauthorizedError if the current user is not a super admin
+   * Uses the service client for system operations.
    */
   async findByRoleAndPermissionWithElevatedAccess(
     roleId: string,
     permissionId: string
   ): Promise<RolePermission | null> {
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Finding role permissions with elevated access requires super admin privileges');
-    }
-
     const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
@@ -291,20 +279,16 @@ export class RolePermissionAdapter implements IRolePermissionAdapter {
    * 1. Using upsert (INSERT ... ON CONFLICT DO NOTHING) to avoid check-then-insert race conditions
    * 2. Batching multiple assignments into a single query
    *
+   * Uses the service client for system operations.
+   *
    * @param assignments Array of role-permission assignments to create
    * @returns Count of inserted and skipped assignments
-   * @throws UnauthorizedError if the current user is not a super admin
    */
   async batchAssignWithElevatedAccess(
     assignments: Array<{ roleId: string; permissionId: string; tenantId: string }>
   ): Promise<{ inserted: number; skipped: number }> {
     if (assignments.length === 0) {
       return { inserted: 0, skipped: 0 };
-    }
-
-    const isSuperAdmin = await isCachedSuperAdmin();
-    if (!isSuperAdmin) {
-      throw new UnauthorizedError('Batch assigning permissions with elevated access requires super admin privileges');
     }
 
     const supabase = await getSupabaseServiceClient();
