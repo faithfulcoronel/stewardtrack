@@ -93,12 +93,14 @@ export class MemberService implements CrudService<Member> {
     }
 
     // Send notification if member has a linked user account
+    // IMPORTANT: Use original input data for notification, not encrypted member from DB
     if (member.user_id) {
-      await this.sendMemberJoinedNotification(member);
+      await this.sendMemberJoinedNotification(member, data);
     }
 
     // Auto-sync birthday and anniversary to calendar
-    await this.syncMemberCalendarEvents(member);
+    // IMPORTANT: Use original input data for calendar events (plain text names)
+    await this.syncMemberCalendarEvents(member, data);
 
     return member;
   }
@@ -124,8 +126,9 @@ export class MemberService implements CrudService<Member> {
     }
 
     // Auto-sync birthday and anniversary to calendar if they were updated
+    // IMPORTANT: Use original input data for calendar events (plain text names)
     if (data.birthday !== undefined || data.anniversary !== undefined) {
-      await this.syncMemberCalendarEvents(member);
+      await this.syncMemberCalendarEvents(member, data);
     }
 
     return member;
@@ -512,12 +515,22 @@ export class MemberService implements CrudService<Member> {
 
   /**
    * Send notification when a new member joins (has linked user account)
+   * @param member - The created member object (has encrypted fields from DB)
+   * @param originalData - Original input data with plain text names (not encrypted)
    */
-  private async sendMemberJoinedNotification(member: Member): Promise<void> {
+  private async sendMemberJoinedNotification(
+    member: Member,
+    originalData: Partial<Member>
+  ): Promise<void> {
     try {
       if (!member.user_id || !member.tenant_id) {
         return;
       }
+
+      // Use original input data for display (plain text, not encrypted)
+      const firstName = originalData.first_name || 'Member';
+      const lastName = originalData.last_name || '';
+      const displayName = [firstName, lastName].filter(Boolean).join(' ');
 
       await this.notificationBus.publish({
         id: randomUUID(),
@@ -527,16 +540,16 @@ export class MemberService implements CrudService<Member> {
         tenantId: member.tenant_id,
         recipient: {
           userId: member.user_id,
-          email: member.email || undefined,
-          phone: member.contact_number || undefined,
+          email: originalData.email || undefined,
+          phone: originalData.contact_number || undefined,
         },
         payload: {
           title: 'Welcome to the Community',
-          message: `Welcome ${member.first_name}! Your member profile has been created. Explore your dashboard to see your giving history, events, and more.`,
-          memberName: `${member.first_name} ${member.last_name}`,
+          message: `Welcome ${firstName}! Your member profile has been created. Explore your dashboard to see your giving history, events, and more.`,
+          memberName: displayName,
           memberId: member.id,
           actionType: 'redirect',
-          actionPayload: '/member/dashboard',
+          actionPayload: '/admin/my-profile',
         },
         channels: ['in_app', 'email'],
       });
@@ -548,16 +561,29 @@ export class MemberService implements CrudService<Member> {
 
   /**
    * Sync member's birthday and anniversary to the calendar
+   * @param member - The member object from DB (has encrypted fields)
+   * @param originalData - Original input data with plain text names (not encrypted)
    */
-  private async syncMemberCalendarEvents(member: Member): Promise<void> {
+  private async syncMemberCalendarEvents(
+    member: Member,
+    originalData: Partial<Member>
+  ): Promise<void> {
     try {
+      // Use original input data for names (plain text, not encrypted)
+      const firstName = originalData.first_name || member.first_name || '';
+      const lastName = originalData.last_name || member.last_name || '';
+
+      // Get birthday from original data if provided, otherwise from member
+      const birthday = originalData.birthday ?? member.birthday;
+      const anniversary = originalData.anniversary ?? member.anniversary;
+
       // Sync birthday
-      if (member.birthday) {
+      if (birthday) {
         await this.planningService.syncMemberBirthdayEvent({
           id: member.id!,
-          first_name: member.first_name,
-          last_name: member.last_name,
-          birthday: member.birthday,
+          first_name: firstName,
+          last_name: lastName,
+          birthday: birthday,
         });
       } else {
         // Remove birthday event if date was cleared
@@ -565,12 +591,12 @@ export class MemberService implements CrudService<Member> {
       }
 
       // Sync anniversary
-      if (member.anniversary) {
+      if (anniversary) {
         await this.planningService.syncMemberAnniversaryEvent({
           id: member.id!,
-          first_name: member.first_name,
-          last_name: member.last_name,
-          anniversary: member.anniversary,
+          first_name: firstName,
+          last_name: lastName,
+          anniversary: anniversary,
         });
       } else {
         // Remove anniversary event if date was cleared

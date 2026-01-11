@@ -8,7 +8,35 @@ import { Loader2, CheckCircle2, AlertCircle, Shield, Clock, Sparkles, ArrowLeft 
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { svgPaths } from '@/components/landing/svg-paths';
+
+// Common church denominations
+const DENOMINATION_OPTIONS = [
+  { value: 'UCCP', label: 'United Church of Christ in the Philippines (UCCP)' },
+  { value: 'Catholic', label: 'Roman Catholic' },
+  { value: 'Baptist', label: 'Baptist' },
+  { value: 'Methodist', label: 'Methodist' },
+  { value: 'Presbyterian', label: 'Presbyterian' },
+  { value: 'Pentecostal', label: 'Pentecostal' },
+  { value: 'Evangelical', label: 'Evangelical' },
+  { value: 'Lutheran', label: 'Lutheran' },
+  { value: 'Anglican', label: 'Anglican / Episcopal' },
+  { value: 'Seventh-day Adventist', label: 'Seventh-day Adventist' },
+  { value: 'Church of Christ', label: 'Church of Christ' },
+  { value: 'Assemblies of God', label: 'Assemblies of God' },
+  { value: 'Iglesia ni Cristo', label: 'Iglesia ni Cristo' },
+  { value: 'Born Again', label: 'Born Again Christian' },
+  { value: 'Non-denominational', label: 'Non-denominational' },
+  { value: 'Interdenominational', label: 'Interdenominational' },
+  { value: 'Other', label: 'Other' },
+];
 import type { ProductOffering, ProductOfferingPrice } from '@/models/productOffering.model';
 import { formatCurrency, SupportedCurrency, PRIMARY_CURRENCY } from '@/lib/currency';
 
@@ -76,6 +104,7 @@ function RegisterFormContent() {
     password: '',
     confirmPassword: '',
     churchName: '',
+    denomination: '',
     firstName: '',
     lastName: '',
   });
@@ -612,6 +641,35 @@ function RegisterFormContent() {
                     <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.churchName}
+                    </p>
+                  )}
+                </div>
+
+                {/* Denomination */}
+                <div className="space-y-2">
+                  <label htmlFor="denomination" className="block text-sm font-medium text-foreground">
+                    Denomination
+                  </label>
+                  <Select
+                    value={formData.denomination}
+                    onValueChange={(value) => handleInputChange('denomination', value)}
+                    disabled={isRegistering}
+                  >
+                    <SelectTrigger className={`h-11 ${errors.denomination ? 'border-destructive' : ''}`}>
+                      <SelectValue placeholder="Select denomination (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DENOMINATION_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.denomination && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.denomination}
                     </p>
                   )}
                 </div>

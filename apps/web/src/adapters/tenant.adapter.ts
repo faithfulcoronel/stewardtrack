@@ -112,12 +112,18 @@ export class TenantAdapter
     status,
     subscription_tier,
     subscription_status,
+    subscription_offering_id,
     billing_cycle,
     subscription_end_date,
     currency,
     created_by,
     created_at,
-    updated_at
+    updated_at,
+    denomination,
+    setup_status,
+    setup_completed_at,
+    setup_error,
+    admin_member_created
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
@@ -128,6 +134,31 @@ export class TenantAdapter
 
   protected override async onAfterUpdate(data: Tenant): Promise<void> {
     await this.auditService.logAuditEvent('update', 'tenant', data.id, data);
+  }
+
+  /**
+   * Override fetchById to skip tenant context check
+   * The tenants table doesn't have tenant_id - it IS the tenants table
+   */
+  public override async fetchById(id: string): Promise<Tenant | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw new Error(`Failed to fetch tenant: ${error.message}`);
+    }
+
+    return data as unknown as Tenant;
   }
 
   /**

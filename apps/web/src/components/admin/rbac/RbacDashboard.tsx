@@ -173,7 +173,7 @@ export function RbacDashboard() {
       {/* Header with Help */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">RBAC Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Access Control Management</h1>
           <p className="text-gray-600 mt-1">
             Role-Based Access Control for your church management system
           </p>

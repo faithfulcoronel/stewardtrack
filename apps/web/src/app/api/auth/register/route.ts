@@ -16,6 +16,7 @@ interface RegistrationRequest {
   firstName: string;
   lastName: string;
   offeringId: string;
+  denomination?: string;
 }
 
 /**
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       offeringId: body.offeringId,
+      denomination: body.denomination,
     });
 
     // Handle result

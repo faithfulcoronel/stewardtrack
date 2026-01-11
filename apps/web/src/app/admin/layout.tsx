@@ -10,6 +10,9 @@ import { TYPES } from "@/lib/types";
 import type { IMemberRepository } from "@/repositories/member.repository";
 import type { TenantService } from "@/services/TenantService";
 import type { AuthorizationService } from "@/services/AuthorizationService";
+import type { MemberService } from "@/services/MemberService";
+import type { MembershipTypeService } from "@/services/MembershipTypeService";
+import type { MembershipStageService } from "@/services/MembershipStageService";
 
 export const dynamic = "force-dynamic";
 
@@ -74,23 +77,19 @@ export default async function AdminLayout({
 
   if (!authResult.authorized || !authResult.user) {
     // Get the current URL to redirect back after login
+    // x-url header is set by middleware and includes pathname + query string
     const headersList = await headers();
-    const pathname = headersList.get("x-pathname") || headersList.get("x-invoke-path");
-    const fullUrl = headersList.get("x-url") || headersList.get("referer");
+    const currentUrl = headersList.get("x-url");
+    const pathname = headersList.get("x-pathname");
 
-    // Try to extract the path from available headers
+    // Determine the redirect destination
     let redirectTo = "/admin";
-    if (pathname && pathname.startsWith("/admin")) {
+    if (currentUrl && currentUrl.startsWith("/admin")) {
+      // Prefer x-url as it includes query parameters
+      redirectTo = currentUrl;
+    } else if (pathname && pathname.startsWith("/admin")) {
+      // Fall back to pathname without query params
       redirectTo = pathname;
-    } else if (fullUrl) {
-      try {
-        const url = new URL(fullUrl);
-        if (url.pathname.startsWith("/admin")) {
-          redirectTo = url.pathname + url.search;
-        }
-      } catch {
-        // Invalid URL, use default
-      }
     }
 
     const loginUrl = redirectTo !== "/admin"
@@ -155,6 +154,97 @@ export default async function AdminLayout({
   if (!tenantId) {
     // No tenant context - redirect to unauthorized
     redirect("/unauthorized?reason=no_tenant");
+  }
+
+  // Check if tenant setup is complete and run recovery if needed
+  // This ensures features, permissions, and role assignments are properly configured
+  // even if the async registration tasks failed or were interrupted
+  try {
+    const setupResult = await tenantService.ensureSetupComplete(tenantId, user.id);
+
+    if (!setupResult.success) {
+      console.warn('[AdminLayout] Tenant setup check returned non-success:', setupResult);
+    } else if (setupResult.featuresAdded > 0 || setupResult.permissionsDeployed > 0) {
+      console.log('[AdminLayout] Tenant setup auto-recovery completed:', {
+        featuresAdded: setupResult.featuresAdded,
+        permissionsDeployed: setupResult.permissionsDeployed,
+        roleAssignmentsCreated: setupResult.roleAssignmentsCreated,
+      });
+    }
+  } catch (setupError) {
+    // Log but don't block - user can still use the app even if setup check fails
+    console.error('[AdminLayout] Failed to check/complete tenant setup:', setupError);
+  }
+
+  // Create member profile for tenant admin if not exists (part of registration recovery)
+  // This only applies to the user who created the tenant (tenant admin during registration)
+  // Other users should have member profiles created through the normal member management flow
+  // Uses admin_member_created flag to prevent duplicate attempts
+  try {
+    // Check if current user is the tenant creator (tenant admin from registration)
+    const tenant = await tenantService.findById(tenantId);
+
+    // Only process if: user is tenant creator AND admin member flag hasn't been set yet
+    if (tenant && tenant.created_by === user.id && !tenant.admin_member_created) {
+      const memberService = container.get<MemberService>(TYPES.MemberService);
+
+      // Double-check: Look for any existing member linked to this user_id in this tenant
+      // This prevents duplicates for existing tenants where flag wasn't set
+      // IMPORTANT: Must include tenant_id filter for RLS policy to work correctly
+      const existingMembersResult = await memberService.findAll({
+        filters: {
+          tenant_id: { operator: 'eq', value: tenantId },
+          user_id: { operator: 'eq', value: user.id },
+        },
+      });
+      const existingMembers = existingMembersResult.data || [];
+
+      if (existingMembers.length > 0) {
+        // Member already exists - just update the flag
+        console.log(`[AdminLayout] Found existing member ${existingMembers[0].id} for tenant admin ${user.id}, updating flag`);
+        await tenantService.markAdminMemberCreated(tenantId);
+      } else if (!memberData) {
+        // No member exists - create one
+        const membershipTypeService = container.get<MembershipTypeService>(TYPES.MembershipTypeService);
+        const membershipStageService = container.get<MembershipStageService>(TYPES.MembershipStageService);
+
+        // Get default membership type and stage (seeded during onboarding)
+        const membershipTypes = await membershipTypeService.getActive();
+        const membershipStages = await membershipStageService.getActive();
+
+        if (membershipTypes.length > 0 && membershipStages.length > 0) {
+          const firstName = (user.user_metadata?.first_name as string) || user.email?.split('@')[0] || 'User';
+          const lastName = (user.user_metadata?.last_name as string) || '';
+
+          const newMember = await memberService.create({
+            tenant_id: tenantId,
+            first_name: firstName,
+            last_name: lastName,
+            email: user.email || undefined,
+            membership_type_id: membershipTypes[0].id,
+            membership_status_id: membershipStages[0].id,
+            membership_date: new Date().toISOString().split('T')[0],
+            gender: 'other',
+            marital_status: 'single',
+            user_id: user.id,
+            linked_at: new Date().toISOString(),
+          });
+
+          console.log(`[AdminLayout] Created member profile ${newMember.id} for tenant admin ${user.id}`);
+
+          // Mark admin member as created to prevent duplicate attempts
+          await tenantService.markAdminMemberCreated(tenantId);
+
+          // Update displayName with new member data
+          displayName = [firstName, lastName].filter(Boolean).join(' ') || displayName;
+        } else {
+          console.warn('[AdminLayout] Cannot create member: no active membership types/stages found');
+        }
+      }
+    }
+  } catch (memberError) {
+    // Log but don't block - user can still use the app
+    console.error('[AdminLayout] Failed to create/check member profile:', memberError);
   }
 
   // Use static menu system - filter using AccessGate

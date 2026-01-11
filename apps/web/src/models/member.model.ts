@@ -19,6 +19,15 @@ export interface FamilyInput {
   isPrimary?: boolean;
 }
 
+export type VisitorFollowUpStatus = 'pending' | 'contacted' | 'scheduled_visit' | 'no_response' | 'converted' | 'declined';
+
+export interface ReligiousDenomination {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+}
+
 export interface Member extends BaseModel {
   first_name: string;
   last_name: string;
@@ -48,7 +57,34 @@ export interface Member extends BaseModel {
   gender: 'male' | 'female' | 'other';
   marital_status: 'single' | 'married' | 'widowed' | 'divorced' | 'engaged';
   occupation?: string | null;
+
+  // Spiritual journey / baptism fields
   baptism_date?: string | null;
+  date_trusted_christ?: string | null;
+  baptized_by_immersion?: boolean | null;
+  baptism_place?: string | null;
+  baptism_church?: string | null;
+  baptized_by?: string | null;
+  testimony?: string | null;
+
+  // Religious denomination
+  denomination_id?: string | null;
+  previous_denomination?: string | null;
+  denomination?: ReligiousDenomination | null;
+
+  // Visitor information
+  is_visitor?: boolean | null;
+  visitor_invited_by_member_id?: string | null;
+  visitor_invited_by_name?: string | null;
+  visitor_first_visit_date?: string | null;
+  visitor_how_heard?: string | null;
+  visitor_interests?: string[] | null;
+  visitor_follow_up_status?: VisitorFollowUpStatus | null;
+  visitor_follow_up_notes?: string | null;
+  visitor_converted_to_member_date?: string | null;
+  /** The member who invited this visitor (populated from visitor_invited_by_member_id) */
+  visitor_invited_by?: Pick<Member, 'id' | 'first_name' | 'last_name'> | null;
+
   spiritual_gifts?: string[] | null;
   ministry_interests?: string[] | null;
   emergency_contact_name?: string | null;

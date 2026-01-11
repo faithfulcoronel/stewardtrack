@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx cap sync:*)",
+      "Bash(./gradlew.bat assembleDebug)",
+      "Bash(ls:*)"
+    ]
+  }
+}

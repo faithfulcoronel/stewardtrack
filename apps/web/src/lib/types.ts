@@ -254,7 +254,15 @@ export const TYPES = {
   MemberDiscipleshipMilestoneService: Symbol.for('MemberDiscipleshipMilestoneService'),
   RequestContext: Symbol.for('RequestContext'),
   TenantService: Symbol.for('TenantService'),
+  MemberService: Symbol.for('MemberService'),
+  MembershipTypeService: Symbol.for('MembershipTypeService'),
+  MembershipStageService: Symbol.for('MembershipStageService'),
   UserMemberLinkService: Symbol.for('UserMemberLinkService'),
+
+  // Religious Denomination
+  IReligiousDenominationAdapter: Symbol.for('IReligiousDenominationAdapter'),
+  IReligiousDenominationRepository: Symbol.for('IReligiousDenominationRepository'),
+  ReligiousDenominationService: Symbol.for('ReligiousDenominationService'),
   UserMemberLinkRepository: Symbol.for('UserMemberLinkRepository'),
   MemberInvitationRepository: Symbol.for('MemberInvitationRepository'),
 

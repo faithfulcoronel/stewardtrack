@@ -36,6 +36,9 @@ import { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlan
 import { DiscipleshipPathwayService } from '@/services/DiscipleshipPathwayService';
 import { MemberDiscipleshipMilestoneService } from '@/services/MemberDiscipleshipMilestoneService';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
+import { MemberService } from '@/services/MemberService';
+import { MembershipTypeService } from '@/services/MembershipTypeService';
+import { MembershipStageService } from '@/services/MembershipStageService';
 import { MemberProfileService } from '@/services/MemberProfileService';
 import { RolePermissionService } from '@/services/RolePermissionService';
 import { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
@@ -733,8 +736,34 @@ container.bind<IOnboardingProgressRepository>(TYPES.IOnboardingProgressRepositor
 // ==================== MEMBERSHIP TYPE & STAGE ====================
 container.bind<IMembershipTypeAdapter>(TYPES.IMembershipTypeAdapter).to(MembershipTypeAdapter).inRequestScope();
 container.bind<IMembershipTypeRepository>(TYPES.IMembershipTypeRepository).to(MembershipTypeRepository).inRequestScope();
+container.bind<MembershipTypeService>(TYPES.MembershipTypeService).to(MembershipTypeService).inRequestScope();
 container.bind<IMembershipStageAdapter>(TYPES.IMembershipStageAdapter).to(MembershipStageAdapter).inRequestScope();
 container.bind<IMembershipStageRepository>(TYPES.IMembershipStageRepository).to(MembershipStageRepository).inRequestScope();
+container.bind<MembershipStageService>(TYPES.MembershipStageService).to(MembershipStageService).inRequestScope();
+
+// ==================== RELIGIOUS DENOMINATION ====================
+import { ReligiousDenominationAdapter, type IReligiousDenominationAdapter } from '@/adapters/religiousDenomination.adapter';
+import { ReligiousDenominationRepository, type IReligiousDenominationRepository } from '@/repositories/religiousDenomination.repository';
+import { ReligiousDenominationService } from '@/services/ReligiousDenominationService';
+
+container.bind<IReligiousDenominationAdapter>(TYPES.IReligiousDenominationAdapter).to(ReligiousDenominationAdapter).inRequestScope();
+container.bind<IReligiousDenominationRepository>(TYPES.IReligiousDenominationRepository).to(ReligiousDenominationRepository).inRequestScope();
+container.bind<ReligiousDenominationService>(TYPES.ReligiousDenominationService).to(ReligiousDenominationService).inRequestScope();
+
+// ==================== ACCOUNT ADAPTER/REPOSITORY (MemberService dependency) ====================
+import { AccountAdapter, type IAccountAdapter } from '@/adapters/account.adapter';
+import { AccountRepository, type IAccountRepository } from '@/repositories/account.repository';
+container.bind<IAccountAdapter>(TYPES.IAccountAdapter).to(AccountAdapter).inRequestScope();
+container.bind<IAccountRepository>(TYPES.IAccountRepository).to(AccountRepository).inRequestScope();
+
+// ==================== FINANCIAL TRANSACTION ADAPTER/REPOSITORY (MemberService dependency) ====================
+import { FinancialTransactionAdapter, type IFinancialTransactionAdapter } from '@/adapters/financialTransaction.adapter';
+import { FinancialTransactionRepository, type IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+container.bind<IFinancialTransactionAdapter>(TYPES.IFinancialTransactionAdapter).to(FinancialTransactionAdapter).inRequestScope();
+container.bind<IFinancialTransactionRepository>(TYPES.IFinancialTransactionRepository).to(FinancialTransactionRepository).inRequestScope();
+
+// ==================== MEMBER SERVICE ====================
+container.bind<MemberService>(TYPES.MemberService).to(MemberService).inRequestScope();
 
 // ==================== FEATURE ONBOARDING ====================
 container.bind<FeatureOnboardingOrchestratorService>(TYPES.FeatureOnboardingOrchestratorService).to(FeatureOnboardingOrchestratorService).inRequestScope();

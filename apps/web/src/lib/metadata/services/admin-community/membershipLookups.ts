@@ -11,6 +11,9 @@ import { MembershipCenterService } from '@/services/MembershipCenterService';
 import { DiscipleshipPathwayAdapter } from '@/adapters/discipleshipPathway.adapter';
 import { DiscipleshipPathwayRepository } from '@/repositories/discipleshipPathway.repository';
 import { DiscipleshipPathwayService } from '@/services/DiscipleshipPathwayService';
+import { ReligiousDenominationAdapter } from '@/adapters/religiousDenomination.adapter';
+import { ReligiousDenominationRepository } from '@/repositories/religiousDenomination.repository';
+import { ReligiousDenominationService } from '@/services/ReligiousDenominationService';
 import type { ServiceDataSourceRequest } from '../types';
 import type { RequestContext } from '@/lib/server/context';
 import type { BaseAdapter } from '@/adapters/base.adapter';
@@ -19,6 +22,7 @@ import type { MembershipStage } from '@/models/membershipStage.model';
 import type { MembershipType } from '@/models/membershipType.model';
 import type { MembershipCenter } from '@/models/membershipCenter.model';
 import type { DiscipleshipPathway } from '@/models/discipleshipPathway.model';
+import type { ReligiousDenomination } from '@/models/religiousDenomination.model';
 import type { FormFieldOption } from '@/components/dynamic/admin/types';
 
 export type LookupItem = { id: string; value: string };
@@ -30,6 +34,7 @@ type StageRecord = Pick<MembershipStage, 'id' | 'name' | 'code' | 'sort_order'>;
 type TypeRecord = Pick<MembershipType, 'id' | 'name' | 'code' | 'sort_order'>;
 type CenterRecord = Pick<MembershipCenter, 'id' | 'name' | 'code' | 'sort_order' | 'is_primary'>;
 type PathwayRecord = Pick<DiscipleshipPathway, 'id' | 'name' | 'code' | 'display_order' | 'is_active'>;
+type DenominationRecord = Pick<ReligiousDenomination, 'id' | 'name' | 'code' | 'description' | 'sort_order'>;
 
 export interface LookupServiceInstance<TRecord = unknown> {
   getActive: () => Promise<TRecord[]>;
@@ -137,6 +142,16 @@ export function createDiscipleshipPathwayService(
   return new DiscipleshipPathwayService(repository) as LookupServiceInstance<PathwayRecord>;
 }
 
+export function createReligiousDenominationService(
+  context: RequestContext,
+  auditService: SupabaseAuditService,
+): LookupServiceInstance<DenominationRecord> {
+  const adapter = new ReligiousDenominationAdapter(auditService);
+  applyRequestContext(adapter, context);
+  const repository = new ReligiousDenominationRepository(adapter);
+  return new ReligiousDenominationService(repository) as LookupServiceInstance<DenominationRecord>;
+}
+
 function sortCenters(records: CenterRecord[]): CenterRecord[] {
   return records.slice().sort((a, b) => {
     const primaryA = a.is_primary ? 0 : 1;
@@ -178,6 +193,11 @@ const membershipLookupDefinitions: Record<string, MembershipLookupDefinition> = 
     id: 'discipleship_pathway',
     fallbackLabel: 'Discipleship pathway',
     createService: createDiscipleshipPathwayService,
+  },
+  'religious.denomination': {
+    id: 'religious.denomination',
+    fallbackLabel: 'Denomination',
+    createService: createReligiousDenominationService,
   },
 };
 

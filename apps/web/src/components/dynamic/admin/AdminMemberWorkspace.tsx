@@ -184,6 +184,7 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = React.useTransition();
 
   // Get the current tab from URL, defaulting to the first tab
   const defaultTab = tabs[0]?.id ?? "overview";
@@ -193,29 +194,50 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
   const validTabIds = tabs.map((tab) => tab.id);
   const activeTab = validTabIds.includes(currentTab) ? currentTab : defaultTab;
 
+  // Optimistic tab state for immediate feedback
+  const [optimisticTab, setOptimisticTab] = React.useState(activeTab);
+
+  // Sync optimistic tab with actual tab when URL changes
+  React.useEffect(() => {
+    setOptimisticTab(activeTab);
+  }, [activeTab]);
+
   const handleTabChange = React.useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value === defaultTab) {
-        // Remove tab param if it's the default to keep URL clean
-        params.delete("tab");
-      } else {
-        params.set("tab", value);
-      }
-      const queryString = params.toString();
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-      router.replace(newUrl, { scroll: false });
+      // Immediately update the optimistic tab for instant feedback
+      setOptimisticTab(value);
+
+      // Use startTransition to keep UI responsive during URL update
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value === defaultTab) {
+          // Remove tab param if it's the default to keep URL clean
+          params.delete("tab");
+        } else {
+          params.set("tab", value);
+        }
+        const queryString = params.toString();
+        const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+        router.replace(newUrl, { scroll: false });
+      });
     },
     [searchParams, pathname, router, defaultTab],
   );
 
   return (
     <section className="space-y-6">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+      <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList>
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id}>
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className={isPending && optimisticTab === tab.id ? "opacity-70" : ""}
+            >
               {tab.label}
+              {isPending && optimisticTab === tab.id && (
+                <span className="ml-2 inline-block size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -226,7 +248,7 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
           );
 
           return (
-            <TabsContent key={tab.id} value={tab.id} className="space-y-6">
+            <TabsContent key={tab.id} value={tab.id} className={`space-y-6 ${isPending ? "opacity-70 transition-opacity" : ""}`}>
               {tab.description && (
                 <p className="text-sm text-muted-foreground/90">{tab.description}</p>
               )}
@@ -507,6 +529,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = React.useTransition();
 
   // Get the current tab from URL, defaulting to the first tab
   const defaultTab = tabs[0]?.id ?? "overview";
@@ -516,18 +539,32 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   const validTabIds = tabs.map((tab) => tab.id);
   const activeTab = validTabIds.includes(currentTab) ? currentTab : defaultTab;
 
+  // Optimistic tab state for immediate feedback
+  const [optimisticTab, setOptimisticTab] = React.useState(activeTab);
+
+  // Sync optimistic tab with actual tab when URL changes
+  React.useEffect(() => {
+    setOptimisticTab(activeTab);
+  }, [activeTab]);
+
   const handleTabChange = React.useCallback(
     (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value === defaultTab) {
-        // Remove tab param if it's the default to keep URL clean
-        params.delete("tab");
-      } else {
-        params.set("tab", value);
-      }
-      const queryString = params.toString();
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-      router.replace(newUrl, { scroll: false });
+      // Immediately update the optimistic tab for instant feedback
+      setOptimisticTab(value);
+
+      // Use startTransition to keep UI responsive during URL update
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value === defaultTab) {
+          // Remove tab param if it's the default to keep URL clean
+          params.delete("tab");
+        } else {
+          params.set("tab", value);
+        }
+        const queryString = params.toString();
+        const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+        router.replace(newUrl, { scroll: false });
+      });
     },
     [searchParams, pathname, router, defaultTab],
   );
@@ -1202,17 +1239,24 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
             </Alert>
           )}
 
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList>
               {tabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id}>
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={isPending && optimisticTab === tab.id ? "opacity-70" : ""}
+                >
                   {tab.label}
+                  {isPending && optimisticTab === tab.id && (
+                    <span className="ml-2 inline-block size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
 
             {groupedTabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className="space-y-6">
+              <TabsContent key={tab.id} value={tab.id} className={`space-y-6 ${isPending ? "opacity-70 transition-opacity" : ""}`}>
                 {tab.description && <p className="text-sm text-muted-foreground/90">{tab.description}</p>}
 
                 {tab.panelSections.map((section) => (

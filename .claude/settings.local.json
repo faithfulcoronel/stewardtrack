@@ -97,7 +97,8 @@
       "Bash(Select-Object FullName)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm --filter @stewardtrack/web exec tsc:*)",
-      "Bash(pnpm --filter @stewardtrack/web lint:*)"
+      "Bash(pnpm --filter @stewardtrack/web lint:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

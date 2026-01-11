@@ -553,6 +553,506 @@ Springfield, IL 62704</Value>
                       </Array>
                     </Field>
                   </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>spiritual-journey</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Spiritual Journey</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>faith-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Faith Background</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Information about faith journey and religious background.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>dateTrustedChrist</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Approx. Date You Trusted Christ</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>date</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>denominationId</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Religious Denomination</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="dataSource">
+                                  <Value>religious_denominations</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>previousDenomination</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Previous Denomination</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="placeholder">
+                                  <Value>If applicable</Value>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>baptism-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Baptism Information</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Details about baptism by immersion.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>baptizedByImmersion</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Have you been baptized by immersion?</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Yes</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>true</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>No</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>false</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>baptismDate</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Date of Baptism</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>date</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>baptismPlace</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Place of Baptism</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>baptismChurch</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Church of Baptism</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>baptizedBy</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Baptized by Whom</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>testimony-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Testimony</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Personal testimony or salvation story.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>testimony</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Your Testimony</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>textarea</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>full</Value>
+                                </Field>
+                                <Field name="placeholder">
+                                  <Value>Share your personal testimony or salvation story...</Value>
+                                </Field>
+                                <Field name="rows">
+                                  <Value>6</Value>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
+                  <Object>
+                    <Field name="id">
+                      <Value>visitor-info</Value>
+                    </Field>
+                    <Field name="label">
+                      <Value>Visitor Info</Value>
+                    </Field>
+                    <Field name="sections">
+                      <Array>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>visitor-status-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Visitor Status</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Information for visitors who are not yet members.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>isVisitor</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Is this person a visitor?</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Yes</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>true</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>No</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>false</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorFirstVisitDate</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>First Visit Date</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>date</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorInvitedByName</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Who Invited You?</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>text</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="placeholder">
+                                  <Value>Name of person who invited you</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorHowHeard</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>How did you hear about us?</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Friend or Family</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>friend_family</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Social Media</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>social_media</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Website / Online Search</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>website</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Drove / Walked By</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>drove_by</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Community Event</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>event</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Other</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>other</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                        <Object>
+                          <Field name="kind">
+                            <Value>form</Value>
+                          </Field>
+                          <Field name="id">
+                            <Value>visitor-follow-up-section</Value>
+                          </Field>
+                          <Field name="title">
+                            <Value>Follow-up Information</Value>
+                          </Field>
+                          <Field name="description">
+                            <Value>Track visitor follow-up status and notes.</Value>
+                          </Field>
+                          <Field name="fields">
+                            <Array>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorFollowUpStatus</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Follow-up Status</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>select</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                                <Field name="options">
+                                  <Array>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Pending</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>pending</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Contacted</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>contacted</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Scheduled Visit</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>scheduled_visit</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>No Response</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>no_response</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Converted to Member</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>converted</Value>
+                                      </Field>
+                                    </Object>
+                                    <Object>
+                                      <Field name="label">
+                                        <Value>Declined</Value>
+                                      </Field>
+                                      <Field name="value">
+                                        <Value>declined</Value>
+                                      </Field>
+                                    </Object>
+                                  </Array>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorConvertedToMemberDate</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Date Became Member</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>date</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>half</Value>
+                                </Field>
+                              </Object>
+                              <Object>
+                                <Field name="name">
+                                  <Value>visitorFollowUpNotes</Value>
+                                </Field>
+                                <Field name="label">
+                                  <Value>Follow-up Notes</Value>
+                                </Field>
+                                <Field name="type">
+                                  <Value>textarea</Value>
+                                </Field>
+                                <Field name="colSpan">
+                                  <Value>full</Value>
+                                </Field>
+                                <Field name="placeholder">
+                                  <Value>Notes about follow-up attempts and conversations...</Value>
+                                </Field>
+                              </Object>
+                            </Array>
+                          </Field>
+                        </Object>
+                      </Array>
+                    </Field>
+                  </Object>
                 </Array>
               </Field>
             </Object>
