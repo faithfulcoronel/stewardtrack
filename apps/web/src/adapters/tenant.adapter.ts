@@ -48,6 +48,12 @@ export interface TenantAdminInfo {
   last_name: string;
 }
 
+export interface PublicTenantInfo {
+  id: string;
+  name: string;
+  denomination: string | null;
+}
+
 export interface TenantCleanupResult {
   success: boolean;
   deletedRecords: {
@@ -87,6 +93,9 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
   revokeAllFeatureGrants(tenantId: string): Promise<void>;
   getPaymentFailedCount(tenantId: string): Promise<number>;
+
+  // Public registration methods
+  getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
 }
 
 @injectable()
@@ -685,5 +694,33 @@ export class TenantAdapter
     }
 
     return data?.payment_failed_count || 0;
+  }
+
+  // ==================== PUBLIC REGISTRATION METHODS ====================
+
+  /**
+   * Get public tenant information for member registration.
+   * Only returns non-sensitive tenant details (id, name, denomination).
+   * Uses service role to bypass RLS for public access.
+   */
+  async getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { data, error } = await serviceSupabase
+      .from('tenants')
+      .select('id, name, denomination')
+      .eq('id', tenantId)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw new Error(`Failed to fetch tenant info: ${error.message}`);
+    }
+
+    return data as unknown as PublicTenantInfo;
   }
 }

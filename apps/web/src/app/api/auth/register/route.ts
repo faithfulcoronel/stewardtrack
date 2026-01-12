@@ -17,6 +17,50 @@ interface RegistrationRequest {
   lastName: string;
   offeringId: string;
   denomination?: string;
+  turnstileToken?: string;
+}
+
+/**
+ * Verify Cloudflare Turnstile token
+ */
+async function verifyTurnstileToken(token: string): Promise<{ success: boolean; error?: string }> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secretKey) {
+    console.warn('[Register API] TURNSTILE_SECRET_KEY not configured, skipping verification');
+    return { success: true };
+  }
+
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: secretKey,
+        response: token,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      console.error('[Register API] Turnstile verification failed:', result['error-codes']);
+      return {
+        success: false,
+        error: 'Security verification failed. Please try again.'
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Register API] Turnstile verification error:', error);
+    return {
+      success: false,
+      error: 'Security verification failed. Please try again.'
+    };
+  }
 }
 
 /**
@@ -52,6 +96,23 @@ export async function POST(request: NextRequest) {
       console.error('[Register API] JSON parse error:', parseError);
       return NextResponse.json(
         { success: false, error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    // Verify Turnstile token if provided
+    if (body.turnstileToken) {
+      const turnstileResult = await verifyTurnstileToken(body.turnstileToken);
+      if (!turnstileResult.success) {
+        return NextResponse.json(
+          { success: false, error: turnstileResult.error || 'Security verification failed' },
+          { status: 400 }
+        );
+      }
+    } else if (process.env.TURNSTILE_SECRET_KEY) {
+      // If Turnstile is configured but no token provided, reject the request
+      return NextResponse.json(
+        { success: false, error: 'Security verification required' },
         { status: 400 }
       );
     }

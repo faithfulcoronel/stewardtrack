@@ -22,6 +22,7 @@ export const TYPES = {
 
   // Registration Service
   RegistrationService: Symbol.for('RegistrationService'),
+  PublicMemberRegistrationService: Symbol.for('PublicMemberRegistrationService'),
 
   // Authorization Service
   AuthorizationService: Symbol.for('AuthorizationService'),

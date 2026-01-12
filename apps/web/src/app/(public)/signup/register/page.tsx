@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Loader2, CheckCircle2, AlertCircle, Shield, Clock, Sparkles, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -114,6 +115,7 @@ function RegisterFormContent() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [offeringDiscount, setOfferingDiscount] = useState<OfferingDiscount | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -236,6 +238,11 @@ function RegisterFormContent() {
       newErrors.lastName = 'Last name is required';
     }
 
+    // Turnstile validation
+    if (!turnstileToken) {
+      newErrors.turnstile = 'Please complete the security check';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -276,6 +283,7 @@ function RegisterFormContent() {
         isTrial,
         isFree,
         priceIsZero,
+        turnstileToken,
       };
 
       // Encode registration data as base64 for URL-safe transmission
@@ -782,6 +790,38 @@ function RegisterFormContent() {
                     <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                {/* Cloudflare Turnstile CAPTCHA */}
+                <div className="space-y-2">
+                  <div className="flex justify-center">
+                    <Turnstile
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                      onSuccess={(token) => {
+                        setTurnstileToken(token);
+                        if (errors.turnstile) {
+                          setErrors({ ...errors, turnstile: '' });
+                        }
+                      }}
+                      onError={() => {
+                        setTurnstileToken(null);
+                        setErrors({ ...errors, turnstile: 'Security check failed. Please try again.' });
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken(null);
+                      }}
+                      options={{
+                        theme: 'light',
+                        size: 'normal',
+                      }}
+                    />
+                  </div>
+                  {errors.turnstile && (
+                    <p className="text-sm text-destructive flex items-center justify-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.turnstile}
                     </p>
                   )}
                 </div>

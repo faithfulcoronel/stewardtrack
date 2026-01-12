@@ -20,6 +20,7 @@ import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
+import { PublicMemberRegistrationService } from '@/services/PublicMemberRegistrationService';
 import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
@@ -387,6 +388,11 @@ container
 container
   .bind<RegistrationService>(TYPES.RegistrationService)
   .to(RegistrationService)
+  .inRequestScope();
+
+container
+  .bind<PublicMemberRegistrationService>(TYPES.PublicMemberRegistrationService)
+  .to(PublicMemberRegistrationService)
   .inRequestScope();
 
 container

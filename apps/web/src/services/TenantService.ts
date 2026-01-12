@@ -1,7 +1,7 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
-import type { ITenantRepository } from '@/repositories/tenant.repository';
+import type { ITenantRepository, PublicTenantInfo } from '@/repositories/tenant.repository';
 import type { LicensingService } from '@/services/LicensingService';
 import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 import type { Tenant } from '@/models/tenant.model';
@@ -272,6 +272,16 @@ export class TenantService {
     await this.repo.update(tenantId, { admin_member_created: true } as Partial<Tenant>);
     console.log(`[TenantService] Marked admin member as created for tenant ${tenantId}`);
   }
+
+  // ==================== PUBLIC REGISTRATION METHODS ====================
+
+  /**
+   * Get public tenant information for member registration.
+   * Only returns non-sensitive tenant details (id, name, denomination).
+   */
+  getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
+    return this.repo.getPublicTenantInfo(tenantId);
+  }
 }
 
-export type { Tenant };
+export type { Tenant, PublicTenantInfo };

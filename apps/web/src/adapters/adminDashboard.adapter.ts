@@ -156,6 +156,7 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     return {
       userName,
       userEmail,
+      tenantId,
       tenantName,
       tenantLogoUrl,
       lastSignIn: null, // Will be filled from auth user data
