@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:admin" locale="en-US">
+  <Page id="admin-finance-accounts-manage">
+    <Title>Manage account</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="form-header" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="formHeader.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="formHeader.headline"/>
+            <Prop name="description" kind="binding" contract="formHeader.description"/>
+          </Props>
+        </Component>
+        <Component id="account-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Account information</Prop>
+            <Prop name="description" kind="static">Enter the account details for the chart of accounts.</Prop>
+            <Prop name="fields" kind="binding" contract="accountForm.fields"/>
+            <Prop name="values" kind="binding" contract="accountForm.values"/>
+            <Prop name="validation" kind="binding" contract="accountForm.validation"/>
+            <Prop name="submitAction" kind="action" actionId="save-account"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="formHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Form eyebrow text"/>
+          <Field name="headline" path="headline" description="Form headline"/>
+          <Field name="description" path="description" description="Form description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.manage.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Form field definitions"/>
+          <Field name="values" path="values" description="Current form values"/>
+          <Field name="validation" path="validation" description="Validation rules"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-account" kind="submit">
+        <Config>
+          <Label>Save account</Label>
+          <Handler>admin-finance.accounts.save</Handler>
+          <SuccessUrl>/admin/finance/accounts</SuccessUrl>
+          <SuccessMessage>Account saved successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/finance/accounts</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

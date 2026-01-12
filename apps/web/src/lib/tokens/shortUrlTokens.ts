@@ -18,6 +18,7 @@
  * - donation: Donation records
  * - care: Care plans
  * - discipleship: Discipleship plans
+ * - tenant: Tenant for public member registration
  */
 
 // Entity type codes (short codes for compactness)
@@ -31,6 +32,7 @@ const ENTITY_TYPE_CODES: Record<string, string> = {
   discipleship: "P",
   goal: "O",
   invitation: "I",
+  tenant: "T", // For public member registration
 };
 
 // Reverse mapping for decoding
@@ -191,4 +193,55 @@ export function isValidEntityType(type: string): type is EntityType {
  */
 export function getSupportedEntityTypes(): EntityType[] {
   return Object.keys(ENTITY_TYPE_CODES) as EntityType[];
+}
+
+/**
+ * Encode a tenant ID for public member registration
+ *
+ * @param tenantId - The tenant's UUID
+ * @returns A short token string safe for URLs
+ *
+ * @example
+ * encodeTenantToken("56f5baf0-b7d9-4bdf-9416-547b1198e097")
+ * // Returns: "XYZabc123..."
+ */
+export function encodeTenantToken(tenantId: string): string {
+  return encodeShortUrlToken("tenant", tenantId);
+}
+
+/**
+ * Decode a tenant token back to tenant ID
+ *
+ * @param token - The encoded token
+ * @returns The tenant ID, or null if invalid
+ *
+ * @example
+ * decodeTenantToken("XYZabc123...")
+ * // Returns: "56f5baf0-b7d9-4bdf-9416-547b1198e097"
+ */
+export function decodeTenantToken(token: string): string | null {
+  const decoded = decodeShortUrlToken(token);
+  if (decoded?.type === "tenant") {
+    return decoded.id;
+  }
+  return null;
+}
+
+/**
+ * Generate the public member registration URL for a tenant
+ *
+ * @param tenantId - The tenant's UUID
+ * @param baseUrl - The base URL of the application
+ * @returns The full public registration URL
+ *
+ * @example
+ * getPublicRegistrationUrl("56f5baf0-b7d9-4bdf-9416-547b1198e097")
+ * // Returns: "https://stewardtrack.com/join/XYZabc123..."
+ */
+export function getPublicRegistrationUrl(
+  tenantId: string,
+  baseUrl: string = "https://stewardtrack.com"
+): string {
+  const token = encodeTenantToken(tenantId);
+  return `${baseUrl}/join/${token}`;
 }

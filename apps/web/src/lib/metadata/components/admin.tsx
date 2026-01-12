@@ -70,6 +70,10 @@ import {
   type MemberQRCodeProps,
 } from '@/components/dynamic/admin/MemberQRCode';
 import {
+  MemberRegistrationQRCode,
+  type MemberRegistrationQRCodeProps,
+} from '@/components/dynamic/admin/MemberRegistrationQRCode';
+import {
   GoalProgressRing,
   type GoalProgressRingProps,
 } from '@/components/dynamic/admin/goals/GoalProgressRing';
@@ -142,14 +146,18 @@ import {
   MinistryListView,
   type MinistryListViewProps,
 } from '@/components/dynamic/admin/scheduler';
+import {
+  AdminSyncCard,
+  type AdminSyncCardProps,
+} from '@/components/dynamic/admin/AdminSyncCard';
 
-function withoutChildren<Props extends Record<string, unknown>>(Component: React.ComponentType<Props>, displayName: string) {
+function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
   Renderer.displayName = displayName;
   return Renderer;
 }
 
-function withChildren<Props extends Record<string, unknown>>(Component: React.ComponentType<Props>, displayName: string) {
+function withChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>, children: React.ReactNode) => (
     <Component {...(props as unknown as Props)}>{children}</Component>
   );
@@ -295,6 +303,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MemberQRCodeProps>(MemberQRCode, 'MemberQRCodeRenderer'),
+  },
+  {
+    type: 'MemberRegistrationQRCode',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberRegistrationQRCodeProps>(MemberRegistrationQRCode, 'MemberRegistrationQRCodeRenderer'),
   },
   // Goals & Objectives Components
   {
@@ -443,5 +457,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MinistryListViewProps>(MinistryListView, 'MinistryListViewRenderer'),
+  },
+  {
+    type: 'AdminSyncCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminSyncCardProps>(AdminSyncCard, 'AdminSyncCardRenderer'),
   },
 ];

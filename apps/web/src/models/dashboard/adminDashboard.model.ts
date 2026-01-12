@@ -9,6 +9,7 @@
 export interface WelcomeData {
   userName: string;
   userEmail: string;
+  tenantId: string | null;
   tenantName: string;
   tenantLogoUrl: string | null;
   lastSignIn: string | null;

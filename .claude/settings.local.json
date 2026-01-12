@@ -97,7 +97,14 @@
       "Bash(Select-Object FullName)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm --filter @stewardtrack/web exec tsc:*)",
-      "Bash(pnpm --filter @stewardtrack/web lint:*)"
+      "Bash(pnpm --filter @stewardtrack/web lint:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm --filter @stewardtrack/web tsc:*)",
+      "Bash(pnpm dev)",
+      "Bash(tasklist:*)",
+      "Bash(timeout /t 15 /nobreak)",
+      "Bash(ping:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

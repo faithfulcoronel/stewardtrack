@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="reports/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.reports" requiredPermissions="finance:reports" locale="en-US">
+  <Page id="admin-finance-reports-dashboard">
+    <Title>Financial reports</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="reports-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="reportsHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="reportsHero.headline"/>
+            <Prop name="description" kind="binding" contract="reportsHero.description"/>
+            <Prop name="highlights" kind="binding" contract="reportsHero.highlights"/>
+            <Prop name="primaryCta" kind="action" actionId="generate-trial-balance"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="standard-reports" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Standard financial reports</Prop>
+            <Prop name="description" kind="static">Core reports required for financial oversight and compliance.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="standardReports.items"/>
+          </Props>
+        </Component>
+        <Component id="management-reports" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Management reports</Prop>
+            <Prop name="description" kind="static">Analytics and insights for decision-making.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="managementReports.items"/>
+          </Props>
+        </Component>
+        <Component id="recent-reports" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recently generated reports</Prop>
+            <Prop name="description" kind="static">Quick access to your most recent report exports.</Prop>
+            <Prop name="events" kind="binding" contract="recentReports.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="reportsHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Reports hub eyebrow"/>
+          <Field name="headline" path="headline" description="Reports hub headline"/>
+          <Field name="description" path="description" description="Reports hub description"/>
+          <Field name="highlights" path="highlights" description="Reports highlights"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="standardReports" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Standard report links"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.dashboard.standardReports</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="managementReports" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Management report links"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.dashboard.managementReports</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="recentReports" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Recent reports timeline"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.dashboard.recentReports</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="generate-trial-balance" kind="link">
+        <Config>
+          <Label>Generate trial balance</Label>
+          <Url>/admin/finance/reports/trial-balance</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Finance dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

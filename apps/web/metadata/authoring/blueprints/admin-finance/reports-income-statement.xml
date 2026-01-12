@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="reports/income-statement" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.reports" requiredPermissions="finance:reports" locale="en-US">
+  <Page id="admin-finance-reports-income-statement">
+    <Title>Income statement</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="report-header" type="AdminReportHeader">
+          <Props>
+            <Prop name="title" kind="static">Income statement</Prop>
+            <Prop name="description" kind="static">Statement of revenues and expenses for the selected period.</Prop>
+            <Prop name="periodStart" kind="binding" contract="reportHeader.periodStart"/>
+            <Prop name="periodEnd" kind="binding" contract="reportHeader.periodEnd"/>
+            <Prop name="dateRangeSelector" kind="binding" contract="reportHeader.dateRangeSelector"/>
+            <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
+          </Props>
+        </Component>
+        <Component id="summary-metrics" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Period summary</Prop>
+            <Prop name="description" kind="static">Key financial performance indicators for the reporting period.</Prop>
+            <Prop name="metrics" kind="binding" contract="summaryMetrics.items"/>
+          </Props>
+        </Component>
+        <Component id="revenue-section" type="AdminReportSection">
+          <Props>
+            <Prop name="title" kind="static">Revenue</Prop>
+            <Prop name="description" kind="static">All income generated during the period.</Prop>
+            <Prop name="rows" kind="binding" contract="revenueSection.rows"/>
+            <Prop name="columns" kind="binding" contract="revenueSection.columns"/>
+            <Prop name="subtotal" kind="binding" contract="revenueSection.subtotal"/>
+            <Prop name="collapsible" kind="static">true</Prop>
+          </Props>
+        </Component>
+        <Component id="expense-section" type="AdminReportSection">
+          <Props>
+            <Prop name="title" kind="static">Expenses</Prop>
+            <Prop name="description" kind="static">All costs incurred during the period.</Prop>
+            <Prop name="rows" kind="binding" contract="expenseSection.rows"/>
+            <Prop name="columns" kind="binding" contract="expenseSection.columns"/>
+            <Prop name="subtotal" kind="binding" contract="expenseSection.subtotal"/>
+            <Prop name="collapsible" kind="static">true</Prop>
+          </Props>
+        </Component>
+        <Component id="net-income" type="AdminReportSummary">
+          <Props>
+            <Prop name="title" kind="static">Net income</Prop>
+            <Prop name="items" kind="binding" contract="netIncome.items"/>
+            <Prop name="highlight" kind="binding" contract="netIncome.highlight"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="reportHeader" kind="service">
+        <Contract>
+          <Field name="periodStart" path="periodStart" description="Report period start date"/>
+          <Field name="periodEnd" path="periodEnd" description="Report period end date"/>
+          <Field name="dateRangeSelector" path="dateRangeSelector" description="Date range selector configuration"/>
+          <Field name="exportActions" path="exportActions" description="Export action options"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.incomeStatement.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="summaryMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Summary metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.incomeStatement.summary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="revenueSection" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Revenue account rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotal" path="subtotal" description="Total revenue"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.incomeStatement.revenue</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="expenseSection" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Expense account rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotal" path="subtotal" description="Total expenses"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.incomeStatement.expenses</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="netIncome" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Net income calculation"/>
+          <Field name="highlight" path="highlight" description="Net income highlight"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.incomeStatement.netIncome</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="export-pdf" kind="submit">
+        <Config>
+          <Label>Export PDF</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="export-excel" kind="submit">
+        <Config>
+          <Label>Export Excel</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

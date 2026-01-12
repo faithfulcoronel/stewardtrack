@@ -8,6 +8,7 @@ import { TYPES } from "@/lib/types";
 import type { AuthService } from "@/services/AuthService";
 import type { TenantService } from "@/services/TenantService";
 import { clearTenantSession, writeTenantSession } from "@/lib/tenant/session-cache";
+import { warmTenantSettingsCache, clearTenantSettingsCache } from "@/lib/tenant/settings-cache";
 
 export type SignInState = {
   error?: string;
@@ -52,8 +53,11 @@ export async function signInWithPassword(
 
   if (tenant && sessionId) {
     await writeTenantSession(tenant, sessionId);
+    // Warm the tenant settings cache (timezone, currency) on login
+    await warmTenantSettingsCache();
   } else {
     await clearTenantSession();
+    await clearTenantSettingsCache();
   }
 
   // Determine the redirect destination
@@ -71,10 +75,19 @@ export async function signInWithPassword(
   redirect(destination);
 }
 
-export async function signOut() {
+export async function signOut(returnUrl?: string) {
   const authService = container.get<AuthService>(TYPES.AuthService);
   await authService.signOut();
   await clearTenantSession();
+  // Clear tenant settings cache (timezone, currency) on logout
+  await clearTenantSettingsCache();
   revalidatePath("/", "layout");
-  redirect("/login");
+
+  // Build login URL with optional return path
+  let loginUrl = "/login";
+  if (returnUrl && returnUrl.startsWith("/admin")) {
+    loginUrl = `/login?redirectTo=${encodeURIComponent(returnUrl)}`;
+  }
+
+  redirect(loginUrl);
 }

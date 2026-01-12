@@ -430,6 +430,113 @@
                         ]
                       }
                     ]
+                  },
+                  {
+                    id: &apos;spiritual&apos;,
+                    label: &apos;Spiritual Journey&apos;,
+                    description: &apos;Faith background, baptism information, and personal testimony.&apos;,
+                    sections: [
+                      {
+                        kind: &apos;panel&apos;,
+                        id: &apos;faith-background&apos;,
+                        title: &apos;Faith &amp; baptism&apos;,
+                        summary: record.spiritualJourney?.dateTrustedChrist ? {
+                          label: &apos;Trusted Christ&apos;,
+                          value: record.spiritualJourney.dateTrustedChrist,
+                          description: record.spiritualJourney?.denomination ?? &apos;&apos;,
+                        } : null,
+                        panels: [
+                          {
+                            id: &apos;faith-details&apos;,
+                            title: &apos;Faith background&apos;,
+                            action: { id: &apos;edit-faith&apos;, config: { label: &apos;Edit faith info&apos;, url: manageUrl(&apos;spiritual&apos;), variant: &apos;ghost&apos; } },
+                            items: [
+                              { label: &apos;Date trusted Christ&apos;, value: record.spiritualJourney?.dateTrustedChrist ?? &apos;Not recorded&apos; },
+                              { label: &apos;Current denomination&apos;, value: record.spiritualJourney?.denomination ?? &apos;—&apos; },
+                              { label: &apos;Previous denomination&apos;, value: record.spiritualJourney?.previousDenomination ?? &apos;—&apos; }
+                            ]
+                          },
+                          {
+                            id: &apos;baptism-details&apos;,
+                            title: &apos;Baptism information&apos;,
+                            action: { id: &apos;edit-baptism&apos;, config: { label: &apos;Edit baptism&apos;, url: manageUrl(&apos;spiritual&apos;), variant: &apos;ghost&apos; } },
+                            items: [
+                              { label: &apos;Baptized by immersion&apos;, value: record.spiritualJourney?.baptizedByImmersion === true ? &apos;Yes&apos; : record.spiritualJourney?.baptizedByImmersion === false ? &apos;No&apos; : &apos;—&apos; },
+                              { label: &apos;Date of baptism&apos;, value: record.spiritualJourney?.baptismDate ?? &apos;—&apos; },
+                              { label: &apos;Place of baptism&apos;, value: record.spiritualJourney?.baptismPlace ?? &apos;—&apos; },
+                              { label: &apos;Church of baptism&apos;, value: record.spiritualJourney?.baptismChurch ?? &apos;—&apos; },
+                              { label: &apos;Baptized by&apos;, value: record.spiritualJourney?.baptizedBy ?? &apos;—&apos; }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        kind: &apos;panel&apos;,
+                        id: &apos;testimony&apos;,
+                        title: &apos;Personal testimony&apos;,
+                        summary: null,
+                        panels: [
+                          {
+                            id: &apos;testimony-content&apos;,
+                            title: &apos;Testimony&apos;,
+                            action: { id: &apos;edit-testimony&apos;, config: { label: &apos;Edit testimony&apos;, url: manageUrl(&apos;spiritual&apos;), variant: &apos;ghost&apos; } },
+                            items: [
+                              { label: &apos;Personal testimony&apos;, type: &apos;multiline&apos;, value: record.spiritualJourney?.testimony ?? &apos;No testimony recorded.&apos; }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    id: &apos;visitor&apos;,
+                    label: &apos;Visitor Info&apos;,
+                    description: &apos;Track visitor details, how they found the church, and follow-up status.&apos;,
+                    sections: [
+                      {
+                        kind: &apos;panel&apos;,
+                        id: &apos;visitor-status&apos;,
+                        title: &apos;Visitor tracking&apos;,
+                        summary: record.visitorInfo?.isVisitor ? {
+                          label: &apos;Visitor status&apos;,
+                          value: record.visitorInfo?.followUpStatus ?? &apos;Pending&apos;,
+                          description: record.visitorInfo?.firstVisitDate ? `First visit: ${record.visitorInfo.firstVisitDate}` : &apos;&apos;,
+                        } : null,
+                        panels: [
+                          {
+                            id: &apos;visitor-details&apos;,
+                            title: &apos;Visitor details&apos;,
+                            action: { id: &apos;edit-visitor&apos;, config: { label: &apos;Edit visitor info&apos;, url: manageUrl(&apos;visitor&apos;), variant: &apos;ghost&apos; } },
+                            items: [
+                              { label: &apos;Is visitor&apos;, value: record.visitorInfo?.isVisitor === true ? &apos;Yes&apos; : record.visitorInfo?.isVisitor === false ? &apos;No&apos; : &apos;—&apos; },
+                              { label: &apos;First visit date&apos;, value: record.visitorInfo?.firstVisitDate ?? &apos;—&apos; },
+                              { label: &apos;Invited by&apos;, value: record.visitorInfo?.invitedByName ?? &apos;—&apos; },
+                              { label: &apos;How they heard about us&apos;, value: record.visitorInfo?.howHeard ?? &apos;—&apos; }
+                            ]
+                          },
+                          {
+                            id: &apos;visitor-followup&apos;,
+                            title: &apos;Follow-up information&apos;,
+                            action: { id: &apos;edit-followup&apos;, config: { label: &apos;Edit follow-up&apos;, url: manageUrl(&apos;visitor&apos;), variant: &apos;ghost&apos; } },
+                            items: [
+                              { label: &apos;Follow-up status&apos;, type: &apos;badge&apos;, variant: (() =&gt; {
+                                const status = record.visitorInfo?.followUpStatus;
+                                if (status === &apos;converted&apos;) return &apos;positive&apos;;
+                                if (status === &apos;contacted&apos; || status === &apos;scheduled_visit&apos;) return &apos;informative&apos;;
+                                if (status === &apos;no_response&apos; || status === &apos;declined&apos;) return &apos;warning&apos;;
+                                return &apos;neutral&apos;;
+                              })(), value: (() =&gt; {
+                                const status = record.visitorInfo?.followUpStatus;
+                                const labels = { pending: &apos;Pending&apos;, contacted: &apos;Contacted&apos;, scheduled_visit: &apos;Scheduled Visit&apos;, no_response: &apos;No Response&apos;, converted: &apos;Converted&apos;, declined: &apos;Declined&apos; };
+                                return labels[status] ?? &apos;—&apos;;
+                              })() },
+                              { label: &apos;Converted to member date&apos;, value: record.visitorInfo?.convertedToMemberDate ?? &apos;—&apos; },
+                              { label: &apos;Follow-up notes&apos;, type: &apos;multiline&apos;, value: record.visitorInfo?.followUpNotes ?? &apos;No follow-up notes.&apos; }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ];
               })()

@@ -25,8 +25,12 @@ export class EncryptionKeyAdapter
     super();
   }
 
+  /**
+   * Find encryption key by tenant ID using service role client
+   * Uses service role to bypass RLS (needed during registration when user isn't linked to tenant yet)
+   */
   async findByTenantId(tenantId: string): Promise<EncryptionKey | null> {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
       .from('encryption_keys')
@@ -41,8 +45,11 @@ export class EncryptionKeyAdapter
     return data as EncryptionKey;
   }
 
+  /**
+   * Find encryption key by tenant ID and version using service role client
+   */
   async findByTenantIdAndVersion(tenantId: string, version: number): Promise<EncryptionKey | null> {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
       .from('encryption_keys')
@@ -58,8 +65,11 @@ export class EncryptionKeyAdapter
     return data as EncryptionKey;
   }
 
+  /**
+   * Find active encryption key for tenant using service role client
+   */
   async findActiveTenantKey(tenantId: string): Promise<EncryptionKey | null> {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
       .from('encryption_keys')
@@ -91,8 +101,11 @@ export class EncryptionKeyAdapter
     }
   }
 
+  /**
+   * Update encryption key using service role client
+   */
   async updateKey(tenantId: string, version: number, input: UpdateEncryptionKeyInput): Promise<void> {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await getSupabaseServiceClient();
 
     const { error } = await supabase
       .from('encryption_keys')

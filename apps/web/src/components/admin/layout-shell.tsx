@@ -20,7 +20,8 @@ type AdminLayoutShellProps = {
   email: string;
   avatarUrl: string | null;
   planLabel: string;
-  logoutAction: () => Promise<void>;
+  /** Logout action that accepts an optional return URL for redirect after login */
+  logoutAction: (returnUrl?: string) => Promise<void>;
 };
 
 export function AdminLayoutShell({

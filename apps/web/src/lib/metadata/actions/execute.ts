@@ -1,8 +1,6 @@
 "use server";
 
 import type { ActionConfig } from '@/components/dynamic/shared';
-
-import { resolveMetadataActionHandler } from '.';
 import type { MetadataActionExecution, MetadataActionResult } from './types';
 
 export type ExecuteMetadataActionOptions = {
@@ -34,6 +32,9 @@ export async function executeMetadataAction(
     throw new Error('No action handler was provided.');
   }
 
+  // Dynamic import to prevent server-side modules from being bundled at module load time
+  // This fixes Turbopack client/server boundary issues
+  const { resolveMetadataActionHandler } = await import('./index');
   const handler = resolveMetadataActionHandler(handlerId);
   if (!handler) {
     throw new Error(`No handler registered for ${handlerId}.`);

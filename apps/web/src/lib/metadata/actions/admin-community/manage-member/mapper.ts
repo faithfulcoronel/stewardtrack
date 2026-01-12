@@ -322,6 +322,78 @@ export class MemberFormMapper {
       payload.membership_date = this.toDateString(values.joinDate) ?? null;
     }
 
+    // Spiritual Journey / Faith Background fields
+    if (this.hasField(values, "dateTrustedChrist")) {
+      payload.date_trusted_christ = this.toDateString(values.dateTrustedChrist) ?? null;
+    }
+
+    if (this.hasField(values, "denominationId")) {
+      payload.denomination_id = this.cleanString(values.denominationId) ?? null;
+    }
+
+    if (this.hasField(values, "previousDenomination")) {
+      payload.previous_denomination = this.cleanString(values.previousDenomination) ?? null;
+    }
+
+    // Baptism Information fields
+    if (this.hasField(values, "baptizedByImmersion")) {
+      payload.baptized_by_immersion = this.toBooleanOrNull(values.baptizedByImmersion);
+    }
+
+    if (this.hasField(values, "baptismDate")) {
+      payload.baptism_date = this.toDateString(values.baptismDate) ?? null;
+    }
+
+    if (this.hasField(values, "baptismPlace")) {
+      payload.baptism_place = this.cleanString(values.baptismPlace) ?? null;
+    }
+
+    if (this.hasField(values, "baptismChurch")) {
+      payload.baptism_church = this.cleanString(values.baptismChurch) ?? null;
+    }
+
+    if (this.hasField(values, "baptizedBy")) {
+      payload.baptized_by = this.cleanString(values.baptizedBy) ?? null;
+    }
+
+    // Testimony field
+    if (this.hasField(values, "testimony")) {
+      payload.testimony = this.cleanString(values.testimony) ?? null;
+    }
+
+    // Visitor Information fields
+    if (this.hasField(values, "isVisitor")) {
+      payload.is_visitor = this.toBooleanOrNull(values.isVisitor);
+    }
+
+    if (this.hasField(values, "visitorFirstVisitDate")) {
+      payload.visitor_first_visit_date = this.toDateString(values.visitorFirstVisitDate) ?? null;
+    }
+
+    if (this.hasField(values, "visitorInvitedByName")) {
+      payload.visitor_invited_by_name = this.cleanString(values.visitorInvitedByName) ?? null;
+    }
+
+    if (this.hasField(values, "visitorHowHeard")) {
+      payload.visitor_how_heard = this.cleanString(values.visitorHowHeard) ?? null;
+    }
+
+    if (this.hasField(values, "visitorInterests")) {
+      payload.visitor_interests = this.toTags(values.visitorInterests);
+    }
+
+    if (this.hasField(values, "visitorFollowUpStatus")) {
+      payload.visitor_follow_up_status = this.toVisitorFollowUpStatus(values.visitorFollowUpStatus);
+    }
+
+    if (this.hasField(values, "visitorFollowUpNotes")) {
+      payload.visitor_follow_up_notes = this.cleanString(values.visitorFollowUpNotes) ?? null;
+    }
+
+    if (this.hasField(values, "visitorConvertedToMemberDate")) {
+      payload.visitor_converted_to_member_date = this.toDateString(values.visitorConvertedToMemberDate) ?? null;
+    }
+
     if (this.hasField(values, "stage")) {
       const stageValue = this.cleanString(values.stage);
       const stageId = this.findStageId(resources.stages, stageValue);
@@ -644,6 +716,25 @@ export class MemberFormMapper {
       return normalized as FamilyRole;
     }
     return 'other';
+  }
+
+  private toBooleanOrNull(value: unknown): boolean | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    return this.toBoolean(value);
+  }
+
+  private toVisitorFollowUpStatus(value: unknown): Member['visitor_follow_up_status'] {
+    const normalized = this.cleanString(value)?.toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+    const validStatuses = ['pending', 'contacted', 'scheduled_visit', 'no_response', 'converted', 'declined'];
+    if (validStatuses.includes(normalized)) {
+      return normalized as Member['visitor_follow_up_status'];
+    }
+    return null;
   }
 
   private findStageId(stages: MemberManageResources["stages"], stageValue: string | null): string | null {

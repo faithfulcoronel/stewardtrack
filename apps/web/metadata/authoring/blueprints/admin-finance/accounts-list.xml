@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-accounts-list">
+    <Title>Chart of accounts</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="add-account"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="account-type-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Account type breakdown</Prop>
+            <Prop name="description" kind="static">Summary of accounts by type with current balances.</Prop>
+            <Prop name="metrics" kind="binding" contract="accountTypeSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="accounts-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">General ledger accounts</Prop>
+            <Prop name="description" kind="static">View and manage your organization's chart of accounts hierarchy.</Prop>
+            <Prop name="rows" kind="binding" contract="accountsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="accountsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="accountsTable.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No accounts found", "description": "Create your first account to start tracking finances."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountTypeSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Account type summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.list.typeSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Binding for accounts-grid.rows"/>
+          <Field name="columns" path="columns" description="Binding for accounts-grid.columns"/>
+          <Field name="filters" path="filters" description="Binding for accounts-grid.filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-account" kind="link">
+        <RBAC requirePermissions="finance:admin" />
+        <Config>
+          <Label>Add account</Label>
+          <Url>/admin/finance/accounts/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

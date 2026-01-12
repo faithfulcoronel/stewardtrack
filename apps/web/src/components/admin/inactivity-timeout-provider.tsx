@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useTransition } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Clock } from "lucide-react";
 
 import {
@@ -20,8 +21,8 @@ import {
 
 export type InactivityTimeoutProviderProps = {
   children: React.ReactNode;
-  /** Server action to perform logout */
-  logoutAction: () => Promise<void>;
+  /** Server action to perform logout, with optional return URL for redirect after login */
+  logoutAction: (returnUrl?: string) => Promise<void>;
   /** Timeout duration in milliseconds before showing warning (default: 15 minutes) */
   timeoutMs?: number;
   /** Warning duration in milliseconds before auto-logout (default: 60 seconds) */
@@ -38,12 +39,21 @@ export function InactivityTimeoutProvider({
   enabled = true,
 }: InactivityTimeoutProviderProps) {
   const [isPending, startTransition] = useTransition();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Build the full return URL including search params
+  const getCurrentUrl = useCallback(() => {
+    const search = searchParams.toString();
+    return search ? `${pathname}?${search}` : pathname;
+  }, [pathname, searchParams]);
 
   const handleTimeout = useCallback(() => {
+    const returnUrl = getCurrentUrl();
     startTransition(async () => {
-      await logoutAction();
+      await logoutAction(returnUrl);
     });
-  }, [logoutAction]);
+  }, [logoutAction, getCurrentUrl]);
 
   const { showWarning, remainingSeconds, resetTimer, triggerLogout } =
     useInactivityTimeout({

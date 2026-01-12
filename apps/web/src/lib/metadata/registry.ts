@@ -4,6 +4,15 @@ import Ajv, { type ValidateFunction } from 'ajv';
 import type { CanonicalPageDefinition, CanonicalLayer } from './generated/canonical';
 import { migrateToLatest } from './migrations';
 
+// Global Ajv instance to prevent "schema already exists" errors during hot reload
+const globalForAjv = globalThis as unknown as { metadataAjv: Ajv | undefined };
+const getAjvInstance = () => {
+  if (!globalForAjv.metadataAjv) {
+    globalForAjv.metadataAjv = new Ajv({ allErrors: true, strict: false });
+  }
+  return globalForAjv.metadataAjv;
+};
+
 export interface ManifestEntry {
   key: string;
   kind: 'blueprint' | 'overlay';
@@ -54,7 +63,7 @@ export class FileSystemMetadataRegistry implements MetadataRegistry {
   private readonly latestDir: string;
   private readonly manifestPath: string;
   private validator: ValidateFunction<unknown> | null = null;
-  private readonly ajv = new Ajv({ allErrors: true, strict: false });
+  private readonly ajv = getAjvInstance();
 
   constructor(options?: FileSystemMetadataRegistryOptions) {
     this.rootDir = options?.rootDir ?? process.cwd();
@@ -101,6 +110,17 @@ export class FileSystemMetadataRegistry implements MetadataRegistry {
     if (!this.validator) {
       const schemaRaw = await fs.readFile(this.schemaPath, 'utf-8');
       const schema = JSON.parse(schemaRaw) as Record<string, unknown>;
+      const schemaId = schema.$id as string | undefined;
+
+      // Check if schema is already compiled (can happen during hot reload)
+      if (schemaId) {
+        const existing = this.ajv.getSchema(schemaId);
+        if (existing) {
+          this.validator = existing as ValidateFunction<unknown>;
+          return this.validator;
+        }
+      }
+
       this.validator = this.ajv.compile(schema);
     }
     return this.validator;

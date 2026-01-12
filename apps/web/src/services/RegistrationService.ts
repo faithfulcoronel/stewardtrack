@@ -4,8 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { IAuthRepository } from '@/repositories/auth.repository';
 import type { ITenantRepository } from '@/repositories/tenant.repository';
 import type { LicensingService } from '@/services/LicensingService';
-import type { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
+import type { TenantService } from '@/services/TenantService';
 import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
@@ -21,6 +21,7 @@ export interface RegistrationData {
   firstName: string;
   lastName: string;
   offeringId: string;
+  denomination?: string;
 }
 
 export interface RegistrationResult {
@@ -45,11 +46,10 @@ export interface RegistrationError {
  * 3. Creates tenant record with subscription details
  * 4. Generates encryption key for tenant
  * 5. Creates tenant-user relationship
- * 6. Provisions license features
- * 7. Seeds default RBAC roles
- * 8. Assigns tenant admin role
- * 9. Deploys permissions from licensed features
- * 10. Executes feature onboarding plugins (seeds preset data)
+ * 6. Seeds default RBAC roles
+ * 7. Assigns tenant admin role
+ * 8. Syncs subscription features (grants features, deploys permissions, creates role assignments)
+ * 9. Executes feature onboarding plugins (seeds preset data)
  *
  * Handles rollback/cleanup on errors.
  */
@@ -59,9 +59,9 @@ export class RegistrationService {
     @inject(TYPES.IAuthRepository) private authRepository: IAuthRepository,
     @inject(TYPES.ITenantRepository) private tenantRepository: ITenantRepository,
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
-    @inject(TYPES.PermissionDeploymentService) private permissionDeploymentService: PermissionDeploymentService,
     @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager,
-    @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService
+    @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService,
+    @inject(TYPES.TenantService) private tenantService: TenantService
   ) {
     // Initialize feature onboarding plugins on first use
     initializeFeaturePlugins();
@@ -122,7 +122,7 @@ export class RegistrationService {
         return { success: false, error: validation.error };
       }
 
-      const { email, password, churchName, firstName, lastName, offeringId } = data;
+      const { email, password, churchName, firstName, lastName, offeringId, denomination } = data;
 
       // ===== STEP 2: Create auth user =====
       const authResponse = await this.authRepository.signUp(email, password, {
@@ -169,6 +169,7 @@ export class RegistrationService {
         subscription_end_date: trialEndDate,
         status: 'active',
         created_by: userId,
+        denomination: denomination || null,
       });
 
       tenantId = tenant.id;
@@ -201,15 +202,7 @@ export class RegistrationService {
         // Non-fatal - continue but log error
       }
 
-      // ===== STEP 8: Provision license features =====
-      try {
-        await this.licensingService.provisionTenantLicense(tenantId, offeringId);
-      } catch (error) {
-        console.error('Failed to provision license features:', error);
-        // Non-fatal - continue with registration
-      }
-
-      // ===== STEP 9: Seed default RBAC roles =====
+      // ===== STEP 8: Seed default RBAC roles =====
       try {
         await seedDefaultRBAC(tenantId, offering.tier);
       } catch (error) {
@@ -217,7 +210,7 @@ export class RegistrationService {
         // Non-fatal - continue
       }
 
-      // ===== STEP 10: Assign tenant admin role =====
+      // ===== STEP 9: Assign tenant admin role =====
       try {
         await assignTenantAdminRole(userId, tenantId);
       } catch (error) {
@@ -225,18 +218,23 @@ export class RegistrationService {
         // Non-fatal - continue
       }
 
-      // ===== STEP 11: Deploy permissions from licensed features =====
-      // OPTIMIZATION: Run permission deployment asynchronously to speed up registration
-      // The user can start using the app immediately while permissions are being set up
-      // The tenant admin role already has full access, so permissions are not blocking
-      this.deployPermissionsAsync(tenantId, offering.tier, offeringId, userId);
+      // ===== STEP 10: Sync subscription features (async) =====
+      // Uses syncTenantSubscriptionFeatures which handles:
+      // - Feature grants from the product offering
+      // - Permission deployment from licensed features
+      // - Role creation and role assignments
+      // OPTIMIZATION: Run asynchronously to speed up registration
+      // The user can start using the app immediately while features are being synced
+      // The tenant admin role already has full access, so this is not blocking
+      // NOTE: Member profile creation is handled in admin layout on first access
+      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId);
 
-      // NOTE: Steps 11 & 12 now run in background. User gets immediate access.
-      // - Permission deployment: Runs async, takes 10-30 seconds
+      // NOTE: Steps 10 & 11 now run in background. User gets immediate access.
+      // - Feature sync: Runs async, handles features + permissions + role assignments
       // - Feature onboarding plugins: Runs async, takes 5-15 seconds
       // Both are non-blocking and non-fatal to registration success.
 
-      // ===== STEP 13: Return success =====
+      // ===== STEP 12: Return success =====
       return {
         success: true,
         userId,
@@ -259,10 +257,19 @@ export class RegistrationService {
   }
 
   /**
-   * Deploy permissions and run feature onboarding asynchronously
+   * Sync subscription features and run feature onboarding asynchronously
    * This runs after registration completes to avoid blocking the user
+   *
+   * Uses syncTenantSubscriptionFeatures which is a comprehensive, idempotent operation that:
+   * - Grants features from the product offering
+   * - Deploys permissions from licensed features
+   * - Creates role assignments
+   * - Handles any missing features or permissions
+   *
+   * Marks setup as complete in the tenants table when finished.
+   * NOTE: Member profile creation is handled in admin layout on first access.
    */
-  private deployPermissionsAsync(
+  private syncFeaturesAsync(
     tenantId: string,
     tier: string,
     offeringId: string,
@@ -271,26 +278,36 @@ export class RegistrationService {
     // Use setImmediate to ensure this runs after the current event loop
     // This allows the registration response to return immediately
     setImmediate(async () => {
-      console.log(`[ASYNC] Starting background permission deployment for tenant ${tenantId}`);
+      console.log(`[ASYNC] Starting background feature sync for tenant ${tenantId}`);
       const startTime = Date.now();
+      let hasErrors = false;
+      let lastError = '';
 
       try {
-        // Deploy permissions from licensed features
-        const deploymentSummary = await this.permissionDeploymentService.deployAllFeaturePermissions(tenantId);
+        // Sync subscription features (handles feature grants + permission deployment + role assignments)
+        const syncResult = await this.licensingService.syncTenantSubscriptionFeatures(tenantId);
 
-        console.log(`[ASYNC] Permission deployment completed for tenant ${tenantId}:`, {
-          totalFeatures: deploymentSummary.totalFeatures,
-          successfulDeployments: deploymentSummary.successfulDeployments,
-          permissionsDeployed: deploymentSummary.totalPermissionsDeployed,
-          roleAssignments: deploymentSummary.totalRoleAssignments,
-          durationMs: Date.now() - startTime,
-        });
-
-        if (deploymentSummary.errors.length > 0) {
-          console.warn('[ASYNC] Permission deployment errors:', deploymentSummary.errors);
+        if (syncResult.success) {
+          console.log(`[ASYNC] Feature sync completed for tenant ${tenantId}:`, {
+            offeringId: syncResult.offering_id,
+            offeringTier: syncResult.offering_tier,
+            featuresAdded: syncResult.features_added,
+            featuresAlreadyGranted: syncResult.features_already_granted,
+            permissionsDeployed: syncResult.permissions_deployed,
+            permissionsAlreadyExist: syncResult.permissions_already_exist,
+            rolesCreated: syncResult.roles_created,
+            roleAssignmentsCreated: syncResult.role_assignments_created,
+            durationMs: Date.now() - startTime,
+          });
+        } else {
+          console.error(`[ASYNC] Feature sync failed for tenant ${tenantId}:`, syncResult.error);
+          hasErrors = true;
+          lastError = syncResult.error ?? 'Feature sync failed';
         }
       } catch (error) {
-        console.error('[ASYNC] Failed to deploy permissions:', error);
+        console.error('[ASYNC] Failed to sync subscription features:', error);
+        hasErrors = true;
+        lastError = error instanceof Error ? error.message : 'Feature sync error';
         // Non-fatal - tenant still operational
       }
 
@@ -318,10 +335,27 @@ export class RegistrationService {
               .filter(r => !r.result.success)
               .map(r => ({ feature: r.featureCode, error: r.result.message }))
           );
+          // Don't mark as error - some plugin failures are acceptable
         }
       } catch (error) {
         console.error('[ASYNC] Failed to execute feature onboarding plugins:', error);
+        hasErrors = true;
+        lastError = error instanceof Error ? error.message : 'Feature onboarding error';
         // Non-fatal - tenant still operational
+      }
+
+      // Mark setup as complete or failed
+      try {
+        if (hasErrors) {
+          await this.tenantService.markSetupFailed(tenantId, lastError);
+          console.log(`[ASYNC] Marked setup as failed for tenant ${tenantId}: ${lastError}`);
+        } else {
+          await this.tenantService.markSetupComplete(tenantId);
+          console.log(`[ASYNC] Marked setup as complete for tenant ${tenantId}`);
+        }
+      } catch (statusError) {
+        console.error('[ASYNC] Failed to update setup status:', statusError);
+        // Non-fatal - setup still ran
       }
 
       console.log(`[ASYNC] Background tasks completed for tenant ${tenantId} in ${Date.now() - startTime}ms`);

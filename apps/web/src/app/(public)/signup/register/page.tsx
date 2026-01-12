@@ -6,9 +6,38 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Loader2, CheckCircle2, AlertCircle, Shield, Clock, Sparkles, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { svgPaths } from '@/components/landing/svg-paths';
+
+// Common church denominations
+const DENOMINATION_OPTIONS = [
+  { value: 'UCCP', label: 'United Church of Christ in the Philippines (UCCP)' },
+  { value: 'Catholic', label: 'Roman Catholic' },
+  { value: 'Baptist', label: 'Baptist' },
+  { value: 'Methodist', label: 'Methodist' },
+  { value: 'Presbyterian', label: 'Presbyterian' },
+  { value: 'Pentecostal', label: 'Pentecostal' },
+  { value: 'Evangelical', label: 'Evangelical' },
+  { value: 'Lutheran', label: 'Lutheran' },
+  { value: 'Anglican', label: 'Anglican / Episcopal' },
+  { value: 'Seventh-day Adventist', label: 'Seventh-day Adventist' },
+  { value: 'Church of Christ', label: 'Church of Christ' },
+  { value: 'Assemblies of God', label: 'Assemblies of God' },
+  { value: 'Iglesia ni Cristo', label: 'Iglesia ni Cristo' },
+  { value: 'Born Again', label: 'Born Again Christian' },
+  { value: 'Non-denominational', label: 'Non-denominational' },
+  { value: 'Interdenominational', label: 'Interdenominational' },
+  { value: 'Other', label: 'Other' },
+];
 import type { ProductOffering, ProductOfferingPrice } from '@/models/productOffering.model';
 import { formatCurrency, SupportedCurrency, PRIMARY_CURRENCY } from '@/lib/currency';
 
@@ -76,6 +105,7 @@ function RegisterFormContent() {
     password: '',
     confirmPassword: '',
     churchName: '',
+    denomination: '',
     firstName: '',
     lastName: '',
   });
@@ -85,6 +115,7 @@ function RegisterFormContent() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [offeringDiscount, setOfferingDiscount] = useState<OfferingDiscount | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -207,6 +238,11 @@ function RegisterFormContent() {
       newErrors.lastName = 'Last name is required';
     }
 
+    // Turnstile validation
+    if (!turnstileToken) {
+      newErrors.turnstile = 'Please complete the security check';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -247,6 +283,7 @@ function RegisterFormContent() {
         isTrial,
         isFree,
         priceIsZero,
+        turnstileToken,
       };
 
       // Encode registration data as base64 for URL-safe transmission
@@ -616,6 +653,35 @@ function RegisterFormContent() {
                   )}
                 </div>
 
+                {/* Denomination */}
+                <div className="space-y-2">
+                  <label htmlFor="denomination" className="block text-sm font-medium text-foreground">
+                    Denomination
+                  </label>
+                  <Select
+                    value={formData.denomination}
+                    onValueChange={(value) => handleInputChange('denomination', value)}
+                    disabled={isRegistering}
+                  >
+                    <SelectTrigger className={`h-11 ${errors.denomination ? 'border-destructive' : ''}`}>
+                      <SelectValue placeholder="Select denomination (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DENOMINATION_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.denomination && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.denomination}
+                    </p>
+                  )}
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   {/* First Name */}
                   <div className="space-y-2">
@@ -724,6 +790,38 @@ function RegisterFormContent() {
                     <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                {/* Cloudflare Turnstile CAPTCHA */}
+                <div className="space-y-2">
+                  <div className="flex justify-center">
+                    <Turnstile
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                      onSuccess={(token) => {
+                        setTurnstileToken(token);
+                        if (errors.turnstile) {
+                          setErrors({ ...errors, turnstile: '' });
+                        }
+                      }}
+                      onError={() => {
+                        setTurnstileToken(null);
+                        setErrors({ ...errors, turnstile: 'Security check failed. Please try again.' });
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken(null);
+                      }}
+                      options={{
+                        theme: 'light',
+                        size: 'normal',
+                      }}
+                    />
+                  </div>
+                  {errors.turnstile && (
+                    <p className="text-sm text-destructive flex items-center justify-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.turnstile}
                     </p>
                   )}
                 </div>

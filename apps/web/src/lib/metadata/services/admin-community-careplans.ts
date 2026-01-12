@@ -5,6 +5,7 @@ import type { MemberCarePlan } from '@/models/memberCarePlan.model';
 import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import type { MembersDashboardService } from '@/services/MembersDashboardService';
 import type { TenantService } from '@/services/TenantService';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // Helper type for member data from dashboard service
 type MemberRecord = {
@@ -493,6 +494,9 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
     assignedToName = carePlan.assigned_to;
   }
 
+  // Fetch tenant timezone for date formatting (display only)
+  const timezone = await getTenantTimezone();
+
   return {
     summary: {
       panels: [
@@ -516,10 +520,10 @@ const resolveCarePlanProfileSummary: ServiceDataSourceHandler = async (request) 
           description: 'Schedule and timeline',
           columns: 2,
           items: [
-            { label: 'Follow-up date', value: carePlan.follow_up_at ? new Date(carePlan.follow_up_at).toLocaleDateString() : '—', type: 'text' },
-            { label: 'Closed date', value: carePlan.closed_at ? new Date(carePlan.closed_at).toLocaleDateString() : '—', type: 'text' },
-            { label: 'Created', value: carePlan.created_at ? new Date(carePlan.created_at).toLocaleDateString() : '—', type: 'text' },
-            { label: 'Updated', value: carePlan.updated_at ? new Date(carePlan.updated_at).toLocaleDateString() : '—', type: 'text' },
+            { label: 'Follow-up date', value: carePlan.follow_up_at ? formatDate(new Date(carePlan.follow_up_at), timezone) : '—', type: 'text' },
+            { label: 'Closed date', value: carePlan.closed_at ? formatDate(new Date(carePlan.closed_at), timezone) : '—', type: 'text' },
+            { label: 'Created', value: carePlan.created_at ? formatDate(new Date(carePlan.created_at), timezone) : '—', type: 'text' },
+            { label: 'Updated', value: carePlan.updated_at ? formatDate(new Date(carePlan.updated_at), timezone) : '—', type: 'text' },
           ],
         },
         {
@@ -567,6 +571,9 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
   // Fetch member names for assigned members
   const assignedMemberIds = [...new Set(carePlans.map((cp) => cp.assigned_to_member_id).filter(Boolean))] as string[];
   const memberMap = await buildMemberNameMap(assignedMemberIds);
+
+  // Fetch tenant timezone for date formatting (display only)
+  const timezone = await getTenantTimezone();
 
   const rows = carePlans.map((carePlan) => ({
     id: carePlan.id,
@@ -629,7 +636,7 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
     const status = carePlan.status_label || carePlan.status_code || 'Unknown';
     const priority = carePlan.priority || 'Normal';
     const followUp = carePlan.follow_up_at
-      ? `Follow-up: ${new Date(carePlan.follow_up_at).toLocaleDateString()}`
+      ? `Follow-up: ${formatDate(new Date(carePlan.follow_up_at), timezone)}`
       : null;
     // Use assigned_to_member_id if available, fall back to legacy assigned_to text
     const assignedToName = carePlan.assigned_to_member_id

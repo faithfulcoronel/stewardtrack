@@ -1,6 +1,7 @@
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 import type { GridColumnConfig } from '@/components/dynamic/admin/AdminDataGridSection';
+import { getTenantTimezone, formatDate as formatDateWithTz, formatRelativeTime } from './datetime-utils';
 
 import { MembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import {
@@ -50,6 +51,7 @@ import { adminCommunityPlanningHandlers } from './admin-community-planning';
 import { adminCommunityFamiliesHandlers } from './admin-community-families';
 import { adminCommunityGoalsHandlers } from './admin-community-goals';
 import { adminCommunitySchedulerHandlers } from './admin-community-scheduler';
+import { adminCommunityAccountsHandlers } from './admin-community-accounts';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -737,45 +739,75 @@ function ensureUnique(values: string[]): string[] {
   return Array.from(new Set(values));
 }
 
-function formatIsoDate(value: string | null | undefined): string | null {
+function formatIsoDate(value: string | null | undefined, timezone?: string): string | null {
   if (!value) {
     return null;
   }
   try {
-    return format(new Date(value), 'yyyy-MM-dd');
+    const date = new Date(value);
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    // Format as YYYY-MM-DD
+    const formatted = new Intl.DateTimeFormat('en-CA', options).format(date);
+    return formatted;
   } catch {
     return value;
   }
 }
 
-function formatMonthDay(value: string | null | undefined): string {
+function formatMonthDay(value: string | null | undefined, timezone?: string): string {
   if (!value) {
     return '';
   }
   try {
-    return format(new Date(value), 'MMM d');
+    const date = new Date(value);
+    const options: Intl.DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   } catch {
     return '';
   }
 }
 
-function formatRelative(value: string | null | undefined): string {
+function formatRelative(value: string | null | undefined, timezone?: string): string {
   if (!value) {
     return '';
   }
   try {
+    // For relative time, we can use our datetime-utils helper if timezone is provided
+    if (timezone) {
+      return formatRelativeTime(new Date(value), timezone);
+    }
     return formatDistanceToNow(new Date(value), { addSuffix: true });
   } catch {
     return '';
   }
 }
 
-function formatYearLabel(value: string | null | undefined): string | null {
+function formatYearLabel(value: string | null | undefined, timezone?: string): string | null {
   if (!value) {
     return null;
   }
   try {
-    return format(new Date(value), 'yyyy');
+    const date = new Date(value);
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   } catch {
     return null;
   }
@@ -1029,12 +1061,21 @@ function toMembershipManageRecord(member: MemberRow): MemberManageRecord {
   } satisfies MemberManageRecord;
 }
 
-function formatFullDate(value: string | null | undefined): string | null {
+function formatFullDate(value: string | null | undefined, timezone?: string): string | null {
   if (!value) {
     return null;
   }
   try {
-    return format(new Date(value), 'MMMM d, yyyy');
+    const date = new Date(value);
+    const options: Intl.DateTimeFormatOptions = {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    };
+    if (timezone) {
+      options.timeZone = timezone;
+    }
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   } catch {
     return null;
   }
@@ -1338,11 +1379,11 @@ function buildGiving(profile: MemberGivingProfileRow | null, member: MemberRow) 
   } satisfies MemberProfileRecord['giving'];
 }
 
-function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow) {
+function buildCarePlan(carePlan: MemberCarePlanRow | null, member: MemberRow, timezone?: string) {
   const statusCode = carePlan?.status_code ?? null;
   const statusLabel = carePlan?.status_label ?? formatLabel(statusCode, 'Healthy');
   const followUp = carePlan?.follow_up_at ?? null;
-  const followUpText = formatFullDate(followUp);
+  const followUpText = formatFullDate(followUp, timezone);
   const details = (carePlan?.details ?? '').trim();
   const appended = followUpText
     ? `${details ? `${details} ` : ''}Next follow-up ${followUpText}`.trim()
@@ -1378,7 +1419,8 @@ function buildMemberTimeline(
   timelineEvents: MemberTimelineEventRow[],
   carePlans: MemberCarePlan[],
   discipleshipPlans: MemberDiscipleshipPlan[],
-  limit: number
+  limit: number,
+  timezone?: string
 ): Array<{
   id: string;
   title: string;
@@ -1393,8 +1435,8 @@ function buildMemberTimeline(
   const eventItems = timelineEvents.map((event) => ({
     id: event.id,
     title: event.title,
-    date: formatMonthDay(event.occurred_at ?? null),
-    timeAgo: formatRelative(event.occurred_at ?? null),
+    date: formatMonthDay(event.occurred_at ?? null, timezone),
+    timeAgo: formatRelative(event.occurred_at ?? null, timezone),
     description: event.description ?? null,
     category: event.event_category ?? null,
     stage: event.status ?? null,
@@ -1411,8 +1453,8 @@ function buildMemberTimeline(
     return {
       id: plan.id || `care-${index}`,
       title: plan.status_label || 'Care plan',
-      date: formatMonthDay(dateField ?? null),
-      timeAgo: formatRelative(dateField ?? null),
+      date: formatMonthDay(dateField ?? null, timezone),
+      timeAgo: formatRelative(dateField ?? null, timezone),
       description: plan.details || `Care follow-up ${statusLabel.toLowerCase()}.`,
       category: isUrgent ? 'Urgent Care' : 'Care',
       stage: plan.is_active ? 'attention' : 'completed',
@@ -1436,8 +1478,8 @@ function buildMemberTimeline(
     return {
       id: plan.id || `discipleship-${index}`,
       title: `${pathwayLabel} plan`,
-      date: formatMonthDay(dateField ?? null),
-      timeAgo: formatRelative(dateField ?? null),
+      date: formatMonthDay(dateField ?? null, timezone),
+      timeAgo: formatRelative(dateField ?? null, timezone),
       description,
       category: 'Discipleship',
       stage: plan.status === 'completed' ? 'completed' : plan.status === 'active' ? 'scheduled' : 'new',
@@ -1470,6 +1512,9 @@ async function buildMemberProfileRecord(
   const tenant = await tenantService.getCurrentTenant();
   const tenantId = tenant?.id ?? null;
 
+  // Fetch tenant timezone for date formatting (display only)
+  const timezone = await getTenantTimezone();
+
   const [householdMembers, givingProfile, carePlan, timelineEvents, milestoneRows, memberCarePlans, memberDiscipleshipPlans, primaryFamilyMembership] = await Promise.all([
     fetchHouseholdMembers(service, member),
     fetchGivingProfile(service, member.id),
@@ -1490,12 +1535,12 @@ async function buildMemberProfileRecord(
     mapMembershipType(membershipTypeCode ?? stageCode ?? null);
   const centerLabel = member.membership_center?.name ?? null;
   const photoUrl = member.profile_picture_url ?? null;
-  const birthdate = formatFullDate(member.birthday ?? null);
-  const anniversary = formatFullDate(member.anniversary ?? null);
+  const birthdate = formatFullDate(member.birthday ?? null, timezone);
+  const anniversary = formatFullDate(member.anniversary ?? null, timezone);
   const rawMaritalStatus = (member.marital_status ?? '').trim();
   const maritalStatus = rawMaritalStatus ? formatLabel(rawMaritalStatus, 'Unknown') : null;
   const occupation = (member.occupation ?? '').trim() || null;
-  const joinDate = formatFullDate(member.membership_date ?? null);
+  const joinDate = formatFullDate(member.membership_date ?? null, timezone);
   const envelopeNumber = member.envelope_number ?? null;
 
   const groupTags = Array.isArray(member.small_groups)
@@ -1547,7 +1592,7 @@ async function buildMemberProfileRecord(
     ...(discipleshipGroup ? [discipleshipGroup] : []),
   ]);
 
-  const carePlanDetails = buildCarePlan(carePlan, member);
+  const carePlanDetails = buildCarePlan(carePlan, member, timezone);
   const carePlanRecord = {
     ...carePlanDetails,
     prayerFocus,
@@ -1582,7 +1627,7 @@ async function buildMemberProfileRecord(
       }
     : memberAddress;
   const dataSteward = (member.data_steward ?? '').trim() || null;
-  const lastReview = formatFullDate(member.last_review_at ?? null);
+  const lastReview = formatFullDate(member.last_review_at ?? null, timezone);
 
   // Build family data from new family system
   let familyData: MemberProfileRecord['family'] = null;
@@ -1688,7 +1733,7 @@ async function buildMemberProfileRecord(
     },
     carePlan: carePlanRecord,
     emergency: emergencyDetails,
-    timeline: buildMemberTimeline(timelineEvents, memberCarePlans, memberDiscipleshipPlans, options.timelineLimit),
+    timeline: buildMemberTimeline(timelineEvents, memberCarePlans, memberDiscipleshipPlans, options.timelineLimit, timezone),
   } satisfies MemberProfileRecord;
 }
 
@@ -1895,4 +1940,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   ...adminCommunityFamiliesHandlers,
   ...adminCommunityGoalsHandlers,
   ...adminCommunitySchedulerHandlers,
+  ...adminCommunityAccountsHandlers,
 };

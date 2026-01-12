@@ -7,6 +7,7 @@ import type { AuditService } from '@/services/AuditService';
 import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { TYPES } from '@/lib/types';
 import { getFieldEncryptionConfig } from '@/utils/encryptionUtils';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 export type IAccountAdapter = IBaseAdapter<Account>;
 
@@ -77,6 +78,10 @@ export class AccountAdapter
     return getFieldEncryptionConfig('accounts');
   }
 
+  private async getTenantId() {
+    return this.context?.tenantId ?? (await tenantUtils.getTenantId());
+  }
+
   protected override async onBeforeCreate(data: Partial<Account>): Promise<Partial<Account>> {
     // Set default values
     if (data.is_active === undefined) {
@@ -84,7 +89,12 @@ export class AccountAdapter
     }
 
     // Encrypt PII fields before creating record
-    const tenantId = this.context?.tenantId;
+    // Resolve tenant context: explicit context > data.tenant_id > tenantUtils fallback
+    let tenantId = this.context?.tenantId || data.tenant_id;
+    if (!tenantId) {
+      // Last resort: try resolving from authenticated user's tenant
+      tenantId = await tenantUtils.getTenantId();
+    }
     if (!tenantId) {
       throw new Error('[AccountAdapter] Tenant context required for encryption');
     }
@@ -148,7 +158,12 @@ export class AccountAdapter
 
   protected override async onBeforeUpdate(id: string, data: Partial<Account>): Promise<Partial<Account>> {
     // Encrypt PII fields before updating record
-    const tenantId = this.context?.tenantId;
+    // Resolve tenant context: explicit context > data.tenant_id > tenantUtils fallback
+    let tenantId = this.context?.tenantId || data.tenant_id;
+    if (!tenantId) {
+      // Last resort: try resolving from authenticated user's tenant
+      tenantId = await tenantUtils.getTenantId();
+    }
     if (!tenantId) {
       throw new Error('[AccountAdapter] Tenant context required for encryption');
     }
@@ -251,9 +266,11 @@ export class AccountAdapter
     // Fetch encrypted records from parent
     const result = await super.fetch(options);
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
+    console.log(`[AccountAdapter.fetch] tenantId resolved: ${tenantId}, records: ${result.data.length}`);
     if (!tenantId || !result.data.length) {
+      console.log(`[AccountAdapter.fetch] Skipping decryption - ${!tenantId ? 'no tenant context' : 'no records'}`);
       return result;
     }
 
@@ -301,8 +318,8 @@ export class AccountAdapter
       return null;
     }
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
     if (!tenantId) {
       return record;
     }

@@ -80,6 +80,19 @@ export class EncryptionService {
       return null;
     }
 
+    // Handle non-string values (e.g., arrays or objects passed directly)
+    if (typeof encryptedValue !== 'string') {
+      console.warn(
+        `[EncryptionService] Field ${fieldName} received non-string value (${typeof encryptedValue}), returning as-is`
+      );
+      // Return stringified version for safety, or null if it can't be converted
+      try {
+        return JSON.stringify(encryptedValue);
+      } catch {
+        return null;
+      }
+    }
+
     try {
       // Parse encrypted format: {version}.{iv}.{authTag}.{ciphertext}
       const parts = encryptedValue.split('.');
@@ -145,10 +158,28 @@ export class EncryptionService {
    * Decrypt an array field (JSON array of strings)
    */
   async decryptArray(
-    encryptedValue: string | null | undefined,
+    encryptedValue: string | string[] | null | undefined,
     tenantId: string,
     fieldName: string
   ): Promise<string[] | null> {
+    // Handle null/undefined
+    if (encryptedValue === null || encryptedValue === undefined) {
+      return null;
+    }
+
+    // If already an array (legacy unencrypted data), return as-is
+    if (Array.isArray(encryptedValue)) {
+      console.warn(
+        `[EncryptionService] Field ${fieldName} is already an array (legacy unencrypted), returning as-is`
+      );
+      return encryptedValue;
+    }
+
+    // Empty string
+    if (encryptedValue === '') {
+      return null;
+    }
+
     const decrypted = await this.decrypt(encryptedValue, tenantId, fieldName);
 
     if (!decrypted) {

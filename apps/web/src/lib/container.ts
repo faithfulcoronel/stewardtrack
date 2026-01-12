@@ -20,6 +20,7 @@ import { FeaturePermissionService } from '@/services/FeaturePermissionService';
 import { PermissionDeploymentService } from '@/services/PermissionDeploymentService';
 import { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
+import { PublicMemberRegistrationService } from '@/services/PublicMemberRegistrationService';
 import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
@@ -36,6 +37,9 @@ import { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlan
 import { DiscipleshipPathwayService } from '@/services/DiscipleshipPathwayService';
 import { MemberDiscipleshipMilestoneService } from '@/services/MemberDiscipleshipMilestoneService';
 import { MembersDashboardService } from '@/services/MembersDashboardService';
+import { MemberService } from '@/services/MemberService';
+import { MembershipTypeService } from '@/services/MembershipTypeService';
+import { MembershipStageService } from '@/services/MembershipStageService';
 import { MemberProfileService } from '@/services/MemberProfileService';
 import { RolePermissionService } from '@/services/RolePermissionService';
 import { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
@@ -387,6 +391,11 @@ container
   .inRequestScope();
 
 container
+  .bind<PublicMemberRegistrationService>(TYPES.PublicMemberRegistrationService)
+  .to(PublicMemberRegistrationService)
+  .inRequestScope();
+
+container
   .bind<AuthorizationService>(TYPES.AuthorizationService)
   .to(AuthorizationService)
   .inRequestScope();
@@ -733,8 +742,60 @@ container.bind<IOnboardingProgressRepository>(TYPES.IOnboardingProgressRepositor
 // ==================== MEMBERSHIP TYPE & STAGE ====================
 container.bind<IMembershipTypeAdapter>(TYPES.IMembershipTypeAdapter).to(MembershipTypeAdapter).inRequestScope();
 container.bind<IMembershipTypeRepository>(TYPES.IMembershipTypeRepository).to(MembershipTypeRepository).inRequestScope();
+container.bind<MembershipTypeService>(TYPES.MembershipTypeService).to(MembershipTypeService).inRequestScope();
 container.bind<IMembershipStageAdapter>(TYPES.IMembershipStageAdapter).to(MembershipStageAdapter).inRequestScope();
 container.bind<IMembershipStageRepository>(TYPES.IMembershipStageRepository).to(MembershipStageRepository).inRequestScope();
+container.bind<MembershipStageService>(TYPES.MembershipStageService).to(MembershipStageService).inRequestScope();
+
+// ==================== RELIGIOUS DENOMINATION ====================
+import { ReligiousDenominationAdapter, type IReligiousDenominationAdapter } from '@/adapters/religiousDenomination.adapter';
+import { ReligiousDenominationRepository, type IReligiousDenominationRepository } from '@/repositories/religiousDenomination.repository';
+import { ReligiousDenominationService } from '@/services/ReligiousDenominationService';
+
+container.bind<IReligiousDenominationAdapter>(TYPES.IReligiousDenominationAdapter).to(ReligiousDenominationAdapter).inRequestScope();
+container.bind<IReligiousDenominationRepository>(TYPES.IReligiousDenominationRepository).to(ReligiousDenominationRepository).inRequestScope();
+container.bind<ReligiousDenominationService>(TYPES.ReligiousDenominationService).to(ReligiousDenominationService).inRequestScope();
+
+// ==================== ACCOUNT ADAPTER/REPOSITORY/SERVICE (MemberService dependency) ====================
+import { AccountAdapter, type IAccountAdapter } from '@/adapters/account.adapter';
+import { AccountRepository, type IAccountRepository } from '@/repositories/account.repository';
+import { SupabaseAccountService, type AccountService } from '@/services/AccountService';
+container.bind<IAccountAdapter>(TYPES.IAccountAdapter).to(AccountAdapter).inRequestScope();
+container.bind<IAccountRepository>(TYPES.IAccountRepository).to(AccountRepository).inRequestScope();
+container.bind<AccountService>(TYPES.AccountService).to(SupabaseAccountService).inRequestScope();
+
+// ==================== FINANCIAL TRANSACTION ADAPTER/REPOSITORY (MemberService dependency) ====================
+import { FinancialTransactionAdapter, type IFinancialTransactionAdapter } from '@/adapters/financialTransaction.adapter';
+import { FinancialTransactionRepository, type IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
+container.bind<IFinancialTransactionAdapter>(TYPES.IFinancialTransactionAdapter).to(FinancialTransactionAdapter).inRequestScope();
+container.bind<IFinancialTransactionRepository>(TYPES.IFinancialTransactionRepository).to(FinancialTransactionRepository).inRequestScope();
+
+// ==================== CHART OF ACCOUNTS ====================
+import { ChartOfAccountAdapter, type IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
+import { ChartOfAccountRepository, type IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import { ChartOfAccountService } from '@/services/ChartOfAccountService';
+container.bind<IChartOfAccountAdapter>(TYPES.IChartOfAccountAdapter).to(ChartOfAccountAdapter).inRequestScope();
+container.bind<IChartOfAccountRepository>(TYPES.IChartOfAccountRepository).to(ChartOfAccountRepository).inRequestScope();
+container.bind<ChartOfAccountService>(TYPES.ChartOfAccountService).to(ChartOfAccountService).inRequestScope();
+
+// ==================== BUDGET ====================
+import { BudgetAdapter, type IBudgetAdapter } from '@/adapters/budget.adapter';
+import { BudgetRepository, type IBudgetRepository } from '@/repositories/budget.repository';
+import { DefaultBudgetService, type BudgetService } from '@/services/BudgetService';
+container.bind<IBudgetAdapter>(TYPES.IBudgetAdapter).to(BudgetAdapter).inRequestScope();
+container.bind<IBudgetRepository>(TYPES.IBudgetRepository).to(BudgetRepository).inRequestScope();
+container.bind<BudgetService>(TYPES.BudgetService).to(DefaultBudgetService).inRequestScope();
+
+// ==================== FINANCIAL SOURCE ====================
+import { FinancialSourceAdapter, type IFinancialSourceAdapter } from '@/adapters/financialSource.adapter';
+import { FinancialSourceRepository, type IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import { FinancialSourceService } from '@/services/FinancialSourceService';
+container.bind<IFinancialSourceAdapter>(TYPES.IFinancialSourceAdapter).to(FinancialSourceAdapter).inRequestScope();
+container.bind<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository).to(FinancialSourceRepository).inRequestScope();
+container.bind<FinancialSourceService>(TYPES.FinancialSourceService).to(FinancialSourceService).inRequestScope();
+
+// ==================== MEMBER SERVICE ====================
+container.bind<MemberService>(TYPES.MemberService).to(MemberService).inRequestScope();
 
 // ==================== FEATURE ONBOARDING ====================
 container.bind<FeatureOnboardingOrchestratorService>(TYPES.FeatureOnboardingOrchestratorService).to(FeatureOnboardingOrchestratorService).inRequestScope();

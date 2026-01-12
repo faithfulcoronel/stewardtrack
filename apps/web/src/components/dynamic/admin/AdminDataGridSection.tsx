@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import React from "react";
+import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +39,20 @@ export interface GridActionConfig {
   variant?: string | null;
   intent?: "view" | "edit" | "delete" | "link" | null;
   confirm?: string | null;
+  confirmTitle?: string | null;
+  confirmDescription?: string | null;
+  confirmLabel?: string | null;
+  cancelLabel?: string | null;
+  handler?: string | null;
   successMessage?: string | null;
+}
+
+interface DeleteConfirmState {
+  isOpen: boolean;
+  isDeleting: boolean;
+  rowId: string;
+  row: GridValue | null;
+  action: GridActionConfig | null;
 }
 
 export interface GridColumnConfig {
@@ -110,6 +134,13 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     }
     return initial;
   });
+  const [deleteConfirm, setDeleteConfirm] = React.useState<DeleteConfirmState>({
+    isOpen: false,
+    isDeleting: false,
+    rowId: "",
+    row: null,
+    action: null,
+  });
 
   React.useEffect(() => {
     setTableRows(rawRows);
@@ -169,6 +200,70 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     setTableRows((previous) => previous.filter((item) => getRowIdentifier(item) !== rowId));
   }, []);
 
+  const requestDeleteConfirmation = React.useCallback(
+    (rowId: string, row: GridValue, action: GridActionConfig) => {
+      setDeleteConfirm({
+        isOpen: true,
+        rowId,
+        row,
+        action,
+      });
+    },
+    []
+  );
+
+  const handleConfirmDelete = React.useCallback(async () => {
+    const { rowId, row, action } = deleteConfirm;
+    if (!rowId) return;
+
+    // Set deleting state
+    setDeleteConfirm((prev) => ({ ...prev, isDeleting: true }));
+
+    try {
+      // If there's a handler, call the action API
+      if (action?.handler) {
+        const response = await fetch("/api/metadata/actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: {
+              id: action.handler,
+              params: { id: rowId },
+            },
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          const errorMessage = result.message || "Failed to delete record";
+          toast.error(errorMessage);
+          setDeleteConfirm((prev) => ({ ...prev, isDeleting: false }));
+          return;
+        }
+
+        // Show success message
+        const successMsg = action.successMessage
+          ? applyTemplate(action.successMessage, row ?? {})
+          : "Record deleted successfully";
+        toast.success(successMsg);
+      } else {
+        // No handler, just show generic success
+        toast.success("Record removed");
+      }
+
+      // Remove from local state
+      handleDelete(rowId);
+
+      // Close dialog
+      setDeleteConfirm({ isOpen: false, isDeleting: false, rowId: "", row: null, action: null });
+    } catch (error) {
+      console.error("[AdminDataGridSection] Delete failed:", error);
+      toast.error("An error occurred while deleting the record");
+      setDeleteConfirm((prev) => ({ ...prev, isDeleting: false }));
+    }
+  }, [deleteConfirm, handleDelete]);
+
   const tableColumns = React.useMemo<DataTableColumn<GridValue>[]>(() => {
     return columns.map((column) => {
       const style: React.CSSProperties = {};
@@ -189,7 +284,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           align,
           sortable: false,
           renderCell: (row: GridValue) => (
-            <RowActions actions={actions} row={row} onDelete={handleDelete} />
+            <RowActions actions={actions} row={row} onRequestDelete={requestDeleteConfirmation} />
           ),
           headerClassName: hiddenClass,
           cellClassName: cn("whitespace-nowrap", hiddenClass),
@@ -365,7 +460,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
 
       return tableColumn;
     });
-  }, [columns, handleDelete]);
+  }, [columns, requestDeleteConfirmation]);
 
   return (
     <section className="space-y-6">
@@ -435,6 +530,45 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteConfirm.isOpen}
+        onOpenChange={(open) => {
+          if (!open && !deleteConfirm.isDeleting) {
+            setDeleteConfirm({ isOpen: false, isDeleting: false, rowId: "", row: null, action: null });
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteConfirm.action?.confirmTitle
+                ? applyTemplate(deleteConfirm.action.confirmTitle, deleteConfirm.row ?? {})
+                : "Delete Record"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm.action?.confirmDescription
+                ? applyTemplate(deleteConfirm.action.confirmDescription, deleteConfirm.row ?? {})
+                : deleteConfirm.action?.confirm
+                  ? applyTemplate(deleteConfirm.action.confirm, deleteConfirm.row ?? {})
+                  : `Are you sure you want to delete "${String(deleteConfirm.row?.name ?? deleteConfirm.row?.title ?? "this record")}"? This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteConfirm.isDeleting}>
+              {deleteConfirm.action?.cancelLabel ?? "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteConfirm.isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteConfirm.isDeleting ? "Deleting..." : (deleteConfirm.action?.confirmLabel ?? "Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
@@ -487,11 +621,11 @@ function FilterInput({
 function RowActions({
   actions,
   row,
-  onDelete,
+  onRequestDelete,
 }: {
   actions: GridActionConfig[];
   row: GridValue;
-  onDelete: (rowId: string) => void;
+  onRequestDelete: (rowId: string, row: GridValue, action: GridActionConfig) => void;
 }) {
   if (!actions.length) {
     return null;
@@ -511,15 +645,7 @@ function RowActions({
               variant="ghost"
               className="text-destructive hover:bg-destructive/10"
               onClick={() => {
-                const message = action.confirm
-                  ? applyTemplate(action.confirm, row)
-                  : `Remove ${String(row.name ?? row.title ?? "this record")}?`;
-                if (window.confirm(message)) {
-                  onDelete(rowId);
-                  if (action.successMessage) {
-                    alert(applyTemplate(action.successMessage, row));
-                  }
-                }
+                onRequestDelete(rowId, row, action);
               }}
             >
               {action.label}

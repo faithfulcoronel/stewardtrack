@@ -9,6 +9,7 @@ import { HighlightsCard } from './HighlightsCard';
 import { RecentActivityCard } from './RecentActivityCard';
 import { UpcomingEventsCard } from './UpcomingEventsCard';
 import { BirthdaysCard } from './BirthdaysCard';
+import { MemberRegistrationQRCode } from '@/components/dynamic/admin/MemberRegistrationQRCode';
 import { useDashboard } from '@/hooks/useDashboard';
 
 export function AdminDashboard() {
@@ -63,6 +64,16 @@ export function AdminDashboard() {
         <div className="space-y-6">
           <RecentActivityCard activities={data?.recentActivity} isLoading={isLoading} />
           <BirthdaysCard birthdays={data?.upcomingBirthdays} isLoading={isLoading} />
+          {/* Member Registration QR Code */}
+          {data?.welcome?.tenantId && (
+            <MemberRegistrationQRCode
+              tenantId={data.welcome.tenantId}
+              tenantName={data.welcome.tenantName}
+              title="Member Registration"
+              description="Share this QR code for new members to register and create their accounts."
+              size={180}
+            />
+          )}
         </div>
       </div>
     </div>

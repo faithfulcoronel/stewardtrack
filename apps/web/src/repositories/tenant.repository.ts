@@ -8,12 +8,13 @@ import type {
   SubscriptionUpdateParams,
   TenantAdminInfo,
   TenantCleanupResult,
+  PublicTenantInfo,
 } from '@/adapters/tenant.adapter';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 
 // Re-export types for convenience
-export type { PublicProductOffering, TenantUserData, SubscriptionUpdateParams, TenantAdminInfo, TenantCleanupResult };
+export type { PublicProductOffering, TenantUserData, SubscriptionUpdateParams, TenantAdminInfo, TenantCleanupResult, PublicTenantInfo };
 
 export interface ITenantRepository extends BaseRepository<Tenant> {
   getCurrentTenant(): Promise<Tenant | null>;
@@ -44,6 +45,9 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
   getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
   revokeAllFeatureGrants(tenantId: string): Promise<void>;
   getPaymentFailedCount(tenantId: string): Promise<number>;
+
+  // Public registration methods
+  getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
 }
 
 @injectable()
@@ -134,5 +138,10 @@ export class TenantRepository
 
   async getPaymentFailedCount(tenantId: string): Promise<number> {
     return this.tenantAdapter.getPaymentFailedCount(tenantId);
+  }
+
+  // Public registration methods
+  async getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
+    return this.tenantAdapter.getPublicTenantInfo(tenantId);
   }
 }

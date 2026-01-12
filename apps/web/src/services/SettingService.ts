@@ -116,6 +116,8 @@ export interface SettingService {
   setSetting(key: string, value: string, scope?: 'tenant' | 'user' | 'app'): Promise<Setting>;
   getTenantCurrency(): Promise<string | null>;
   setTenantCurrency(code: string): Promise<Setting>;
+  getTenantTimezone(): Promise<string | null>;
+  setTenantTimezone(timezone: string): Promise<Setting>;
   getUserWelcomeFlag(): Promise<boolean>;
   setUserWelcomeFlag(value: boolean): Promise<Setting>;
   // Integration settings
@@ -179,6 +181,15 @@ export class SupabaseSettingService implements SettingService {
 
   async setTenantCurrency(code: string): Promise<Setting> {
     return this.upsertSetting('tenant.currency', code, 'tenant');
+  }
+
+  async getTenantTimezone(): Promise<string | null> {
+    const setting = await this.getSetting('tenant.timezone');
+    return setting?.value || null;
+  }
+
+  async setTenantTimezone(timezone: string): Promise<Setting> {
+    return this.upsertSetting('tenant.timezone', timezone, 'tenant');
   }
 
   async getUserWelcomeFlag(): Promise<boolean> {

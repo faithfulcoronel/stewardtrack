@@ -6,6 +6,7 @@ import type { IGoalsService } from '@/services/goals';
 import type { GoalCategoryService } from '@/services/goals/GoalCategoryService';
 import type { MembersDashboardService } from '@/services/MembersDashboardService';
 import type { Goal, GoalStatus } from '@/models/goals';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // ==================== GOALS PAGE HANDLERS ====================
 
@@ -208,6 +209,9 @@ const resolveGoalsTable: ServiceDataSourceHandler = async (request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const goalsService = container.get<IGoalsService>(TYPES.GoalsService);
   const categoryService = container.get<GoalCategoryService>(TYPES.GoalCategoryService);
 
@@ -243,7 +247,7 @@ const resolveGoalsTable: ServiceDataSourceHandler = async (request) => {
     progress: goal.overall_progress || 0,
     owner: goal.owner_name || 'Unassigned',
     targetDate: goal.target_date
-      ? new Date(goal.target_date).toLocaleDateString('en-US', {
+      ? formatDate(new Date(goal.target_date), timezone, {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
@@ -356,6 +360,9 @@ const resolveUpcomingUpdates: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const goalsService = container.get<IGoalsService>(TYPES.GoalsService);
 
   // Get key results that need updates
@@ -365,14 +372,14 @@ const resolveUpcomingUpdates: ServiceDataSourceHandler = async (_request) => {
     id: kr.id,
     title: kr.title,
     date: kr.next_update_due
-      ? new Date(kr.next_update_due).toLocaleDateString('en-US', {
+      ? formatDate(new Date(kr.next_update_due), timezone, {
           weekday: 'short',
           month: 'short',
           day: 'numeric',
         })
       : 'Due soon',
     timeAgo: kr.next_update_due
-      ? `Due ${new Date(kr.next_update_due).toLocaleDateString()}`
+      ? `Due ${formatDate(new Date(kr.next_update_due), timezone)}`
       : 'Update needed',
     description: `Current: ${kr.current_value ?? 0} / Target: ${kr.target_value}`,
     category: kr.parent_title || 'Goal',
@@ -2451,7 +2458,7 @@ const resolveObjectiveKeyResultManageHero: ServiceDataSourceHandler = async (req
   }
 
   const keyResultId = request.params?.keyResultId as string;
-  const objectiveId = request.params?.objectiveId as string;
+  const _objectiveId = request.params?.objectiveId as string;
   const isEditMode = !!keyResultId;
 
   let keyResult = null;
@@ -2709,7 +2716,7 @@ const resolveReportsCategoryProgress: ServiceDataSourceHandler = async (_request
 
   const [{ data: goals }, categories] = await Promise.all([
     goalsService.getGoals({}, { include_category: true }),
-    categoryService.getActiveCategories(),
+    categoryService.getAll(),
   ]);
 
   // Group goals by category and calculate stats

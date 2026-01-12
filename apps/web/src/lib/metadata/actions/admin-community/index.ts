@@ -8,6 +8,7 @@ import { discipleshipActionHandlers } from "./discipleship";
 import { familiesActionHandlers } from "./families";
 import { goalsActionHandlers } from "./goals";
 import { schedulerActionHandlers } from "./scheduler";
+import { accountsActionHandlers } from "./accounts";
 
 export const adminCommunityActionHandlers: Record<string, MetadataActionHandler> = {
   "admin-community.members.manage.saveMember": handleMemberManageExecution,
@@ -18,6 +19,7 @@ export const adminCommunityActionHandlers: Record<string, MetadataActionHandler>
   ...familiesActionHandlers,
   ...goalsActionHandlers,
   ...schedulerActionHandlers,
+  ...accountsActionHandlers,
 };
 
 export { ManageMemberAction };

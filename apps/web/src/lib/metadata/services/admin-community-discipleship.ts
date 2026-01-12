@@ -75,6 +75,7 @@ import {
   createMembershipLookupRequestContext,
   createDiscipleshipPathwayService,
 } from './admin-community/membershipLookups';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // =============================================================================
 // HELPER TYPES
@@ -723,6 +724,9 @@ const resolveDiscipleshipPlanProfileSummary: ServiceDataSourceHandler = async (r
   const memberName = await getMemberName(plan.member_id);
   const statusLabel = plan.status === 'completed' ? 'Completed' : (plan.status === 'paused' ? 'Paused' : 'Active');
 
+  // Fetch tenant timezone for date formatting (display only)
+  const timezone = await getTenantTimezone();
+
   return {
     summary: {
       panels: [
@@ -748,17 +752,17 @@ const resolveDiscipleshipPlanProfileSummary: ServiceDataSourceHandler = async (r
           items: [
             {
               label: 'Target date',
-              value: plan.target_date ? new Date(plan.target_date).toLocaleDateString() : '—',
+              value: plan.target_date ? formatDate(new Date(plan.target_date), timezone) : '—',
               type: 'text',
             },
             {
               label: 'Created',
-              value: plan.created_at ? new Date(plan.created_at).toLocaleDateString() : '—',
+              value: plan.created_at ? formatDate(new Date(plan.created_at), timezone) : '—',
               type: 'text',
             },
             {
               label: 'Last updated',
-              value: plan.updated_at ? new Date(plan.updated_at).toLocaleDateString() : '—',
+              value: plan.updated_at ? formatDate(new Date(plan.updated_at), timezone) : '—',
               type: 'text',
             },
           ],

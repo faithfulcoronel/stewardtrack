@@ -25,4 +25,11 @@ export interface Tenant extends BaseModel {
   xendit_subscription_id?: string | null;
   xendit_payment_method_id?: string | null;
   created_by: string;
+  // Church denomination
+  denomination?: string | null;
+  // Setup tracking fields
+  setup_status?: 'pending' | 'in_progress' | 'completed' | 'failed' | null;
+  setup_completed_at?: string | null;
+  setup_error?: string | null;
+  admin_member_created?: boolean;
 }

@@ -48,6 +48,12 @@ export interface TenantAdminInfo {
   last_name: string;
 }
 
+export interface PublicTenantInfo {
+  id: string;
+  name: string;
+  denomination: string | null;
+}
+
 export interface TenantCleanupResult {
   success: boolean;
   deletedRecords: {
@@ -87,6 +93,9 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
   revokeAllFeatureGrants(tenantId: string): Promise<void>;
   getPaymentFailedCount(tenantId: string): Promise<number>;
+
+  // Public registration methods
+  getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
 }
 
 @injectable()
@@ -112,12 +121,18 @@ export class TenantAdapter
     status,
     subscription_tier,
     subscription_status,
+    subscription_offering_id,
     billing_cycle,
     subscription_end_date,
     currency,
     created_by,
     created_at,
-    updated_at
+    updated_at,
+    denomination,
+    setup_status,
+    setup_completed_at,
+    setup_error,
+    admin_member_created
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
@@ -128,6 +143,31 @@ export class TenantAdapter
 
   protected override async onAfterUpdate(data: Tenant): Promise<void> {
     await this.auditService.logAuditEvent('update', 'tenant', data.id, data);
+  }
+
+  /**
+   * Override fetchById to skip tenant context check
+   * The tenants table doesn't have tenant_id - it IS the tenants table
+   */
+  public override async fetchById(id: string): Promise<Tenant | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw new Error(`Failed to fetch tenant: ${error.message}`);
+    }
+
+    return data as unknown as Tenant;
   }
 
   /**
@@ -654,5 +694,33 @@ export class TenantAdapter
     }
 
     return data?.payment_failed_count || 0;
+  }
+
+  // ==================== PUBLIC REGISTRATION METHODS ====================
+
+  /**
+   * Get public tenant information for member registration.
+   * Only returns non-sensitive tenant details (id, name, denomination).
+   * Uses service role to bypass RLS for public access.
+   */
+  async getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { data, error } = await serviceSupabase
+      .from('tenants')
+      .select('id, name, denomination')
+      .eq('id', tenantId)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw new Error(`Failed to fetch tenant info: ${error.message}`);
+    }
+
+    return data as unknown as PublicTenantInfo;
   }
 }

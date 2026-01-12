@@ -17,6 +17,7 @@ import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshi
 import type { MemberDiscipleshipMilestoneService } from '@/services/MemberDiscipleshipMilestoneService';
 
 import type { ServiceDataSourceHandler, ServiceDataSourceRequest } from './types';
+import { getTenantTimezone, formatDate, formatRelativeTime } from './datetime-utils';
 
 // Handler IDs for dashboard components
 const DASHBOARD_HERO_HANDLER_ID = 'admin-community.dashboard.hero';
@@ -305,6 +306,9 @@ async function resolveDashboardCareTimeline(
     icon: string;
   }>;
 }> {
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const carePlanService = getCarePlanService();
   const discipleshipPlanService = getDiscipleshipPlanService();
   const milestoneService = getDiscipleshipMilestoneService();
@@ -321,9 +325,9 @@ async function resolveDashboardCareTimeline(
     const careItems = (recentCarePlans || []).map((plan, index) => ({
       id: plan.id || `care-${index}`,
       title: plan.title || 'Care plan update',
-      date: plan.created_at ? format(new Date(plan.created_at), 'MMM d') : '',
+      date: plan.created_at ? formatDate(new Date(plan.created_at), timezone, { month: 'short', day: 'numeric' }) : '',
       timeAgo: plan.created_at
-        ? formatDistanceToNow(new Date(plan.created_at))
+        ? formatRelativeTime(new Date(plan.created_at), timezone)
         : '',
       description: plan.description || 'Care follow-up in progress.',
       category: plan.priority === 'urgent' ? 'Urgent' : 'Care',
@@ -346,9 +350,9 @@ async function resolveDashboardCareTimeline(
       return {
         id: plan.id || `discipleship-${index}`,
         title: `${pathwayLabel} plan`,
-        date: plan.createdAt ? format(new Date(plan.createdAt), 'MMM d') : '',
+        date: plan.createdAt ? formatDate(new Date(plan.createdAt), timezone, { month: 'short', day: 'numeric' }) : '',
         timeAgo: plan.createdAt
-          ? formatDistanceToNow(new Date(plan.createdAt))
+          ? formatRelativeTime(new Date(plan.createdAt), timezone)
           : '',
         description,
         category: 'Discipleship',
@@ -366,9 +370,9 @@ async function resolveDashboardCareTimeline(
       return {
         id: milestone.id || `milestone-${index}`,
         title: milestone.name || 'Milestone reached',
-        date: milestoneDate ? format(new Date(milestoneDate), 'MMM d') : '',
+        date: milestoneDate ? formatDate(new Date(milestoneDate), timezone, { month: 'short', day: 'numeric' }) : '',
         timeAgo: milestoneDate
-          ? formatDistanceToNow(new Date(milestoneDate))
+          ? formatRelativeTime(new Date(milestoneDate), timezone)
           : '',
         description: milestone.description || 'Discipleship milestone achieved.',
         category: 'Milestone',
@@ -390,7 +394,7 @@ async function resolveDashboardCareTimeline(
           {
             id: 'empty-state',
             title: 'No recent activity',
-            date: format(new Date(), 'MMM d'),
+            date: formatDate(new Date(), timezone, { month: 'short', day: 'numeric' }),
             timeAgo: 'Today',
             description: 'Care, discipleship, and milestone events will appear here as activities are logged.',
             category: 'Info',
@@ -409,7 +413,7 @@ async function resolveDashboardCareTimeline(
         {
           id: 'error-state',
           title: 'Unable to load timeline',
-          date: format(new Date(), 'MMM d'),
+          date: formatDate(new Date(), timezone, { month: 'short', day: 'numeric' }),
           timeAgo: 'Now',
           description: 'There was an error loading the timeline. Please try refreshing.',
           category: 'Error',
@@ -419,19 +423,6 @@ async function resolveDashboardCareTimeline(
       ],
     };
   }
-}
-
-// Helper function for relative time formatting
-function formatDistanceToNow(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return `${Math.floor(diffDays / 30)} months ago`;
 }
 
 export const adminCommunityDashboardHandlers: Record<string, ServiceDataSourceHandler> = {

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="transactions/entry" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
+  <Page id="admin-finance-transactions-entry">
+    <Title>Record transaction</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="form-header" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="formHeader.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="formHeader.headline"/>
+            <Prop name="description" kind="binding" contract="formHeader.description"/>
+          </Props>
+        </Component>
+        <Component id="transaction-type-selector" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Transaction type</Prop>
+            <Prop name="description" kind="static">Select whether this is an income or expense transaction.</Prop>
+            <Prop name="fields" kind="binding" contract="transactionTypeForm.fields"/>
+            <Prop name="values" kind="binding" contract="transactionTypeForm.values"/>
+            <Prop name="layout" kind="static">horizontal</Prop>
+          </Props>
+        </Component>
+        <Component id="header-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Transaction details</Prop>
+            <Prop name="description" kind="static">Enter the basic information for this transaction.</Prop>
+            <Prop name="fields" kind="binding" contract="headerForm.fields"/>
+            <Prop name="values" kind="binding" contract="headerForm.values"/>
+            <Prop name="validation" kind="binding" contract="headerForm.validation"/>
+          </Props>
+        </Component>
+        <Component id="line-items" type="AdminTransactionLines">
+          <Props>
+            <Prop name="title" kind="static">Line items</Prop>
+            <Prop name="description" kind="static">Add one or more line items to this transaction.</Prop>
+            <Prop name="lines" kind="binding" contract="lineItems.lines"/>
+            <Prop name="columns" kind="binding" contract="lineItems.columns"/>
+            <Prop name="categoryOptions" kind="binding" contract="lineItems.categoryOptions"/>
+            <Prop name="sourceOptions" kind="binding" contract="lineItems.sourceOptions"/>
+            <Prop name="fundOptions" kind="binding" contract="lineItems.fundOptions"/>
+            <Prop name="accountOptions" kind="binding" contract="lineItems.accountOptions"/>
+            <Prop name="totalAmount" kind="binding" contract="lineItems.totalAmount"/>
+            <Prop name="addLineAction" kind="action" actionId="add-line"/>
+          </Props>
+        </Component>
+        <Component id="transaction-summary" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Summary</Prop>
+            <Prop name="description" kind="static">Review the transaction total before saving.</Prop>
+            <Prop name="fields" kind="binding" contract="summaryForm.fields"/>
+            <Prop name="values" kind="binding" contract="summaryForm.values"/>
+            <Prop name="submitAction" kind="action" actionId="save-transaction"/>
+            <Prop name="secondaryAction" kind="action" actionId="save-draft"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="formHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Form eyebrow text"/>
+          <Field name="headline" path="headline" description="Form headline"/>
+          <Field name="description" path="description" description="Form description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.entry.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="transactionTypeForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Transaction type field definitions"/>
+          <Field name="values" path="values" description="Current transaction type value"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.entry.typeSelector</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="headerForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Header field definitions"/>
+          <Field name="values" path="values" description="Current header values"/>
+          <Field name="validation" path="validation" description="Header validation rules"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.entry.headerForm</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="lineItems" kind="service">
+        <Contract>
+          <Field name="lines" path="lines" description="Current line items"/>
+          <Field name="columns" path="columns" description="Line item columns configuration"/>
+          <Field name="categoryOptions" path="categoryOptions" description="Category dropdown options"/>
+          <Field name="sourceOptions" path="sourceOptions" description="Source dropdown options"/>
+          <Field name="fundOptions" path="fundOptions" description="Fund dropdown options"/>
+          <Field name="accountOptions" path="accountOptions" description="Account dropdown options"/>
+          <Field name="totalAmount" path="totalAmount" description="Calculated total amount"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.entry.lineItems</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="summaryForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Summary field definitions"/>
+          <Field name="values" path="values" description="Summary values"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.entry.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-line" kind="client">
+        <Config>
+          <Label>Add line item</Label>
+          <Handler>addTransactionLine</Handler>
+          <Variant>outline</Variant>
+        </Config>
+      </Action>
+      <Action id="save-transaction" kind="submit">
+        <Config>
+          <Label>Submit transaction</Label>
+          <Handler>admin-finance.transactions.submit</Handler>
+          <SuccessUrl>/admin/finance/transactions</SuccessUrl>
+          <SuccessMessage>Transaction submitted successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="save-draft" kind="submit">
+        <Config>
+          <Label>Save as draft</Label>
+          <Handler>admin-finance.transactions.saveDraft</Handler>
+          <SuccessUrl>/admin/finance/transactions</SuccessUrl>
+          <SuccessMessage>Draft saved successfully</SuccessMessage>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/finance/transactions</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

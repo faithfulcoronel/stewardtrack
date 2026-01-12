@@ -104,10 +104,22 @@ function ThemeBridge({ children }: { children: React.ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export function useTheme() {
+const defaultThemeValue: ThemeContextValue = {
+  palettes: THEMES,
+  palette: DEFAULT_THEME_ID,
+  setPalette: () => {},
+  mode: "system",
+  setMode: () => {},
+  resolvedMode: "light",
+  mounted: false,
+};
+
+export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
+  // Return default value during SSR or before ThemeProvider mounts
+  // This prevents errors during hydration and server-side rendering
   if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    return defaultThemeValue;
   }
 
   return context;

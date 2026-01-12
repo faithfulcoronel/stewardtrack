@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="reports/trial-balance" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.reports" requiredPermissions="finance:reports" locale="en-US">
+  <Page id="admin-finance-reports-trial-balance">
+    <Title>Trial balance</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="report-header" type="AdminReportHeader">
+          <Props>
+            <Prop name="title" kind="static">Trial balance</Prop>
+            <Prop name="description" kind="static">Summary of all account balances to verify debits equal credits.</Prop>
+            <Prop name="asOfDate" kind="binding" contract="reportHeader.asOfDate"/>
+            <Prop name="dateSelector" kind="binding" contract="reportHeader.dateSelector"/>
+            <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
+          </Props>
+        </Component>
+        <Component id="balance-verification" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Balance verification</Prop>
+            <Prop name="description" kind="static">Total debits and credits must be equal for the trial balance to be valid.</Prop>
+            <Prop name="metrics" kind="binding" contract="balanceVerification.items"/>
+          </Props>
+        </Component>
+        <Component id="trial-balance-table" type="AdminReportTable">
+          <Props>
+            <Prop name="title" kind="static">Account balances</Prop>
+            <Prop name="rows" kind="binding" contract="trialBalanceData.rows"/>
+            <Prop name="columns" kind="binding" contract="trialBalanceData.columns"/>
+            <Prop name="subtotals" kind="binding" contract="trialBalanceData.subtotals"/>
+            <Prop name="grandTotal" kind="binding" contract="trialBalanceData.grandTotal"/>
+            <Prop name="emptyState" kind="static">{"title": "No data available", "description": "No transactions have been recorded for the selected period."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="reportHeader" kind="service">
+        <Contract>
+          <Field name="asOfDate" path="asOfDate" description="Report as-of date"/>
+          <Field name="dateSelector" path="dateSelector" description="Date selector configuration"/>
+          <Field name="exportActions" path="exportActions" description="Export action options"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.trialBalance.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="balanceVerification" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Balance verification cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.trialBalance.verification</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="trialBalanceData" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Trial balance data rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotals" path="subtotals" description="Subtotals by account type"/>
+          <Field name="grandTotal" path="grandTotal" description="Grand totals"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.trialBalance.data</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="export-pdf" kind="submit">
+        <Config>
+          <Label>Export PDF</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="export-excel" kind="submit">
+        <Config>
+          <Label>Export Excel</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="print" kind="client">
+        <Config>
+          <Label>Print</Label>
+          <Handler>printReport</Handler>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

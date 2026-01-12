@@ -78,6 +78,23 @@ export class MemberAdapter
     marital_status,
     occupation,
     baptism_date,
+    date_trusted_christ,
+    baptized_by_immersion,
+    baptism_place,
+    baptism_church,
+    baptized_by,
+    testimony,
+    denomination_id,
+    previous_denomination,
+    is_visitor,
+    visitor_invited_by_member_id,
+    visitor_invited_by_name,
+    visitor_first_visit_date,
+    visitor_how_heard,
+    visitor_interests,
+    visitor_follow_up_status,
+    visitor_follow_up_notes,
+    visitor_converted_to_member_date,
     spiritual_gifts,
     ministry_interests,
     emergency_contact_name,
@@ -164,6 +181,18 @@ export class MemberAdapter
         'member_names',
         'notes'
       ]
+    },
+    {
+      table: 'religious_denominations',
+      foreignKey: 'denomination_id',
+      alias: 'denomination',
+      select: ['id', 'code', 'name', 'description']
+    },
+    {
+      table: 'members',
+      foreignKey: 'visitor_invited_by_member_id',
+      alias: 'visitor_invited_by',
+      select: ['id', 'first_name', 'last_name']
     }
   ];
 
@@ -522,7 +551,18 @@ export class MemberAdapter
       'giving_last_gift_fund',
       'giving_tier',
       'finance_notes',
-      'data_steward'
+      'data_steward',
+      // Spiritual journey fields
+      'baptism_place',
+      'baptism_church',
+      'baptized_by',
+      'testimony',
+      'previous_denomination',
+      // Visitor information fields
+      'visitor_invited_by_name',
+      'visitor_how_heard',
+      'visitor_follow_up_status',
+      'visitor_follow_up_notes'
     ];
 
     for (const field of stringFields) {
@@ -540,7 +580,8 @@ export class MemberAdapter
       'discipleship_pathways',
       'leadership_roles',
       'prayer_requests',
-      'tags'
+      'tags',
+      'visitor_interests'
     ];
 
     for (const field of arrayFields) {
@@ -575,7 +616,12 @@ export class MemberAdapter
       'anniversary',
       'next_serve_at',
       'last_huddle_at',
-      'last_review_at'
+      'last_review_at',
+      // Spiritual journey date fields
+      'date_trusted_christ',
+      // Visitor date fields
+      'visitor_first_visit_date',
+      'visitor_converted_to_member_date'
     ];
 
     for (const field of dateFields) {
@@ -598,6 +644,29 @@ export class MemberAdapter
     if (payload.marital_status !== undefined) {
       const status = this.cleanOptionalString(payload.marital_status);
       payload.marital_status = status ? (status.toLowerCase() as Member['marital_status']) : null;
+    }
+
+    // Handle boolean fields
+    if (payload.baptized_by_immersion !== undefined) {
+      if (payload.baptized_by_immersion === null) {
+        payload.baptized_by_immersion = null;
+      } else if (typeof payload.baptized_by_immersion === 'string') {
+        const val = (payload.baptized_by_immersion as string).toLowerCase().trim();
+        payload.baptized_by_immersion = val === 'true' || val === 'yes' || val === '1' ? true : val === 'false' || val === 'no' || val === '0' ? false : null;
+      } else {
+        payload.baptized_by_immersion = Boolean(payload.baptized_by_immersion);
+      }
+    }
+
+    if (payload.is_visitor !== undefined) {
+      if (payload.is_visitor === null) {
+        payload.is_visitor = null;
+      } else if (typeof payload.is_visitor === 'string') {
+        const val = (payload.is_visitor as string).toLowerCase().trim();
+        payload.is_visitor = val === 'true' || val === 'yes' || val === '1' ? true : val === 'false' || val === 'no' || val === '0' ? false : null;
+      } else {
+        payload.is_visitor = Boolean(payload.is_visitor);
+      }
     }
 
     const addressSource = householdRecord ?? householdInput ?? null;
@@ -670,7 +739,12 @@ export class MemberAdapter
     }
 
     // Encrypt PII fields before creating record
-    const tenantId = this.context?.tenantId;
+    // Resolve tenant context: explicit context > data.tenant_id > tenantUtils fallback
+    let tenantId = this.context?.tenantId || prepared.tenant_id;
+    if (!tenantId) {
+      // Last resort: try resolving from authenticated user's tenant
+      tenantId = await tenantUtils.getTenantId();
+    }
     if (!tenantId) {
       throw new Error('[MemberAdapter] Tenant context required for encryption');
     }
@@ -759,7 +833,12 @@ export class MemberAdapter
     }
 
     // Encrypt PII fields before updating record
-    const tenantId = this.context?.tenantId;
+    // Resolve tenant context: explicit context > data.tenant_id > tenantUtils fallback
+    let tenantId = this.context?.tenantId || prepared.tenant_id;
+    if (!tenantId) {
+      // Last resort: try resolving from authenticated user's tenant
+      tenantId = await tenantUtils.getTenantId();
+    }
     if (!tenantId) {
       throw new Error('[MemberAdapter] Tenant context required for encryption');
     }
@@ -842,8 +921,8 @@ export class MemberAdapter
     // Fetch encrypted records from parent
     const result = await super.fetch(options);
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
     console.log(`[MemberAdapter.fetch] Context tenantId: ${tenantId}, Records fetched: ${result.data.length}`);
 
     if (!tenantId || !result.data.length) {
@@ -928,8 +1007,8 @@ export class MemberAdapter
       return null;
     }
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
     if (!tenantId) {
       return record;
     }

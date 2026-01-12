@@ -22,6 +22,7 @@ export const TYPES = {
 
   // Registration Service
   RegistrationService: Symbol.for('RegistrationService'),
+  PublicMemberRegistrationService: Symbol.for('PublicMemberRegistrationService'),
 
   // Authorization Service
   AuthorizationService: Symbol.for('AuthorizationService'),
@@ -118,6 +119,7 @@ export const TYPES = {
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),
   IAccountRepository: Symbol.for('IAccountRepository'),
+  AccountService: Symbol.for('AccountService'),
   IAnnouncementAdapter: Symbol.for('IAnnouncementAdapter'),
   IActivityLogAdapter: Symbol.for('IActivityLogAdapter'),
   IActivityLogRepository: Symbol.for('IActivityLogRepository'),
@@ -127,6 +129,7 @@ export const TYPES = {
   IAuthRepository: Symbol.for('IAuthRepository'),
   IBudgetAdapter: Symbol.for('IBudgetAdapter'),
   IBudgetRepository: Symbol.for('IBudgetRepository'),
+  BudgetService: Symbol.for('BudgetService'),
   ICategoryAdapter: Symbol.for('ICategoryAdapter'),
   ICategoryRepository: Symbol.for('ICategoryRepository'),
   IChartOfAccountAdapter: Symbol.for('IChartOfAccountAdapter'),
@@ -139,6 +142,7 @@ export const TYPES = {
   IFinanceDashboardRepository: Symbol.for('IFinanceDashboardRepository'),
   IFinancialSourceAdapter: Symbol.for('IFinancialSourceAdapter'),
   IFinancialSourceRepository: Symbol.for('IFinancialSourceRepository'),
+  FinancialSourceService: Symbol.for('FinancialSourceService'),
   IFinancialTransactionAdapter: Symbol.for('IFinancialTransactionAdapter'),
   IFinancialTransactionHeaderRepository: Symbol.for('IFinancialTransactionHeaderRepository'),
   IFinancialTransactionHeaderAdapter: Symbol.for('IFinancialTransactionHeaderAdapter'),
@@ -254,7 +258,15 @@ export const TYPES = {
   MemberDiscipleshipMilestoneService: Symbol.for('MemberDiscipleshipMilestoneService'),
   RequestContext: Symbol.for('RequestContext'),
   TenantService: Symbol.for('TenantService'),
+  MemberService: Symbol.for('MemberService'),
+  MembershipTypeService: Symbol.for('MembershipTypeService'),
+  MembershipStageService: Symbol.for('MembershipStageService'),
   UserMemberLinkService: Symbol.for('UserMemberLinkService'),
+
+  // Religious Denomination
+  IReligiousDenominationAdapter: Symbol.for('IReligiousDenominationAdapter'),
+  IReligiousDenominationRepository: Symbol.for('IReligiousDenominationRepository'),
+  ReligiousDenominationService: Symbol.for('ReligiousDenominationService'),
   UserMemberLinkRepository: Symbol.for('UserMemberLinkRepository'),
   MemberInvitationRepository: Symbol.for('MemberInvitationRepository'),
 

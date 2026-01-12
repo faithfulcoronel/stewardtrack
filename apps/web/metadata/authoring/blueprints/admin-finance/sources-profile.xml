@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="sources/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-sources-profile">
+    <Title>Source details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-header" type="AdminProfileHeader">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="sourceProfile.eyebrow"/>
+            <Prop name="title" kind="binding" contract="sourceProfile.title"/>
+            <Prop name="subtitle" kind="binding" contract="sourceProfile.subtitle"/>
+            <Prop name="badge" kind="binding" contract="sourceProfile.badge"/>
+            <Prop name="metrics" kind="binding" contract="sourceProfile.metrics"/>
+            <Prop name="primaryAction" kind="action" actionId="edit-source"/>
+            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="source-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="sourceDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="linked-account" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Linked general ledger account</Prop>
+            <Prop name="description" kind="static">This source is tied to the following chart of accounts entry.</Prop>
+            <Prop name="metrics" kind="binding" contract="linkedAccount.items"/>
+          </Props>
+        </Component>
+        <Component id="transaction-history" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Transaction history</Prop>
+            <Prop name="description" kind="static">All transactions processed through this source.</Prop>
+            <Prop name="rows" kind="binding" contract="transactionHistory.rows"/>
+            <Prop name="columns" kind="binding" contract="transactionHistory.columns"/>
+            <Prop name="filters" kind="binding" contract="transactionHistory.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No transactions", "description": "No transactions have been recorded for this source yet."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="sourceProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Source type"/>
+          <Field name="title" path="title" description="Source name"/>
+          <Field name="subtitle" path="subtitle" description="Source description"/>
+          <Field name="badge" path="badge" description="Source type badge"/>
+          <Field name="metrics" path="metrics" description="Key source metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.sources.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="sourceDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Source detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.sources.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="linkedAccount" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Linked account cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.sources.profile.linkedAccount</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="transactionHistory" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Transaction history rows"/>
+          <Field name="columns" path="columns" description="Transaction history columns"/>
+          <Field name="filters" path="filters" description="Transaction history filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.sources.profile.transactions</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-source" kind="link">
+        <RBAC requirePermissions="finance:admin" />
+        <Config>
+          <Label>Edit source</Label>
+          <Url>/admin/finance/sources/manage?sourceId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to sources</Label>
+          <Url>/admin/finance/sources</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

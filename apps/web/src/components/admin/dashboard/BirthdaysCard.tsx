@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { Cake, ChevronRight, Gift } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +13,25 @@ import type { UpcomingBirthday } from '@/models/dashboard/adminDashboard.model';
 interface BirthdaysCardProps {
   birthdays?: UpcomingBirthday[];
   isLoading?: boolean;
+  timezone?: string;
 }
 
-function BirthdayItem({ birthday }: { birthday: UpcomingBirthday }) {
+// Format date with tenant timezone using Intl.DateTimeFormat
+function formatBirthdayDate(date: Date, timezone?: string): string {
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'long',
+    day: 'numeric',
+  };
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+
+function BirthdayItem({ birthday, timezone }: { birthday: UpcomingBirthday; timezone?: string }) {
   const initials = `${birthday.firstName[0]}${birthday.lastName[0]}`.toUpperCase();
   const birthdayDate = parseISO(birthday.birthday);
-  const formattedDate = format(birthdayDate, 'MMMM d');
+  const formattedDate = formatBirthdayDate(birthdayDate, timezone);
 
   return (
     <Link
@@ -71,7 +84,7 @@ function BirthdaySkeleton() {
   );
 }
 
-export function BirthdaysCard({ birthdays, isLoading }: BirthdaysCardProps) {
+export function BirthdaysCard({ birthdays, isLoading, timezone }: BirthdaysCardProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -98,7 +111,7 @@ export function BirthdaysCard({ birthdays, isLoading }: BirthdaysCardProps) {
         ) : birthdays && birthdays.length > 0 ? (
           <div className="space-y-0.5">
             {birthdays.map((birthday) => (
-              <BirthdayItem key={birthday.memberId} birthday={birthday} />
+              <BirthdayItem key={birthday.memberId} birthday={birthday} timezone={timezone} />
             ))}
           </div>
         ) : (

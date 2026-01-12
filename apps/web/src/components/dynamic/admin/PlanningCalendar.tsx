@@ -99,6 +99,7 @@ export interface PlanningCalendarProps {
   isLoading?: boolean;
   initialView?: ViewMode;
   backUrl?: string;
+  timezone?: string;
   onEventClick?: (event: CalendarEvent) => void;
   onDateSelect?: (date: Date) => void;
   onCreateEvent?: () => void;
@@ -155,20 +156,28 @@ const isSameDay = (date1: Date, date2: Date): boolean => {
 
 const isToday = (date: Date): boolean => isSameDay(date, new Date());
 
-const formatTime = (date: Date): string => {
-  return date.toLocaleTimeString('en-US', {
+const formatTime = (date: Date, timezone?: string): string => {
+  const options: Intl.DateTimeFormatOptions = {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  });
+  };
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 };
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
+const formatDate = (date: Date, timezone?: string): string => {
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-  });
+  };
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 };
 
 // Helper component to render category icons
@@ -272,17 +281,21 @@ const getSourceLabel = (sourceType?: string | null): string => {
   }
 };
 
-const formatFullDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
+const formatFullDate = (date: Date, timezone?: string): string => {
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-  });
+  };
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 };
 
 // Event Tooltip Content Component
-const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
+const EventTooltipContent: React.FC<{ event: CalendarEvent; timezone?: string }> = ({ event, timezone }) => {
   const sourceUrl = getSourceUrl(event.sourceType, event.sourceId, event.memberId);
 
   return (
@@ -326,9 +339,9 @@ const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="w-3.5 h-3.5 flex-shrink-0" />
           <span>
-            {formatDate(event.start)}
-            {!event.allDay && ` • ${formatTime(event.start)}`}
-            {event.end && ` - ${formatTime(event.end)}`}
+            {formatDate(event.start, timezone)}
+            {!event.allDay && ` • ${formatTime(event.start, timezone)}`}
+            {event.end && ` - ${formatTime(event.end, timezone)}`}
           </span>
         </div>
 
@@ -391,8 +404,9 @@ const EventTooltipContent: React.FC<{ event: CalendarEvent }> = ({ event }) => {
 const EventCard: React.FC<{
   event: CalendarEvent;
   compact?: boolean;
+  timezone?: string;
   onClick?: () => void;
-}> = ({ event, compact = false, onClick }) => {
+}> = ({ event, compact = false, timezone, onClick }) => {
   if (compact) {
     return (
       <HoverCard openDelay={300} closeDelay={100}>
@@ -414,7 +428,7 @@ const EventCard: React.FC<{
           className="p-0 overflow-hidden"
           sideOffset={8}
         >
-          <EventTooltipContent event={event} />
+          <EventTooltipContent event={event} timezone={timezone} />
         </HoverCardContent>
       </HoverCard>
     );
@@ -446,7 +460,7 @@ const EventCard: React.FC<{
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  {event.allDay ? 'All day' : formatTime(event.start)}
+                  {event.allDay ? 'All day' : formatTime(event.start, timezone)}
                 </span>
                 {event.location && (
                   <span className="flex items-center gap-1 truncate">
@@ -480,7 +494,7 @@ const EventCard: React.FC<{
         className="p-0 overflow-hidden"
         sideOffset={8}
       >
-        <EventTooltipContent event={event} />
+        <EventTooltipContent event={event} timezone={timezone} />
       </HoverCardContent>
     </HoverCard>
   );
@@ -491,9 +505,10 @@ const DayCell: React.FC<{
   date: Date;
   events: CalendarEvent[];
   currentMonth: number;
+  timezone?: string;
   onEventClick?: (event: CalendarEvent) => void;
   onDateClick?: (date: Date) => void;
-}> = ({ date, events, currentMonth, onEventClick, onDateClick }) => {
+}> = ({ date, events, currentMonth, timezone, onEventClick, onDateClick }) => {
   const isCurrentMonth = date.getMonth() === currentMonth;
   const dayEvents = events.filter((e) => isSameDay(e.start, date));
   const displayEvents = dayEvents.slice(0, 3);
@@ -526,6 +541,7 @@ const DayCell: React.FC<{
             key={event.id}
             event={event}
             compact
+            timezone={timezone}
             onClick={() => {
               onEventClick?.(event);
             }}
@@ -551,6 +567,7 @@ export function PlanningCalendar({
   isLoading: propIsLoading,
   initialView,
   backUrl = '/admin/community/planning',
+  timezone,
   onEventClick,
   onDateSelect,
   onCreateEvent,
@@ -843,19 +860,25 @@ export function PlanningCalendar({
 
   // Header title
   const headerTitle = useMemo(() => {
-    if (viewMode === 'day') {
-      return currentDate.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    }
-    return currentDate.toLocaleDateString('en-US', {
+    const dayOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    };
+    const monthOptions: Intl.DateTimeFormatOptions = {
       month: 'long',
       year: 'numeric',
-    });
-  }, [currentDate, viewMode]);
+    };
+    if (timezone) {
+      dayOptions.timeZone = timezone;
+      monthOptions.timeZone = timezone;
+    }
+    if (viewMode === 'day') {
+      return new Intl.DateTimeFormat('en-US', dayOptions).format(currentDate);
+    }
+    return new Intl.DateTimeFormat('en-US', monthOptions).format(currentDate);
+  }, [currentDate, viewMode, timezone]);
 
   if (isLoading) {
     return (
@@ -1042,6 +1065,7 @@ export function PlanningCalendar({
                 date={day}
                 events={filteredEvents}
                 currentMonth={currentDate.getMonth()}
+                timezone={timezone}
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
               />
@@ -1068,22 +1092,34 @@ export function PlanningCalendar({
                   <p className="text-sm">Events from care plans and discipleship will appear here</p>
                 </div>
               ) : (
-                upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex gap-4">
-                    <div className="flex-shrink-0 w-16 text-center">
-                      <div className="text-xs text-muted-foreground">
-                        {event.start.toLocaleDateString('en-US', { weekday: 'short' })}
+                upcomingEvents.map((event) => {
+                  const weekdayOptions: Intl.DateTimeFormatOptions = { weekday: 'short' };
+                  const monthOptions: Intl.DateTimeFormatOptions = { month: 'short' };
+                  const dayOptions: Intl.DateTimeFormatOptions = { day: 'numeric' };
+                  if (timezone) {
+                    weekdayOptions.timeZone = timezone;
+                    monthOptions.timeZone = timezone;
+                    dayOptions.timeZone = timezone;
+                  }
+                  return (
+                    <div key={event.id} className="flex gap-4">
+                      <div className="flex-shrink-0 w-16 text-center">
+                        <div className="text-xs text-muted-foreground">
+                          {new Intl.DateTimeFormat('en-US', weekdayOptions).format(event.start)}
+                        </div>
+                        <div className="text-lg font-semibold">
+                          {new Intl.DateTimeFormat('en-US', dayOptions).format(event.start)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Intl.DateTimeFormat('en-US', monthOptions).format(event.start)}
+                        </div>
                       </div>
-                      <div className="text-lg font-semibold">{event.start.getDate()}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {event.start.toLocaleDateString('en-US', { month: 'short' })}
+                      <div className="flex-1">
+                        <EventCard event={event} timezone={timezone} onClick={() => handleEventClick(event)} />
                       </div>
                     </div>
-                    <div className="flex-1">
-                      <EventCard event={event} onClick={() => handleEventClick(event)} />
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </ScrollArea>
@@ -1167,14 +1203,14 @@ export function PlanningCalendar({
                       <CalendarIcon className="w-5 h-5" style={{ color: selectedEvent.categoryColor }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{formatFullDate(selectedEvent.start)}</p>
+                      <p className="font-semibold text-sm">{formatFullDate(selectedEvent.start, timezone)}</p>
                       <p className="text-sm text-muted-foreground mt-0.5">
                         {selectedEvent.allDay ? (
                           'All day event'
                         ) : (
                           <>
-                            {formatTime(selectedEvent.start)}
-                            {selectedEvent.end && ` - ${formatTime(selectedEvent.end)}`}
+                            {formatTime(selectedEvent.start, timezone)}
+                            {selectedEvent.end && ` - ${formatTime(selectedEvent.end, timezone)}`}
                           </>
                         )}
                       </p>
