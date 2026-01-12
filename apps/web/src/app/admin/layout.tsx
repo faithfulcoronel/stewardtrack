@@ -38,11 +38,14 @@ const NAV_SECTIONS: AdminNavSection[] = [
     ],
   },
   {
-    label: "Financial",
+    label: "Finance",
     items: [
-      { title: "Financial Overview", href: "/admin/financial-overview", icon: "finances" },
-      { title: "Expenses", href: "/admin/expenses", icon: "expenses" },
-      { title: "Reports", href: "/admin/reports", icon: "reports" },
+      { title: "Dashboard", href: "/admin/finance", icon: "finances" },
+      { title: "Chart of Accounts", href: "/admin/finance/accounts", icon: "finances" },
+      { title: "Income Sources", href: "/admin/finance/sources", icon: "expenses" },
+      { title: "Transactions", href: "/admin/finance/transactions", icon: "expenses" },
+      { title: "Budgets", href: "/admin/finance/budgets", icon: "finances" },
+      { title: "Reports", href: "/admin/finance/reports", icon: "reports" },
     ],
   },
   {
@@ -308,13 +311,18 @@ async function filterSectionsWithAccessGate(
         const gate = Gate.withPermission('finance:view');
         hasAccess = await gate.allows(userId, tenantId);
       }
-      // Financial pages - requires permission
+      // Finance module - requires finance:view permission
+      else if (item.href.startsWith('/admin/finance')) {
+        const gate = Gate.withPermission('finance:view');
+        hasAccess = await gate.allows(userId, tenantId);
+      }
+      // Legacy financial pages - requires permission
       else if (item.href.includes('/financial') || item.href.includes('/expenses')) {
         const gate = Gate.withPermission('finance:read');
         hasAccess = await gate.allows(userId, tenantId);
       }
       // Reports - requires permission
-      else if (item.href.includes('/reports')) {
+      else if (item.href.includes('/reports') && !item.href.startsWith('/admin/finance')) {
         const gate = Gate.withPermission('reports:read');
         hasAccess = await gate.allows(userId, tenantId);
       }

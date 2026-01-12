@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-dashboard">
+    <Title>Financial stewardship dashboard</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="dashboard-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="dashboardHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="dashboardHero.headline"/>
+            <Prop name="description" kind="binding" contract="dashboardHero.description"/>
+            <Prop name="highlights" kind="binding" contract="dashboardHero.highlights"/>
+            <Prop name="metrics" kind="binding" contract="dashboardHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="view-transactions"/>
+            <Prop name="secondaryCta" kind="action" actionId="record-transaction"/>
+          </Props>
+        </Component>
+        <Component id="dashboard-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Financial snapshot</Prop>
+            <Prop name="description" kind="static">Real-time indicators of your organization's financial health and stewardship.</Prop>
+            <Prop name="metrics" kind="binding" contract="financeMetrics.items"/>
+            <Prop name="footnote" kind="static">Figures reflect all posted transactions through today.</Prop>
+          </Props>
+        </Component>
+        <Component id="dashboard-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Quick actions</Prop>
+            <Prop name="description" kind="static">Common tasks and navigation shortcuts for financial management.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="dashboardQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
+          </Props>
+        </Component>
+        <Component id="cash-flow-trend" type="AdminGivingChart">
+          <Props>
+            <Prop name="title" kind="static">Cash flow momentum</Prop>
+            <Prop name="description" kind="static">Track income and expense trends to anticipate cash needs and optimize stewardship.</Prop>
+            <Prop name="data" kind="binding" contract="cashFlowTrend.points"/>
+            <Prop name="highlight" kind="binding" contract="cashFlowTrend.highlight"/>
+          </Props>
+        </Component>
+        <Component id="budget-overview" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Budget performance</Prop>
+            <Prop name="description" kind="static">Year-to-date spending against approved budget allocations.</Prop>
+            <Prop name="metrics" kind="binding" contract="budgetOverview.items"/>
+          </Props>
+        </Component>
+        <Component id="recent-activity" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent financial activity</Prop>
+            <Prop name="description" kind="static">Latest transactions and pending approvals requiring attention.</Prop>
+            <Prop name="accentLabel" kind="static">This week</Prop>
+            <Prop name="events" kind="binding" contract="recentActivity.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="dashboardHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Dashboard eyebrow text"/>
+          <Field name="headline" path="headline" description="Dashboard headline"/>
+          <Field name="description" path="description" description="Dashboard description"/>
+          <Field name="highlights" path="highlights" description="Feature highlights list"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="financeMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="KPI metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.kpis</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="dashboardQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.quickLinks</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="cashFlowTrend" kind="service">
+        <Contract>
+          <Field name="points" path="points" description="Cash flow trend data points"/>
+          <Field name="highlight" path="highlight" description="Cash flow highlight summary"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.cashFlowTrend</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="budgetOverview" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Budget performance cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.budgetOverview</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="recentActivity" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Recent activity timeline events"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.dashboard.recentActivity</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="view-transactions" kind="link">
+        <Config>
+          <Label>View transactions</Label>
+          <Url>/admin/finance/transactions</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="record-transaction" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Record income/expense</Label>
+          <Url>/admin/finance/transactions/entry</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

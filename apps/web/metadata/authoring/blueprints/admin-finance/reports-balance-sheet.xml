@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="reports/balance-sheet" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.reports" requiredPermissions="finance:reports" locale="en-US">
+  <Page id="admin-finance-reports-balance-sheet">
+    <Title>Balance sheet</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="report-header" type="AdminReportHeader">
+          <Props>
+            <Prop name="title" kind="static">Balance sheet</Prop>
+            <Prop name="description" kind="static">Statement of financial position showing assets, liabilities, and equity.</Prop>
+            <Prop name="asOfDate" kind="binding" contract="reportHeader.asOfDate"/>
+            <Prop name="dateSelector" kind="binding" contract="reportHeader.dateSelector"/>
+            <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
+          </Props>
+        </Component>
+        <Component id="equation-verification" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Accounting equation</Prop>
+            <Prop name="description" kind="static">Assets must equal Liabilities plus Equity for the balance sheet to balance.</Prop>
+            <Prop name="metrics" kind="binding" contract="equationVerification.items"/>
+          </Props>
+        </Component>
+        <Component id="assets-section" type="AdminReportSection">
+          <Props>
+            <Prop name="title" kind="static">Assets</Prop>
+            <Prop name="description" kind="static">Resources owned by the organization.</Prop>
+            <Prop name="rows" kind="binding" contract="assetsSection.rows"/>
+            <Prop name="columns" kind="binding" contract="assetsSection.columns"/>
+            <Prop name="subtotal" kind="binding" contract="assetsSection.subtotal"/>
+            <Prop name="collapsible" kind="static">true</Prop>
+          </Props>
+        </Component>
+        <Component id="liabilities-section" type="AdminReportSection">
+          <Props>
+            <Prop name="title" kind="static">Liabilities</Prop>
+            <Prop name="description" kind="static">Obligations owed to external parties.</Prop>
+            <Prop name="rows" kind="binding" contract="liabilitiesSection.rows"/>
+            <Prop name="columns" kind="binding" contract="liabilitiesSection.columns"/>
+            <Prop name="subtotal" kind="binding" contract="liabilitiesSection.subtotal"/>
+            <Prop name="collapsible" kind="static">true</Prop>
+          </Props>
+        </Component>
+        <Component id="equity-section" type="AdminReportSection">
+          <Props>
+            <Prop name="title" kind="static">Equity</Prop>
+            <Prop name="description" kind="static">Net worth and retained earnings.</Prop>
+            <Prop name="rows" kind="binding" contract="equitySection.rows"/>
+            <Prop name="columns" kind="binding" contract="equitySection.columns"/>
+            <Prop name="subtotal" kind="binding" contract="equitySection.subtotal"/>
+            <Prop name="collapsible" kind="static">true</Prop>
+          </Props>
+        </Component>
+        <Component id="balance-summary" type="AdminReportSummary">
+          <Props>
+            <Prop name="title" kind="static">Balance verification</Prop>
+            <Prop name="items" kind="binding" contract="balanceSummary.items"/>
+            <Prop name="highlight" kind="binding" contract="balanceSummary.highlight"/>
+            <Prop name="balanced" kind="binding" contract="balanceSummary.balanced"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="reportHeader" kind="service">
+        <Contract>
+          <Field name="asOfDate" path="asOfDate" description="Report as-of date"/>
+          <Field name="dateSelector" path="dateSelector" description="Date selector configuration"/>
+          <Field name="exportActions" path="exportActions" description="Export action options"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="equationVerification" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Equation verification cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.equation</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="assetsSection" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Asset account rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotal" path="subtotal" description="Total assets"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.assets</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="liabilitiesSection" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Liability account rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotal" path="subtotal" description="Total liabilities"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.liabilities</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="equitySection" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Equity account rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="subtotal" path="subtotal" description="Total equity"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.equity</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="balanceSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Balance summary items"/>
+          <Field name="highlight" path="highlight" description="Balance highlight"/>
+          <Field name="balanced" path="balanced" description="Whether the balance sheet balances"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.balanceSheet.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="export-pdf" kind="submit">
+        <Config>
+          <Label>Export PDF</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="export-excel" kind="submit">
+        <Config>
+          <Label>Export Excel</Label>
+          <Handler>admin-finance.reports.export</Handler>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

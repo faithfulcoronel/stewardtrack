@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-accounts-profile">
+    <Title>Account details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-header" type="AdminProfileHeader">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="accountProfile.eyebrow"/>
+            <Prop name="title" kind="binding" contract="accountProfile.title"/>
+            <Prop name="subtitle" kind="binding" contract="accountProfile.subtitle"/>
+            <Prop name="badge" kind="binding" contract="accountProfile.badge"/>
+            <Prop name="metrics" kind="binding" contract="accountProfile.metrics"/>
+            <Prop name="primaryAction" kind="action" actionId="edit-account"/>
+            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="account-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="accountDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="balance-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Balance summary</Prop>
+            <Prop name="description" kind="static">Debit and credit totals with running balance calculation.</Prop>
+            <Prop name="metrics" kind="binding" contract="balanceSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="transaction-history" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Transaction history</Prop>
+            <Prop name="description" kind="static">All journal entries affecting this account.</Prop>
+            <Prop name="rows" kind="binding" contract="transactionHistory.rows"/>
+            <Prop name="columns" kind="binding" contract="transactionHistory.columns"/>
+            <Prop name="filters" kind="binding" contract="transactionHistory.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No transactions", "description": "This account has no recorded transactions yet."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="accountProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Account code"/>
+          <Field name="title" path="title" description="Account name"/>
+          <Field name="subtitle" path="subtitle" description="Account description"/>
+          <Field name="badge" path="badge" description="Account type badge"/>
+          <Field name="metrics" path="metrics" description="Key account metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Account detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="balanceSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Balance summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.profile.balanceSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="transactionHistory" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Transaction history rows"/>
+          <Field name="columns" path="columns" description="Transaction history columns"/>
+          <Field name="filters" path="filters" description="Transaction history filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.accounts.profile.transactions</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-account" kind="link">
+        <RBAC requirePermissions="finance:admin" />
+        <Config>
+          <Label>Edit account</Label>
+          <Url>/admin/finance/accounts/manage?accountId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to accounts</Label>
+          <Url>/admin/finance/accounts</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

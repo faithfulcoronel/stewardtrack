@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="transactions/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-transactions-profile">
+    <Title>Transaction details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-header" type="AdminProfileHeader">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="transactionProfile.eyebrow"/>
+            <Prop name="title" kind="binding" contract="transactionProfile.title"/>
+            <Prop name="subtitle" kind="binding" contract="transactionProfile.subtitle"/>
+            <Prop name="badge" kind="binding" contract="transactionProfile.badge"/>
+            <Prop name="metrics" kind="binding" contract="transactionProfile.metrics"/>
+            <Prop name="primaryAction" kind="action" actionId="edit-transaction"/>
+            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
+            <Prop name="tertiaryActions" kind="binding" contract="transactionProfile.actions"/>
+          </Props>
+        </Component>
+        <Component id="transaction-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="transactionDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="line-items" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Line items</Prop>
+            <Prop name="description" kind="static">Individual entries that make up this transaction.</Prop>
+            <Prop name="rows" kind="binding" contract="lineItems.rows"/>
+            <Prop name="columns" kind="binding" contract="lineItems.columns"/>
+            <Prop name="emptyState" kind="static">{"title": "No line items", "description": "This transaction has no line items."}</Prop>
+          </Props>
+        </Component>
+        <Component id="journal-entries" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Journal entries</Prop>
+            <Prop name="description" kind="static">Double-entry bookkeeping entries created by this transaction.</Prop>
+            <Prop name="rows" kind="binding" contract="journalEntries.rows"/>
+            <Prop name="columns" kind="binding" contract="journalEntries.columns"/>
+            <Prop name="emptyState" kind="static">{"title": "No journal entries", "description": "Journal entries will appear here when the transaction is posted."}</Prop>
+          </Props>
+        </Component>
+        <Component id="approval-history" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Approval history</Prop>
+            <Prop name="description" kind="static">Timeline of status changes and approvals.</Prop>
+            <Prop name="events" kind="binding" contract="approvalHistory.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="transactionProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Transaction number"/>
+          <Field name="title" path="title" description="Transaction description"/>
+          <Field name="subtitle" path="subtitle" description="Transaction date"/>
+          <Field name="badge" path="badge" description="Status badge"/>
+          <Field name="metrics" path="metrics" description="Key transaction metrics"/>
+          <Field name="actions" path="actions" description="Available actions based on status"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="transactionDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Transaction detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="lineItems" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Line item rows"/>
+          <Field name="columns" path="columns" description="Line item columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.profile.lineItems</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="journalEntries" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Journal entry rows"/>
+          <Field name="columns" path="columns" description="Journal entry columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.profile.journalEntries</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="approvalHistory" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Approval history timeline"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.transactions.profile.approvalHistory</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-transaction" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Edit transaction</Label>
+          <Url>/admin/finance/transactions/entry?transactionId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to transactions</Label>
+          <Url>/admin/finance/transactions</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="approve-transaction" kind="submit">
+        <RBAC requirePermissions="finance:approve" />
+        <Config>
+          <Label>Approve</Label>
+          <Handler>admin-finance.transactions.approve</Handler>
+          <SuccessMessage>Transaction approved</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="void-transaction" kind="submit">
+        <RBAC requirePermissions="finance:void" />
+        <Config>
+          <Label>Void</Label>
+          <Handler>admin-finance.transactions.void</Handler>
+          <ConfirmTitle>Void Transaction</ConfirmTitle>
+          <ConfirmDescription>Are you sure you want to void this transaction? This action cannot be undone.</ConfirmDescription>
+          <SuccessMessage>Transaction voided</SuccessMessage>
+          <Variant>destructive</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

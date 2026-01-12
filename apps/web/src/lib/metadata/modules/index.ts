@@ -3,6 +3,7 @@ import { coreComponentsManifest } from './core-components.manifest';
 import { adminCommunityManifest } from './admin-community.manifest';
 import { adminSettingsManifest } from './admin-settings.manifest';
 import { superAdminSettingsManifest } from './super-admin-settings.manifest';
+import { adminFinanceManifest } from './admin-finance.manifest';
 
 let initialized = false;
 
@@ -10,8 +11,12 @@ export function initializeMetadataModules(): void {
   if (initialized) {
     return;
   }
-  [coreComponentsManifest, adminCommunityManifest, adminSettingsManifest, superAdminSettingsManifest].forEach((manifest) =>
-    registerMetadataModule(manifest),
-  );
+  [
+    coreComponentsManifest,
+    adminCommunityManifest,
+    adminSettingsManifest,
+    superAdminSettingsManifest,
+    adminFinanceManifest,
+  ].forEach((manifest) => registerMetadataModule(manifest));
   initialized = true;
 }
