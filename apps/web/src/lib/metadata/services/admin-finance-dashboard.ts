@@ -4,20 +4,10 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { ChartOfAccountService } from '@/services/ChartOfAccountService';
 import type { BudgetService } from '@/services/BudgetService';
+import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // ==================== DASHBOARD PAGE HANDLERS ====================
-
-/**
- * Helper to format currency
- */
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 /**
  * Helper to format relative time
@@ -45,6 +35,9 @@ const resolveDashboardHero: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency
+  const currency = await getTenantCurrency();
+
   // Get basic financial stats (placeholder - will be replaced with real data)
   const totalAssets = 0;
   const totalLiabilities = 0;
@@ -62,17 +55,17 @@ const resolveDashboardHero: ServiceDataSourceHandler = async (_request) => {
     metrics: [
       {
         label: 'Total assets',
-        value: formatCurrency(totalAssets),
+        value: formatCurrency(totalAssets, currency),
         caption: 'Current asset balance',
       },
       {
         label: 'Total liabilities',
-        value: formatCurrency(totalLiabilities),
+        value: formatCurrency(totalLiabilities, currency),
         caption: 'Current obligations',
       },
       {
         label: 'Net position',
-        value: formatCurrency(netPosition),
+        value: formatCurrency(netPosition, currency),
         caption: 'Assets minus liabilities',
       },
     ],
@@ -90,6 +83,9 @@ const resolveDashboardKpis: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   // Placeholder data - will be replaced with real calculations
   const cashBalance = 0;
   const mtdIncome = 0;
@@ -101,7 +97,7 @@ const resolveDashboardKpis: ServiceDataSourceHandler = async (_request) => {
       {
         id: 'kpi-cash-balance',
         label: 'Cash & bank balance',
-        value: formatCurrency(cashBalance),
+        value: formatCurrency(cashBalance, currency),
         change: '',
         changeLabel: 'available funds',
         trend: 'flat',
@@ -111,7 +107,7 @@ const resolveDashboardKpis: ServiceDataSourceHandler = async (_request) => {
       {
         id: 'kpi-mtd-income',
         label: 'Month-to-date income',
-        value: formatCurrency(mtdIncome),
+        value: formatCurrency(mtdIncome, currency),
         change: '',
         changeLabel: 'this month',
         trend: 'flat',
@@ -121,7 +117,7 @@ const resolveDashboardKpis: ServiceDataSourceHandler = async (_request) => {
       {
         id: 'kpi-mtd-expenses',
         label: 'Month-to-date expenses',
-        value: formatCurrency(mtdExpenses),
+        value: formatCurrency(mtdExpenses, currency),
         change: '',
         changeLabel: 'this month',
         trend: 'flat',
@@ -131,7 +127,7 @@ const resolveDashboardKpis: ServiceDataSourceHandler = async (_request) => {
       {
         id: 'kpi-budget-variance',
         label: 'Budget variance',
-        value: formatCurrency(budgetVariance),
+        value: formatCurrency(budgetVariance, currency),
         change: '',
         changeLabel: 'vs budget',
         trend: budgetVariance >= 0 ? 'up' : 'down',
@@ -222,13 +218,17 @@ const resolveDashboardCashFlowTrend: ServiceDataSourceHandler = async (_request)
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency and timezone (cached)
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
+
   // Generate last 12 months of placeholder data
   const months = [];
   const now = new Date();
   for (let i = 11; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({
-      label: date.toLocaleDateString('en-US', { month: 'short' }),
+      label: formatDate(date, timezone, { month: 'short' }),
       income: 0,
       expense: 0,
       net: 0,
@@ -239,7 +239,7 @@ const resolveDashboardCashFlowTrend: ServiceDataSourceHandler = async (_request)
     points: months,
     highlight: {
       label: 'Current month net',
-      value: formatCurrency(0),
+      value: formatCurrency(0, currency),
       change: '',
       trend: 'flat',
     },
@@ -257,13 +257,16 @@ const resolveDashboardBudgetOverview: ServiceDataSourceHandler = async (_request
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   // Placeholder budget data
   return {
     items: [
       {
         id: 'budget-total',
         label: 'Total budget',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'annual budget',
         trend: 'flat',
@@ -273,7 +276,7 @@ const resolveDashboardBudgetOverview: ServiceDataSourceHandler = async (_request
       {
         id: 'budget-spent',
         label: 'Spent to date',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '0%',
         changeLabel: 'of budget',
         trend: 'flat',
@@ -283,7 +286,7 @@ const resolveDashboardBudgetOverview: ServiceDataSourceHandler = async (_request
       {
         id: 'budget-remaining',
         label: 'Remaining',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'available',
         trend: 'flat',
@@ -305,13 +308,16 @@ const resolveDashboardRecentActivity: ServiceDataSourceHandler = async (_request
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   // Placeholder - will show recent transactions
   return {
     items: [
       {
         id: 'empty-state',
         title: 'No recent activity',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: formatDate(new Date(), timezone, { month: 'short', day: 'numeric' }),
         timeAgo: 'Today',
         description: 'Financial transactions will appear here as they are recorded.',
         category: 'Info',

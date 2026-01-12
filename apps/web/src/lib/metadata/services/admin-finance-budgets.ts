@@ -4,17 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { BudgetService } from '@/services/BudgetService';
 import type { Budget } from '@/models/budget.model';
-
-// ==================== HELPER FUNCTIONS ====================
-
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -27,9 +18,12 @@ const resolveBudgetsListHero: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   const budgets = await budgetService.findAll();
-  const allBudgets = budgets.data || [];
-  const totalBudgeted = allBudgets.reduce((sum, b) => sum + (b.amount || 0), 0);
+  const allBudgets = (budgets.data || []) as Budget[];
+  const totalBudgeted = allBudgets.reduce((sum: number, b: Budget) => sum + (b.amount || 0), 0);
 
   return {
     eyebrow: 'Budget management',
@@ -43,12 +37,12 @@ const resolveBudgetsListHero: ServiceDataSourceHandler = async (_request) => {
       },
       {
         label: 'Total budgeted',
-        value: formatCurrency(totalBudgeted),
+        value: formatCurrency(totalBudgeted, currency),
         caption: 'Planned spending',
       },
       {
         label: 'Remaining',
-        value: formatCurrency(totalBudgeted),
+        value: formatCurrency(totalBudgeted, currency),
         caption: 'Available to spend',
       },
     ],
@@ -56,12 +50,15 @@ const resolveBudgetsListHero: ServiceDataSourceHandler = async (_request) => {
 };
 
 const resolveBudgetsListPerformance: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
       {
         id: 'total-budgeted',
         label: 'Total budgeted',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'annual budget',
         trend: 'flat',
@@ -71,7 +68,7 @@ const resolveBudgetsListPerformance: ServiceDataSourceHandler = async (_request)
       {
         id: 'spent-to-date',
         label: 'Spent to date',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '0%',
         changeLabel: 'of budget',
         trend: 'flat',
@@ -81,7 +78,7 @@ const resolveBudgetsListPerformance: ServiceDataSourceHandler = async (_request)
       {
         id: 'remaining',
         label: 'Remaining',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '100%',
         changeLabel: 'available',
         trend: 'flat',
@@ -91,7 +88,7 @@ const resolveBudgetsListPerformance: ServiceDataSourceHandler = async (_request)
       {
         id: 'variance',
         label: 'Variance',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'vs budget',
         trend: 'flat',
@@ -111,18 +108,22 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
-  const budgets = await budgetService.findAll();
-  const allBudgets = budgets.data || [];
+  // Get tenant currency and timezone (cached)
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
 
-  const rows = allBudgets.map((budget) => ({
+  const budgets = await budgetService.findAll();
+  const allBudgets = (budgets.data || []) as Budget[];
+
+  const rows = allBudgets.map((budget: Budget) => ({
     id: budget.id,
     name: budget.name || 'Unnamed Budget',
     category: budget.category?.name || '—',
-    startDate: budget.start_date ? new Date(budget.start_date).toLocaleDateString() : '—',
-    endDate: budget.end_date ? new Date(budget.end_date).toLocaleDateString() : '—',
-    budgeted: formatCurrency(budget.amount || 0),
-    spent: formatCurrency(0),
-    remaining: formatCurrency(budget.amount || 0),
+    startDate: budget.start_date ? formatDate(new Date(budget.start_date), timezone) : '—',
+    endDate: budget.end_date ? formatDate(new Date(budget.end_date), timezone) : '—',
+    budgeted: formatCurrency(budget.amount || 0, currency),
+    spent: formatCurrency(0, currency),
+    remaining: formatCurrency(budget.amount || 0, currency),
     percentUsed: 0,
     status: 'On track',
     statusVariant: 'success',
@@ -258,7 +259,7 @@ const resolveBudgetManageHeader: ServiceDataSourceHandler = async (request) => {
 
 const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
   const budgetId = request.params?.budgetId as string;
-  const isCreate = !budgetId;
+  const _isCreate = !budgetId;
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const budgetService = container.get<BudgetService>(TYPES.BudgetService);

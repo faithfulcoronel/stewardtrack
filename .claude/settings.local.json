@@ -103,7 +103,8 @@
       "Bash(pnpm dev)",
       "Bash(tasklist:*)",
       "Bash(timeout /t 15 /nobreak)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

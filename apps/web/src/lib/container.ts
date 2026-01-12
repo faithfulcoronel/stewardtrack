@@ -770,6 +770,30 @@ import { FinancialTransactionRepository, type IFinancialTransactionRepository } 
 container.bind<IFinancialTransactionAdapter>(TYPES.IFinancialTransactionAdapter).to(FinancialTransactionAdapter).inRequestScope();
 container.bind<IFinancialTransactionRepository>(TYPES.IFinancialTransactionRepository).to(FinancialTransactionRepository).inRequestScope();
 
+// ==================== CHART OF ACCOUNTS ====================
+import { ChartOfAccountAdapter, type IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
+import { ChartOfAccountRepository, type IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import { ChartOfAccountService } from '@/services/ChartOfAccountService';
+container.bind<IChartOfAccountAdapter>(TYPES.IChartOfAccountAdapter).to(ChartOfAccountAdapter).inRequestScope();
+container.bind<IChartOfAccountRepository>(TYPES.IChartOfAccountRepository).to(ChartOfAccountRepository).inRequestScope();
+container.bind<ChartOfAccountService>(TYPES.ChartOfAccountService).to(ChartOfAccountService).inRequestScope();
+
+// ==================== BUDGET ====================
+import { BudgetAdapter, type IBudgetAdapter } from '@/adapters/budget.adapter';
+import { BudgetRepository, type IBudgetRepository } from '@/repositories/budget.repository';
+import { DefaultBudgetService, type BudgetService } from '@/services/BudgetService';
+container.bind<IBudgetAdapter>(TYPES.IBudgetAdapter).to(BudgetAdapter).inRequestScope();
+container.bind<IBudgetRepository>(TYPES.IBudgetRepository).to(BudgetRepository).inRequestScope();
+container.bind<BudgetService>(TYPES.BudgetService).to(DefaultBudgetService).inRequestScope();
+
+// ==================== FINANCIAL SOURCE ====================
+import { FinancialSourceAdapter, type IFinancialSourceAdapter } from '@/adapters/financialSource.adapter';
+import { FinancialSourceRepository, type IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import { FinancialSourceService } from '@/services/FinancialSourceService';
+container.bind<IFinancialSourceAdapter>(TYPES.IFinancialSourceAdapter).to(FinancialSourceAdapter).inRequestScope();
+container.bind<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository).to(FinancialSourceRepository).inRequestScope();
+container.bind<FinancialSourceService>(TYPES.FinancialSourceService).to(FinancialSourceService).inRequestScope();
+
 // ==================== MEMBER SERVICE ====================
 container.bind<MemberService>(TYPES.MemberService).to(MemberService).inRequestScope();
 

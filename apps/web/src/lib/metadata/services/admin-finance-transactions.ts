@@ -2,17 +2,8 @@ import type { ServiceDataSourceHandler } from './types';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
-
-// ==================== HELPER FUNCTIONS ====================
-
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -23,6 +14,9 @@ const resolveTransactionsListHero: ServiceDataSourceHandler = async (_request) =
   if (!tenant) {
     throw new Error('No tenant context available');
   }
+
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
 
   return {
     eyebrow: 'Financial transactions',
@@ -36,12 +30,12 @@ const resolveTransactionsListHero: ServiceDataSourceHandler = async (_request) =
       },
       {
         label: 'This month income',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         caption: 'Revenue received',
       },
       {
         label: 'This month expenses',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         caption: 'Costs incurred',
       },
     ],
@@ -49,12 +43,15 @@ const resolveTransactionsListHero: ServiceDataSourceHandler = async (_request) =
 };
 
 const resolveTransactionsListSummary: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
       {
         id: 'mtd-income',
         label: 'Month-to-date income',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'this month',
         trend: 'flat',
@@ -64,7 +61,7 @@ const resolveTransactionsListSummary: ServiceDataSourceHandler = async (_request
       {
         id: 'mtd-expenses',
         label: 'Month-to-date expenses',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'this month',
         trend: 'flat',
@@ -74,7 +71,7 @@ const resolveTransactionsListSummary: ServiceDataSourceHandler = async (_request
       {
         id: 'net-cashflow',
         label: 'Net cash flow',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'income minus expenses',
         trend: 'flat',
@@ -268,6 +265,9 @@ const resolveTransactionEntryHeaderForm: ServiceDataSourceHandler = async (_requ
 };
 
 const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     lines: [],
     columns: [
@@ -281,11 +281,14 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (_reque
     sourceOptions: [],
     fundOptions: [],
     accountOptions: [],
-    totalAmount: formatCurrency(0),
+    totalAmount: formatCurrency(0, currency),
   };
 };
 
 const resolveTransactionEntrySummary: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     fields: [
       {
@@ -296,7 +299,7 @@ const resolveTransactionEntrySummary: ServiceDataSourceHandler = async (_request
       },
     ],
     values: {
-      totalAmount: formatCurrency(0),
+      totalAmount: formatCurrency(0, currency),
     },
   };
 };
@@ -310,6 +313,10 @@ const resolveTransactionProfileHeader: ServiceDataSourceHandler = async (request
     throw new Error('Transaction ID is required');
   }
 
+  // Get tenant currency and timezone (cached)
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
+
   return {
     eyebrow: 'TXN-000000',
     title: 'Transaction details',
@@ -321,7 +328,7 @@ const resolveTransactionProfileHeader: ServiceDataSourceHandler = async (request
     metrics: [
       {
         label: 'Amount',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         caption: 'Total amount',
       },
       {
@@ -331,7 +338,7 @@ const resolveTransactionProfileHeader: ServiceDataSourceHandler = async (request
       },
       {
         label: 'Date',
-        value: new Date().toLocaleDateString(),
+        value: formatDate(new Date(), timezone),
         caption: 'Transaction date',
       },
     ],
@@ -384,12 +391,13 @@ const resolveTransactionProfileJournalEntries: ServiceDataSourceHandler = async 
 };
 
 const resolveTransactionProfileApprovalHistory: ServiceDataSourceHandler = async (_request) => {
+  const timezone = await getTenantTimezone();
   return {
     items: [
       {
         id: 'empty-state',
         title: 'No approval history',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: formatDate(new Date(), timezone, { month: 'short', day: 'numeric' }),
         timeAgo: 'Today',
         description: 'Approval events will appear here.',
         category: 'Info',

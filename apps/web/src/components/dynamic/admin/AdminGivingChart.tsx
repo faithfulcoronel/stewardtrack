@@ -20,10 +20,12 @@ export interface AdminGivingChartProps {
   description?: string;
   data?: GivingPoint[] | { items?: GivingPoint[] } | null;
   highlight?: { label?: string; value?: string; change?: string } | null;
+  currency?: string;
 }
 
 export function AdminGivingChart(props: AdminGivingChartProps) {
   const data = normalizeList<GivingPoint>(props.data);
+  const currency = props.currency || "USD";
 
   return (
     <section className="space-y-6">
@@ -55,7 +57,7 @@ export function AdminGivingChart(props: AdminGivingChartProps) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => formatCurrency(Number(value))}
+                tickFormatter={(value) => formatCurrency(Number(value), currency)}
               />
               <Tooltip
                 content={({ active, payload, label }) => {
@@ -71,7 +73,7 @@ export function AdminGivingChart(props: AdminGivingChartProps) {
                           <span className="font-medium text-foreground">
                             {entry.dataKey === "participation"
                               ? `${Number(entry.value ?? 0).toFixed(0)}%`
-                              : formatCurrency(Number(entry.value ?? 0))}
+                              : formatCurrency(Number(entry.value ?? 0), currency)}
                           </span>
                         </p>
                       ))}
@@ -116,13 +118,13 @@ export function AdminGivingChart(props: AdminGivingChartProps) {
   );
 }
 
-function formatCurrency(value: number): string {
+function formatCurrency(value: number, currencyCode: string = "USD"): string {
   if (Number.isNaN(value)) {
-    return "$0";
+    return currencyCode === "USD" ? "$0" : `0 ${currencyCode}`;
   }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     maximumFractionDigits: value >= 1000 ? 0 : 2,
   }).format(value);
 }

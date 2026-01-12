@@ -2,17 +2,8 @@ import type { ServiceDataSourceHandler } from './types';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
-
-// ==================== HELPER FUNCTIONS ====================
-
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 // ==================== REPORTS DASHBOARD HANDLERS ====================
 
@@ -92,12 +83,13 @@ const resolveReportsDashboardManagementReports: ServiceDataSourceHandler = async
 };
 
 const resolveReportsDashboardRecentReports: ServiceDataSourceHandler = async (_request) => {
+  const timezone = await getTenantTimezone();
   return {
     items: [
       {
         id: 'empty-state',
         title: 'No recent reports',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: formatDate(new Date(), timezone, { month: 'short', day: 'numeric' }),
         timeAgo: 'Today',
         description: 'Generated reports will appear here for quick access.',
         category: 'Info',
@@ -111,8 +103,9 @@ const resolveReportsDashboardRecentReports: ServiceDataSourceHandler = async (_r
 // ==================== TRIAL BALANCE HANDLERS ====================
 
 const resolveTrialBalanceHeader: ServiceDataSourceHandler = async (_request) => {
+  const timezone = await getTenantTimezone();
   return {
-    asOfDate: new Date().toLocaleDateString(),
+    asOfDate: formatDate(new Date(), timezone),
     dateSelector: {
       type: 'single',
       defaultValue: new Date().toISOString().split('T')[0],
@@ -125,12 +118,15 @@ const resolveTrialBalanceHeader: ServiceDataSourceHandler = async (_request) => 
 };
 
 const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
       {
         id: 'total-debits',
         label: 'Total debits',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'debit balances',
         trend: 'flat',
@@ -140,7 +136,7 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (_reques
       {
         id: 'total-credits',
         label: 'Total credits',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'credit balances',
         trend: 'flat',
@@ -150,7 +146,7 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (_reques
       {
         id: 'difference',
         label: 'Difference',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '0.00',
         changeLabel: 'should be zero',
         trend: 'flat',
@@ -169,6 +165,9 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   // Placeholder - will pull from database RPC function
   const rows: any[] = [];
 
@@ -180,16 +179,16 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (_request) => {
   ];
 
   const subtotals = [
-    { label: 'Assets', debit: formatCurrency(0), credit: formatCurrency(0) },
-    { label: 'Liabilities', debit: formatCurrency(0), credit: formatCurrency(0) },
-    { label: 'Equity', debit: formatCurrency(0), credit: formatCurrency(0) },
-    { label: 'Revenue', debit: formatCurrency(0), credit: formatCurrency(0) },
-    { label: 'Expenses', debit: formatCurrency(0), credit: formatCurrency(0) },
+    { label: 'Assets', debit: formatCurrency(0, currency), credit: formatCurrency(0, currency) },
+    { label: 'Liabilities', debit: formatCurrency(0, currency), credit: formatCurrency(0, currency) },
+    { label: 'Equity', debit: formatCurrency(0, currency), credit: formatCurrency(0, currency) },
+    { label: 'Revenue', debit: formatCurrency(0, currency), credit: formatCurrency(0, currency) },
+    { label: 'Expenses', debit: formatCurrency(0, currency), credit: formatCurrency(0, currency) },
   ];
 
   const grandTotal = {
-    debit: formatCurrency(0),
-    credit: formatCurrency(0),
+    debit: formatCurrency(0, currency),
+    credit: formatCurrency(0, currency),
     balanced: true,
   };
 
@@ -204,12 +203,13 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (_request) => {
 // ==================== INCOME STATEMENT HANDLERS ====================
 
 const resolveIncomeStatementHeader: ServiceDataSourceHandler = async (_request) => {
+  const timezone = await getTenantTimezone();
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   return {
-    periodStart: startOfMonth.toLocaleDateString(),
-    periodEnd: now.toLocaleDateString(),
+    periodStart: formatDate(startOfMonth, timezone),
+    periodEnd: formatDate(now, timezone),
     dateRangeSelector: {
       type: 'range',
       defaultStart: startOfMonth.toISOString().split('T')[0],
@@ -223,12 +223,15 @@ const resolveIncomeStatementHeader: ServiceDataSourceHandler = async (_request) 
 };
 
 const resolveIncomeStatementSummary: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
       {
         id: 'total-revenue',
         label: 'Total revenue',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'for period',
         trend: 'flat',
@@ -238,7 +241,7 @@ const resolveIncomeStatementSummary: ServiceDataSourceHandler = async (_request)
       {
         id: 'total-expenses',
         label: 'Total expenses',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'for period',
         trend: 'flat',
@@ -248,7 +251,7 @@ const resolveIncomeStatementSummary: ServiceDataSourceHandler = async (_request)
       {
         id: 'net-income',
         label: 'Net income',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'profit/loss',
         trend: 'flat',
@@ -260,6 +263,9 @@ const resolveIncomeStatementSummary: ServiceDataSourceHandler = async (_request)
 };
 
 const resolveIncomeStatementRevenue: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     rows: [],
     columns: [
@@ -269,12 +275,15 @@ const resolveIncomeStatementRevenue: ServiceDataSourceHandler = async (_request)
     ],
     subtotal: {
       label: 'Total Revenue',
-      amount: formatCurrency(0),
+      amount: formatCurrency(0, currency),
     },
   };
 };
 
 const resolveIncomeStatementExpenses: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     rows: [],
     columns: [
@@ -284,23 +293,25 @@ const resolveIncomeStatementExpenses: ServiceDataSourceHandler = async (_request
     ],
     subtotal: {
       label: 'Total Expenses',
-      amount: formatCurrency(0),
+      amount: formatCurrency(0, currency),
     },
   };
 };
 
 const resolveIncomeStatementNetIncome: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
   const netIncome = 0;
 
   return {
     items: [
-      { label: 'Total Revenue', value: formatCurrency(0) },
-      { label: 'Total Expenses', value: formatCurrency(0) },
-      { label: 'Net Income', value: formatCurrency(netIncome), isHighlight: true },
+      { label: 'Total Revenue', value: formatCurrency(0, currency) },
+      { label: 'Total Expenses', value: formatCurrency(0, currency) },
+      { label: 'Net Income', value: formatCurrency(netIncome, currency), isHighlight: true },
     ],
     highlight: {
       label: netIncome >= 0 ? 'Net Income' : 'Net Loss',
-      value: formatCurrency(Math.abs(netIncome)),
+      value: formatCurrency(Math.abs(netIncome), currency),
       tone: netIncome >= 0 ? 'positive' : 'negative',
     },
   };
@@ -309,8 +320,9 @@ const resolveIncomeStatementNetIncome: ServiceDataSourceHandler = async (_reques
 // ==================== BALANCE SHEET HANDLERS ====================
 
 const resolveBalanceSheetHeader: ServiceDataSourceHandler = async (_request) => {
+  const timezone = await getTenantTimezone();
   return {
-    asOfDate: new Date().toLocaleDateString(),
+    asOfDate: formatDate(new Date(), timezone),
     dateSelector: {
       type: 'single',
       defaultValue: new Date().toISOString().split('T')[0],
@@ -323,12 +335,15 @@ const resolveBalanceSheetHeader: ServiceDataSourceHandler = async (_request) => 
 };
 
 const resolveBalanceSheetEquation: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
       {
         id: 'total-assets',
         label: 'Total assets',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'resources owned',
         trend: 'flat',
@@ -338,7 +353,7 @@ const resolveBalanceSheetEquation: ServiceDataSourceHandler = async (_request) =
       {
         id: 'total-liabilities',
         label: 'Total liabilities',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'obligations',
         trend: 'flat',
@@ -348,7 +363,7 @@ const resolveBalanceSheetEquation: ServiceDataSourceHandler = async (_request) =
       {
         id: 'total-equity',
         label: 'Total equity',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'net worth',
         trend: 'flat',
@@ -360,6 +375,9 @@ const resolveBalanceSheetEquation: ServiceDataSourceHandler = async (_request) =
 };
 
 const resolveBalanceSheetAssets: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     rows: [],
     columns: [
@@ -369,12 +387,15 @@ const resolveBalanceSheetAssets: ServiceDataSourceHandler = async (_request) => 
     ],
     subtotal: {
       label: 'Total Assets',
-      amount: formatCurrency(0),
+      amount: formatCurrency(0, currency),
     },
   };
 };
 
 const resolveBalanceSheetLiabilities: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     rows: [],
     columns: [
@@ -384,12 +405,15 @@ const resolveBalanceSheetLiabilities: ServiceDataSourceHandler = async (_request
     ],
     subtotal: {
       label: 'Total Liabilities',
-      amount: formatCurrency(0),
+      amount: formatCurrency(0, currency),
     },
   };
 };
 
 const resolveBalanceSheetEquity: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     rows: [],
     columns: [
@@ -399,17 +423,20 @@ const resolveBalanceSheetEquity: ServiceDataSourceHandler = async (_request) => 
     ],
     subtotal: {
       label: 'Total Equity',
-      amount: formatCurrency(0),
+      amount: formatCurrency(0, currency),
     },
   };
 };
 
 const resolveBalanceSheetSummary: ServiceDataSourceHandler = async (_request) => {
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     items: [
-      { label: 'Total Assets', value: formatCurrency(0) },
-      { label: 'Total Liabilities', value: formatCurrency(0) },
-      { label: 'Total Equity', value: formatCurrency(0) },
+      { label: 'Total Assets', value: formatCurrency(0, currency) },
+      { label: 'Total Liabilities', value: formatCurrency(0, currency) },
+      { label: 'Total Equity', value: formatCurrency(0, currency) },
     ],
     highlight: {
       label: 'Balance Sheet',

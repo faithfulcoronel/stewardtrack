@@ -4,17 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { ChartOfAccountService } from '@/services/ChartOfAccountService';
 import type { ChartOfAccount, AccountType } from '@/models/chartOfAccount.model';
-
-// ==================== HELPER FUNCTIONS ====================
-
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 function getAccountTypeLabel(type: AccountType): string {
   const labels: Record<AccountType, string> = {
@@ -331,6 +322,9 @@ const resolveAccountProfileHeader: ServiceDataSourceHandler = async (request) =>
     throw new Error('Account not found');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   // Get account balance
   let balance = 0;
   try {
@@ -351,7 +345,7 @@ const resolveAccountProfileHeader: ServiceDataSourceHandler = async (request) =>
     metrics: [
       {
         label: 'Current balance',
-        value: formatCurrency(balance),
+        value: formatCurrency(balance, currency),
         caption: 'As of today',
       },
       {
@@ -383,6 +377,9 @@ const resolveAccountProfileDetails: ServiceDataSourceHandler = async (request) =
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const account = await coaService.findById(accountId);
   if (!account) {
     throw new Error('Account not found');
@@ -411,8 +408,8 @@ const resolveAccountProfileDetails: ServiceDataSourceHandler = async (request) =
         description: 'Audit trail',
         columns: 2,
         items: [
-          { label: 'Created', value: account.created_at ? new Date(account.created_at).toLocaleDateString() : '—', type: 'text' },
-          { label: 'Last updated', value: account.updated_at ? new Date(account.updated_at).toLocaleDateString() : '—', type: 'text' },
+          { label: 'Created', value: account.created_at ? formatDate(new Date(account.created_at), timezone) : '—', type: 'text' },
+          { label: 'Last updated', value: account.updated_at ? formatDate(new Date(account.updated_at), timezone) : '—', type: 'text' },
         ],
       },
     ],
@@ -434,13 +431,16 @@ const resolveAccountProfileBalanceSummary: ServiceDataSourceHandler = async (req
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   // Placeholder - will calculate from transactions
   return {
     items: [
       {
         id: 'debit-total',
         label: 'Total debits',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'all time',
         trend: 'flat',
@@ -450,7 +450,7 @@ const resolveAccountProfileBalanceSummary: ServiceDataSourceHandler = async (req
       {
         id: 'credit-total',
         label: 'Total credits',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'all time',
         trend: 'flat',
@@ -460,7 +460,7 @@ const resolveAccountProfileBalanceSummary: ServiceDataSourceHandler = async (req
       {
         id: 'net-balance',
         label: 'Net balance',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         change: '',
         changeLabel: 'current',
         trend: 'flat',
@@ -486,6 +486,10 @@ const resolveAccountProfileTransactions: ServiceDataSourceHandler = async (reque
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency and timezone (cached)
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
+
   // Get transactions for this account
   let transactions: any[] = [];
   try {
@@ -496,11 +500,11 @@ const resolveAccountProfileTransactions: ServiceDataSourceHandler = async (reque
 
   const rows = transactions.map((tx, index) => ({
     id: `tx-${index}`,
-    date: tx.date ? new Date(tx.date).toLocaleDateString() : '—',
+    date: tx.date ? formatDate(new Date(tx.date), timezone) : '—',
     transactionNumber: tx.transaction_number || '—',
     description: tx.description || '—',
-    debit: tx.transaction_type === 'debit' ? formatCurrency(tx.amount) : '',
-    credit: tx.transaction_type === 'credit' ? formatCurrency(tx.amount) : '',
+    debit: tx.transaction_type === 'debit' ? formatCurrency(tx.amount, currency) : '',
+    credit: tx.transaction_type === 'credit' ? formatCurrency(tx.amount, currency) : '',
     status: tx.status || 'posted',
     statusVariant: tx.status === 'posted' ? 'success' : 'warning',
   }));

@@ -8,6 +8,7 @@ import type { MinistryService } from '@/services/MinistryService';
 import type { SchedulerService } from '@/services/SchedulerService';
 import type { ScheduleOccurrenceService } from '@/services/ScheduleOccurrenceService';
 import type { MemberProfileService } from '@/services/MemberProfileService';
+import { getTenantTimezone, formatDate, formatTime } from './datetime-utils';
 
 // ==================== SCHEDULER DASHBOARD HANDLERS ====================
 
@@ -167,18 +168,21 @@ const resolveMinistriesTable: ServiceDataSourceHandler = async () => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const ministryService = container.get<MinistryService>(TYPES.MinistryService);
-  const ministries = await ministryService.getAll(tenant.id);
+  const ministries = await ministryService.getWithTeamCounts(tenant.id);
 
   const rows = ministries.map((ministry) => ({
     id: ministry.id,
     name: ministry.name,
     description: ministry.description || '—',
     color: ministry.color || '#6366f1',
-    teamCount: ministry.team_count || 0,
-    scheduleCount: ministry.schedule_count || 0,
+    teamCount: ministry.team_count ?? 0,
+    scheduleCount: ministry.schedule_count ?? 0,
     isActive: ministry.is_active !== false,
-    createdAt: ministry.created_at ? format(new Date(ministry.created_at), 'MMM d, yyyy') : '—',
+    createdAt: ministry.created_at ? formatDate(new Date(ministry.created_at), timezone, { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
   }));
 
   return {
@@ -288,6 +292,9 @@ const resolveSchedulesTable: ServiceDataSourceHandler = async () => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
   const schedules = await schedulerService.getAll(tenant.id);
 
@@ -298,7 +305,7 @@ const resolveSchedulesTable: ServiceDataSourceHandler = async () => {
     ministryName: schedule.ministry?.name || '—',
     ministryColor: schedule.ministry?.color || '#6366f1',
     recurrencePattern: schedulerService.parseRecurrenceDescription(schedule.recurrence_rule ?? null) || '—',
-    startTime: schedule.start_time ? format(new Date(`2000-01-01T${schedule.start_time}`), 'h:mm a') : '—',
+    startTime: schedule.start_time ? formatTime(new Date(`2000-01-01T${schedule.start_time}`), timezone, { hour: 'numeric', minute: '2-digit', hour12: true }) : '—',
     duration: schedule.duration_minutes ? `${schedule.duration_minutes} min` : '—',
     isActive: schedule.is_active !== false,
   }));
@@ -556,7 +563,8 @@ const resolveMinistryDetailHero: ServiceDataSourceHandler = async (request) => {
   }
 
   const ministryService = container.get<MinistryService>(TYPES.MinistryService);
-  const ministry = await ministryService.getById(ministryId, tenant.id);
+  const ministries = await ministryService.getWithTeamCounts(tenant.id);
+  const ministry = ministries.find(m => m.id === ministryId);
 
   if (!ministry) {
     return {
@@ -572,8 +580,8 @@ const resolveMinistryDetailHero: ServiceDataSourceHandler = async (request) => {
     headline: ministry.name,
     description: ministry.description || 'Manage ministry details, team members, and schedules.',
     metrics: [
-      { label: 'Team Members', value: String(ministry.team_count || 0), caption: 'Active members' },
-      { label: 'Schedules', value: String(ministry.schedule_count || 0), caption: 'Recurring events' },
+      { label: 'Team Members', value: String(ministry.team_count ?? 0), caption: 'Active members' },
+      { label: 'Schedules', value: String(ministry.schedule_count ?? 0), caption: 'Recurring events' },
     ],
   };
 };
@@ -619,8 +627,12 @@ const resolveMinistryDetailSummary: ServiceDataSourceHandler = async (request) =
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const ministryService = container.get<MinistryService>(TYPES.MinistryService);
-  const ministry = await ministryService.getById(ministryId, tenant.id);
+  const ministries = await ministryService.getWithTeamCounts(tenant.id);
+  const ministry = ministries.find(m => m.id === ministryId);
 
   if (!ministry) {
     return { summary: null };
@@ -634,9 +646,9 @@ const resolveMinistryDetailSummary: ServiceDataSourceHandler = async (request) =
       color: ministry.color || '#6366f1',
       icon: ministry.icon || 'church',
       isActive: ministry.is_active !== false,
-      teamCount: ministry.team_count || 0,
-      scheduleCount: ministry.schedule_count || 0,
-      createdAt: ministry.created_at ? format(new Date(ministry.created_at), 'MMM d, yyyy') : null,
+      teamCount: ministry.team_count ?? 0,
+      scheduleCount: ministry.schedule_count ?? 0,
+      createdAt: ministry.created_at ? formatDate(new Date(ministry.created_at), timezone, { month: 'short', day: 'numeric', year: 'numeric' }) : null,
     },
   };
 };
@@ -664,6 +676,9 @@ const resolveMinistryDetailSchedules: ServiceDataSourceHandler = async (request)
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
   const schedules = await schedulerService.getByMinistry(ministryId, tenant.id);
 
@@ -671,7 +686,7 @@ const resolveMinistryDetailSchedules: ServiceDataSourceHandler = async (request)
     id: schedule.id,
     name: schedule.name,
     recurrencePattern: schedulerService.parseRecurrenceDescription(schedule.recurrence_rule ?? null) || '—',
-    startTime: schedule.start_time ? format(new Date(`2000-01-01T${schedule.start_time}`), 'h:mm a') : '—',
+    startTime: schedule.start_time ? formatTime(new Date(`2000-01-01T${schedule.start_time}`), timezone, { hour: 'numeric', minute: '2-digit', hour12: true }) : '—',
     isActive: schedule.is_active !== false,
   }));
 
@@ -748,7 +763,8 @@ const resolveMinistryManageHero: ServiceDataSourceHandler = async (request) => {
   }
 
   const ministryService = container.get<MinistryService>(TYPES.MinistryService);
-  const ministry = await ministryService.getById(ministryId, tenant.id);
+  const ministries = await ministryService.getWithTeamCounts(tenant.id);
+  const ministry = ministries.find(m => m.id === ministryId);
 
   if (!ministry) {
     return {
@@ -766,7 +782,7 @@ const resolveMinistryManageHero: ServiceDataSourceHandler = async (request) => {
     metrics: [
       { label: 'Mode', value: 'Edit existing', caption: `ID: ${ministry.id.slice(0, 8)}...` },
       { label: 'Status', value: ministry.is_active ? 'Active' : 'Inactive', caption: ministry.is_active ? 'Currently active' : 'Currently inactive' },
-      { label: 'Team', value: String(ministry.team_count || 0), caption: 'Team members' },
+      { label: 'Team', value: String(ministry.team_count ?? 0), caption: 'Team members' },
     ],
   };
 };
@@ -987,6 +1003,9 @@ const resolveScheduleProfileSummary: ServiceDataSourceHandler = async (request) 
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
   const schedule = await schedulerService.getById(scheduleId, tenant.id);
 
@@ -1003,8 +1022,8 @@ const resolveScheduleProfileSummary: ServiceDataSourceHandler = async (request) 
       ministryName: schedule.ministry?.name || 'Unknown Ministry',
       ministryColor: schedule.ministry?.color || '#6366f1',
       scheduleType: schedule.schedule_type,
-      startTime: schedule.start_time ? format(new Date(`2000-01-01T${schedule.start_time}`), 'h:mm a') : null,
-      endTime: schedule.end_time ? format(new Date(`2000-01-01T${schedule.end_time}`), 'h:mm a') : null,
+      startTime: schedule.start_time ? formatTime(new Date(`2000-01-01T${schedule.start_time}`), timezone, { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
+      endTime: schedule.end_time ? formatTime(new Date(`2000-01-01T${schedule.end_time}`), timezone, { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
       durationMinutes: schedule.duration_minutes,
       recurrenceRule: schedule.recurrence_rule,
       recurrenceDescription: schedulerService.parseRecurrenceDescription(schedule.recurrence_rule ?? null),
@@ -1014,7 +1033,7 @@ const resolveScheduleProfileSummary: ServiceDataSourceHandler = async (request) 
       capacity: schedule.capacity,
       registrationRequired: schedule.registration_required,
       isActive: schedule.is_active !== false,
-      createdAt: schedule.created_at ? format(new Date(schedule.created_at), 'MMM d, yyyy') : null,
+      createdAt: schedule.created_at ? formatDate(new Date(schedule.created_at), timezone, { month: 'short', day: 'numeric', year: 'numeric' }) : null,
     },
   };
 };
@@ -1154,7 +1173,23 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     label: m.name,
   }));
 
-  let initialValues = {
+  let initialValues: {
+    ministryId: string;
+    name: string;
+    description: string;
+    scheduleType: string;
+    startTime: string;
+    endTime: string;
+    durationMinutes: number;
+    recurrenceRule: string;
+    recurrenceStartDate: string;
+    location: string;
+    locationType: string;
+    virtualMeetingUrl: string;
+    capacity: number | null;
+    registrationRequired: boolean;
+    isActive: boolean;
+  } = {
     ministryId: '',
     name: '',
     description: '',

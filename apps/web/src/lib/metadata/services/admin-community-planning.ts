@@ -11,6 +11,7 @@ import type {
   CalendarEventStatus,
   CalendarEventPriority,
 } from '@/models/calendarEvent.model';
+import { getTenantTimezone, formatDate, formatTime } from './datetime-utils';
 
 // ==================== DASHBOARD PAGE HANDLERS ====================
 
@@ -143,6 +144,9 @@ const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
   const planningService = container.get<PlanningService>(TYPES.PlanningService);
 
   // Get events for the next 7 days
@@ -166,7 +170,7 @@ const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
     const isToday = eventDate.toDateString() === now.toDateString();
     const isTomorrow = eventDate.toDateString() === new Date(now.getTime() + 86400000).toDateString();
 
-    let dateLabel = eventDate.toLocaleDateString('en-US', {
+    let dateLabel = formatDate(eventDate, timezone, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -174,7 +178,7 @@ const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
     if (isToday) dateLabel = 'Today';
     if (isTomorrow) dateLabel = 'Tomorrow';
 
-    const timeLabel = event.all_day ? 'All day' : eventDate.toLocaleTimeString('en-US', {
+    const timeLabel = event.all_day ? 'All day' : formatTime(eventDate, timezone, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -198,7 +202,7 @@ const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
     return {
       id: event.id,
       title: event.title,
-      description: event.member_name ? `With ${event.member_name}` : event.description || undefined,
+      description: event.description || undefined,
       date: dateLabel,
       timeAgo: timeLabel,
       category: event.event_type.replace('_', ' '),
@@ -224,11 +228,12 @@ const handleSyncEvents: ServiceDataSourceHandler = async () => {
   const planningService = container.get<PlanningService>(TYPES.PlanningService);
 
   try {
-    const result = await planningService.syncFromPlans();
+    const result = await planningService.syncAllSources();
+    const totalSynced = result.carePlans + result.discipleshipPlans + result.birthdays + result.anniversaries;
     return {
       success: true,
-      message: `Synced ${result.synced} events from care plans and discipleship plans.`,
-      synced: result.synced,
+      message: `Synced ${totalSynced} events from care plans, discipleship plans, birthdays, and anniversaries.`,
+      synced: totalSynced,
     };
   } catch (error) {
     console.error('[handleSyncEvents] Failed to sync events:', error);
@@ -305,20 +310,20 @@ const resolveCalendarData: ServiceDataSourceHandler = async (request) => {
     end: event.end_at,
     allDay: event.all_day,
     categoryId: event.category_id,
-    categoryName: event.category_name || undefined,
-    categoryColor: event.category_color || '#6366f1',
-    categoryIcon: event.category_icon || undefined,
+    categoryName: event.category?.name || undefined,
+    categoryColor: event.category?.color || '#6366f1',
+    categoryIcon: event.category?.icon || undefined,
     eventType: event.event_type,
     status: event.status,
     priority: event.priority,
     sourceType: event.source_type,
     sourceId: event.source_id,
     memberId: event.member_id,
-    memberName: event.member_name,
-    assignedToId: event.assigned_to_id,
-    assignedToName: event.assigned_to_name,
-    isRecurring: false,
-    isPrivate: false,
+    memberName: undefined, // Member name needs to be resolved separately if needed
+    assignedToId: event.assigned_to,
+    assignedToName: undefined, // Assigned to name needs to be resolved separately if needed
+    isRecurring: event.is_recurring,
+    isPrivate: event.is_private,
     tags: event.tags || [],
   }));
 

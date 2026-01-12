@@ -3,6 +3,7 @@ import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
 import type { SettingService } from "@/services/SettingService";
+import { TIMEZONE_OPTIONS, clearTimezoneCache, formatDate } from "./datetime-utils";
 
 const SETTINGS_OVERVIEW_HANDLER_ID = "admin-settings.settings.overview";
 const SETTINGS_SAVE_HANDLER_ID = "admin-settings.settings.overview.save";
@@ -44,6 +45,7 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
   const tenantWebsite = tenant.website || "";
   const subscriptionTier = tenant.subscription_tier || "starter";
   const currency = tenant.currency || "PHP"; // Default currency from tenant
+  const timezone = await settingService.getTenantTimezone() || "Asia/Manila"; // Default timezone
 
   // Check integration status from settings service
   const integrationSettings = await settingService.getIntegrationSettings();
@@ -52,12 +54,12 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
   const webhookConfigured = integrationSettings.webhook.configured;
   const integrationsConfiguredCount = (twilioConfigured ? 1 : 0) + (emailConfigured ? 1 : 0) + (webhookConfigured ? 1 : 0);
 
-  // Format last updated date
+  // Format last updated date using tenant timezone
   const lastUpdated = tenant.updated_at
-    ? new Date(tenant.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? formatDate(new Date(tenant.updated_at), timezone, { year: 'numeric', month: 'long', day: 'numeric' })
     : 'Not available';
 
-  // Safe date formatting with fallbacks
+  // Safe date formatting with fallbacks using tenant timezone
   const createdAt = tenant.created_at ? new Date(tenant.created_at) : new Date();
   const updatedAt = tenant.updated_at ? new Date(tenant.updated_at) : new Date();
 
@@ -124,12 +126,12 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
         },
         {
           label: "Created",
-          value: createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          value: formatDate(createdAt, timezone, { month: 'short', year: 'numeric' }),
           caption: "Tenant established",
         },
         {
           label: "Last Updated",
-          value: updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          value: formatDate(updatedAt, timezone, { month: 'short', day: 'numeric' }),
           caption: "Settings modified",
         },
       ],
@@ -234,6 +236,7 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
         address: tenantAddress,
         website: tenantWebsite,
         currency,
+        timezone,
         requireTwoFactor: false,
       },
       fields: [
@@ -292,6 +295,17 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
           },
         },
         {
+          name: "timezone",
+          label: "Timezone",
+          type: "select",
+          colSpan: "half",
+          required: true,
+          helperText: "Default timezone for date and time displays.",
+          options: {
+            items: TIMEZONE_OPTIONS.map(tz => ({ label: tz.label, value: tz.value })),
+          },
+        },
+        {
           name: "requireTwoFactor",
           label: "Enforce Two-Factor Login (SOON)",
           type: "toggle",
@@ -306,6 +320,7 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
 
 const saveSettings: ServiceDataSourceHandler = async (request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const settingService = container.get<SettingService>(TYPES.SettingService);
   const tenant = await tenantService.getCurrentTenant();
 
   if (!tenant) {
@@ -326,6 +341,12 @@ const saveSettings: ServiceDataSourceHandler = async (request) => {
   };
 
   await tenantService.updateTenant(tenant.id, updates);
+
+  // Save timezone to settings table and clear cache
+  if (params.timezone) {
+    await settingService.setTenantTimezone(params.timezone as string);
+    clearTimezoneCache(tenant.id);
+  }
 
   return {
     success: true,

@@ -4,17 +4,7 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { FinancialSourceService } from '@/services/FinancialSourceService';
 import type { FinancialSource, SourceType } from '@/models/financialSource.model';
-
-// ==================== HELPER FUNCTIONS ====================
-
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import { getTenantCurrency, formatCurrency } from './finance-utils';
 
 function getSourceTypeLabel(type: SourceType): string {
   const labels: Record<SourceType, string> = {
@@ -51,6 +41,9 @@ const resolveSourcesListHero: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   const sources = await sourceService.findAll();
   const allSources = sources.data || [];
   const totalCount = allSources.length;
@@ -74,7 +67,7 @@ const resolveSourcesListHero: ServiceDataSourceHandler = async (_request) => {
       },
       {
         label: 'Total balance',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         caption: 'Across all sources',
       },
     ],
@@ -427,6 +420,9 @@ const resolveSourceProfileHeader: ServiceDataSourceHandler = async (request) => 
     throw new Error('Source not found');
   }
 
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
   return {
     eyebrow: getSourceTypeLabel(source.source_type),
     title: source.name || 'Unnamed Source',
@@ -438,7 +434,7 @@ const resolveSourceProfileHeader: ServiceDataSourceHandler = async (request) => 
     metrics: [
       {
         label: 'Balance',
-        value: formatCurrency(0),
+        value: formatCurrency(0, currency),
         caption: 'Current balance',
       },
       {
