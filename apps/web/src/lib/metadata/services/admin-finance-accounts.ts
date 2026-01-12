@@ -336,12 +336,8 @@ const resolveAccountProfileHeader: ServiceDataSourceHandler = async (request) =>
 
   return {
     eyebrow: account.code || 'Account',
-    title: account.name || 'Unnamed Account',
-    subtitle: account.description || getAccountTypeLabel(account.account_type) + ' account',
-    badge: {
-      label: getAccountTypeLabel(account.account_type),
-      variant: getAccountTypeBadgeVariant(account.account_type),
-    },
+    headline: account.name || 'Unnamed Account',
+    description: account.description || getAccountTypeLabel(account.account_type) + ' account',
     metrics: [
       {
         label: 'Current balance',

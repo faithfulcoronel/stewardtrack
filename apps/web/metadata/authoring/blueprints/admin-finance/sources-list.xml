@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-source" kind="link">
-        <RBAC requirePermissions="finance:admin" />
+        <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Add source</Label>
           <Url>/admin/finance/sources/manage</Url>

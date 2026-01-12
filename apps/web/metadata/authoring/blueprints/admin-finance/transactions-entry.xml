@@ -17,7 +17,7 @@
             <Prop name="title" kind="static">Transaction type</Prop>
             <Prop name="description" kind="static">Select whether this is an income or expense transaction.</Prop>
             <Prop name="fields" kind="binding" contract="transactionTypeForm.fields"/>
-            <Prop name="values" kind="binding" contract="transactionTypeForm.values"/>
+            <Prop name="initialValues" kind="binding" contract="transactionTypeForm.values"/>
             <Prop name="layout" kind="static">horizontal</Prop>
           </Props>
         </Component>
@@ -26,7 +26,7 @@
             <Prop name="title" kind="static">Transaction details</Prop>
             <Prop name="description" kind="static">Enter the basic information for this transaction.</Prop>
             <Prop name="fields" kind="binding" contract="headerForm.fields"/>
-            <Prop name="values" kind="binding" contract="headerForm.values"/>
+            <Prop name="initialValues" kind="binding" contract="headerForm.values"/>
             <Prop name="validation" kind="binding" contract="headerForm.validation"/>
           </Props>
         </Component>
@@ -49,7 +49,7 @@
             <Prop name="title" kind="static">Summary</Prop>
             <Prop name="description" kind="static">Review the transaction total before saving.</Prop>
             <Prop name="fields" kind="binding" contract="summaryForm.fields"/>
-            <Prop name="values" kind="binding" contract="summaryForm.values"/>
+            <Prop name="initialValues" kind="binding" contract="summaryForm.values"/>
             <Prop name="submitAction" kind="action" actionId="save-transaction"/>
             <Prop name="secondaryAction" kind="action" actionId="save-draft"/>
             <Prop name="cancelAction" kind="action" actionId="cancel"/>

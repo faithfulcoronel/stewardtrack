@@ -764,6 +764,12 @@ container.bind<IAccountAdapter>(TYPES.IAccountAdapter).to(AccountAdapter).inRequ
 container.bind<IAccountRepository>(TYPES.IAccountRepository).to(AccountRepository).inRequestScope();
 container.bind<AccountService>(TYPES.AccountService).to(SupabaseAccountService).inRequestScope();
 
+// ==================== CATEGORY ADAPTER/REPOSITORY ====================
+import { CategoryAdapter, type ICategoryAdapter } from '@/adapters/category.adapter';
+import { CategoryRepository, type ICategoryRepository } from '@/repositories/category.repository';
+container.bind<ICategoryAdapter>(TYPES.ICategoryAdapter).to(CategoryAdapter).inRequestScope();
+container.bind<ICategoryRepository>(TYPES.ICategoryRepository).to(CategoryRepository).inRequestScope();
+
 // ==================== FINANCIAL TRANSACTION ADAPTER/REPOSITORY (MemberService dependency) ====================
 import { FinancialTransactionAdapter, type IFinancialTransactionAdapter } from '@/adapters/financialTransaction.adapter';
 import { FinancialTransactionRepository, type IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';

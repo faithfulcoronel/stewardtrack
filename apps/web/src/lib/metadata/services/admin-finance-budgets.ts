@@ -4,6 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { BudgetService } from '@/services/BudgetService';
 import type { Budget } from '@/models/budget.model';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { Category } from '@/models/category.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 
@@ -263,6 +265,7 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const budgetService = container.get<BudgetService>(TYPES.BudgetService);
+  const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -277,6 +280,19 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
       budget = existing;
     }
   }
+
+  // Fetch budget categories (type = 'budget')
+  const categoriesResult = await categoryRepository.find({
+    filters: {
+      type: { operator: 'eq', value: 'budget' },
+    },
+    order: { column: 'name', ascending: true },
+  });
+  const budgetCategories = (categoriesResult.data || []) as Category[];
+  const categoryOptions = budgetCategories.map((cat) => ({
+    label: cat.name,
+    value: cat.id,
+  }));
 
   return {
     fields: [
@@ -313,7 +329,21 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
         colSpan: 'half',
         helperText: 'Expense category for this budget',
         required: true,
-        options: [], // Will be populated from categories
+        options: categoryOptions,
+        lookupId: 'budget.category',
+        quickCreate: {
+          label: 'Add category',
+          description: 'Create a new budget category. The code will be auto-generated from the name.',
+          submitLabel: 'Save category',
+          successMessage: 'Budget category created',
+          action: {
+            id: 'admin-finance.budgets.category.create',
+            kind: 'metadata.service',
+            config: {
+              handler: 'admin-finance.budgets.category.create',
+            },
+          },
+        },
       },
       {
         name: 'startDate',
@@ -441,6 +471,70 @@ const deleteBudget: ServiceDataSourceHandler = async (request) => {
   }
 };
 
+// ==================== CATEGORY QUICK CREATE HANDLER ====================
+
+const createBudgetCategory: ServiceDataSourceHandler = async (request) => {
+  const params = request.params as Record<string, unknown>;
+  const name = (params.name as string)?.trim();
+  const code = (params.code as string)?.trim();
+
+  if (!name) {
+    return {
+      success: false,
+      message: 'Category name is required',
+    };
+  }
+
+  if (!code) {
+    return {
+      success: false,
+      message: 'Category code is required',
+    };
+  }
+
+  console.log('[createBudgetCategory] Creating category:', { name, code });
+
+  try {
+    const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+
+    // Create the category with type 'budget'
+    const newCategory = await categoryRepository.create({
+      name,
+      code,
+      type: 'budget',
+      is_system: false,
+      is_active: true,
+      sort_order: 0,
+    } as Partial<Category>);
+
+    console.log('[createBudgetCategory] Category created:', newCategory.id);
+
+    return {
+      success: true,
+      message: 'Category created successfully',
+      option: {
+        id: newCategory.id,
+        value: newCategory.name,
+      },
+    };
+  } catch (error: any) {
+    console.error('[createBudgetCategory] Failed:', error);
+
+    // Check for duplicate code/name error
+    if (error?.message?.includes('duplicate') || error?.code === '23505') {
+      return {
+        success: false,
+        message: 'A category with this code or name already exists',
+      };
+    }
+
+    return {
+      success: false,
+      message: error?.message || 'Failed to create category',
+    };
+  }
+};
+
 // Export all handlers
 export const adminFinanceBudgetsHandlers: Record<string, ServiceDataSourceHandler> = {
   // List page handlers
@@ -453,4 +547,6 @@ export const adminFinanceBudgetsHandlers: Record<string, ServiceDataSourceHandle
   // Action handlers
   'admin-finance.budgets.save': saveBudget,
   'admin-finance.budgets.delete': deleteBudget,
+  // Category quick create
+  'admin-finance.budgets.category.create': createBudgetCategory,
 };

@@ -3,7 +3,7 @@
  *
  * Create or edit a budget.
  *
- * SECURITY: Protected by AccessGate requiring finance:write permission.
+ * SECURITY: Protected by AccessGate requiring finance:edit permission.
  */
 
 import type { Metadata } from 'next';
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 export default async function BudgetManagePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(['finance:write'], 'any', {
-    fallbackPath: '/unauthorized?reason=finance_write_access',
+  const gate = Gate.withPermission(['finance:edit'], 'any', {
+    fallbackPath: '/unauthorized?reason=finance_edit_access',
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

@@ -361,6 +361,50 @@ async function handleDeleteBudget(
   }
 }
 
+async function handleCreateBudgetCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.budgets.category.create'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.budgets.category.create');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; option?: { id: string; value: string } };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to create category.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Category created successfully.',
+      data: {
+        option: result.option,
+      },
+    };
+  } catch (error) {
+    console.error('[handleCreateBudgetCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to create category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== TRANSACTION ACTIONS ====================
 
 async function handleSubmitTransaction(
@@ -616,6 +660,7 @@ export const adminFinanceActionHandlers: Record<
   // Budget actions
   'admin-finance.budgets.save': handleSaveBudget,
   'admin-finance.budgets.delete': handleDeleteBudget,
+  'admin-finance.budgets.category.create': handleCreateBudgetCategory,
   // Transaction actions
   'admin-finance.transactions.submit': handleSubmitTransaction,
   'admin-finance.transactions.saveDraft': handleSaveDraftTransaction,

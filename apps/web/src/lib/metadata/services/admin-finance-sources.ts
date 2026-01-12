@@ -425,12 +425,8 @@ const resolveSourceProfileHeader: ServiceDataSourceHandler = async (request) => 
 
   return {
     eyebrow: getSourceTypeLabel(source.source_type),
-    title: source.name || 'Unnamed Source',
-    subtitle: source.description || 'Financial source',
-    badge: {
-      label: source.is_active ? 'Active' : 'Inactive',
-      variant: source.is_active ? 'success' : 'neutral',
-    },
+    headline: source.name || 'Unnamed Source',
+    description: source.description || 'Financial source',
     metrics: [
       {
         label: 'Balance',

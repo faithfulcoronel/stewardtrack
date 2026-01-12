@@ -4,15 +4,15 @@
     <Title>Account details</Title>
     <Regions>
       <Region id="main">
-        <Component id="profile-header" type="AdminProfileHeader">
+        <Component id="profile-hero" type="HeroSection">
           <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
             <Prop name="eyebrow" kind="binding" contract="accountProfile.eyebrow"/>
-            <Prop name="title" kind="binding" contract="accountProfile.title"/>
-            <Prop name="subtitle" kind="binding" contract="accountProfile.subtitle"/>
-            <Prop name="badge" kind="binding" contract="accountProfile.badge"/>
+            <Prop name="headline" kind="binding" contract="accountProfile.headline"/>
+            <Prop name="description" kind="binding" contract="accountProfile.description"/>
             <Prop name="metrics" kind="binding" contract="accountProfile.metrics"/>
-            <Prop name="primaryAction" kind="action" actionId="edit-account"/>
-            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-account"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
           </Props>
         </Component>
         <Component id="account-details" type="AdminDetailPanels">
@@ -43,9 +43,8 @@
       <DataSource id="accountProfile" kind="service">
         <Contract>
           <Field name="eyebrow" path="eyebrow" description="Account code"/>
-          <Field name="title" path="title" description="Account name"/>
-          <Field name="subtitle" path="subtitle" description="Account description"/>
-          <Field name="badge" path="badge" description="Account type badge"/>
+          <Field name="headline" path="headline" description="Account name"/>
+          <Field name="description" path="description" description="Account description"/>
           <Field name="metrics" path="metrics" description="Key account metrics"/>
         </Contract>
         <Config>
@@ -81,7 +80,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-account" kind="link">
-        <RBAC requirePermissions="finance:admin" />
+        <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit account</Label>
           <Url>/admin/finance/accounts/manage?accountId={{id}}</Url>
