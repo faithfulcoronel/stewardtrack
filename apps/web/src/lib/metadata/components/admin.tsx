@@ -146,6 +146,10 @@ import {
   MinistryListView,
   type MinistryListViewProps,
 } from '@/components/dynamic/admin/scheduler';
+import {
+  AdminSyncCard,
+  type AdminSyncCardProps,
+} from '@/components/dynamic/admin/AdminSyncCard';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -453,5 +457,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MinistryListViewProps>(MinistryListView, 'MinistryListViewRenderer'),
+  },
+  {
+    type: 'AdminSyncCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminSyncCardProps>(AdminSyncCard, 'AdminSyncCardRenderer'),
   },
 ];

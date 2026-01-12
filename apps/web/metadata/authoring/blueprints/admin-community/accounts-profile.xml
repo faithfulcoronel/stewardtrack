@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="accounts/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-community-accounts-profile">
+    <Title>Account profile</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="profileHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="profileHero.headline"/>
+            <Prop name="description" kind="binding" contract="profileHero.description"/>
+            <Prop name="metrics" kind="binding" contract="profileHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-account"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="profile-summary" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="profileSummary.panels"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="profileHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for profile-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for profile-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for profile-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for profile-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.profile.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="profileSummary" kind="service">
+        <Contract>
+          <Field name="panels" path="summary.panels" description="Binding for profile-summary.panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.profile.summary</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-account" kind="link">
+        <Config>
+          <Label>Edit account</Label>
+          <Url>/admin/community/accounts/manage?accountId={{params.accountId}}</Url>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to list</Label>
+          <Url>/admin/community/accounts</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

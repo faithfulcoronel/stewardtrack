@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,7 +14,8 @@ export type ProfileMenuProps = {
   email: string;
   avatarUrl?: string | null;
   planLabel?: string;
-  logoutAction: () => Promise<void>;
+  /** Logout action - returnUrl is optional and not used for manual logout */
+  logoutAction: (returnUrl?: string) => Promise<void>;
 };
 
 export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutAction }: ProfileMenuProps) {
@@ -22,6 +23,11 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
   const { mode, setMode, resolvedMode } = useTheme();
   const isDark = mode === "dark" || (mode === "system" && resolvedMode === "dark");
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Wrap logoutAction for form action compatibility (manual logout doesn't need returnUrl)
+  const handleLogoutFormAction = useCallback(async () => {
+    await logoutAction();
+  }, [logoutAction]);
 
   return (
     <DropdownMenu>
@@ -115,7 +121,7 @@ export function ProfileMenu({ name, email, avatarUrl, planLabel = "Pro", logoutA
         </DropdownMenuItem>
       </DropdownMenuContent>
       {/* Hidden form for logout action - placed outside dropdown to ensure proper form submission */}
-      <form ref={formRef} action={logoutAction} className="hidden" />
+      <form ref={formRef} action={handleLogoutFormAction} className="hidden" />
     </DropdownMenu>
   );
 }

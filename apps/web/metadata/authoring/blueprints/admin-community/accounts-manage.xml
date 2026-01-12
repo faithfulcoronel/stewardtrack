@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="accounts/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
+  <Page id="admin-community-accounts-manage">
+    <Title>Manage account</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="manageHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="manageHero.headline"/>
+            <Prop name="description" kind="binding" contract="manageHero.description"/>
+            <Prop name="metrics" kind="binding" contract="manageHero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="account-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="binding" contract="accountForm.title"/>
+            <Prop name="description" kind="binding" contract="accountForm.description"/>
+            <Prop name="mode" kind="binding" contract="accountForm.mode"/>
+            <Prop name="submitLabel" kind="binding" contract="accountForm.submitLabel"/>
+            <Prop name="contextParams" kind="binding" contract="accountForm.contextParams"/>
+            <Prop name="initialValues" kind="binding" contract="accountForm.initialValues"/>
+            <Prop name="fields" kind="binding" contract="accountForm.fields"/>
+            <Prop name="saveHandler" kind="static">admin-community.accounts.manage.save</Prop>
+            <Prop name="redirectOnSuccess" kind="static">/admin/community/accounts</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="manageHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="hero.eyebrow" description="Binding for manage-hero.eyebrow"/>
+          <Field name="headline" path="hero.headline" description="Binding for manage-hero.headline"/>
+          <Field name="description" path="hero.description" description="Binding for manage-hero.description"/>
+          <Field name="metrics" path="hero.metrics" description="Binding for manage-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.manage.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountForm" kind="service">
+        <Contract>
+          <Field name="title" path="form.title" description="Binding for account-form.title"/>
+          <Field name="description" path="form.description" description="Binding for account-form.description"/>
+          <Field name="mode" path="form.mode" description="Binding for account-form.mode"/>
+          <Field name="submitLabel" path="form.submitLabel" description="Binding for account-form.submitLabel"/>
+          <Field name="contextParams" path="form.contextParams" description="Binding for account-form.contextParams"/>
+          <Field name="initialValues" path="form.initialValues" description="Binding for account-form.initialValues"/>
+          <Field name="fields" path="form.fields" description="Binding for account-form.fields"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/accounts</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

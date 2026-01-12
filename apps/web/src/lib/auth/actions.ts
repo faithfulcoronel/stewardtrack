@@ -71,10 +71,17 @@ export async function signInWithPassword(
   redirect(destination);
 }
 
-export async function signOut() {
+export async function signOut(returnUrl?: string) {
   const authService = container.get<AuthService>(TYPES.AuthService);
   await authService.signOut();
   await clearTenantSession();
   revalidatePath("/", "layout");
-  redirect("/login");
+
+  // Build login URL with optional return path
+  let loginUrl = "/login";
+  if (returnUrl && returnUrl.startsWith("/admin")) {
+    loginUrl = `/login?redirectTo=${encodeURIComponent(returnUrl)}`;
+  }
+
+  redirect(loginUrl);
 }

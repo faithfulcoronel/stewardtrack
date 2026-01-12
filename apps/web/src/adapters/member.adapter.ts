@@ -921,8 +921,8 @@ export class MemberAdapter
     // Fetch encrypted records from parent
     const result = await super.fetch(options);
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
     console.log(`[MemberAdapter.fetch] Context tenantId: ${tenantId}, Records fetched: ${result.data.length}`);
 
     if (!tenantId || !result.data.length) {
@@ -1007,8 +1007,8 @@ export class MemberAdapter
       return null;
     }
 
-    // Get tenant context
-    const tenantId = this.context?.tenantId;
+    // Get tenant context with fallback
+    const tenantId = await this.getTenantId();
     if (!tenantId) {
       return record;
     }

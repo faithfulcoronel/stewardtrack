@@ -34,6 +34,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Members", href: "/admin/members", icon: "customers" },
       { title: "Planning", href: "/admin/community/planning", icon: "calendar" },
+      { title: "Accounts", href: "/admin/community/accounts", icon: "finances" },
     ],
   },
   {
@@ -300,6 +301,11 @@ async function filterSectionsWithAccessGate(
       // Planning - requires members:view permission
       else if (item.href.includes('/community/planning')) {
         const gate = Gate.withPermission('members:view');
+        hasAccess = await gate.allows(userId, tenantId);
+      }
+      // Accounts - requires finance:view permission
+      else if (item.href.includes('/community/accounts')) {
+        const gate = Gate.withPermission('finance:view');
         hasAccess = await gate.allows(userId, tenantId);
       }
       // Financial pages - requires permission

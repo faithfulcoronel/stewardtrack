@@ -119,6 +119,7 @@ export const TYPES = {
   ChartOfAccountService: Symbol.for('ChartOfAccountService'),
   IAccountAdapter: Symbol.for('IAccountAdapter'),
   IAccountRepository: Symbol.for('IAccountRepository'),
+  AccountService: Symbol.for('AccountService'),
   IAnnouncementAdapter: Symbol.for('IAnnouncementAdapter'),
   IActivityLogAdapter: Symbol.for('IActivityLogAdapter'),
   IActivityLogRepository: Symbol.for('IActivityLogRepository'),

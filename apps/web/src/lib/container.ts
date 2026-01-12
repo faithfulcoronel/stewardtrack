@@ -756,11 +756,13 @@ container.bind<IReligiousDenominationAdapter>(TYPES.IReligiousDenominationAdapte
 container.bind<IReligiousDenominationRepository>(TYPES.IReligiousDenominationRepository).to(ReligiousDenominationRepository).inRequestScope();
 container.bind<ReligiousDenominationService>(TYPES.ReligiousDenominationService).to(ReligiousDenominationService).inRequestScope();
 
-// ==================== ACCOUNT ADAPTER/REPOSITORY (MemberService dependency) ====================
+// ==================== ACCOUNT ADAPTER/REPOSITORY/SERVICE (MemberService dependency) ====================
 import { AccountAdapter, type IAccountAdapter } from '@/adapters/account.adapter';
 import { AccountRepository, type IAccountRepository } from '@/repositories/account.repository';
+import { SupabaseAccountService, type AccountService } from '@/services/AccountService';
 container.bind<IAccountAdapter>(TYPES.IAccountAdapter).to(AccountAdapter).inRequestScope();
 container.bind<IAccountRepository>(TYPES.IAccountRepository).to(AccountRepository).inRequestScope();
+container.bind<AccountService>(TYPES.AccountService).to(SupabaseAccountService).inRequestScope();
 
 // ==================== FINANCIAL TRANSACTION ADAPTER/REPOSITORY (MemberService dependency) ====================
 import { FinancialTransactionAdapter, type IFinancialTransactionAdapter } from '@/adapters/financialTransaction.adapter';

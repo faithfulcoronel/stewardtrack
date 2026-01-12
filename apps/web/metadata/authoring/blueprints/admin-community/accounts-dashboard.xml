@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-community" route="accounts/dashboard" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-community-accounts-dashboard">
+    <Title>Account intelligence dashboard</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="dashboard-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">split</Prop>
+            <Prop name="eyebrow" kind="binding" contract="dashboardHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="dashboardHero.headline"/>
+            <Prop name="description" kind="binding" contract="dashboardHero.description"/>
+            <Prop name="highlights" kind="binding" contract="dashboardHero.highlights"/>
+            <Prop name="metrics" kind="binding" contract="dashboardHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="open-account-list"/>
+            <Prop name="secondaryCta" kind="action" actionId="launch-new-account"/>
+          </Props>
+        </Component>
+        <Component id="dashboard-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Account KPIs at a glance</Prop>
+            <Prop name="description" kind="static">Monitor your organization and individual accounts in real time.</Prop>
+            <Prop name="metrics" kind="binding" contract="accountMetrics.items"/>
+            <Prop name="footnote" kind="static">Data reflects current account records across all types.</Prop>
+          </Props>
+        </Component>
+        <Component id="member-account-sync" type="AdminSyncCard">
+          <Props>
+            <Prop name="title" kind="binding" contract="syncStats.title"/>
+            <Prop name="description" kind="binding" contract="syncStats.description"/>
+            <Prop name="totalItems" kind="binding" contract="syncStats.totalMembers"/>
+            <Prop name="syncedItems" kind="binding" contract="syncStats.membersWithAccounts"/>
+            <Prop name="unsyncedItems" kind="binding" contract="syncStats.membersWithoutAccounts"/>
+            <Prop name="syncAvailable" kind="binding" contract="syncStats.syncAvailable"/>
+            <Prop name="message" kind="binding" contract="syncStats.message"/>
+            <Prop name="syncActionHandler" kind="static">admin-community.accounts.syncMembers</Prop>
+            <Prop name="syncButtonLabel" kind="static">Sync Members to Accounts</Prop>
+            <Prop name="icon" kind="static">users</Prop>
+          </Props>
+        </Component>
+        <Component id="dashboard-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Jump to focus areas</Prop>
+            <Prop name="description" kind="static">Quickly access account management functions without leaving the dashboard.</Prop>
+            <Prop name="columns" kind="static">4</Prop>
+            <Prop name="links" kind="binding" contract="dashboardQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
+          </Props>
+        </Component>
+        <Component id="account-timeline" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent account activity</Prop>
+            <Prop name="description" kind="static">Latest account creations and updates across your organization.</Prop>
+            <Prop name="accentLabel" kind="static">Recent</Prop>
+            <Prop name="events" kind="binding" contract="accountTimeline.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="dashboardHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Dashboard eyebrow text"/>
+          <Field name="headline" path="headline" description="Dashboard headline"/>
+          <Field name="description" path="description" description="Dashboard description"/>
+          <Field name="highlights" path="highlights" description="Feature highlights list"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="KPI metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.dashboard.kpis</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="dashboardQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.dashboard.quickLinks</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="accountTimeline" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Account activity timeline events"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.dashboard.timeline</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="syncStats" kind="service">
+        <Contract>
+          <Field name="title" path="title" description="Sync card title"/>
+          <Field name="description" path="description" description="Sync card description"/>
+          <Field name="totalMembers" path="totalMembers" description="Total member count"/>
+          <Field name="membersWithAccounts" path="membersWithAccounts" description="Members with linked accounts"/>
+          <Field name="membersWithoutAccounts" path="membersWithoutAccounts" description="Members without linked accounts"/>
+          <Field name="syncAvailable" path="syncAvailable" description="Whether sync is available"/>
+          <Field name="message" path="message" description="Status message"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.accounts.dashboard.syncStats</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="open-account-list" kind="link">
+        <Config>
+          <Label>View account list</Label>
+          <Url>/admin/community/accounts/list</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="launch-new-account" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Add new account</Label>
+          <Url>/admin/community/accounts/manage</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

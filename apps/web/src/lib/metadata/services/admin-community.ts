@@ -50,6 +50,7 @@ import { adminCommunityPlanningHandlers } from './admin-community-planning';
 import { adminCommunityFamiliesHandlers } from './admin-community-families';
 import { adminCommunityGoalsHandlers } from './admin-community-goals';
 import { adminCommunitySchedulerHandlers } from './admin-community-scheduler';
+import { adminCommunityAccountsHandlers } from './admin-community-accounts';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -1895,4 +1896,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   ...adminCommunityFamiliesHandlers,
   ...adminCommunityGoalsHandlers,
   ...adminCommunitySchedulerHandlers,
+  ...adminCommunityAccountsHandlers,
 };
