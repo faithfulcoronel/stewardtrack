@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="budget-categories/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-budget-categories-profile">
+    <Title>Budget category details</Title>
+    <Regions>
+      <Region id="main">
+        <!-- Hero Section -->
+        <Component id="hero" type="HeroSection">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="header.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="header.title"/>
+            <Prop name="description" kind="binding" contract="header.subtitle"/>
+            <Prop name="badge" kind="binding" contract="header.badge"/>
+            <Prop name="metrics" kind="binding" contract="header.metrics"/>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="primaryCta" kind="action" actionId="edit-category"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+
+        <!-- Category Details -->
+        <Component id="details" type="DetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="details.panels"/>
+          </Props>
+        </Component>
+
+        <!-- Budget Summary -->
+        <Component id="budget-summary" type="MetricCards">
+          <Props>
+            <Prop name="title" kind="static">Budget summary</Prop>
+            <Prop name="items" kind="binding" contract="budgetSummary.items"/>
+            <Prop name="columns" kind="static">4</Prop>
+          </Props>
+        </Component>
+
+        <!-- Budget Line Items -->
+        <Component id="budget-items-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Budget line items</Prop>
+            <Prop name="rows" kind="binding" contract="budgetItems.rows"/>
+            <Prop name="columns" kind="binding" contract="budgetItems.columns"/>
+            <Prop name="emptyState" kind="static">{
+              "icon": "Calculator",
+              "title": "No budget items",
+              "description": "No budget line items have been created for this category yet."
+            }</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="header" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Header eyebrow"/>
+          <Field name="title" path="title" description="Category name"/>
+          <Field name="subtitle" path="subtitle" description="Category description"/>
+          <Field name="badge" path="badge" description="Status badge"/>
+          <Field name="metrics" path="metrics" description="Header metrics"/>
+          <Field name="actions" path="actions" description="Header actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.budget-categories.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="details" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.budget-categories.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="budgetSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Budget summary items"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.budget-categories.profile.budgetSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="budgetItems" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Budget item rows"/>
+          <Field name="columns" path="columns" description="Budget item columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.budget-categories.profile.budgetItems</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-category" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Edit category</Label>
+          <Url>/admin/finance/budget-categories/manage?categoryId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to categories</Label>
+          <Url>/admin/finance/budget-categories</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

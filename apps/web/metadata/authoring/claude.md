@@ -735,6 +735,186 @@ export const componentRegistry = {
 </pageDefinition>
 ```
 
+### Pattern 3: Manage/Form Page
+
+**IMPORTANT:** For form pages, use `AdminFormSection` (NOT `FormSection`). The component requires specific prop names.
+
+```xml
+<PageDefinition kind="blueprint" module="admin-finance" route="funds/manage" ...>
+  <Page id="admin-finance-funds-manage">
+    <Title>Manage fund</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="form-header" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="formHeader.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="formHeader.headline"/>
+            <Prop name="description" kind="binding" contract="formHeader.description"/>
+          </Props>
+        </Component>
+        <!-- CORRECT: Use AdminFormSection with proper props -->
+        <Component id="entity-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Entity information</Prop>
+            <Prop name="description" kind="static">Enter the entity details.</Prop>
+            <Prop name="fields" kind="binding" contract="form.fields"/>
+            <Prop name="initialValues" kind="binding" contract="form.values"/>
+            <Prop name="validation" kind="binding" contract="form.validation"/>
+            <Prop name="submitAction" kind="action" actionId="save-entity"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="formHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow"/>
+          <Field name="headline" path="headline"/>
+          <Field name="description" path="description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-module.entity.manage.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="form" kind="service">
+        <Contract>
+          <Field name="fields" path="fields"/>
+          <Field name="values" path="values"/>
+          <Field name="validation" path="validation"/>
+        </Contract>
+        <Config>
+          <Handler>admin-module.entity.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-entity" kind="submit">
+        <Config>
+          <Label>Save entity</Label>
+          <Handler>admin-module.entity.save</Handler>
+          <SuccessUrl>/admin/module/entities</SuccessUrl>
+          <SuccessMessage>Entity saved successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/module/entities</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
+```
+
+**Key Points for AdminFormSection:**
+- Use `AdminFormSection` type, NOT `FormSection`
+- Use `initialValues` prop, NOT `values`
+- Use `submitAction` and `cancelAction` with `kind="action"` and `actionId`
+- Do NOT use `submitLabel`, `cancelUrl`, or `onSubmit` props
+
+**Service Handler Pattern for Form:**
+```typescript
+const resolveEntityManageForm: ServiceDataSourceHandler = async (request) => {
+  const entityId = request.params?.entityId as string;
+  const repository = container.get<IEntityRepository>(TYPES.IEntityRepository);
+
+  let values = { name: '', code: '', isActive: true };
+
+  if (entityId) {
+    const entity = await repository.findById(entityId);
+    if (entity) {
+      values = { name: entity.name, code: entity.code || '', isActive: entity.isActive !== false };
+    }
+  }
+
+  return {
+    fields: [
+      { name: 'name', label: 'Name', type: 'text', required: true, colSpan: 'half' },
+      { name: 'code', label: 'Code', type: 'text', colSpan: 'half' },
+      { name: 'isActive', label: 'Active', type: 'toggle', colSpan: 'full', helperText: 'Description shown below the toggle' },
+    ],
+    values,
+    validation: { name: { required: true } },
+  };
+};
+```
+
+**Important Field Types:**
+- `text` - Standard text input
+- `textarea` - Multi-line text (use `rows` prop)
+- `toggle` - Boolean switch (NOT `checkbox` or `switch`)
+- `select` - Dropdown selection
+- `number` - Numeric input
+
+**CRITICAL: Action Handler Registration**
+
+For `kind="submit"` actions in XML to work, you must register **both**:
+
+1. **Service Handler** in `src/lib/metadata/services/admin-<module>.ts`:
+```typescript
+const saveEntity: ServiceDataSourceHandler = async (request) => {
+  // CRITICAL: Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const params = request.params as Record<string, unknown>;
+  const values = (params.values ?? params) as Record<string, unknown>;
+  const entityId = (values.entityId ?? params.entityId) as string | undefined;
+
+  // Extract form data from values, NOT directly from params
+  const formData = {
+    name: values.name as string,
+    code: values.code as string | undefined,
+    isActive: values.isActive === true || values.isActive === 'true',
+  };
+
+  // ... save logic using formData
+  return { success: true, message: 'Saved successfully', redirectUrl: '/admin/module/entities' };
+};
+
+export const adminModuleHandlers = {
+  'admin-module.entity.save': saveEntity,
+  'admin-module.entity.delete': deleteEntity,
+};
+```
+
+**IMPORTANT:** AdminFormSubmitHandler wraps form values in a `{ mode, values }` structure. Service handlers MUST extract values from `params.values`, NOT directly from `params`. Accessing `params.name` directly will be `undefined`.
+
+2. **Action Handler** in `src/lib/metadata/actions/admin-<module>/index.ts`:
+```typescript
+async function handleSaveEntity(execution: MetadataActionExecution): Promise<MetadataActionResult> {
+  const serviceHandler = adminModuleHandlers['admin-module.entity.save'];
+  const result = await serviceHandler({ params: execution.input, context: execution.context });
+  return {
+    success: result.success,
+    status: result.success ? 200 : 400,
+    message: result.message,
+    redirectUrl: result.redirectUrl,
+  };
+}
+
+export const adminModuleActionHandlers = {
+  'admin-module.entity.save': handleSaveEntity,
+  'admin-module.entity.delete': handleDeleteEntity,
+};
+```
+
+3. **Register in Module Manifest** (`src/lib/metadata/modules/admin-<module>.manifest.ts`):
+```typescript
+export const adminModuleManifest: MetadataModuleManifest = {
+  id: 'admin-module',
+  actions: adminModuleActionHandlers,  // Action handlers for form submissions
+  services: adminModuleHandlers,        // Service handlers for data fetching
+};
+```
+
+**Why Two Layers?**
+- Service handlers handle data fetching AND mutations (business logic)
+- Action handlers wrap service handlers with proper `MetadataActionResult` formatting
+- The metadata system routes `kind="submit"` actions through action handlers
+
 ## Troubleshooting
 
 ### Issue: Changes Not Reflected
@@ -786,6 +966,53 @@ Element 'DataSources': Missing child element(s). Expected is ( DataSource ).
 - Check data source ID matches `dataBinding` source
 - Verify query syntax or API endpoint
 - Check browser console for errors
+
+### Issue: "Unsupported action kind: submit"
+
+**Problem:** Form submission fails with error:
+```
+Error: Unsupported action kind: submit
+```
+
+**Cause:** The action handler is not registered for the handler ID specified in the XML `<Handler>` element.
+
+**Solution:** Ensure the action handler is registered in `src/lib/metadata/actions/admin-<module>/index.ts`:
+
+1. Create the action handler function that delegates to the service handler
+2. Register it in the `adminModuleActionHandlers` export with the correct handler ID
+3. Ensure the module manifest includes both `actions` and `services`
+
+Example - if your XML has:
+```xml
+<Action id="save-entity" kind="submit">
+  <Config>
+    <Handler>admin-finance.funds.save</Handler>
+  </Config>
+</Action>
+```
+
+You need this in `admin-finance/index.ts`:
+```typescript
+export const adminFinanceActionHandlers = {
+  'admin-finance.funds.save': handleSaveFund,  // Must match the Handler value
+};
+```
+
+### Issue: Form Field Renders as Text Input Instead of Toggle
+
+**Problem:** A boolean field like `isActive` renders as a text input showing "true" or "false" instead of a toggle switch.
+
+**Cause:** Using wrong field type. The `fieldRenderers.tsx` only handles `toggle` type for boolean switches - `checkbox` and `switch` fall through to the default text input.
+
+**Solution:** Use `type: 'toggle'` in the service handler:
+```typescript
+// WRONG - will render as text input
+{ name: 'isActive', label: 'Active', type: 'checkbox', colSpan: 'full' }
+{ name: 'isActive', label: 'Active', type: 'switch', colSpan: 'full' }
+
+// CORRECT - will render as toggle switch
+{ name: 'isActive', label: 'Active', type: 'toggle', colSpan: 'full', helperText: 'Description text' }
+```
 
 ## Related Documentation
 

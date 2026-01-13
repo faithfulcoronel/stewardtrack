@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="expense-categories" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-expense-categories-list">
+    <Title>Expense categories</Title>
+    <Regions>
+      <Region id="main">
+        <!-- Hero Section -->
+        <Component id="hero" type="HeroSection">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="hero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="hero.headline"/>
+            <Prop name="description" kind="binding" contract="hero.description"/>
+            <Prop name="metrics" kind="binding" contract="hero.metrics"/>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="primaryAction" kind="static">{
+              "label": "Add expense category",
+              "href": "/admin/finance/expense-categories/manage"
+            }</Prop>
+          </Props>
+        </Component>
+
+        <!-- Summary Cards -->
+        <Component id="summary" type="MetricCards">
+          <Props>
+            <Prop name="items" kind="binding" contract="summary.items"/>
+            <Prop name="columns" kind="static">3</Prop>
+          </Props>
+        </Component>
+
+        <!-- Categories Data Table -->
+        <Component id="categories-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">All expense categories</Prop>
+            <Prop name="rows" kind="binding" contract="table.rows"/>
+            <Prop name="columns" kind="binding" contract="table.columns"/>
+            <Prop name="filters" kind="binding" contract="table.filters"/>
+            <Prop name="emptyState" kind="static">{
+              "icon": "Folder",
+              "title": "No expense categories",
+              "description": "Get started by creating your first expense category.",
+              "action": {
+                "label": "Add expense category",
+                "href": "/admin/finance/expense-categories/manage"
+              }
+            }</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="hero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Hero eyebrow text"/>
+          <Field name="headline" path="headline" description="Hero headline"/>
+          <Field name="description" path="description" description="Hero description"/>
+          <Field name="metrics" path="metrics" description="Hero metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.expense-categories.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="summary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Summary metric items"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.expense-categories.list.summary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="table" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Table rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="filters" path="filters" description="Table filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.expense-categories.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+  </Page>
+</PageDefinition>

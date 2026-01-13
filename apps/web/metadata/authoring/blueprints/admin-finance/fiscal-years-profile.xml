@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="fiscal-years/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-fiscal-years-profile">
+    <Title>Fiscal year details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="fiscalYearProfile.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="fiscalYearProfile.headline"/>
+            <Prop name="description" kind="binding" contract="fiscalYearProfile.description"/>
+            <Prop name="metrics" kind="binding" contract="fiscalYearProfile.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-fiscal-year"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="fiscal-year-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="fiscalYearDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="period-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Period summary</Prop>
+            <Prop name="description" kind="static">Financial activity by period within this fiscal year.</Prop>
+            <Prop name="metrics" kind="binding" contract="periodSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="opening-balances-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Opening balances</Prop>
+            <Prop name="description" kind="static">Fund opening balances for this fiscal year.</Prop>
+            <Prop name="rows" kind="binding" contract="openingBalancesGrid.rows"/>
+            <Prop name="columns" kind="binding" contract="openingBalancesGrid.columns"/>
+            <Prop name="emptyState" kind="static">{"title": "No opening balances", "description": "No opening balances have been set for this fiscal year."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="fiscalYearProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Fiscal year status"/>
+          <Field name="headline" path="headline" description="Fiscal year name"/>
+          <Field name="description" path="description" description="Date range"/>
+          <Field name="metrics" path="metrics" description="Key metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fiscalYearDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Fiscal year detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="periodSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Period summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.profile.periodSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="openingBalancesGrid" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Opening balance rows"/>
+          <Field name="columns" path="columns" description="Opening balance columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.profile.openingBalances</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-fiscal-year" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Edit fiscal year</Label>
+          <Url>/admin/finance/fiscal-years/manage?fiscalYearId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to fiscal years</Label>
+          <Url>/admin/finance/fiscal-years</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

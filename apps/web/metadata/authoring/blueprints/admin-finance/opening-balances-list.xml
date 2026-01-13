@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="opening-balances/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-opening-balances-list">
+    <Title>Opening balances</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="add-opening-balance"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="status-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Status breakdown</Prop>
+            <Prop name="description" kind="static">Opening balances by status with total amounts.</Prop>
+            <Prop name="metrics" kind="binding" contract="statusSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="opening-balances-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Opening balance records</Prop>
+            <Prop name="description" kind="static">Manage opening balances for funds by fiscal year.</Prop>
+            <Prop name="rows" kind="binding" contract="openingBalancesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="openingBalancesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="openingBalancesTable.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No opening balances found", "description": "Create opening balances to set initial fund amounts for a fiscal year."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Hero eyebrow text"/>
+          <Field name="headline" path="headline" description="Hero headline"/>
+          <Field name="description" path="description" description="Hero description"/>
+          <Field name="metrics" path="metrics" description="Hero metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="statusSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Status summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.list.statusSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="openingBalancesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Table rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="filters" path="filters" description="Table filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-opening-balance" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Add opening balance</Label>
+          <Url>/admin/finance/opening-balances/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

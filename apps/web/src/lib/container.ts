@@ -800,6 +800,38 @@ container.bind<IFinancialSourceAdapter>(TYPES.IFinancialSourceAdapter).to(Financ
 container.bind<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository).to(FinancialSourceRepository).inRequestScope();
 container.bind<FinancialSourceService>(TYPES.FinancialSourceService).to(FinancialSourceService).inRequestScope();
 
+// ==================== FISCAL YEAR & PERIOD ====================
+import { FiscalYearAdapter, type IFiscalYearAdapter } from '@/adapters/fiscalYear.adapter';
+import { FiscalYearRepository, type IFiscalYearRepository } from '@/repositories/fiscalYear.repository';
+import { FiscalYearService } from '@/services/FiscalYearService';
+import { FiscalPeriodAdapter, type IFiscalPeriodAdapter } from '@/adapters/fiscalPeriod.adapter';
+import { FiscalPeriodRepository, type IFiscalPeriodRepository } from '@/repositories/fiscalPeriod.repository';
+container.bind<IFiscalYearAdapter>(TYPES.IFiscalYearAdapter).to(FiscalYearAdapter).inRequestScope();
+container.bind<IFiscalYearRepository>(TYPES.IFiscalYearRepository).to(FiscalYearRepository).inRequestScope();
+container.bind<FiscalYearService>(TYPES.FiscalYearService).to(FiscalYearService).inRequestScope();
+container.bind<IFiscalPeriodAdapter>(TYPES.IFiscalPeriodAdapter).to(FiscalPeriodAdapter).inRequestScope();
+container.bind<IFiscalPeriodRepository>(TYPES.IFiscalPeriodRepository).to(FiscalPeriodRepository).inRequestScope();
+
+// ==================== FUND ====================
+import { FundAdapter, type IFundAdapter } from '@/adapters/fund.adapter';
+import { FundRepository, type IFundRepository } from '@/repositories/fund.repository';
+import { DefaultFundService, type FundService } from '@/services/FundService';
+import { FundBalanceAdapter, type IFundBalanceAdapter } from '@/adapters/fundBalance.adapter';
+import { FundBalanceRepository, type IFundBalanceRepository } from '@/repositories/fundBalance.repository';
+container.bind<IFundAdapter>(TYPES.IFundAdapter).to(FundAdapter).inRequestScope();
+container.bind<IFundRepository>(TYPES.IFundRepository).to(FundRepository).inRequestScope();
+container.bind<FundService>(TYPES.FundService).to(DefaultFundService).inRequestScope();
+container.bind<IFundBalanceAdapter>(TYPES.IFundBalanceAdapter).to(FundBalanceAdapter).inRequestScope();
+container.bind<IFundBalanceRepository>(TYPES.IFundBalanceRepository).to(FundBalanceRepository).inRequestScope();
+
+// ==================== OPENING BALANCE ====================
+import { OpeningBalanceAdapter, type IOpeningBalanceAdapter } from '@/adapters/openingBalance.adapter';
+import { OpeningBalanceRepository, type IOpeningBalanceRepository } from '@/repositories/openingBalance.repository';
+import { OpeningBalanceService } from '@/services/OpeningBalanceService';
+container.bind<IOpeningBalanceAdapter>(TYPES.IOpeningBalanceAdapter).to(OpeningBalanceAdapter).inRequestScope();
+container.bind<IOpeningBalanceRepository>(TYPES.IOpeningBalanceRepository).to(OpeningBalanceRepository).inRequestScope();
+container.bind<OpeningBalanceService>(TYPES.OpeningBalanceService).to(OpeningBalanceService).inRequestScope();
+
 // ==================== MEMBER SERVICE ====================
 container.bind<MemberService>(TYPES.MemberService).to(MemberService).inRequestScope();
 

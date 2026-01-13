@@ -2,6 +2,10 @@ import type { ServiceDataSourceHandler } from './types';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { IFundRepository } from '@/repositories/fund.repository';
+import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import type { IAccountRepository } from '@/repositories/account.repository';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 
@@ -264,23 +268,87 @@ const resolveTransactionEntryHeaderForm: ServiceDataSourceHandler = async (_requ
   };
 };
 
-const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (_request) => {
+const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (request) => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const fundRepository = container.get<IFundRepository>(TYPES.IFundRepository);
+  const financialSourceRepository = container.get<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository);
+  const accountRepository = container.get<IAccountRepository>(TYPES.IAccountRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
+
+  // Determine transaction type from request params
+  const transactionType = (request.params?.type as string) || 'income';
+
+  // Fetch dropdown options from repositories (RLS handles tenant isolation)
+  const [categoriesResult, fundsResult, sourcesResult, accountsResult] = await Promise.all([
+    categoryRepository.findAll(),
+    fundRepository.findAll(),
+    financialSourceRepository.findAll(),
+    accountRepository.findAll(),
+  ]);
+
+  // Extract data arrays from query results
+  const categories = categoriesResult?.data || [];
+  const funds = fundsResult?.data || [];
+  const sources = sourcesResult?.data || [];
+  const accounts = accountsResult?.data || [];
+
+  // Filter to only transaction-related categories (income_transaction or expense_transaction)
+  // Include the type so client can filter dynamically when user toggles transaction type
+  const transactionCategories = categories.filter((category) => {
+    const categoryType = (category as { type?: string }).type;
+    return categoryType === 'income_transaction' || categoryType === 'expense_transaction';
+  });
+
+  // Transform to dropdown options - include type for client-side filtering
+  const categoryOptions = transactionCategories.map((category) => ({
+    value: category.id,
+    label: category.name,
+    code: (category as { code?: string }).code || '',
+    description: (category as { description?: string }).description || '',
+    type: (category as { type?: string }).type || '', // Include type for filtering
+  }));
+
+  const fundOptions = funds.map((fund) => ({
+    value: fund.id,
+    label: fund.name,
+    code: (fund as { code?: string }).code || '',
+  }));
+
+  const sourceOptions = sources.map((source) => ({
+    value: source.id,
+    label: source.name,
+    code: (source as { code?: string }).code || '',
+  }));
+
+  const accountOptions = accounts.map((account) => ({
+    value: account.id,
+    label: account.name,
+    code: (account as { accountNumber?: string }).accountNumber || '',
+  }));
 
   return {
     lines: [],
     columns: [
-      { field: 'category', headerName: 'Category', flex: 1 },
-      { field: 'fund', headerName: 'Fund', flex: 0.8 },
-      { field: 'source', headerName: 'Source', flex: 0.8 },
-      { field: 'amount', headerName: 'Amount', flex: 0.6 },
-      { field: 'description', headerName: 'Description', flex: 1 },
+      { field: 'category', headerName: 'Category', flex: 1, type: 'select', required: true },
+      { field: 'fund', headerName: 'Fund', flex: 0.8, type: 'select' },
+      { field: 'source', headerName: 'Source', flex: 0.8, type: 'select' },
+      { field: 'amount', headerName: 'Amount', flex: 0.6, type: 'currency', required: true },
+      { field: 'description', headerName: 'Description', flex: 1, type: 'text' },
     ],
-    categoryOptions: [],
-    sourceOptions: [],
-    fundOptions: [],
-    accountOptions: [],
+    categoryOptions,
+    fundOptions,
+    sourceOptions,
+    accountOptions,
+    currency,
+    transactionType,
     totalAmount: formatCurrency(0, currency),
   };
 };

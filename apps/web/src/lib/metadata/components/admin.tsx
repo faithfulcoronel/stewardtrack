@@ -150,6 +150,14 @@ import {
   AdminSyncCard,
   type AdminSyncCardProps,
 } from '@/components/dynamic/admin/AdminSyncCard';
+import {
+  AdminTransactionLines,
+  type AdminTransactionLinesProps,
+} from '@/components/dynamic/admin/AdminTransactionLines';
+import {
+  AdminTransactionEntry,
+  type AdminTransactionEntryProps,
+} from '@/components/dynamic/admin/AdminTransactionEntry';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -463,5 +471,18 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminSyncCardProps>(AdminSyncCard, 'AdminSyncCardRenderer'),
+  },
+  // Finance Components
+  {
+    type: 'AdminTransactionLines',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminTransactionLinesProps>(AdminTransactionLines, 'AdminTransactionLinesRenderer'),
+  },
+  {
+    type: 'AdminTransactionEntry',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminTransactionEntryProps>(AdminTransactionEntry, 'AdminTransactionEntryRenderer'),
   },
 ];

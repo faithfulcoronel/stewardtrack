@@ -391,8 +391,10 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
 // ==================== ACTION HANDLERS ====================
 
 const saveBudget: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
-  const budgetId = params.budgetId as string | undefined;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
+  const budgetId = (values.budgetId ?? params.budgetId) as string | undefined;
 
   console.log('[saveBudget] Saving budget. ID:', budgetId);
 
@@ -406,12 +408,12 @@ const saveBudget: ServiceDataSourceHandler = async (request) => {
     }
 
     const budgetData: Partial<Budget> = {
-      name: params.name as string,
-      amount: parseFloat(params.amount) || 0,
-      category_id: params.categoryId as string,
-      start_date: params.startDate as string,
-      end_date: params.endDate as string,
-      description: params.description ? (params.description as string) : null,
+      name: values.name as string,
+      amount: parseFloat(values.amount as string) || 0,
+      category_id: values.categoryId as string,
+      start_date: values.startDate as string,
+      end_date: values.endDate as string,
+      description: values.description ? (values.description as string) : null,
     };
 
     let budget: Budget;
@@ -428,6 +430,7 @@ const saveBudget: ServiceDataSourceHandler = async (request) => {
       success: true,
       message: budgetId ? 'Budget updated successfully' : 'Budget created successfully',
       budgetId: budget.id,
+      redirectUrl: '/admin/finance/budgets',
     };
   } catch (error: any) {
     console.error('[saveBudget] Failed:', error);

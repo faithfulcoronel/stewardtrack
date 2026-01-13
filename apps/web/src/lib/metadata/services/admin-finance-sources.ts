@@ -530,10 +530,12 @@ const resolveSourceProfileTransactions: ServiceDataSourceHandler = async (_reque
 // ==================== ACTION HANDLERS ====================
 
 const saveSource: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
-  const sourceId = params.sourceId as string | undefined;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
+  const sourceId = (values.sourceId ?? params.sourceId) as string | undefined;
 
-  console.log('[saveSource] Saving source. ID:', sourceId);
+  console.log('[saveSource] Saving source. ID:', sourceId, 'Values:', values);
 
   try {
     const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -545,11 +547,11 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
     }
 
     const sourceData: Partial<FinancialSource> = {
-      name: params.name as string,
-      source_type: params.sourceType as SourceType,
-      account_number: params.accountNumber ? (params.accountNumber as string) : null,
-      is_active: params.isActive === true || params.isActive === 'true',
-      description: params.description ? (params.description as string) : null,
+      name: values.name as string,
+      source_type: values.sourceType as SourceType,
+      account_number: values.accountNumber ? (values.accountNumber as string) : null,
+      is_active: values.isActive === true || values.isActive === 'true',
+      description: values.description ? (values.description as string) : null,
     };
 
     let source: FinancialSource;
@@ -566,6 +568,7 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
       success: true,
       message: sourceId ? 'Source updated successfully' : 'Source created successfully',
       sourceId: source.id,
+      redirectUrl: '/admin/finance/sources',
     };
   } catch (error: any) {
     console.error('[saveSource] Failed:', error);
