@@ -167,10 +167,17 @@ const resolveFiscalYearsListTable: ServiceDataSourceHandler = async (_request) =
 
 // ==================== MANAGE PAGE HANDLERS ====================
 
+// Helper to validate UUID format
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 const resolveFiscalYearManageHeader: ServiceDataSourceHandler = async (request) => {
   const fiscalYearId = request.params?.fiscalYearId as string;
 
-  if (!fiscalYearId) {
+  // Treat invalid UUIDs (like template strings "{{id}}") as create mode
+  if (!fiscalYearId || !isValidUUID(fiscalYearId)) {
     return {
       eyebrow: 'Finance configuration',
       headline: 'Create fiscal year',
@@ -193,7 +200,9 @@ const resolveFiscalYearManageHeader: ServiceDataSourceHandler = async (request) 
 };
 
 const resolveFiscalYearManageForm: ServiceDataSourceHandler = async (request) => {
-  const fiscalYearId = request.params?.fiscalYearId as string;
+  const fiscalYearIdRaw = request.params?.fiscalYearId as string;
+  // Only use fiscalYearId if it's a valid UUID
+  const fiscalYearId = fiscalYearIdRaw && isValidUUID(fiscalYearIdRaw) ? fiscalYearIdRaw : undefined;
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const fiscalYearService = container.get<FiscalYearService>(TYPES.FiscalYearService);
@@ -355,9 +364,17 @@ const deleteFiscalYear: ServiceDataSourceHandler = async (request) => {
     const errorMessage = error instanceof Error ? error.message : 'Failed to delete fiscal year';
     console.error('[deleteFiscalYear] Failed:', error);
 
+    // Provide user-friendly messages for common errors
+    let userMessage = errorMessage;
+    if (errorMessage.includes('transaction(s) exist')) {
+      userMessage = 'Cannot delete this fiscal year because it has associated transactions. Close the fiscal year instead.';
+    } else if (errorMessage.includes('Closed fiscal years cannot be deleted')) {
+      userMessage = 'Cannot delete a closed fiscal year. Closed fiscal years are retained for audit purposes.';
+    }
+
     return {
       success: false,
-      message: errorMessage,
+      message: userMessage,
     };
   }
 };
@@ -445,22 +462,114 @@ const resolveFiscalYearProfileDetails: ServiceDataSourceHandler = async (request
   };
 };
 
-const resolveFiscalYearPeriodSummary: ServiceDataSourceHandler = async (_request) => {
-  // Placeholder - would show period breakdown if fiscal periods are defined
-  return {
-    items: [
-      {
-        id: 'periods',
-        label: 'Fiscal periods',
-        value: 'N/A',
-        change: '',
-        changeLabel: '',
-        trend: 'flat',
-        tone: 'neutral',
-        description: 'No fiscal periods defined.',
+const resolveFiscalYearPeriodSummary: ServiceDataSourceHandler = async (request) => {
+  const fiscalYearId = request.params?.fiscalYearId as string;
+
+  if (!fiscalYearId) {
+    return {
+      items: [
+        {
+          id: 'periods',
+          label: 'Fiscal periods',
+          value: 'N/A',
+          change: '',
+          changeLabel: '',
+          trend: 'flat',
+          tone: 'neutral',
+          description: 'No fiscal year specified.',
+        },
+      ],
+    };
+  }
+
+  try {
+    // Use repository pattern - import types dynamically to avoid circular deps
+    const { TYPES: T } = await import('@/lib/types');
+    const { container: c } = await import('@/lib/container');
+    type FPRepo = import('@/repositories/fiscalPeriod.repository').IFiscalPeriodRepository;
+    const fiscalPeriodRepo = c.get<FPRepo>(T.IFiscalPeriodRepository);
+
+    // Query fiscal periods for this fiscal year using repository
+    const result = await fiscalPeriodRepo.findAll({
+      filters: {
+        fiscal_year_id: { operator: 'eq', value: fiscalYearId },
       },
-    ],
-  };
+      order: { column: 'start_date', ascending: true },
+    });
+
+    const periods = result.data || [];
+    const totalPeriods = periods.length;
+    const openPeriods = periods.filter((p) => p.status === 'open').length;
+    const closedPeriods = periods.filter((p) => p.status === 'closed').length;
+
+    if (totalPeriods === 0) {
+      return {
+        items: [
+          {
+            id: 'periods',
+            label: 'Fiscal periods',
+            value: '0',
+            change: '',
+            changeLabel: '',
+            trend: 'flat',
+            tone: 'neutral',
+            description: 'No fiscal periods defined. Periods should be auto-created when a fiscal year is created.',
+          },
+        ],
+      };
+    }
+
+    return {
+      items: [
+        {
+          id: 'total-periods',
+          label: 'Total periods',
+          value: totalPeriods.toString(),
+          change: '',
+          changeLabel: '',
+          trend: 'flat',
+          tone: 'informative',
+          description: 'Monthly periods in this fiscal year.',
+        },
+        {
+          id: 'open-periods',
+          label: 'Open periods',
+          value: openPeriods.toString(),
+          change: '',
+          changeLabel: '',
+          trend: 'flat',
+          tone: 'positive',
+          description: 'Periods accepting transactions.',
+        },
+        {
+          id: 'closed-periods',
+          label: 'Closed periods',
+          value: closedPeriods.toString(),
+          change: '',
+          changeLabel: '',
+          trend: 'flat',
+          tone: 'neutral',
+          description: 'Completed periods.',
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('[resolveFiscalYearPeriodSummary] Error fetching periods:', error);
+    return {
+      items: [
+        {
+          id: 'periods',
+          label: 'Fiscal periods',
+          value: 'Error',
+          change: '',
+          changeLabel: '',
+          trend: 'flat',
+          tone: 'critical',
+          description: 'Failed to load fiscal periods.',
+        },
+      ],
+    };
+  }
 };
 
 const resolveFiscalYearOpeningBalances: ServiceDataSourceHandler = async (request) => {

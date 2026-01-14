@@ -105,7 +105,8 @@
       "Bash(timeout /t 15 /nobreak)",
       "Bash(ping:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm --filter @stewardtrack/web add:*)"
     ],
     "deny": [],
     "ask": []

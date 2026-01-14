@@ -162,6 +162,14 @@ import {
   AdminCollapsibleSection,
   type AdminCollapsibleSectionProps,
 } from '@/components/dynamic/admin/AdminCollapsibleSection';
+import {
+  AdminReportHeader,
+  type AdminReportHeaderProps,
+} from '@/components/dynamic/admin/AdminReportHeader';
+import {
+  AdminReportTable,
+  type AdminReportTableProps,
+} from '@/components/dynamic/admin/AdminReportTable';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -494,5 +502,18 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withChildren<AdminCollapsibleSectionProps>(AdminCollapsibleSection, 'AdminCollapsibleSectionRenderer'),
+  },
+  // Report Components
+  {
+    type: 'AdminReportHeader',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminReportHeaderProps>(AdminReportHeader, 'AdminReportHeaderRenderer'),
+  },
+  {
+    type: 'AdminReportTable',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminReportTableProps>(AdminReportTable, 'AdminReportTableRenderer'),
   },
 ];

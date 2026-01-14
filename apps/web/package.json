@@ -78,6 +78,8 @@
     "firebase-admin": "^13.6.0",
     "input-otp": "^1.4.2",
     "inversify": "^6.2.1",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide": "^0.544.0",
     "lucide-react": "^0.544.0",
     "motion": "^12.23.16",
@@ -103,6 +105,7 @@
     "twilio": "^5.11.1",
     "uuid": "^9.0.0",
     "vaul": "^1.1.2",
+    "xlsx": "^0.18.5",
     "xmllint-wasm": "^5.0.0",
     "zod": "^4.1.9"
   },

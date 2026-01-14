@@ -81,7 +81,7 @@
         <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit fiscal year</Label>
-          <Url>/admin/finance/fiscal-years/manage?fiscalYearId={{id}}</Url>
+          <Url>/admin/finance/fiscal-years/manage?fiscalYearId={{params.fiscalYearId}}</Url>
           <Variant>primary</Variant>
         </Config>
       </Action>
