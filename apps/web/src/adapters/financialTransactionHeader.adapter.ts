@@ -274,16 +274,16 @@ export class FinancialTransactionHeaderAdapter
         account:chart_of_accounts(id, code, name, account_type),
         account_holder:accounts(id, name, member_id),
         source_id,
-        source:source_id(id, name, source_type),
-        header:financial_transaction_headers(id, deleted_at)
+        source:source_id(id, name, source_type)
       `
       )
       .eq('tenant_id', tenantId)
       .eq('header_id', headerId)
-      .is('financial_transaction_headers.deleted_at', null)
+      .is('deleted_at', null)
       .order('updated_at', { ascending: true });
 
     if (error) throw error;
+
     return data || [];
   }
 

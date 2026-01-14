@@ -776,6 +776,18 @@ import { FinancialTransactionRepository, type IFinancialTransactionRepository } 
 container.bind<IFinancialTransactionAdapter>(TYPES.IFinancialTransactionAdapter).to(FinancialTransactionAdapter).inRequestScope();
 container.bind<IFinancialTransactionRepository>(TYPES.IFinancialTransactionRepository).to(FinancialTransactionRepository).inRequestScope();
 
+// ==================== FINANCIAL TRANSACTION HEADER (Double-entry transaction headers) ====================
+import { FinancialTransactionHeaderAdapter, type IFinancialTransactionHeaderAdapter } from '@/adapters/financialTransactionHeader.adapter';
+import { FinancialTransactionHeaderRepository, type IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
+container.bind<IFinancialTransactionHeaderAdapter>(TYPES.IFinancialTransactionHeaderAdapter).to(FinancialTransactionHeaderAdapter).inRequestScope();
+container.bind<IFinancialTransactionHeaderRepository>(TYPES.IFinancialTransactionHeaderRepository).to(FinancialTransactionHeaderRepository).inRequestScope();
+
+// ==================== INCOME/EXPENSE TRANSACTIONS (User-friendly transaction view) ====================
+import { IncomeExpenseTransactionAdapter, type IIncomeExpenseTransactionAdapter } from '@/adapters/incomeExpenseTransaction.adapter';
+import { IncomeExpenseTransactionRepository, type IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
+container.bind<IIncomeExpenseTransactionAdapter>(TYPES.IIncomeExpenseTransactionAdapter).to(IncomeExpenseTransactionAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository).to(IncomeExpenseTransactionRepository).inRequestScope();
+
 // ==================== CHART OF ACCOUNTS ====================
 import { ChartOfAccountAdapter, type IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
 import { ChartOfAccountRepository, type IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
@@ -799,6 +811,18 @@ import { FinancialSourceService } from '@/services/FinancialSourceService';
 container.bind<IFinancialSourceAdapter>(TYPES.IFinancialSourceAdapter).to(FinancialSourceAdapter).inRequestScope();
 container.bind<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository).to(FinancialSourceRepository).inRequestScope();
 container.bind<FinancialSourceService>(TYPES.FinancialSourceService).to(FinancialSourceService).inRequestScope();
+
+// ==================== FINANCIAL REPORTS ====================
+import { FinancialReportAdapter, type IFinancialReportAdapter } from '@/adapters/financialReport.adapter';
+import { FinancialReportRepository, type IFinancialReportRepository } from '@/repositories/financialReport.repository';
+container.bind<IFinancialReportAdapter>(TYPES.IFinancialReportAdapter).to(FinancialReportAdapter).inRequestScope();
+container.bind<IFinancialReportRepository>(TYPES.IFinancialReportRepository).to(FinancialReportRepository).inRequestScope();
+
+// ==================== FINANCE DASHBOARD ====================
+import { FinanceDashboardAdapter, type IFinanceDashboardAdapter } from '@/adapters/financeDashboard.adapter';
+import { FinanceDashboardRepository, type IFinanceDashboardRepository } from '@/repositories/financeDashboard.repository';
+container.bind<IFinanceDashboardAdapter>(TYPES.IFinanceDashboardAdapter).to(FinanceDashboardAdapter).inRequestScope();
+container.bind<IFinanceDashboardRepository>(TYPES.IFinanceDashboardRepository).to(FinanceDashboardRepository).inRequestScope();
 
 // ==================== FISCAL YEAR & PERIOD ====================
 import { FiscalYearAdapter, type IFiscalYearAdapter } from '@/adapters/fiscalYear.adapter';

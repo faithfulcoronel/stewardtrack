@@ -140,6 +140,8 @@ export const TYPES = {
   IFamilyRelationshipRepository: Symbol.for('IFamilyRelationshipRepository'),
   IFinanceDashboardAdapter: Symbol.for('IFinanceDashboardAdapter'),
   IFinanceDashboardRepository: Symbol.for('IFinanceDashboardRepository'),
+  IFinancialReportAdapter: Symbol.for('IFinancialReportAdapter'),
+  IFinancialReportRepository: Symbol.for('IFinancialReportRepository'),
   IFinancialSourceAdapter: Symbol.for('IFinancialSourceAdapter'),
   IFinancialSourceRepository: Symbol.for('IFinancialSourceRepository'),
   FinancialSourceService: Symbol.for('FinancialSourceService'),

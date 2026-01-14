@@ -29,7 +29,7 @@
             <Prop name="rows" kind="binding" contract="budgetsTable.rows"/>
             <Prop name="columns" kind="binding" contract="budgetsTable.columns"/>
             <Prop name="filters" kind="binding" contract="budgetsTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No budgets configured", "description": "Create your first budget to start tracking spending."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No budgets set up yet", "description": "Create budgets to plan and track spending against your financial goals. Set budget amounts for ministry areas, operational expenses, or specific projects, then monitor actual spending to stay on track."}</Prop>
           </Props>
         </Component>
       </Region>

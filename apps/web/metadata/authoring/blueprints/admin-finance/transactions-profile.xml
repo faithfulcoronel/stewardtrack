@@ -4,16 +4,13 @@
     <Title>Transaction details</Title>
     <Regions>
       <Region id="main">
-        <Component id="profile-header" type="AdminProfileHeader">
+        <Component id="hero-section" type="HeroSection">
           <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
             <Prop name="eyebrow" kind="binding" contract="transactionProfile.eyebrow"/>
-            <Prop name="title" kind="binding" contract="transactionProfile.title"/>
-            <Prop name="subtitle" kind="binding" contract="transactionProfile.subtitle"/>
-            <Prop name="badge" kind="binding" contract="transactionProfile.badge"/>
-            <Prop name="metrics" kind="binding" contract="transactionProfile.metrics"/>
-            <Prop name="primaryAction" kind="action" actionId="edit-transaction"/>
-            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
-            <Prop name="tertiaryActions" kind="binding" contract="transactionProfile.actions"/>
+            <Prop name="headline" kind="binding" contract="transactionProfile.title"/>
+            <Prop name="description" kind="binding" contract="transactionProfile.subtitle"/>
+            <Prop name="secondaryCta" kind="static">{"label": "Back to transactions", "href": "/admin/finance/transactions", "variant": "secondary"}</Prop>
           </Props>
         </Component>
         <Component id="transaction-details" type="AdminDetailPanels">
@@ -30,14 +27,21 @@
             <Prop name="emptyState" kind="static">{"title": "No line items", "description": "This transaction has no line items."}</Prop>
           </Props>
         </Component>
-        <Component id="journal-entries" type="AdminDataGridSection">
+        <Component id="journal-entries-collapsible" type="AdminCollapsibleSection">
           <Props>
             <Prop name="title" kind="static">Journal entries</Prop>
             <Prop name="description" kind="static">Double-entry bookkeeping entries created by this transaction.</Prop>
-            <Prop name="rows" kind="binding" contract="journalEntries.rows"/>
-            <Prop name="columns" kind="binding" contract="journalEntries.columns"/>
-            <Prop name="emptyState" kind="static">{"title": "No journal entries", "description": "Journal entries will appear here when the transaction is posted."}</Prop>
+            <Prop name="defaultOpen" kind="static">false</Prop>
           </Props>
+          <Children>
+            <Component id="journal-entries-grid" type="AdminDataGridSection">
+              <Props>
+                <Prop name="rows" kind="binding" contract="journalEntries.rows"/>
+                <Prop name="columns" kind="binding" contract="journalEntries.columns"/>
+                <Prop name="emptyState" kind="static">{"title": "No journal entries", "description": "Journal entries will appear here when the transaction is posted."}</Prop>
+              </Props>
+            </Component>
+          </Children>
         </Component>
         <Component id="approval-history" type="AdminActivityTimeline">
           <Props>

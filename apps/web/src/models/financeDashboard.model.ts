@@ -32,3 +32,48 @@ export interface SourceBalance {
   name: string;
   balance: number;
 }
+
+/**
+ * Raw recent transaction from the view
+ */
+export interface RecentTransactionRow {
+  header_id: string;
+  source_id: string | null;
+  date: string;
+  category: string;
+  description: string | null;
+  amount: number;
+  tenant_id: string;
+  transaction_type?: string;
+}
+
+/**
+ * Processed recent transaction for display
+ */
+export interface RecentTransaction {
+  id: string;
+  date: Date;
+  category: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense' | 'transfer';
+}
+
+/**
+ * Balance sheet totals for dashboard
+ */
+export interface BalanceSheetTotals {
+  totalAssets: number;
+  totalLiabilities: number;
+  netPosition: number;
+}
+
+/**
+ * Dashboard summary with all metrics
+ */
+export interface DashboardSummary {
+  balanceSheet: BalanceSheetTotals;
+  monthlyStats: FinanceStats;
+  recentTransactions: RecentTransaction[];
+  cashBalance: number;
+}

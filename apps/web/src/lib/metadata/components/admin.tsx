@@ -158,6 +158,10 @@ import {
   AdminTransactionEntry,
   type AdminTransactionEntryProps,
 } from '@/components/dynamic/admin/AdminTransactionEntry';
+import {
+  AdminCollapsibleSection,
+  type AdminCollapsibleSectionProps,
+} from '@/components/dynamic/admin/AdminCollapsibleSection';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -484,5 +488,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminTransactionEntryProps>(AdminTransactionEntry, 'AdminTransactionEntryRenderer'),
+  },
+  {
+    type: 'AdminCollapsibleSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withChildren<AdminCollapsibleSectionProps>(AdminCollapsibleSection, 'AdminCollapsibleSectionRenderer'),
   },
 ];

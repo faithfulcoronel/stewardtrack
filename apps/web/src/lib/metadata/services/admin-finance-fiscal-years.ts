@@ -82,12 +82,14 @@ const resolveFiscalYearsListTable: ServiceDataSourceHandler = async (_request) =
       headerName: 'Start date',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'endDate',
       headerName: 'End date',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'status',
@@ -101,6 +103,7 @@ const resolveFiscalYearsListTable: ServiceDataSourceHandler = async (_request) =
       headerName: 'Closed on',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'actions',

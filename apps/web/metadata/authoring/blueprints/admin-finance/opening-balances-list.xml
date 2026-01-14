@@ -29,7 +29,7 @@
             <Prop name="rows" kind="binding" contract="openingBalancesTable.rows"/>
             <Prop name="columns" kind="binding" contract="openingBalancesTable.columns"/>
             <Prop name="filters" kind="binding" contract="openingBalancesTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No opening balances found", "description": "Create opening balances to set initial fund amounts for a fiscal year."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No opening balances set", "description": "Opening balances establish the starting point for each fund at the beginning of a fiscal year. If you're migrating from another system or starting a new year, enter the fund balances carried forward to ensure accurate reporting."}</Prop>
           </Props>
         </Component>
       </Region>

@@ -29,7 +29,7 @@
             <Prop name="rows" kind="binding" contract="fundsTable.rows"/>
             <Prop name="columns" kind="binding" contract="fundsTable.columns"/>
             <Prop name="filters" kind="binding" contract="fundsTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No funds found", "description": "Create your first fund to start tracking fund accounting."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No funds created yet", "description": "Funds help you track designated giving and restricted donations separately. Create funds for building projects, missions, benevolence, or any purpose where donors want to ensure their gifts are used for specific ministry areas."}</Prop>
           </Props>
         </Component>
       </Region>

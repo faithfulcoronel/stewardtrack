@@ -700,6 +700,47 @@ async function handleVoidTransaction(
   }
 }
 
+async function handlePostTransaction(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.transactions.post'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.transactions.post');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to post transaction.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Transaction posted successfully.',
+    };
+  } catch (error) {
+    console.error('[handlePostTransaction] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to post transaction. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== REPORT ACTIONS ====================
 
 async function handleExportReport(
@@ -1278,6 +1319,7 @@ export const adminFinanceActionHandlers: Record<
   'admin-finance.transactions.saveDraft': handleSaveDraftTransaction,
   'admin-finance.transactions.approve': handleApproveTransaction,
   'admin-finance.transactions.void': handleVoidTransaction,
+  'admin-finance.transactions.post': handlePostTransaction,
   // Report actions
   'admin-finance.reports.export': handleExportReport,
 };

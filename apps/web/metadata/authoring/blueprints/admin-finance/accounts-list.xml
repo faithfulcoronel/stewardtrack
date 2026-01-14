@@ -29,7 +29,7 @@
             <Prop name="rows" kind="binding" contract="accountsTable.rows"/>
             <Prop name="columns" kind="binding" contract="accountsTable.columns"/>
             <Prop name="filters" kind="binding" contract="accountsTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No accounts found", "description": "Create your first account to start tracking finances."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No accounts in your chart yet", "description": "Set up your chart of accounts to organize financial transactions. Add asset accounts (cash, receivables), liability accounts (payables, loans), equity accounts, and revenue/expense categories. Click 'Add account' above to create your first account."}</Prop>
           </Props>
         </Component>
       </Region>

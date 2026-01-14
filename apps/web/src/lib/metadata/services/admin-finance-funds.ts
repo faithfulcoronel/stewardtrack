@@ -3,14 +3,36 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { FundService } from '@/services/FundService';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import type { Fund } from '@/models/fund.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
+
+// Transaction type labels and variants for user-friendly display
+function getTransactionTypeDisplay(type: string): { label: string; variant: string; isDebit: boolean } {
+  const typeMap: Record<string, { label: string; variant: string; isDebit: boolean }> = {
+    income: { label: 'Income', variant: 'success', isDebit: false },
+    expense: { label: 'Expense', variant: 'warning', isDebit: true },
+    transfer: { label: 'Transfer', variant: 'info', isDebit: false },
+    adjustment: { label: 'Adjustment', variant: 'neutral', isDebit: true },
+    opening_balance: { label: 'Opening', variant: 'info', isDebit: false },
+    closing_entry: { label: 'Closing', variant: 'neutral', isDebit: true },
+    fund_rollover: { label: 'Rollover', variant: 'info', isDebit: false },
+    reversal: { label: 'Reversal', variant: 'destructive', isDebit: true },
+    allocation: { label: 'Allocation', variant: 'neutral', isDebit: true },
+    reclass: { label: 'Reclass', variant: 'neutral', isDebit: false },
+    refund: { label: 'Refund', variant: 'success', isDebit: false },
+  };
+
+  return typeMap[type] || { label: type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' '), variant: 'neutral', isDebit: false };
+}
 
 // ==================== LIST PAGE HANDLERS ====================
 
 const resolveFundsListHero: ServiceDataSourceHandler = async (_request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const fundService = container.get<FundService>(TYPES.FundService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -24,16 +46,8 @@ const resolveFundsListHero: ServiceDataSourceHandler = async (_request) => {
   const restrictedCount = allFunds.filter((f) => f.type === 'restricted').length;
   const unrestrictedCount = allFunds.filter((f) => f.type === 'unrestricted').length;
 
-  // Calculate total balance across all funds
-  let totalBalance = 0;
-  for (const fund of allFunds) {
-    try {
-      const balance = await fundService.getBalance(fund.id);
-      totalBalance += balance || 0;
-    } catch {
-      // Ignore balance errors for individual funds
-    }
-  }
+  // Get total balance across all funds using RPC
+  const balanceSummary = await incomeExpenseRepo.getAllFundsBalance(tenant.id);
 
   return {
     eyebrow: 'Fund management',
@@ -57,7 +71,7 @@ const resolveFundsListHero: ServiceDataSourceHandler = async (_request) => {
       },
       {
         label: 'Total balance',
-        value: formatCurrency(totalBalance, currency),
+        value: formatCurrency(balanceSummary.total_balance, currency),
         caption: 'All funds',
       },
     ],
@@ -67,6 +81,7 @@ const resolveFundsListHero: ServiceDataSourceHandler = async (_request) => {
 const resolveFundsListTypeSummary: ServiceDataSourceHandler = async (_request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const fundService = container.get<FundService>(TYPES.FundService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -77,29 +92,21 @@ const resolveFundsListTypeSummary: ServiceDataSourceHandler = async (_request) =
 
   const funds = await fundService.findAll();
   const allFunds = (funds.data || []) as Fund[];
-
-  // Calculate balances by type
-  let restrictedBalance = 0;
-  let unrestrictedBalance = 0;
   const restrictedFunds = allFunds.filter((f) => f.type === 'restricted');
   const unrestrictedFunds = allFunds.filter((f) => f.type === 'unrestricted');
 
+  // Calculate balances by fund type using RPC (more efficient)
+  let restrictedBalance = 0;
+  let unrestrictedBalance = 0;
+
   for (const fund of restrictedFunds) {
-    try {
-      const balance = await fundService.getBalance(fund.id);
-      restrictedBalance += balance || 0;
-    } catch {
-      // Ignore balance errors
-    }
+    const balance = await incomeExpenseRepo.getFundBalance(fund.id, tenant.id);
+    restrictedBalance += balance.balance || 0;
   }
 
   for (const fund of unrestrictedFunds) {
-    try {
-      const balance = await fundService.getBalance(fund.id);
-      unrestrictedBalance += balance || 0;
-    } catch {
-      // Ignore balance errors
-    }
+    const balance = await incomeExpenseRepo.getFundBalance(fund.id, tenant.id);
+    unrestrictedBalance += balance.balance || 0;
   }
 
   return {
@@ -131,6 +138,7 @@ const resolveFundsListTypeSummary: ServiceDataSourceHandler = async (_request) =
 const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const fundService = container.get<FundService>(TYPES.FundService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -144,12 +152,7 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
 
   const rows = await Promise.all(
     allFunds.map(async (fund: Fund) => {
-      let balance = 0;
-      try {
-        balance = await fundService.getBalance(fund.id);
-      } catch {
-        // Ignore balance errors
-      }
+      const balanceSummary = await incomeExpenseRepo.getFundBalance(fund.id, tenant.id);
 
       return {
         id: fund.id,
@@ -158,7 +161,7 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
         description: fund.description || '',
         type: fund.type === 'restricted' ? 'Restricted' : 'Unrestricted',
         typeVariant: fund.type === 'restricted' ? 'warning' : 'success',
-        balance: formatCurrency(balance, currency),
+        balance: formatCurrency(balanceSummary.balance, currency),
         hasAccount: fund.coa_id ? 'Yes' : 'No',
         hasAccountVariant: fund.coa_id ? 'success' : 'neutral',
       };
@@ -171,6 +174,7 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Code',
       type: 'text',
       flex: 0.5,
+      hideOnMobile: true,
     },
     {
       field: 'name',
@@ -189,8 +193,9 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
     {
       field: 'balance',
       headerName: 'Balance',
-      type: 'currency',
+      type: 'text',
       flex: 1,
+      align: 'right',
     },
     {
       field: 'hasAccount',
@@ -198,6 +203,7 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
       type: 'badge',
       badgeVariantField: 'hasAccountVariant',
       flex: 0.7,
+      hideOnMobile: true,
     },
     {
       field: 'actions',
@@ -480,6 +486,14 @@ const resolveFundProfileHeader: ServiceDataSourceHandler = async (request) => {
   }
 
   const fundService = container.get<FundService>(TYPES.FundService);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
   const currency = await getTenantCurrency();
 
   const fund = await fundService.findById(fundId);
@@ -487,12 +501,8 @@ const resolveFundProfileHeader: ServiceDataSourceHandler = async (request) => {
     throw new Error('Fund not found');
   }
 
-  let balance = 0;
-  try {
-    balance = await fundService.getBalance(fundId);
-  } catch {
-    // Ignore balance errors
-  }
+  // Get balance summary from RPC
+  const balanceSummary = await incomeExpenseRepo.getFundBalance(fundId, tenant.id);
 
   return {
     eyebrow: `${fund.code} • ${fund.type === 'restricted' ? 'Restricted' : 'Unrestricted'}`,
@@ -501,13 +511,13 @@ const resolveFundProfileHeader: ServiceDataSourceHandler = async (request) => {
     metrics: [
       {
         label: 'Current balance',
-        value: formatCurrency(balance, currency),
+        value: formatCurrency(balanceSummary.balance, currency),
         caption: 'Total fund value',
       },
       {
-        label: 'Type',
-        value: fund.type === 'restricted' ? 'Restricted' : 'Unrestricted',
-        caption: fund.type === 'restricted' ? 'Designated purpose' : 'General use',
+        label: 'Transactions',
+        value: balanceSummary.transaction_count.toString(),
+        caption: 'Total entries',
       },
       {
         label: 'Equity account',
@@ -563,64 +573,139 @@ const resolveFundBalanceSummary: ServiceDataSourceHandler = async (request) => {
     return { items: [] };
   }
 
-  const fundService = container.get<FundService>(TYPES.FundService);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
   const currency = await getTenantCurrency();
 
-  let balance = 0;
-  try {
-    balance = await fundService.getBalance(fundId);
-  } catch {
-    // Ignore balance errors
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    return { items: [] };
   }
+
+  // Get balance summary from RPC
+  const balanceSummary = await incomeExpenseRepo.getFundBalance(fundId, tenant.id);
 
   return {
     items: [
       {
         id: 'current-balance',
         label: 'Current balance',
-        value: formatCurrency(balance, currency),
+        value: formatCurrency(balanceSummary.balance, currency),
         change: '',
         changeLabel: '',
         trend: 'flat',
-        tone: balance >= 0 ? 'positive' : 'critical',
+        tone: balanceSummary.balance >= 0 ? 'positive' : 'critical',
         description: 'Net fund balance.',
       },
       {
-        id: 'total-debits',
-        label: 'Total debits',
-        value: formatCurrency(0, currency),
+        id: 'total-income',
+        label: 'Total income',
+        value: formatCurrency(balanceSummary.total_income, currency),
         change: '',
         changeLabel: '',
         trend: 'flat',
-        tone: 'neutral',
-        description: 'All debit entries.',
+        tone: 'positive',
+        description: 'All income entries.',
       },
       {
-        id: 'total-credits',
-        label: 'Total credits',
-        value: formatCurrency(0, currency),
+        id: 'total-expense',
+        label: 'Total expenses',
+        value: formatCurrency(balanceSummary.total_expense, currency),
         change: '',
         changeLabel: '',
         trend: 'flat',
-        tone: 'neutral',
-        description: 'All credit entries.',
+        tone: 'warning',
+        description: 'All expense entries.',
       },
     ],
   };
 };
 
-const resolveFundTransactionHistory: ServiceDataSourceHandler = async (_request) => {
-  // Placeholder - would show transactions affecting this fund
+const resolveFundTransactionHistory: ServiceDataSourceHandler = async (request) => {
+  const fundId = request.params?.fundId as string;
+
+  const defaultColumns = [
+    { field: 'date', headerName: 'Date', type: 'text', flex: 0.7 },
+    { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+    { field: 'category', headerName: 'Category', type: 'text', flex: 0.8 },
+    { field: 'source', headerName: 'Source', type: 'text', flex: 0.8 },
+    { field: 'type', headerName: 'Type', type: 'badge', badgeVariantField: 'typeVariant', flex: 0.5 },
+    { field: 'amount', headerName: 'Amount', type: 'text', flex: 0.6, align: 'right' },
+  ];
+
+  if (!fundId) {
+    return {
+      rows: [],
+      columns: defaultColumns,
+      filters: [],
+    };
+  }
+
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    return {
+      rows: [],
+      columns: defaultColumns,
+      filters: [],
+    };
+  }
+
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
+
+  // Fetch income/expense transactions for this fund using RPC
+  const transactions = await incomeExpenseRepo.getByFundId(fundId, tenant.id);
+
+  // Map to row format
+  const rows = transactions.map((txn, index) => {
+    const typeDisplay = getTransactionTypeDisplay(txn.transaction_type);
+
+    // Format amount with sign indicator for debit transactions
+    const formattedAmount = formatCurrency(txn.amount, currency);
+    const displayAmount = typeDisplay.isDebit ? `(${formattedAmount})` : formattedAmount;
+
+    return {
+      id: txn.id || `txn-${index}`,
+      date: txn.transaction_date ? formatDate(new Date(txn.transaction_date), timezone) : '—',
+      description: txn.description || '—',
+      category: txn.category_name || 'Uncategorized',
+      categoryCode: txn.category_code || '',
+      source: txn.source_name || '—',
+      type: typeDisplay.label,
+      typeVariant: typeDisplay.variant,
+      amount: displayAmount,
+      rawAmount: txn.amount,
+      transactionType: txn.transaction_type,
+    };
+  });
+
   return {
-    rows: [],
-    columns: [
-      { field: 'date', headerName: 'Date', type: 'text', flex: 0.7 },
-      { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-      { field: 'debit', headerName: 'Debit', type: 'currency', flex: 0.8 },
-      { field: 'credit', headerName: 'Credit', type: 'currency', flex: 0.8 },
-      { field: 'balance', headerName: 'Balance', type: 'currency', flex: 0.8 },
+    rows,
+    columns: defaultColumns,
+    filters: [
+      {
+        id: 'search',
+        type: 'search',
+        placeholder: 'Search transactions...',
+      },
+      {
+        id: 'type',
+        type: 'select',
+        placeholder: 'Transaction type',
+        field: 'type',
+        options: [
+          { label: 'All types', value: 'all' },
+          { label: 'Income', value: 'Income' },
+          { label: 'Expense', value: 'Expense' },
+          { label: 'Transfer', value: 'Transfer' },
+          { label: 'Adjustment', value: 'Adjustment' },
+          { label: 'Refund', value: 'Refund' },
+        ],
+      },
     ],
-    filters: [],
   };
 };
 
