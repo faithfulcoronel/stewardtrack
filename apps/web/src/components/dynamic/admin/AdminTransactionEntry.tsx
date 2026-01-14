@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 // =============================================================================
 // TYPES
@@ -43,6 +45,7 @@ export interface TransactionLine {
   categoryId: string;
   fundId: string;
   sourceId: string;
+  budgetId: string;
   amount: number;
   description: string;
 }
@@ -57,6 +60,7 @@ export interface AdminTransactionEntryProps {
   categoryOptions?: TransactionLineOption[];
   fundOptions?: TransactionLineOption[];
   sourceOptions?: TransactionLineOption[];
+  budgetOptions?: TransactionLineOption[];
   // Settings
   currency?: string;
   defaultTransactionType?: "income" | "expense";
@@ -81,6 +85,7 @@ function createEmptyLine(lineNumber: number): TransactionLine {
     categoryId: "",
     fundId: "",
     sourceId: "",
+    budgetId: "",
     amount: 0,
     description: "",
   };
@@ -279,6 +284,7 @@ export function AdminTransactionEntry({
   categoryOptions = [],
   fundOptions = [],
   sourceOptions = [],
+  budgetOptions = [],
   currency = "USD",
   defaultTransactionType = "income",
   cancelUrl = "/admin/finance/transactions",
@@ -287,9 +293,8 @@ export function AdminTransactionEntry({
 
   // Form state
   const [transactionType, setTransactionType] = React.useState<"income" | "expense">(defaultTransactionType);
-  const [transactionDate, setTransactionDate] = React.useState(() => {
-    return new Date().toISOString().split("T")[0];
-  });
+  const [transactionDate, setTransactionDate] = React.useState<Date>(() => new Date());
+  const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [reference, setReference] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [lines, setLines] = React.useState<TransactionLine[]>([createEmptyLine(1)]);
@@ -361,7 +366,7 @@ export function AdminTransactionEntry({
     try {
       const payload = {
         transactionType,
-        transactionDate,
+        transactionDate: format(transactionDate, "yyyy-MM-dd"),
         reference: reference.trim() || null,
         description: description.trim(),
         status: asDraft ? "draft" : "submitted",
@@ -370,6 +375,7 @@ export function AdminTransactionEntry({
           categoryId: line.categoryId,
           fundId: line.fundId || null,
           sourceId: line.sourceId || null,
+          budgetId: line.budgetId || null,
           amount: line.amount,
           description: line.description || null,
         })),
@@ -405,11 +411,17 @@ export function AdminTransactionEntry({
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Page Header - Dynamic based on transaction type */}
       <header className="space-y-1">
         <p className="text-sm font-medium text-primary">{eyebrow}</p>
-        <h1 className="text-2xl font-bold text-foreground">{headline}</h1>
-        <p className="text-sm text-muted-foreground">{pageDescription}</p>
+        <h1 className="text-2xl font-bold text-foreground">
+          {transactionType === "income" ? "Record income" : "Record expense"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {transactionType === "income"
+            ? "Enter details for incoming funds and donations."
+            : "Enter details for outgoing payments and expenses."}
+        </p>
       </header>
 
       {/* Main Form Container */}
@@ -461,13 +473,34 @@ export function AdminTransactionEntry({
             <Label htmlFor="transactionDate" className="text-sm font-semibold">
               Transaction Date <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="transactionDate"
-              type="date"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
-              className="h-11"
-            />
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  id="transactionDate"
+                  variant="outline"
+                  className={cn(
+                    "h-11 w-full justify-start text-left font-normal",
+                    !transactionDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {transactionDate ? format(transactionDate, "MMMM d, yyyy") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={transactionDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setTransactionDate(date);
+                      setDatePickerOpen(false);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference" className="text-sm font-semibold">
@@ -529,7 +562,12 @@ export function AdminTransactionEntry({
                     <th className="min-w-[140px] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Source <span className="text-destructive">*</span>
                     </th>
-                    <th className="w-32 px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {transactionType === "expense" && (
+                      <th className="min-w-[160px] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Budget
+                      </th>
+                    )}
+                    <th className="min-w-[100px] w-36 px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Amount <span className="text-destructive">*</span>
                     </th>
                     <th className="min-w-[250px] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -584,6 +622,18 @@ export function AdminTransactionEntry({
                           emptyMessage="No sources available"
                         />
                       </td>
+                      {transactionType === "expense" && (
+                        <td className="px-1 py-1">
+                          <InlineCombobox
+                            options={budgetOptions}
+                            value={line.budgetId}
+                            onChange={(value) => handleUpdateLine(line.id, "budgetId", value)}
+                            placeholder="Select budget"
+                            emptyMessage="No budgets available"
+                            allowClear
+                          />
+                        </td>
+                      )}
                       <td className="px-2 py-2">
                         <Input
                           type="text"
@@ -621,7 +671,7 @@ export function AdminTransactionEntry({
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-border/60 bg-muted/20">
-                    <td colSpan={5} className="px-3 py-3">
+                    <td colSpan={transactionType === "expense" ? 6 : 5} className="px-3 py-3">
                       <Button
                         type="button"
                         variant="ghost"

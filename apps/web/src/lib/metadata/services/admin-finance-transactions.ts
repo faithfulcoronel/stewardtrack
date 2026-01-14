@@ -8,6 +8,7 @@ import type { IFinancialSourceRepository } from '@/repositories/financialSource.
 import type { IAccountRepository } from '@/repositories/account.repository';
 import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
 import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import type { IBudgetRepository } from '@/repositories/budget.repository';
 import type { FinancialTransactionHeader, TransactionStatus } from '@/models/financialTransactionHeader.model';
 import type { TransactionType } from '@/models/financialTransaction.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
@@ -511,6 +512,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const fundRepository = container.get<IFundRepository>(TYPES.IFundRepository);
   const financialSourceRepository = container.get<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository);
   const accountRepository = container.get<IAccountRepository>(TYPES.IAccountRepository);
+  const budgetRepository = container.get<IBudgetRepository>(TYPES.IBudgetRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -524,11 +526,12 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const transactionType = (request.params?.type as string) || 'income';
 
   // Fetch dropdown options from repositories (RLS handles tenant isolation)
-  const [categoriesResult, fundsResult, sourcesResult, accountsResult] = await Promise.all([
+  const [categoriesResult, fundsResult, sourcesResult, accountsResult, budgetsResult] = await Promise.all([
     categoryRepository.findAll(),
     fundRepository.findAll(),
     financialSourceRepository.findAll(),
     accountRepository.findAll(),
+    budgetRepository.findAll(),
   ]);
 
   // Extract data arrays from query results
@@ -536,6 +539,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const funds = fundsResult?.data || [];
   const sources = sourcesResult?.data || [];
   const accounts = accountsResult?.data || [];
+  const budgets = budgetsResult?.data || [];
 
   // Filter to only transaction-related categories (income_transaction or expense_transaction)
   // Include the type so client can filter dynamically when user toggles transaction type
@@ -571,6 +575,14 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     code: (account as { accountNumber?: string }).accountNumber || '',
   }));
 
+  // Transform budgets to dropdown options (for expense transactions)
+  const budgetOptions = budgets.map((budget) => ({
+    value: budget.id,
+    label: budget.name,
+    code: (budget as { code?: string }).code || '',
+    description: (budget as { description?: string }).description || '',
+  }));
+
   return {
     lines: [],
     columns: [
@@ -584,6 +596,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     fundOptions,
     sourceOptions,
     accountOptions,
+    budgetOptions,
     currency,
     transactionType,
     totalAmount: formatCurrency(0, currency),
@@ -633,7 +646,7 @@ function getTypeBadgeVariant(type: TransactionType): string {
     case 'income': return 'positive';
     case 'expense': return 'negative';
     case 'transfer': return 'info';
-    case 'journal': return 'secondary';
+    case 'adjustment': return 'secondary';
     default: return 'secondary';
   }
 }
@@ -1048,6 +1061,7 @@ interface LineItemInput {
   categoryId?: string;
   fundId?: string;
   sourceId?: string;
+  budgetId?: string;
   amount?: number | string;
   description?: string;
 }
@@ -1104,6 +1118,7 @@ async function createJournalEntries(
         category_id: lineItem.categoryId,
         fund_id: lineItem.fundId || null,
         source_id: lineItem.sourceId || null,
+        budget_id: null, // Income transactions don't track budgets
       });
       // Credit entry (Revenue increases)
       journalEntries.push({
@@ -1116,6 +1131,7 @@ async function createJournalEntries(
         category_id: lineItem.categoryId,
         fund_id: lineItem.fundId || null,
         source_id: lineItem.sourceId || null,
+        budget_id: null, // Income transactions don't track budgets
       });
     } else {
       // Expense: Debit Expense, Credit Cash
@@ -1130,6 +1146,7 @@ async function createJournalEntries(
         category_id: lineItem.categoryId,
         fund_id: lineItem.fundId || null,
         source_id: lineItem.sourceId || null,
+        budget_id: lineItem.budgetId || null, // Track budget for expense transactions
       });
       // Credit entry (Cash decreases)
       journalEntries.push({
@@ -1142,6 +1159,7 @@ async function createJournalEntries(
         category_id: lineItem.categoryId,
         fund_id: lineItem.fundId || null,
         source_id: lineItem.sourceId || null,
+        budget_id: lineItem.budgetId || null, // Track budget for expense transactions
       });
     }
   }

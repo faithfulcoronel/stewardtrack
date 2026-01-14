@@ -13,6 +13,7 @@
             <Prop name="categoryOptions" kind="binding" contract="lineItems.categoryOptions"/>
             <Prop name="fundOptions" kind="binding" contract="lineItems.fundOptions"/>
             <Prop name="sourceOptions" kind="binding" contract="lineItems.sourceOptions"/>
+            <Prop name="budgetOptions" kind="binding" contract="lineItems.budgetOptions"/>
             <Prop name="currency" kind="binding" contract="lineItems.currency"/>
             <Prop name="defaultTransactionType" kind="binding" contract="lineItems.transactionType"/>
             <Prop name="cancelUrl" kind="static">/admin/finance/transactions</Prop>
@@ -37,6 +38,7 @@
           <Field name="sourceOptions" path="sourceOptions" description="Source dropdown options"/>
           <Field name="fundOptions" path="fundOptions" description="Fund dropdown options"/>
           <Field name="accountOptions" path="accountOptions" description="Account dropdown options"/>
+          <Field name="budgetOptions" path="budgetOptions" description="Budget dropdown options"/>
           <Field name="transactionType" path="transactionType" description="Transaction type (income/expense)"/>
           <Field name="currency" path="currency" description="Tenant currency code"/>
         </Contract>
