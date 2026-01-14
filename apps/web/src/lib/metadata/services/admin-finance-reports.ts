@@ -103,6 +103,69 @@ const resolveReportsDashboardRecentReports: ServiceDataSourceHandler = async (_r
 
 // ==================== TRIAL BALANCE HANDLERS ====================
 
+const resolveTrialBalanceHero: ServiceDataSourceHandler = async (request) => {
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const reportRepository = container.get<IFinancialReportRepository>(TYPES.IFinancialReportRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get tenant currency (cached)
+  const currency = await getTenantCurrency();
+
+  // Get date from request or use today
+  const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
+
+  try {
+    // Use the simple trial balance (from income_expense_transactions)
+    const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
+    const { totals, rows } = report;
+    const accountCount = rows.filter(r => r.debit_balance !== 0 || r.credit_balance !== 0).length;
+    const netBalance = totals.credit - totals.debit; // Income - Expenses
+
+    return {
+      variant: 'stats-panel',
+      eyebrow: 'Financial Report',
+      headline: 'Trial Balance',
+      description: 'Summary of income and expense balances by category.',
+      metrics: [
+        {
+          label: 'Total Income',
+          value: formatCurrency(totals.credit, currency),
+        },
+        {
+          label: 'Total Expenses',
+          value: formatCurrency(totals.debit, currency),
+        },
+        {
+          label: 'Categories',
+          value: accountCount.toString(),
+        },
+        {
+          label: 'Net Balance',
+          value: formatCurrency(netBalance, currency),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('Error fetching trial balance hero:', error);
+    return {
+      variant: 'stats-panel',
+      eyebrow: 'Financial Report',
+      headline: 'Trial Balance',
+      description: 'Summary of income and expense balances by category.',
+      metrics: [
+        { label: 'Total Income', value: formatCurrency(0, currency) },
+        { label: 'Total Expenses', value: formatCurrency(0, currency) },
+        { label: 'Categories', value: '0' },
+        { label: 'Net Balance', value: formatCurrency(0, currency) },
+      ],
+    };
+  }
+};
+
 const resolveTrialBalanceHeader: ServiceDataSourceHandler = async (_request) => {
   const timezone = await getTenantTimezone();
   return {
@@ -134,41 +197,44 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (request
   const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
 
   try {
-    const report = await reportRepository.getTrialBalance(tenant.id, endDate);
-    const { totals, isBalanced } = report;
-    const difference = totals.debit - totals.credit;
+    // Use the simple trial balance (from income_expense_transactions)
+    const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
+    const { totals } = report;
+    const netBalance = totals.credit - totals.debit; // Income - Expenses
+    const hasSurplus = netBalance > 0;
+    const hasDeficit = netBalance < 0;
 
     return {
       items: [
         {
-          id: 'total-debits',
-          label: 'Total debits',
-          value: formatCurrency(totals.debit, currency),
-          change: '',
-          changeLabel: 'debit balances',
-          trend: 'flat',
-          tone: 'informative',
-          description: 'Sum of all debit account balances.',
-        },
-        {
-          id: 'total-credits',
-          label: 'Total credits',
+          id: 'total-income',
+          label: 'Total income',
           value: formatCurrency(totals.credit, currency),
           change: '',
-          changeLabel: 'credit balances',
+          changeLabel: 'money received',
           trend: 'flat',
-          tone: 'informative',
-          description: 'Sum of all credit account balances.',
+          tone: 'positive',
+          description: 'Sum of all income transactions.',
         },
         {
-          id: 'difference',
-          label: 'Difference',
-          value: formatCurrency(Math.abs(difference), currency),
-          change: isBalanced ? 'Balanced' : 'Out of balance',
-          changeLabel: 'should be zero',
-          trend: isBalanced ? 'flat' : 'down',
-          tone: isBalanced ? 'positive' : 'negative',
-          description: 'Debits minus credits (should be zero).',
+          id: 'total-expenses',
+          label: 'Total expenses',
+          value: formatCurrency(totals.debit, currency),
+          change: '',
+          changeLabel: 'money spent',
+          trend: 'flat',
+          tone: 'informative',
+          description: 'Sum of all expense transactions.',
+        },
+        {
+          id: 'net-balance',
+          label: 'Net balance',
+          value: formatCurrency(netBalance, currency),
+          change: hasSurplus ? 'Surplus' : hasDeficit ? 'Deficit' : 'Break-even',
+          changeLabel: 'income minus expenses',
+          trend: hasSurplus ? 'up' : hasDeficit ? 'down' : 'flat',
+          tone: hasSurplus ? 'positive' : hasDeficit ? 'negative' : 'informative',
+          description: hasSurplus ? 'You have more income than expenses.' : hasDeficit ? 'Expenses exceed income.' : 'Income equals expenses.',
         },
       ],
     };
@@ -177,9 +243,9 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (request
     // Return zeros on error rather than crashing
     return {
       items: [
-        { id: 'total-debits', label: 'Total debits', value: formatCurrency(0, currency), change: '', changeLabel: 'debit balances', trend: 'flat', tone: 'informative', description: 'Sum of all debit account balances.' },
-        { id: 'total-credits', label: 'Total credits', value: formatCurrency(0, currency), change: '', changeLabel: 'credit balances', trend: 'flat', tone: 'informative', description: 'Sum of all credit account balances.' },
-        { id: 'difference', label: 'Difference', value: formatCurrency(0, currency), change: '0.00', changeLabel: 'should be zero', trend: 'flat', tone: 'positive', description: 'Debits minus credits (should be zero).' },
+        { id: 'total-income', label: 'Total income', value: formatCurrency(0, currency), change: '', changeLabel: 'money received', trend: 'flat', tone: 'positive', description: 'Sum of all income transactions.' },
+        { id: 'total-expenses', label: 'Total expenses', value: formatCurrency(0, currency), change: '', changeLabel: 'money spent', trend: 'flat', tone: 'informative', description: 'Sum of all expense transactions.' },
+        { id: 'net-balance', label: 'Net balance', value: formatCurrency(0, currency), change: 'Break-even', changeLabel: 'income minus expenses', trend: 'flat', tone: 'informative', description: 'Income equals expenses.' },
       ],
     };
   }
@@ -200,7 +266,8 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (request) => {
   // Get date from request or use today
   const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
 
-  const report = await reportRepository.getTrialBalance(tenant.id, endDate);
+  // Use the simple trial balance (from income_expense_transactions)
+  const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
 
   // Transform data into rows with formatting
   const rows = report.rows
@@ -217,19 +284,16 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (request) => {
     }));
 
   const columns = [
-    { field: 'code', headerName: 'Account Code', type: 'text', flex: 0.6 },
-    { field: 'name', headerName: 'Account Name', type: 'text', flex: 1.5 },
-    { field: 'debit', headerName: 'Debit', type: 'currency', flex: 0.8 },
-    { field: 'credit', headerName: 'Credit', type: 'currency', flex: 0.8 },
+    { field: 'code', headerName: 'Category Code', type: 'text', flex: 0.6 },
+    { field: 'name', headerName: 'Category Name', type: 'text', flex: 1.5 },
+    { field: 'debit', headerName: 'Expenses', type: 'currency', flex: 0.8 },
+    { field: 'credit', headerName: 'Income', type: 'currency', flex: 0.8 },
   ];
 
-  // Use subtotals from repository
+  // Use subtotals from repository (simple trial balance uses income/expense categories)
   const { subtotalsByType } = report;
   const subtotals = [
-    { label: 'Assets', debit: formatCurrency(subtotalsByType.asset?.debit || 0, currency), credit: formatCurrency(subtotalsByType.asset?.credit || 0, currency) },
-    { label: 'Liabilities', debit: formatCurrency(subtotalsByType.liability?.debit || 0, currency), credit: formatCurrency(subtotalsByType.liability?.credit || 0, currency) },
-    { label: 'Equity', debit: formatCurrency(subtotalsByType.equity?.debit || 0, currency), credit: formatCurrency(subtotalsByType.equity?.credit || 0, currency) },
-    { label: 'Revenue', debit: formatCurrency(subtotalsByType.revenue?.debit || 0, currency), credit: formatCurrency(subtotalsByType.revenue?.credit || 0, currency) },
+    { label: 'Income', debit: formatCurrency(subtotalsByType.income?.debit || 0, currency), credit: formatCurrency(subtotalsByType.income?.credit || 0, currency) },
     { label: 'Expenses', debit: formatCurrency(subtotalsByType.expense?.debit || 0, currency), credit: formatCurrency(subtotalsByType.expense?.credit || 0, currency) },
   ];
 
@@ -1141,6 +1205,7 @@ export const adminFinanceReportsHandlers: Record<string, ServiceDataSourceHandle
   'admin-finance.reports.dashboard.managementReports': resolveReportsDashboardManagementReports,
   'admin-finance.reports.dashboard.recentReports': resolveReportsDashboardRecentReports,
   // Trial balance handlers
+  'admin-finance.reports.trialBalance.hero': resolveTrialBalanceHero,
   'admin-finance.reports.trialBalance.header': resolveTrialBalanceHeader,
   'admin-finance.reports.trialBalance.verification': resolveTrialBalanceVerification,
   'admin-finance.reports.trialBalance.data': resolveTrialBalanceData,

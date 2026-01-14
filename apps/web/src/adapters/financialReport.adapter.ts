@@ -22,6 +22,7 @@ export interface BudgetActualRawRow {
 
 export interface IFinancialReportAdapter {
   fetchTrialBalance(tenantId: string, endDate: string): Promise<TrialBalanceRow[]>;
+  fetchTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceRow[]>;
   fetchIncomeStatement(tenantId: string, startDate: string, endDate: string): Promise<IncomeStatementRow[]>;
   fetchBudgetVsActual(tenantId: string, startDate: string, endDate: string): Promise<BudgetActualRawRow[]>;
 }
@@ -50,6 +51,25 @@ export class FinancialReportAdapter implements IFinancialReportAdapter {
 
     if (error) {
       throw new Error(`Failed to fetch trial balance: ${error.message}`);
+    }
+
+    return (data || []) as TrialBalanceRow[];
+  }
+
+  /**
+   * Fetch trial balance data from the report_trial_balance_simple RPC function
+   * Uses income_expense_transactions with categories as accounts
+   */
+  async fetchTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceRow[]> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('report_trial_balance_simple', {
+      p_tenant_id: tenantId,
+      p_end_date: endDate,
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch simple trial balance: ${error.message}`);
     }
 
     return (data || []) as TrialBalanceRow[];

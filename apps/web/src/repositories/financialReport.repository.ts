@@ -15,6 +15,7 @@ import type {
 
 export interface IFinancialReportRepository {
   getTrialBalance(tenantId: string, endDate: string): Promise<TrialBalanceReport>;
+  getTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceReport>;
   getIncomeStatement(tenantId: string, startDate: string, endDate: string): Promise<IncomeStatementReport>;
   getBalanceSheet(tenantId: string, endDate: string): Promise<BalanceSheetReport>;
   getBudgetVsActual(tenantId: string, startDate: string, endDate: string): Promise<BudgetVsActualReport>;
@@ -47,6 +48,48 @@ export class FinancialReportRepository implements IFinancialReportRepository {
         subtotalsByType[type].debit += Number(row.debit_balance) || 0;
         subtotalsByType[type].credit += Number(row.credit_balance) || 0;
       }
+    }
+
+    // Calculate grand totals
+    const totalDebit = Object.values(subtotalsByType).reduce((sum, v) => sum + v.debit, 0);
+    const totalCredit = Object.values(subtotalsByType).reduce((sum, v) => sum + v.credit, 0);
+    const difference = Math.abs(totalDebit - totalCredit);
+
+    return {
+      rows,
+      totals: { debit: totalDebit, credit: totalCredit },
+      subtotalsByType,
+      isBalanced: difference < 0.01,
+    };
+  }
+
+  /**
+   * Get trial balance report from income_expense_transactions (simplified tracking)
+   * Uses categories as accounts instead of chart_of_accounts
+   */
+  async getTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceReport> {
+    const rows = await this.adapter.fetchTrialBalanceSimple(tenantId, endDate);
+
+    // Calculate subtotals by category type (income/expense)
+    // Database returns 'income_transaction' and 'expense_transaction', map to 'income' and 'expense'
+    const subtotalsByType: Record<string, { debit: number; credit: number }> = {
+      income: { debit: 0, credit: 0 },
+      expense: { debit: 0, credit: 0 },
+    };
+
+    for (const row of rows) {
+      const rawType = row.account_type?.toLowerCase() || '';
+      // Map database category types to simple names
+      let type: string;
+      if (rawType === 'income_transaction' || rawType === 'income') {
+        type = 'income';
+      } else if (rawType === 'expense_transaction' || rawType === 'expense') {
+        type = 'expense';
+      } else {
+        continue; // Skip unknown types
+      }
+      subtotalsByType[type].debit += Number(row.debit_balance) || 0;
+      subtotalsByType[type].credit += Number(row.credit_balance) || 0;
     }
 
     // Calculate grand totals

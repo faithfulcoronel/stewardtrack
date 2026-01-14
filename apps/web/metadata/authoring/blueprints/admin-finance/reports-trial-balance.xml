@@ -4,10 +4,20 @@
     <Title>Trial balance</Title>
     <Regions>
       <Region id="main">
+        <Component id="hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="binding" contract="hero.variant"/>
+            <Prop name="eyebrow" kind="binding" contract="hero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="hero.headline"/>
+            <Prop name="description" kind="binding" contract="hero.description"/>
+            <Prop name="metrics" kind="binding" contract="hero.metrics"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-reports"/>
+          </Props>
+        </Component>
         <Component id="report-header" type="AdminReportHeader">
           <Props>
             <Prop name="title" kind="static">Trial balance</Prop>
-            <Prop name="description" kind="static">Summary of all account balances to verify debits equal credits.</Prop>
+            <Prop name="description" kind="static">Summary of all income and expense transactions by category.</Prop>
             <Prop name="asOfDate" kind="binding" contract="reportHeader.asOfDate"/>
             <Prop name="dateSelector" kind="binding" contract="reportHeader.dateSelector"/>
             <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
@@ -15,14 +25,14 @@
         </Component>
         <Component id="balance-verification" type="AdminMetricCards">
           <Props>
-            <Prop name="title" kind="static">Balance verification</Prop>
-            <Prop name="description" kind="static">Total debits and credits must be equal for the trial balance to be valid.</Prop>
+            <Prop name="title" kind="static">Financial summary</Prop>
+            <Prop name="description" kind="static">Overview of total income received and expenses spent.</Prop>
             <Prop name="metrics" kind="binding" contract="balanceVerification.items"/>
           </Props>
         </Component>
         <Component id="trial-balance-table" type="AdminReportTable">
           <Props>
-            <Prop name="title" kind="static">Account balances</Prop>
+            <Prop name="title" kind="static">Transactions by category</Prop>
             <Prop name="rows" kind="binding" contract="trialBalanceData.rows"/>
             <Prop name="columns" kind="binding" contract="trialBalanceData.columns"/>
             <Prop name="subtotals" kind="binding" contract="trialBalanceData.subtotals"/>
@@ -33,6 +43,18 @@
       </Region>
     </Regions>
     <DataSources>
+      <DataSource id="hero" kind="service">
+        <Contract>
+          <Field name="variant" path="variant" description="Hero variant style"/>
+          <Field name="eyebrow" path="eyebrow" description="Eyebrow text"/>
+          <Field name="headline" path="headline" description="Main headline"/>
+          <Field name="description" path="description" description="Description text"/>
+          <Field name="metrics" path="metrics" description="Metric values"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.trialBalance.hero</Handler>
+        </Config>
+      </DataSource>
       <DataSource id="reportHeader" kind="service">
         <Contract>
           <Field name="asOfDate" path="asOfDate" description="Report as-of date"/>
@@ -64,6 +86,13 @@
       </DataSource>
     </DataSources>
     <Actions>
+      <Action id="back-to-reports" kind="link">
+        <Config>
+          <Label>Back to reports</Label>
+          <Url>/admin/finance/reports</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
       <Action id="export-pdf" kind="submit">
         <Config>
           <Label>Export PDF</Label>
