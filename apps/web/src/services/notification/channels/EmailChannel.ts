@@ -4,7 +4,7 @@
  * ================================================================================
  *
  * Delivers notifications via email using the Resend API.
- * Calls the email-service Supabase Edge Function.
+ * Uses React Email templates for professional, branded emails.
  *
  * Feature Code: integrations.email (Essential tier)
  *
@@ -24,6 +24,7 @@ import type {
   RecipientInfo,
 } from './IDeliveryChannel';
 import type { DeliveryChannelType } from '@/models/notification/notificationEvent.model';
+import { renderNotificationEmail } from '@/emails/service/EmailTemplateService';
 
 @injectable()
 export class EmailChannel implements IDeliveryChannel {
@@ -60,8 +61,8 @@ export class EmailChannel implements IDeliveryChannel {
         };
       }
 
-      // Build email HTML
-      const htmlBody = message.htmlBody || this.buildDefaultHtml(message);
+      // Build email HTML using React Email templates
+      const htmlBody = message.htmlBody || await this.buildDefaultHtml(message);
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -119,7 +120,31 @@ export class EmailChannel implements IDeliveryChannel {
     return emailRegex.test(recipient.email);
   }
 
-  private buildDefaultHtml(message: NotificationMessage): string {
+  private async buildDefaultHtml(message: NotificationMessage): Promise<string> {
+    // Use React Email template for professional, branded emails
+    try {
+      const html = await renderNotificationEmail(
+        {
+          title: message.title,
+          body: message.body,
+          actionUrl: message.metadata?.actionPayload as string | undefined,
+          actionLabel: message.metadata?.actionLabel as string | undefined,
+          category: message.metadata?.category as string | undefined,
+        },
+        {
+          recipientName: message.metadata?.recipientName as string | undefined,
+          tenantName: message.metadata?.tenantName as string | undefined,
+          tenantLogoUrl: message.metadata?.tenantLogoUrl as string | undefined,
+        }
+      );
+      return html;
+    } catch {
+      // Fallback to basic HTML if template rendering fails
+      return this.buildFallbackHtml(message);
+    }
+  }
+
+  private buildFallbackHtml(message: NotificationMessage): string {
     return `
       <!DOCTYPE html>
       <html>
