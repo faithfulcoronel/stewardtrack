@@ -7,6 +7,16 @@ settings:
 importers:
 
   .:
+    dependencies:
+      jspdf:
+        specifier: ^4.0.0
+        version: 4.0.0
+      jspdf-autotable:
+        specifier: ^5.0.7
+        version: 5.0.7(jspdf@4.0.0)
+      xlsx:
+        specifier: ^0.18.5
+        version: 0.18.5
     devDependencies:
       rimraf:
         specifier: ^5.0.0
