@@ -104,7 +104,8 @@
       "Bash(tasklist:*)",
       "Bash(timeout /t 15 /nobreak)",
       "Bash(ping:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": []

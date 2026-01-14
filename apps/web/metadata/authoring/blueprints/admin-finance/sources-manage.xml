@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-finance" route="sources/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:admin" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-finance" route="sources/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
   <Page id="admin-finance-sources-manage">
     <Title>Manage source</Title>
     <Regions>
@@ -17,7 +17,7 @@
             <Prop name="title" kind="static">Source information</Prop>
             <Prop name="description" kind="static">Configure the financial source details.</Prop>
             <Prop name="fields" kind="binding" contract="sourceForm.fields"/>
-            <Prop name="values" kind="binding" contract="sourceForm.values"/>
+            <Prop name="initialValues" kind="binding" contract="sourceForm.values"/>
             <Prop name="validation" kind="binding" contract="sourceForm.validation"/>
             <Prop name="submitAction" kind="action" actionId="save-source"/>
             <Prop name="cancelAction" kind="action" actionId="cancel"/>

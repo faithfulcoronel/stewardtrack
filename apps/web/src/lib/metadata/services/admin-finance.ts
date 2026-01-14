@@ -11,6 +11,10 @@ import { adminFinanceSourcesHandlers } from './admin-finance-sources';
 import { adminFinanceTransactionsHandlers } from './admin-finance-transactions';
 import { adminFinanceBudgetsHandlers } from './admin-finance-budgets';
 import { adminFinanceReportsHandlers } from './admin-finance-reports';
+import { adminFinanceFiscalYearsHandlers } from './admin-finance-fiscal-years';
+import { adminFinanceFundsHandlers } from './admin-finance-funds';
+import { adminFinanceOpeningBalancesHandlers } from './admin-finance-opening-balances';
+import { adminFinanceCategoriesHandlers } from './admin-finance-categories';
 
 // Aggregate all finance handlers
 export const adminFinanceHandlers = {
@@ -20,4 +24,8 @@ export const adminFinanceHandlers = {
   ...adminFinanceTransactionsHandlers,
   ...adminFinanceBudgetsHandlers,
   ...adminFinanceReportsHandlers,
+  ...adminFinanceFiscalYearsHandlers,
+  ...adminFinanceFundsHandlers,
+  ...adminFinanceOpeningBalancesHandlers,
+  ...adminFinanceCategoriesHandlers,
 };

@@ -4,15 +4,15 @@
     <Title>Source details</Title>
     <Regions>
       <Region id="main">
-        <Component id="profile-header" type="AdminProfileHeader">
+        <Component id="profile-hero" type="HeroSection">
           <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
             <Prop name="eyebrow" kind="binding" contract="sourceProfile.eyebrow"/>
-            <Prop name="title" kind="binding" contract="sourceProfile.title"/>
-            <Prop name="subtitle" kind="binding" contract="sourceProfile.subtitle"/>
-            <Prop name="badge" kind="binding" contract="sourceProfile.badge"/>
+            <Prop name="headline" kind="binding" contract="sourceProfile.headline"/>
+            <Prop name="description" kind="binding" contract="sourceProfile.description"/>
             <Prop name="metrics" kind="binding" contract="sourceProfile.metrics"/>
-            <Prop name="primaryAction" kind="action" actionId="edit-source"/>
-            <Prop name="secondaryAction" kind="action" actionId="back-to-list"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-source"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
           </Props>
         </Component>
         <Component id="source-details" type="AdminDetailPanels">
@@ -43,9 +43,8 @@
       <DataSource id="sourceProfile" kind="service">
         <Contract>
           <Field name="eyebrow" path="eyebrow" description="Source type"/>
-          <Field name="title" path="title" description="Source name"/>
-          <Field name="subtitle" path="subtitle" description="Source description"/>
-          <Field name="badge" path="badge" description="Source type badge"/>
+          <Field name="headline" path="headline" description="Source name"/>
+          <Field name="description" path="description" description="Source description"/>
           <Field name="metrics" path="metrics" description="Key source metrics"/>
         </Contract>
         <Config>
@@ -81,7 +80,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-source" kind="link">
-        <RBAC requirePermissions="finance:admin" />
+        <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit source</Label>
           <Url>/admin/finance/sources/manage?sourceId={{id}}</Url>

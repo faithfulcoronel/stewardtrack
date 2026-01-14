@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="fiscal-years/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
+  <Page id="admin-finance-fiscal-years-manage">
+    <Title>Manage fiscal year</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="form-header" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="formHeader.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="formHeader.headline"/>
+            <Prop name="description" kind="binding" contract="formHeader.description"/>
+          </Props>
+        </Component>
+        <Component id="fiscal-year-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Fiscal year information</Prop>
+            <Prop name="description" kind="static">Define the fiscal year name and date range.</Prop>
+            <Prop name="fields" kind="binding" contract="fiscalYearForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="fiscalYearForm.values"/>
+            <Prop name="validation" kind="binding" contract="fiscalYearForm.validation"/>
+            <Prop name="submitAction" kind="action" actionId="save-fiscal-year"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="formHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Form eyebrow text"/>
+          <Field name="headline" path="headline" description="Form headline"/>
+          <Field name="description" path="description" description="Form description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.manage.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fiscalYearForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Form field definitions"/>
+          <Field name="values" path="values" description="Current form values"/>
+          <Field name="validation" path="validation" description="Validation rules"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-fiscal-year" kind="submit">
+        <Config>
+          <Label>Save fiscal year</Label>
+          <Handler>admin-finance.fiscal-years.save</Handler>
+          <SuccessUrl>/admin/finance/fiscal-years</SuccessUrl>
+          <SuccessMessage>Fiscal year saved successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/finance/fiscal-years</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

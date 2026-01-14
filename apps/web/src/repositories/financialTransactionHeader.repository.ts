@@ -13,6 +13,7 @@ export interface IFinancialTransactionHeaderRepository
   approveTransaction(id: string): Promise<void>;
   voidTransaction(id: string, reason: string): Promise<void>;
   getTransactionEntries(headerId: string): Promise<any[]>;
+  getLineItems(headerId: string): Promise<any[]>;
   isTransactionBalanced(headerId: string): Promise<boolean>;
   createWithTransactions(
     data: Partial<FinancialTransactionHeader>,
@@ -179,6 +180,11 @@ export class FinancialTransactionHeaderRepository
   }
 
   public async getTransactionEntries(headerId: string): Promise<any[]> {
+    return this.financialTransactionHeaderAdapter.getTransactionEntries(headerId);
+  }
+
+  public async getLineItems(headerId: string): Promise<any[]> {
+    // Line items are the same as transaction entries, formatted for display
     return this.financialTransactionHeaderAdapter.getTransactionEntries(headerId);
   }
 

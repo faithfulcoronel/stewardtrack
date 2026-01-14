@@ -193,6 +193,7 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Code',
       type: 'text',
       flex: 0.6,
+      hideOnMobile: true,
     },
     {
       field: 'name',
@@ -214,12 +215,14 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Subtype',
       type: 'text',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'parentName',
       headerName: 'Parent',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'status',
@@ -336,12 +339,8 @@ const resolveAccountProfileHeader: ServiceDataSourceHandler = async (request) =>
 
   return {
     eyebrow: account.code || 'Account',
-    title: account.name || 'Unnamed Account',
-    subtitle: account.description || getAccountTypeLabel(account.account_type) + ' account',
-    badge: {
-      label: getAccountTypeLabel(account.account_type),
-      variant: getAccountTypeBadgeVariant(account.account_type),
-    },
+    headline: account.name || 'Unnamed Account',
+    description: account.description || getAccountTypeLabel(account.account_type) + ' account',
     metrics: [
       {
         label: 'Current balance',
@@ -696,8 +695,10 @@ const resolveAccountManageForm: ServiceDataSourceHandler = async (request) => {
 // ==================== ACTION HANDLERS ====================
 
 const saveAccount: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
-  const accountId = params.accountId as string | undefined;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
+  const accountId = (values.accountId ?? params.accountId) as string | undefined;
 
   console.log('[saveAccount] Saving account. ID:', accountId, 'Mode:', accountId ? 'update' : 'create');
 
@@ -711,13 +712,13 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
     }
 
     const accountData: Partial<ChartOfAccount> = {
-      code: params.code as string,
-      name: params.name as string,
-      account_type: params.accountType as AccountType,
-      account_subtype: params.accountSubtype ? (params.accountSubtype as string) : null,
-      parent_id: params.parentId ? (params.parentId as string) : null,
-      is_active: params.isActive === true || params.isActive === 'true',
-      description: params.description ? (params.description as string) : null,
+      code: values.code as string,
+      name: values.name as string,
+      account_type: values.accountType as AccountType,
+      account_subtype: values.accountSubtype ? (values.accountSubtype as string) : null,
+      parent_id: values.parentId ? (values.parentId as string) : null,
+      is_active: values.isActive === true || values.isActive === 'true',
+      description: values.description ? (values.description as string) : null,
     };
 
     let account: ChartOfAccount;
@@ -734,6 +735,7 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
       success: true,
       message: accountId ? 'Account updated successfully' : 'Account created successfully',
       accountId: account.id,
+      redirectUrl: '/admin/finance/chart-of-accounts',
     };
   } catch (error: any) {
     console.error('[saveAccount] Failed:', error);

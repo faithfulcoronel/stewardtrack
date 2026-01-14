@@ -13,6 +13,11 @@ export type ExecuteMetadataActionOptions = {
 
 const SERVICE_KIND = 'metadata.service';
 
+// Supported action kinds that can be executed as service actions
+// 'submit' is used in XML for form submit actions
+// 'metadata.service' is the internal service kind
+const SUPPORTED_ACTION_KINDS = new Set([SERVICE_KIND, 'submit']);
+
 export async function executeMetadataAction(
   action: ActionConfig | null | undefined,
   options: ExecuteMetadataActionOptions = {},
@@ -22,7 +27,7 @@ export async function executeMetadataAction(
   }
 
   const kind = action.kind ?? SERVICE_KIND;
-  if (kind !== SERVICE_KIND) {
+  if (!SUPPORTED_ACTION_KINDS.has(kind)) {
     throw new Error(`Unsupported action kind: ${kind}`);
   }
 

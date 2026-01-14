@@ -4,6 +4,8 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { BudgetService } from '@/services/BudgetService';
 import type { Budget } from '@/models/budget.model';
+import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { Category } from '@/models/category.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 
@@ -143,18 +145,21 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Category',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'startDate',
       headerName: 'Start',
       type: 'text',
       flex: 0.7,
+      hideOnMobile: true,
     },
     {
       field: 'endDate',
       headerName: 'End',
       type: 'text',
       flex: 0.7,
+      hideOnMobile: true,
     },
     {
       field: 'budgeted',
@@ -167,12 +172,14 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Spent',
       type: 'currency',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'remaining',
       headerName: 'Remaining',
       type: 'currency',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'status',
@@ -263,6 +270,7 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const budgetService = container.get<BudgetService>(TYPES.BudgetService);
+  const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -277,6 +285,19 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
       budget = existing;
     }
   }
+
+  // Fetch budget categories (type = 'budget')
+  const categoriesResult = await categoryRepository.find({
+    filters: {
+      type: { operator: 'eq', value: 'budget' },
+    },
+    order: { column: 'name', ascending: true },
+  });
+  const budgetCategories = (categoriesResult.data || []) as Category[];
+  const categoryOptions = budgetCategories.map((cat) => ({
+    label: cat.name,
+    value: cat.id,
+  }));
 
   return {
     fields: [
@@ -313,7 +334,21 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
         colSpan: 'half',
         helperText: 'Expense category for this budget',
         required: true,
-        options: [], // Will be populated from categories
+        options: categoryOptions,
+        lookupId: 'budget.category',
+        quickCreate: {
+          label: 'Add category',
+          description: 'Create a new budget category. The code will be auto-generated from the name.',
+          submitLabel: 'Save category',
+          successMessage: 'Budget category created',
+          action: {
+            id: 'admin-finance.budgets.category.create',
+            kind: 'metadata.service',
+            config: {
+              handler: 'admin-finance.budgets.category.create',
+            },
+          },
+        },
       },
       {
         name: 'startDate',
@@ -361,8 +396,10 @@ const resolveBudgetManageForm: ServiceDataSourceHandler = async (request) => {
 // ==================== ACTION HANDLERS ====================
 
 const saveBudget: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
-  const budgetId = params.budgetId as string | undefined;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
+  const budgetId = (values.budgetId ?? params.budgetId) as string | undefined;
 
   console.log('[saveBudget] Saving budget. ID:', budgetId);
 
@@ -376,12 +413,12 @@ const saveBudget: ServiceDataSourceHandler = async (request) => {
     }
 
     const budgetData: Partial<Budget> = {
-      name: params.name as string,
-      amount: parseFloat(params.amount) || 0,
-      category_id: params.categoryId as string,
-      start_date: params.startDate as string,
-      end_date: params.endDate as string,
-      description: params.description ? (params.description as string) : null,
+      name: values.name as string,
+      amount: parseFloat(values.amount as string) || 0,
+      category_id: values.categoryId as string,
+      start_date: values.startDate as string,
+      end_date: values.endDate as string,
+      description: values.description ? (values.description as string) : null,
     };
 
     let budget: Budget;
@@ -398,6 +435,7 @@ const saveBudget: ServiceDataSourceHandler = async (request) => {
       success: true,
       message: budgetId ? 'Budget updated successfully' : 'Budget created successfully',
       budgetId: budget.id,
+      redirectUrl: '/admin/finance/budgets',
     };
   } catch (error: any) {
     console.error('[saveBudget] Failed:', error);
@@ -441,6 +479,70 @@ const deleteBudget: ServiceDataSourceHandler = async (request) => {
   }
 };
 
+// ==================== CATEGORY QUICK CREATE HANDLER ====================
+
+const createBudgetCategory: ServiceDataSourceHandler = async (request) => {
+  const params = request.params as Record<string, unknown>;
+  const name = (params.name as string)?.trim();
+  const code = (params.code as string)?.trim();
+
+  if (!name) {
+    return {
+      success: false,
+      message: 'Category name is required',
+    };
+  }
+
+  if (!code) {
+    return {
+      success: false,
+      message: 'Category code is required',
+    };
+  }
+
+  console.log('[createBudgetCategory] Creating category:', { name, code });
+
+  try {
+    const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+
+    // Create the category with type 'budget'
+    const newCategory = await categoryRepository.create({
+      name,
+      code,
+      type: 'budget',
+      is_system: false,
+      is_active: true,
+      sort_order: 0,
+    } as Partial<Category>);
+
+    console.log('[createBudgetCategory] Category created:', newCategory.id);
+
+    return {
+      success: true,
+      message: 'Category created successfully',
+      option: {
+        id: newCategory.id,
+        value: newCategory.name,
+      },
+    };
+  } catch (error: any) {
+    console.error('[createBudgetCategory] Failed:', error);
+
+    // Check for duplicate code/name error
+    if (error?.message?.includes('duplicate') || error?.code === '23505') {
+      return {
+        success: false,
+        message: 'A category with this code or name already exists',
+      };
+    }
+
+    return {
+      success: false,
+      message: error?.message || 'Failed to create category',
+    };
+  }
+};
+
 // Export all handlers
 export const adminFinanceBudgetsHandlers: Record<string, ServiceDataSourceHandler> = {
   // List page handlers
@@ -453,4 +555,6 @@ export const adminFinanceBudgetsHandlers: Record<string, ServiceDataSourceHandle
   // Action handlers
   'admin-finance.budgets.save': saveBudget,
   'admin-finance.budgets.delete': deleteBudget,
+  // Category quick create
+  'admin-finance.budgets.category.create': createBudgetCategory,
 };

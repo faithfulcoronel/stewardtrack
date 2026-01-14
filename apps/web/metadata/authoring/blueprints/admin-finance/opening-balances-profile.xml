@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="opening-balances/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-opening-balances-profile">
+    <Title>Opening balance details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="openingBalanceProfile.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="openingBalanceProfile.headline"/>
+            <Prop name="description" kind="binding" contract="openingBalanceProfile.description"/>
+            <Prop name="metrics" kind="binding" contract="openingBalanceProfile.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-opening-balance"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="opening-balance-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="openingBalanceDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="posting-info" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Posting information</Prop>
+            <Prop name="description" kind="static">Journal entry details when this balance was posted.</Prop>
+            <Prop name="metrics" kind="binding" contract="postingInfo.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="openingBalanceProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Status badge"/>
+          <Field name="headline" path="headline" description="Fund and fiscal year"/>
+          <Field name="description" path="description" description="Amount and source"/>
+          <Field name="metrics" path="metrics" description="Key metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="openingBalanceDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Opening balance detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="postingInfo" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Posting information cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.opening-balances.profile.postingInfo</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-opening-balance" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Edit opening balance</Label>
+          <Url>/admin/finance/opening-balances/manage?openingBalanceId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to opening balances</Label>
+          <Url>/admin/finance/opening-balances</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

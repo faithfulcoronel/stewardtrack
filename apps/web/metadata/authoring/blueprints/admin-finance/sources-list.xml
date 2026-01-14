@@ -29,7 +29,7 @@
             <Prop name="rows" kind="binding" contract="sourcesTable.rows"/>
             <Prop name="columns" kind="binding" contract="sourcesTable.columns"/>
             <Prop name="filters" kind="binding" contract="sourcesTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No sources configured", "description": "Add your first financial source to start tracking money movement."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No financial sources configured", "description": "Sources represent where money comes from or goes to - like bank accounts, cash drawers, or online payment processors. Add your checking account and other payment methods to properly track all financial activity."}</Prop>
           </Props>
         </Component>
       </Region>
@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-source" kind="link">
-        <RBAC requirePermissions="finance:admin" />
+        <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Add source</Label>
           <Url>/admin/finance/sources/manage</Url>

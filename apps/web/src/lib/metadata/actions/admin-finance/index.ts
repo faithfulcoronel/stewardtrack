@@ -262,6 +262,105 @@ async function handleDeleteSource(
   }
 }
 
+// ==================== FUND ACTIONS ====================
+
+async function handleSaveFund(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.funds.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.funds.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; fundId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save fund.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      fundId: result.fundId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Fund saved successfully.',
+      redirectUrl,
+      data: { fundId: result.fundId },
+    };
+  } catch (error) {
+    console.error('[handleSaveFund] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save fund. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteFund(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.funds.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.funds.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete fund.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Fund deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteFund] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete fund. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== BUDGET ACTIONS ====================
 
 async function handleSaveBudget(
@@ -356,6 +455,50 @@ async function handleDeleteBudget(
       success: false,
       status: 500,
       message: 'Failed to delete budget. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleCreateBudgetCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.budgets.category.create'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.budgets.category.create');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; option?: { id: string; value: string } };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to create category.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Category created successfully.',
+      data: {
+        option: result.option,
+      },
+    };
+  } catch (error) {
+    console.error('[handleCreateBudgetCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to create category. Please try again.',
       errors: {},
     };
   }
@@ -557,6 +700,47 @@ async function handleVoidTransaction(
   }
 }
 
+async function handlePostTransaction(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.transactions.post'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.transactions.post');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to post transaction.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Transaction posted successfully.',
+    };
+  } catch (error) {
+    console.error('[handlePostTransaction] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to post transaction. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== REPORT ACTIONS ====================
 
 async function handleExportReport(
@@ -601,6 +785,501 @@ async function handleExportReport(
   }
 }
 
+// ==================== INCOME CATEGORY ACTIONS ====================
+
+async function handleSaveIncomeCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.income-categories.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.income-categories.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; categoryId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save income category.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      categoryId: result.categoryId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Income category saved successfully.',
+      redirectUrl,
+      data: { categoryId: result.categoryId },
+    };
+  } catch (error) {
+    console.error('[handleSaveIncomeCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save income category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteIncomeCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.income-categories.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.income-categories.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete income category.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Income category deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteIncomeCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete income category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+// ==================== EXPENSE CATEGORY ACTIONS ====================
+
+async function handleSaveExpenseCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.expense-categories.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.expense-categories.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; categoryId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save expense category.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      categoryId: result.categoryId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Expense category saved successfully.',
+      redirectUrl,
+      data: { categoryId: result.categoryId },
+    };
+  } catch (error) {
+    console.error('[handleSaveExpenseCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save expense category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteExpenseCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.expense-categories.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.expense-categories.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete expense category.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Expense category deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteExpenseCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete expense category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+// ==================== FISCAL YEAR ACTIONS ====================
+
+async function handleSaveFiscalYear(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.fiscal-years.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.fiscal-years.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; fiscalYearId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save fiscal year.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      fiscalYearId: result.fiscalYearId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Fiscal year saved successfully.',
+      redirectUrl,
+      data: { fiscalYearId: result.fiscalYearId },
+    };
+  } catch (error) {
+    console.error('[handleSaveFiscalYear] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save fiscal year. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteFiscalYear(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.fiscal-years.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.fiscal-years.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete fiscal year.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Fiscal year deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteFiscalYear] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete fiscal year. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+// ==================== OPENING BALANCE ACTIONS ====================
+
+async function handleSaveOpeningBalance(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.opening-balances.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.opening-balances.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; openingBalanceId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save opening balance.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      openingBalanceId: result.openingBalanceId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Opening balance saved successfully.',
+      redirectUrl,
+      data: { openingBalanceId: result.openingBalanceId },
+    };
+  } catch (error) {
+    console.error('[handleSaveOpeningBalance] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save opening balance. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteOpeningBalance(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.opening-balances.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.opening-balances.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete opening balance.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Opening balance deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteOpeningBalance] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete opening balance. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+// ==================== BUDGET CATEGORY ACTIONS ====================
+
+async function handleSaveBudgetCategoryManage(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const config = execution.config ?? {};
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.budget-categories.save'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.budget-categories.save');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; categoryId?: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to save budget category.',
+        errors: {},
+      };
+    }
+
+    const context: Record<string, unknown> = {
+      categoryId: result.categoryId,
+      params: execution.context.params,
+      data: payload,
+    };
+
+    const redirectTemplate =
+      toOptionalString(config.redirectUrl) ??
+      toOptionalString(config.redirectTemplate) ??
+      null;
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Budget category saved successfully.',
+      redirectUrl,
+      data: { categoryId: result.categoryId },
+    };
+  } catch (error) {
+    console.error('[handleSaveBudgetCategoryManage] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to save budget category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleDeleteBudgetCategory(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.budget-categories.delete'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.budget-categories.delete');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to delete budget category.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Budget category deleted successfully.',
+    };
+  } catch (error) {
+    console.error('[handleDeleteBudgetCategory] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to delete budget category. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== EXPORT ====================
 
 export const adminFinanceActionHandlers: Record<
@@ -613,14 +1292,34 @@ export const adminFinanceActionHandlers: Record<
   // Financial Sources actions
   'admin-finance.sources.save': handleSaveSource,
   'admin-finance.sources.delete': handleDeleteSource,
+  // Fund actions
+  'admin-finance.funds.save': handleSaveFund,
+  'admin-finance.funds.delete': handleDeleteFund,
   // Budget actions
   'admin-finance.budgets.save': handleSaveBudget,
   'admin-finance.budgets.delete': handleDeleteBudget,
+  'admin-finance.budgets.category.create': handleCreateBudgetCategory,
+  // Income Category actions
+  'admin-finance.income-categories.save': handleSaveIncomeCategory,
+  'admin-finance.income-categories.delete': handleDeleteIncomeCategory,
+  // Expense Category actions
+  'admin-finance.expense-categories.save': handleSaveExpenseCategory,
+  'admin-finance.expense-categories.delete': handleDeleteExpenseCategory,
+  // Budget Category actions (manage page)
+  'admin-finance.budget-categories.save': handleSaveBudgetCategoryManage,
+  'admin-finance.budget-categories.delete': handleDeleteBudgetCategory,
+  // Fiscal Year actions
+  'admin-finance.fiscal-years.save': handleSaveFiscalYear,
+  'admin-finance.fiscal-years.delete': handleDeleteFiscalYear,
+  // Opening Balance actions
+  'admin-finance.opening-balances.save': handleSaveOpeningBalance,
+  'admin-finance.opening-balances.delete': handleDeleteOpeningBalance,
   // Transaction actions
   'admin-finance.transactions.submit': handleSubmitTransaction,
   'admin-finance.transactions.saveDraft': handleSaveDraftTransaction,
   'admin-finance.transactions.approve': handleApproveTransaction,
   'admin-finance.transactions.void': handleVoidTransaction,
+  'admin-finance.transactions.post': handlePostTransaction,
   // Report actions
   'admin-finance.reports.export': handleExportReport,
 };

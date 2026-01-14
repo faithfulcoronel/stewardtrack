@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="funds/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-funds-list">
+    <Title>Funds</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="add-fund"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="fund-type-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Fund type breakdown</Prop>
+            <Prop name="description" kind="static">Summary of funds by type with current balances.</Prop>
+            <Prop name="metrics" kind="binding" contract="fundTypeSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="funds-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Fund records</Prop>
+            <Prop name="description" kind="static">Manage your organization's funds and track balances.</Prop>
+            <Prop name="rows" kind="binding" contract="fundsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="fundsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="fundsTable.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No funds created yet", "description": "Funds help you track designated giving and restricted donations separately. Create funds for building projects, missions, benevolence, or any purpose where donors want to ensure their gifts are used for specific ministry areas."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Hero eyebrow text"/>
+          <Field name="headline" path="headline" description="Hero headline"/>
+          <Field name="description" path="description" description="Hero description"/>
+          <Field name="metrics" path="metrics" description="Hero metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fundTypeSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Fund type summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.list.typeSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fundsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Table rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="filters" path="filters" description="Table filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-fund" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Add fund</Label>
+          <Url>/admin/finance/funds/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

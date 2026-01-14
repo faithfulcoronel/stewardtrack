@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="funds/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-funds-profile">
+    <Title>Fund details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="fundProfile.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="fundProfile.headline"/>
+            <Prop name="description" kind="binding" contract="fundProfile.description"/>
+            <Prop name="metrics" kind="binding" contract="fundProfile.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="edit-fund"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
+          </Props>
+        </Component>
+        <Component id="fund-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="fundDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="balance-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Balance summary</Prop>
+            <Prop name="description" kind="static">Current balance and transaction totals for this fund.</Prop>
+            <Prop name="metrics" kind="binding" contract="balanceSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="transaction-history" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Transaction history</Prop>
+            <Prop name="description" kind="static">All transactions affecting this fund.</Prop>
+            <Prop name="rows" kind="binding" contract="transactionHistory.rows"/>
+            <Prop name="columns" kind="binding" contract="transactionHistory.columns"/>
+            <Prop name="filters" kind="binding" contract="transactionHistory.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No transactions", "description": "This fund has no recorded transactions yet."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="fundProfile" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Fund code and type"/>
+          <Field name="headline" path="headline" description="Fund name"/>
+          <Field name="description" path="description" description="Fund description"/>
+          <Field name="metrics" path="metrics" description="Key fund metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fundDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels" description="Fund detail panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="balanceSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Balance summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.profile.balanceSummary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="transactionHistory" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Transaction history rows"/>
+          <Field name="columns" path="columns" description="Transaction history columns"/>
+          <Field name="filters" path="filters" description="Transaction history filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.funds.profile.transactions</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="edit-fund" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Edit fund</Label>
+          <Url>/admin/finance/funds/manage?fundId={{id}}</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-list" kind="link">
+        <Config>
+          <Label>Back to funds</Label>
+          <Url>/admin/finance/funds</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

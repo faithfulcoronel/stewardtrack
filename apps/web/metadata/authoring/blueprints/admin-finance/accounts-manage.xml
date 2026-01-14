@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-finance" route="accounts/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:admin" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
   <Page id="admin-finance-accounts-manage">
     <Title>Manage account</Title>
     <Regions>
@@ -17,7 +17,7 @@
             <Prop name="title" kind="static">Account information</Prop>
             <Prop name="description" kind="static">Enter the account details for the chart of accounts.</Prop>
             <Prop name="fields" kind="binding" contract="accountForm.fields"/>
-            <Prop name="values" kind="binding" contract="accountForm.values"/>
+            <Prop name="initialValues" kind="binding" contract="accountForm.values"/>
             <Prop name="validation" kind="binding" contract="accountForm.validation"/>
             <Prop name="submitAction" kind="action" actionId="save-account"/>
             <Prop name="cancelAction" kind="action" actionId="cancel"/>

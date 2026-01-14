@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="fiscal-years/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+  <Page id="admin-finance-fiscal-years-list">
+    <Title>Fiscal years</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="add-fiscal-year"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="fiscal-years-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Fiscal year records</Prop>
+            <Prop name="description" kind="static">Manage your organization's fiscal years and periods.</Prop>
+            <Prop name="rows" kind="binding" contract="fiscalYearsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="fiscalYearsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="fiscalYearsTable.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No fiscal years defined", "description": "A fiscal year defines your organization's annual accounting period. Most churches use January-December. Create your fiscal year to enable period-based reporting and year-end closing procedures."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Hero eyebrow text"/>
+          <Field name="headline" path="headline" description="Hero headline"/>
+          <Field name="description" path="description" description="Hero description"/>
+          <Field name="metrics" path="metrics" description="Hero metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="fiscalYearsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Table rows"/>
+          <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="filters" path="filters" description="Table filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.fiscal-years.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-fiscal-year" kind="link">
+        <RBAC requirePermissions="finance:edit" />
+        <Config>
+          <Label>Add fiscal year</Label>
+          <Url>/admin/finance/fiscal-years/manage</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

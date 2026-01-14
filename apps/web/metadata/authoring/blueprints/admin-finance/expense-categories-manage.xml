@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="expense-categories/manage" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
+  <Page id="admin-finance-expense-categories-manage">
+    <Title>Manage expense category</Title>
+    <Regions>
+      <Region id="main">
+        <!-- Hero Section -->
+        <Component id="hero" type="HeroSection">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="header.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="header.headline"/>
+            <Prop name="description" kind="binding" contract="header.description"/>
+            <Prop name="variant" kind="static">minimal</Prop>
+          </Props>
+        </Component>
+
+        <!-- Category Form -->
+        <Component id="category-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Category details</Prop>
+            <Prop name="description" kind="static">Enter the expense category information</Prop>
+            <Prop name="fields" kind="binding" contract="form.fields"/>
+            <Prop name="initialValues" kind="binding" contract="form.values"/>
+            <Prop name="validation" kind="binding" contract="form.validation"/>
+            <Prop name="submitAction" kind="action" actionId="save-category"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="header" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Form eyebrow"/>
+          <Field name="headline" path="headline" description="Form headline"/>
+          <Field name="description" path="description" description="Form description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.expense-categories.manage.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="form" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Form fields"/>
+          <Field name="values" path="values" description="Form values"/>
+          <Field name="validation" path="validation" description="Validation rules"/>
+          <Field name="submitLabel" path="submitLabel" description="Submit button label"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.expense-categories.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="save-category" kind="submit">
+        <Config>
+          <Label>Save category</Label>
+          <Handler>admin-finance.expense-categories.save</Handler>
+          <SuccessUrl>/admin/finance/expense-categories</SuccessUrl>
+          <SuccessMessage>Expense category saved successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="delete-category" kind="submit">
+        <Config>
+          <Label>Delete category</Label>
+          <Handler>admin-finance.expense-categories.delete</Handler>
+          <SuccessUrl>/admin/finance/expense-categories</SuccessUrl>
+          <SuccessMessage>Expense category deleted successfully</SuccessMessage>
+          <Variant>destructive</Variant>
+          <Confirm>true</Confirm>
+          <ConfirmMessage>Are you sure you want to delete this expense category? This action cannot be undone.</ConfirmMessage>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/finance/expense-categories</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

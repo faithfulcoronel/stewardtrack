@@ -43,6 +43,7 @@ export interface IUserRoleManagementRepository extends BaseRepository<UserRole> 
   replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
   getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
+  getUsersWithPermission(permissionCode: string, tenantId: string): Promise<string[]>;
   // Note: getUserAccessibleMenuItems removed - menu/navigation is controlled via static metadata XML
   // Note: getUserAccessibleMetadataSurfaces removed - metadata access is controlled via
   // static XML files with featureCode and requiredPermissions attributes, not database
@@ -159,5 +160,9 @@ export class UserRoleManagementRepository extends BaseRepository<UserRole> imple
 
   async getUsersByRole(roleId: string): Promise<UserRole[]> {
     return await this.userRoleAdapter.getUsersByRole(roleId);
+  }
+
+  async getUsersWithPermission(permissionCode: string, tenantId: string): Promise<string[]> {
+    return await this.userRoleAdapter.getUsersWithPermission(permissionCode, tenantId);
   }
 }
