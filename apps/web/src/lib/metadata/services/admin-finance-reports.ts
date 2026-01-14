@@ -5,6 +5,8 @@ import type { TenantService } from '@/services/TenantService';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 import type { IFinancialReportRepository } from '@/repositories/financialReport.repository';
+import type { IFiscalYearRepository } from '@/repositories/fiscalYear.repository';
+import type { TrialBalanceViewBy } from '@/models/financialReport.model';
 
 // ==================== REPORTS DASHBOARD HANDLERS ====================
 
@@ -106,6 +108,7 @@ const resolveReportsDashboardRecentReports: ServiceDataSourceHandler = async (_r
 const resolveTrialBalanceHero: ServiceDataSourceHandler = async (request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const reportRepository = container.get<IFinancialReportRepository>(TYPES.IFinancialReportRepository);
+  const fiscalYearRepository = container.get<IFiscalYearRepository>(TYPES.IFiscalYearRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -115,11 +118,64 @@ const resolveTrialBalanceHero: ServiceDataSourceHandler = async (request) => {
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
 
-  // Get date from request or use today
+  // Get parameters from request
+  const fiscalYearId = request.params?.fiscalYearId as string | undefined;
+  const viewBy = (request.params?.viewBy as TrialBalanceViewBy) || 'category';
   const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
 
+  // Try period-based report first if fiscal year is selected
+  if (fiscalYearId) {
+    try {
+      // Get fiscal year name
+      const fiscalYear = await fiscalYearRepository.findById(fiscalYearId);
+      const fiscalYearName = fiscalYear?.name || 'Unknown';
+
+      const report = await reportRepository.getTrialBalanceByPeriod(
+        tenant.id,
+        fiscalYearId,
+        fiscalYearName,
+        viewBy
+      );
+
+      const { grandTotal, rows } = report;
+      const itemCount = rows.length;
+      const netBalance = grandTotal.total_credit - grandTotal.total_debit;
+
+      // Determine label based on view type
+      const itemLabel = viewBy === 'category' ? 'Categories' : viewBy === 'source' ? 'Sources' : 'Funds';
+
+      return {
+        variant: 'stats-panel',
+        eyebrow: 'Financial Report',
+        headline: 'Trial Balance',
+        description: `Summary of income and expense balances by ${viewBy} for ${fiscalYearName}.`,
+        metrics: [
+          {
+            label: 'Total Income',
+            value: formatCurrency(grandTotal.total_credit, currency),
+          },
+          {
+            label: 'Total Expenses',
+            value: formatCurrency(grandTotal.total_debit, currency),
+          },
+          {
+            label: itemLabel,
+            value: itemCount.toString(),
+          },
+          {
+            label: 'Net Balance',
+            value: formatCurrency(netBalance, currency),
+          },
+        ],
+      };
+    } catch (error) {
+      console.error('Error fetching period-based trial balance hero, falling back to simple:', error);
+      // Fall through to simple report
+    }
+  }
+
+  // Use the simple trial balance (from income_expense_transactions)
   try {
-    // Use the simple trial balance (from income_expense_transactions)
     const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
     const { totals, rows } = report;
     const accountCount = rows.filter(r => r.debit_balance !== 0 || r.credit_balance !== 0).length;
@@ -167,12 +223,47 @@ const resolveTrialBalanceHero: ServiceDataSourceHandler = async (request) => {
 };
 
 const resolveTrialBalanceHeader: ServiceDataSourceHandler = async (_request) => {
-  const timezone = await getTenantTimezone();
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const fiscalYearRepository = container.get<IFiscalYearRepository>(TYPES.IFiscalYearRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Fetch available fiscal years for the dropdown
+  // Note: Base adapter automatically filters by tenant_id, so we don't need to pass it in filters
+  let fiscalYearOptions: { label: string; value: string }[] = [];
+  try {
+    const { data: fiscalYears } = await fiscalYearRepository.findAll({
+      order: { column: 'start_date', ascending: false },
+    });
+
+    fiscalYearOptions = (fiscalYears || []).map((fy) => ({
+      label: fy.name,
+      value: fy.id,
+    }));
+  } catch (error) {
+    console.error('Error fetching fiscal years:', error);
+  }
+
+  // View by options
+  const viewByOptions = [
+    { label: 'By Category', value: 'category' },
+    { label: 'By Source', value: 'source' },
+    { label: 'By Fund', value: 'fund' },
+  ];
+
   return {
-    asOfDate: formatDate(new Date(), timezone),
-    dateSelector: {
-      type: 'single',
-      defaultValue: new Date().toISOString().split('T')[0],
+    fiscalYearSelector: fiscalYearOptions.length > 0 ? {
+      label: 'Fiscal Year',
+      options: fiscalYearOptions,
+      defaultValue: fiscalYearOptions[0]?.value || '',
+    } : null,
+    viewBySelector: {
+      label: 'View By',
+      options: viewByOptions,
+      defaultValue: 'category',
     },
     exportActions: [
       { id: 'export-pdf', label: 'Export PDF', handler: 'admin-finance.reports.export' },
@@ -184,6 +275,7 @@ const resolveTrialBalanceHeader: ServiceDataSourceHandler = async (_request) => 
 const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const reportRepository = container.get<IFinancialReportRepository>(TYPES.IFinancialReportRepository);
+  const fiscalYearRepository = container.get<IFiscalYearRepository>(TYPES.IFiscalYearRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -193,11 +285,74 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (request
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
 
-  // Get date from request or use today
+  // Get parameters from request
+  const fiscalYearId = request.params?.fiscalYearId as string | undefined;
+  const viewBy = (request.params?.viewBy as TrialBalanceViewBy) || 'category';
   const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
 
+  // Try period-based report first if fiscal year is selected
+  if (fiscalYearId) {
+    try {
+      // Get fiscal year name
+      const fiscalYear = await fiscalYearRepository.findById(fiscalYearId);
+      const fiscalYearName = fiscalYear?.name || 'Unknown';
+
+      const report = await reportRepository.getTrialBalanceByPeriod(
+        tenant.id,
+        fiscalYearId,
+        fiscalYearName,
+        viewBy
+      );
+
+      const { grandTotal } = report;
+      const totalIncome = grandTotal.total_credit;
+      const totalExpenses = grandTotal.total_debit;
+      const netBalance = totalIncome - totalExpenses;
+      const hasSurplus = netBalance > 0;
+      const hasDeficit = netBalance < 0;
+
+      return {
+        items: [
+          {
+            id: 'total-income',
+            label: 'Total income',
+            value: formatCurrency(totalIncome, currency),
+            change: '',
+            changeLabel: 'money received',
+            trend: 'flat',
+            tone: 'positive',
+            description: `Sum of all income for ${fiscalYearName}.`,
+          },
+          {
+            id: 'total-expenses',
+            label: 'Total expenses',
+            value: formatCurrency(totalExpenses, currency),
+            change: '',
+            changeLabel: 'money spent',
+            trend: 'flat',
+            tone: 'informative',
+            description: `Sum of all expenses for ${fiscalYearName}.`,
+          },
+          {
+            id: 'net-balance',
+            label: 'Net balance',
+            value: formatCurrency(netBalance, currency),
+            change: hasSurplus ? 'Surplus' : hasDeficit ? 'Deficit' : 'Break-even',
+            changeLabel: 'income minus expenses',
+            trend: hasSurplus ? 'up' : hasDeficit ? 'down' : 'flat',
+            tone: hasSurplus ? 'positive' : hasDeficit ? 'negative' : 'informative',
+            description: hasSurplus ? 'You have more income than expenses.' : hasDeficit ? 'Expenses exceed income.' : 'Income equals expenses.',
+          },
+        ],
+      };
+    } catch (error) {
+      console.error('Error fetching period-based trial balance verification, falling back to simple:', error);
+      // Fall through to simple report
+    }
+  }
+
+  // Use the simple trial balance (from income_expense_transactions)
   try {
-    // Use the simple trial balance (from income_expense_transactions)
     const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
     const { totals } = report;
     const netBalance = totals.credit - totals.debit; // Income - Expenses
@@ -254,6 +409,7 @@ const resolveTrialBalanceVerification: ServiceDataSourceHandler = async (request
 const resolveTrialBalanceData: ServiceDataSourceHandler = async (request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const reportRepository = container.get<IFinancialReportRepository>(TYPES.IFinancialReportRepository);
+  const fiscalYearRepository = container.get<IFiscalYearRepository>(TYPES.IFiscalYearRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -263,8 +419,112 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (request) => {
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
 
-  // Get date from request or use today
+  // Get parameters from request
+  const fiscalYearId = request.params?.fiscalYearId as string | undefined;
+  const viewBy = (request.params?.viewBy as TrialBalanceViewBy) || 'category';
   const endDate = (request.params?.endDate as string) || new Date().toISOString().split('T')[0];
+
+  // If fiscal year is selected, use period-based report
+  if (fiscalYearId) {
+    try {
+      // Get fiscal year name
+      const fiscalYear = await fiscalYearRepository.findById(fiscalYearId);
+      const fiscalYearName = fiscalYear?.name || 'Unknown';
+
+      const report = await reportRepository.getTrialBalanceByPeriod(
+        tenant.id,
+        fiscalYearId,
+        fiscalYearName,
+        viewBy
+      );
+
+      // Determine column header based on view type
+      const nameHeader = viewBy === 'category' ? 'Category' : viewBy === 'source' ? 'Source' : 'Fund';
+      const codeHeader = viewBy === 'category' ? 'Code' : viewBy === 'source' ? 'Account' : 'Code';
+
+      // Base columns (always shown)
+      const columns = [
+        { field: 'code', headerName: codeHeader, type: 'text' as const, width: 100 },
+        { field: 'name', headerName: nameHeader, type: 'text' as const, width: 200 },
+      ];
+
+      // Period columns for table header
+      const periodColumns = report.periods.map(period => ({
+        id: period.id,
+        name: period.name,
+      }));
+
+      // Transform rows with period data
+      const rows = report.rows.map(row => ({
+        id: row.id,
+        account_id: row.id,
+        code: row.code,
+        name: row.name,
+        group_type: row.group_type,
+        periods: row.periods.map(p => ({
+          period_id: p.period_id,
+          period_name: p.period_name,
+          debit: p.debit,
+          credit: p.credit,
+        })),
+        total_debit: row.total_debit,
+        total_credit: row.total_credit,
+      }));
+
+      // Transform subtotals by group
+      const subtotals = Object.entries(report.subtotalsByGroup).map(([groupType, data]) => {
+        // Format group type label
+        const label = groupType === 'income' || groupType === 'income_transaction'
+          ? 'Income Total'
+          : groupType === 'expense' || groupType === 'expense_transaction'
+          ? 'Expense Total'
+          : `${groupType.charAt(0).toUpperCase() + groupType.slice(1)} Total`;
+
+        return {
+          label,
+          type: groupType,
+          periods: data.periods,
+          total_debit: data.total_debit,
+          total_credit: data.total_credit,
+        };
+      });
+
+      // Grand total with period breakdown
+      const grandTotal = {
+        label: 'Grand Total',
+        periods: report.grandTotal.periods,
+        total_debit: report.grandTotal.total_debit,
+        total_credit: report.grandTotal.total_credit,
+        // Show if balanced (debits close to credits)
+        balanced: Math.abs(report.grandTotal.total_debit - report.grandTotal.total_credit) < 0.01,
+      };
+
+      // Generate dynamic title based on viewBy
+      const titleByViewBy: Record<string, string> = {
+        category: 'Transactions by category',
+        source: 'Transactions by source',
+        fund: 'Transactions by fund',
+      };
+
+      return {
+        title: titleByViewBy[viewBy] || 'Trial Balance',
+        rows,
+        columns,
+        periodColumns,
+        subtotals,
+        grandTotal,
+        viewBy,
+        fiscalYear: {
+          id: fiscalYearId,
+          name: fiscalYearName,
+        },
+        currency,
+      };
+    } catch (error) {
+      console.error('Error fetching period-based trial balance:', error);
+      // Fall through to simple report
+    }
+  }
 
   // Use the simple trial balance (from income_expense_transactions)
   const report = await reportRepository.getTrialBalanceSimple(tenant.id, endDate);
@@ -274,42 +534,45 @@ const resolveTrialBalanceData: ServiceDataSourceHandler = async (request) => {
     .filter(row => row.debit_balance !== 0 || row.credit_balance !== 0)
     .map(row => ({
       id: row.account_id,
+      account_id: row.account_id,
       code: row.account_code,
       name: row.account_name,
-      accountType: row.account_type,
-      debit: row.debit_balance > 0 ? formatCurrency(row.debit_balance, currency) : '',
-      credit: row.credit_balance > 0 ? formatCurrency(row.credit_balance, currency) : '',
-      debitRaw: row.debit_balance,
-      creditRaw: row.credit_balance,
+      account_type: row.account_type,
+      debit_balance: row.debit_balance,
+      credit_balance: row.credit_balance,
     }));
 
   const columns = [
-    { field: 'code', headerName: 'Category Code', type: 'text', flex: 0.6 },
-    { field: 'name', headerName: 'Category Name', type: 'text', flex: 1.5 },
-    { field: 'debit', headerName: 'Expenses', type: 'currency', flex: 0.8 },
-    { field: 'credit', headerName: 'Income', type: 'currency', flex: 0.8 },
+    { field: 'code', headerName: 'Category Code', type: 'text' as const, width: 120 },
+    { field: 'name', headerName: 'Category Name', type: 'text' as const, width: 250 },
+    { field: 'debit_balance', headerName: 'Expenses', type: 'currency' as const, width: 120 },
+    { field: 'credit_balance', headerName: 'Income', type: 'currency' as const, width: 120 },
   ];
 
   // Use subtotals from repository (simple trial balance uses income/expense categories)
   const { subtotalsByType } = report;
   const subtotals = [
-    { label: 'Income', debit: formatCurrency(subtotalsByType.income?.debit || 0, currency), credit: formatCurrency(subtotalsByType.income?.credit || 0, currency) },
-    { label: 'Expenses', debit: formatCurrency(subtotalsByType.expense?.debit || 0, currency), credit: formatCurrency(subtotalsByType.expense?.credit || 0, currency) },
+    { label: 'Income', type: 'income', debit: subtotalsByType.income?.debit || 0, credit: subtotalsByType.income?.credit || 0 },
+    { label: 'Expenses', type: 'expense', debit: subtotalsByType.expense?.debit || 0, credit: subtotalsByType.expense?.credit || 0 },
   ];
 
   const grandTotal = {
-    debit: formatCurrency(report.totals.debit, currency),
-    credit: formatCurrency(report.totals.credit, currency),
+    label: 'Grand Total',
+    debit: report.totals.debit,
+    credit: report.totals.credit,
     balanced: report.isBalanced,
-    debitRaw: report.totals.debit,
-    creditRaw: report.totals.credit,
   };
 
   return {
+    title: 'Transactions by category',
     rows,
     columns,
+    periodColumns: null, // No period columns for simple report
     subtotals,
     grandTotal,
+    viewBy: null,
+    fiscalYear: null,
+    currency,
   };
 };
 

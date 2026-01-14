@@ -4,6 +4,18 @@
     <Title>Trial balance</Title>
     <Regions>
       <Region id="main">
+        <Component id="report-header" type="AdminReportHeader">
+          <Props>
+            <Prop name="title" kind="static">Trial Balance</Prop>
+            <Prop name="description" kind="static">View income and expense balances by category, source, or fund.</Prop>
+            <Prop name="fiscalYearSelector" kind="binding" contract="reportHeader.fiscalYearSelector"/>
+            <Prop name="viewBySelector" kind="binding" contract="reportHeader.viewBySelector"/>
+            <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
+            <Prop name="reportUrl" kind="static">/admin/finance/reports/trial-balance</Prop>
+            <Prop name="showGenerateButton" kind="static">true</Prop>
+            <Prop name="generateButtonLabel" kind="static">Generate Report</Prop>
+          </Props>
+        </Component>
         <Component id="hero" type="HeroSection">
           <Props>
             <Prop name="variant" kind="binding" contract="hero.variant"/>
@@ -12,15 +24,6 @@
             <Prop name="description" kind="binding" contract="hero.description"/>
             <Prop name="metrics" kind="binding" contract="hero.metrics"/>
             <Prop name="secondaryCta" kind="action" actionId="back-to-reports"/>
-          </Props>
-        </Component>
-        <Component id="report-header" type="AdminReportHeader">
-          <Props>
-            <Prop name="title" kind="static">Trial balance</Prop>
-            <Prop name="description" kind="static">Summary of all income and expense transactions by category.</Prop>
-            <Prop name="asOfDate" kind="binding" contract="reportHeader.asOfDate"/>
-            <Prop name="dateSelector" kind="binding" contract="reportHeader.dateSelector"/>
-            <Prop name="exportActions" kind="binding" contract="reportHeader.exportActions"/>
           </Props>
         </Component>
         <Component id="balance-verification" type="AdminMetricCards">
@@ -32,17 +35,29 @@
         </Component>
         <Component id="trial-balance-table" type="AdminReportTable">
           <Props>
-            <Prop name="title" kind="static">Transactions by category</Prop>
+            <Prop name="title" kind="binding" contract="trialBalanceData.title"/>
             <Prop name="rows" kind="binding" contract="trialBalanceData.rows"/>
             <Prop name="columns" kind="binding" contract="trialBalanceData.columns"/>
+            <Prop name="periodColumns" kind="binding" contract="trialBalanceData.periodColumns"/>
             <Prop name="subtotals" kind="binding" contract="trialBalanceData.subtotals"/>
             <Prop name="grandTotal" kind="binding" contract="trialBalanceData.grandTotal"/>
+            <Prop name="currency" kind="binding" contract="trialBalanceData.currency"/>
             <Prop name="emptyState" kind="static">{"title": "No data available", "description": "No transactions have been recorded for the selected period."}</Prop>
           </Props>
         </Component>
       </Region>
     </Regions>
     <DataSources>
+      <DataSource id="reportHeader" kind="service">
+        <Contract>
+          <Field name="fiscalYearSelector" path="fiscalYearSelector" description="Fiscal year dropdown options"/>
+          <Field name="viewBySelector" path="viewBySelector" description="View by dropdown options"/>
+          <Field name="exportActions" path="exportActions" description="Export action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.reports.trialBalance.header</Handler>
+        </Config>
+      </DataSource>
       <DataSource id="hero" kind="service">
         <Contract>
           <Field name="variant" path="variant" description="Hero variant style"/>
@@ -55,16 +70,6 @@
           <Handler>admin-finance.reports.trialBalance.hero</Handler>
         </Config>
       </DataSource>
-      <DataSource id="reportHeader" kind="service">
-        <Contract>
-          <Field name="asOfDate" path="asOfDate" description="Report as-of date"/>
-          <Field name="dateSelector" path="dateSelector" description="Date selector configuration"/>
-          <Field name="exportActions" path="exportActions" description="Export action options"/>
-        </Contract>
-        <Config>
-          <Handler>admin-finance.reports.trialBalance.header</Handler>
-        </Config>
-      </DataSource>
       <DataSource id="balanceVerification" kind="service">
         <Contract>
           <Field name="items" path="items" description="Balance verification cards"/>
@@ -75,10 +80,13 @@
       </DataSource>
       <DataSource id="trialBalanceData" kind="service">
         <Contract>
+          <Field name="title" path="title" description="Dynamic table title based on view by selection"/>
           <Field name="rows" path="rows" description="Trial balance data rows"/>
           <Field name="columns" path="columns" description="Table columns"/>
+          <Field name="periodColumns" path="periodColumns" description="Dynamic period columns for fiscal year view"/>
           <Field name="subtotals" path="subtotals" description="Subtotals by account type"/>
           <Field name="grandTotal" path="grandTotal" description="Grand totals"/>
+          <Field name="currency" path="currency" description="Tenant currency code for formatting"/>
         </Contract>
         <Config>
           <Handler>admin-finance.reports.trialBalance.data</Handler>

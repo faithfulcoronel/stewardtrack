@@ -11,11 +11,22 @@ import type {
   BalanceSheetReport,
   BudgetVsActualRow,
   BudgetVsActualReport,
+  EnhancedTrialBalanceReport,
+  EnhancedTrialBalanceRow,
+  FiscalPeriodInfo,
+  PeriodBalance,
+  TrialBalanceViewBy,
 } from '@/models/financialReport.model';
 
 export interface IFinancialReportRepository {
   getTrialBalance(tenantId: string, endDate: string): Promise<TrialBalanceReport>;
   getTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceReport>;
+  getTrialBalanceByPeriod(
+    tenantId: string,
+    fiscalYearId: string,
+    fiscalYearName: string,
+    viewBy: TrialBalanceViewBy
+  ): Promise<EnhancedTrialBalanceReport>;
   getIncomeStatement(tenantId: string, startDate: string, endDate: string): Promise<IncomeStatementReport>;
   getBalanceSheet(tenantId: string, endDate: string): Promise<BalanceSheetReport>;
   getBudgetVsActual(tenantId: string, startDate: string, endDate: string): Promise<BudgetVsActualReport>;
@@ -102,6 +113,101 @@ export class FinancialReportRepository implements IFinancialReportRepository {
       totals: { debit: totalDebit, credit: totalCredit },
       subtotalsByType,
       isBalanced: difference < 0.01,
+    };
+  }
+
+  /**
+   * Get enhanced trial balance report with period-by-period breakdown
+   * Supports viewing by category, source, or fund
+   */
+  async getTrialBalanceByPeriod(
+    tenantId: string,
+    fiscalYearId: string,
+    fiscalYearName: string,
+    viewBy: TrialBalanceViewBy
+  ): Promise<EnhancedTrialBalanceReport> {
+    // Fetch periods and rows in parallel
+    const [periods, rows] = await Promise.all([
+      this.adapter.fetchFiscalYearPeriods(tenantId, fiscalYearId),
+      this.adapter.fetchTrialBalanceByPeriod(tenantId, fiscalYearId, viewBy),
+    ]);
+
+    // Calculate subtotals by group type
+    const subtotalsByGroup: Record<string, {
+      periods: PeriodBalance[];
+      total_debit: number;
+      total_credit: number;
+    }> = {};
+
+    // Initialize empty period balances for each group
+    for (const row of rows) {
+      const groupType = row.group_type || 'other';
+      if (!subtotalsByGroup[groupType]) {
+        subtotalsByGroup[groupType] = {
+          periods: periods.map(p => ({
+            period_id: p.id,
+            period_name: p.name,
+            debit: 0,
+            credit: 0,
+          })),
+          total_debit: 0,
+          total_credit: 0,
+        };
+      }
+
+      // Add row values to group subtotals
+      subtotalsByGroup[groupType].total_debit += row.total_debit;
+      subtotalsByGroup[groupType].total_credit += row.total_credit;
+
+      // Add period values
+      for (let i = 0; i < row.periods.length && i < subtotalsByGroup[groupType].periods.length; i++) {
+        const rowPeriod = row.periods[i];
+        const groupPeriod = subtotalsByGroup[groupType].periods.find(
+          p => p.period_id === rowPeriod.period_id
+        );
+        if (groupPeriod) {
+          groupPeriod.debit += Number(rowPeriod.debit) || 0;
+          groupPeriod.credit += Number(rowPeriod.credit) || 0;
+        }
+      }
+    }
+
+    // Calculate grand total
+    const grandTotal: {
+      periods: PeriodBalance[];
+      total_debit: number;
+      total_credit: number;
+    } = {
+      periods: periods.map(p => ({
+        period_id: p.id,
+        period_name: p.name,
+        debit: 0,
+        credit: 0,
+      })),
+      total_debit: 0,
+      total_credit: 0,
+    };
+
+    for (const group of Object.values(subtotalsByGroup)) {
+      grandTotal.total_debit += group.total_debit;
+      grandTotal.total_credit += group.total_credit;
+
+      for (let i = 0; i < group.periods.length && i < grandTotal.periods.length; i++) {
+        grandTotal.periods[i].debit += group.periods[i].debit;
+        grandTotal.periods[i].credit += group.periods[i].credit;
+      }
+    }
+
+    return {
+      viewBy,
+      fiscalYear: {
+        id: fiscalYearId,
+        name: fiscalYearName,
+      },
+      periods,
+      rows,
+      subtotalsByGroup,
+      grandTotal,
     };
   }
 

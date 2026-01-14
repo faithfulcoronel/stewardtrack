@@ -30,6 +30,54 @@ export interface TrialBalanceReport {
   isBalanced: boolean;
 }
 
+// Enhanced Trial Balance with Period Breakdown
+export type TrialBalanceViewBy = 'category' | 'source' | 'fund';
+
+export interface PeriodBalance {
+  period_id: string;
+  period_name: string;
+  debit: number;
+  credit: number;
+}
+
+export interface EnhancedTrialBalanceRow {
+  id: string;
+  code: string;
+  name: string;
+  group_type: string;
+  periods: PeriodBalance[];
+  total_debit: number;
+  total_credit: number;
+}
+
+export interface FiscalPeriodInfo {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
+
+export interface EnhancedTrialBalanceReport {
+  viewBy: TrialBalanceViewBy;
+  fiscalYear: {
+    id: string;
+    name: string;
+  };
+  periods: FiscalPeriodInfo[];
+  rows: EnhancedTrialBalanceRow[];
+  subtotalsByGroup: Record<string, {
+    periods: PeriodBalance[];
+    total_debit: number;
+    total_credit: number;
+  }>;
+  grandTotal: {
+    periods: PeriodBalance[];
+    total_debit: number;
+    total_credit: number;
+  };
+}
+
 // Income Statement
 export interface IncomeStatementRow {
   account_id: string;

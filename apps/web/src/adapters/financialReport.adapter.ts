@@ -6,6 +6,9 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type {
   TrialBalanceRow,
   IncomeStatementRow,
+  EnhancedTrialBalanceRow,
+  FiscalPeriodInfo,
+  TrialBalanceViewBy,
 } from '@/models/financialReport.model';
 
 /**
@@ -23,6 +26,8 @@ export interface BudgetActualRawRow {
 export interface IFinancialReportAdapter {
   fetchTrialBalance(tenantId: string, endDate: string): Promise<TrialBalanceRow[]>;
   fetchTrialBalanceSimple(tenantId: string, endDate: string): Promise<TrialBalanceRow[]>;
+  fetchTrialBalanceByPeriod(tenantId: string, fiscalYearId: string, viewBy: TrialBalanceViewBy): Promise<EnhancedTrialBalanceRow[]>;
+  fetchFiscalYearPeriods(tenantId: string, fiscalYearId: string): Promise<FiscalPeriodInfo[]>;
   fetchIncomeStatement(tenantId: string, startDate: string, endDate: string): Promise<IncomeStatementRow[]>;
   fetchBudgetVsActual(tenantId: string, startDate: string, endDate: string): Promise<BudgetActualRawRow[]>;
 }
@@ -73,6 +78,78 @@ export class FinancialReportAdapter implements IFinancialReportAdapter {
     }
 
     return (data || []) as TrialBalanceRow[];
+  }
+
+  /**
+   * Fetch enhanced trial balance data with period breakdown
+   * Uses report_trial_balance_by_period RPC function
+   */
+  async fetchTrialBalanceByPeriod(
+    tenantId: string,
+    fiscalYearId: string,
+    viewBy: TrialBalanceViewBy
+  ): Promise<EnhancedTrialBalanceRow[]> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('report_trial_balance_by_period', {
+      p_tenant_id: tenantId,
+      p_fiscal_year_id: fiscalYearId,
+      p_view_by: viewBy,
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch trial balance by period: ${error.message}`);
+    }
+
+    // Transform the raw data to match our interface
+    return ((data || []) as unknown as Array<{
+      id: string;
+      code: string;
+      name: string;
+      group_type: string;
+      period_data: Array<{ period_id: string; period_name: string; debit: number; credit: number }>;
+      total_debit: number;
+      total_credit: number;
+    }>).map(row => ({
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      group_type: row.group_type,
+      periods: row.period_data || [],
+      total_debit: Number(row.total_debit) || 0,
+      total_credit: Number(row.total_credit) || 0,
+    }));
+  }
+
+  /**
+   * Fetch fiscal periods for a fiscal year
+   * Uses get_fiscal_year_periods RPC function
+   */
+  async fetchFiscalYearPeriods(tenantId: string, fiscalYearId: string): Promise<FiscalPeriodInfo[]> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_fiscal_year_periods', {
+      p_tenant_id: tenantId,
+      p_fiscal_year_id: fiscalYearId,
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch fiscal year periods: ${error.message}`);
+    }
+
+    return ((data || []) as unknown as Array<{
+      period_id: string;
+      period_name: string;
+      start_date: string;
+      end_date: string;
+      status: string;
+    }>).map(row => ({
+      id: row.period_id,
+      name: row.period_name,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      status: row.status,
+    }));
   }
 
   /**
