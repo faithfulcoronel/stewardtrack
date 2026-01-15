@@ -28,13 +28,24 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IMemberDiscipleshipMilestoneRepository } from '@/repositories/memberDiscipleshipMilestone.repository';
+import type { IMemberRepository } from '@/repositories/member.repository';
+import type { IMemberDiscipleshipPlanRepository } from '@/repositories/memberDiscipleshipPlan.repository';
 import type { MemberDiscipleshipMilestone } from '@/models/memberDiscipleshipMilestone.model';
+import type { INotificationBusService } from '@/services/notification/NotificationBusService';
+import { NotificationEventType } from '@/models/notification/notificationEvent.model';
+import { randomUUID } from 'crypto';
 
 @injectable()
 export class MemberDiscipleshipMilestoneService {
   constructor(
     @inject(TYPES.IMemberDiscipleshipMilestoneRepository)
     private repo: IMemberDiscipleshipMilestoneRepository,
+    @inject(TYPES.IMemberRepository)
+    private memberRepo: IMemberRepository,
+    @inject(TYPES.IMemberDiscipleshipPlanRepository)
+    private planRepo: IMemberDiscipleshipPlanRepository,
+    @inject(TYPES.NotificationBusService)
+    private notificationBus: INotificationBusService,
   ) {}
 
   // ==================== QUERIES ====================
@@ -175,12 +186,170 @@ export class MemberDiscipleshipMilestoneService {
 
   /**
    * Celebrate a milestone (mark as celebrated)
+   * Sends celebration notifications to the member and mentor
    */
   async celebrateMilestone(id: string, notes?: string): Promise<MemberDiscipleshipMilestone> {
-    return this.repo.update(id, {
+    const milestone = await this.repo.update(id, {
       celebrated_at: new Date().toISOString(),
       notes: notes || undefined,
     });
+
+    // Send celebration notifications
+    await this.sendMilestoneCelebrationNotifications(milestone, notes);
+
+    return milestone;
+  }
+
+  /**
+   * Send celebration notifications when a milestone is reached
+   * Notifies both the member and the mentor
+   */
+  private async sendMilestoneCelebrationNotifications(
+    milestone: MemberDiscipleshipMilestone,
+    celebrationNotes?: string
+  ): Promise<void> {
+    await Promise.all([
+      this.sendMilestoneNotificationToMember(milestone, celebrationNotes),
+      this.sendMilestoneNotificationToMentor(milestone, celebrationNotes),
+    ]);
+  }
+
+  /**
+   * Send milestone celebration notification to the member
+   */
+  private async sendMilestoneNotificationToMember(
+    milestone: MemberDiscipleshipMilestone,
+    celebrationNotes?: string
+  ): Promise<void> {
+    try {
+      // Get member details
+      const member = await this.memberRepo.findById(milestone.member_id);
+      if (!member) {
+        return;
+      }
+
+      const recipientUserId = member.user_id;
+      if (!recipientUserId && !member.email) {
+        return;
+      }
+
+      // Get plan details if available
+      let pathwayName = 'Discipleship';
+      if (milestone.plan_id) {
+        const plan = await this.planRepo.getById(milestone.plan_id);
+        if (plan?.pathway) {
+          pathwayName = plan.pathway;
+        }
+      }
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.DISCIPLESHIP_MILESTONE_REACHED,
+        category: 'member',
+        priority: 'normal',
+        tenantId: milestone.tenant_id!,
+        recipient: {
+          userId: recipientUserId || '',
+          email: member.email || undefined,
+          phone: member.contact_number || undefined,
+        },
+        payload: {
+          title: 'Milestone Reached!',
+          message: `Congratulations! You've reached "${milestone.name}" in your ${pathwayName} journey. What a wonderful step of growth!`,
+          memberName: `${member.first_name} ${member.last_name}`,
+          recipientName: member.first_name,
+          isRecipientMember: true,
+          milestoneId: milestone.id,
+          milestoneName: milestone.name,
+          pathwayName,
+          celebrationMessage: celebrationNotes,
+          planUrl: `/members/${milestone.member_id}/discipleship`,
+          actionType: 'redirect',
+          actionPayload: `/members/${milestone.member_id}/discipleship`,
+          // Email template type indicator
+          emailTemplate: 'discipleship-milestone',
+        },
+        channels: recipientUserId ? ['in_app', 'email'] : ['email'],
+      });
+    } catch (error) {
+      console.error('Failed to send milestone notification to member:', error);
+    }
+  }
+
+  /**
+   * Send milestone celebration notification to the mentor
+   */
+  private async sendMilestoneNotificationToMentor(
+    milestone: MemberDiscipleshipMilestone,
+    celebrationNotes?: string
+  ): Promise<void> {
+    try {
+      // Get the plan to find the mentor
+      if (!milestone.plan_id) {
+        return; // No plan associated, can't find mentor
+      }
+
+      const plan = await this.planRepo.getById(milestone.plan_id);
+      if (!plan || !plan.mentor_name) {
+        return; // No mentor assigned
+      }
+
+      // Get member details (the person who reached the milestone)
+      const member = await this.memberRepo.findById(milestone.member_id);
+      if (!member) {
+        return;
+      }
+
+      // Try to find the mentor by name
+      const allMembers = await this.memberRepo.findAll();
+      const mentor = allMembers.data.find(
+        (m) => `${m.first_name} ${m.last_name}`.toLowerCase() === plan.mentor_name?.toLowerCase()
+      );
+
+      if (!mentor) {
+        console.warn(`Mentor "${plan.mentor_name}" not found as a member, skipping notification`);
+        return;
+      }
+
+      const recipientUserId = mentor.user_id;
+      if (!recipientUserId && !mentor.email) {
+        return;
+      }
+
+      const pathwayName = plan.pathway || 'Discipleship';
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.DISCIPLESHIP_MILESTONE_REACHED,
+        category: 'member',
+        priority: 'normal',
+        tenantId: milestone.tenant_id!,
+        recipient: {
+          userId: recipientUserId || '',
+          email: mentor.email || undefined,
+          phone: mentor.contact_number || undefined,
+        },
+        payload: {
+          title: 'Milestone Celebration',
+          message: `${member.first_name} ${member.last_name} has reached "${milestone.name}" in their ${pathwayName} journey! Let's celebrate this moment of growth together.`,
+          memberName: `${member.first_name} ${member.last_name}`,
+          recipientName: mentor.first_name,
+          isRecipientMember: false,
+          milestoneId: milestone.id,
+          milestoneName: milestone.name,
+          pathwayName,
+          celebrationMessage: celebrationNotes,
+          planUrl: `/admin/community/discipleship/${plan.id}`,
+          actionType: 'redirect',
+          actionPayload: `/admin/community/discipleship/${plan.id}`,
+          // Email template type indicator
+          emailTemplate: 'discipleship-milestone',
+        },
+        channels: recipientUserId ? ['in_app', 'email'] : ['email'],
+      });
+    } catch (error) {
+      console.error('Failed to send milestone notification to mentor:', error);
+    }
   }
 
   /**

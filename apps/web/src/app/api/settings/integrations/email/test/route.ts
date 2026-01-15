@@ -5,6 +5,7 @@ import type { SettingService } from '@/services/SettingService';
 import type { TenantService } from '@/services/TenantService';
 import { authUtils } from '@/utils/authUtils';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { renderNotificationEmail } from '@/emails/service/EmailTemplateService';
 
 /**
  * POST /api/settings/integrations/email/test
@@ -58,31 +59,29 @@ export async function POST(request: NextRequest) {
     const tenant = await tenantService.findById(tenantId);
     const tenantName = tenant?.name || 'your church';
 
-    // Send test email using Resend
+    // Send test email using Resend with React Email template
     try {
       const { Resend } = await import('resend');
       const resend = new Resend(emailConfig.apiKey);
+
+      // Render the email template with tenant branding
+      const htmlContent = await renderNotificationEmail(
+        {
+          title: "Email Integration Test",
+          body: `This is a test email from ${tenantName}.\n\nIf you received this message, your email integration is working correctly!\n\nYou can now send notifications to your church members.`,
+          category: "Test",
+        },
+        {
+          tenantName: tenantName,
+        }
+      );
 
       const result = await resend.emails.send({
         from: `${emailConfig.fromName} <${emailConfig.fromEmail}>`,
         to: email,
         replyTo: emailConfig.replyTo || undefined,
         subject: `[StewardTrack] Test Email from ${tenantName}`,
-        html: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1a1a1a; margin-bottom: 16px;">Email Integration Test</h2>
-            <p style="color: #4a4a4a; line-height: 1.6;">
-              This is a test email from <strong>${tenantName}</strong>.
-            </p>
-            <p style="color: #4a4a4a; line-height: 1.6;">
-              If you received this message, your email integration is working correctly!
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-            <p style="color: #888; font-size: 12px;">
-              Sent via StewardTrack Church Management System
-            </p>
-          </div>
-        `,
+        html: htmlContent,
       });
 
       if (result.error) {

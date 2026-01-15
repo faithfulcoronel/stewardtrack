@@ -53,6 +53,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@react-email/components": "^1.0.4",
     "@remixicon/react": "^4.6.0",
     "@stewardtrack/api-client": "workspace:*",
     "@stewardtrack/native-bridge": "workspace:*",
