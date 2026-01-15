@@ -959,4 +959,18 @@ container.bind<IScheduleOccurrenceService>(TYPES.ScheduleOccurrenceService).to(S
 container.bind<IScheduleRegistrationService>(TYPES.ScheduleRegistrationService).to(ScheduleRegistrationService).inRequestScope();
 container.bind<IScheduleAttendanceService>(TYPES.ScheduleAttendanceService).to(ScheduleAttendanceService).inRequestScope();
 
+// ==================== SCHEDULED EVENTS (Background Jobs) ====================
+import { ScheduledNotificationAdapter, type IScheduledNotificationAdapter } from '@/adapters/scheduledNotification.adapter';
+import { ScheduledNotificationRepository, type IScheduledNotificationRepository } from '@/repositories/scheduledNotification.repository';
+import { ScheduledEventsService } from '@/services/ScheduledEventsService';
+
+// Adapters
+container.bind<IScheduledNotificationAdapter>(TYPES.IScheduledNotificationAdapter).to(ScheduledNotificationAdapter).inRequestScope();
+
+// Repositories
+container.bind<IScheduledNotificationRepository>(TYPES.IScheduledNotificationRepository).to(ScheduledNotificationRepository).inRequestScope();
+
+// Services
+container.bind<ScheduledEventsService>(TYPES.ScheduledEventsService).to(ScheduledEventsService).inRequestScope();
+
 export { container };

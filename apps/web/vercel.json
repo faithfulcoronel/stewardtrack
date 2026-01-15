@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@stewardtrack/web"
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@stewardtrack/web",
+  "crons": [
+    {
+      "path": "/api/cron/scheduled-events",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

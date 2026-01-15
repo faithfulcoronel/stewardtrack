@@ -338,6 +338,13 @@ export const TYPES = {
   ScheduleOccurrenceService: Symbol.for('ScheduleOccurrenceService'),
   ScheduleRegistrationService: Symbol.for('ScheduleRegistrationService'),
   ScheduleAttendanceService: Symbol.for('ScheduleAttendanceService'),
+
+  // Background Job Services
+  ScheduledEventsService: Symbol.for('ScheduledEventsService'),
+
+  // Scheduled Notification (Background Jobs)
+  IScheduledNotificationAdapter: Symbol.for('IScheduledNotificationAdapter'),
+  IScheduledNotificationRepository: Symbol.for('IScheduledNotificationRepository'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

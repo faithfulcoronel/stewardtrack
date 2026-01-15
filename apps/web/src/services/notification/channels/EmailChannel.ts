@@ -24,7 +24,16 @@ import type {
   RecipientInfo,
 } from './IDeliveryChannel';
 import type { DeliveryChannelType } from '@/models/notification/notificationEvent.model';
-import { renderNotificationEmail } from '@/emails/service/EmailTemplateService';
+import {
+  renderNotificationEmail,
+  renderCarePlanAssignedEmail,
+  renderCarePlanMemberNotificationEmail,
+  renderCarePlanFollowUpEmail,
+  renderDiscipleshipPlanCreatedEmail,
+  renderDiscipleshipMilestoneEmail,
+  renderBirthdayGreetingEmail,
+  renderAnniversaryGreetingEmail,
+} from '@/emails/service/EmailTemplateService';
 
 @injectable()
 export class EmailChannel implements IDeliveryChannel {
@@ -123,6 +132,16 @@ export class EmailChannel implements IDeliveryChannel {
   private async buildDefaultHtml(message: NotificationMessage): Promise<string> {
     // Use React Email template for professional, branded emails
     try {
+      // Check for specific email template type
+      const emailTemplate = message.metadata?.emailTemplate as string | undefined;
+      const tenantName = message.metadata?.tenantName as string | undefined;
+
+      // Route to appropriate template based on emailTemplate field
+      if (emailTemplate) {
+        return await this.renderSpecificTemplate(emailTemplate, message, tenantName);
+      }
+
+      // Default to notification template
       const html = await renderNotificationEmail(
         {
           title: message.title,
@@ -133,7 +152,7 @@ export class EmailChannel implements IDeliveryChannel {
         },
         {
           recipientName: message.metadata?.recipientName as string | undefined,
-          tenantName: message.metadata?.tenantName as string | undefined,
+          tenantName,
           tenantLogoUrl: message.metadata?.tenantLogoUrl as string | undefined,
         }
       );
@@ -141,6 +160,123 @@ export class EmailChannel implements IDeliveryChannel {
     } catch {
       // Fallback to basic HTML if template rendering fails
       return this.buildFallbackHtml(message);
+    }
+  }
+
+  /**
+   * Render a specific email template based on the emailTemplate field
+   */
+  private async renderSpecificTemplate(
+    templateType: string,
+    message: NotificationMessage,
+    tenantName?: string
+  ): Promise<string> {
+    const metadata = message.metadata || {};
+
+    switch (templateType) {
+      case 'care-plan-assigned':
+        return await renderCarePlanAssignedEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberName: metadata.memberName as string,
+            followUpDate: metadata.followUpDate as string | undefined,
+            careContext: metadata.careContext as string | undefined,
+            carePlanUrl: metadata.carePlanUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'care-plan-member-notification':
+        return await renderCarePlanMemberNotificationEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            caregiverName: metadata.caregiverName as string | undefined,
+            followUpDate: metadata.followUpDate as string | undefined,
+            carePlanUrl: metadata.carePlanUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      case 'care-plan-follow-up':
+        return await renderCarePlanFollowUpEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberName: metadata.memberName as string,
+            followUpDate: metadata.followUpDate as string,
+            daysUntilFollowUp: metadata.daysUntilFollowUp as number,
+            carePlanUrl: metadata.carePlanUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'discipleship-plan-created':
+        return await renderDiscipleshipPlanCreatedEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            isRecipientMember: metadata.isRecipientMember as boolean | undefined,
+            memberName: metadata.memberName as string,
+            pathwayName: metadata.pathwayName as string,
+            mentorName: metadata.mentorName as string | undefined,
+            nextStep: metadata.nextStep as string | undefined,
+            planUrl: metadata.planUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'discipleship-milestone':
+        return await renderDiscipleshipMilestoneEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            isRecipientMember: metadata.isRecipientMember as boolean | undefined,
+            memberName: metadata.memberName as string,
+            milestoneName: metadata.milestoneName as string,
+            pathwayName: metadata.pathwayName as string,
+            message: metadata.celebrationMessage as string | undefined,
+            planUrl: metadata.planUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'birthday-greeting':
+        return await renderBirthdayGreetingEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberPhotoUrl: metadata.memberPhotoUrl as string | undefined,
+            customMessage: metadata.customMessage as string | undefined,
+            age: metadata.age as number | undefined,
+            profileUrl: metadata.profileUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      case 'anniversary-greeting':
+        return await renderAnniversaryGreetingEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            spouseName: metadata.spouseName as string | undefined,
+            years: metadata.years as number | undefined,
+            customMessage: metadata.customMessage as string | undefined,
+            profileUrl: metadata.profileUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      default:
+        // Unknown template type, fall back to notification template
+        return await renderNotificationEmail(
+          {
+            title: message.title,
+            body: message.body,
+            actionUrl: metadata.actionPayload as string | undefined,
+            actionLabel: metadata.actionLabel as string | undefined,
+            category: metadata.category as string | undefined,
+          },
+          {
+            recipientName: metadata.recipientName as string | undefined,
+            tenantName,
+            tenantLogoUrl: metadata.tenantLogoUrl as string | undefined,
+          }
+        );
     }
   }
 
