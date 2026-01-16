@@ -397,8 +397,8 @@ export default function SignupPage() {
 
                 <div className="mb-6 pt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className={`text-xl font-bold capitalize ${offering.is_featured ? 'text-[#179a65]' : 'text-white'}`}>
-                      {offering.tier}
+                    <h3 className={`text-xl font-bold ${offering.is_featured ? 'text-[#179a65]' : 'text-white'}`}>
+                      {offering.name}
                     </h3>
                     {offering.offering_type === 'trial' && (
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${

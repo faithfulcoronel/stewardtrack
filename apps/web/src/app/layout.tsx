@@ -7,6 +7,8 @@ import { ThemeFloater } from "@/components/theme/theme-floater";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileProvider } from "@/components/mobile";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "StewardTrack",
@@ -76,6 +78,8 @@ export default function RootLayout({
             <ThemeFloater />
             {children}
             <Toaster richColors closeButton position="top-right" />
+            <SpeedInsights />
+            <Analytics />
           </MobileProvider>
         </ThemeProvider>
       </body>

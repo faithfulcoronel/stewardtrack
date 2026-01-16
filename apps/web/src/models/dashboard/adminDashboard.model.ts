@@ -9,6 +9,7 @@
 export interface WelcomeData {
   userName: string;
   userEmail: string;
+  userProfilePictureUrl: string | null;
   tenantId: string | null;
   tenantName: string;
   tenantLogoUrl: string | null;
@@ -163,6 +164,7 @@ export interface UpcomingBirthday {
   lastName: string;
   birthday: string;
   daysUntil: number;
+  age?: number; // Calculated age they will be turning
   profilePictureUrl?: string | null;
 }
 
@@ -207,3 +209,133 @@ export const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   enableBibleVerse: true,
   bibleVerseVersion: 'NIV',
 };
+
+// ==================== PERSONA-BASED DASHBOARD ====================
+
+/**
+ * Care Plan Summary for Pastoral Roles
+ */
+export interface CarePlanSummary {
+  total: number;
+  active: number;
+  needsFollowUp: number;
+  completedThisMonth: number;
+}
+
+/**
+ * Follow-up Item for Pastoral Care
+ */
+export interface FollowUpItem {
+  id: string;
+  memberName: string;
+  type: 'call' | 'visit' | 'message';
+  reason: string;
+  dueDate: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+/**
+ * Pending Approval Item for Finance Roles
+ */
+export interface PendingApprovalItem {
+  id: string;
+  type: 'transaction' | 'budget' | 'expense';
+  title: string;
+  amount: number;
+  submittedBy: string;
+  submittedAt: string;
+}
+
+/**
+ * Celebration Item (birthday, anniversary, membership)
+ */
+export interface CelebrationItem {
+  id: string;
+  memberName: string;
+  profilePictureUrl?: string | null;
+  type: 'birthday' | 'anniversary' | 'membership';
+  date: string;
+  years?: number;
+}
+
+/**
+ * Announcement Item
+ */
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  excerpt: string;
+  priority: 'high' | 'normal';
+  postedAt: string;
+}
+
+/**
+ * Journey Milestone for Members/Visitors
+ */
+export interface JourneyMilestone {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  completedDate?: string;
+}
+
+/**
+ * Growth Opportunity
+ */
+export interface GrowthOpportunity {
+  id: string;
+  title: string;
+  type: 'class' | 'group' | 'service' | 'event';
+  date?: string;
+  location?: string;
+  spotsAvailable?: number;
+}
+
+/**
+ * Service Record for Volunteers
+ */
+export interface ServiceRecord {
+  id: string;
+  ministry: string;
+  role: string;
+  nextServing?: string;
+  hoursThisMonth?: number;
+}
+
+/**
+ * Calendar Event with type
+ */
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location?: string;
+  type: 'service' | 'meeting' | 'fellowship' | 'outreach' | 'special';
+  attendeeCount?: number;
+}
+
+/**
+ * Persona-Based Dashboard Data
+ * Extends the base dashboard data with role-specific information
+ */
+export interface PersonaDashboardData extends AdminDashboardData {
+  // Pastoral Care (for pastors)
+  carePlansSummary?: CarePlanSummary;
+  followUps?: FollowUpItem[];
+
+  // Finance (for treasurer/auditor)
+  pendingApprovals?: PendingApprovalItem[];
+
+  // Community (for all)
+  calendarEvents?: CalendarEvent[];
+  celebrations?: CelebrationItem[];
+  announcements?: AnnouncementItem[];
+
+  // Personal Journey (for members/visitors/volunteers)
+  journeyMilestones?: JourneyMilestone[];
+  growthOpportunities?: GrowthOpportunity[];
+  serviceRecords?: ServiceRecord[];
+  memberSince?: string;
+}

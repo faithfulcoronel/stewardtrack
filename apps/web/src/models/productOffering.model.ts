@@ -12,6 +12,16 @@ export interface ProductOffering extends BaseModel {
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   max_users?: number | null;
   max_tenants?: number;
+  /** Maximum church members allowed. NULL = unlimited, 0 = not available */
+  max_members?: number | null;
+  /** Monthly SMS credits limit. NULL = unlimited, 0 = not available */
+  max_sms_per_month?: number | null;
+  /** Monthly email limit. NULL = unlimited, 0 = not available */
+  max_emails_per_month?: number | null;
+  /** Storage limit in megabytes. NULL = unlimited, 0 = not available */
+  max_storage_mb?: number | null;
+  /** Maximum admin/staff users allowed. NULL = unlimited, 0 = not available */
+  max_admin_users?: number | null;
   is_active: boolean;
   is_featured: boolean;
   sort_order: number;
@@ -78,6 +88,16 @@ export interface CreateProductOfferingDto {
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   max_users?: number | null;
   max_tenants?: number;
+  /** Maximum church members allowed. NULL = unlimited */
+  max_members?: number | null;
+  /** Monthly SMS credits limit. NULL = unlimited */
+  max_sms_per_month?: number | null;
+  /** Monthly email limit. NULL = unlimited */
+  max_emails_per_month?: number | null;
+  /** Storage limit in megabytes. NULL = unlimited */
+  max_storage_mb?: number | null;
+  /** Maximum admin/staff users allowed. NULL = unlimited */
+  max_admin_users?: number | null;
   is_active?: boolean;
   is_featured?: boolean;
   sort_order?: number;
@@ -92,6 +112,16 @@ export interface UpdateProductOfferingDto {
   billing_cycle?: 'monthly' | 'annual' | 'lifetime' | null;
   max_users?: number | null;
   max_tenants?: number;
+  /** Maximum church members allowed. NULL = unlimited */
+  max_members?: number | null;
+  /** Monthly SMS credits limit. NULL = unlimited */
+  max_sms_per_month?: number | null;
+  /** Monthly email limit. NULL = unlimited */
+  max_emails_per_month?: number | null;
+  /** Storage limit in megabytes. NULL = unlimited */
+  max_storage_mb?: number | null;
+  /** Maximum admin/staff users allowed. NULL = unlimited */
+  max_admin_users?: number | null;
   is_active?: boolean;
   is_featured?: boolean;
   sort_order?: number;

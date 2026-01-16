@@ -59,6 +59,10 @@ import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/a
 import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
 import { AdminDashboardService } from '@/services/AdminDashboardService';
 
+// Announcement Feature
+import { AnnouncementAdapter, type IAnnouncementAdapter } from '@/adapters/announcement.adapter';
+import { AnnouncementRepository, type IAnnouncementRepository } from '@/repositories/announcement.repository';
+
 // Discount System
 import { DiscountAdapter, type IDiscountAdapter } from '@/adapters/discount.adapter';
 import { DiscountRepository, type IDiscountRepository } from '@/repositories/discount.repository';
@@ -869,6 +873,10 @@ container.bind<ICalendarCategoryRepository>(TYPES.ICalendarCategoryRepository).t
 container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEventAdapter).inRequestScope();
 container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
 container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
+
+// ==================== ANNOUNCEMENTS ====================
+container.bind<IAnnouncementAdapter>(TYPES.IAnnouncementAdapter).to(AnnouncementAdapter).inRequestScope();
+container.bind<IAnnouncementRepository>(TYPES.IAnnouncementRepository).to(AnnouncementRepository).inRequestScope();
 
 // ==================== NOTIFICATION SYSTEM ====================
 // Adapters

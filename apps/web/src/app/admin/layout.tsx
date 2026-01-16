@@ -23,35 +23,60 @@ const NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
       { title: "My Profile", href: "/admin/my-profile", icon: "customers" },
-      // { title: "Announcements", href: "/admin/announcements", icon: "modules" },
-      // { title: "Support", href: "/admin/support", icon: "support" },
-      // { title: "Documentation", href: "/admin/docs", icon: "docs" },
-      // { title: "Modules", href: "/admin/modules", icon: "projects" },
     ],
   },
   {
     label: "Community",
     items: [
-      { title: "Members", href: "/admin/members", icon: "customers" },
-      { title: "Planning", href: "/admin/community/planning", icon: "calendar" },
-      { title: "Accounts", href: "/admin/community/accounts", icon: "finances" },
+      { title: "Dashboard", href: "/admin/members", icon: "dashboard" },
+      { title: "Families", href: "/admin/community/families", icon: "families" },
+      { title: "Care Plans", href: "/admin/community/care-plans", icon: "carePlans" },
+      { title: "Discipleship Plans", href: "/admin/community/discipleship", icon: "discipleship" },
     ],
   },
   {
-    label: "Finance",
+    label: "Planning",
     items: [
-      { title: "Dashboard", href: "/admin/finance", icon: "finances" },
-      { title: "Chart of Accounts", href: "/admin/finance/accounts", icon: "finances" },
-      { title: "Income Sources", href: "/admin/finance/sources", icon: "expenses" },
-      { title: "Transactions", href: "/admin/finance/transactions", icon: "expenses" },
-      { title: "Budgets", href: "/admin/finance/budgets", icon: "finances" },
-      { title: "Fiscal Years", href: "/admin/finance/fiscal-years", icon: "calendar" },
-      { title: "Funds", href: "/admin/finance/funds", icon: "finances" },
-      { title: "Income Categories", href: "/admin/finance/income-categories", icon: "expenses" },
-      { title: "Expense Categories", href: "/admin/finance/expense-categories", icon: "expenses" },
-      { title: "Budget Categories", href: "/admin/finance/budget-categories", icon: "finances" },
-      { title: "Opening Balances", href: "/admin/finance/opening-balances", icon: "finances" },
-      { title: "Reports", href: "/admin/finance/reports", icon: "reports" },
+      { title: "Dashboard", href: "/admin/community/planning", icon: "dashboard" },
+      { title: "Calendar", href: "/admin/community/planning/calendar", icon: "calendar" },
+      { title: "Scheduler", href: "/admin/community/planning/scheduler", icon: "scheduler" },
+      { title: "Goals & Objectives", href: "/admin/community/planning/goals", icon: "goals" },
+    ],
+  },
+  {
+    label: "Accounts",
+    items: [
+      { title: "Dashboard", href: "/admin/community/accounts", icon: "dashboard" },
+    ],
+  },
+  {
+    label: "Stewardship",
+    items: [
+      // Overview & Daily Operations (frequently used)
+      { title: "Treasury Overview", href: "/admin/finance", icon: "treasury" },
+      { title: "Financial Records", href: "/admin/finance/transactions", icon: "transactions" },
+      { title: "Ministry Budgets", href: "/admin/finance/budgets", icon: "ledger" },
+      { title: "Financial Reports", href: "/admin/finance/reports", icon: "financialReports" },
+    ],
+    subGroups: [
+      {
+        label: "Setup & Configuration",
+        icon: "setup",
+        defaultCollapsed: true,
+        items: [
+          // Account Structure
+          { title: "Chart of Accounts", href: "/admin/finance/accounts", icon: "chartOfAccounts" },
+          { title: "Treasury Accounts", href: "/admin/finance/sources", icon: "expenses" },
+          { title: "Ministry Funds", href: "/admin/finance/funds", icon: "funds" },
+          { title: "Fiscal Years", href: "/admin/finance/fiscal-years", icon: "calendar" },
+          // Categories
+          { title: "Giving Categories", href: "/admin/finance/income-categories", icon: "income" },
+          { title: "Expense Categories", href: "/admin/finance/expense-categories", icon: "expenseCategories" },
+          { title: "Budget Categories", href: "/admin/finance/budget-categories", icon: "categories" },
+          // Initial Setup
+          { title: "Opening Balances", href: "/admin/finance/opening-balances", icon: "balances" },
+        ],
+      },
     ],
   },
   {
@@ -126,7 +151,10 @@ export default async function AdminLayout({
     displayName = "Admin";
   }
 
-  const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null;
+  // Prioritize linked member profile picture, fall back to auth metadata
+  const avatarUrl = memberData?.profile_picture_url
+    ?? (user.user_metadata?.avatar_url as string | undefined)
+    ?? null;
   const planLabel = (user.user_metadata?.plan as string | undefined) ?? "Pro";
 
   // Use AccessGate to determine user role and permissions
@@ -275,8 +303,154 @@ export default async function AdminLayout({
 }
 
 /**
+ * Menu item access configuration
+ * Defines which roles can see menu items AND what permissions are required
+ * Role check happens first, then permission check
+ */
+interface MenuAccessConfig {
+  // Roles that can access this menu item (any match grants access at role level)
+  roles: string[];
+  // Permission required (checked after role passes)
+  permission?: string;
+}
+
+/**
+ * Menu access matrix - maps menu paths to role and permission requirements
+ * Uses the 11 role personas from the role persona template
+ *
+ * IMPORTANT: Role keys must match the `metadata_key` in the roles table
+ * which has the 'role_' prefix (e.g., 'role_tenant_admin', 'role_senior_pastor')
+ */
+const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
+  // General
+  '/admin/my-profile': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
+    // No permission required - self-service
+  },
+
+  // Community
+  '/admin/members': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_deacon_elder'],
+    permission: 'members:view',
+  },
+  '/admin/community/families': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    permission: 'households:view',
+  },
+  '/admin/community/care-plans': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
+    permission: 'care:view',
+  },
+  '/admin/community/discipleship': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader'],
+    permission: 'discipleship:view',
+  },
+
+  // Planning
+  '/admin/community/planning': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    permission: 'goals:view',
+  },
+  '/admin/community/planning/calendar': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_volunteer'],
+    permission: 'events:view',
+  },
+  '/admin/community/planning/scheduler': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    permission: 'events:view',
+  },
+  '/admin/community/planning/goals': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
+    permission: 'goals:view',
+  },
+
+  // Accounts
+  '/admin/community/accounts': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
+    permission: 'finance:view',
+  },
+
+  // Finance
+  '/admin/finance': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
+    permission: 'finance:view',
+  },
+
+  // Administration - Security
+  '/admin/security': {
+    roles: ['role_tenant_admin', 'role_senior_pastor'],
+    permission: 'security:read',
+  },
+  '/admin/security/rbac': {
+    roles: ['role_tenant_admin'],
+    // Uses rbacAdmin gate instead of permission
+  },
+
+  // Administration - Settings
+  '/admin/settings': {
+    roles: ['role_tenant_admin'],
+    // Tenant admin only
+  },
+};
+
+/**
+ * Check if a menu item has access based on the access matrix
+ */
+async function checkMenuItemAccess(
+  item: { title: string; href: string },
+  userId: string,
+  tenantId: string
+): Promise<boolean> {
+  // Special case: Licensing Studio - super admin only
+  if (item.title === 'Licensing Studio') {
+    const gate = Gate.superAdminOnly();
+    return gate.allows(userId);
+  }
+  // Special case: Overview - visible to all authenticated users
+  if (item.href === '/admin') {
+    return true;
+  }
+  // Special case: RBAC - uses composite gate
+  if (item.href === '/admin/security/rbac') {
+    const gate = Gate.rbacAdmin();
+    return gate.allows(userId, tenantId);
+  }
+
+  // Use menu access matrix for all other items
+  // Find matching config - try exact match first, then prefix match
+  let accessConfig = MENU_ACCESS_MATRIX[item.href];
+
+  // For finance sub-pages, use the finance root config
+  if (!accessConfig && item.href.startsWith('/admin/finance')) {
+    accessConfig = MENU_ACCESS_MATRIX['/admin/finance'];
+  }
+
+  if (accessConfig) {
+    // Step 1: Role check first
+    const roleGate = Gate.withRole(accessConfig.roles, 'any');
+    const hasRole = await roleGate.allows(userId, tenantId);
+
+    if (hasRole) {
+      // Step 2: Permission check (if specified)
+      if (accessConfig.permission) {
+        const permissionGate = Gate.withPermission(accessConfig.permission);
+        return permissionGate.allows(userId, tenantId);
+      }
+      // No permission required, role check was sufficient
+      return true;
+    }
+    return false;
+  }
+
+  // No config found - default to role_tenant_admin only
+  const roleGate = Gate.withRole('role_tenant_admin');
+  return roleGate.allows(userId, tenantId);
+}
+
+/**
  * Filter menu sections using AccessGate for security
- * This ensures menu items are only shown if user has proper RBAC/license access
+ * Two-layer approach: Role check first, then permission check
+ * This ensures menu items are only shown if user has proper role AND permission access
  */
 async function filterSectionsWithAccessGate(
   sections: AdminNavSection[],
@@ -288,76 +462,41 @@ async function filterSectionsWithAccessGate(
   for (const section of sections) {
     const filteredItems = [];
 
+    // Filter main items
     for (const item of section.items) {
-      // Check access based on menu item
-      let hasAccess = true;
-
-      // Licensing Studio - super admin only
-      if (item.title === 'Licensing Studio') {
-        const gate = Gate.superAdminOnly();
-        hasAccess = await gate.allows(userId);
-      }
-      // My Profile - visible to all authenticated users (self-service)
-      else if (item.href === '/admin/my-profile') {
-        // All authenticated users can view their own profile
-        hasAccess = true;
-      }
-      // Members - requires permission
-      else if (item.href.includes('/members')) {
-        const gate = Gate.withPermission('members:view');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Planning - requires members:view permission
-      else if (item.href.includes('/community/planning')) {
-        const gate = Gate.withPermission('members:view');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Accounts - requires finance:view permission
-      else if (item.href.includes('/community/accounts')) {
-        const gate = Gate.withPermission('finance:view');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Finance module - requires finance:view permission
-      else if (item.href.startsWith('/admin/finance')) {
-        const gate = Gate.withPermission('finance:view');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Legacy financial pages - requires permission
-      else if (item.href.includes('/financial') || item.href.includes('/expenses')) {
-        const gate = Gate.withPermission('finance:read');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Reports - requires permission
-      else if (item.href.includes('/reports') && !item.href.startsWith('/admin/finance')) {
-        const gate = Gate.withPermission('reports:read');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // RBAC Management - requires permission
-      else if (item.href.includes('/rbac')) {
-        const gate = Gate.rbacAdmin();
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Security - requires permission
-      else if (item.href.includes('/security')) {
-        const gate = Gate.withPermission('security:read');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-      // Settings - tenant admin or higher
-      else if (item.href.includes('/settings')) {
-        const gate = Gate.withRole('role_tenant_admin');
-        hasAccess = await gate.allows(userId, tenantId);
-      }
-
+      const hasAccess = await checkMenuItemAccess(item, userId, tenantId);
       if (hasAccess) {
         filteredItems.push(item);
       }
     }
 
-    // Only include section if it has items
-    if (filteredItems.length > 0) {
+    // Filter sub-groups and their items
+    const filteredSubGroups = [];
+    if (section.subGroups) {
+      for (const subGroup of section.subGroups) {
+        const filteredSubGroupItems = [];
+        for (const item of subGroup.items) {
+          const hasAccess = await checkMenuItemAccess(item, userId, tenantId);
+          if (hasAccess) {
+            filteredSubGroupItems.push(item);
+          }
+        }
+        // Only include sub-group if it has accessible items
+        if (filteredSubGroupItems.length > 0) {
+          filteredSubGroups.push({
+            ...subGroup,
+            items: filteredSubGroupItems,
+          });
+        }
+      }
+    }
+
+    // Only include section if it has items or sub-groups with items
+    if (filteredItems.length > 0 || filteredSubGroups.length > 0) {
       filteredSections.push({
         ...section,
         items: filteredItems,
+        subGroups: filteredSubGroups.length > 0 ? filteredSubGroups : undefined,
       });
     }
   }

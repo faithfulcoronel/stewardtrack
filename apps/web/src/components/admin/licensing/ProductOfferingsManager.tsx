@@ -185,14 +185,44 @@ export function ProductOfferingsManager() {
       id: 'limits',
       header: 'Limits',
       align: 'center',
-      renderCell: (row) => (
-        <div className="text-sm">
-          <div>Users: {row.max_users || 'Unlimited'}</div>
-          <div className="text-xs text-gray-500">
-            Tenants: {row.max_tenants || 'Unlimited'}
+      renderCell: (row) => {
+        const formatLimit = (value: number | null | undefined) => {
+          if (value === null || value === undefined) return '∞';
+          if (value === 0) return '0';
+          return value.toLocaleString();
+        };
+
+        return (
+          <div className="text-xs space-y-0.5">
+            <div className="flex justify-between gap-2">
+              <span className="text-gray-500">Members:</span>
+              <span className="font-medium">{formatLimit(row.max_members)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-gray-500">Admins:</span>
+              <span className="font-medium">{formatLimit(row.max_admin_users)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-gray-500">SMS:</span>
+              <span className="font-medium">{formatLimit(row.max_sms_per_month)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-gray-500">Emails:</span>
+              <span className="font-medium">{formatLimit(row.max_emails_per_month)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-gray-500">Storage:</span>
+              <span className="font-medium">
+                {row.max_storage_mb === null || row.max_storage_mb === undefined
+                  ? '∞'
+                  : row.max_storage_mb >= 1024
+                    ? `${(row.max_storage_mb / 1024).toFixed(1)}GB`
+                    : `${row.max_storage_mb}MB`}
+              </span>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       id: 'status',
