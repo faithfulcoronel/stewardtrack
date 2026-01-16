@@ -114,14 +114,15 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
       }
     }
 
-    // Get user's display name - check linked member first, then profile
+    // Get user's display name and profile picture - check linked member first, then profile
     let userName = userEmail.split('@')[0];
+    let userProfilePictureUrl: string | null = null;
 
     // Check if user is linked to a member record
     if (tenantId) {
       const { data: linkedMember } = await supabase
         .from('members')
-        .select('id, first_name, last_name, encrypted_fields')
+        .select('id, first_name, last_name, profile_picture_url, encrypted_fields')
         .eq('user_id', userId)
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
@@ -137,6 +138,8 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
         } else if (firstName) {
           userName = firstName;
         }
+        // Get profile picture from linked member record
+        userProfilePictureUrl = (decryptedMember.profile_picture_url as string) || null;
       }
     }
 
@@ -156,6 +159,7 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     return {
       userName,
       userEmail,
+      userProfilePictureUrl,
       tenantId,
       tenantName,
       tenantLogoUrl,
@@ -602,12 +606,18 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
         const daysUntil = differenceInDays(thisYearBirthday, today);
 
+        // Calculate age they will be turning
+        const birthYear = birthdayDate.getFullYear();
+        const celebrationYear = thisYearBirthday.getFullYear();
+        const age = celebrationYear - birthYear;
+
         upcoming.push({
           memberId: member.id as string,
           firstName: member.first_name as string,
           lastName: member.last_name as string,
           birthday,
           daysUntil,
+          age: age > 0 ? age : undefined, // Only include if valid age
           profilePictureUrl: member.profile_picture_url as string | null,
         });
       }

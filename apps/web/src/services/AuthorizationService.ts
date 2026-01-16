@@ -159,4 +159,18 @@ export class AuthorizationService {
       userId: authResult.userId
     };
   }
+
+  /**
+   * Get user by ID using admin API
+   * Returns the user object with metadata, or null if not found
+   */
+  async getUserById(userId: string): Promise<User | null> {
+    const { data, error } = await this.authRepository.getUserById(userId);
+
+    if (error || !data?.user) {
+      return null;
+    }
+
+    return data.user;
+  }
 }

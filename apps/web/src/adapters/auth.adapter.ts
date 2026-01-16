@@ -15,6 +15,7 @@ interface IAuthAdapter {
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   deleteUser(userId: string): Promise<{ error: AuthError | null }>;
+  getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -76,6 +77,15 @@ export class AuthAdapter implements IAuthAdapter {
 
     const supabase = await this.getServiceClient();
     return supabase.auth.admin.deleteUser(userId);
+  }
+
+  /**
+   * Get a user by ID using admin API
+   * This requires service role key access
+   */
+  async getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }> {
+    const supabase = await this.getServiceClient();
+    return supabase.auth.admin.getUserById(userId);
   }
 
   async searchPublicTenants(query: string) {

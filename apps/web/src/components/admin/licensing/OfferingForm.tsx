@@ -38,6 +38,11 @@ const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   billing_cycle: 'monthly',
   max_users: null,
   max_tenants: 1,
+  max_members: null,
+  max_sms_per_month: null,
+  max_emails_per_month: null,
+  max_storage_mb: null,
+  max_admin_users: null,
   is_active: true,
   is_featured: false,
   sort_order: 0,
@@ -149,6 +154,11 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
           : null,
         max_users: offering.max_users ?? null,
         max_tenants: offering.max_tenants ?? null,
+        max_members: offering.max_members ?? null,
+        max_sms_per_month: offering.max_sms_per_month ?? null,
+        max_emails_per_month: offering.max_emails_per_month ?? null,
+        max_storage_mb: offering.max_storage_mb ?? null,
+        max_admin_users: offering.max_admin_users ?? null,
         is_active: offering.is_active,
         is_featured: offering.is_featured,
         sort_order: offering.sort_order ?? 0,
@@ -258,7 +268,10 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     });
   };
 
-  const handleNumberChange = (field: 'max_users' | 'max_tenants' | 'sort_order', value: string) => {
+  const handleNumberChange = (
+    field: 'max_users' | 'max_tenants' | 'sort_order' | 'max_members' | 'max_sms_per_month' | 'max_emails_per_month' | 'max_storage_mb' | 'max_admin_users',
+    value: string
+  ) => {
     if (value === '') {
       handleFieldChange(field, null as never);
       return;
@@ -401,6 +414,11 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
       ...formData,
       max_users: formData.max_users ?? null,
       max_tenants: formData.max_tenants ?? null,
+      max_members: formData.max_members ?? null,
+      max_sms_per_month: formData.max_sms_per_month ?? null,
+      max_emails_per_month: formData.max_emails_per_month ?? null,
+      max_storage_mb: formData.max_storage_mb ?? null,
+      max_admin_users: formData.max_admin_users ?? null,
       sort_order: formData.sort_order ?? 0,
       bundle_ids: selectedBundleIds,
       feature_ids: selectedFeatureIds,
@@ -602,6 +620,78 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                       onChange={(event) => handleNumberChange('max_tenants', event.target.value)}
                       placeholder="Unlimited"
                     />
+                  </div>
+                </div>
+
+                {/* Tier Limits Section */}
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+                  <div>
+                    <Label className="text-sm font-medium">Quota Limits</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Set usage limits for this tier. Leave empty for unlimited.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="max_members">Max Members</Label>
+                      <Input
+                        id="max_members"
+                        type="number"
+                        min="0"
+                        value={formData.max_members ?? ''}
+                        onChange={(event) => handleNumberChange('max_members', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Church members</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_admin_users">Max Admin Users</Label>
+                      <Input
+                        id="max_admin_users"
+                        type="number"
+                        min="0"
+                        value={formData.max_admin_users ?? ''}
+                        onChange={(event) => handleNumberChange('max_admin_users', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Staff/admin accounts</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_sms_per_month">SMS Credits/Month</Label>
+                      <Input
+                        id="max_sms_per_month"
+                        type="number"
+                        min="0"
+                        value={formData.max_sms_per_month ?? ''}
+                        onChange={(event) => handleNumberChange('max_sms_per_month', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">0 = SMS disabled</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_emails_per_month">Emails/Month</Label>
+                      <Input
+                        id="max_emails_per_month"
+                        type="number"
+                        min="0"
+                        value={formData.max_emails_per_month ?? ''}
+                        onChange={(event) => handleNumberChange('max_emails_per_month', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Monthly email limit</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_storage_mb">Storage (MB)</Label>
+                      <Input
+                        id="max_storage_mb"
+                        type="number"
+                        min="0"
+                        value={formData.max_storage_mb ?? ''}
+                        onChange={(event) => handleNumberChange('max_storage_mb', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">File storage limit</p>
+                    </div>
                   </div>
                 </div>
 

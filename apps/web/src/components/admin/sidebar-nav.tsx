@@ -19,6 +19,26 @@ import {
   Layers,
   BookOpen,
   CalendarDays,
+  Home,
+  HeartHandshake,
+  GraduationCap,
+  Target,
+  Clock,
+  UserCircle,
+  Landmark,
+  HandCoins,
+  Receipt,
+  PiggyBank,
+  TrendingUp,
+  BookText,
+  Scale,
+  Banknote,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Tags,
+  CircleDollarSign,
+  ChevronDown,
+  Cog,
 } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,6 +59,27 @@ export const ADMIN_NAV_ICONS = {
   modules: Layers,
   docs: BookOpen,
   calendar: CalendarDays,
+  families: Home,
+  carePlans: HeartHandshake,
+  discipleship: GraduationCap,
+  goals: Target,
+  scheduler: Clock,
+  accounts: UserCircle,
+  // Finance-specific icons
+  treasury: Landmark,
+  giving: HandCoins,
+  transactions: Receipt,
+  funds: PiggyBank,
+  financialReports: TrendingUp,
+  ledger: BookText,
+  balances: Scale,
+  offerings: Banknote,
+  income: ArrowDownToLine,
+  expenseCategories: ArrowUpFromLine,
+  categories: Tags,
+  chartOfAccounts: CircleDollarSign,
+  // Collapsible group icons
+  setup: Cog,
 } satisfies Record<string, ComponentType<{ className?: string }>>;
 
 type IconKey = keyof typeof ADMIN_NAV_ICONS;
@@ -50,9 +91,18 @@ export type AdminNavItem = {
   badge?: string;
 };
 
+// Collapsible sub-group within a section
+export type AdminNavSubGroup = {
+  label: string;
+  icon: IconKey;
+  items: AdminNavItem[];
+  defaultCollapsed?: boolean;
+};
+
 export type AdminNavSection = {
   label: string;
   items: AdminNavItem[];
+  subGroups?: AdminNavSubGroup[];
 };
 
 type AdminSidebarProps = {
@@ -70,9 +120,31 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const mobileOpen = mobileOpenProp ?? internalMobileOpen;
   const setMobileOpen = onMobileOpenChange ?? setInternalMobileOpen;
   const showLabels = !collapsed;
+
+  // Toggle sub-group expansion
+  const toggleSubGroup = (groupKey: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupKey)) {
+        newSet.delete(groupKey);
+      } else {
+        newSet.add(groupKey);
+      }
+      return newSet;
+    });
+  };
+
+  // Check if any item in a sub-group is active
+  const isSubGroupActive = (items: AdminNavItem[]) => {
+    return items.some((item) => {
+      const target = new URL(item.href, "https://placeholder.local");
+      return pathname === target.pathname || pathname.startsWith(target.pathname + "/");
+    });
+  };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -109,6 +181,16 @@ export function AdminSidebar({
         isActive,
       };
     }),
+    subGroups: section.subGroups?.map((subGroup) => ({
+      ...subGroup,
+      Icon: ADMIN_NAV_ICONS[subGroup.icon] ?? LayoutDashboard,
+      items: subGroup.items.map((item) => {
+        const Icon = ADMIN_NAV_ICONS[item.icon] ?? LayoutDashboard;
+        const target = new URL(item.href, "https://placeholder.local");
+        const isActive = pathname === target.pathname;
+        return { ...item, Icon, isActive };
+      }),
+    })),
   }));
 
   return (
@@ -158,6 +240,55 @@ export function AdminSidebar({
                         ) : null}
                       </Link>
                     ))}
+                    {/* Collapsible Sub-Groups (Mobile) */}
+                    {section.subGroups?.map((subGroup) => {
+                      const groupKey = `mobile-${section.label}-${subGroup.label}`;
+                      const isExpanded = expandedGroups.has(groupKey) || isSubGroupActive(subGroup.items);
+                      const hasActiveItem = isSubGroupActive(subGroup.items);
+
+                      return (
+                        <div key={groupKey} className="mt-1">
+                          <button
+                            onClick={() => toggleSubGroup(groupKey)}
+                            className={cn(
+                              "flex w-full items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition",
+                              "hover:bg-white/15",
+                              hasActiveItem ? "text-white" : "text-white/70",
+                            )}
+                          >
+                            <subGroup.Icon className="size-4 flex-none" />
+                            <span className="flex-1 text-left">{subGroup.label}</span>
+                            <ChevronDown
+                              className={cn(
+                                "size-4 flex-none transition-transform duration-200",
+                                isExpanded && "rotate-180"
+                              )}
+                            />
+                          </button>
+                          {isExpanded && (
+                            <div className="ml-4 mt-1 grid gap-1 border-l border-white/20 pl-3">
+                              {subGroup.items.map((item) => (
+                                <Link
+                                  key={item.title + item.href}
+                                  href={item.href}
+                                  prefetch={false}
+                                  title={item.title}
+                                  onClick={() => setMobileOpen(false)}
+                                  className={cn(
+                                    "group flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition",
+                                    "hover:bg-white/15",
+                                    item.isActive ? "bg-white/20 text-white" : "text-white/70",
+                                  )}
+                                >
+                                  <item.Icon className="size-3.5 flex-none" />
+                                  <span className="flex-1">{item.title}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </nav>
                 </div>
               ))}
@@ -211,6 +342,59 @@ export function AdminSidebar({
                       ) : null}
                     </Link>
                   ))}
+                  {/* Collapsible Sub-Groups */}
+                  {section.subGroups?.map((subGroup) => {
+                    const groupKey = `${section.label}-${subGroup.label}`;
+                    const isExpanded = expandedGroups.has(groupKey) || isSubGroupActive(subGroup.items);
+                    const hasActiveItem = isSubGroupActive(subGroup.items);
+
+                    return (
+                      <div key={groupKey} className="mt-1">
+                        <button
+                          onClick={() => toggleSubGroup(groupKey)}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition",
+                            "hover:bg-white/15",
+                            hasActiveItem ? "text-white" : "text-white/70",
+                            collapsed && "justify-center",
+                          )}
+                        >
+                          <subGroup.Icon className="size-4 flex-none" />
+                          {showLabels && (
+                            <>
+                              <span className="flex-1 text-left">{subGroup.label}</span>
+                              <ChevronDown
+                                className={cn(
+                                  "size-4 flex-none transition-transform duration-200",
+                                  isExpanded && "rotate-180"
+                                )}
+                              />
+                            </>
+                          )}
+                        </button>
+                        {showLabels && isExpanded && (
+                          <div className="ml-4 mt-1 grid gap-1 border-l border-white/20 pl-3">
+                            {subGroup.items.map((item) => (
+                              <Link
+                                key={item.title + item.href}
+                                href={item.href}
+                                prefetch={false}
+                                title={item.title}
+                                className={cn(
+                                  "group flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition",
+                                  "hover:bg-white/15",
+                                  item.isActive ? "bg-white/20 text-white" : "text-white/70",
+                                )}
+                              >
+                                <item.Icon className="size-3.5 flex-none" />
+                                <span className="flex-1">{item.title}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </nav>
               </div>
             ))}

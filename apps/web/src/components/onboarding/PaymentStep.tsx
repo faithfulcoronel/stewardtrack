@@ -218,8 +218,8 @@ export default function PaymentStep({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="capitalize">{offering.tier} Plan</CardTitle>
-                <CardDescription>{offering.name}</CardDescription>
+                <CardTitle>{offering.name}</CardTitle>
+                <CardDescription className="capitalize">{offering.tier} tier</CardDescription>
               </div>
               {isPaid && (
                 <Badge variant="default" className="bg-green-500">

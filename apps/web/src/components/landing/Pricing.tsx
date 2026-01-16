@@ -326,8 +326,8 @@ function PricingContent() {
 
                   <div className="mb-6 pt-2">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className={`text-2xl font-bold capitalize ${offering.is_featured ? 'text-white' : 'text-[#179a65]'}`}>
-                        {offering.tier}
+                      <h3 className={`text-2xl font-bold ${offering.is_featured ? 'text-white' : 'text-[#179a65]'}`}>
+                        {offering.name}
                       </h3>
                       {offering.offering_type === 'trial' && (
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -492,7 +492,7 @@ function PricingContent() {
                 className="max-w-7xl mx-auto bg-gradient-to-r from-gray-800 to-gray-800 border border-gray-700 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-[#179a65]/50 transition-colors"
               >
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 capitalize">{customOffering.tier}</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{customOffering.name}</h3>
                   <p className="text-gray-400 mb-6 max-w-xl">{customOffering.description}</p>
                   <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3">
                     {customOffering.features && customOffering.features.slice(0, 5).map((feature) => (

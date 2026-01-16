@@ -429,8 +429,8 @@ function RegisterFormContent() {
                   )}
                 </div>
 
-                <h3 className="text-2xl font-bold text-white capitalize mb-2">
-                  {selectedOffering.tier} Plan
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  {selectedOffering.name}
                   {selectedOffering.offering_type === 'trial' && (
                     <span className="ml-2 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white align-middle">
                       FREE TRIAL
@@ -614,7 +614,7 @@ function RegisterFormContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-gray-500">Selected Plan</span>
-                      <h3 className="font-semibold text-gray-900 capitalize">{selectedOffering.tier}</h3>
+                      <h3 className="font-semibold text-gray-900">{selectedOffering.name}</h3>
                     </div>
                     <div className="text-right">
                       <span className="text-lg font-bold text-[#179a65]">

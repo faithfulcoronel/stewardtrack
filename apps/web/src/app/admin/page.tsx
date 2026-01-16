@@ -9,14 +9,16 @@
  * - License distribution
  * - Quick access to Licensing Studio and System Settings
  *
- * For Tenant Admins:
- * - Welcome message with tenant name
- * - Bible verse of the day
- * - Key metrics (members, finances, events)
- * - Quick action links
- * - Highlights/attention items
- * - Recent activity
- * - Upcoming events and birthdays
+ * For Tenant Users (Persona-Based Dashboard):
+ * - Role-personalized welcome with church branding
+ * - Bible verse of the day with refresh option
+ * - "My Focus Today" section with role-specific priorities
+ * - Quick actions filtered by role permissions
+ * - Church Pulse metrics (leadership roles)
+ * - Financial overview (finance roles)
+ * - Pastoral care summary (pastoral roles)
+ * - Community life (events, celebrations, announcements)
+ * - Personal journey tracking (members/visitors/volunteers)
  *
  * SECURITY: Protected by AccessGate requiring authentication.
  * Super admin check determines which dashboard to display.
@@ -27,7 +29,7 @@ import type { Metadata } from "next";
 import { Gate } from "@/lib/access-gate";
 import { ProtectedPage } from "@/components/access-gate";
 import { getCurrentUser } from "@/lib/server/context";
-import { AdminDashboard, SuperAdminDashboard } from "@/components/admin/dashboard";
+import { PersonaBasedDashboard, SuperAdminDashboard } from "@/components/admin/dashboard";
 
 export const metadata: Metadata = {
   title: "Dashboard | StewardTrack",
@@ -44,7 +46,7 @@ export default async function AdminPage() {
 
   return (
     <ProtectedPage gate={authGate} userId={user.id}>
-      {isSuperAdmin ? <SuperAdminDashboard /> : <AdminDashboard />}
+      {isSuperAdmin ? <SuperAdminDashboard /> : <PersonaBasedDashboard />}
     </ProtectedPage>
   );
 }
