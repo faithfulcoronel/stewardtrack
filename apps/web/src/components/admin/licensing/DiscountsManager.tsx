@@ -90,6 +90,7 @@ interface DiscountFormData {
   first_purchase_only: boolean;
   new_tenant_only: boolean;
   applicable_billing_cycles: string[];
+  duration_billing_cycles: number | null;
   is_active: boolean;
   show_banner: boolean;
   banner_text: string;
@@ -114,6 +115,7 @@ const defaultFormData: DiscountFormData = {
   first_purchase_only: false,
   new_tenant_only: false,
   applicable_billing_cycles: ['monthly', 'annual'],
+  duration_billing_cycles: null,
   is_active: true,
   show_banner: false,
   banner_text: '',
@@ -178,6 +180,7 @@ export function DiscountsManager() {
       first_purchase_only: discount.first_purchase_only,
       new_tenant_only: discount.new_tenant_only,
       applicable_billing_cycles: discount.applicable_billing_cycles || ['monthly', 'annual'],
+      duration_billing_cycles: discount.duration_billing_cycles ?? null,
       is_active: discount.is_active,
       show_banner: discount.show_banner,
       banner_text: discount.banner_text || '',
@@ -264,6 +267,9 @@ export function DiscountsManager() {
       }
       if (formData.badge_text) {
         payload.badge_text = formData.badge_text;
+      }
+      if (formData.duration_billing_cycles !== null) {
+        payload.duration_billing_cycles = formData.duration_billing_cycles;
       }
 
       const url = selectedDiscount
@@ -624,6 +630,27 @@ export function DiscountsManager() {
                     </Select>
                   </div>
                 )}
+              </div>
+
+              {/* Duration Billing Cycles */}
+              <div className="space-y-2">
+                <Label>Discount Duration (Billing Cycles)</Label>
+                <Input
+                  type="number"
+                  value={formData.duration_billing_cycles || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      duration_billing_cycles: e.target.value ? parseInt(e.target.value) : null,
+                    })
+                  }
+                  min={1}
+                  placeholder="Forever (leave empty for unlimited)"
+                />
+                <p className="text-xs text-gray-500">
+                  Number of billing cycles the discount applies to. For example, enter 3 for &quot;first 3 months discount&quot;.
+                  Leave empty for unlimited duration.
+                </p>
               </div>
             </div>
 

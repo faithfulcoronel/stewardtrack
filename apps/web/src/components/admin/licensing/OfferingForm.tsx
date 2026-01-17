@@ -43,9 +43,29 @@ const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   max_emails_per_month: null,
   max_storage_mb: null,
   max_admin_users: null,
+  max_transactions_per_month: null,
+  trial_days: null,
   is_active: true,
   is_featured: false,
   sort_order: 0,
+};
+
+interface OfferingMetadata {
+  badge_text?: string;
+  highlight_text?: string;
+  is_free?: boolean;
+  converts_to_price?: number;
+  cta_text?: string;
+  features_headline?: string;
+}
+
+const DEFAULT_METADATA: OfferingMetadata = {
+  badge_text: '',
+  highlight_text: '',
+  is_free: false,
+  converts_to_price: undefined,
+  cta_text: '',
+  features_headline: '',
 };
 
 type OfferingFormMode = 'create' | 'edit';
@@ -60,6 +80,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   const router = useRouter();
 
   const [formData, setFormData] = useState<CreateProductOfferingDto>({ ...DEFAULT_FORM_DATA });
+  const [metadata, setMetadata] = useState<OfferingMetadata>({ ...DEFAULT_METADATA });
   const [bundles, setBundles] = useState<LicenseFeatureBundleWithFeatures[]>([]);
   const [features, setFeatures] = useState<LicenseFeature[]>([]);
   const [selectedBundleIds, setSelectedBundleIds] = useState<string[]>([]);
@@ -159,6 +180,8 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
         max_emails_per_month: offering.max_emails_per_month ?? null,
         max_storage_mb: offering.max_storage_mb ?? null,
         max_admin_users: offering.max_admin_users ?? null,
+        max_transactions_per_month: offering.max_transactions_per_month ?? null,
+        trial_days: (offering as any).trial_days ?? null,
         is_active: offering.is_active,
         is_featured: offering.is_featured,
         sort_order: offering.sort_order ?? 0,
@@ -166,6 +189,19 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
 
       setSelectedBundleIds((offering.bundles ?? []).map((bundle) => bundle.id));
       setSelectedFeatureIds((offering.features ?? []).map((feature) => feature.id));
+
+      // Load metadata if available
+      if (offering.metadata) {
+        const offeringMetadata = offering.metadata as Record<string, any>;
+        setMetadata({
+          badge_text: offeringMetadata.badge_text || '',
+          highlight_text: offeringMetadata.highlight_text || '',
+          is_free: offeringMetadata.pricing?.is_free || offeringMetadata.is_free || false,
+          converts_to_price: offeringMetadata.converts_to_price || undefined,
+          cta_text: offeringMetadata.cta_text || '',
+          features_headline: offeringMetadata.features_headline || '',
+        });
+      }
 
       // Load currency prices if available
       if ((offering as any).prices && Array.isArray((offering as any).prices)) {
@@ -268,8 +304,18 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     });
   };
 
+  const handleMetadataChange = <Key extends keyof OfferingMetadata>(
+    field: Key,
+    value: OfferingMetadata[Key]
+  ) => {
+    setMetadata((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  };
+
   const handleNumberChange = (
-    field: 'max_users' | 'max_tenants' | 'sort_order' | 'max_members' | 'max_sms_per_month' | 'max_emails_per_month' | 'max_storage_mb' | 'max_admin_users',
+    field: 'max_users' | 'max_tenants' | 'sort_order' | 'max_members' | 'max_sms_per_month' | 'max_emails_per_month' | 'max_storage_mb' | 'max_admin_users' | 'max_transactions_per_month' | 'trial_days',
     value: string
   ) => {
     if (value === '') {
@@ -410,6 +456,27 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // Build metadata object, only including non-empty values
+    const metadataPayload: Record<string, any> = {};
+    if (metadata.badge_text?.trim()) {
+      metadataPayload.badge_text = metadata.badge_text.trim();
+    }
+    if (metadata.highlight_text?.trim()) {
+      metadataPayload.highlight_text = metadata.highlight_text.trim();
+    }
+    if (metadata.is_free) {
+      metadataPayload.pricing = { is_free: true };
+    }
+    if (metadata.converts_to_price !== undefined && metadata.converts_to_price > 0) {
+      metadataPayload.converts_to_price = metadata.converts_to_price;
+    }
+    if (metadata.cta_text?.trim()) {
+      metadataPayload.cta_text = metadata.cta_text.trim();
+    }
+    if (metadata.features_headline?.trim()) {
+      metadataPayload.features_headline = metadata.features_headline.trim();
+    }
+
     const payload = {
       ...formData,
       max_users: formData.max_users ?? null,
@@ -419,9 +486,12 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
       max_emails_per_month: formData.max_emails_per_month ?? null,
       max_storage_mb: formData.max_storage_mb ?? null,
       max_admin_users: formData.max_admin_users ?? null,
+      max_transactions_per_month: formData.max_transactions_per_month ?? null,
+      trial_days: formData.offering_type === ProductOfferingType.TRIAL ? (formData.trial_days ?? null) : null,
       sort_order: formData.sort_order ?? 0,
       bundle_ids: selectedBundleIds,
       feature_ids: selectedFeatureIds,
+      metadata: Object.keys(metadataPayload).length > 0 ? metadataPayload : null,
     };
 
     setIsSubmitting(true);
@@ -517,6 +587,86 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                     rows={4}
                   />
                 </div>
+
+                {/* Marketing & Display Settings */}
+                <div className="space-y-3 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                  <div>
+                    <Label className="text-sm font-medium">Marketing & Display Settings</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Configure how this offering appears on pricing pages and signup flows.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="badge_text">Badge Text</Label>
+                      <Input
+                        id="badge_text"
+                        value={metadata.badge_text ?? ''}
+                        onChange={(e) => handleMetadataChange('badge_text', e.target.value)}
+                        placeholder="e.g. Most Popular"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Badge on pricing cards</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="highlight_text">Highlight Text</Label>
+                      <Input
+                        id="highlight_text"
+                        value={metadata.highlight_text ?? ''}
+                        onChange={(e) => handleMetadataChange('highlight_text', e.target.value)}
+                        placeholder="e.g. Save 20%"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Promotional message</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="cta_text">CTA Button Text</Label>
+                      <Input
+                        id="cta_text"
+                        value={metadata.cta_text ?? ''}
+                        onChange={(e) => handleMetadataChange('cta_text', e.target.value)}
+                        placeholder="e.g. Get Started"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Call-to-action text</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="features_headline">Features Headline</Label>
+                      <Input
+                        id="features_headline"
+                        value={metadata.features_headline ?? ''}
+                        onChange={(e) => handleMetadataChange('features_headline', e.target.value)}
+                        placeholder="e.g. Includes:"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Above feature list</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 rounded-lg border bg-background p-3">
+                    <Checkbox
+                      id="is_free"
+                      checked={Boolean(metadata.is_free)}
+                      onCheckedChange={(checked) => handleMetadataChange('is_free', checked === true)}
+                    />
+                    <div>
+                      <Label htmlFor="is_free" className="font-medium">
+                        Free Offering
+                      </Label>
+                      <p className="text-xs text-muted-foreground">Display as free on pricing pages</p>
+                    </div>
+                  </div>
+                  {formData.offering_type === ProductOfferingType.TRIAL && (
+                    <div>
+                      <Label htmlFor="converts_to_price">Price After Trial</Label>
+                      <Input
+                        id="converts_to_price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={metadata.converts_to_price ?? ''}
+                        onChange={(e) => handleMetadataChange('converts_to_price', e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="e.g. 29.99"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Display price after trial ends</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -538,6 +688,31 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Trial Settings - Only shown when offering_type is 'trial' */}
+                {formData.offering_type === ProductOfferingType.TRIAL && (
+                  <div className="space-y-3 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
+                    <div>
+                      <Label className="text-sm font-medium">Trial Settings</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Configure the trial period. After trial ends, upgrade path is determined by tier and billing cycle.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="trial_days">Trial Period (Days)</Label>
+                      <Input
+                        id="trial_days"
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={formData.trial_days ?? ''}
+                        onChange={(event) => handleNumberChange('trial_days', event.target.value)}
+                        placeholder="e.g. 14"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Number of days for the trial period</p>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="tier">License Tier</Label>
@@ -691,6 +866,18 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                         placeholder="Unlimited"
                       />
                       <p className="text-xs text-muted-foreground mt-1">File storage limit</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_transactions_per_month">Transactions/Month</Label>
+                      <Input
+                        id="max_transactions_per_month"
+                        type="number"
+                        min="0"
+                        value={formData.max_transactions_per_month ?? ''}
+                        onChange={(event) => handleNumberChange('max_transactions_per_month', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Financial transactions limit</p>
                     </div>
                   </div>
                 </div>

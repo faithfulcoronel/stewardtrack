@@ -26,7 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 import { normalizeList, renderAction, type ActionConfig } from "../shared";
 
@@ -83,7 +85,7 @@ export interface GridFilterOption {
 
 export interface GridFilterConfig {
   id: string;
-  type: "search" | "select";
+  type: "search" | "select" | "daterange";
   label?: string | null;
   placeholder?: string | null;
   options?: GridFilterOption[] | { items?: GridFilterOption[] } | null;
@@ -125,8 +127,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
   );
   const rawRows = React.useMemo(() => [...(props.rows ?? [])], [props.rows]);
   const [tableRows, setTableRows] = React.useState<GridValue[]>(rawRows);
-  const [filterState, setFilterState] = React.useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
+  const [filterState, setFilterState] = React.useState<Record<string, string | DateRange | undefined>>(() => {
+    const initial: Record<string, string | DateRange | undefined> = {};
     for (const filter of filters) {
       if (filter.defaultValue) {
         initial[filter.id] = filter.defaultValue;
@@ -149,9 +151,10 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
   const filteredRows = React.useMemo(() => {
     const searchFilters = filters.filter((filter) => filter.type === "search");
     const selectFilters = filters.filter((filter) => filter.type === "select");
+    const dateRangeFilters = filters.filter((filter) => filter.type === "daterange");
     const searchTerms = searchFilters.map((filter) => {
-      const value = filterState[filter.id] ?? "";
-      return value.trim().toLowerCase();
+      const value = filterState[filter.id];
+      return typeof value === "string" ? value.trim().toLowerCase() : "";
     });
 
     return tableRows.filter((row) => {
@@ -163,8 +166,39 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
         }
         const field = filter.field ?? filter.id;
         const value = String(resolveValue(row, field) ?? "").toLowerCase();
-        if (value !== active.toLowerCase()) {
+        if (typeof active === "string" && value !== active.toLowerCase()) {
           return false;
+        }
+      }
+
+      // Apply date range filters
+      for (const filter of dateRangeFilters) {
+        const range = filterState[filter.id] as DateRange | undefined;
+        if (!range || (!range.from && !range.to)) {
+          continue;
+        }
+        const field = filter.field ?? filter.id;
+        const rawValue = resolveValue(row, field);
+        if (!rawValue) {
+          return false;
+        }
+        const rowDate = new Date(String(rawValue));
+        if (isNaN(rowDate.getTime())) {
+          return false;
+        }
+        // Normalize to start of day for comparison
+        const rowDateStart = new Date(rowDate.getFullYear(), rowDate.getMonth(), rowDate.getDate());
+        if (range.from) {
+          const fromDate = new Date(range.from.getFullYear(), range.from.getMonth(), range.from.getDate());
+          if (rowDateStart < fromDate) {
+            return false;
+          }
+        }
+        if (range.to) {
+          const toDate = new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate());
+          if (rowDateStart > toDate) {
+            return false;
+          }
         }
       }
 
@@ -484,7 +518,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
                 <FilterInput
                   key={filter.id}
                   filter={filter}
-                  value={filterState[filter.id] ?? ""}
+                  value={filterState[filter.id]}
                   onChange={(value) =>
                     setFilterState((prev) => ({
                       ...prev,
@@ -494,7 +528,15 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
                 />
               ))}
             </div>
-            {Object.values(filterState).some(Boolean) && (
+            {Object.values(filterState).some((v) => {
+              if (!v) return false;
+              if (typeof v === "string") return v.trim().length > 0;
+              if (typeof v === "object" && "from" in v) {
+                const range = v as DateRange;
+                return Boolean(range.from || range.to);
+              }
+              return true;
+            }) && (
               <Button
                 type="button"
                 variant="ghost"
@@ -579,15 +621,16 @@ function FilterInput({
   onChange,
 }: {
   filter: GridFilterConfig;
-  value: string;
-  onChange: (value: string) => void;
+  value: string | DateRange | undefined;
+  onChange: (value: string | DateRange | undefined) => void;
 }) {
   if (filter.type === "select") {
     const options = normalizeList<GridFilterOption>(filter.options);
+    const stringValue = typeof value === "string" ? value : "";
     return (
       <div className="flex flex-col gap-2">
         {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
-        <Select value={value || filter.defaultValue || ""} onValueChange={onChange}>
+        <Select value={stringValue || filter.defaultValue || ""} onValueChange={onChange}>
           <SelectTrigger className="min-w-[10rem]">
             <SelectValue placeholder={filter.placeholder ?? "Choose"} />
           </SelectTrigger>
@@ -605,11 +648,30 @@ function FilterInput({
     );
   }
 
+  if (filter.type === "daterange") {
+    const rangeValue = (value && typeof value === "object" && "from" in value) ? value as DateRange : undefined;
+    return (
+      <div className="flex flex-col gap-2">
+        {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
+        <DatePicker
+          mode="range"
+          value={rangeValue}
+          onChange={(range) => onChange(range)}
+          placeholder={filter.placeholder ?? "Filter by date"}
+          clearable
+          closeOnSelect
+          className="min-w-[14rem]"
+        />
+      </div>
+    );
+  }
+
+  const stringValue = typeof value === "string" ? value : "";
   return (
     <div className="flex flex-col gap-2">
       {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
       <Input
-        value={value}
+        value={stringValue}
         onChange={(event) => onChange(event.target.value)}
         placeholder={filter.placeholder ?? "Search"}
         className="w-full min-w-[14rem]"

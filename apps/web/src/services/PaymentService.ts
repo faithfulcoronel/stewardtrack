@@ -23,6 +23,8 @@ export interface DiscountInfo {
   discount_value: number;
   discount_amount: number;
   original_price: number;
+  /** Number of billing cycles the discount applies (e.g., 3 for "first 3 months") */
+  duration_billing_cycles?: number | null;
 }
 
 export interface CreatePaymentParams {
@@ -82,6 +84,7 @@ export class PaymentService {
         discount_value: params.discount.discount_value,
         discount_amount: params.discount.discount_amount,
         original_price: params.discount.original_price,
+        duration_billing_cycles: params.discount.duration_billing_cycles,
       };
     }
 

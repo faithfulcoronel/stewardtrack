@@ -342,9 +342,20 @@ export const TYPES = {
   // Background Job Services
   ScheduledEventsService: Symbol.for('ScheduledEventsService'),
 
+  // Category Services
+  IncomeCategoryService: Symbol.for('IncomeCategoryService'),
+
+  // Excel Import Service (Onboarding)
+  ExcelImportService: Symbol.for('ExcelImportService'),
+
   // Scheduled Notification (Background Jobs)
   IScheduledNotificationAdapter: Symbol.for('IScheduledNotificationAdapter'),
   IScheduledNotificationRepository: Symbol.for('IScheduledNotificationRepository'),
+
+  // Storage
+  IStorageAdapter: Symbol.for('IStorageAdapter'),
+  IStorageRepository: Symbol.for('IStorageRepository'),
+  StorageService: Symbol.for('StorageService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

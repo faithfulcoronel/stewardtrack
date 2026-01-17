@@ -25,6 +25,7 @@ export class FundAdapter
     description,
     type,
     coa_id,
+    tenant_id,
     created_by,
     updated_by,
     created_at,

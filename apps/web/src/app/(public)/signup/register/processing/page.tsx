@@ -306,6 +306,16 @@ function RegistrationProgressContent() {
               email: registrationData.email,
               name: `${registrationData.firstName} ${registrationData.lastName}`.trim(),
             });
+            // Include coupon information if present
+            if (registrationData.couponCode) {
+              checkoutParams.set('coupon_code', registrationData.couponCode);
+            }
+            if (registrationData.couponDiscountId) {
+              checkoutParams.set('coupon_discount_id', registrationData.couponDiscountId);
+            }
+            if (registrationData.couponDurationBillingCycles) {
+              checkoutParams.set('coupon_duration_billing_cycles', registrationData.couponDurationBillingCycles.toString());
+            }
             router.push(`/signup/checkout?${checkoutParams.toString()}`);
           }
         }, 2000);
@@ -571,6 +581,16 @@ function RegistrationProgressContent() {
                         email: registrationData?.email || '',
                         name: `${registrationData?.firstName || ''} ${registrationData?.lastName || ''}`.trim(),
                       });
+                      // Include coupon information if present
+                      if (registrationData?.couponCode) {
+                        checkoutParams.set('coupon_code', registrationData.couponCode);
+                      }
+                      if (registrationData?.couponDiscountId) {
+                        checkoutParams.set('coupon_discount_id', registrationData.couponDiscountId);
+                      }
+                      if (registrationData?.couponDurationBillingCycles) {
+                        checkoutParams.set('coupon_duration_billing_cycles', registrationData.couponDurationBillingCycles.toString());
+                      }
                       router.push(`/signup/checkout?${checkoutParams.toString()}`);
                     }
                   }}

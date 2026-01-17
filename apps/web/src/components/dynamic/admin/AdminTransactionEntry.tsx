@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown, CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown, CalendarIcon, AlertCircle, Clock, CheckCircle2, Ban, Lock, RotateCcw, ArrowLeft, Send } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -50,6 +50,25 @@ export interface TransactionLine {
   description: string;
 }
 
+export interface TransactionInitialData {
+  transactionId?: string;
+  transactionType?: "income" | "expense";
+  transactionDate?: string;
+  reference?: string;
+  description?: string;
+  status?: string;
+  lines?: {
+    id?: string;
+    accountId?: string;
+    categoryId?: string;
+    fundId?: string;
+    sourceId?: string;
+    budgetId?: string;
+    amount?: number;
+    description?: string;
+  }[];
+}
+
 export interface AdminTransactionEntryProps {
   // Header data
   eyebrow?: string;
@@ -64,6 +83,8 @@ export interface AdminTransactionEntryProps {
   // Settings
   currency?: string;
   defaultTransactionType?: "income" | "expense";
+  // Initial data for editing existing transactions
+  initialData?: TransactionInitialData;
   // Actions
   submitHandler?: string;
   cancelUrl?: string;
@@ -117,6 +138,7 @@ interface InlineComboboxProps {
   placeholder?: string;
   emptyMessage?: string;
   allowClear?: boolean;
+  disabled?: boolean;
 }
 
 function InlineCombobox({
@@ -126,6 +148,7 @@ function InlineCombobox({
   placeholder = "Select...",
   emptyMessage = "No results found.",
   allowClear = false,
+  disabled = false,
 }: InlineComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -162,15 +185,17 @@ function InlineCombobox({
   }, [onChange]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={!disabled && open} onOpenChange={disabled ? undefined : setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn(
             "h-9 w-full justify-between border-transparent bg-transparent px-2 text-left font-normal hover:border-border hover:bg-transparent focus:border-border",
-            !selectedOption && "text-muted-foreground"
+            !selectedOption && "text-muted-foreground",
+            disabled && "cursor-not-allowed opacity-60 hover:border-transparent"
           )}
         >
           <span className="truncate text-sm">
@@ -287,18 +312,60 @@ export function AdminTransactionEntry({
   budgetOptions = [],
   currency = "USD",
   defaultTransactionType = "income",
+  initialData,
   cancelUrl = "/admin/finance/transactions",
 }: AdminTransactionEntryProps) {
   const router = useRouter();
 
-  // Form state
-  const [transactionType, setTransactionType] = React.useState<"income" | "expense">(defaultTransactionType);
-  const [transactionDate, setTransactionDate] = React.useState<Date>(() => new Date());
+  // Helper to convert initial lines to TransactionLine format
+  const convertInitialLines = React.useCallback((initLines?: TransactionInitialData["lines"]): TransactionLine[] => {
+    if (!initLines || initLines.length === 0) {
+      return [createEmptyLine(1)];
+    }
+    return initLines.map((line, index) => ({
+      id: line.id || generateLineId(),
+      lineNumber: index + 1,
+      accountId: line.accountId || "",
+      categoryId: line.categoryId || "",
+      fundId: line.fundId || "",
+      sourceId: line.sourceId || "",
+      budgetId: line.budgetId || "",
+      amount: line.amount || 0,
+      description: line.description || "",
+    }));
+  }, []);
+
+  // Form state - initialize from initialData if provided
+  const [transactionId, setTransactionId] = React.useState<string | undefined>(initialData?.transactionId);
+  const [transactionType, setTransactionType] = React.useState<"income" | "expense">(
+    initialData?.transactionType || defaultTransactionType
+  );
+  const [transactionDate, setTransactionDate] = React.useState<Date>(() => {
+    if (initialData?.transactionDate) {
+      return new Date(initialData.transactionDate);
+    }
+    return new Date();
+  });
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
-  const [reference, setReference] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [lines, setLines] = React.useState<TransactionLine[]>([createEmptyLine(1)]);
+  const [reference, setReference] = React.useState(initialData?.reference || "");
+  const [description, setDescription] = React.useState(initialData?.description || "");
+  const [lines, setLines] = React.useState<TransactionLine[]>(() => convertInitialLines(initialData?.lines));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  // Track if we're editing an existing transaction
+  const isEditing = Boolean(transactionId);
+
+  // Get current status from initial data
+  const currentStatus = initialData?.status as 'draft' | 'submitted' | 'approved' | 'posted' | 'voided' | undefined;
+
+  // Determine what's editable based on status
+  // Draft: Everything editable
+  // Submitted+: Line items locked, header partially editable
+  // Posted/Voided: Nothing editable (should redirect to view page)
+  const isLineItemsLocked = currentStatus && currentStatus !== 'draft';
+  const isFullyLocked = currentStatus === 'posted' || currentStatus === 'voided';
+  const canSubmit = !currentStatus || currentStatus === 'draft';
+  const canRecall = currentStatus === 'submitted';
 
   // Filter categories based on transaction type
   // Database has: income_transaction, expense_transaction
@@ -365,6 +432,7 @@ export function AdminTransactionEntry({
 
     try {
       const payload = {
+        transactionId: transactionId || undefined, // Include for updates
         transactionType,
         transactionDate: format(transactionDate, "yyyy-MM-dd"),
         reference: reference.trim() || null,
@@ -388,8 +456,8 @@ export function AdminTransactionEntry({
         body: JSON.stringify({
           action: {
             id: asDraft ? "admin-finance.transactions.saveDraft" : "admin-finance.transactions.submit",
-            params: payload,
           },
+          input: payload,
         }),
       });
 
@@ -409,37 +477,109 @@ export function AdminTransactionEntry({
     }
   };
 
+  // Recall a submitted transaction back to draft
+  const handleRecall = async () => {
+    if (!transactionId) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/metadata/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: { id: "admin-finance.transactions.recall" },
+          input: { transactionId },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to recall transaction");
+      }
+
+      toast.success("Transaction recalled to draft status");
+      // Refresh the page to show updated status
+      router.refresh();
+    } catch (error) {
+      console.error("Transaction recall error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to recall transaction");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Page Header - Dynamic based on transaction type */}
+      {/* Page Header - Dynamic based on transaction type and editing state */}
       <header className="space-y-1">
         <p className="text-sm font-medium text-primary">{eyebrow}</p>
         <h1 className="text-2xl font-bold text-foreground">
-          {transactionType === "income" ? "Record income" : "Record expense"}
+          {isEditing
+            ? `Edit ${transactionType === "income" ? "income" : "expense"} transaction`
+            : transactionType === "income" ? "Record income" : "Record expense"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {transactionType === "income"
-            ? "Enter details for incoming funds and donations."
-            : "Enter details for outgoing payments and expenses."}
+          {isEditing
+            ? "Update the transaction details below."
+            : transactionType === "income"
+              ? "Enter details for incoming funds and donations."
+              : "Enter details for outgoing payments and expenses."}
         </p>
       </header>
 
+      {/* Status Banner - Shows when transaction is not in draft status */}
+      {currentStatus && currentStatus !== 'draft' && (
+        <div className={cn(
+          "flex items-center gap-3 rounded-xl border p-4",
+          currentStatus === 'submitted' && "border-amber-200 bg-amber-50 text-amber-800",
+          currentStatus === 'approved' && "border-blue-200 bg-blue-50 text-blue-800",
+          currentStatus === 'posted' && "border-emerald-200 bg-emerald-50 text-emerald-800",
+          currentStatus === 'voided' && "border-red-200 bg-red-50 text-red-800"
+        )}>
+          {currentStatus === 'submitted' && <Clock className="size-5" />}
+          {currentStatus === 'approved' && <CheckCircle2 className="size-5" />}
+          {currentStatus === 'posted' && <Lock className="size-5" />}
+          {currentStatus === 'voided' && <Ban className="size-5" />}
+          <div className="flex-1">
+            <p className="font-medium">
+              {currentStatus === 'submitted' && "Pending Approval"}
+              {currentStatus === 'approved' && "Approved - Ready to Post"}
+              {currentStatus === 'posted' && "Posted to Ledger"}
+              {currentStatus === 'voided' && "Transaction Voided"}
+            </p>
+            <p className="text-sm opacity-80">
+              {currentStatus === 'submitted' && "This transaction is awaiting approval. Line items cannot be modified."}
+              {currentStatus === 'approved' && "This transaction has been approved and is ready to be posted. Line items cannot be modified."}
+              {currentStatus === 'posted' && "This transaction has been posted to the ledger and cannot be modified."}
+              {currentStatus === 'voided' && "This transaction has been voided and cannot be modified."}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Main Form Container */}
       <div className="rounded-3xl border border-border/60 bg-background p-6 shadow-sm">
-        {/* Transaction Type Toggle */}
+        {/* Transaction Type Toggle - Disabled when editing */}
         <div className="mb-6">
           <Label className="mb-3 block text-sm font-semibold text-foreground">
             Transaction Type
+            {isEditing && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">(cannot be changed)</span>
+            )}
           </Label>
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setTransactionType("income")}
+              onClick={() => !isEditing && setTransactionType("income")}
+              disabled={isEditing}
               className={cn(
                 "flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 font-medium transition-all",
                 transactionType === "income"
                   ? "border-emerald-500 bg-emerald-500/10 text-emerald-700"
-                  : "border-border/60 bg-background text-muted-foreground hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                  : "border-border/60 bg-background text-muted-foreground",
+                !isEditing && transactionType !== "income" && "hover:border-emerald-500/50 hover:bg-emerald-500/5",
+                isEditing && "cursor-not-allowed opacity-60"
               )}
             >
               <ArrowDownCircle className={cn(
@@ -450,12 +590,15 @@ export function AdminTransactionEntry({
             </button>
             <button
               type="button"
-              onClick={() => setTransactionType("expense")}
+              onClick={() => !isEditing && setTransactionType("expense")}
+              disabled={isEditing}
               className={cn(
                 "flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 font-medium transition-all",
                 transactionType === "expense"
                   ? "border-rose-500 bg-rose-500/10 text-rose-700"
-                  : "border-border/60 bg-background text-muted-foreground hover:border-rose-500/50 hover:bg-rose-500/5"
+                  : "border-border/60 bg-background text-muted-foreground",
+                !isEditing && transactionType !== "expense" && "hover:border-rose-500/50 hover:bg-rose-500/5",
+                isEditing && "cursor-not-allowed opacity-60"
               )}
             >
               <ArrowUpCircle className={cn(
@@ -473,14 +616,16 @@ export function AdminTransactionEntry({
             <Label htmlFor="transactionDate" className="text-sm font-semibold">
               Transaction Date <span className="text-destructive">*</span>
             </Label>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+            <Popover open={!isFullyLocked && datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   id="transactionDate"
                   variant="outline"
+                  disabled={isFullyLocked}
                   className={cn(
                     "h-11 w-full justify-start text-left font-normal",
-                    !transactionDate && "text-muted-foreground"
+                    !transactionDate && "text-muted-foreground",
+                    isFullyLocked && "cursor-not-allowed opacity-60"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -513,6 +658,7 @@ export function AdminTransactionEntry({
               onChange={(e) => setReference(e.target.value)}
               placeholder="Check #, invoice #, receipt #"
               className="h-11"
+              disabled={isFullyLocked}
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
@@ -526,6 +672,7 @@ export function AdminTransactionEntry({
               placeholder="Describe this transaction..."
               rows={2}
               className="resize-none"
+              disabled={isFullyLocked}
             />
           </div>
         </div>
@@ -535,6 +682,11 @@ export function AdminTransactionEntry({
           <div className="mb-3 flex items-center justify-between">
             <Label className="text-sm font-semibold text-foreground">
               Line Items
+              {isLineItemsLocked && (
+                <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                  <Lock className="size-3" /> Locked
+                </span>
+              )}
             </Label>
             <span className="text-sm text-muted-foreground">
               {lines.length} {lines.length === 1 ? "item" : "items"}
@@ -589,37 +741,41 @@ export function AdminTransactionEntry({
                         <InlineCombobox
                           options={accountOptions}
                           value={line.accountId}
-                          onChange={(value) => handleUpdateLine(line.id, "accountId", value)}
+                          onChange={(value) => !isLineItemsLocked && handleUpdateLine(line.id, "accountId", value)}
                           placeholder="Select account"
                           emptyMessage="No accounts available"
                           allowClear
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       <td className="px-1 py-1">
                         <InlineCombobox
                           options={filteredCategoryOptions}
                           value={line.categoryId}
-                          onChange={(value) => handleUpdateLine(line.id, "categoryId", value)}
+                          onChange={(value) => !isLineItemsLocked && handleUpdateLine(line.id, "categoryId", value)}
                           placeholder="Select category"
                           emptyMessage="No categories available"
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       <td className="px-1 py-1">
                         <InlineCombobox
                           options={fundOptions}
                           value={line.fundId}
-                          onChange={(value) => handleUpdateLine(line.id, "fundId", value)}
+                          onChange={(value) => !isLineItemsLocked && handleUpdateLine(line.id, "fundId", value)}
                           placeholder="Select fund"
                           emptyMessage="No funds available"
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       <td className="px-1 py-1">
                         <InlineCombobox
                           options={sourceOptions}
                           value={line.sourceId}
-                          onChange={(value) => handleUpdateLine(line.id, "sourceId", value)}
+                          onChange={(value) => !isLineItemsLocked && handleUpdateLine(line.id, "sourceId", value)}
                           placeholder="Select source"
                           emptyMessage="No sources available"
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       {transactionType === "expense" && (
@@ -627,10 +783,11 @@ export function AdminTransactionEntry({
                           <InlineCombobox
                             options={budgetOptions}
                             value={line.budgetId}
-                            onChange={(value) => handleUpdateLine(line.id, "budgetId", value)}
+                            onChange={(value) => !isLineItemsLocked && handleUpdateLine(line.id, "budgetId", value)}
                             placeholder="Select budget"
                             emptyMessage="No budgets available"
                             allowClear
+                            disabled={isLineItemsLocked}
                           />
                         </td>
                       )}
@@ -642,6 +799,7 @@ export function AdminTransactionEntry({
                           onChange={(e) => handleUpdateLine(line.id, "amount", parseCurrencyInput(e.target.value))}
                           placeholder="0.00"
                           className="h-9 border-transparent bg-transparent text-right font-medium tabular-nums hover:border-border focus:border-border"
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       <td className="px-2 py-2">
@@ -651,20 +809,23 @@ export function AdminTransactionEntry({
                           onChange={(e) => handleUpdateLine(line.id, "description", e.target.value)}
                           placeholder="Line memo"
                           className="h-9 border-transparent bg-transparent hover:border-border focus:border-border"
+                          disabled={isLineItemsLocked}
                         />
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteLine(line.id)}
-                          disabled={lines.length <= 1}
-                          className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30"
-                        >
-                          <Trash2 className="size-4" />
-                          <span className="sr-only">Delete line</span>
-                        </Button>
+                        {!isLineItemsLocked && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteLine(line.id)}
+                            disabled={lines.length <= 1}
+                            className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30"
+                          >
+                            <Trash2 className="size-4" />
+                            <span className="sr-only">Delete line</span>
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -672,16 +833,18 @@ export function AdminTransactionEntry({
                 <tfoot>
                   <tr className="border-t-2 border-border/60 bg-muted/20">
                     <td colSpan={transactionType === "expense" ? 6 : 5} className="px-3 py-3">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleAddLine}
-                        className="text-primary"
-                      >
-                        <Plus className="mr-2 size-4" />
-                        Add line
-                      </Button>
+                      {!isLineItemsLocked && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAddLine}
+                          className="text-primary"
+                        >
+                          <Plus className="mr-2 size-4" />
+                          Add line
+                        </Button>
+                      )}
                     </td>
                     <td className="px-3 py-3 text-right">
                       <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -702,39 +865,86 @@ export function AdminTransactionEntry({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Changes based on transaction status */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
+          {/* Left side - Back/Cancel button */}
           <Button
             type="button"
             variant="ghost"
             onClick={() => router.push(cancelUrl)}
             disabled={isSubmitting}
           >
-            <X className="mr-2 size-4" />
-            Cancel
+            <ArrowLeft className="mr-2 size-4" />
+            {isEditing && currentStatus && currentStatus !== 'draft' ? 'Back' : 'Cancel'}
           </Button>
+
+          {/* Right side - Action buttons based on status */}
           <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleSubmit(true)}
-              disabled={isSubmitting}
-            >
-              <Save className="mr-2 size-4" />
-              Save as Draft
-            </Button>
-            <Button
-              type="button"
-              onClick={() => handleSubmit(false)}
-              disabled={isSubmitting}
-              className={cn(
-                transactionType === "income"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-rose-600 hover:bg-rose-700"
-              )}
-            >
-              {isSubmitting ? "Submitting..." : "Submit Transaction"}
-            </Button>
+            {/* Draft or New: Show Save Draft + Submit */}
+            {canSubmit && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleSubmit(true)}
+                  disabled={isSubmitting}
+                >
+                  <Save className="mr-2 size-4" />
+                  Save as Draft
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleSubmit(false)}
+                  disabled={isSubmitting}
+                  className={cn(
+                    transactionType === "income"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-rose-600 hover:bg-rose-700"
+                  )}
+                >
+                  <Send className="mr-2 size-4" />
+                  {isSubmitting ? "Submitting..." : "Submit for Approval"}
+                </Button>
+              </>
+            )}
+
+            {/* Submitted: Show Recall button */}
+            {canRecall && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRecall}
+                disabled={isSubmitting}
+                className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                {isSubmitting ? "Recalling..." : "Recall to Draft"}
+              </Button>
+            )}
+
+            {/* Approved: Show status message (no edits allowed, only authorized users can post) */}
+            {currentStatus === 'approved' && (
+              <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+                <CheckCircle2 className="size-4" />
+                Awaiting posting by authorized user
+              </div>
+            )}
+
+            {/* Posted: Show posted confirmation */}
+            {currentStatus === 'posted' && (
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+                <Lock className="size-4" />
+                Posted to ledger
+              </div>
+            )}
+
+            {/* Voided: Show voided status */}
+            {currentStatus === 'voided' && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+                <Ban className="size-4" />
+                Transaction voided
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -20,6 +20,7 @@ export interface ApplyDiscountResult {
   discountedPrice: number;
   discountAmount: number;
   originalPrice: number;
+  durationBillingCycles?: number | null;
   errorMessage?: string;
 }
 
@@ -135,6 +136,60 @@ export class DiscountService {
     );
   }
 
+  async validateDiscountCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<DiscountValidationResult> {
+    return this.discountRepository.validateDiscountCodePublic(
+      code,
+      offeringId,
+      amount,
+      currency
+    );
+  }
+
+  async applyCouponCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<ApplyDiscountResult> {
+    const validation = await this.validateDiscountCodePublic(
+      code,
+      offeringId,
+      amount,
+      currency
+    );
+
+    if (!validation.is_valid) {
+      return {
+        success: false,
+        discountedPrice: amount,
+        discountAmount: 0,
+        originalPrice: amount,
+        errorMessage: validation.error_message || 'Invalid discount code',
+      };
+    }
+
+    return {
+      success: true,
+      discount: {
+        discount_id: validation.discount_id!,
+        discount_name: validation.discount_name!,
+        discount_type: validation.discount_type!,
+        calculation_type: validation.calculation_type!,
+        discount_value: validation.discount_value!,
+        duration_billing_cycles: validation.duration_billing_cycles,
+      },
+      discountedPrice: validation.final_amount!,
+      discountAmount: validation.discount_amount!,
+      originalPrice: amount,
+      durationBillingCycles: validation.duration_billing_cycles,
+    };
+  }
+
   async getActiveDiscountsForOffering(
     offeringId: string,
     currency: string = 'USD'
@@ -213,6 +268,7 @@ export class DiscountService {
       discountedPrice,
       discountAmount,
       originalPrice: amount,
+      durationBillingCycles: bestDiscount.duration_billing_cycles,
     };
   }
 
@@ -249,10 +305,12 @@ export class DiscountService {
         discount_type: validation.discount_type!,
         calculation_type: validation.calculation_type!,
         discount_value: validation.discount_value!,
+        duration_billing_cycles: validation.duration_billing_cycles,
       },
       discountedPrice: validation.final_amount!,
       discountAmount: validation.discount_amount!,
       originalPrice: amount,
+      durationBillingCycles: validation.duration_billing_cycles,
     };
   }
 

@@ -7,10 +7,12 @@ import type { IFundRepository } from '@/repositories/fund.repository';
 import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
 import type { IAccountRepository } from '@/repositories/account.repository';
 import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
-import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import type { IBudgetRepository } from '@/repositories/budget.repository';
 import type { FinancialTransactionHeader, TransactionStatus } from '@/models/financialTransactionHeader.model';
 import type { TransactionType } from '@/models/financialTransaction.model';
+import type { TransactionSummaryRow } from '@/adapters/financialTransactionHeader.adapter';
+import { IncomeExpenseTransactionService, type IncomeExpenseEntry } from '@/services/IncomeExpenseTransactionService';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 import { getCurrentUserId } from '@/lib/server/context';
@@ -37,36 +39,45 @@ const resolveTransactionsListHero: ServiceDataSourceHandler = async (_request) =
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
 
-  // Fetch all transaction headers
+  // Get total transaction count
   const headers = await transactionHeaderRepo.findAll();
-  const allHeaders = (headers?.data || []) as FinancialTransactionHeader[];
-
-  // Calculate metrics
-  const totalTransactions = allHeaders.length;
+  const totalTransactions = headers?.data?.length || 0;
 
   // Get current month date range
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const monthStartStr = monthStart.toISOString().split('T')[0];
+  const monthEndStr = monthEnd.toISOString().split('T')[0];
 
-  // Calculate month-to-date income and expenses
+  // Use repository method for efficient calculation - shows all amounts regardless of status
+  let summary: TransactionSummaryRow[] = [];
+  try {
+    summary = await transactionHeaderRepo.getTransactionSummary(tenant.id, monthStartStr, monthEndStr);
+  } catch (error) {
+    console.error('[resolveTransactionsListHero] RPC error:', error);
+    // Fallback to showing zeros if RPC fails
+    return {
+      eyebrow: 'Financial transactions',
+      headline: 'Track all income and expenses',
+      description: 'View, filter, and manage your organization\'s financial transactions.',
+      metrics: [
+        { label: 'Total transactions', value: totalTransactions.toString(), caption: 'All time' },
+        { label: 'This month income', value: formatCurrency(0, currency), caption: 'All statuses' },
+        { label: 'This month expenses', value: formatCurrency(0, currency), caption: 'All statuses' },
+      ],
+    };
+  }
+
+  // Aggregate totals from RPC result - includes all statuses for instant visibility
   let mtdIncome = 0;
   let mtdExpenses = 0;
 
-  for (const header of allHeaders) {
-    if (header.status === 'posted' || header.status === 'approved') {
-      const txnDate = new Date(header.transaction_date);
-      if (txnDate >= monthStart && txnDate <= monthEnd) {
-        // Get line items to determine if income or expense
-        const entries = await transactionHeaderRepo.getTransactionEntries(header.id);
-        for (const entry of entries) {
-          if (entry.type === 'income') {
-            mtdIncome += entry.credit  || 0;
-          } else if (entry.type === 'expense') {
-            mtdExpenses += entry.debit  || 0;
-          }
-        }
-      }
+  for (const row of summary) {
+    if (row.transaction_type === 'income') {
+      mtdIncome += Number(row.total_amount) || 0;
+    } else if (row.transaction_type === 'expense') {
+      mtdExpenses += Number(row.total_amount) || 0;
     }
   }
 
@@ -83,12 +94,12 @@ const resolveTransactionsListHero: ServiceDataSourceHandler = async (_request) =
       {
         label: 'This month income',
         value: formatCurrency(mtdIncome, currency),
-        caption: 'Revenue received',
+        caption: 'All statuses',
       },
       {
         label: 'This month expenses',
         value: formatCurrency(mtdExpenses, currency),
-        caption: 'Costs incurred',
+        caption: 'All statuses',
       },
     ],
   };
@@ -108,36 +119,61 @@ const resolveTransactionsListSummary: ServiceDataSourceHandler = async (_request
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
 
-  // Fetch all transaction headers
-  const headers = await transactionHeaderRepo.findAll();
-  const allHeaders = (headers?.data || []) as FinancialTransactionHeader[];
-
   // Get current month date range
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const monthStartStr = monthStart.toISOString().split('T')[0];
+  const monthEndStr = monthEnd.toISOString().split('T')[0];
 
-  // Calculate month-to-date income and expenses
+  // Use repository method for efficient calculation - shows all amounts by status for instant visibility
+  let summary: TransactionSummaryRow[] = [];
+  try {
+    summary = await transactionHeaderRepo.getTransactionSummary(tenant.id, monthStartStr, monthEndStr);
+  } catch (error) {
+    console.error('[resolveTransactionsListSummary] RPC error:', error);
+    // Fallback to showing zeros if RPC fails
+    return {
+      items: [
+        { id: 'mtd-income', label: 'Month-to-date income', value: formatCurrency(0, currency), change: '', changeLabel: 'all statuses', trend: 'flat', tone: 'positive', description: 'Total income for current month.' },
+        { id: 'mtd-expenses', label: 'Month-to-date expenses', value: formatCurrency(0, currency), change: '', changeLabel: 'all statuses', trend: 'flat', tone: 'neutral', description: 'Total expenses for current month.' },
+        { id: 'net-cashflow', label: 'Net cash flow', value: formatCurrency(0, currency), change: '', changeLabel: 'income minus expenses', trend: 'flat', tone: 'positive', description: 'Net movement this month.' },
+      ],
+    };
+  }
+
+  // Calculate totals - all statuses included
   let mtdIncome = 0;
   let mtdExpenses = 0;
 
-  for (const header of allHeaders) {
-    if (header.status === 'posted' || header.status === 'approved') {
-      const txnDate = new Date(header.transaction_date);
-      if (txnDate >= monthStart && txnDate <= monthEnd) {
-        const entries = await transactionHeaderRepo.getTransactionEntries(header.id);
-        for (const entry of entries) {
-          if (entry.type === 'income') {
-            mtdIncome += entry.credit  || 0;
-          } else if (entry.type === 'expense') {
-            mtdExpenses += entry.debit  || 0;
-          }
-        }
-      }
+  // Also track by status for breakdown visibility
+  const incomeByStatus: Record<string, number> = {};
+  const expenseByStatus: Record<string, number> = {};
+
+  for (const row of summary) {
+    const amount = Number(row.total_amount) || 0;
+    if (row.transaction_type === 'income') {
+      mtdIncome += amount;
+      incomeByStatus[row.status] = (incomeByStatus[row.status] || 0) + amount;
+    } else if (row.transaction_type === 'expense') {
+      mtdExpenses += amount;
+      expenseByStatus[row.status] = (expenseByStatus[row.status] || 0) + amount;
     }
   }
 
   const netCashFlow = mtdIncome - mtdExpenses;
+
+  // Build description showing breakdown by status
+  const buildStatusBreakdown = (byStatus: Record<string, number>): string => {
+    const parts: string[] = [];
+    const statusOrder = ['posted', 'approved', 'submitted', 'draft'];
+    for (const status of statusOrder) {
+      if (byStatus[status] && byStatus[status] > 0) {
+        parts.push(`${status}: ${formatCurrency(byStatus[status], currency)}`);
+      }
+    }
+    return parts.length > 0 ? parts.join(', ') : 'No transactions';
+  };
 
   return {
     items: [
@@ -146,20 +182,20 @@ const resolveTransactionsListSummary: ServiceDataSourceHandler = async (_request
         label: 'Month-to-date income',
         value: formatCurrency(mtdIncome, currency),
         change: '',
-        changeLabel: 'this month',
+        changeLabel: 'all statuses',
         trend: mtdIncome > 0 ? 'up' : 'flat',
         tone: 'positive',
-        description: 'Total income for current month.',
+        description: buildStatusBreakdown(incomeByStatus),
       },
       {
         id: 'mtd-expenses',
         label: 'Month-to-date expenses',
         value: formatCurrency(mtdExpenses, currency),
         change: '',
-        changeLabel: 'this month',
+        changeLabel: 'all statuses',
         trend: mtdExpenses > 0 ? 'up' : 'flat',
         tone: 'neutral',
-        description: 'Total expenses for current month.',
+        description: buildStatusBreakdown(expenseByStatus),
       },
       {
         id: 'net-cashflow',
@@ -236,6 +272,9 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
   const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
     TYPES.IFinancialTransactionHeaderRepository
   );
+  const ieRepo = container.get<IIncomeExpenseTransactionRepository>(
+    TYPES.IIncomeExpenseTransactionRepository
+  );
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -250,65 +289,82 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
   const headers = await transactionHeaderRepo.findAll();
   const allHeaders = (headers?.data || []) as FinancialTransactionHeader[];
 
-  // Build table rows
-  const rows = await Promise.all(
-    allHeaders.map(async (header) => {
-      // Get line items to calculate total and determine type
-      const entries = await transactionHeaderRepo.getTransactionEntries(header.id);
+  // Sort by updated_at descending (most recently modified first)
+  allHeaders.sort((a, b) => {
+    const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+    const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+    return dateB - dateA;
+  });
 
-      let totalAmount = 0;
-      let transactionType: 'income' | 'expense' | 'mixed' = 'income';
-      let categoryName = '';
-      let sourceName = '';
+  // Get all header IDs for efficient batch query
+  const headerIds = allHeaders.map((h) => h.id);
 
-      // Analyze entries to determine type and total
-      const incomeEntries = entries.filter((e: any) => e.type === 'income');
-      const expenseEntries = entries.filter((e: any) => e.type === 'expense');
+  // Fetch amounts for all headers in one query using RPC
+  let headerAmounts: import('@/repositories/incomeExpenseTransaction.repository').HeaderAmountRow[] = [];
+  try {
+    headerAmounts = await ieRepo.getHeaderAmounts(tenant.id, headerIds);
+  } catch (error) {
+    console.error('[resolveTransactionsListTable] Failed to get header amounts:', error);
+    // Continue with empty amounts if RPC fails
+  }
 
-      if (incomeEntries.length > 0 && expenseEntries.length === 0) {
-        transactionType = 'income';
-        // Total is the sum of credits (or amount) for income
-        totalAmount = incomeEntries.reduce((sum: number, e: any) => sum + (e.credit  || 0), 0);
-        categoryName = incomeEntries[0]?.category?.name || '';
-        sourceName = incomeEntries[0]?.source?.name || header.source?.name || '';
-      } else if (expenseEntries.length > 0 && incomeEntries.length === 0) {
-        transactionType = 'expense';
-        // Total is the sum of debits (or amount) for expense
-        totalAmount = expenseEntries.reduce((sum: number, e: any) => sum + (e.debit  || 0), 0);
-        categoryName = expenseEntries[0]?.category?.name || '';
-        sourceName = expenseEntries[0]?.source?.name || header.source?.name || '';
-      } else {
-        transactionType = 'mixed';
-        // For mixed, show net amount - use amount as fallback
-        const totalDebits = entries.reduce((sum: number, e: any) => sum + (e.debit || 0), 0);
-        const totalCredits = entries.reduce((sum: number, e: any) => sum + (e.credit || 0), 0);
-        totalAmount = Math.max(totalDebits, totalCredits) / 2; // Double-entry amount
+  // Build a map of header_id -> { totalAmount, transactionType, categoryName, sourceName }
+  const amountMap = new Map<string, {
+    totalAmount: number;
+    transactionType: 'income' | 'expense' | 'mixed';
+    categoryName: string;
+    sourceName: string;
+  }>();
+  for (const row of headerAmounts) {
+    const existing = amountMap.get(row.header_id);
+    if (existing) {
+      // Multiple rows means mixed types
+      existing.totalAmount += Number(row.total_amount) || 0;
+      if (existing.transactionType !== row.transaction_type) {
+        existing.transactionType = 'mixed';
       }
+    } else {
+      amountMap.set(row.header_id, {
+        totalAmount: Number(row.total_amount) || 0,
+        transactionType: row.transaction_type as 'income' | 'expense',
+        categoryName: row.category_name || '',
+        sourceName: row.source_name || '',
+      });
+    }
+  }
 
-      // Status badge variants
-      const statusVariants: Record<TransactionStatus, string> = {
-        draft: 'neutral',
-        submitted: 'warning',
-        approved: 'informative',
-        posted: 'success',
-        voided: 'critical',
-      };
+  // Build table rows
+  const rows = allHeaders.map((header) => {
+    const amountInfo = amountMap.get(header.id);
+    const totalAmount = amountInfo?.totalAmount || 0;
+    const transactionType = amountInfo?.transactionType || 'income';
+    const categoryName = amountInfo?.categoryName || '';
+    const sourceName = amountInfo?.sourceName || (header as any).source?.name || '';
 
-      return {
-        id: header.id,
-        date: formatDate(new Date(header.transaction_date), timezone),
-        transactionNumber: header.transaction_number,
-        description: header.description || 'No description',
-        category: categoryName || '—',
-        source: sourceName || '—',
-        amount: formatCurrency(totalAmount, currency),
-        type: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
-        typeBadgeVariant: transactionType === 'income' ? 'success' : transactionType === 'expense' ? 'warning' : 'neutral',
-        status: header.status.charAt(0).toUpperCase() + header.status.slice(1),
-        statusVariant: statusVariants[header.status] || 'neutral',
-      };
-    })
-  );
+    // Status badge variants
+    const statusVariants: Record<TransactionStatus, string> = {
+      draft: 'neutral',
+      submitted: 'warning',
+      approved: 'informative',
+      posted: 'success',
+      voided: 'critical',
+    };
+
+    return {
+      id: header.id,
+      date: formatDate(new Date(header.transaction_date), timezone),
+      rawDate: header.transaction_date, // For filtering
+      transactionNumber: header.transaction_number,
+      description: header.description || 'No description',
+      category: categoryName || '—',
+      source: sourceName || '—',
+      amount: formatCurrency(totalAmount, currency),
+      type: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
+      typeBadgeVariant: transactionType === 'income' ? 'success' : transactionType === 'expense' ? 'warning' : 'neutral',
+      status: header.status.charAt(0).toUpperCase() + header.status.slice(1),
+      statusVariant: statusVariants[header.status] || 'neutral',
+    };
+  });
 
   const columns = [
     { field: 'date', headerName: 'Date', type: 'text', flex: 0.8 },
@@ -316,7 +372,7 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
     { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
     { field: 'category', headerName: 'Category', type: 'text', flex: 1, hideOnMobile: true },
     { field: 'source', headerName: 'Source', type: 'text', flex: 0.8, hideOnMobile: true },
-    { field: 'amount', headerName: 'Amount', type: 'currency', flex: 0.8 },
+    { field: 'amount', headerName: 'Amount', type: 'text', flex: 0.8 },
     { field: 'type', headerName: 'Type', type: 'badge', badgeVariantField: 'typeBadgeVariant', flex: 0.6, hideOnMobile: true },
     { field: 'status', headerName: 'Status', type: 'badge', badgeVariantField: 'statusVariant', flex: 0.6 },
     {
@@ -390,6 +446,12 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
       id: 'search',
       type: 'search',
       placeholder: 'Search transactions...',
+    },
+    {
+      id: 'dateRange',
+      type: 'daterange',
+      field: 'rawDate',
+      placeholder: 'Filter by date',
     },
     {
       id: 'type',
@@ -513,6 +575,9 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const financialSourceRepository = container.get<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository);
   const accountRepository = container.get<IAccountRepository>(TYPES.IAccountRepository);
   const budgetRepository = container.get<IBudgetRepository>(TYPES.IBudgetRepository);
+  const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
+    TYPES.IFinancialTransactionHeaderRepository
+  );
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -524,6 +589,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
 
   // Determine transaction type from request params
   const transactionType = (request.params?.type as string) || 'income';
+  const transactionId = request.params?.transactionId as string | undefined;
 
   // Fetch dropdown options from repositories (RLS handles tenant isolation)
   const [categoriesResult, fundsResult, sourcesResult, accountsResult, budgetsResult] = await Promise.all([
@@ -583,6 +649,69 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     description: (budget as { description?: string }).description || '',
   }));
 
+  // Load existing transaction data if editing
+  let initialData: {
+    transactionId?: string;
+    transactionType?: 'income' | 'expense';
+    transactionDate?: string;
+    reference?: string;
+    description?: string;
+    status?: string;
+    lines?: {
+      id?: string;
+      accountId?: string;
+      categoryId?: string;
+      fundId?: string;
+      sourceId?: string;
+      budgetId?: string;
+      amount?: number;
+      description?: string;
+    }[];
+  } | null = null;
+
+  if (transactionId) {
+    // Use IncomeExpenseTransactionService to get the correct IDs from income_expense_transactions table
+    // This ensures proper matching when updating/deleting lines
+    const ieService = container.get<IncomeExpenseTransactionService>(
+      TYPES.IncomeExpenseTransactionService
+    );
+
+    const batch = await ieService.getBatch(transactionId);
+    if (batch && batch.header) {
+      const { header, transactions } = batch;
+
+      // Map income_expense_transactions to line items with correct IDs
+      const lines = transactions.map((txn: any) => ({
+        id: txn.id, // This is the income_expense_transactions.id - required for updateBatch
+        accountId: txn.account_id || '',
+        categoryId: txn.category_id || '',
+        fundId: txn.fund_id || '',
+        sourceId: txn.source_id || '',
+        budgetId: '', // income_expense_transactions doesn't have budget_id
+        amount: txn.amount || 0,
+        description: txn.description || '',
+      }));
+
+      // Determine transaction type from header or first transaction
+      let detectedType: 'income' | 'expense' = 'income';
+      if (header.transaction_type) {
+        detectedType = header.transaction_type as 'income' | 'expense';
+      } else if (transactions.length > 0) {
+        detectedType = transactions[0].transaction_type === 'expense' ? 'expense' : 'income';
+      }
+
+      initialData = {
+        transactionId: header.id,
+        transactionType: detectedType,
+        transactionDate: header.transaction_date || undefined,
+        reference: header.reference || undefined,
+        description: header.description || undefined,
+        status: header.status || undefined,
+        lines,
+      };
+    }
+  }
+
   return {
     lines: [],
     columns: [
@@ -598,8 +727,9 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     accountOptions,
     budgetOptions,
     currency,
-    transactionType,
+    transactionType: initialData?.transactionType || transactionType,
     totalAmount: formatCurrency(0, currency),
+    initialData,
   };
 };
 
@@ -811,6 +941,7 @@ const resolveTransactionProfileLineItems: ServiceDataSourceHandler = async (requ
     return {
       rows: [],
       columns: [
+        { field: 'account', headerName: 'Account', type: 'text', flex: 1 },
         { field: 'category', headerName: 'Category', type: 'text', flex: 1 },
         { field: 'fund', headerName: 'Fund', type: 'text', flex: 0.8 },
         { field: 'source', headerName: 'Source', type: 'text', flex: 0.8 },
@@ -820,36 +951,60 @@ const resolveTransactionProfileLineItems: ServiceDataSourceHandler = async (requ
     };
   }
 
-  const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
-    TYPES.IFinancialTransactionHeaderRepository
+  // Use income_expense_transactions to get proper account relationship
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(
+    TYPES.IIncomeExpenseTransactionRepository
   );
 
-  // Get line items (financial_transactions linked to this header)
-  const lineItems = await transactionHeaderRepo.getLineItems(transactionId);
+  // Get line items from income_expense_transactions (has account relationship)
+  const lineItems = await incomeExpenseRepo.getByHeaderId(transactionId);
 
   const rows = (lineItems || []).map((item: any, index: number) => {
-    // Calculate amount from debit/credit
-    const itemAmount = item.debit || item.credit || 0;
-    const formattedAmount = formatCurrency(itemAmount, currency);
+    const formattedAmount = formatCurrency(item.amount || 0, currency);
     return {
       id: item.id || `line-${index}`,
-      category: item.category?.name || item.category_name || '—',
-      fund: item.fund?.name || item.fund_name || '—',
-      source: item.source?.name || item.source_name || '—',
+      account: item.accounts?.name || item.account?.name || '—',
+      category: item.categories?.name || item.category?.name || '—',
+      fund: item.funds?.name || item.fund?.name || '—',
+      source: item.sources?.name || item.source?.name || '—',
       amount: formattedAmount,
       description: item.description || '—',
     };
   });
 
+  // Build download actions with transaction ID
+  const actions = [
+    {
+      id: 'download-receipt',
+      config: {
+        label: 'Receipt',
+        url: `/api/finance/transactions/${transactionId}/pdf`,
+        variant: 'secondary',
+        target: '_blank',
+      },
+    },
+    {
+      id: 'download-summary',
+      config: {
+        label: 'Summary',
+        url: `/api/finance/transactions/${transactionId}/summary-pdf`,
+        variant: 'secondary',
+        target: '_blank',
+      },
+    },
+  ];
+
   return {
     rows,
     columns: [
+      { field: 'account', headerName: 'Account', type: 'text', flex: 1 },
       { field: 'category', headerName: 'Category', type: 'text', flex: 1 },
       { field: 'fund', headerName: 'Fund', type: 'text', flex: 0.8 },
       { field: 'source', headerName: 'Source', type: 'text', flex: 0.8 },
       { field: 'amount', headerName: 'Amount', type: 'text', flex: 0.6, align: 'right' },
       { field: 'description', headerName: 'Description', type: 'text', flex: 1 },
     ],
+    actions,
   };
 };
 
@@ -1058,6 +1213,8 @@ function getTimeAgo(date: Date): string {
  * Line item structure from the form
  */
 interface LineItemInput {
+  id?: string; // For existing line items when editing
+  accountId?: string; // Bank/cash account from accounts table
   categoryId?: string;
   fundId?: string;
   sourceId?: string;
@@ -1067,26 +1224,13 @@ interface LineItemInput {
 }
 
 /**
- * Helper function to create journal entries from line items
- * For income: Debit cash account, Credit revenue account
- * For expense: Debit expense account, Credit cash account
+ * Convert form line items to IncomeExpenseEntry format for the service
  */
-async function createJournalEntries(
+function convertToIncomeExpenseEntries(
   lineItems: LineItemInput[],
-  transactionType: 'income' | 'expense',
-  transactionDate: string,
-  categoryRepository: ICategoryRepository,
-  chartOfAccountRepository: IChartOfAccountRepository
-): Promise<any[]> {
-  const journalEntries: any[] = [];
-
-  // Get the default cash account (typically account code starting with "1" for assets)
-  // In a real implementation, this would be configurable per tenant
-  const cashAccounts = await chartOfAccountRepository.findAll();
-  const cashAccountsData = cashAccounts?.data || [];
-  const cashAccount = cashAccountsData.find(
-    (acc: any) => acc.account_type === 'asset' && acc.code?.startsWith('1')
-  );
+  transactionType: 'income' | 'expense'
+): IncomeExpenseEntry[] {
+  const entries: IncomeExpenseEntry[] = [];
 
   for (const lineItem of lineItems) {
     if (!lineItem.categoryId || !lineItem.amount) {
@@ -1101,70 +1245,24 @@ async function createJournalEntries(
       continue;
     }
 
-    // Get the category to find the linked GL account
-    const category = await categoryRepository.findById(lineItem.categoryId);
-    const linkedAccountId = (category as any)?.coa_id || null;
-
-    if (transactionType === 'income') {
-      // Income: Debit Cash, Credit Revenue
-      // Debit entry (Cash increases)
-      journalEntries.push({
-        type: 'income' as TransactionType,
-        description: lineItem.description || '',
-        date: transactionDate,
-        debit: amount,
-        credit: 0,
-        coa_id: cashAccount?.id || null,
-        category_id: lineItem.categoryId,
-        fund_id: lineItem.fundId || null,
-        source_id: lineItem.sourceId || null,
-        budget_id: null, // Income transactions don't track budgets
-      });
-      // Credit entry (Revenue increases)
-      journalEntries.push({
-        type: 'income' as TransactionType,
-        description: lineItem.description || '',
-        date: transactionDate,
-        debit: 0,
-        credit: amount,
-        coa_id: linkedAccountId,
-        category_id: lineItem.categoryId,
-        fund_id: lineItem.fundId || null,
-        source_id: lineItem.sourceId || null,
-        budget_id: null, // Income transactions don't track budgets
-      });
-    } else {
-      // Expense: Debit Expense, Credit Cash
-      // Debit entry (Expense increases)
-      journalEntries.push({
-        type: 'expense' as TransactionType,
-        description: lineItem.description || '',
-        date: transactionDate,
-        debit: amount,
-        credit: 0,
-        coa_id: linkedAccountId,
-        category_id: lineItem.categoryId,
-        fund_id: lineItem.fundId || null,
-        source_id: lineItem.sourceId || null,
-        budget_id: lineItem.budgetId || null, // Track budget for expense transactions
-      });
-      // Credit entry (Cash decreases)
-      journalEntries.push({
-        type: 'expense' as TransactionType,
-        description: lineItem.description || '',
-        date: transactionDate,
-        debit: 0,
-        credit: amount,
-        coa_id: cashAccount?.id || null,
-        category_id: lineItem.categoryId,
-        fund_id: lineItem.fundId || null,
-        source_id: lineItem.sourceId || null,
-        budget_id: lineItem.budgetId || null, // Track budget for expense transactions
-      });
-    }
+    entries.push({
+      id: lineItem.id,
+      transaction_type: transactionType as TransactionType,
+      account_id: lineItem.accountId || null,
+      fund_id: lineItem.fundId || null,
+      category_id: lineItem.categoryId,
+      source_id: lineItem.sourceId || null,
+      description: lineItem.description || '',
+      amount,
+      // COA IDs will be populated by IncomeExpenseTransactionService.populateAccounts()
+      source_coa_id: null,
+      category_coa_id: null,
+      fund_coa_id: null,
+      isDirty: true, // Mark as dirty for updates
+    });
   }
 
-  return journalEntries;
+  return entries;
 }
 
 /**
@@ -1183,9 +1281,8 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
     const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
       TYPES.IFinancialTransactionHeaderRepository
     );
-    const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
-    const chartOfAccountRepository = container.get<IChartOfAccountRepository>(
-      TYPES.IChartOfAccountRepository
+    const ieService = container.get<IncomeExpenseTransactionService>(
+      TYPES.IncomeExpenseTransactionService
     );
 
     const tenant = await tenantService.getCurrentTenant();
@@ -1201,7 +1298,16 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
     const transactionDate = (values.transactionDate as string) || new Date().toISOString().split('T')[0];
     const description = (values.description as string) || '';
     const reference = (values.reference as string) || null;
-    const lineItems = (values.lineItems as LineItemInput[]) || [];
+    // Support both 'lineItems' and 'lines' field names
+    const lineItems = (values.lineItems as LineItemInput[]) || (values.lines as LineItemInput[]) || [];
+
+    console.log('[submitTransaction] Received data:', {
+      transactionType,
+      transactionDate,
+      description,
+      lineItemsCount: lineItems.length,
+      lineItems: lineItems.slice(0, 2),
+    });
 
     // Validate line items
     if (!lineItems || lineItems.length === 0) {
@@ -1211,23 +1317,17 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
       };
     }
 
-    // Create journal entries from line items
-    const journalEntries = await createJournalEntries(
-      lineItems,
-      transactionType,
-      transactionDate,
-      categoryRepository,
-      chartOfAccountRepository
-    );
+    // Convert line items to IncomeExpenseEntry format
+    const entries = convertToIncomeExpenseEntries(lineItems, transactionType);
 
-    if (journalEntries.length === 0) {
+    if (entries.length === 0) {
       return {
         success: false,
         message: 'No valid line items provided',
       };
     }
 
-    // Prepare header data
+    // Prepare header data (transaction_type is not stored in headers table - it's determined by line items)
     const headerData: Partial<FinancialTransactionHeader> = {
       transaction_date: transactionDate,
       description,
@@ -1238,20 +1338,12 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
     let header: FinancialTransactionHeader;
 
     if (transactionId) {
-      // Update existing transaction
-      const result = await transactionHeaderRepo.updateWithTransactions(
-        transactionId,
-        headerData,
-        journalEntries
-      );
-      header = result.header;
+      // Update existing transaction using IncomeExpenseTransactionService
+      await ieService.updateBatch(transactionId, headerData, entries);
+      header = (await transactionHeaderRepo.findById(transactionId))!;
     } else {
-      // Create new transaction
-      const result = await transactionHeaderRepo.createWithTransactions(
-        headerData,
-        journalEntries
-      );
-      header = result.header;
+      // Create new transaction using IncomeExpenseTransactionService
+      header = await ieService.create(headerData, entries);
     }
 
     // Submit the transaction for approval
@@ -1320,9 +1412,8 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
     const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
       TYPES.IFinancialTransactionHeaderRepository
     );
-    const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
-    const chartOfAccountRepository = container.get<IChartOfAccountRepository>(
-      TYPES.IChartOfAccountRepository
+    const ieService = container.get<IncomeExpenseTransactionService>(
+      TYPES.IncomeExpenseTransactionService
     );
 
     const tenant = await tenantService.getCurrentTenant();
@@ -1338,18 +1429,28 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
     const transactionDate = (values.transactionDate as string) || new Date().toISOString().split('T')[0];
     const description = (values.description as string) || '';
     const reference = (values.reference as string) || null;
-    const lineItems = (values.lineItems as LineItemInput[]) || [];
+    // Support both 'lineItems' and 'lines' field names
+    const lineItems = (values.lineItems as LineItemInput[]) || (values.lines as LineItemInput[]) || [];
 
-    // Create journal entries from line items (if any)
-    const journalEntries = await createJournalEntries(
-      lineItems,
+    console.log('[saveDraftTransaction] Received data:', {
       transactionType,
       transactionDate,
-      categoryRepository,
-      chartOfAccountRepository
-    );
+      description,
+      lineItemsCount: lineItems.length,
+      lineItems: lineItems.slice(0, 2),
+    });
 
-    // Prepare header data - keep as draft
+    // Convert line items to IncomeExpenseEntry format
+    const entries = convertToIncomeExpenseEntries(lineItems, transactionType);
+
+    console.log('[saveDraftTransaction] IncomeExpenseEntry entries created:', entries.length);
+    console.log('[saveDraftTransaction] First entry sample:', entries[0]);
+
+    if (entries.length === 0) {
+      console.log('[saveDraftTransaction] WARNING: No entries were created! Check if lineItems have valid categoryId and amount.');
+    }
+
+    // Prepare header data - keep as draft (transaction_type is not stored in headers table - it's determined by line items)
     const headerData: Partial<FinancialTransactionHeader> = {
       transaction_date: transactionDate,
       description,
@@ -1360,20 +1461,12 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
     let header: FinancialTransactionHeader;
 
     if (transactionId) {
-      // Update existing draft
-      const result = await transactionHeaderRepo.updateWithTransactions(
-        transactionId,
-        headerData,
-        journalEntries
-      );
-      header = result.header;
+      // Update existing draft using IncomeExpenseTransactionService
+      await ieService.updateBatch(transactionId, headerData, entries);
+      header = (await transactionHeaderRepo.findById(transactionId))!;
     } else {
-      // Create new draft
-      const result = await transactionHeaderRepo.createWithTransactions(
-        headerData,
-        journalEntries
-      );
-      header = result.header;
+      // Create new draft using IncomeExpenseTransactionService
+      header = await ieService.create(headerData, entries);
     }
 
     console.log('[saveDraftTransaction] Draft saved:', header.id);
@@ -1728,6 +1821,90 @@ const voidTransaction: ServiceDataSourceHandler = async (request) => {
   }
 };
 
+// Recall a submitted transaction back to draft status
+const recallTransaction: ServiceDataSourceHandler = async (request) => {
+  const params = request.params as Record<string, unknown>;
+  const transactionId = params.transactionId as string;
+
+  console.log('[recallTransaction] Recalling transaction:', transactionId);
+
+  if (!transactionId) {
+    return {
+      success: false,
+      message: 'Transaction ID is required',
+    };
+  }
+
+  try {
+    const tenantService = container.get<TenantService>(TYPES.TenantService);
+    const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
+      TYPES.IFinancialTransactionHeaderRepository
+    );
+
+    const tenant = await tenantService.getCurrentTenant();
+    if (!tenant) {
+      return {
+        success: false,
+        message: 'No tenant context available',
+      };
+    }
+
+    // Get current user
+    const currentUserId = await getCurrentUserId({ optional: true });
+    if (!currentUserId) {
+      return {
+        success: false,
+        message: 'Authentication required to recall transactions',
+      };
+    }
+
+    // Get the transaction to verify status
+    const header = await transactionHeaderRepo.findById(transactionId);
+    if (!header) {
+      return {
+        success: false,
+        message: 'Transaction not found',
+      };
+    }
+
+    if (header.status !== 'submitted') {
+      return {
+        success: false,
+        message: `Cannot recall transaction in ${header.status} status. Only submitted transactions can be recalled.`,
+      };
+    }
+
+    // Only the creator (maker) can recall their own submitted transaction
+    if (header.created_by !== currentUserId) {
+      return {
+        success: false,
+        message: 'You can only recall transactions that you submitted.',
+      };
+    }
+
+    // Update status back to draft
+    await transactionHeaderRepo.update(transactionId, {
+      status: 'draft' as TransactionStatus,
+      updated_at: new Date().toISOString(),
+    });
+
+    console.log('[recallTransaction] Transaction recalled to draft:', transactionId);
+
+    return {
+      success: true,
+      message: 'Transaction recalled to draft status',
+      redirectUrl: `/admin/finance/transactions/entry?transactionId=${transactionId}`,
+    };
+  } catch (error) {
+    console.error('[recallTransaction] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to recall transaction';
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+};
+
 // Export all handlers
 export const adminFinanceTransactionsHandlers: Record<string, ServiceDataSourceHandler> = {
   // List page handlers
@@ -1753,4 +1930,5 @@ export const adminFinanceTransactionsHandlers: Record<string, ServiceDataSourceH
   'admin-finance.transactions.approve': approveTransaction,
   'admin-finance.transactions.post': postTransaction,
   'admin-finance.transactions.void': voidTransaction,
+  'admin-finance.transactions.recall': recallTransaction,
 };

@@ -1,7 +1,10 @@
+'use client';
+
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 
 import { cn } from "@/lib/utils";
+import { useTenantChurchImage } from "@/hooks/useTenantChurchImage";
 import { ActionsRow, type ActionConfig, normalizeList } from "./shared";
 
 type Metric = {
@@ -77,15 +80,20 @@ interface NormalizedHeroProps
   logos: string[];
   highlights: string[];
   cards: CardItem[];
+  tenantImageFallback?: string | null;
 }
 
 export function HeroSection(props: HeroSectionProps) {
+  // Get tenant's church image for use as fallback
+  const { url: tenantChurchImageUrl } = useTenantChurchImage();
+
   const normalized: NormalizedHeroProps = {
     ...props,
     metrics: normalizeList<Metric>(props.metrics),
     logos: normalizeList<string>(props.logos),
     highlights: normalizeList<string>(props.highlights),
     cards: normalizeList<CardItem>(props.cards),
+    tenantImageFallback: tenantChurchImageUrl,
   };
 
   switch (normalized.variant ?? "aurora") {
@@ -173,6 +181,9 @@ function AuroraHero(props: NormalizedHeroProps) {
 }
 
 function SplitHero(props: NormalizedHeroProps) {
+  // Use tenant church image as fallback if available, otherwise use stock image
+  const fallbackImage = props.tenantImageFallback || "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80";
+
   return (
     <FullWidthSection className="bg-background py-18 sm:py-20">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-8 lg:flex-row lg:items-center lg:px-12">
@@ -203,7 +214,7 @@ function SplitHero(props: NormalizedHeroProps) {
         <HeroImage
           className="w-full max-w-xl overflow-hidden rounded-3xl border border-border/60 shadow-2xl"
           image={props.image}
-          fallback="https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80"
+          fallback={fallbackImage}
         />
       </div>
     </FullWidthSection>
@@ -211,6 +222,9 @@ function SplitHero(props: NormalizedHeroProps) {
 }
 
 function SpotlightHero(props: NormalizedHeroProps) {
+  // Use tenant church image as fallback if available, otherwise use stock image
+  const fallbackImage = props.tenantImageFallback || "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1600&q=80";
+
   return (
     <FullWidthSection className="relative overflow-hidden bg-slate-900 py-20 text-white">
       <div className="absolute inset-0">
@@ -252,7 +266,7 @@ function SpotlightHero(props: NormalizedHeroProps) {
           <HeroImage
             className="overflow-hidden rounded-3xl border border-white/10 shadow-2xl"
             image={props.image}
-            fallback="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1600&q=80"
+            fallback={fallbackImage}
           />
           {props.highlights.length > 0 && (
             <ul className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-100 backdrop-blur">
@@ -567,6 +581,9 @@ function LogosHero(props: NormalizedHeroProps) {
 
 function VideoHero(props: NormalizedHeroProps) {
   const videoLabel = props.video?.label ?? "Watch product tour";
+  // Use tenant church image as fallback if available, otherwise use stock image
+  const fallbackImage = props.video?.thumbnail || props.tenantImageFallback || "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80";
+
   return (
     <FullWidthSection className="bg-slate-950 py-20 text-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-8 lg:grid lg:grid-cols-[1fr_1fr] lg:items-center">
@@ -589,7 +606,7 @@ function VideoHero(props: NormalizedHeroProps) {
         <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/5 shadow-2xl">
           <HeroImage
             image={props.image}
-            fallback={props.video?.thumbnail ?? "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80"}
+            fallback={fallbackImage}
             aspect="aspect-video"
           />
           <a

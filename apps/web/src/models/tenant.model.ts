@@ -32,4 +32,8 @@ export interface Tenant extends BaseModel {
   setup_completed_at?: string | null;
   setup_error?: string | null;
   admin_member_created?: boolean;
+  // Onboarding fields
+  church_image_url?: string | null;
+  onboarding_completed?: boolean;
+  onboarding_completed_at?: string | null;
 }

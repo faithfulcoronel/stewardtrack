@@ -94,7 +94,7 @@
         <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit category</Label>
-          <Url>/admin/finance/expense-categories/manage?categoryId={{id}}</Url>
+          <Url>/admin/finance/expense-categories/manage?categoryId={{params.categoryId}}</Url>
           <Variant>primary</Variant>
         </Config>
       </Action>

@@ -5,9 +5,9 @@ import { LicensingService } from '@/services/LicensingService';
 import type { UpdateLicenseFeatureBundleDto, AssignFeatureToBundleDto } from '@/models/licenseFeatureBundle.model';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**

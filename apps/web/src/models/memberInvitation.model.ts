@@ -32,8 +32,16 @@ export interface MemberInvitation extends BaseModel {
   encrypted_fields?: string[];
   encryption_key_version?: number;
 
+  // Role pre-assignment for onboarding
+  assigned_role_id?: string;
+
   // Relations
   member?: Member;
+  assigned_role?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
   invited_by_user?: {
     id: string;
     email: string;
@@ -54,6 +62,8 @@ export interface CreateMemberInvitationDto {
   invitation_type?: InvitationType;
   expires_in_days?: number;
   notes?: string;
+  /** Pre-assigned role ID for team member invitations during onboarding */
+  assigned_role_id?: string;
 }
 
 export interface UpdateMemberInvitationDto {
@@ -70,6 +80,11 @@ export interface UpdateMemberInvitationDto {
 
 export interface MemberInvitationWithMember extends MemberInvitation {
   member: Member;
+  assigned_role?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
 }
 
 // For email workflow tracking
@@ -101,6 +116,8 @@ export interface BulkInvitationRequest {
   invitation_type?: InvitationType;
   expires_in_days?: number;
   notes?: string;
+  /** Pre-assigned role ID for team member invitations during onboarding */
+  assigned_role_id?: string;
 }
 
 export interface BulkInvitationResult {

@@ -61,6 +61,8 @@ export class ProductOfferingAdapter
     max_emails_per_month,
     max_storage_mb,
     max_admin_users,
+    max_transactions_per_month,
+    trial_days,
     is_active,
     is_featured,
     sort_order,

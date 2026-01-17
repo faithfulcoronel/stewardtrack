@@ -13,6 +13,8 @@ export interface WelcomeData {
   tenantId: string | null;
   tenantName: string;
   tenantLogoUrl: string | null;
+  /** Church image URL for hero section background (uploaded during onboarding) */
+  churchImageUrl: string | null;
   lastSignIn: string | null;
   currentTime: string;
   greeting: string;
@@ -118,7 +120,8 @@ export type HighlightType =
   | 'task-due'
   | 'approval-needed'
   | 'system-alert'
-  | 'milestone';
+  | 'milestone'
+  | 'setup';
 
 export type HighlightPriority = 'low' | 'medium' | 'high' | 'urgent';
 

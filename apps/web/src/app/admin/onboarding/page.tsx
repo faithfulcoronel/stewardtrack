@@ -1,209 +1,98 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { OnboardingWizard } from '@/components/onboarding';
 
-// Import step components
-import WelcomeStep from '@/components/onboarding/WelcomeStep';
-import ChurchDetailsStep from '@/components/onboarding/ChurchDetailsStep';
-import RBACSetupStep from '@/components/onboarding/RBACSetupStep';
-import FeatureTourStep from '@/components/onboarding/FeatureTourStep';
-import CompleteStep from '@/components/onboarding/CompleteStep';
-
-const STEPS = [
-  { id: 'welcome', title: 'Welcome', component: WelcomeStep },
-  { id: 'church-details', title: 'Church Details', component: ChurchDetailsStep },
-  { id: 'rbac-setup', title: 'Team Setup', component: RBACSetupStep },
-  { id: 'feature-tour', title: 'Feature Tour', component: FeatureTourStep },
-  { id: 'complete', title: 'Complete', component: CompleteStep },
-];
-
+/**
+ * New Onboarding Page
+ *
+ * Streamlined 3-step wizard for church setup:
+ * 1. Invite Your Team - Invite leadership with pre-assigned roles
+ * 2. Import Your Data - Bulk import members and financial data from Excel
+ * 3. Personalize - Upload church image for hero section
+ *
+ * All steps except Personalize are optional/skippable.
+ */
 export default function OnboardingPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [onboardingData, setOnboardingData] = useState<Record<string, any>>({});
+  const [tenantName, setTenantName] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const CurrentStepComponent = STEPS[currentStep].component;
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === STEPS.length - 1;
+  // Fetch tenant info on mount
+  useEffect(() => {
+    const fetchTenantInfo = async () => {
+      try {
+        const response = await fetch('/api/onboarding/complete', {
+          method: 'GET',
+        });
 
-  async function saveProgress(stepData: any) {
-    try {
-      const response = await fetch('/api/onboarding/save-progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          step: STEPS[currentStep].id,
-          data: stepData,
-        }),
-      });
+        if (!response.ok) {
+          throw new Error('Failed to fetch tenant info');
+        }
 
-      const result = await response.json();
+        const data = await response.json();
+        if (data.success && data.tenant) {
+          setTenantName(data.tenant.name);
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save progress');
+          // If onboarding is already completed, redirect to dashboard
+          if (data.tenant.onboarding_completed) {
+            router.push('/admin');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching tenant info:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      throw error;
-    }
+    };
+
+    fetchTenantInfo();
+  }, [router]);
+
+  const handleComplete = () => {
+    // Redirect to dashboard after onboarding completion
+    router.push('/admin');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  async function handleNext(stepData: any) {
-    setIsSaving(true);
-
-    try {
-      // Save step data to state
-      const updatedData = { ...onboardingData, ...stepData };
-      setOnboardingData(updatedData);
-
-      // Save progress to server
-      await saveProgress(stepData);
-
-      // Move to next step
-      if (currentStep < STEPS.length - 1) {
-        setCurrentStep(currentStep + 1);
-      }
-    } catch (error) {
-      console.error('Error handling next:', error);
-      toast.error('Failed to save progress. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  function handleBack() {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  }
-
-  async function handleComplete() {
-    setIsSaving(true);
-
-    try {
-      const response = await fetch('/api/onboarding/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('Onboarding completed! Redirecting to dashboard...');
-        router.push('/admin');
-      } else {
-        throw new Error(result.error || 'Failed to complete onboarding');
-      }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast.error('Failed to complete onboarding. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <div className="text-center max-w-md p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="container max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome to StewardTrack
-          </h1>
-          <p className="text-muted-foreground">
-            Let's get your church management system set up
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-foreground">
-              Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].title}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Step Indicators */}
-        <div className="flex justify-between mb-8">
-          {STEPS.map((step, index) => (
-            <div
-              key={step.id}
-              className={`flex flex-col items-center gap-2 ${
-                index <= currentStep ? 'opacity-100' : 'opacity-40'
-              }`}
-            >
-              <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  index < currentStep
-                    ? 'bg-primary text-primary-foreground'
-                    : index === currentStep
-                    ? 'bg-primary/20 text-primary border-2 border-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {index + 1}
-              </div>
-              <span className="text-xs text-center hidden sm:block max-w-[80px]">
-                {step.title}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Step Content */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CurrentStepComponent
-              data={onboardingData}
-              onNext={handleNext}
-              onBack={handleBack}
-              onComplete={handleComplete}
-              isSaving={isSaving}
-              isFirstStep={isFirstStep}
-              isLastStep={isLastStep}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Navigation (optional, can be hidden if steps have their own navigation) */}
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={isFirstStep || isSaving}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-
-          <Button variant="ghost" onClick={() => router.push('/admin')} disabled={isSaving}>
-            Skip for now
-          </Button>
-
-          {!isLastStep && (
-            <Button onClick={() => handleNext({})} disabled={isSaving}>
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
+    <OnboardingWizard
+      tenantName={tenantName}
+      onComplete={handleComplete}
+    />
   );
 }

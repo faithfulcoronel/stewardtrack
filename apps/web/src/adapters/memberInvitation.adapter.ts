@@ -114,6 +114,7 @@ export class MemberInvitationAdapter
     metadata,
     encrypted_fields,
     encryption_key_version,
+    assigned_role_id,
     created_at,
     updated_at,
     created_by,
@@ -390,6 +391,11 @@ export class MemberInvitationAdapter
           id,
           email,
           raw_user_meta_data
+        ),
+        assigned_role:assigned_role_id (
+          id,
+          name,
+          description
         )
       `)
       .eq('token', token)
@@ -404,7 +410,8 @@ export class MemberInvitationAdapter
 
     return {
       ...data,
-      member: data.member
+      member: data.member,
+      assigned_role: data.assigned_role
     } as MemberInvitationWithMember;
   }
 
@@ -431,6 +438,11 @@ export class MemberInvitationAdapter
           first_name,
           last_name,
           email
+        ),
+        assigned_role:assigned_role_id (
+          id,
+          name,
+          description
         )
       `)
       .eq('tenant_id', tenantId);
@@ -462,7 +474,8 @@ export class MemberInvitationAdapter
 
     return (data || []).map(item => ({
       ...item,
-      member: item.member
+      member: item.member,
+      assigned_role: item.assigned_role
     })) as MemberInvitationWithMember[];
   }
 

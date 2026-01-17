@@ -8,15 +8,17 @@
  *
  * Feature Code: integrations.email (Essential tier)
  *
- * Required Environment Variables:
- * - RESEND_API_KEY
- * - RESEND_FROM_EMAIL
+ * Configuration Priority:
+ * 1. System configuration from SettingService (database)
+ * 2. Fallback to environment variables (RESEND_API_KEY, RESEND_FROM_EMAIL)
  *
  * ================================================================================
  */
 
 import 'server-only';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
+import type { SettingService, EmailConfig } from '@/services/SettingService';
 import type {
   IDeliveryChannel,
   NotificationMessage,
@@ -33,18 +35,66 @@ import {
   renderDiscipleshipMilestoneEmail,
   renderBirthdayGreetingEmail,
   renderAnniversaryGreetingEmail,
+  renderTenantSubscriptionWelcomeEmail,
 } from '@/emails/service/EmailTemplateService';
+
+/**
+ * Resolved email configuration from system settings or environment variables
+ */
+interface ResolvedEmailConfig {
+  apiKey: string;
+  fromEmail: string;
+  fromName?: string;
+  replyTo?: string | null;
+}
 
 @injectable()
 export class EmailChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'email';
   readonly featureCode: string = 'integrations.email';
 
+  constructor(
+    @inject(TYPES.SettingService)
+    private settingService: SettingService
+  ) {}
+
+  /**
+   * Get email configuration from system settings, with fallback to environment variables
+   */
+  private async getEmailConfiguration(): Promise<ResolvedEmailConfig | null> {
+    try {
+      // First, try to get configuration from system settings (database)
+      const dbConfig: EmailConfig | null = await this.settingService.getEmailConfig();
+
+      if (dbConfig && dbConfig.apiKey && dbConfig.fromEmail) {
+        return {
+          apiKey: dbConfig.apiKey,
+          fromEmail: dbConfig.fromEmail,
+          fromName: dbConfig.fromName || undefined,
+          replyTo: dbConfig.replyTo,
+        };
+      }
+    } catch {
+      // If settings service fails (e.g., no tenant context), fall back to env vars
+    }
+
+    // Fallback to environment variables for backward compatibility
+    const envApiKey = process.env.RESEND_API_KEY;
+    const envFromEmail = process.env.RESEND_FROM_EMAIL;
+
+    if (envApiKey && envFromEmail) {
+      return {
+        apiKey: envApiKey,
+        fromEmail: envFromEmail,
+      };
+    }
+
+    return null;
+  }
+
   async isAvailable(): Promise<boolean> {
-    // Check if email service is configured
-    const apiKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.RESEND_FROM_EMAIL;
-    return !!apiKey && !!fromEmail;
+    const config = await this.getEmailConfiguration();
+    return config !== null;
   }
 
   async send(message: NotificationMessage): Promise<DeliveryResult> {
@@ -58,20 +108,37 @@ export class EmailChannel implements IDeliveryChannel {
     }
 
     try {
-      const apiKey = process.env.RESEND_API_KEY;
-      const fromEmail = process.env.RESEND_FROM_EMAIL;
+      const config = await this.getEmailConfiguration();
 
-      if (!apiKey || !fromEmail) {
+      if (!config) {
         return {
           success: false,
           messageId: message.id,
-          error: 'Email service not configured',
+          error: 'Email service not configured. Please configure email settings in system settings or set RESEND_API_KEY and RESEND_FROM_EMAIL environment variables.',
           retryable: false,
         };
       }
 
+      const { apiKey, fromEmail, fromName, replyTo } = config;
+
       // Build email HTML using React Email templates
       const htmlBody = message.htmlBody || await this.buildDefaultHtml(message);
+
+      // Build the "from" field with optional display name
+      const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+      // Build email payload
+      const emailPayload: Record<string, unknown> = {
+        from: fromField,
+        to: message.recipient.email,
+        subject: message.subject || message.title,
+        html: htmlBody,
+      };
+
+      // Add reply-to if configured
+      if (replyTo) {
+        emailPayload.reply_to = replyTo;
+      }
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -79,12 +146,7 @@ export class EmailChannel implements IDeliveryChannel {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: message.recipient.email,
-          subject: message.subject || message.title,
-          html: htmlBody,
-        }),
+        body: JSON.stringify(emailPayload),
       });
 
       if (!response.ok) {
@@ -259,6 +321,20 @@ export class EmailChannel implements IDeliveryChannel {
             profileUrl: metadata.profileUrl as string | undefined,
           },
           { tenantName }
+        );
+
+      case 'tenant-subscription-welcome':
+        return await renderTenantSubscriptionWelcomeEmail(
+          {
+            adminName: metadata.adminName as string,
+            tenantName: metadata.tenantName as string,
+            subscriptionTier: metadata.subscriptionTier as string,
+            isTrial: metadata.isTrial as boolean | undefined,
+            trialDays: metadata.trialDays as number | undefined,
+            dashboardUrl: metadata.dashboardUrl as string,
+            baseUrl: metadata.baseUrl as string | undefined,
+          },
+          {}
         );
 
       default:

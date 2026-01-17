@@ -100,9 +100,19 @@ export interface AllCategoriesBalance {
   transaction_count: number;
 }
 
+export interface HeaderAmountRow {
+  header_id: string;
+  transaction_type: 'income' | 'expense';
+  total_amount: number;
+  line_count: number;
+  category_name?: string;
+  source_name?: string;
+}
+
 export interface IIncomeExpenseTransactionAdapter
   extends IBaseAdapter<IncomeExpenseTransaction> {
   getByHeaderId(headerId: string): Promise<IncomeExpenseTransaction[]>;
+  getHeaderAmounts(tenantId: string, headerIds?: string[]): Promise<HeaderAmountRow[]>;
   // Source methods
   getBySourceId(sourceId: string, tenantId: string): Promise<SourceTransaction[]>;
   getSourceBalance(sourceId: string, tenantId: string): Promise<SourceBalance>;
@@ -164,6 +174,22 @@ export class IncomeExpenseTransactionAdapter
       order: { column: 'line', ascending: true }
     });
     return result.data;
+  }
+
+  public async getHeaderAmounts(tenantId: string, headerIds?: string[]): Promise<HeaderAmountRow[]> {
+    const supabase = await this.getSupabaseClient();
+
+    // Use RPC for efficient aggregation with category/source names
+    const { data, error } = await supabase.rpc('get_header_amounts', {
+      p_tenant_id: tenantId,
+      p_header_ids: headerIds && headerIds.length > 0 ? headerIds : null,
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch header amounts: ${error.message}`);
+    }
+
+    return (data as unknown as HeaderAmountRow[]) || [];
   }
 
   public async getBySourceId(sourceId: string, tenantId: string): Promise<SourceTransaction[]> {

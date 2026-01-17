@@ -6,9 +6,9 @@ import { authUtils } from '@/utils/authUtils';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // POST /api/member-invitations/[id]/resend - Resend invitation
@@ -26,7 +26,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const userMemberLinkService = container.get<UserMemberLinkService>(TYPES.UserMemberLinkService);
 
-    const invitation = await userMemberLinkService.resendInvitation(params.id, user.id, tenantId);
+    // Await params in Next.js 15+
+    const { id } = await params;
+    const invitation = await userMemberLinkService.resendInvitation(id, user.id, tenantId);
 
     return NextResponse.json({
       success: true,

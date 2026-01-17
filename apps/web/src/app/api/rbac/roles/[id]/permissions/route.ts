@@ -6,9 +6,9 @@ import { RolePermissionService } from '@/services/RolePermissionService';
 import type { TenantService } from '@/services/TenantService';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**

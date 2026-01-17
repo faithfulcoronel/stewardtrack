@@ -100,17 +100,19 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
     let tenantName = 'Your Church';
     let tenantLogoUrl: string | null = null;
+    let churchImageUrl: string | null = null;
 
     if (tenantId) {
       const { data: tenant } = await supabase
         .from('tenants')
-        .select('name, logo_url')
+        .select('name, logo_url, church_image_url')
         .eq('id', tenantId)
         .single();
 
       if (tenant) {
         tenantName = tenant.name;
         tenantLogoUrl = tenant.logo_url;
+        churchImageUrl = tenant.church_image_url;
       }
     }
 
@@ -163,6 +165,7 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
       tenantId,
       tenantName,
       tenantLogoUrl,
+      churchImageUrl,
       lastSignIn: null, // Will be filled from auth user data
       currentTime: new Date().toISOString(),
       greeting: this.getGreeting(),
@@ -384,6 +387,32 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     const highlights: DashboardHighlight[] = [];
     const tenantId = await this.getTenantId();
     const supabase = await this.getSupabaseClient();
+
+    // Check if onboarding is incomplete - this should be shown first
+    if (tenantId) {
+      try {
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('onboarding_completed')
+          .eq('id', tenantId)
+          .single();
+
+        if (tenant && !tenant.onboarding_completed) {
+          highlights.push({
+            id: 'complete-setup',
+            type: 'setup',
+            priority: 'urgent',
+            title: 'Complete Your Church Setup',
+            description: 'Finish setting up your church to unlock all features',
+            actionLabel: 'Continue Setup',
+            actionHref: '/admin/onboarding',
+            createdAt: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error('[AdminDashboardAdapter] Error checking onboarding status:', error);
+      }
+    }
 
     // Get upcoming birthdays this week as highlights
     const today = new Date();

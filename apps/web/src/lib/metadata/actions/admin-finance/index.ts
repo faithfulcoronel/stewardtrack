@@ -741,6 +741,48 @@ async function handlePostTransaction(
   }
 }
 
+async function handleRecallTransaction(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.transactions.recall'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.transactions.recall');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to recall transaction.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Transaction recalled to draft status.',
+      redirectUrl: result.redirectUrl,
+    };
+  } catch (error) {
+    console.error('[handleRecallTransaction] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to recall transaction. Please try again.',
+      errors: {},
+    };
+  }
+}
+
 // ==================== REPORT ACTIONS ====================
 
 async function handleExportReport(
@@ -1320,6 +1362,7 @@ export const adminFinanceActionHandlers: Record<
   'admin-finance.transactions.approve': handleApproveTransaction,
   'admin-finance.transactions.void': handleVoidTransaction,
   'admin-finance.transactions.post': handlePostTransaction,
+  'admin-finance.transactions.recall': handleRecallTransaction,
   // Report actions
   'admin-finance.reports.export': handleExportReport,
 };
