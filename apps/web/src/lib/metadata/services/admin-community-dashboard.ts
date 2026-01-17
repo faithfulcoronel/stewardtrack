@@ -15,6 +15,8 @@ import type { MembersDashboardService } from '@/services/MembersDashboardService
 import type { MemberCarePlanService } from '@/services/MemberCarePlanService';
 import type { MemberDiscipleshipPlanService } from '@/services/MemberDiscipleshipPlanService';
 import type { MemberDiscipleshipMilestoneService } from '@/services/MemberDiscipleshipMilestoneService';
+import type { ITenantRepository } from '@/repositories/tenant.repository';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 import type { ServiceDataSourceHandler, ServiceDataSourceRequest } from './types';
 import { getTenantTimezone, formatDate, formatRelativeTime } from './datetime-utils';
@@ -57,11 +59,29 @@ async function resolveDashboardHero(
   description: string;
   highlights: string[];
   metrics: Array<{ label: string; value: string; caption: string }>;
+  image: { src: string; alt: string } | null;
 }> {
   const service = getMembersDashboardService();
   const metrics = await service.getMetrics();
   const carePlanService = getCarePlanService();
   const carePlanStats = await carePlanService.getCarePlanStats();
+
+  // Get tenant's church image URL
+  let churchImageUrl: string | null = null;
+  let tenantName = 'Church';
+  try {
+    const tenantId = await tenantUtils.getTenantId();
+    if (tenantId) {
+      const tenantRepo = container.get<ITenantRepository>(TYPES.ITenantRepository);
+      const tenant = await tenantRepo.findById(tenantId);
+      if (tenant) {
+        churchImageUrl = tenant.church_image_url ?? null;
+        tenantName = tenant.name || 'Church';
+      }
+    }
+  } catch (error) {
+    console.error('[Dashboard Hero] Error fetching tenant:', error);
+  }
 
   // Format real metrics
   const totalFamilies = metrics.familyCount || 0;
@@ -95,6 +115,7 @@ async function resolveDashboardHero(
         caption: 'Active pastoral follow-up sequences.',
       },
     ],
+    image: churchImageUrl ? { src: churchImageUrl, alt: `${tenantName} church building` } : null,
   };
 }
 

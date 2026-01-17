@@ -10,6 +10,8 @@ import type { ICategoryRepository } from '@/repositories/category.repository';
 import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
 import type { Category } from '@/models/category.model';
 import type { FinancialSource } from '@/models/financialSource.model';
+import type { Fund } from '@/models/fund.model';
+import type { IFundRepository } from '@/repositories/fund.repository';
 import { TYPES } from '@/lib/types';
 
 export interface IncomeExpenseEntry {
@@ -23,6 +25,7 @@ export interface IncomeExpenseEntry {
   amount: number;
   source_coa_id: string | null;
   category_coa_id: string | null;
+  fund_coa_id?: string | null; // Fund's equity COA (used for opening_balance transactions)
   batch_id?: string | null;
   line?: number | null;
   isDirty?: boolean;
@@ -44,6 +47,8 @@ export class IncomeExpenseTransactionService {
     private categoryRepo: ICategoryRepository,
     @inject(TYPES.IFinancialSourceRepository)
     private sourceRepo: IFinancialSourceRepository,
+    @inject(TYPES.IFundRepository)
+    private fundRepo: IFundRepository,
   ) {}
 
   private async populateAccounts(lines: IncomeExpenseEntry[]) {
@@ -52,6 +57,9 @@ export class IncomeExpenseTransactionService {
     );
     const sourceIds = Array.from(
       new Set(lines.map(l => l.source_id).filter((id): id is string => !!id)),
+    );
+    const fundIds = Array.from(
+      new Set(lines.map(l => l.fund_id).filter((id): id is string => !!id)),
     );
 
     const categories = await Promise.all(
@@ -70,12 +78,22 @@ export class IncomeExpenseTransactionService {
         .map(s => [s.id, s.coa_id || null]),
     );
 
+    const funds = await Promise.all(fundIds.map(id => this.fundRepo.findById(id)));
+    const fundMap = new Map(
+      funds
+        .filter((f): f is Fund => !!f)
+        .map(f => [f.id, f.coa_id || null]),
+    );
+
     for (const line of lines) {
       line.category_coa_id = line.category_id
         ? categoryMap.get(line.category_id) ?? null
         : null;
       line.source_coa_id = line.source_id
         ? sourceMap.get(line.source_id) ?? null
+        : null;
+      line.fund_coa_id = line.fund_id
+        ? fundMap.get(line.fund_id) ?? null
         : null;
     }
   }
@@ -119,6 +137,25 @@ export class IncomeExpenseTransactionService {
       ];
     }
 
+    // Opening balance: Debit asset (source), Credit equity (fund)
+    if (line.transaction_type === 'opening_balance') {
+      return [
+        {
+          ...base,
+          coa_id: line.source_coa_id, // Asset account (bank/cash)
+          debit: line.amount,
+          credit: 0,
+        },
+        {
+          ...base,
+          coa_id: line.fund_coa_id, // Equity account (fund balance)
+          debit: 0,
+          credit: line.amount,
+        },
+      ];
+    }
+
+    // Default: expense - Debit expense (category), Credit asset (source)
     return [
       {
         ...base,
@@ -174,7 +211,12 @@ export class IncomeExpenseTransactionService {
     onProgress?: (percent: number) => void,
   ) {
     await this.populateAccounts(lines);
-    const headerRecord = await this.headerRepo.create(header);
+
+    // Save the intended final status, then create header as 'draft' first
+    // This allows adding transactions before marking as posted
+    const finalStatus = header.status;
+    const headerToCreate = { ...header, status: 'draft' };
+    const headerRecord = await this.headerRepo.create(headerToCreate);
 
     const total = lines.length;
     for (let index = 0; index < lines.length; index++) {
@@ -200,6 +242,12 @@ export class IncomeExpenseTransactionService {
       });
 
       onProgress?.(Math.round(((index + 1) / total) * 100));
+    }
+
+    // Update to final status if it was 'posted'
+    if (finalStatus === 'posted') {
+      await this.headerRepo.update(headerRecord.id, { status: 'posted' });
+      headerRecord.status = 'posted';
     }
 
     return headerRecord;

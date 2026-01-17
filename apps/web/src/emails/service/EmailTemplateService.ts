@@ -74,6 +74,9 @@ import { AnniversaryGreetingEmail } from '../templates/AnniversaryGreetingEmail'
 import { SystemMaintenanceEmail } from '../templates/SystemMaintenanceEmail';
 import { SystemAnnouncementEmail } from '../templates/SystemAnnouncementEmail';
 
+// Subscription Templates
+import { TenantSubscriptionWelcomeEmail } from '../templates/TenantSubscriptionWelcomeEmail';
+
 /** Default base URL for email assets */
 const DEFAULT_BASE_URL = 'https://stewardtrack.com';
 
@@ -512,6 +515,20 @@ export interface SystemAnnouncementEmailData {
   effectiveDate?: string;
   actionUrl?: string;
   actionLabel?: string;
+}
+
+// =============================================================================
+// Subscription Email Data Interfaces
+// =============================================================================
+
+export interface TenantSubscriptionWelcomeEmailData {
+  adminName: string;
+  tenantName: string;
+  subscriptionTier: string;
+  isTrial?: boolean;
+  trialDays?: number;
+  dashboardUrl: string;
+  baseUrl?: string;
 }
 
 // =============================================================================
@@ -1409,6 +1426,31 @@ export async function renderSystemAnnouncementEmail(
 }
 
 // =============================================================================
+// Subscription Email Render Functions
+// =============================================================================
+
+/**
+ * Renders a tenant subscription welcome email template to HTML.
+ * Sent to new tenants when they subscribe/create an account.
+ */
+export async function renderTenantSubscriptionWelcomeEmail(
+  data: TenantSubscriptionWelcomeEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(TenantSubscriptionWelcomeEmail, {
+    adminName: data.adminName,
+    tenantName: data.tenantName,
+    subscriptionTier: data.subscriptionTier,
+    isTrial: data.isTrial,
+    trialDays: data.trialDays,
+    dashboardUrl: data.dashboardUrl,
+    baseUrl: data.baseUrl || options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
+}
+
+// =============================================================================
 // Dynamic Template Rendering
 // =============================================================================
 
@@ -1465,7 +1507,9 @@ export type EmailTemplateType =
   | 'anniversary-greeting'
   // System
   | 'system-maintenance'
-  | 'system-announcement';
+  | 'system-announcement'
+  // Subscription
+  | 'tenant-subscription-welcome';
 
 /**
  * Renders an email template by type.
@@ -1576,6 +1620,10 @@ export async function renderEmailByType(
       return await renderSystemMaintenanceEmail(data as unknown as SystemMaintenanceEmailData, options);
     case 'system-announcement':
       return await renderSystemAnnouncementEmail(data as unknown as SystemAnnouncementEmailData, options);
+
+    // Subscription
+    case 'tenant-subscription-welcome':
+      return await renderTenantSubscriptionWelcomeEmail(data as unknown as TenantSubscriptionWelcomeEmailData, options);
 
     default:
       throw new Error(`Unknown email template type: ${templateType}`);

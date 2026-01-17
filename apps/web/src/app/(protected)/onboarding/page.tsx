@@ -1,36 +1,28 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'sonner';
-
-// Import step components
-import WelcomeStep from '@/components/onboarding/WelcomeStep';
-import ChurchDetailsStep from '@/components/onboarding/ChurchDetailsStep';
-import RBACSetupStep from '@/components/onboarding/RBACSetupStep';
-import FeatureTourStep from '@/components/onboarding/FeatureTourStep';
-import PaymentStep from '@/components/onboarding/PaymentStep';
-import CompleteStep from '@/components/onboarding/CompleteStep';
+import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { OnboardingWizard } from '@/components/onboarding';
 import { PaymentHandleModal } from '@/components/payment-handler/PaymentHandleModal';
 
-const STEPS = [
-  { id: 'welcome', title: 'Welcome', component: WelcomeStep },
-  { id: 'church-details', title: 'Church Details', component: ChurchDetailsStep },
-  { id: 'rbac-setup', title: 'Team Setup', component: RBACSetupStep },
-  { id: 'feature-tour', title: 'Feature Tour', component: FeatureTourStep },
-  { id: 'payment', title: 'Payment', component: PaymentStep },
-  { id: 'complete', title: 'Complete', component: CompleteStep },
-];
+/**
+ * New Onboarding Page
+ *
+ * Streamlined 3-step wizard for church setup:
+ * 1. Invite Your Team - Invite leadership with pre-assigned roles (optional)
+ * 2. Import Your Data - Bulk import members and financial data from Excel (optional)
+ * 3. Personalize - Upload church image for hero section
+ *
+ * Payment is handled separately via subscription flow, not during onboarding.
+ */
 
 // Loading fallback for Suspense boundary
 function OnboardingLoading() {
   return (
-    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 py-8 px-4 sm:px-6 lg:px-8">
       <div className="container max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <Skeleton className="h-9 w-64 mx-auto mb-2" />
@@ -55,234 +47,114 @@ function OnboardingLoading() {
 // Main onboarding content that uses useSearchParams
 function OnboardingContent() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [onboardingData, setOnboardingData] = useState<Record<string, any>>({});
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const searchParams = useSearchParams();
+  const [tenantName, setTenantName] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const CurrentStepComponent = STEPS[currentStep].component;
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === STEPS.length - 1;
-
-  const payment = searchParams.get("payment");
-  const step = searchParams.get("step")
+  // Check for payment callback parameter
+  const payment = searchParams.get('payment');
 
   useEffect(() => {
-      // Show success modal when payment parameter has a value
-      if (payment != null) {
-        setShowSuccessModal(true);
-      } else {
-        setShowSuccessModal(false);
-      }
-
-      if(step == 'payment') {
-        setCurrentStep(4);
-      }
-    }, [payment, step]);
-
-  async function saveProgress(stepData: any) {
-    try {
-      const response = await fetch('/api/onboarding/save-progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          step: STEPS[currentStep].id,
-          data: stepData,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save progress');
-      }
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      throw error;
+    // Show payment modal when payment parameter has a value (from payment callback)
+    if (payment != null) {
+      setShowPaymentModal(true);
     }
-  }
+  }, [payment]);
 
-  async function handleNext(stepData: any) {
-    setIsSaving(true);
+  // Fetch tenant info on mount
+  useEffect(() => {
+    const fetchTenantInfo = async () => {
+      try {
+        const response = await fetch('/api/onboarding/complete', {
+          method: 'GET',
+        });
 
-    // Remove payment parameter from URL
-    if(step == 'payment') {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("step");
-    
-      router.replace(`/onboarding${params.toString() ? `?${params.toString()}` : ""}`);
-    }
+        if (!response.ok) {
+          throw new Error('Failed to fetch tenant info');
+        }
 
-    try {
-      // Save step data to state
-      const updatedData = { ...onboardingData, ...stepData };
-      setOnboardingData(updatedData);
+        const data = await response.json();
+        if (data.success && data.tenant) {
+          setTenantName(data.tenant.name);
 
-      // Save progress to server
-      await saveProgress(stepData);
-
-      // Move to next step
-      if (currentStep < STEPS.length - 1) {
-        setCurrentStep(currentStep + 1);
+          // If onboarding is already completed, redirect to dashboard
+          if (data.tenant.onboarding_completed) {
+            router.push('/admin');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching tenant info:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error handling next:', error);
-      toast.error('Failed to save progress. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }
+    };
 
-  function handleBack() {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  }
+    fetchTenantInfo();
+  }, [router]);
 
-  async function handleComplete() {
-    setIsSaving(true);
-
-    try {
-      const response = await fetch('/api/onboarding/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('Onboarding completed! Redirecting to dashboard...');
-        router.push('/admin');
-      } else {
-        throw new Error(result.error || 'Failed to complete onboarding');
-      }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast.error('Failed to complete onboarding. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  const handleCloseButton = () => {
-    setShowSuccessModal(false)
-    router.replace(`/onboarding?step=payment`);
-    setCurrentStep(4);
-  }
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-    router.replace(`/onboarding?step=payment`);
-    setCurrentStep(4);
+  const handleComplete = () => {
+    // Redirect to dashboard after onboarding completion
+    router.push('/admin');
   };
 
-  return (
-    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="container max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome to StewardTrack
-          </h1>
-          <p className="text-muted-foreground">
-            Let's get your church management system set up
-          </p>
-        </div>
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    // Remove payment parameter from URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('payment');
+    router.replace(`/onboarding${params.toString() ? `?${params.toString()}` : ''}`);
+  };
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-foreground">
-              Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].title}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Step Indicators */}
-        <div className="flex justify-between mb-8 overflow-x-auto scrollbar-hide px-1">
-          {STEPS.map((step, index) => (
-            <button
-              key={step.id}
-              type="button"
-              onClick={() => index < currentStep && setCurrentStep(index)}
-              disabled={index >= currentStep}
-              className={`flex flex-col items-center gap-2 touch-target min-w-[44px] ${
-                index <= currentStep ? 'opacity-100' : 'opacity-40'
-              } ${index < currentStep ? 'cursor-pointer' : 'cursor-default'}`}
-              aria-label={`Step ${index + 1}: ${step.title}`}
-            >
-              <div
-                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                  index < currentStep
-                    ? 'bg-primary text-primary-foreground'
-                    : index === currentStep
-                    ? 'bg-primary/20 text-primary border-2 border-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {index + 1}
-              </div>
-              <span className="text-xs text-center hidden sm:block max-w-[80px]">
-                {step.title}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Step Content */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CurrentStepComponent
-              data={onboardingData}
-              onNext={handleNext}
-              onBack={handleBack}
-              onComplete={handleComplete}
-              isSaving={isSaving}
-              isFirstStep={isFirstStep}
-              isLastStep={isLastStep}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={isFirstStep || isSaving}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-
-          <Button variant="ghost" onClick={() => router.push('/admin')} disabled={isSaving}>
-            Skip for now
-          </Button>
-
-          {!isLastStep && (
-            <Button onClick={() => handleNext({})} disabled={isSaving}>
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <div className="text-center max-w-md p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <OnboardingWizard
+        tenantName={tenantName}
+        onComplete={handleComplete}
+      />
+
+      {/* Payment callback modal (for subscription payment returns) */}
       <PaymentHandleModal
-          open={showSuccessModal}
-          onOpenChange={handleCloseButton}
-          paymentId={payment || undefined}
-          onClose={handleCloseModal}
-          source='onboarding'
-        />
-    </div>
+        open={showPaymentModal}
+        onOpenChange={handleClosePaymentModal}
+        paymentId={payment || undefined}
+        onClose={handleClosePaymentModal}
+        source="onboarding"
+      />
+    </>
   );
 }
 

@@ -61,6 +61,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isChecking, setIsChecking] = useState(true);
+  const [trialDays, setTrialDays] = useState(14);
 
   // Get the redirectTo parameter from URL (set by admin layout when unauthenticated)
   const redirectTo = searchParams.get('redirectTo') || '/admin';
@@ -82,7 +83,26 @@ function LoginPageContent() {
       }
     };
 
+    const loadTrialDays = async () => {
+      try {
+        const response = await fetch('/api/licensing/product-offerings');
+        const result = await response.json();
+        if (result.success) {
+          const trialOffering = result.data.find((o: { offering_type: string }) => o.offering_type === 'trial');
+          if (trialOffering) {
+            const days = trialOffering.trial_days;
+            if (days) {
+              setTrialDays(days);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading trial days:', error);
+      }
+    };
+
     checkAuth();
+    loadTrialDays();
   }, [router, redirectTo]);
 
   if (isChecking) {
@@ -226,7 +246,7 @@ function LoginPageContent() {
                     href="/signup"
                     className="font-semibold text-[#179a65] hover:text-green-700 transition-colors"
                   >
-                    Start your free 14-day trial
+                    Start your free {trialDays}-day trial
                   </Link>
                   <span className="mx-2 text-gray-400">&bull;</span>
                   <span className="text-gray-400">No credit card required</span>

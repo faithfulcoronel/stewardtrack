@@ -10,7 +10,8 @@ import {
   Calendar,
   FileCheck,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Rocket
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +72,8 @@ function getHighlightIcon(type: string) {
       return AlertCircle;
     case 'milestone':
       return Sparkles;
+    case 'setup':
+      return Rocket;
     default:
       return Clock;
   }

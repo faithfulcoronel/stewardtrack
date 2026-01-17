@@ -304,72 +304,92 @@ const resolveFundManageForm: ServiceDataSourceHandler = async (request) => {
   }
 
   let fund: Partial<Fund> = {};
+  let hasLinkedAccount = false;
+  let linkedAccountDisplay = '';
 
   if (fundId) {
     const existing = await fundService.findById(fundId);
     if (existing) {
       fund = existing;
+      hasLinkedAccount = !!fund.coa_id;
+      linkedAccountDisplay = fund.chart_of_accounts
+        ? `${fund.chart_of_accounts.code} - ${fund.chart_of_accounts.name}`
+        : '';
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    ...(fundId
+      ? [
+          {
+            name: 'fundId',
+            type: 'hidden' as const,
+          },
+        ]
+      : []),
+    {
+      name: 'code',
+      label: 'Fund code',
+      type: 'text',
+      colSpan: 'quarter',
+      placeholder: 'e.g., BLDG',
+      helperText: 'Short identifier',
+      required: true,
+    },
+    {
+      name: 'name',
+      label: 'Fund name',
+      type: 'text',
+      colSpan: 'three-quarters',
+      placeholder: 'e.g., Building Fund',
+      helperText: 'Full name of the fund',
+      required: true,
+    },
+    {
+      name: 'type',
+      label: 'Fund type',
+      type: 'select',
+      colSpan: 'half',
+      required: true,
+      options: [
+        { label: 'Restricted', value: 'restricted' },
+        { label: 'Unrestricted', value: 'unrestricted' },
+      ],
+      helperText: 'Restricted funds have a designated purpose',
+    },
+    {
+      name: 'createEquityAccount',
+      label: 'Create equity account',
+      type: 'toggle',
+      colSpan: 'half',
+      helperText: 'Automatically create a linked equity account in the chart of accounts',
+      hidden: !!fundId && !!fund.coa_id,
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Purpose and usage notes for this fund...',
+      helperText: 'Optional description',
+      rows: 3,
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (fundId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked equity account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this fund. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      ...(fundId
-        ? [
-            {
-              name: 'fundId',
-              type: 'hidden' as const,
-            },
-          ]
-        : []),
-      {
-        name: 'code',
-        label: 'Fund code',
-        type: 'text',
-        colSpan: 'quarter',
-        placeholder: 'e.g., BLDG',
-        helperText: 'Short identifier',
-        required: true,
-      },
-      {
-        name: 'name',
-        label: 'Fund name',
-        type: 'text',
-        colSpan: 'three-quarters',
-        placeholder: 'e.g., Building Fund',
-        helperText: 'Full name of the fund',
-        required: true,
-      },
-      {
-        name: 'type',
-        label: 'Fund type',
-        type: 'select',
-        colSpan: 'half',
-        required: true,
-        options: [
-          { label: 'Restricted', value: 'restricted' },
-          { label: 'Unrestricted', value: 'unrestricted' },
-        ],
-        helperText: 'Restricted funds have a designated purpose',
-      },
-      {
-        name: 'createEquityAccount',
-        label: 'Create equity account',
-        type: 'toggle',
-        colSpan: 'half',
-        helperText: 'Automatically create a linked equity account in the chart of accounts',
-        hidden: !!fundId && !!fund.coa_id,
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Purpose and usage notes for this fund...',
-        helperText: 'Optional description',
-        rows: 3,
-      },
-    ],
+    fields,
     values: {
       ...(fundId ? { fundId: fund.id } : {}),
       code: fund.code || '',
@@ -377,6 +397,7 @@ const resolveFundManageForm: ServiceDataSourceHandler = async (request) => {
       type: fund.type || 'unrestricted',
       createEquityAccount: !fundId,
       description: fund.description || '',
+      linkedAccount: linkedAccountDisplay,
     },
     validation: {
       code: { required: true, minLength: 1 },

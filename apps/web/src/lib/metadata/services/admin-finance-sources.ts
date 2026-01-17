@@ -318,7 +318,6 @@ const resolveSourceManageHeader: ServiceDataSourceHandler = async (request) => {
 
 const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
   const sourceId = request.params?.sourceId as string;
-  const isCreate = !sourceId;
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
@@ -329,74 +328,94 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
   }
 
   let source: Partial<FinancialSource> = {};
+  let hasLinkedAccount = false;
+  let linkedAccountDisplay = '';
 
   if (sourceId) {
     const existing = await sourceService.findById(sourceId);
     if (existing) {
       source = existing;
+      hasLinkedAccount = !!source.coa_id;
+      linkedAccountDisplay = source.chart_of_accounts
+        ? `${source.chart_of_accounts.code} - ${source.chart_of_accounts.name}`
+        : '';
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    ...(sourceId
+      ? [
+          {
+            name: 'sourceId',
+            type: 'hidden' as const,
+          },
+        ]
+      : []),
+    {
+      name: 'name',
+      label: 'Source name',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., Main Checking Account',
+      helperText: 'Descriptive name for this source',
+      required: true,
+    },
+    {
+      name: 'sourceType',
+      label: 'Source type',
+      type: 'select',
+      colSpan: 'half',
+      helperText: 'Type of financial source',
+      required: true,
+      options: [
+        { value: 'bank', label: 'Bank Account' },
+        { value: 'cash', label: 'Cash' },
+        { value: 'wallet', label: 'Digital Wallet' },
+        { value: 'online', label: 'Online Payment' },
+        { value: 'fund', label: 'Fund' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    {
+      name: 'accountNumber',
+      label: 'Account number',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'Account number (encrypted)',
+      helperText: 'Optional account identifier',
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'half',
+      helperText: 'Active sources can be used in transactions',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Additional notes about this source...',
+      helperText: 'Optional description',
+      rows: 3,
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (sourceId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked GL account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this source. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      ...(sourceId
-        ? [
-            {
-              name: 'sourceId',
-              type: 'hidden' as const,
-            },
-          ]
-        : []),
-      {
-        name: 'name',
-        label: 'Source name',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., Main Checking Account',
-        helperText: 'Descriptive name for this source',
-        required: true,
-      },
-      {
-        name: 'sourceType',
-        label: 'Source type',
-        type: 'select',
-        colSpan: 'half',
-        helperText: 'Type of financial source',
-        required: true,
-        options: [
-          { value: 'bank', label: 'Bank Account' },
-          { value: 'cash', label: 'Cash' },
-          { value: 'wallet', label: 'Digital Wallet' },
-          { value: 'online', label: 'Online Payment' },
-          { value: 'fund', label: 'Fund' },
-          { value: 'other', label: 'Other' },
-        ],
-      },
-      {
-        name: 'accountNumber',
-        label: 'Account number',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'Account number (encrypted)',
-        helperText: 'Optional account identifier',
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'half',
-        helperText: 'Active sources can be used in transactions',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Additional notes about this source...',
-        helperText: 'Optional description',
-        rows: 3,
-      },
-    ],
+    fields,
     values: {
       ...(sourceId ? { sourceId: source.id } : {}),
       name: source.name || '',
@@ -404,6 +423,7 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
       accountNumber: source.account_number || '',
       isActive: source.is_active ?? true,
       description: source.description || '',
+      linkedAccount: linkedAccountDisplay,
     },
     validation: {
       name: { required: true, minLength: 1 },

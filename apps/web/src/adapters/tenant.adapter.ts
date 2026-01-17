@@ -132,7 +132,10 @@ export class TenantAdapter
     setup_status,
     setup_completed_at,
     setup_error,
-    admin_member_created
+    admin_member_created,
+    church_image_url,
+    onboarding_completed,
+    onboarding_completed_at
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [];

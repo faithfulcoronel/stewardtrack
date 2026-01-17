@@ -6,9 +6,11 @@ import type { ITenantRepository } from '@/repositories/tenant.repository';
 import type { LicensingService } from '@/services/LicensingService';
 import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 import type { TenantService } from '@/services/TenantService';
+import type { SettingService } from '@/services/SettingService';
 import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
+import { renderTenantSubscriptionWelcomeEmail } from '@/emails/service/EmailTemplateService';
 
 // Re-export types for convenience
 export type { PublicProductOffering } from '@/repositories/tenant.repository';
@@ -22,6 +24,8 @@ export interface RegistrationData {
   lastName: string;
   offeringId: string;
   denomination?: string;
+  contactNumber?: string;
+  address?: string;
 }
 
 export interface RegistrationResult {
@@ -61,7 +65,8 @@ export class RegistrationService {
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
     @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager,
     @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService,
-    @inject(TYPES.TenantService) private tenantService: TenantService
+    @inject(TYPES.TenantService) private tenantService: TenantService,
+    @inject(TYPES.SettingService) private settingService: SettingService
   ) {
     // Initialize feature onboarding plugins on first use
     initializeFeaturePlugins();
@@ -122,7 +127,7 @@ export class RegistrationService {
         return { success: false, error: validation.error };
       }
 
-      const { email, password, churchName, firstName, lastName, offeringId, denomination } = data;
+      const { email, password, churchName, firstName, lastName, offeringId, denomination, contactNumber, address } = data;
 
       // ===== STEP 2: Create auth user =====
       const authResponse = await this.authRepository.signUp(email, password, {
@@ -170,6 +175,9 @@ export class RegistrationService {
         status: 'active',
         created_by: userId,
         denomination: denomination || null,
+        contact_number: contactNumber || null,
+        address: address || null,
+        email: email, // Store the admin's email as the tenant contact email
       });
 
       tenantId = tenant.id;
@@ -233,6 +241,16 @@ export class RegistrationService {
       // - Feature sync: Runs async, handles features + permissions + role assignments
       // - Feature onboarding plugins: Runs async, takes 5-15 seconds
       // Both are non-blocking and non-fatal to registration success.
+
+      // ===== STEP 11: Send welcome email (async) =====
+      this.sendWelcomeEmailAsync({
+        email,
+        firstName,
+        tenantName: churchName,
+        subscriptionTier: offering.tier,
+        isTrial,
+        trialDays,
+      });
 
       // ===== STEP 12: Return success =====
       return {
@@ -359,6 +377,107 @@ export class RegistrationService {
       }
 
       console.log(`[ASYNC] Background tasks completed for tenant ${tenantId} in ${Date.now() - startTime}ms`);
+    });
+  }
+
+  /**
+   * Get email configuration from system-level settings (tenant_id = NULL).
+   * Used for registration emails which do not have tenant context.
+   */
+  private async getEmailConfiguration(): Promise<{ apiKey: string; fromEmail: string; fromName?: string; replyTo?: string | null } | null> {
+    try {
+      // Get configuration from system-level settings (tenant_id = NULL)
+      const systemConfig = await this.settingService.getSystemEmailConfig();
+
+      if (systemConfig && systemConfig.apiKey && systemConfig.fromEmail) {
+        return {
+          apiKey: systemConfig.apiKey,
+          fromEmail: systemConfig.fromEmail,
+          fromName: systemConfig.fromName || undefined,
+          replyTo: systemConfig.replyTo,
+        };
+      }
+    } catch (error) {
+      console.error('[RegistrationService] Failed to get system email config:', error);
+    }
+
+    return null;
+  }
+
+  /**
+   * Send welcome email to new tenant admin asynchronously.
+   * Uses system-level email configuration (tenant_id = NULL) from settings table.
+   */
+  private sendWelcomeEmailAsync(params: {
+    email: string;
+    firstName: string;
+    tenantName: string;
+    subscriptionTier: string;
+    isTrial: boolean;
+    trialDays: number;
+  }): void {
+    setImmediate(async () => {
+      const { email, firstName, tenantName, subscriptionTier, isTrial, trialDays } = params;
+
+      try {
+        const config = await this.getEmailConfiguration();
+
+        if (!config) {
+          console.warn('[ASYNC] Email service not configured, skipping welcome email. Super admin must configure integration.email.* settings with tenant_id = NULL.');
+          return;
+        }
+
+        const { apiKey, fromEmail, fromName, replyTo } = config;
+
+        // Render the email template
+        const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://stewardtrack.com'}/admin`;
+        const htmlBody = await renderTenantSubscriptionWelcomeEmail({
+          adminName: firstName,
+          tenantName,
+          subscriptionTier,
+          isTrial,
+          trialDays: isTrial ? trialDays : undefined,
+          dashboardUrl,
+        });
+
+        // Build the "from" field with optional display name
+        const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+        // Build email payload
+        const emailPayload: Record<string, unknown> = {
+          from: fromField,
+          to: email,
+          subject: `Welcome to StewardTrack, ${tenantName}!`,
+          html: htmlBody,
+        };
+
+        // Add reply-to if configured
+        if (replyTo) {
+          emailPayload.reply_to = replyTo;
+        }
+
+        // Send via Resend API
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailPayload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[ASYNC] Failed to send welcome email: ${errorText}`);
+          return;
+        }
+
+        const result = await response.json();
+        console.log(`[ASYNC] Welcome email sent successfully to ${email}, messageId: ${result.id}`);
+      } catch (error) {
+        console.error('[ASYNC] Error sending welcome email:', error);
+        // Non-fatal - registration already succeeded
+      }
     });
   }
 

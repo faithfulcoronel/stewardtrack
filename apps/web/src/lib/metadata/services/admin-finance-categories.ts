@@ -53,8 +53,16 @@ interface CategoryRecord {
   description?: string;
   type?: string;
   isActive?: boolean;
+  is_active?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  chart_of_account_id?: string | null;
+  chart_of_accounts?: {
+    id: string;
+    code: string;
+    name: string;
+    account_type: string;
+  } | null;
 }
 
 const getCategoryLabel = (type: CategoryType): string => {
@@ -456,59 +464,82 @@ const resolveIncomeCategoryManageForm: ServiceDataSourceHandler = async (request
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
-  let values = {
+  let values: Record<string, unknown> = {
     name: '',
     code: '',
     description: '',
     isActive: true,
+    linkedAccount: '',
   };
+
+  let hasLinkedAccount = false;
 
   if (categoryId) {
     const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
 
     if (category) {
+      hasLinkedAccount = !!category.chart_of_account_id;
+      const linkedAccountDisplay = category.chart_of_accounts
+        ? `${category.chart_of_accounts.code} - ${category.chart_of_accounts.name}`
+        : '';
+
       values = {
         name: category.name,
         code: category.code || '',
         description: category.description || '',
-        isActive: category.isActive !== false,
+        isActive: category.isActive !== false && category.is_active !== false,
+        linkedAccount: linkedAccountDisplay,
       };
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    {
+      name: 'name',
+      label: 'Category name',
+      type: 'text',
+      colSpan: 'half',
+      required: true,
+      placeholder: 'e.g., Tithes, Offerings, Donations',
+    },
+    {
+      name: 'code',
+      label: 'Category code',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., INC-001',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Describe this income category...',
+      rows: 3,
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Inactive categories cannot be used for new transactions.',
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (categoryId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked COA account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this category. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      {
-        name: 'name',
-        label: 'Category name',
-        type: 'text',
-        colSpan: 'half',
-        required: true,
-        placeholder: 'e.g., Tithes, Offerings, Donations',
-      },
-      {
-        name: 'code',
-        label: 'Category code',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., INC-001',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Describe this income category...',
-        rows: 3,
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'full',
-        helperText: 'Inactive categories cannot be used for new transactions.',
-      },
-    ],
+    fields,
     values,
     validation: {
       name: { required: true },
@@ -990,59 +1021,82 @@ const resolveExpenseCategoryManageForm: ServiceDataSourceHandler = async (reques
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
-  let values = {
+  let values: Record<string, unknown> = {
     name: '',
     code: '',
     description: '',
     isActive: true,
+    linkedAccount: '',
   };
+
+  let hasLinkedAccount = false;
 
   if (categoryId) {
     const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
 
     if (category) {
+      hasLinkedAccount = !!category.chart_of_account_id;
+      const linkedAccountDisplay = category.chart_of_accounts
+        ? `${category.chart_of_accounts.code} - ${category.chart_of_accounts.name}`
+        : '';
+
       values = {
         name: category.name,
         code: category.code || '',
         description: category.description || '',
-        isActive: category.isActive !== false,
+        isActive: category.isActive !== false && category.is_active !== false,
+        linkedAccount: linkedAccountDisplay,
       };
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    {
+      name: 'name',
+      label: 'Category name',
+      type: 'text',
+      colSpan: 'half',
+      required: true,
+      placeholder: 'e.g., Utilities, Salaries, Supplies',
+    },
+    {
+      name: 'code',
+      label: 'Category code',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., EXP-001',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Describe this expense category...',
+      rows: 3,
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Inactive categories cannot be used for new transactions.',
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (categoryId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked COA account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this category. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      {
-        name: 'name',
-        label: 'Category name',
-        type: 'text',
-        colSpan: 'half',
-        required: true,
-        placeholder: 'e.g., Utilities, Salaries, Supplies',
-      },
-      {
-        name: 'code',
-        label: 'Category code',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., EXP-001',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Describe this expense category...',
-        rows: 3,
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'full',
-        helperText: 'Inactive categories cannot be used for new transactions.',
-      },
-    ],
+    fields,
     values,
     validation: {
       name: { required: true },

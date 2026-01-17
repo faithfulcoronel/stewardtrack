@@ -39,6 +39,7 @@ export interface Discount extends BaseModel {
   first_purchase_only: boolean;
   new_tenant_only: boolean;
   applicable_billing_cycles: string[];
+  duration_billing_cycles?: number | null;
   is_active: boolean;
   show_banner: boolean;
   banner_text?: string | null;
@@ -86,6 +87,7 @@ export interface CreateDiscountDto {
   first_purchase_only?: boolean;
   new_tenant_only?: boolean;
   applicable_billing_cycles?: string[];
+  duration_billing_cycles?: number | null;
   is_active?: boolean;
   show_banner?: boolean;
   banner_text?: string | null;
@@ -112,6 +114,7 @@ export interface UpdateDiscountDto {
   first_purchase_only?: boolean;
   new_tenant_only?: boolean;
   applicable_billing_cycles?: string[];
+  duration_billing_cycles?: number | null;
   is_active?: boolean;
   show_banner?: boolean;
   banner_text?: string | null;
@@ -131,6 +134,7 @@ export interface DiscountValidationResult {
   discount_value?: number | null;
   discount_amount?: number | null;
   final_amount?: number | null;
+  duration_billing_cycles?: number | null;
   error_message?: string | null;
 }
 
@@ -146,6 +150,7 @@ export interface ActiveDiscount {
   badge_text?: string | null;
   banner_text?: string | null;
   ends_at?: string | null;
+  duration_billing_cycles?: number | null;
 }
 
 /**

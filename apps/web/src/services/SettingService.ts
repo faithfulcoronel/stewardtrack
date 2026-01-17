@@ -135,6 +135,9 @@ export interface SettingService {
   getFirebaseStatus(): Promise<{ verified: boolean; lastTested: string | null }>;
   markFirebaseVerified(): Promise<void>;
   getIntegrationConfiguredCount(): Promise<number>;
+  // System-level email settings (tenant_id = NULL, used for registration emails)
+  getSystemEmailConfig(): Promise<EmailConfig | null>;
+  saveSystemEmailConfig(config: { provider?: string; apiKey: string; fromEmail: string; fromName: string; replyTo?: string }): Promise<void>;
 }
 
 @injectable()
@@ -442,5 +445,66 @@ export class SupabaseSettingService implements SettingService {
     if (settings.email.configured) count++;
     if (settings.webhook.configured) count++;
     return count;
+  }
+
+  // System-level email settings (tenant_id = NULL, used for registration emails)
+
+  /**
+   * Get system-level email configuration (tenant_id = NULL).
+   * Used for sending emails without tenant context (e.g., registration welcome emails).
+   * Uses the same integration.email.* keys but queries without tenant filtering.
+   */
+  async getSystemEmailConfig(): Promise<EmailConfig | null> {
+    const systemSettings = await this.repo.getSystemSettings('integration.email.');
+
+    // Convert array to key-value map
+    const settingsMap: Record<string, string> = {};
+    for (const setting of systemSettings) {
+      settingsMap[setting.key] = setting.value;
+    }
+
+    const apiKey = settingsMap[INTEGRATION_KEYS.EMAIL_API_KEY];
+    const fromEmail = settingsMap[INTEGRATION_KEYS.EMAIL_FROM_EMAIL];
+
+    if (!apiKey || !fromEmail) {
+      return null;
+    }
+
+    return {
+      provider: (settingsMap[INTEGRATION_KEYS.EMAIL_PROVIDER] || 'resend') as EmailConfig['provider'],
+      apiKey,
+      fromEmail,
+      fromName: settingsMap[INTEGRATION_KEYS.EMAIL_FROM_NAME] || 'StewardTrack',
+      replyTo: settingsMap[INTEGRATION_KEYS.EMAIL_REPLY_TO] || 'support@cortanatechsolutions.com',
+      verified: settingsMap[INTEGRATION_KEYS.EMAIL_VERIFIED] === 'true',
+      lastTested: settingsMap[INTEGRATION_KEYS.EMAIL_LAST_TESTED] || null,
+    };
+  }
+
+  /**
+   * Save system-level email configuration (tenant_id = NULL).
+   * Used by super admin to configure email settings for registration/system emails.
+   */
+  async saveSystemEmailConfig(config: {
+    provider?: string;
+    apiKey: string;
+    fromEmail: string;
+    fromName: string;
+    replyTo?: string;
+  }): Promise<void> {
+    // Get existing API key if the new one is masked
+    let apiKey = config.apiKey;
+    if (apiKey.includes('•')) {
+      const existing = await this.getSystemEmailConfig();
+      apiKey = existing?.apiKey || '';
+    }
+
+    await this.repo.upsertSystemSetting(INTEGRATION_KEYS.EMAIL_PROVIDER, config.provider || 'resend');
+    await this.repo.upsertSystemSetting(INTEGRATION_KEYS.EMAIL_API_KEY, apiKey);
+    await this.repo.upsertSystemSetting(INTEGRATION_KEYS.EMAIL_FROM_EMAIL, config.fromEmail);
+    await this.repo.upsertSystemSetting(INTEGRATION_KEYS.EMAIL_FROM_NAME, config.fromName);
+    if (config.replyTo) {
+      await this.repo.upsertSystemSetting(INTEGRATION_KEYS.EMAIL_REPLY_TO, config.replyTo);
+    }
   }
 }

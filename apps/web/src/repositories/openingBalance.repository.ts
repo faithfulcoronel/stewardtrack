@@ -18,7 +18,8 @@ export class OpeningBalanceRepository
   }
 
   protected override async beforeCreate(data: Partial<OpeningBalance>) {
-    OpeningBalanceValidator.validate(data);
+    // Use validateCreate for full validation of required fields
+    OpeningBalanceValidator.validateCreate(data);
     return data;
   }
 
@@ -27,7 +28,8 @@ export class OpeningBalanceRepository
   }
 
   protected override async beforeUpdate(_id: string, data: Partial<OpeningBalance>) {
-    OpeningBalanceValidator.validate(data);
+    // Use validateUpdate for partial updates (status changes, etc.)
+    OpeningBalanceValidator.validateUpdate(data);
     return data;
   }
 

@@ -10,5 +10,6 @@ export interface Fund extends BaseModel {
   description: string | null;
   type: FundType;
   coa_id: string | null;
+  tenant_id: string;
   chart_of_accounts?: ChartOfAccount;
 }

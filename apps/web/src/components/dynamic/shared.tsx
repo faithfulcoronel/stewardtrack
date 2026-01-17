@@ -33,14 +33,33 @@ export function renderAction(action: ActionConfig | null | undefined, fallbackVa
   const href = typeof config.url === "string" ? config.url : "#";
   const label = typeof config.label === "string" ? config.label : "Learn more";
   const variant = typeof config.variant === "string" ? config.variant : fallbackVariant;
+  const target = typeof config.target === "string" ? config.target : undefined;
+
+  const className = cn(
+    "inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    buttonStyles(variant)
+  );
+
+  // Use anchor tag for external links or target="_blank"
+  if (target === "_blank") {
+    return (
+      <a
+        key={action.id ?? label}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
+        {label}
+      </a>
+    );
+  }
+
   return (
     <Link
       key={action.id ?? label}
       href={href}
-      className={cn(
-        "inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        buttonStyles(variant)
-      )}
+      className={className}
     >
       {label}
     </Link>

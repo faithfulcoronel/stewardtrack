@@ -16,6 +16,7 @@
             <Prop name="budgetOptions" kind="binding" contract="lineItems.budgetOptions"/>
             <Prop name="currency" kind="binding" contract="lineItems.currency"/>
             <Prop name="defaultTransactionType" kind="binding" contract="lineItems.transactionType"/>
+            <Prop name="initialData" kind="binding" contract="lineItems.initialData"/>
             <Prop name="cancelUrl" kind="static">/admin/finance/transactions</Prop>
           </Props>
         </Component>
@@ -41,6 +42,7 @@
           <Field name="budgetOptions" path="budgetOptions" description="Budget dropdown options"/>
           <Field name="transactionType" path="transactionType" description="Transaction type (income/expense)"/>
           <Field name="currency" path="currency" description="Tenant currency code"/>
+          <Field name="initialData" path="initialData" description="Initial transaction data for editing"/>
         </Contract>
         <Config>
           <Handler>admin-finance.transactions.entry.lineItems</Handler>

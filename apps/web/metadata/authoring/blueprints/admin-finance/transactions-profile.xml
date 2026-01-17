@@ -10,7 +10,8 @@
             <Prop name="eyebrow" kind="binding" contract="transactionProfile.eyebrow"/>
             <Prop name="headline" kind="binding" contract="transactionProfile.title"/>
             <Prop name="description" kind="binding" contract="transactionProfile.subtitle"/>
-            <Prop name="secondaryCta" kind="static">{"label": "Back to transactions", "href": "/admin/finance/transactions", "variant": "secondary"}</Prop>
+            <Prop name="primaryCta" kind="action" actionId="edit-transaction"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-list"/>
           </Props>
         </Component>
         <Component id="transaction-details" type="AdminDetailPanels">
@@ -24,6 +25,7 @@
             <Prop name="description" kind="static">Individual entries that make up this transaction.</Prop>
             <Prop name="rows" kind="binding" contract="lineItems.rows"/>
             <Prop name="columns" kind="binding" contract="lineItems.columns"/>
+            <Prop name="actions" kind="binding" contract="lineItems.actions"/>
             <Prop name="emptyState" kind="static">{"title": "No line items", "description": "This transaction has no line items."}</Prop>
           </Props>
         </Component>
@@ -78,6 +80,7 @@
         <Contract>
           <Field name="rows" path="rows" description="Line item rows"/>
           <Field name="columns" path="columns" description="Line item columns"/>
+          <Field name="actions" path="actions" description="Download PDF actions"/>
         </Contract>
         <Config>
           <Handler>admin-finance.transactions.profile.lineItems</Handler>
@@ -105,16 +108,32 @@
       <Action id="edit-transaction" kind="link">
         <RBAC requirePermissions="finance:edit" />
         <Config>
-          <Label>Edit transaction</Label>
-          <Url>/admin/finance/transactions/entry?transactionId={{id}}</Url>
+          <Label>Edit</Label>
+          <Url>/admin/finance/transactions/entry?transactionId={{params.transactionId}}</Url>
           <Variant>primary</Variant>
         </Config>
       </Action>
       <Action id="back-to-list" kind="link">
         <Config>
-          <Label>Back to transactions</Label>
+          <Label>Return</Label>
           <Url>/admin/finance/transactions</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+      <Action id="download-pdf" kind="link">
+        <Config>
+          <Label>Receipt</Label>
+          <Url>/api/finance/transactions/{{params.transactionId}}/pdf</Url>
           <Variant>secondary</Variant>
+          <Target>_blank</Target>
+        </Config>
+      </Action>
+      <Action id="download-summary-pdf" kind="link">
+        <Config>
+          <Label>Summary</Label>
+          <Url>/api/finance/transactions/{{params.transactionId}}/summary-pdf</Url>
+          <Variant>secondary</Variant>
+          <Target>_blank</Target>
         </Config>
       </Action>
       <Action id="approve-transaction" kind="submit">

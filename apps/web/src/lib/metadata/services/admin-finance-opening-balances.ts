@@ -152,6 +152,7 @@ const resolveOpeningBalancesListTable: ServiceDataSourceHandler = async (_reques
 
   const balances = await openingBalanceRepo.findAll({
     select: '*, fiscal_year:fiscal_years(id,name), fund:funds(id,name,code)',
+    relationships: [], // Override default relationships since select already has embedded joins
   });
   const allBalances = (balances.data || []) as OpeningBalance[];
 
@@ -603,6 +604,7 @@ const resolveOpeningBalanceProfileHeader: ServiceDataSourceHandler = async (requ
 
   const balance = await openingBalanceRepo.findById(openingBalanceId, {
     select: '*, fiscal_year:fiscal_years(id,name), fund:funds(id,name,code)',
+    relationships: [], // Override default relationships since select already has embedded joins
   });
 
   if (!balance) {
@@ -654,6 +656,7 @@ const resolveOpeningBalanceProfileDetails: ServiceDataSourceHandler = async (req
 
   const balance = await openingBalanceRepo.findById(openingBalanceId, {
     select: '*, fiscal_year:fiscal_years(id,name), fund:funds(id,name,code), financial_source:financial_sources(id,name)',
+    relationships: [], // Override default relationships since select already has embedded joins
   });
 
   if (!balance) {

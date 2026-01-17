@@ -789,8 +789,14 @@ container.bind<IFinancialTransactionHeaderRepository>(TYPES.IFinancialTransactio
 // ==================== INCOME/EXPENSE TRANSACTIONS (User-friendly transaction view) ====================
 import { IncomeExpenseTransactionAdapter, type IIncomeExpenseTransactionAdapter } from '@/adapters/incomeExpenseTransaction.adapter';
 import { IncomeExpenseTransactionRepository, type IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
+import { IncomeExpenseTransactionService } from '@/services/IncomeExpenseTransactionService';
+import { IncomeExpenseTransactionMappingAdapter, type IIncomeExpenseTransactionMappingAdapter } from '@/adapters/incomeExpenseTransactionMapping.adapter';
+import { IncomeExpenseTransactionMappingRepository, type IIncomeExpenseTransactionMappingRepository } from '@/repositories/incomeExpenseTransactionMapping.repository';
 container.bind<IIncomeExpenseTransactionAdapter>(TYPES.IIncomeExpenseTransactionAdapter).to(IncomeExpenseTransactionAdapter).inRequestScope();
 container.bind<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository).to(IncomeExpenseTransactionRepository).inRequestScope();
+container.bind<IIncomeExpenseTransactionMappingAdapter>(TYPES.IIncomeExpenseTransactionMappingAdapter).to(IncomeExpenseTransactionMappingAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionMappingRepository>(TYPES.IIncomeExpenseTransactionMappingRepository).to(IncomeExpenseTransactionMappingRepository).inRequestScope();
+container.bind<IncomeExpenseTransactionService>(TYPES.IncomeExpenseTransactionService).to(IncomeExpenseTransactionService).inRequestScope();
 
 // ==================== CHART OF ACCOUNTS ====================
 import { ChartOfAccountAdapter, type IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
@@ -980,5 +986,22 @@ container.bind<IScheduledNotificationRepository>(TYPES.IScheduledNotificationRep
 
 // Services
 container.bind<ScheduledEventsService>(TYPES.ScheduledEventsService).to(ScheduledEventsService).inRequestScope();
+
+// ==================== CATEGORY SERVICES ====================
+import { IncomeCategoryService } from '@/services/IncomeCategoryService';
+container.bind<IncomeCategoryService>(TYPES.IncomeCategoryService).to(IncomeCategoryService).inRequestScope();
+
+// ==================== EXCEL IMPORT SERVICE (Onboarding) ====================
+import { ExcelImportService } from '@/services/ExcelImportService';
+container.bind<ExcelImportService>(TYPES.ExcelImportService).to(ExcelImportService).inRequestScope();
+
+// ==================== STORAGE ====================
+import { StorageAdapter, type IStorageAdapter } from '@/adapters/storage.adapter';
+import { StorageRepository, type IStorageRepository } from '@/repositories/storage.repository';
+import { SupabaseStorageService, type StorageService } from '@/services/StorageService';
+
+container.bind<IStorageAdapter>(TYPES.IStorageAdapter).to(StorageAdapter).inRequestScope();
+container.bind<IStorageRepository>(TYPES.IStorageRepository).to(StorageRepository).inRequestScope();
+container.bind<StorageService>(TYPES.StorageService).to(SupabaseStorageService).inRequestScope();
 
 export { container };

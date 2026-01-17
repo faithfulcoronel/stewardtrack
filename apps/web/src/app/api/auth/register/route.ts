@@ -17,6 +17,8 @@ interface RegistrationRequest {
   lastName: string;
   offeringId: string;
   denomination?: string;
+  contactNumber?: string;
+  address?: string;
   turnstileToken?: string;
 }
 
@@ -130,6 +132,8 @@ export async function POST(request: NextRequest) {
       lastName: body.lastName,
       offeringId: body.offeringId,
       denomination: body.denomination,
+      contactNumber: body.contactNumber,
+      address: body.address,
     });
 
     // Handle result

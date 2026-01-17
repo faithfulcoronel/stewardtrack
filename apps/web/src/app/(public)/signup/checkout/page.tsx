@@ -29,6 +29,10 @@ function CheckoutPageContent() {
   const offeringId = searchParams?.get('offering_id');
   const payerEmail = searchParams?.get('email');
   const payerName = searchParams?.get('name');
+  // Coupon discount info from registration
+  const couponCode = searchParams?.get('coupon_code');
+  const couponDiscountId = searchParams?.get('coupon_discount_id');
+  const couponDurationBillingCycles = searchParams?.get('coupon_duration_billing_cycles');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +65,12 @@ function CheckoutPageContent() {
           offeringId,
           payerEmail,
           payerName,
+          // Include coupon info from registration if present
+          couponCode,
+          couponDiscountId,
+          couponDurationBillingCycles: couponDurationBillingCycles
+            ? parseInt(couponDurationBillingCycles, 10)
+            : undefined,
         }),
       });
 

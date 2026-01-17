@@ -30,7 +30,18 @@ export async function POST(request: NextRequest) {
   try {
     const $user = await getCurrentUser();
     const body = await request.json();
-    const { tenantId, offeringId, payerEmail, payerName, currency: requestedCurrency, redirectContext } = body;
+    const {
+      tenantId,
+      offeringId,
+      payerEmail,
+      payerName,
+      currency: requestedCurrency,
+      redirectContext,
+      // Coupon info from registration flow
+      couponCode,
+      couponDiscountId,
+      couponDurationBillingCycles,
+    } = body;
     // Validate required fields
     if (!tenantId || !offeringId || !payerName) {
       return NextResponse.json(
@@ -85,30 +96,64 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for applicable automatic discounts
+    // Check for applicable discounts
+    // Priority: Coupon code from registration > Automatic discounts
     let finalAmount = priceInfo.price;
     let discountInfo: DiscountInfo | undefined;
 
     try {
-      const discountResult = await discountService.applyBestDiscount(
-        offeringId,
-        priceInfo.price,
-        priceInfo.currency
-      );
+      // First, check if a coupon was applied during registration
+      if (couponCode && couponDiscountId) {
+        // Validate the coupon code again to get current discount info
+        const couponResult = await discountService.applyCouponCodePublic(
+          couponCode,
+          offeringId,
+          priceInfo.price,
+          priceInfo.currency
+        );
 
-      if (discountResult.success && discountResult.discount) {
-        finalAmount = discountResult.discountedPrice;
-        discountInfo = {
-          discount_id: discountResult.discount.discount_id,
-          discount_code: undefined, // Automatic discounts don't have codes
-          discount_name: discountResult.discount.discount_name,
-          discount_type: discountResult.discount.discount_type as 'coupon' | 'automatic',
-          calculation_type: discountResult.discount.calculation_type as 'percentage' | 'fixed_amount',
-          discount_value: discountResult.discount.discount_value,
-          discount_amount: discountResult.discountAmount,
-          original_price: priceInfo.price,
-        };
-        console.log(`[Checkout API] Applied discount: ${discountResult.discount.discount_name}, saving ${discountResult.discountAmount} ${priceInfo.currency}`);
+        if (couponResult.success && couponResult.discount) {
+          finalAmount = couponResult.discountedPrice;
+          discountInfo = {
+            discount_id: couponResult.discount.discount_id,
+            discount_code: couponCode,
+            discount_name: couponResult.discount.discount_name,
+            discount_type: couponResult.discount.discount_type as 'coupon' | 'automatic',
+            calculation_type: couponResult.discount.calculation_type as 'percentage' | 'fixed_amount',
+            discount_value: couponResult.discount.discount_value,
+            discount_amount: couponResult.discountAmount,
+            original_price: priceInfo.price,
+            duration_billing_cycles: couponResult.durationBillingCycles ?? couponDurationBillingCycles,
+          };
+          console.log(`[Checkout API] Applied coupon: ${couponCode} (${couponResult.discount.discount_name}), saving ${couponResult.discountAmount} ${priceInfo.currency}`);
+        } else {
+          console.warn(`[Checkout API] Coupon ${couponCode} validation failed, falling back to automatic discounts`);
+        }
+      }
+
+      // If no coupon applied, check for automatic discounts
+      if (!discountInfo) {
+        const discountResult = await discountService.applyBestDiscount(
+          offeringId,
+          priceInfo.price,
+          priceInfo.currency
+        );
+
+        if (discountResult.success && discountResult.discount) {
+          finalAmount = discountResult.discountedPrice;
+          discountInfo = {
+            discount_id: discountResult.discount.discount_id,
+            discount_code: undefined, // Automatic discounts don't have codes
+            discount_name: discountResult.discount.discount_name,
+            discount_type: discountResult.discount.discount_type as 'coupon' | 'automatic',
+            calculation_type: discountResult.discount.calculation_type as 'percentage' | 'fixed_amount',
+            discount_value: discountResult.discount.discount_value,
+            discount_amount: discountResult.discountAmount,
+            original_price: priceInfo.price,
+            duration_billing_cycles: discountResult.durationBillingCycles,
+          };
+          console.log(`[Checkout API] Applied discount: ${discountResult.discount.discount_name}, saving ${discountResult.discountAmount} ${priceInfo.currency}`);
+        }
       }
     } catch (discountError) {
       // Log but don't fail - proceed without discount
@@ -150,6 +195,7 @@ export async function POST(request: NextRequest) {
       discount_applied: discountInfo ? {
         name: discountInfo.discount_name,
         amount: discountInfo.discount_amount,
+        duration_billing_cycles: discountInfo.duration_billing_cycles,
       } : undefined,
       expires_at: invoice.expiry_date,
     });

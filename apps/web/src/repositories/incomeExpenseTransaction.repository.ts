@@ -5,11 +5,12 @@ import type { IIncomeExpenseTransactionAdapter, SourceTransaction, SourceBalance
 import { IncomeExpenseTransactionValidator } from '@/validators/incomeExpenseTransaction.validator';
 import { TYPES } from '@/lib/types';
 
-export type { SourceTransaction, SourceBalance, AllSourcesBalance, FundTransaction, FundBalance, AllFundsBalance, CategoryTransaction, CategoryBalance, AllCategoriesBalance } from '@/adapters/incomeExpenseTransaction.adapter';
-import type { AllSourcesBalance, FundTransaction, FundBalance, AllFundsBalance, CategoryTransaction, CategoryBalance, AllCategoriesBalance } from '@/adapters/incomeExpenseTransaction.adapter';
+export type { SourceTransaction, SourceBalance, AllSourcesBalance, FundTransaction, FundBalance, AllFundsBalance, CategoryTransaction, CategoryBalance, AllCategoriesBalance, HeaderAmountRow } from '@/adapters/incomeExpenseTransaction.adapter';
+import type { AllSourcesBalance, FundTransaction, FundBalance, AllFundsBalance, CategoryTransaction, CategoryBalance, AllCategoriesBalance, HeaderAmountRow } from '@/adapters/incomeExpenseTransaction.adapter';
 
 export interface IIncomeExpenseTransactionRepository extends BaseRepository<IncomeExpenseTransaction> {
   getByHeaderId(headerId: string): Promise<IncomeExpenseTransaction[]>;
+  getHeaderAmounts(tenantId: string, headerIds?: string[]): Promise<HeaderAmountRow[]>;
   // Source methods
   getBySourceId(sourceId: string, tenantId: string): Promise<SourceTransaction[]>;
   getSourceBalance(sourceId: string, tenantId: string): Promise<SourceBalance>;
@@ -78,6 +79,10 @@ export class IncomeExpenseTransactionRepository
 
   public async getByHeaderId(headerId: string): Promise<IncomeExpenseTransaction[]> {
     return this.incomeExpenseTransactionAdapter.getByHeaderId(headerId);
+  }
+
+  public async getHeaderAmounts(tenantId: string, headerIds?: string[]): Promise<HeaderAmountRow[]> {
+    return this.incomeExpenseTransactionAdapter.getHeaderAmounts(tenantId, headerIds);
   }
 
   public async getBySourceId(sourceId: string, tenantId: string): Promise<SourceTransaction[]> {
