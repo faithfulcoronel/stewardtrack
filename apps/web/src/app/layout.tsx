@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeFloater } from "@/components/theme/theme-floater";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileProvider } from "@/components/mobile";
+import { GlobalErrorBoundary } from "@/components/error";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -75,11 +76,13 @@ export default function RootLayout({
             enableHaptics={true}
             adjustBodyForKeyboard={true}
           >
-            <ThemeFloater />
-            {children}
-            <Toaster richColors closeButton position="top-right" />
-            <SpeedInsights />
-            <Analytics />
+            <GlobalErrorBoundary>
+              <ThemeFloater />
+              {children}
+              <Toaster richColors closeButton position="top-right" />
+              <SpeedInsights />
+              <Analytics />
+            </GlobalErrorBoundary>
           </MobileProvider>
         </ThemeProvider>
       </body>
