@@ -29,6 +29,9 @@ export type { WelcomeEmailProps } from './templates/WelcomeEmail';
 export { InviteEmail } from './templates/InviteEmail';
 export type { InviteEmailProps } from './templates/InviteEmail';
 
+export { PasswordResetEmail } from './templates/PasswordResetEmail';
+export type { PasswordResetEmailProps } from './templates/PasswordResetEmail';
+
 // =============================================================================
 // Member Templates
 // =============================================================================
@@ -186,6 +189,7 @@ export {
   renderNotificationEmail,
   renderWelcomeEmail,
   renderInviteEmail,
+  renderPasswordResetEmail,
   // Member
   renderMemberJoinedEmail,
   renderMemberUpdatedEmail,
@@ -246,6 +250,7 @@ export type {
   NotificationEmailData,
   WelcomeEmailData,
   InviteEmailData,
+  PasswordResetEmailData,
   // Member
   MemberJoinedEmailData,
   MemberUpdatedEmailData,
