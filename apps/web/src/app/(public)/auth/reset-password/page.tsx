@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Shield, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 import { ResetPasswordForm } from "./reset-password-form";
 import { svgPaths } from '@/components/landing/svg-paths';
@@ -69,7 +69,7 @@ function ResetPasswordPageContent() {
   useEffect(() => {
     const validateToken = async () => {
       try {
-        const supabase = createClient();
+        const supabase = createSupabaseBrowserClient();
 
         // Check for error from Supabase redirect
         const errorDescription = searchParams.get('error_description');
