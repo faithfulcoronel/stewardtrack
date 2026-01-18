@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,7 @@ export function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps) {
     setIsSubmitting(true);
 
     try {
-      const supabase = createClient();
+      const supabase = createSupabaseBrowserClient();
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
