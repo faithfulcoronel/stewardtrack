@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown, CalendarIcon, AlertCircle, Clock, CheckCircle2, Ban, Lock, RotateCcw, ArrowLeft, Send } from "lucide-react";
+import { Plus, Trash2, Save, X, ArrowUpCircle, ArrowDownCircle, Check, ChevronsUpDown, CalendarIcon, Clock, CheckCircle2, Ban, Lock, RotateCcw, ArrowLeft, Send, Loader2, Upload, Download } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useExcelImport, type ExcelImportConfig } from "@/hooks/useExcelImport";
+import { ExcelImportDialog, type ExcelImportDialogColumn } from "@/components/ui/excel-import-dialog";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +17,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -25,6 +26,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 // =============================================================================
 // TYPES
@@ -48,6 +55,8 @@ export interface TransactionLine {
   budgetId: string;
   amount: number;
   description: string;
+  isNew?: boolean;
+  isDirty?: boolean;
 }
 
 export interface TransactionInitialData {
@@ -109,6 +118,8 @@ function createEmptyLine(lineNumber: number): TransactionLine {
     budgetId: "",
     amount: 0,
     description: "",
+    isNew: true,
+    isDirty: false,
   };
 }
 
@@ -303,8 +314,8 @@ function InlineCombobox({
 
 export function AdminTransactionEntry({
   eyebrow = "Finance",
-  headline = "Record Transaction",
-  pageDescription = "Enter income or expense transaction details.",
+  headline: _headline = "Record Transaction",
+  pageDescription: _pageDescription = "Enter income or expense transaction details.",
   accountOptions = [],
   categoryOptions = [],
   fundOptions = [],
@@ -332,11 +343,13 @@ export function AdminTransactionEntry({
       budgetId: line.budgetId || "",
       amount: line.amount || 0,
       description: line.description || "",
+      isNew: !line.id, // If no id, it's a new line
+      isDirty: false,  // Existing lines start as not dirty
     }));
   }, []);
 
   // Form state - initialize from initialData if provided
-  const [transactionId, setTransactionId] = React.useState<string | undefined>(initialData?.transactionId);
+  const [transactionId, _setTransactionId] = React.useState<string | undefined>(initialData?.transactionId);
   const [transactionType, setTransactionType] = React.useState<"income" | "expense">(
     initialData?.transactionType || defaultTransactionType
   );
@@ -351,6 +364,26 @@ export function AdminTransactionEntry({
   const [description, setDescription] = React.useState(initialData?.description || "");
   const [lines, setLines] = React.useState<TransactionLine[]>(() => convertInitialLines(initialData?.lines));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submitProgress, setSubmitProgress] = React.useState(0);
+  const [submitStatus, setSubmitStatus] = React.useState("");
+
+  // Warn user if they try to leave while submitting
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSubmitting) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages, but we set it anyway for older ones
+        e.returnValue = 'Transaction is being processed. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isSubmitting]);
+
+  // Excel import dialog state
+  const [isImportDialogOpen, setIsImportDialogOpen] = React.useState(false);
 
   // Track if we're editing an existing transaction
   const isEditing = Boolean(transactionId);
@@ -393,7 +426,7 @@ export function AdminTransactionEntry({
   const handleUpdateLine = (lineId: string, field: keyof TransactionLine, value: unknown) => {
     setLines((prev) =>
       prev.map((line) =>
-        line.id === lineId ? { ...line, [field]: value } : line
+        line.id === lineId ? { ...line, [field]: value, isDirty: true } : line
       )
     );
   };
@@ -404,6 +437,219 @@ export function AdminTransactionEntry({
       return;
     }
     setLines((prev) => prev.filter((l) => l.id !== lineId));
+  };
+
+  // ==========================================================================
+  // Excel Import Configuration (using reusable hook)
+  // ==========================================================================
+
+  // Define the import data type
+  type ImportLineData = {
+    categoryId: string;
+    fundId: string;
+    sourceId: string;
+    accountId: string;
+    amount: number;
+    description: string;
+  };
+
+  // Configure the Excel import hook
+  const excelImportConfig: ExcelImportConfig<ImportLineData> = React.useMemo(() => ({
+    columns: [
+      {
+        field: "categoryId",
+        header: "Category Code",
+        aliases: ["Category", "CategoryCode", "category_code"],
+        required: true,
+        width: 15,
+        lookup: {
+          options: filteredCategoryOptions.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            code: opt.code,
+          })),
+        },
+      },
+      {
+        field: "categoryId",
+        header: "Category Name",
+        referenceOnly: true,
+        width: 30,
+      },
+      {
+        field: "fundId",
+        header: "Fund Code",
+        aliases: ["Fund", "FundCode", "fund_code"],
+        required: true,
+        width: 12,
+        lookup: {
+          options: fundOptions.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            code: opt.code,
+          })),
+        },
+      },
+      {
+        field: "fundId",
+        header: "Fund Name",
+        referenceOnly: true,
+        width: 25,
+      },
+      {
+        field: "sourceId",
+        header: "Source Code",
+        aliases: ["Source", "SourceCode", "source_code"],
+        required: true,
+        width: 12,
+        lookup: {
+          options: sourceOptions.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            code: opt.code,
+          })),
+        },
+      },
+      {
+        field: "sourceId",
+        header: "Source Name",
+        referenceOnly: true,
+        width: 25,
+      },
+      {
+        field: "accountId",
+        header: "Account Code",
+        aliases: ["Account", "AccountCode", "account_code"],
+        required: false,
+        width: 15,
+        lookup: {
+          options: accountOptions.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            code: opt.code,
+          })),
+        },
+      },
+      {
+        field: "accountId",
+        header: "Account Name",
+        referenceOnly: true,
+        width: 30,
+      },
+      {
+        field: "amount",
+        header: "Amount",
+        aliases: ["amount"],
+        required: true,
+        type: "number",
+        width: 12,
+      },
+      {
+        field: "description",
+        header: "Description",
+        aliases: ["Memo", "memo", "description"],
+        required: false,
+        type: "string",
+        width: 40,
+      },
+    ],
+    templateFileName: `transaction_import_template_${transactionType}`,
+    instructions: [
+      "How to use this template:",
+      "",
+      "1. Fill in the 'Data' sheet with your transaction line items",
+      "2. Use the Category Code, Fund Code, and Source Code columns",
+      "3. The 'Name' columns are for reference only and will be ignored during import",
+      "4. Amount must be a positive number",
+      "5. Description is optional but recommended",
+    ],
+    sampleData: [
+      {
+        "Category Code": filteredCategoryOptions[0]?.code || "TITHE-001",
+        "Category Name": `${filteredCategoryOptions[0]?.label || "Tithes"} (for reference only)`,
+        "Fund Code": fundOptions[0]?.code || "GEN",
+        "Fund Name": `${fundOptions[0]?.label || "General Fund"} (for reference only)`,
+        "Source Code": sourceOptions[0]?.code || "BANK",
+        "Source Name": `${sourceOptions[0]?.label || "Bank Account"} (for reference only)`,
+        "Account Code": accountOptions[0]?.code || "",
+        "Account Name": `${accountOptions[0]?.label || ""} (for reference only)`,
+        "Amount": 1000.00,
+        "Description": "Sample transaction line",
+      },
+    ],
+    generateId: generateLineId,
+  }), [filteredCategoryOptions, fundOptions, sourceOptions, accountOptions, transactionType]);
+
+  const excelImport = useExcelImport(excelImportConfig);
+
+  // Preview columns for the import dialog
+  const importPreviewColumns: ExcelImportDialogColumn<ImportLineData>[] = React.useMemo(() => [
+    {
+      field: "categoryId",
+      header: "Category",
+      highlightEmpty: true,
+      render: (value) => {
+        const opt = filteredCategoryOptions.find(o => o.value === value);
+        return opt?.label || "—";
+      },
+    },
+    {
+      field: "fundId",
+      header: "Fund",
+      highlightEmpty: true,
+      render: (value) => {
+        const opt = fundOptions.find(o => o.value === value);
+        return opt?.label || "—";
+      },
+    },
+    {
+      field: "sourceId",
+      header: "Source",
+      highlightEmpty: true,
+      render: (value) => {
+        const opt = sourceOptions.find(o => o.value === value);
+        return opt?.label || "—";
+      },
+    },
+    {
+      field: "amount",
+      header: "Amount",
+      align: "right",
+      highlightEmpty: true,
+    },
+    {
+      field: "description",
+      header: "Description",
+      render: (value) => (value as string) || "—",
+    },
+  ], [filteredCategoryOptions, fundOptions, sourceOptions]);
+
+  // Handle import confirmation
+  const handleImportConfirm = (importedRows: ImportLineData[]) => {
+    // Convert imported data to TransactionLine format
+    const newLines: TransactionLine[] = importedRows.map((row, index) => ({
+      id: generateLineId(),
+      lineNumber: lines.length + index + 1,
+      accountId: row.accountId || "",
+      categoryId: row.categoryId,
+      fundId: row.fundId,
+      sourceId: row.sourceId,
+      budgetId: "",
+      amount: row.amount,
+      description: row.description || "",
+      isNew: true,
+      isDirty: false,
+    }));
+
+    // Add imported lines to existing lines (or replace if only empty line exists)
+    if (lines.length === 1 && !lines[0].categoryId && lines[0].amount === 0) {
+      setLines(newLines);
+    } else {
+      setLines((prev) => [...prev, ...newLines]);
+    }
+
+    toast.success(`${importedRows.length} line(s) imported successfully`);
+    setIsImportDialogOpen(false);
   };
 
   // Form submission
@@ -428,9 +674,16 @@ export function AdminTransactionEntry({
       return;
     }
 
+    // Start submission with progress feedback
     setIsSubmitting(true);
+    setSubmitProgress(0);
+    setSubmitStatus("Validating transaction data...");
 
     try {
+      // Simulate progress steps for better UX
+      setSubmitProgress(20);
+      setSubmitStatus("Preparing transaction...");
+
       const payload = {
         transactionId: transactionId || undefined, // Include for updates
         transactionType,
@@ -439,6 +692,7 @@ export function AdminTransactionEntry({
         description: description.trim(),
         status: asDraft ? "draft" : "submitted",
         lines: lines.map((line) => ({
+          id: line.isNew ? undefined : line.id, // Only include id for existing lines
           accountId: line.accountId || null,
           categoryId: line.categoryId,
           fundId: line.fundId || null,
@@ -446,9 +700,14 @@ export function AdminTransactionEntry({
           budgetId: line.budgetId || null,
           amount: line.amount,
           description: line.description || null,
+          isDirty: line.isDirty || false,
+          isNew: line.isNew || false,
         })),
         totalAmount: total,
       };
+
+      setSubmitProgress(40);
+      setSubmitStatus(asDraft ? "Saving draft..." : "Submitting transaction...");
 
       const response = await fetch("/api/metadata/actions", {
         method: "POST",
@@ -461,18 +720,28 @@ export function AdminTransactionEntry({
         }),
       });
 
+      setSubmitProgress(80);
+      setSubmitStatus("Processing response...");
+
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to save transaction");
       }
 
+      setSubmitProgress(100);
+      setSubmitStatus(asDraft ? "Draft saved!" : "Transaction submitted!");
+
+      // Brief delay to show completion before navigating
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       toast.success(asDraft ? "Draft saved successfully" : "Transaction submitted successfully");
       router.push(cancelUrl);
     } catch (error) {
       console.error("Transaction submission error:", error);
+      setSubmitStatus("");
+      setSubmitProgress(0);
       toast.error(error instanceof Error ? error.message : "Failed to save transaction");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -482,7 +751,12 @@ export function AdminTransactionEntry({
     if (!transactionId) return;
 
     setIsSubmitting(true);
+    setSubmitProgress(0);
+    setSubmitStatus("Recalling transaction...");
+
     try {
+      setSubmitProgress(30);
+
       const response = await fetch("/api/metadata/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -492,19 +766,28 @@ export function AdminTransactionEntry({
         }),
       });
 
+      setSubmitProgress(70);
+      setSubmitStatus("Processing...");
+
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to recall transaction");
       }
 
+      setSubmitProgress(100);
+      setSubmitStatus("Transaction recalled!");
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       toast.success("Transaction recalled to draft status");
       // Refresh the page to show updated status
       router.refresh();
     } catch (error) {
       console.error("Transaction recall error:", error);
+      setSubmitStatus("");
+      setSubmitProgress(0);
       toast.error(error instanceof Error ? error.message : "Failed to recall transaction");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -559,7 +842,10 @@ export function AdminTransactionEntry({
       )}
 
       {/* Main Form Container */}
-      <div className="rounded-3xl border border-border/60 bg-background p-6 shadow-sm">
+      <div className={cn(
+        "rounded-3xl border border-border/60 bg-background p-6 shadow-sm transition-opacity",
+        isSubmitting && "pointer-events-none opacity-60"
+      )}>
         {/* Transaction Type Toggle - Disabled when editing */}
         <div className="mb-6">
           <Label className="mb-3 block text-sm font-semibold text-foreground">
@@ -642,7 +928,7 @@ export function AdminTransactionEntry({
                       setDatePickerOpen(false);
                     }
                   }}
-                  initialFocus
+                  autoFocus
                 />
               </PopoverContent>
             </Popover>
@@ -688,9 +974,35 @@ export function AdminTransactionEntry({
                 </span>
               )}
             </Label>
-            <span className="text-sm text-muted-foreground">
-              {lines.length} {lines.length === 1 ? "item" : "items"}
-            </span>
+            <div className="flex items-center gap-2">
+              {!isLineItemsLocked && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={excelImport.downloadTemplate}
+                    className="h-8 gap-1.5 text-xs"
+                  >
+                    <Download className="size-3.5" />
+                    Template
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsImportDialogOpen(true)}
+                    className="h-8 gap-1.5 text-xs"
+                  >
+                    <Upload className="size-3.5" />
+                    Import Excel
+                  </Button>
+                </>
+              )}
+              <span className="text-sm text-muted-foreground">
+                {lines.length} {lines.length === 1 ? "item" : "items"}
+              </span>
+            </div>
           </div>
 
           {/* Line Items Table */}
@@ -732,7 +1044,11 @@ export function AdminTransactionEntry({
                   {lines.map((line, index) => (
                     <tr
                       key={line.id}
-                      className="border-b border-border/40 transition-colors hover:bg-muted/20"
+                      className={cn(
+                        "border-b border-border/40 transition-colors hover:bg-muted/20",
+                        line.isDirty && "bg-amber-500/5",
+                        line.isNew && "bg-primary/5"
+                      )}
                     >
                       <td className="px-3 py-2 text-center text-sm font-medium text-muted-foreground">
                         {index + 1}
@@ -948,6 +1264,72 @@ export function AdminTransactionEntry({
           </div>
         </div>
       </div>
+
+      {/* Submission Progress Dialog */}
+      <Dialog open={isSubmitting} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="sr-only">
+            {submitProgress === 100 ? "Transaction Complete" : "Processing Transaction"}
+          </DialogTitle>
+          <div className="flex flex-col items-center gap-6 py-4">
+            {/* Spinner or Checkmark */}
+            <div className={cn(
+              "flex size-16 items-center justify-center rounded-full",
+              submitProgress === 100
+                ? "bg-emerald-100 text-emerald-600"
+                : "bg-primary/10 text-primary"
+            )}>
+              {submitProgress === 100 ? (
+                <CheckCircle2 className="size-8" />
+              ) : (
+                <Loader2 className="size-8 animate-spin" />
+              )}
+            </div>
+
+            {/* Status Text */}
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">
+                {submitProgress === 100 ? "Complete!" : "Processing..."}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {submitStatus}
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full space-y-2">
+              <Progress value={submitProgress} className="h-2" />
+              <p className="text-center text-xs text-muted-foreground">
+                {submitProgress}%
+              </p>
+            </div>
+
+            {/* Info Text */}
+            {submitProgress < 100 && (
+              <p className="text-center text-xs text-muted-foreground">
+                Please wait while we process your transaction...
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Excel Import Dialog - Using Reusable Component */}
+      <ExcelImportDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        title="Import Transaction Lines"
+        description="Upload an Excel file to import transaction line items. Download the template for the correct format."
+        previewColumns={importPreviewColumns}
+        importState={excelImport}
+        onImport={handleImportConfirm}
+        currency={currency}
+      />
     </div>
   );
 }

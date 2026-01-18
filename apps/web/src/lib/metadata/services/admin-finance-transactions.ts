@@ -1327,12 +1327,17 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
       };
     }
 
+    // Get current user ID for created_by
+    const currentUserId = await getCurrentUserId({ optional: true });
+
     // Prepare header data (transaction_type is not stored in headers table - it's determined by line items)
     const headerData: Partial<FinancialTransactionHeader> = {
+      tenant_id: tenant.id,
       transaction_date: transactionDate,
       description,
       reference,
       status: 'draft' as TransactionStatus, // Start as draft, then submit
+      created_by: currentUserId || undefined,
     };
 
     let header: FinancialTransactionHeader;
@@ -1450,12 +1455,17 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
       console.log('[saveDraftTransaction] WARNING: No entries were created! Check if lineItems have valid categoryId and amount.');
     }
 
+    // Get current user ID for created_by
+    const currentUserId = await getCurrentUserId({ optional: true });
+
     // Prepare header data - keep as draft (transaction_type is not stored in headers table - it's determined by line items)
     const headerData: Partial<FinancialTransactionHeader> = {
+      tenant_id: tenant.id,
       transaction_date: transactionDate,
       description,
       reference,
       status: 'draft' as TransactionStatus,
+      created_by: currentUserId || undefined,
     };
 
     let header: FinancialTransactionHeader;
