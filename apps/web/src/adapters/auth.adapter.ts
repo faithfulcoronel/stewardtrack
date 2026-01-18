@@ -8,9 +8,19 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getCachedUser, getCachedAdminRole, isCachedSuperAdmin } from '@/lib/auth/authCache';
 import { UnauthorizedError } from '@/utils/errorHandler';
 
+interface GenerateLinkResult {
+  data: {
+    properties?: {
+      action_link?: string;
+    };
+  } | null;
+  error: AuthError | null;
+}
+
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
+  generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
@@ -52,6 +62,26 @@ export class AuthAdapter implements IAuthAdapter {
   async resetPasswordForEmail(email: string, redirectTo: string) {
     const supabase = await this.getServerClient();
     return supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  }
+
+  /**
+   * Generate a password reset link using the admin API
+   * This creates a reset link without sending an email, allowing us to use custom email
+   */
+  async generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult> {
+    const supabase = await this.getServiceClient();
+    const result = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: {
+        redirectTo,
+      },
+    });
+
+    return {
+      data: result.data ? { properties: result.data.properties } : null,
+      error: result.error,
+    };
   }
 
   async updatePassword(password: string) {
@@ -163,4 +193,4 @@ export class AuthAdapter implements IAuthAdapter {
   }
 }
 
-export type { IAuthAdapter };
+export type { IAuthAdapter, GenerateLinkResult };

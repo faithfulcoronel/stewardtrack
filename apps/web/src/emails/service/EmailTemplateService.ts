@@ -17,6 +17,7 @@ import { renderEmail } from '../render';
 import { NotificationEmail } from '../templates/NotificationEmail';
 import { WelcomeEmail } from '../templates/WelcomeEmail';
 import { InviteEmail } from '../templates/InviteEmail';
+import { PasswordResetEmail } from '../templates/PasswordResetEmail';
 
 // Member Templates
 import { MemberJoinedEmail } from '../templates/MemberJoinedEmail';
@@ -118,6 +119,13 @@ export interface InviteEmailData {
   tenantLogoUrl?: string;
   expiresIn?: string;
   personalMessage?: string;
+  baseUrl?: string;
+}
+
+export interface PasswordResetEmailData {
+  recipientName?: string;
+  resetUrl: string;
+  expiresIn?: string;
   baseUrl?: string;
 }
 
@@ -592,6 +600,23 @@ export async function renderInviteEmail(
     invitationUrl: data.invitationUrl,
     expiresIn: data.expiresIn,
     personalMessage: data.personalMessage,
+    baseUrl: data.baseUrl || options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
+}
+
+/**
+ * Renders a password reset email template to HTML.
+ */
+export async function renderPasswordResetEmail(
+  data: PasswordResetEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(PasswordResetEmail, {
+    recipientName: data.recipientName || options.recipientName,
+    resetUrl: data.resetUrl,
+    expiresIn: data.expiresIn,
     baseUrl: data.baseUrl || options.baseUrl || DEFAULT_BASE_URL,
   });
 
@@ -1462,6 +1487,7 @@ export type EmailTemplateType =
   | 'notification'
   | 'welcome'
   | 'invite'
+  | 'password-reset'
   // Member
   | 'member-joined'
   | 'member-updated'
@@ -1528,6 +1554,8 @@ export async function renderEmailByType(
       return await renderWelcomeEmail(data as unknown as WelcomeEmailData, options);
     case 'invite':
       return await renderInviteEmail(data as unknown as InviteEmailData, options);
+    case 'password-reset':
+      return await renderPasswordResetEmail(data as unknown as PasswordResetEmailData, options);
 
     // Member
     case 'member-joined':
