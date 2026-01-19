@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { renderErrorReportEmail } from '@/emails/service/EmailTemplateService';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
   sanitizeErrorMessage,
   sanitizeStackTrace,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     let tenantName: string | undefined;
 
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Also log the error to database if possible
     // Database stores SANITIZED version to prevent storing secrets
     try {
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       // Get tenant ID if user is authenticated
