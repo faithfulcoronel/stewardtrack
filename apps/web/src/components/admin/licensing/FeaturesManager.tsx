@@ -25,6 +25,8 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
+  Download,
+  Upload,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -117,6 +119,26 @@ export function FeaturesManager() {
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState<'activate' | 'deactivate' | null>(null);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  // Import/Export state
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
+  const [importPreview, setImportPreview] = useState<{
+    success: boolean;
+    data: {
+      features: number;
+      permissions: number;
+      roleTemplates: number;
+      breakdown: {
+        features: { add: number; update: number; delete: number };
+        permissions: { add: number; update: number; delete: number };
+        roleTemplates: { add: number; update: number; delete: number };
+      };
+    };
+    errors: Array<{ sheet: string; row: number; field: string; message: string }>;
+  } | null>(null);
 
   useEffect(() => {
     fetchFeatures();
@@ -261,6 +283,101 @@ export function FeaturesManager() {
     }
   };
 
+  const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true);
+    try {
+      const response = await fetch('/api/licensing/features/import');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to download template');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `features-import-template-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Template downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to download template');
+    } finally {
+      setIsDownloadingTemplate(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setIsImporting(true);
+    setImportPreview(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('preview', 'true');
+
+      const response = await fetch('/api/licensing/features/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      setImportPreview(data);
+    } catch (error) {
+      console.error('Error previewing import:', error);
+      toast.error('Failed to preview import file');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleExecuteImport = async () => {
+    if (!importFile) return;
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+      formData.append('preview', 'false');
+
+      const response = await fetch('/api/licensing/features/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message || 'Import completed successfully');
+        setImportDialogOpen(false);
+        setImportFile(null);
+        setImportPreview(null);
+        fetchFeatures();
+      } else {
+        toast.error(data.error || 'Import failed');
+        if (data.errors) {
+          setImportPreview(prev => prev ? { ...prev, errors: data.errors } : null);
+        }
+      }
+    } catch (error) {
+      console.error('Error executing import:', error);
+      toast.error('Failed to execute import');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleCloseImportDialog = () => {
+    setImportDialogOpen(false);
+    setImportFile(null);
+    setImportPreview(null);
+  };
 
   return (
     <>
@@ -273,10 +390,31 @@ export function FeaturesManager() {
               Manage features and their permission definitions
             </CardDescription>
           </div>
-          <Button onClick={() => router.push('/admin/licensing/features/create')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Feature
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              disabled={isDownloadingTemplate}
+            >
+              {isDownloadingTemplate ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Download Template
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setImportDialogOpen(true)}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+            <Button onClick={() => router.push('/admin/licensing/features/create')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Feature
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -550,6 +688,121 @@ export function FeaturesManager() {
               </>
             ) : (
               bulkAction === 'activate' ? 'Activate' : 'Deactivate'
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Import Dialog */}
+    <AlertDialog open={importDialogOpen} onOpenChange={handleCloseImportDialog}>
+      <AlertDialogContent className="max-w-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Import Features</AlertDialogTitle>
+          <AlertDialogDescription>
+            Upload an Excel file to import features, permissions, and role templates.
+            Download the template first to see the required format.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="py-4">
+          <div className="mb-4">
+            <label htmlFor="import-file" className="sr-only">Choose file</label>
+            <Input
+              id="import-file"
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileChange}
+              disabled={isImporting}
+            />
+          </div>
+
+          {isImporting && !importPreview && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2">Analyzing file...</span>
+            </div>
+          )}
+
+          {importPreview && (
+            <div className="space-y-4">
+              {/* Preview Summary */}
+              <div className="rounded-lg border p-4">
+                <h4 className="font-medium mb-3">Import Preview</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Features</p>
+                    <p className="font-medium">{importPreview.data.features} total</p>
+                    <div className="text-xs text-muted-foreground">
+                      +{importPreview.data.breakdown.features.add} add,
+                      ~{importPreview.data.breakdown.features.update} update,
+                      -{importPreview.data.breakdown.features.delete} delete
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Permissions</p>
+                    <p className="font-medium">{importPreview.data.permissions} total</p>
+                    <div className="text-xs text-muted-foreground">
+                      +{importPreview.data.breakdown.permissions.add} add,
+                      ~{importPreview.data.breakdown.permissions.update} update,
+                      -{importPreview.data.breakdown.permissions.delete} delete
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Role Templates</p>
+                    <p className="font-medium">{importPreview.data.roleTemplates} total</p>
+                    <div className="text-xs text-muted-foreground">
+                      +{importPreview.data.breakdown.roleTemplates.add} add,
+                      ~{importPreview.data.breakdown.roleTemplates.update} update,
+                      -{importPreview.data.breakdown.roleTemplates.delete} delete
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Validation Errors */}
+              {importPreview.errors.length > 0 && (
+                <div className="rounded-lg border border-destructive p-4">
+                  <h4 className="font-medium text-destructive mb-2">
+                    Validation Errors ({importPreview.errors.length})
+                  </h4>
+                  <div className="max-h-40 overflow-y-auto space-y-1 text-sm">
+                    {importPreview.errors.map((error, index) => (
+                      <div key={index} className="text-destructive">
+                        <span className="font-medium">{error.sheet}</span> Row {error.row}:
+                        {error.field} - {error.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Success indicator */}
+              {importPreview.success && importPreview.errors.length === 0 && (
+                <div className="rounded-lg border border-green-500 bg-green-50 p-4">
+                  <div className="flex items-center text-green-700">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    <span className="font-medium">File validated successfully</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isImporting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleExecuteImport}
+            disabled={isImporting || !importPreview || !importPreview.success || importPreview.errors.length > 0}
+          >
+            {isImporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              'Import'
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
