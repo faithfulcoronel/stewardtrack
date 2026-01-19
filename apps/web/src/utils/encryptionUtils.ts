@@ -163,6 +163,7 @@ export function getFieldEncryptionConfig(tableName: string): FieldEncryptionConf
       // Future: All financial PII fields
     ],
     accounts: [
+      { fieldName: 'name', required: true }, // Account name - PII for person accounts
       { fieldName: 'email', required: false },
       { fieldName: 'phone', required: false },
       { fieldName: 'address', required: false },

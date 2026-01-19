@@ -55,7 +55,7 @@ export class MembersDashboardRepository implements IMembersDashboardRepository {
 
   getMemberDirectory(
     search?: string,
-    limit = 50,
+    limit?: number,
   ): Promise<DirectoryMember[]> {
     return this.adapter.fetchMemberDirectory(search, limit);
   }

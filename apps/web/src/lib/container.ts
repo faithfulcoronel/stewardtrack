@@ -1007,6 +1007,14 @@ container.bind<IFeatureImportAdapter>(TYPES.IFeatureImportAdapter).to(FeatureImp
 container.bind<IFeatureImportRepository>(TYPES.IFeatureImportRepository).to(FeatureImportRepository).inRequestScope();
 container.bind<FeatureImportService>(TYPES.FeatureImportService).to(FeatureImportService).inRequestScope();
 
+// ==================== MEMBER IMPORT (Bulk) ====================
+import { MemberImportAdapter, type IMemberImportAdapter } from '@/adapters/memberImport.adapter';
+import { MemberImportRepository, type IMemberImportRepository } from '@/repositories/memberImport.repository';
+import { MemberImportService } from '@/services/MemberImportService';
+container.bind<IMemberImportAdapter>(TYPES.IMemberImportAdapter).to(MemberImportAdapter).inRequestScope();
+container.bind<IMemberImportRepository>(TYPES.IMemberImportRepository).to(MemberImportRepository).inRequestScope();
+container.bind<MemberImportService>(TYPES.MemberImportService).to(MemberImportService).inRequestScope();
+
 // ==================== STORAGE ====================
 import { StorageAdapter, type IStorageAdapter } from '@/adapters/storage.adapter';
 import { StorageRepository, type IStorageRepository } from '@/repositories/storage.repository';

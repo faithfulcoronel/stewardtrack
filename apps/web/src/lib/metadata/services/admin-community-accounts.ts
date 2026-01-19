@@ -293,12 +293,17 @@ const resolveAccountManageForm: ServiceDataSourceHandler = async (request) => {
           label: 'Account type',
           type: 'select',
           colSpan: 'half',
-          helperText: 'Organization or individual',
+          helperText: isCreate
+            ? 'Person accounts are created via member sync'
+            : 'Account type cannot be changed',
           required: true,
-          options: [
-            { value: 'organization', label: 'Organization' },
-            { value: 'person', label: 'Person' },
-          ],
+          disabled: !isCreate,
+          options: isCreate
+            ? [{ value: 'organization', label: 'Organization' }]
+            : [
+                { value: 'organization', label: 'Organization' },
+                { value: 'person', label: 'Person' },
+              ],
         },
         {
           name: 'accountNumber',
@@ -380,15 +385,18 @@ const resolveAccountManageForm: ServiceDataSourceHandler = async (request) => {
 };
 
 const saveAccount: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
 
   console.log('[saveAccount] Full request object:', JSON.stringify({
     params: params,
+    values: values,
     config: request.config,
     id: request.id,
   }, null, 2));
 
-  const accountId = (params.accountId || params.id || request.config?.accountId) as string | undefined;
+  const accountId = (values.accountId ?? params.accountId ?? params.id ?? request.config?.accountId) as string | undefined;
 
   console.log('[saveAccount] Attempting to save account. ID:', accountId, 'Mode:', accountId ? 'update' : 'create');
 
@@ -402,14 +410,14 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
     const accountService = container.get<AccountService>(TYPES.AccountService);
 
     // Generate account number if not provided
-    let accountNumber = params.accountNumber as string;
-    if (!accountNumber || accountNumber.trim() === '') {
+    let accountNumber = (values.accountNumber as string) || '';
+    if (!accountNumber.trim()) {
       const generateResult = await accountService.generateAccountNumber({
         pageId: 'accounts-manage',
         changedField: 'name',
         model: {
-          name: params.name,
-          account_type: params.accountType,
+          name: values.name as string,
+          account_type: values.accountType as string,
         },
       });
       accountNumber = generateResult.updatedFields.account_number || '';
@@ -417,17 +425,17 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
 
     const accountData: Partial<Account> = {
       tenant_id: tenant.id,
-      name: params.name as string,
-      account_type: params.accountType as 'organization' | 'person',
+      name: values.name as string,
+      account_type: values.accountType as 'organization' | 'person',
       account_number: accountNumber,
-      description: params.description ? (params.description as string) : null,
-      email: params.email ? (params.email as string) : null,
-      phone: params.phone ? (params.phone as string) : null,
-      address: params.address ? (params.address as string) : null,
-      website: params.website ? (params.website as string) : null,
-      tax_id: params.taxId ? (params.taxId as string) : null,
-      is_active: params.isActive === true || params.isActive === 'true',
-      notes: params.notes ? (params.notes as string) : null,
+      description: values.description ? (values.description as string) : null,
+      email: values.email ? (values.email as string) : null,
+      phone: values.phone ? (values.phone as string) : null,
+      address: values.address ? (values.address as string) : null,
+      website: values.website ? (values.website as string) : null,
+      tax_id: values.taxId ? (values.taxId as string) : null,
+      is_active: values.isActive === true || values.isActive === 'true',
+      notes: values.notes ? (values.notes as string) : null,
     };
 
     console.log('[saveAccount] Account data to save:', JSON.stringify(accountData, null, 2));
