@@ -32,7 +32,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { title: "Dashboard", href: "/admin/members", icon: "dashboard" },
       { title: "Families", href: "/admin/community/families", icon: "families" },
       { title: "Care Plans", href: "/admin/community/care-plans", icon: "carePlans" },
-      { title: "Discipleship Plans", href: "/admin/community/discipleship", icon: "discipleship" },
+      { title: "Discipleship Plans", href: "/admin/community/discipleship-plans", icon: "discipleship" },
     ],
   },
   {
@@ -346,7 +346,7 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
     permission: 'care:view',
   },
-  '/admin/community/discipleship': {
+  '/admin/community/discipleship-plans': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader'],
     permission: 'discipleship:view',
   },
