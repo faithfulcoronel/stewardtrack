@@ -6,7 +6,6 @@ import type { FinancialSource } from '@/models/financialSource.model';
 import type { ChartOfAccount } from '@/models/chartOfAccount.model';
 import type { QueryOptions } from '@/adapters/base.adapter';
 import { ChartOfAccountService } from '@/services/ChartOfAccountService';
-import { uniqueID } from '@/lib/helpers';
 import type { CrudService } from '@/services/CrudService';
 import { FinancialSourceValidator } from '@/validators/financialSource.validator';
 import { validateOrThrow } from '@/utils/validation';
@@ -58,15 +57,33 @@ export class FinancialSourceService
 
   async createAssetAccount(name: string): Promise<ChartOfAccount> {
     const assetRoot = await this.coaService.findByCode('1000');
-    if (!assetRoot) {
-      throw new Error('Assets account not found');
-    }
+
+    const assetRootId = assetRoot?.id ?? null;
+
+    // Find all asset codes (starting with '1') to determine the next sequential code
+    // We fetch more rows to filter out any legacy long codes (from uniqueID())
+    const { data: assetCodeRows } = await this.coaService.find({
+      select: 'code',
+      filters: { code: { operator: 'startsWith', value: '1' } },
+      order: { column: 'code', ascending: false },
+      pagination: { page: 1, pageSize: 100 },
+    });
+
+    // Filter to only 4-digit codes (proper COA format) and find the max
+    const validCodes = (assetCodeRows || [])
+      .map((row) => row.code)
+      .filter((code) => /^1\d{3}$/.test(code))
+      .map((code) => Number(code));
+
+    const maxCode = validCodes.length > 0 ? Math.max(...validCodes) : 1099;
+    const nextCode = String(maxCode + 1);
+
     return this.coaService.create(
       {
-        code: uniqueID(),
+        code: nextCode,
         name,
         account_type: 'asset',
-        parent_id: assetRoot.id,
+        parent_id: assetRootId,
         is_active: true,
       },
       undefined,

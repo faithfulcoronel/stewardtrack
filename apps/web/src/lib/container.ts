@@ -792,10 +792,14 @@ import { IncomeExpenseTransactionRepository, type IIncomeExpenseTransactionRepos
 import { IncomeExpenseTransactionService } from '@/services/IncomeExpenseTransactionService';
 import { IncomeExpenseTransactionMappingAdapter, type IIncomeExpenseTransactionMappingAdapter } from '@/adapters/incomeExpenseTransactionMapping.adapter';
 import { IncomeExpenseTransactionMappingRepository, type IIncomeExpenseTransactionMappingRepository } from '@/repositories/incomeExpenseTransactionMapping.repository';
+import { IncomeExpenseTransactionRpcAdapter, type IIncomeExpenseTransactionRpcAdapter } from '@/adapters/incomeExpenseTransactionRpc.adapter';
+import { IncomeExpenseTransactionRpcRepository, type IIncomeExpenseTransactionRpcRepository } from '@/repositories/incomeExpenseTransactionRpc.repository';
 container.bind<IIncomeExpenseTransactionAdapter>(TYPES.IIncomeExpenseTransactionAdapter).to(IncomeExpenseTransactionAdapter).inRequestScope();
 container.bind<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository).to(IncomeExpenseTransactionRepository).inRequestScope();
 container.bind<IIncomeExpenseTransactionMappingAdapter>(TYPES.IIncomeExpenseTransactionMappingAdapter).to(IncomeExpenseTransactionMappingAdapter).inRequestScope();
 container.bind<IIncomeExpenseTransactionMappingRepository>(TYPES.IIncomeExpenseTransactionMappingRepository).to(IncomeExpenseTransactionMappingRepository).inRequestScope();
+container.bind<IIncomeExpenseTransactionRpcAdapter>(TYPES.IIncomeExpenseTransactionRpcAdapter).to(IncomeExpenseTransactionRpcAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionRpcRepository>(TYPES.IIncomeExpenseTransactionRpcRepository).to(IncomeExpenseTransactionRpcRepository).inRequestScope();
 container.bind<IncomeExpenseTransactionService>(TYPES.IncomeExpenseTransactionService).to(IncomeExpenseTransactionService).inRequestScope();
 
 // ==================== CHART OF ACCOUNTS ====================

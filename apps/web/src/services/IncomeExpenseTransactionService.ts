@@ -1,6 +1,6 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
-import type { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
+import type { FinancialTransactionHeader, TransactionStatus } from '@/models/financialTransactionHeader.model';
 import type { TransactionType } from '@/models/financialTransaction.model';
 import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
 import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
@@ -12,7 +12,11 @@ import type { Category } from '@/models/category.model';
 import type { FinancialSource } from '@/models/financialSource.model';
 import type { Fund } from '@/models/fund.model';
 import type { IFundRepository } from '@/repositories/fund.repository';
+import type { IIncomeExpenseTransactionRpcRepository } from '@/repositories/incomeExpenseTransactionRpc.repository';
 import { TYPES } from '@/lib/types';
+
+// Feature flag for RPC usage - allows quick rollback if issues arise
+const USE_RPC = process.env.NEXT_PUBLIC_USE_RPC_TRANSACTIONS !== 'false';
 
 export interface IncomeExpenseEntry {
   id?: string;
@@ -49,6 +53,8 @@ export class IncomeExpenseTransactionService {
     private sourceRepo: IFinancialSourceRepository,
     @inject(TYPES.IFundRepository)
     private fundRepo: IFundRepository,
+    @inject(TYPES.IIncomeExpenseTransactionRpcRepository)
+    private rpcRepo: IIncomeExpenseTransactionRpcRepository,
   ) {}
 
   private async populateAccounts(lines: IncomeExpenseEntry[]) {
@@ -210,12 +216,50 @@ export class IncomeExpenseTransactionService {
     lines: IncomeExpenseEntry[],
     onProgress?: (percent: number) => void,
   ) {
+    // Use RPC for batch processing (single call instead of ~200+ calls)
+    if (USE_RPC) {
+      const result = await this.rpcRepo.createBatch({
+        tenantId: header.tenant_id!,
+        transactionDate: header.transaction_date!,
+        description: header.description || '',
+        reference: (header as any).reference ?? null,
+        sourceId: header.source_id ?? null,
+        status: (header.status as 'draft' | 'posted') || 'draft',
+        createdBy: header.created_by ?? null,
+        lines: lines.map((line, index) => ({
+          transaction_type: line.transaction_type,
+          amount: line.amount,
+          description: line.description,
+          category_id: line.category_id,
+          fund_id: line.fund_id,
+          source_id: line.source_id,
+          account_id: line.account_id,
+          batch_id: line.batch_id,
+          line: line.line ?? index + 1,
+        })),
+      });
+
+      // Report 100% completion after RPC call
+      onProgress?.(100);
+
+      // Return header-like object
+      return {
+        id: result.header_id,
+        transaction_number: result.header_transaction_number,
+        status: result.header_status as TransactionStatus,
+        tenant_id: header.tenant_id,
+        transaction_date: header.transaction_date,
+        description: header.description,
+      } as FinancialTransactionHeader;
+    }
+
+    // Legacy implementation (fallback when USE_RPC is false)
     await this.populateAccounts(lines);
 
     // Save the intended final status, then create header as 'draft' first
     // This allows adding transactions before marking as posted
     const finalStatus = header.status;
-    const headerToCreate = { ...header, status: 'draft' };
+    const headerToCreate = { ...header, status: 'draft' as TransactionStatus };
     const headerRecord = await this.headerRepo.create(headerToCreate);
 
     const total = lines.length;
@@ -258,6 +302,43 @@ export class IncomeExpenseTransactionService {
     header: Partial<FinancialTransactionHeader>,
     line: IncomeExpenseEntry,
   ) {
+    // Use RPC for single line update
+    if (USE_RPC) {
+      const result = await this.rpcRepo.updateLine({
+        tenantId: header.tenant_id!,
+        transactionId,
+        headerUpdate: {
+          transaction_date: header.transaction_date
+            ? new Date(header.transaction_date).toISOString().split('T')[0]
+            : undefined,
+          description: header.description,
+          reference: (header as any).reference,
+          status: header.status,
+        },
+        lineData: {
+          transaction_type: line.transaction_type,
+          amount: line.amount,
+          description: line.description,
+          category_id: line.category_id,
+          fund_id: line.fund_id,
+          source_id: line.source_id,
+          account_id: line.account_id,
+          batch_id: line.batch_id,
+          line: line.line,
+          isDirty: line.isDirty,
+          isDeleted: line.isDeleted,
+        },
+        updatedBy: header.updated_by ?? null,
+      });
+
+      if (!result.success) {
+        throw new Error(`Failed to update transaction: ${result.action_taken}`);
+      }
+
+      return { id: result.header_id } as any;
+    }
+
+    // Legacy implementation (fallback when USE_RPC is false)
     await this.populateAccounts([line]);
     const mapping = (await this.mappingRepo.getByTransactionId(transactionId))[0];
 
@@ -304,6 +385,43 @@ export class IncomeExpenseTransactionService {
     lines: IncomeExpenseEntry[],
     onProgress?: (percent: number) => void,
   ) {
+    // Use RPC for batch update (single call instead of many sequential calls)
+    if (USE_RPC) {
+      const result = await this.rpcRepo.updateBatch({
+        tenantId: header.tenant_id!,
+        headerId,
+        headerUpdate: {
+          transaction_date: header.transaction_date
+            ? new Date(header.transaction_date).toISOString().split('T')[0]
+            : undefined,
+          description: header.description,
+          reference: (header as any).reference,
+          status: header.status,
+        },
+        lines: lines.map((line, index) => ({
+          id: line.id,
+          transaction_type: line.transaction_type,
+          amount: line.amount,
+          description: line.description,
+          category_id: line.category_id,
+          fund_id: line.fund_id,
+          source_id: line.source_id,
+          account_id: line.account_id,
+          batch_id: line.batch_id,
+          line: line.line ?? index + 1,
+          isDirty: line.isDirty,
+          isDeleted: line.isDeleted,
+        })),
+        updatedBy: header.updated_by ?? null,
+      });
+
+      // Report 100% completion after RPC call
+      onProgress?.(100);
+
+      return { id: result.header_id } as any;
+    }
+
+    // Legacy implementation (fallback when USE_RPC is false)
     await this.populateAccounts(lines);
     const mappings = await this.mappingRepo.getByHeaderId(headerId);
 
@@ -380,6 +498,29 @@ export class IncomeExpenseTransactionService {
   }
 
   public async delete(transactionId: string) {
+    // Use RPC for atomic delete
+    if (USE_RPC) {
+      // Get tenant_id from the mapping first
+      const mapping = (await this.mappingRepo.getByTransactionId(transactionId))[0];
+      if (!mapping) {
+        throw new Error('Transaction not found');
+      }
+
+      const header = await this.headerRepo.findById(mapping.transaction_header_id);
+      if (!header) {
+        throw new Error('Header not found');
+      }
+
+      const result = await this.rpcRepo.deleteTransaction(header.tenant_id!, transactionId);
+
+      if (!result.success) {
+        throw new Error('Failed to delete transaction');
+      }
+
+      return;
+    }
+
+    // Legacy implementation (fallback when USE_RPC is false)
     const mapping = (await this.mappingRepo.getByTransactionId(transactionId))[0];
 
     if (mapping.debit_transaction_id) {
@@ -395,6 +536,23 @@ export class IncomeExpenseTransactionService {
   }
 
   public async deleteBatch(headerId: string) {
+    // Use RPC for atomic batch delete
+    if (USE_RPC) {
+      const header = await this.headerRepo.findById(headerId);
+      if (!header) {
+        throw new Error('Header not found');
+      }
+
+      const result = await this.rpcRepo.deleteBatch(header.tenant_id!, headerId);
+
+      if (!result.success) {
+        throw new Error('Failed to delete batch');
+      }
+
+      return;
+    }
+
+    // Legacy implementation (fallback when USE_RPC is false)
     const mappings = await this.mappingRepo.getByHeaderId(headerId);
 
     for (const m of mappings) {
@@ -411,4 +569,3 @@ export class IncomeExpenseTransactionService {
     await this.headerRepo.delete(headerId);
   }
 }
-

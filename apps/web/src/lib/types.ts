@@ -165,6 +165,8 @@ export const TYPES = {
   IIncomeExpenseTransactionMappingRepository: Symbol.for('IIncomeExpenseTransactionMappingRepository'),
   IIncomeExpenseTransactionMappingAdapter: Symbol.for('IIncomeExpenseTransactionMappingAdapter'),
   IIncomeExpenseTransactionRepository: Symbol.for('IIncomeExpenseTransactionRepository'),
+  IIncomeExpenseTransactionRpcAdapter: Symbol.for('IIncomeExpenseTransactionRpcAdapter'),
+  IIncomeExpenseTransactionRpcRepository: Symbol.for('IIncomeExpenseTransactionRpcRepository'),
   ILicenseAdapter: Symbol.for('ILicenseAdapter'),
   ILicenseFeatureAdapter: Symbol.for('ILicenseFeatureAdapter'),
   ILicenseFeatureRepository: Symbol.for('ILicenseFeatureRepository'),

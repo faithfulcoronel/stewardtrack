@@ -392,6 +392,14 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
       helperText: 'Active sources can be used in transactions',
     },
     {
+      name: 'createAssetAccount',
+      label: 'Create asset account',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Automatically create a linked asset account in the chart of accounts',
+      hidden: !!sourceId && !!source.coa_id,
+    },
+    {
       name: 'description',
       label: 'Description',
       type: 'textarea',
@@ -422,6 +430,7 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
       sourceType: source.source_type || 'bank',
       accountNumber: source.account_number || '',
       isActive: source.is_active ?? true,
+      createAssetAccount: !sourceId, // Default to true for new sources
       description: source.description || '',
       linkedAccount: linkedAccountDisplay,
     },
@@ -686,10 +695,22 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
       description: values.description ? (values.description as string) : null,
     };
 
+    const createAssetAccount = values.createAssetAccount === true || values.createAssetAccount === 'true';
+
     let source: FinancialSource;
 
     if (sourceId) {
-      source = await sourceService.update(sourceId, sourceData);
+      // Use updateWithAccountCheck for updates - it handles creating COA if needed
+      source = await sourceService.updateWithAccountCheck(sourceId, {
+        ...sourceData,
+        auto_create: createAssetAccount,
+      });
+    } else if (createAssetAccount) {
+      // Create source with auto-created asset account
+      source = await sourceService.createWithAccount({
+        ...sourceData,
+        auto_create: true,
+      });
     } else {
       source = await sourceService.create(sourceData);
     }

@@ -74,6 +74,7 @@ import { AnniversaryGreetingEmail } from '../templates/AnniversaryGreetingEmail'
 // System Templates
 import { SystemMaintenanceEmail } from '../templates/SystemMaintenanceEmail';
 import { SystemAnnouncementEmail } from '../templates/SystemAnnouncementEmail';
+import { ErrorReportEmail } from '../templates/ErrorReportEmail';
 
 // Subscription Templates
 import { TenantSubscriptionWelcomeEmail } from '../templates/TenantSubscriptionWelcomeEmail';
@@ -523,6 +524,20 @@ export interface SystemAnnouncementEmailData {
   effectiveDate?: string;
   actionUrl?: string;
   actionLabel?: string;
+}
+
+export interface ErrorReportEmailData {
+  errorMessage: string;
+  stackTrace?: string;
+  componentStack?: string;
+  userFeedback?: string;
+  userEmail?: string;
+  userName?: string;
+  tenantName?: string;
+  errorUrl?: string;
+  userAgent?: string;
+  timestamp: string;
+  errorId?: string;
 }
 
 // =============================================================================
@@ -1450,6 +1465,32 @@ export async function renderSystemAnnouncementEmail(
   return await renderEmail(element);
 }
 
+/**
+ * Renders an error report email template to HTML.
+ * Used when users report unexpected errors with additional feedback.
+ */
+export async function renderErrorReportEmail(
+  data: ErrorReportEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(ErrorReportEmail, {
+    errorMessage: data.errorMessage,
+    stackTrace: data.stackTrace,
+    componentStack: data.componentStack,
+    userFeedback: data.userFeedback,
+    userEmail: data.userEmail,
+    userName: data.userName,
+    tenantName: data.tenantName,
+    errorUrl: data.errorUrl,
+    userAgent: data.userAgent,
+    timestamp: data.timestamp,
+    errorId: data.errorId,
+    baseUrl: options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
+}
+
 // =============================================================================
 // Subscription Email Render Functions
 // =============================================================================
@@ -1534,6 +1575,7 @@ export type EmailTemplateType =
   // System
   | 'system-maintenance'
   | 'system-announcement'
+  | 'error-report'
   // Subscription
   | 'tenant-subscription-welcome';
 
@@ -1648,6 +1690,8 @@ export async function renderEmailByType(
       return await renderSystemMaintenanceEmail(data as unknown as SystemMaintenanceEmailData, options);
     case 'system-announcement':
       return await renderSystemAnnouncementEmail(data as unknown as SystemAnnouncementEmailData, options);
+    case 'error-report':
+      return await renderErrorReportEmail(data as unknown as ErrorReportEmailData, options);
 
     // Subscription
     case 'tenant-subscription-welcome':

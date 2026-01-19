@@ -180,7 +180,7 @@ async function handleSaveSource(
     const result = (await serviceHandler({
       params: payload,
       context: execution.context,
-    })) as { success: boolean; message: string; sourceId?: string };
+    })) as { success: boolean; message: string; sourceId?: string; redirectUrl?: string };
 
     if (!result.success) {
       return {
@@ -201,7 +201,7 @@ async function handleSaveSource(
       toOptionalString(config.redirectUrl) ??
       toOptionalString(config.redirectTemplate) ??
       null;
-    const redirectUrl = buildRedirectUrl(redirectTemplate, context);
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
 
     return {
       success: true,

@@ -4,6 +4,7 @@ import { Gate } from "@/lib/access-gate";
 
 import { type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { AdminLayoutShell } from "@/components/admin/layout-shell";
+import { GlobalErrorBoundary } from "@/components/error";
 import { signOut } from "@/lib/auth/actions";
 import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
@@ -173,7 +174,9 @@ export default async function AdminLayout({
         planLabel="Super Admin"
         logoutAction={signOut}
       >
-        {children}
+        <GlobalErrorBoundary>
+          {children}
+        </GlobalErrorBoundary>
       </AdminLayoutShell>
     );
   }
@@ -297,7 +300,9 @@ export default async function AdminLayout({
       planLabel={planLabel}
       logoutAction={signOut}
     >
-      {children}
+      <GlobalErrorBoundary>
+        {children}
+      </GlobalErrorBoundary>
     </AdminLayoutShell>
   );
 }
