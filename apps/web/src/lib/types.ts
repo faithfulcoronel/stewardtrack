@@ -350,6 +350,11 @@ export const TYPES = {
   // Excel Import Service (Onboarding)
   ExcelImportService: Symbol.for('ExcelImportService'),
 
+  // Feature Import (Licensing)
+  IFeatureImportAdapter: Symbol.for('IFeatureImportAdapter'),
+  IFeatureImportRepository: Symbol.for('IFeatureImportRepository'),
+  FeatureImportService: Symbol.for('FeatureImportService'),
+
   // Scheduled Notification (Background Jobs)
   IScheduledNotificationAdapter: Symbol.for('IScheduledNotificationAdapter'),
   IScheduledNotificationRepository: Symbol.for('IScheduledNotificationRepository'),

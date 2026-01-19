@@ -999,6 +999,14 @@ container.bind<IncomeCategoryService>(TYPES.IncomeCategoryService).to(IncomeCate
 import { ExcelImportService } from '@/services/ExcelImportService';
 container.bind<ExcelImportService>(TYPES.ExcelImportService).to(ExcelImportService).inRequestScope();
 
+// ==================== FEATURE IMPORT (Licensing) ====================
+import { FeatureImportAdapter, type IFeatureImportAdapter } from '@/adapters/featureImport.adapter';
+import { FeatureImportRepository, type IFeatureImportRepository } from '@/repositories/featureImport.repository';
+import { FeatureImportService } from '@/services/FeatureImportService';
+container.bind<IFeatureImportAdapter>(TYPES.IFeatureImportAdapter).to(FeatureImportAdapter).inRequestScope();
+container.bind<IFeatureImportRepository>(TYPES.IFeatureImportRepository).to(FeatureImportRepository).inRequestScope();
+container.bind<FeatureImportService>(TYPES.FeatureImportService).to(FeatureImportService).inRequestScope();
+
 // ==================== STORAGE ====================
 import { StorageAdapter, type IStorageAdapter } from '@/adapters/storage.adapter';
 import { StorageRepository, type IStorageRepository } from '@/repositories/storage.repository';
