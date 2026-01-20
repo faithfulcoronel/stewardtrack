@@ -66,6 +66,52 @@ interface PaymentTransaction {
   metadata: any;
 }
 
+// Renew Subscription Button - Client-side only to avoid hydration mismatch
+function RenewSubscriptionButton({
+  nextBillingDate,
+  onRenew
+}: {
+  nextBillingDate: string | null;
+  onRenew: () => void;
+}) {
+  const [shouldShow, setShouldShow] = useState(false);
+
+  useEffect(() => {
+    if (!nextBillingDate) {
+      setShouldShow(false);
+      return;
+    }
+
+    const billingDate = new Date(nextBillingDate);
+    const gracePeriodEnd = new Date(billingDate);
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 7);
+    let now = new Date();
+
+    // Show renewal button only if current date is past the grace period
+    setShouldShow(now > gracePeriodEnd);
+  }, [nextBillingDate]);
+
+  if (!shouldShow) return null;
+
+  return (
+    <>
+      <Separator />
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Need to renew your subscription?</p>
+          <p className="text-xs text-muted-foreground">
+            Create a new invoice to continue your subscription
+          </p>
+        </div>
+        <Button onClick={onRenew} variant="outline">
+          <CreditCard className="mr-2 size-4" />
+          Renew Subscription
+        </Button>
+      </div>
+    </>
+  );
+}
+
 // Loading fallback for Suspense boundary
 function SubscriptionLoading() {
   return (
@@ -396,20 +442,11 @@ function SubscriptionContent() {
               </div>
             </div>
 
-            {/* Renew Subscription Button */}
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Need to renew your subscription?</p>
-                <p className="text-xs text-muted-foreground">
-                  Create a new invoice to continue your subscription
-                </p>
-              </div>
-              <Button onClick={handleRenewSubscription} variant="outline">
-                <CreditCard className="mr-2 size-4" />
-                Renew Subscription
-              </Button>
-            </div>
+            {/* Renew Subscription Button - Only show if past grace period (next_billing_date + 7 days) */}
+            <RenewSubscriptionButton
+              nextBillingDate={subscription.tenant.next_billing_date}
+              onRenew={handleRenewSubscription}
+            />
           </CardContent>
         </Card>
       )}
