@@ -149,6 +149,204 @@ export interface XenditErrorResponse {
   message: string;
 }
 
+// ============================================================================
+// PAYMENTS API V3 TYPES (for Donations)
+// ============================================================================
+
+/**
+ * Xendit Customer (Payments API)
+ */
+export interface XenditCustomerFull {
+  id: string;
+  reference_id: string;
+  type: 'INDIVIDUAL' | 'BUSINESS';
+  email: string | null;
+  given_names: string | null;
+  surname: string | null;
+  mobile_number: string | null;
+  phone_number: string | null;
+  created: string;
+  updated: string;
+}
+
+export interface CreateCustomerParams {
+  reference_id: string;
+  type?: 'INDIVIDUAL' | 'BUSINESS';
+  email?: string;
+  given_names?: string;
+  surname?: string;
+  mobile_number?: string;
+  phone_number?: string;
+}
+
+/**
+ * Payment Request (Payments API v3)
+ */
+export type PaymentMethodType = 'CARD' | 'EWALLET' | 'DIRECT_DEBIT' | 'VIRTUAL_ACCOUNT' | 'QR_CODE' | 'OVER_THE_COUNTER';
+export type CaptureMethod = 'AUTOMATIC' | 'MANUAL';
+export type PaymentReusability = 'ONE_TIME_USE' | 'MULTIPLE_USE';
+
+export interface CreatePaymentRequestParams {
+  reference_id: string;
+  customer_id?: string;
+  amount: number;
+  currency: string;
+  capture_method?: CaptureMethod;
+  payment_method: {
+    type: PaymentMethodType;
+    reusability: PaymentReusability;
+    card?: {
+      channel_properties?: {
+        success_return_url?: string;
+        failure_return_url?: string;
+      };
+    };
+    ewallet?: {
+      channel_code: string; // GCASH, PAYMAYA, GRABPAY, etc.
+      channel_properties?: {
+        success_return_url?: string;
+        failure_return_url?: string;
+        mobile_number?: string;
+      };
+    };
+    direct_debit?: {
+      channel_code: string; // BPI, BDO, UNIONBANK, etc.
+      channel_properties?: {
+        success_return_url?: string;
+        failure_return_url?: string;
+        mobile_number?: string;
+      };
+    };
+    virtual_account?: {
+      channel_code: string;
+      channel_properties?: {
+        customer_name?: string;
+        expires_at?: string;
+      };
+    };
+    qr_code?: {
+      channel_code: string; // QRPH
+    };
+    over_the_counter?: {
+      channel_code: string; // 7ELEVEN, etc.
+      channel_properties?: {
+        customer_name?: string;
+        payment_code?: string;
+        expires_at?: string;
+      };
+    };
+  };
+  description?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface XenditPaymentRequest {
+  id: string;
+  reference_id: string;
+  business_id: string;
+  customer_id: string | null;
+  amount: number;
+  currency: string;
+  status: 'REQUIRES_ACTION' | 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'AWAITING_CAPTURE';
+  capture_method: CaptureMethod;
+  payment_method: {
+    id: string;
+    type: PaymentMethodType;
+    reusability: PaymentReusability;
+    status: string;
+    card?: {
+      masked_card_number: string;
+      cardholder_name: string | null;
+      expiry_month: string;
+      expiry_year: string;
+    };
+    ewallet?: {
+      channel_code: string;
+      account_mobile_number: string | null;
+    };
+    direct_debit?: {
+      channel_code: string;
+      masked_bank_account_number: string | null;
+    };
+  };
+  description: string | null;
+  metadata: Record<string, unknown> | null;
+  actions?: Array<{
+    action: 'AUTH' | 'RESEND_AUTH' | 'CAPTURE';
+    url?: string;
+    url_type?: 'WEB' | 'MOBILE' | 'DEEPLINK';
+    method?: 'GET' | 'POST';
+  }>;
+  created: string;
+  updated: string;
+  expires_at: string | null;
+}
+
+/**
+ * Payment Token (for saved payment methods)
+ */
+export interface XenditPaymentToken {
+  id: string;
+  type: PaymentMethodType;
+  reusability: PaymentReusability;
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'EXPIRED' | 'FAILED';
+  customer_id: string | null;
+  card?: {
+    masked_card_number: string;
+    cardholder_name: string | null;
+    expiry_month: string;
+    expiry_year: string;
+  };
+  ewallet?: {
+    channel_code: string;
+    account_mobile_number: string | null;
+  };
+  direct_debit?: {
+    channel_code: string;
+    masked_bank_account_number: string | null;
+  };
+  created: string;
+  updated: string;
+}
+
+/**
+ * Linked Account Token (for Direct Debit)
+ */
+export interface XenditLinkedAccountInit {
+  id: string;
+  customer_id: string;
+  channel_code: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  authorizer_url: string | null;
+  created: string;
+}
+
+/**
+ * Refund
+ */
+export interface CreateRefundParams {
+  payment_request_id?: string;
+  invoice_id?: string;
+  reference_id: string;
+  amount?: number; // If not provided, full refund
+  reason: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface XenditRefund {
+  id: string;
+  payment_request_id: string | null;
+  invoice_id: string | null;
+  reference_id: string;
+  amount: number;
+  currency: string;
+  status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
+  reason: string;
+  failure_code: string | null;
+  created: string;
+  updated: string;
+}
+
 @injectable()
 export class XenditService {
   private readonly apiKey: string;
@@ -518,7 +716,7 @@ export class XenditService {
     const formattedAmount = this.formatAmount(params.amount, effectiveCurrency);
 
     return this.createInvoice({
-      external_id: params.externalId,
+      external_id: externalId,
       amount: formattedAmount,
       payer_email: params.payerEmail,
       description,
@@ -582,5 +780,333 @@ export class XenditService {
         name: info.name,
         symbol: info.symbol,
       }));
+  }
+
+  // ============================================================================
+  // PAYMENTS API V3 METHODS (for Donations)
+  // ============================================================================
+
+  /**
+   * Create a Xendit customer
+   * Used to associate payment methods and donations with a customer
+   *
+   * @param params Customer creation parameters
+   * @returns Created customer object
+   */
+  async createCustomer(params: CreateCustomerParams): Promise<XenditCustomerFull> {
+    return this.request<XenditCustomerFull>('/customers', {
+      method: 'POST',
+      body: JSON.stringify({
+        reference_id: params.reference_id,
+        type: params.type || 'INDIVIDUAL',
+        email: params.email,
+        given_names: params.given_names,
+        surname: params.surname,
+        mobile_number: params.mobile_number,
+        phone_number: params.phone_number,
+      }),
+      headers: {
+        'API-VERSION': '2020-10-31',
+      },
+    });
+  }
+
+  /**
+   * Get a Xendit customer by reference ID
+   *
+   * @param referenceId The reference ID used when creating the customer
+   * @returns Customer object or null if not found
+   */
+  async getCustomerByReference(referenceId: string): Promise<XenditCustomerFull | null> {
+    try {
+      const response = await this.request<{ data: XenditCustomerFull[] }>(
+        `/customers?reference_id=${encodeURIComponent(referenceId)}`,
+        {
+          method: 'GET',
+          headers: {
+            'API-VERSION': '2020-10-31',
+          },
+        }
+      );
+      return response.data?.[0] || null;
+    } catch {
+      console.warn('[XenditService] Customer not found:', referenceId);
+      return null;
+    }
+  }
+
+  /**
+   * Get a Xendit customer by ID
+   *
+   * @param customerId Xendit customer ID
+   * @returns Customer object
+   */
+  async getCustomer(customerId: string): Promise<XenditCustomerFull> {
+    return this.request<XenditCustomerFull>(`/customers/${customerId}`, {
+      method: 'GET',
+      headers: {
+        'API-VERSION': '2020-10-31',
+      },
+    });
+  }
+
+  /**
+   * Create a payment request (Payments API v3)
+   * Used for one-time donations or PAY_AND_SAVE flow
+   *
+   * @param params Payment request parameters
+   * @returns Created payment request with action URL
+   */
+  async createPaymentRequest(params: CreatePaymentRequestParams): Promise<XenditPaymentRequest> {
+    const requestBody = {
+      reference_id: params.reference_id,
+      amount: params.amount,
+      currency: params.currency,
+      capture_method: params.capture_method || 'AUTOMATIC',
+      payment_method: params.payment_method,
+      ...(params.customer_id && { customer_id: params.customer_id }),
+      ...(params.description && { description: params.description }),
+      ...(params.metadata && { metadata: params.metadata }),
+    };
+
+    return this.request<XenditPaymentRequest>('/payment_requests', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+  }
+
+  /**
+   * Get a payment request by ID
+   *
+   * @param paymentRequestId Xendit payment request ID
+   * @returns Payment request object
+   */
+  async getPaymentRequest(paymentRequestId: string): Promise<XenditPaymentRequest> {
+    return this.request<XenditPaymentRequest>(`/payment_requests/${paymentRequestId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Charge a saved payment token (for recurring donations or saved methods)
+   *
+   * @param params Charge parameters
+   * @returns Payment request object
+   */
+  async chargePaymentMethod(params: {
+    paymentMethodId: string;
+    amount: number;
+    currency: string;
+    referenceId: string;
+    customerId?: string;
+    description?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<XenditPaymentRequest> {
+    return this.request<XenditPaymentRequest>('/payment_requests', {
+      method: 'POST',
+      body: JSON.stringify({
+        reference_id: params.referenceId,
+        amount: params.amount,
+        currency: params.currency,
+        payment_method_id: params.paymentMethodId,
+        ...(params.customerId && { customer_id: params.customerId }),
+        ...(params.description && { description: params.description }),
+        ...(params.metadata && { metadata: params.metadata }),
+      }),
+    });
+  }
+
+  /**
+   * Get a payment token/method by ID
+   *
+   * @param paymentMethodId Xendit payment method ID
+   * @returns Payment token object
+   */
+  async getPaymentMethod(paymentMethodId: string): Promise<XenditPaymentToken> {
+    return this.request<XenditPaymentToken>(`/v2/payment_methods/${paymentMethodId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Expire/deactivate a payment token
+   * Used when a user removes a saved payment method
+   *
+   * @param paymentMethodId Xendit payment method ID
+   */
+  async expirePaymentMethod(paymentMethodId: string): Promise<XenditPaymentToken> {
+    return this.request<XenditPaymentToken>(`/v2/payment_methods/${paymentMethodId}/expire`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * List payment methods for a customer
+   *
+   * @param customerId Xendit customer ID
+   * @returns Array of payment tokens
+   */
+  async listPaymentMethods(customerId: string): Promise<XenditPaymentToken[]> {
+    const response = await this.request<{ data: XenditPaymentToken[] }>(
+      `/v2/payment_methods?customer_id=${encodeURIComponent(customerId)}`,
+      {
+        method: 'GET',
+      }
+    );
+    return response.data || [];
+  }
+
+  /**
+   * Initialize direct debit linked account
+   * Used for bank account linking (BPI, BDO, etc.)
+   *
+   * @param params Linked account parameters
+   * @returns Linked account initialization with authorizer URL
+   */
+  async initializeLinkedAccount(params: {
+    customerId: string;
+    channelCode: string;
+    successRedirectUrl: string;
+    failureRedirectUrl: string;
+  }): Promise<XenditLinkedAccountInit> {
+    return this.request<XenditLinkedAccountInit>('/linked_account_tokens/auth', {
+      method: 'POST',
+      body: JSON.stringify({
+        customer_id: params.customerId,
+        channel_code: params.channelCode,
+        properties: {
+          success_redirect_url: params.successRedirectUrl,
+          failure_redirect_url: params.failureRedirectUrl,
+        },
+      }),
+    });
+  }
+
+  /**
+   * Create a refund for a payment
+   *
+   * @param params Refund parameters
+   * @returns Refund object
+   */
+  async createRefund(params: CreateRefundParams): Promise<XenditRefund> {
+    return this.request<XenditRefund>('/refunds', {
+      method: 'POST',
+      body: JSON.stringify({
+        payment_request_id: params.payment_request_id,
+        invoice_id: params.invoice_id,
+        reference_id: params.reference_id,
+        amount: params.amount,
+        reason: params.reason,
+        metadata: params.metadata,
+      }),
+    });
+  }
+
+  /**
+   * Get a refund by ID
+   *
+   * @param refundId Xendit refund ID
+   * @returns Refund object
+   */
+  async getRefund(refundId: string): Promise<XenditRefund> {
+    return this.request<XenditRefund>(`/refunds/${refundId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Create a donation payment request with simplified parameters
+   * Handles the complexity of building the payment method object
+   *
+   * @param params Donation parameters
+   * @returns Payment request with action URL for donor
+   */
+  async createDonationPayment(params: {
+    donationId: string;
+    customerId?: string;
+    amount: number;
+    currency?: string;
+    paymentMethodType: 'CARD' | 'EWALLET' | 'DIRECT_DEBIT' | 'VIRTUAL_ACCOUNT' | 'QR_CODE';
+    channelCode?: string;
+    savePaymentMethod?: boolean;
+    successUrl: string;
+    failureUrl: string;
+    description?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<XenditPaymentRequest> {
+    const currency = this.getEffectiveCurrency(params.currency || 'PHP');
+    const formattedAmount = this.formatAmount(params.amount, currency);
+    const reusability: PaymentReusability = params.savePaymentMethod ? 'MULTIPLE_USE' : 'ONE_TIME_USE';
+
+    // Build payment method object based on type
+    const paymentMethod: CreatePaymentRequestParams['payment_method'] = {
+      type: params.paymentMethodType,
+      reusability,
+    };
+
+    // Add channel-specific properties
+    switch (params.paymentMethodType) {
+      case 'CARD':
+        paymentMethod.card = {
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'EWALLET':
+        paymentMethod.ewallet = {
+          channel_code: params.channelCode || 'GCASH',
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'DIRECT_DEBIT':
+        paymentMethod.direct_debit = {
+          channel_code: params.channelCode || 'BPI',
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'VIRTUAL_ACCOUNT':
+        paymentMethod.virtual_account = {
+          channel_code: params.channelCode || 'BPI',
+        };
+        break;
+      case 'QR_CODE':
+        paymentMethod.qr_code = {
+          channel_code: params.channelCode || 'QRPH',
+        };
+        break;
+    }
+
+    return this.createPaymentRequest({
+      reference_id: params.donationId,
+      customer_id: params.customerId,
+      amount: formattedAmount,
+      currency,
+      payment_method: paymentMethod,
+      description: params.description,
+      metadata: {
+        ...params.metadata,
+        donation_id: params.donationId,
+        payment_type: 'donation',
+      },
+    });
+  }
+
+  /**
+   * Get the action URL from a payment request for redirecting the donor
+   *
+   * @param paymentRequest Payment request object
+   * @returns URL to redirect the donor to, or null if not available
+   */
+  getPaymentActionUrl(paymentRequest: XenditPaymentRequest): string | null {
+    const authAction = paymentRequest.actions?.find(a => a.action === 'AUTH');
+    return authAction?.url || null;
   }
 }

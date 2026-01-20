@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="donations/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="donations.core" requiredPermissions="donations:view" locale="en-US">
+  <Page id="admin-finance-donations-list">
+    <Title>Online donations</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="list-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="listHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="listHero.headline"/>
+            <Prop name="description" kind="binding" contract="listHero.description"/>
+            <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="add-donation"/>
+            <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
+          </Props>
+        </Component>
+        <Component id="donation-summary" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Donation summary</Prop>
+            <Prop name="description" kind="static">Overview of online giving activity and trends.</Prop>
+            <Prop name="metrics" kind="binding" contract="donationSummary.items"/>
+          </Props>
+        </Component>
+        <Component id="status-overview" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Payment status</Prop>
+            <Prop name="description" kind="static">Track pending, successful, and failed payments.</Prop>
+            <Prop name="metrics" kind="binding" contract="statusOverview.items"/>
+          </Props>
+        </Component>
+        <Component id="donations-grid" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Donation records</Prop>
+            <Prop name="description" kind="static">View and manage all online donations received through the giving portal.</Prop>
+            <Prop name="rows" kind="binding" contract="donationsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="donationsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="donationsTable.filters"/>
+            <Prop name="emptyState" kind="static">{"title": "No donations yet", "description": "Online donations will appear here once your congregation starts giving through the donation portal. Share your church's donation link to get started."}</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="listHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Binding for list-hero.eyebrow"/>
+          <Field name="headline" path="headline" description="Binding for list-hero.headline"/>
+          <Field name="description" path="description" description="Binding for list-hero.description"/>
+          <Field name="metrics" path="metrics" description="Binding for list-hero.metrics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.list.hero</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="donationSummary" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Donation summary cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.list.summary</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="statusOverview" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Status overview cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.list.statusOverview</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="donationsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Binding for donations-grid.rows"/>
+          <Field name="columns" path="columns" description="Binding for donations-grid.columns"/>
+          <Field name="filters" path="filters" description="Binding for donations-grid.filters"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="add-donation" kind="link">
+        <RBAC requirePermissions="donations:create" />
+        <Config>
+          <Label>Record donation</Label>
+          <Url>/admin/finance/transactions/entry</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="back-to-dashboard" kind="link">
+        <Config>
+          <Label>Dashboard</Label>
+          <Url>/admin/finance</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

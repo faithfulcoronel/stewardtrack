@@ -645,7 +645,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const accountOptions = accounts.map((account) => ({
     value: account.id,
     label: account.name,
-    code: (account as { accountNumber?: string }).accountNumber || '',
+    code: account.account_number || '',
   }));
 
   // Transform budgets to dropdown options (for expense transactions)

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition kind="blueprint" module="admin-finance" route="donations/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="donations.core" requiredPermissions="donations:view" locale="en-US">
+  <Page id="admin-finance-donations-profile">
+    <Title>Donation details</Title>
+    <Regions>
+      <Region id="main">
+        <Component id="profile-header" type="ProfileHeader">
+          <Props>
+            <Prop name="eyebrow" kind="binding" contract="profileHeader.eyebrow"/>
+            <Prop name="title" kind="binding" contract="profileHeader.title"/>
+            <Prop name="subtitle" kind="binding" contract="profileHeader.subtitle"/>
+            <Prop name="badge" kind="binding" contract="profileHeader.badge"/>
+            <Prop name="metrics" kind="binding" contract="profileHeader.metrics"/>
+            <Prop name="actions" kind="binding" contract="profileHeader.actions"/>
+            <Prop name="backLink" kind="static">/admin/finance/donations</Prop>
+            <Prop name="backLabel" kind="static">Back to donations</Prop>
+          </Props>
+        </Component>
+        <Component id="donation-details" type="AdminDetailPanels">
+          <Props>
+            <Prop name="panels" kind="binding" contract="donationDetails.panels"/>
+          </Props>
+        </Component>
+        <Component id="payment-timeline" type="Timeline">
+          <Props>
+            <Prop name="title" kind="static">Payment timeline</Prop>
+            <Prop name="description" kind="static">Track the donation from creation to completion.</Prop>
+            <Prop name="items" kind="binding" contract="paymentTimeline.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+    <DataSources>
+      <DataSource id="profileHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow"/>
+          <Field name="title" path="title"/>
+          <Field name="subtitle" path="subtitle"/>
+          <Field name="badge" path="badge"/>
+          <Field name="metrics" path="metrics"/>
+          <Field name="actions" path="actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.profile.header</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="donationDetails" kind="service">
+        <Contract>
+          <Field name="panels" path="panels"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.profile.details</Handler>
+        </Config>
+      </DataSource>
+      <DataSource id="paymentTimeline" kind="service">
+        <Contract>
+          <Field name="items" path="items"/>
+        </Contract>
+        <Config>
+          <Handler>admin-finance.donations.profile.timeline</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+    <Actions>
+      <Action id="refund-donation" kind="submit">
+        <RBAC requirePermissions="donations:refund" />
+        <Config>
+          <Label>Issue refund</Label>
+          <Handler>admin-finance.donations.refund</Handler>
+          <SuccessUrl>/admin/finance/donations</SuccessUrl>
+          <SuccessMessage>Refund initiated successfully</SuccessMessage>
+          <Variant>destructive</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
