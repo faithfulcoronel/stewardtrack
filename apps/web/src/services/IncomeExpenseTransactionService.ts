@@ -34,6 +34,14 @@ export interface IncomeExpenseEntry {
   line?: number | null;
   isDirty?: boolean;
   isDeleted?: boolean;
+  // Extended transaction type fields
+  destination_source_id?: string | null; // For transfer transactions
+  destination_source_coa_id?: string | null; // Resolved COA for destination source
+  destination_fund_id?: string | null; // For fund_rollover transactions
+  destination_fund_coa_id?: string | null; // Resolved COA for destination fund
+  from_coa_id?: string | null; // For reclass transactions (old account)
+  to_coa_id?: string | null; // For reclass transactions (new account)
+  reference_transaction_id?: string | null; // For reversal transactions
 }
 
 @injectable()
@@ -62,10 +70,16 @@ export class IncomeExpenseTransactionService {
       new Set(lines.map(l => l.category_id).filter((id): id is string => !!id)),
     );
     const sourceIds = Array.from(
-      new Set(lines.map(l => l.source_id).filter((id): id is string => !!id)),
+      new Set([
+        ...lines.map(l => l.source_id).filter((id): id is string => !!id),
+        ...lines.map(l => l.destination_source_id).filter((id): id is string => !!id),
+      ]),
     );
     const fundIds = Array.from(
-      new Set(lines.map(l => l.fund_id).filter((id): id is string => !!id)),
+      new Set([
+        ...lines.map(l => l.fund_id).filter((id): id is string => !!id),
+        ...lines.map(l => l.destination_fund_id).filter((id): id is string => !!id),
+      ]),
     );
 
     const categories = await Promise.all(
@@ -101,6 +115,13 @@ export class IncomeExpenseTransactionService {
       line.fund_coa_id = line.fund_id
         ? fundMap.get(line.fund_id) ?? null
         : null;
+      // Extended fields
+      line.destination_source_coa_id = line.destination_source_id
+        ? sourceMap.get(line.destination_source_id) ?? null
+        : null;
+      line.destination_fund_coa_id = line.destination_fund_id
+        ? fundMap.get(line.destination_fund_id) ?? null
+        : null;
     }
   }
 
@@ -126,56 +147,91 @@ export class IncomeExpenseTransactionService {
       header_id: headerId,
     } as any;
 
-    if (line.transaction_type === 'income') {
-      return [
-        {
-          ...base,
-          coa_id: line.source_coa_id,
-          debit: line.amount,
-          credit: 0,
-        },
-        {
-          ...base,
-          coa_id: line.category_coa_id,
-          debit: 0,
-          credit: line.amount,
-        },
-      ];
-    }
+    switch (line.transaction_type) {
+      // Income: DR Asset (source), CR Revenue (category)
+      case 'income':
+        return [
+          { ...base, coa_id: line.source_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.category_coa_id, debit: 0, credit: line.amount },
+        ];
 
-    // Opening balance: Debit asset (source), Credit equity (fund)
-    if (line.transaction_type === 'opening_balance') {
-      return [
-        {
-          ...base,
-          coa_id: line.source_coa_id, // Asset account (bank/cash)
-          debit: line.amount,
-          credit: 0,
-        },
-        {
-          ...base,
-          coa_id: line.fund_coa_id, // Equity account (fund balance)
-          debit: 0,
-          credit: line.amount,
-        },
-      ];
-    }
+      // Expense: DR Expense (category), CR Asset (source)
+      case 'expense':
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
 
-    // Default: expense - Debit expense (category), Credit asset (source)
-    return [
-      {
-        ...base,
-        coa_id: line.category_coa_id,
-        debit: line.amount,
-        credit: 0,
-      },
-      {
-        ...base,
-        coa_id: line.source_coa_id,
-        debit: 0,
-        credit: line.amount,
-      },
-    ];
+      // Opening Balance: DR Asset (source), CR Equity (fund)
+      case 'opening_balance':
+        return [
+          { ...base, coa_id: line.source_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.fund_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Transfer: DR Asset (destination source), CR Asset (source)
+      case 'transfer':
+        return [
+          { ...base, coa_id: line.destination_source_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Fund Rollover: DR Equity (source fund), CR Equity (destination fund)
+      case 'fund_rollover':
+        return [
+          { ...base, coa_id: line.fund_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.destination_fund_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Refund: DR Revenue (category), CR Asset (source) - opposite of income
+      case 'refund':
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Adjustment: Same as expense pattern (adjustable based on category type)
+      case 'adjustment':
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Reclass: DR New Account (to_coa), CR Old Account (from_coa)
+      case 'reclass':
+        return [
+          { ...base, coa_id: line.to_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.from_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Reversal: Same as expense pattern (entries come pre-reversed)
+      case 'reversal':
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Allocation: DR destination fund/expense, CR source fund/expense
+      case 'allocation':
+        return [
+          { ...base, coa_id: line.destination_fund_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.fund_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Closing Entry: DR Revenue / CR Retained Earnings or DR RE / CR Expense
+      case 'closing_entry':
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.fund_coa_id, debit: 0, credit: line.amount },
+        ];
+
+      // Default: expense pattern
+      default:
+        return [
+          { ...base, coa_id: line.category_coa_id, debit: line.amount, credit: 0 },
+          { ...base, coa_id: line.source_coa_id, debit: 0, credit: line.amount },
+        ];
+    }
   }
 
   public async getBatch(headerId: string) {
@@ -208,12 +264,23 @@ export class IncomeExpenseTransactionService {
       account_id: line.account_id,
       header_id: headerId,
       line: line.line ?? undefined,
+      // Extended transaction type fields
+      destination_source_id: line.destination_source_id ?? null,
+      destination_fund_id: line.destination_fund_id ?? null,
+      from_coa_id: line.from_coa_id ?? null,
+      to_coa_id: line.to_coa_id ?? null,
     };
   }
 
   public async create(
     header: Partial<FinancialTransactionHeader>,
     lines: IncomeExpenseEntry[],
+    options?: {
+      destinationSourceId?: string | null;
+      destinationFundId?: string | null;
+      referenceTransactionId?: string | null;
+      adjustmentReason?: string | null;
+    },
     onProgress?: (percent: number) => void,
   ) {
     // Use RPC for batch processing (single call instead of ~200+ calls)
@@ -226,6 +293,11 @@ export class IncomeExpenseTransactionService {
         sourceId: header.source_id ?? null,
         status: (header.status as 'draft' | 'posted') || 'draft',
         createdBy: header.created_by ?? null,
+        // Extended transaction type fields
+        destinationSourceId: options?.destinationSourceId ?? null,
+        destinationFundId: options?.destinationFundId ?? null,
+        referenceTransactionId: options?.referenceTransactionId ?? null,
+        adjustmentReason: options?.adjustmentReason ?? null,
         lines: lines.map((line, index) => ({
           transaction_type: line.transaction_type,
           amount: line.amount,
@@ -236,6 +308,9 @@ export class IncomeExpenseTransactionService {
           account_id: line.account_id,
           batch_id: line.batch_id,
           line: line.line ?? index + 1,
+          // Extended line fields
+          from_coa_id: line.from_coa_id ?? null,
+          to_coa_id: line.to_coa_id ?? null,
         })),
       });
 

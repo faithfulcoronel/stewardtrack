@@ -27,4 +27,9 @@ export interface IncomeExpenseTransaction extends BaseModel {
   header_id: string | null;
   header?: FinancialTransactionHeader;
   line: number | null;
+  // Extended transaction type fields
+  destination_source_id?: string | null;
+  destination_fund_id?: string | null;
+  from_coa_id?: string | null;
+  to_coa_id?: string | null;
 }

@@ -29,4 +29,7 @@ export interface FinancialTransactionHeader extends BaseModel {
   voided_by: string | null;
   void_reason: string | null;
   transactions?: FinancialTransaction[];
+  // Extended transaction type fields
+  reference_transaction_id?: string | null;
+  adjustment_reason?: string | null;
 }
