@@ -20,7 +20,7 @@ export interface MemberMetrics {
 export interface IMembersDashboardAdapter {
   fetchMetrics(): Promise<MemberMetrics>;
   fetchRecentMembers(limit: number): Promise<any[]>;
-  fetchMemberDirectory(search: string | undefined, limit: number): Promise<any[]>;
+  fetchMemberDirectory(search: string | undefined, limit?: number): Promise<any[]>;
   fetchBirthdaysToday(): Promise<any[]>;
   fetchBirthdaysThisMonth(): Promise<any[]>;
   fetchBirthdaysByMonth(month: number): Promise<any[]>;
@@ -207,7 +207,7 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
     return data || [];
   }
 
-  async fetchMemberDirectory(search: string | undefined, limit: number): Promise<any[]> {
+  async fetchMemberDirectory(search: string | undefined, limit?: number): Promise<any[]> {
     console.log('[MembersDashboardAdapter] fetchMemberDirectory called:', { search, limit });
 
     const tenantId = await this.getTenantId();
@@ -218,8 +218,12 @@ export class MembersDashboardAdapter implements IMembersDashboardAdapter {
         `id, tenant_id, first_name, last_name, email, contact_number, profile_picture_url, encrypted_fields, encryption_key_version, membership_stage:membership_status_id(name, code), membership_center:membership_center_id(name, code)`
       )
       .is('deleted_at', null)
-      .order('last_name', { ascending: true })
-      .limit(limit);
+      .order('last_name', { ascending: true });
+
+    // Only apply limit if specified (allows fetching all records)
+    if (limit !== undefined && limit > 0) {
+      query = query.limit(limit);
+    }
     if (tenantId) query = query.eq('tenant_id', tenantId);
     if (search && search.trim()) {
       query = query.or(

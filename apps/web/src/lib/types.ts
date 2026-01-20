@@ -355,6 +355,11 @@ export const TYPES = {
   IFeatureImportRepository: Symbol.for('IFeatureImportRepository'),
   FeatureImportService: Symbol.for('FeatureImportService'),
 
+  // Member Import (Bulk)
+  IMemberImportAdapter: Symbol.for('IMemberImportAdapter'),
+  IMemberImportRepository: Symbol.for('IMemberImportRepository'),
+  MemberImportService: Symbol.for('MemberImportService'),
+
   // Scheduled Notification (Background Jobs)
   IScheduledNotificationAdapter: Symbol.for('IScheduledNotificationAdapter'),
   IScheduledNotificationRepository: Symbol.for('IScheduledNotificationRepository'),

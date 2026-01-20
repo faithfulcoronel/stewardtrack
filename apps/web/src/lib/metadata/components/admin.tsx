@@ -170,6 +170,10 @@ import {
   AdminReportTable,
   type AdminReportTableProps,
 } from '@/components/dynamic/admin/AdminReportTable';
+import {
+  MemberImportActions,
+  type MemberImportActionsProps,
+} from '@/components/dynamic/admin/MemberImportActions';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -515,5 +519,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminReportTableProps>(AdminReportTable, 'AdminReportTableRenderer'),
+  },
+  // Member Import Component
+  {
+    type: 'MemberImportActions',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberImportActionsProps>(MemberImportActions, 'MemberImportActionsRenderer'),
   },
 ];

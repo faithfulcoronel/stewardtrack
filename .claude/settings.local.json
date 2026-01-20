@@ -116,7 +116,9 @@
       "Bash(pnpm --filter @stewardtrack/web build:*)",
       "Bash(pnpm exec next build:*)",
       "Bash(npx next build:*)",
-      "Bash(xargs git show HEAD:)"
+      "Bash(xargs git show HEAD:)",
+      "WebFetch(domain:docs.xendit.co)",
+      "WebFetch(domain:developers.xendit.co)"
     ],
     "deny": [],
     "ask": []

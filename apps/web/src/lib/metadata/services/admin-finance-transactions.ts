@@ -9,6 +9,7 @@ import type { IAccountRepository } from '@/repositories/account.repository';
 import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
 import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import type { IBudgetRepository } from '@/repositories/budget.repository';
+import type { IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
 import type { FinancialTransactionHeader, TransactionStatus } from '@/models/financialTransactionHeader.model';
 import type { TransactionType } from '@/models/financialTransaction.model';
 import type { TransactionSummaryRow } from '@/adapters/financialTransactionHeader.adapter';
@@ -578,6 +579,7 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const transactionHeaderRepo = container.get<IFinancialTransactionHeaderRepository>(
     TYPES.IFinancialTransactionHeaderRepository
   );
+  const coaRepository = container.get<IChartOfAccountRepository>(TYPES.IChartOfAccountRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -592,12 +594,14 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const transactionId = request.params?.transactionId as string | undefined;
 
   // Fetch dropdown options from repositories (RLS handles tenant isolation)
-  const [categoriesResult, fundsResult, sourcesResult, accountsResult, budgetsResult] = await Promise.all([
+  const [categoriesResult, fundsResult, sourcesResult, accountsResult, budgetsResult, coaResult, headersResult] = await Promise.all([
     categoryRepository.findAll(),
     fundRepository.findAll(),
     financialSourceRepository.findAll(),
     accountRepository.findAll(),
     budgetRepository.findAll(),
+    coaRepository.findAll(),
+    transactionHeaderRepo.findAll({ status: ['posted', 'approved'] } as any),
   ]);
 
   // Extract data arrays from query results
@@ -606,6 +610,9 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
   const sources = sourcesResult?.data || [];
   const accounts = accountsResult?.data || [];
   const budgets = budgetsResult?.data || [];
+  const coaAccounts = coaResult?.data || [];
+  const postedHeaders = ((headersResult?.data || []) as FinancialTransactionHeader[])
+    .filter(h => !h.voided_at); // Exclude voided transactions
 
   // Filter to only transaction-related categories (income_transaction or expense_transaction)
   // Include the type so client can filter dynamically when user toggles transaction type
@@ -649,14 +656,38 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     description: (budget as { description?: string }).description || '',
   }));
 
+  // Transform COA accounts to dropdown options (for reclass transactions)
+  const coaOptions = coaAccounts.map((coa: any) => ({
+    value: coa.id,
+    label: `${coa.code || ''} - ${coa.name}`,
+    code: coa.code || '',
+    type: coa.account_type || '',
+  }));
+
+  // Transform posted transactions to dropdown options (for reversal transactions)
+  const postedTransactions = postedHeaders.map((h) => ({
+    value: h.id,
+    label: `${h.transaction_number || h.id.substring(0, 8)} - ${h.description || 'No description'}`,
+    code: h.transaction_number || '',
+    description: `${h.transaction_date} - ${(h.status || 'unknown').charAt(0).toUpperCase() + (h.status || 'unknown').slice(1)}`,
+  }));
+
+  // Extended transaction type for all supported types
+  type ExtendedTransactionType = 'income' | 'expense' | 'transfer' | 'fund_rollover' | 'adjustment' | 'reclass' | 'refund' | 'opening_balance' | 'closing_entry' | 'reversal' | 'allocation';
+
   // Load existing transaction data if editing
   let initialData: {
     transactionId?: string;
-    transactionType?: 'income' | 'expense';
+    transactionType?: ExtendedTransactionType;
     transactionDate?: string;
     reference?: string;
     description?: string;
     status?: string;
+    // Extended header fields
+    destinationSourceId?: string;
+    destinationFundId?: string;
+    referenceTransactionId?: string;
+    adjustmentReason?: string;
     lines?: {
       id?: string;
       accountId?: string;
@@ -666,6 +697,11 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
       budgetId?: string;
       amount?: number;
       description?: string;
+      // Extended line fields
+      destinationSourceId?: string;
+      destinationFundId?: string;
+      fromCoaId?: string;
+      toCoaId?: string;
     }[];
   } | null = null;
 
@@ -690,14 +726,19 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
         budgetId: '', // income_expense_transactions doesn't have budget_id
         amount: txn.amount || 0,
         description: txn.description || '',
+        // Extended fields
+        destinationSourceId: txn.destination_source_id || undefined,
+        destinationFundId: txn.destination_fund_id || undefined,
+        fromCoaId: txn.from_coa_id || undefined,
+        toCoaId: txn.to_coa_id || undefined,
       }));
 
       // Determine transaction type from header or first transaction
-      let detectedType: 'income' | 'expense' = 'income';
+      let detectedType: ExtendedTransactionType = 'income';
       if (header.transaction_type) {
-        detectedType = header.transaction_type as 'income' | 'expense';
+        detectedType = header.transaction_type as ExtendedTransactionType;
       } else if (transactions.length > 0) {
-        detectedType = transactions[0].transaction_type === 'expense' ? 'expense' : 'income';
+        detectedType = transactions[0].transaction_type as ExtendedTransactionType || 'income';
       }
 
       initialData = {
@@ -707,6 +748,11 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
         reference: header.reference || undefined,
         description: header.description || undefined,
         status: header.status || undefined,
+        // Extended header fields
+        destinationSourceId: (header as any).destination_source_id || undefined,
+        destinationFundId: (header as any).destination_fund_id || undefined,
+        referenceTransactionId: (header as any).reference_transaction_id || undefined,
+        adjustmentReason: (header as any).adjustment_reason || undefined,
         lines,
       };
     }
@@ -726,6 +772,8 @@ const resolveTransactionEntryLineItems: ServiceDataSourceHandler = async (reques
     sourceOptions,
     accountOptions,
     budgetOptions,
+    coaOptions,
+    postedTransactions,
     currency,
     transactionType: initialData?.transactionType || transactionType,
     totalAmount: formatCurrency(0, currency),
@@ -1210,6 +1258,11 @@ function getTimeAgo(date: Date): string {
 // ==================== ACTION HANDLERS ====================
 
 /**
+ * Extended transaction type for all supported types
+ */
+type ExtendedTransactionTypeService = 'income' | 'expense' | 'transfer' | 'fund_rollover' | 'adjustment' | 'reclass' | 'refund' | 'opening_balance' | 'closing_entry' | 'reversal' | 'allocation';
+
+/**
  * Line item structure from the form
  */
 interface LineItemInput {
@@ -1221,6 +1274,13 @@ interface LineItemInput {
   budgetId?: string;
   amount?: number | string;
   description?: string;
+  // Extended fields for different transaction types
+  destinationSourceId?: string; // For transfer
+  destinationFundId?: string; // For fund_rollover, allocation
+  fromCoaId?: string; // For reclass
+  toCoaId?: string; // For reclass
+  isDirty?: boolean;
+  isNew?: boolean;
 }
 
 /**
@@ -1228,12 +1288,20 @@ interface LineItemInput {
  */
 function convertToIncomeExpenseEntries(
   lineItems: LineItemInput[],
-  transactionType: 'income' | 'expense'
+  transactionType: ExtendedTransactionTypeService
 ): IncomeExpenseEntry[] {
   const entries: IncomeExpenseEntry[] = [];
 
   for (const lineItem of lineItems) {
-    if (!lineItem.categoryId || !lineItem.amount) {
+    // For reclass, we don't need categoryId - we need fromCoaId and toCoaId
+    // For transfer and fund_rollover, we don't need categoryId
+    const requiresCategory = !['transfer', 'fund_rollover', 'opening_balance', 'reclass'].includes(transactionType);
+
+    if (requiresCategory && !lineItem.categoryId) {
+      continue;
+    }
+
+    if (!lineItem.amount) {
       continue;
     }
 
@@ -1250,7 +1318,7 @@ function convertToIncomeExpenseEntries(
       transaction_type: transactionType as TransactionType,
       account_id: lineItem.accountId || null,
       fund_id: lineItem.fundId || null,
-      category_id: lineItem.categoryId,
+      category_id: lineItem.categoryId || null,
       source_id: lineItem.sourceId || null,
       description: lineItem.description || '',
       amount,
@@ -1258,7 +1326,12 @@ function convertToIncomeExpenseEntries(
       source_coa_id: null,
       category_coa_id: null,
       fund_coa_id: null,
-      isDirty: true, // Mark as dirty for updates
+      // Extended fields for different transaction types
+      destination_source_coa_id: null, // Will be resolved
+      destination_fund_coa_id: null, // Will be resolved
+      from_coa_id: lineItem.fromCoaId || null,
+      to_coa_id: lineItem.toCoaId || null,
+      isDirty: lineItem.isDirty ?? true, // Mark as dirty for updates
     });
   }
 
@@ -1294,12 +1367,18 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
     }
 
     // Extract form data
-    const transactionType = (values.transactionType as 'income' | 'expense') || 'income';
+    const transactionType = (values.transactionType as ExtendedTransactionTypeService) || 'income';
     const transactionDate = (values.transactionDate as string) || new Date().toISOString().split('T')[0];
     const description = (values.description as string) || '';
     const reference = (values.reference as string) || null;
     // Support both 'lineItems' and 'lines' field names
     const lineItems = (values.lineItems as LineItemInput[]) || (values.lines as LineItemInput[]) || [];
+
+    // Extended transaction type fields
+    const destinationSourceId = (values.destinationSourceId as string) || null;
+    const destinationFundId = (values.destinationFundId as string) || null;
+    const referenceTransactionId = (values.referenceTransactionId as string) || null;
+    const adjustmentReason = (values.adjustmentReason as string) || null;
 
     console.log('[submitTransaction] Received data:', {
       transactionType,
@@ -1307,6 +1386,9 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
       description,
       lineItemsCount: lineItems.length,
       lineItems: lineItems.slice(0, 2),
+      destinationSourceId,
+      destinationFundId,
+      referenceTransactionId,
     });
 
     // Validate line items
@@ -1330,14 +1412,26 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
     // Get current user ID for created_by
     const currentUserId = await getCurrentUserId({ optional: true });
 
-    // Prepare header data (transaction_type is not stored in headers table - it's determined by line items)
+    // Prepare header data
     const headerData: Partial<FinancialTransactionHeader> = {
       tenant_id: tenant.id,
       transaction_date: transactionDate,
+      transaction_type: transactionType as TransactionType,
       description,
       reference,
       status: 'draft' as TransactionStatus, // Start as draft, then submit
       created_by: currentUserId || undefined,
+      // Extended transaction type fields
+      reference_transaction_id: referenceTransactionId,
+      adjustment_reason: adjustmentReason,
+    };
+
+    // Extended options for the service
+    const extendedOptions = {
+      destinationSourceId,
+      destinationFundId,
+      referenceTransactionId,
+      adjustmentReason,
     };
 
     let header: FinancialTransactionHeader;
@@ -1348,7 +1442,7 @@ const submitTransaction: ServiceDataSourceHandler = async (request) => {
       header = (await transactionHeaderRepo.findById(transactionId))!;
     } else {
       // Create new transaction using IncomeExpenseTransactionService
-      header = await ieService.create(headerData, entries);
+      header = await ieService.create(headerData, entries, extendedOptions);
     }
 
     // Submit the transaction for approval
@@ -1430,12 +1524,18 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
     }
 
     // Extract form data
-    const transactionType = (values.transactionType as 'income' | 'expense') || 'income';
+    const transactionType = (values.transactionType as ExtendedTransactionTypeService) || 'income';
     const transactionDate = (values.transactionDate as string) || new Date().toISOString().split('T')[0];
     const description = (values.description as string) || '';
     const reference = (values.reference as string) || null;
     // Support both 'lineItems' and 'lines' field names
     const lineItems = (values.lineItems as LineItemInput[]) || (values.lines as LineItemInput[]) || [];
+
+    // Extended transaction type fields
+    const destinationSourceId = (values.destinationSourceId as string) || null;
+    const destinationFundId = (values.destinationFundId as string) || null;
+    const referenceTransactionId = (values.referenceTransactionId as string) || null;
+    const adjustmentReason = (values.adjustmentReason as string) || null;
 
     console.log('[saveDraftTransaction] Received data:', {
       transactionType,
@@ -1443,6 +1543,9 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
       description,
       lineItemsCount: lineItems.length,
       lineItems: lineItems.slice(0, 2),
+      destinationSourceId,
+      destinationFundId,
+      referenceTransactionId,
     });
 
     // Convert line items to IncomeExpenseEntry format
@@ -1458,14 +1561,26 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
     // Get current user ID for created_by
     const currentUserId = await getCurrentUserId({ optional: true });
 
-    // Prepare header data - keep as draft (transaction_type is not stored in headers table - it's determined by line items)
+    // Prepare header data - keep as draft
     const headerData: Partial<FinancialTransactionHeader> = {
       tenant_id: tenant.id,
       transaction_date: transactionDate,
+      transaction_type: transactionType as TransactionType,
       description,
       reference,
       status: 'draft' as TransactionStatus,
       created_by: currentUserId || undefined,
+      // Extended transaction type fields
+      reference_transaction_id: referenceTransactionId,
+      adjustment_reason: adjustmentReason,
+    };
+
+    // Extended options for the service
+    const extendedOptions = {
+      destinationSourceId,
+      destinationFundId,
+      referenceTransactionId,
+      adjustmentReason,
     };
 
     let header: FinancialTransactionHeader;
@@ -1476,7 +1591,7 @@ const saveDraftTransaction: ServiceDataSourceHandler = async (request) => {
       header = (await transactionHeaderRepo.findById(transactionId))!;
     } else {
       // Create new draft using IncomeExpenseTransactionService
-      header = await ieService.create(headerData, entries);
+      header = await ieService.create(headerData, entries, extendedOptions);
     }
 
     console.log('[saveDraftTransaction] Draft saved:', header.id);

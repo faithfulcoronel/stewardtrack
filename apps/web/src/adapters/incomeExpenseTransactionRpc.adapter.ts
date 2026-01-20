@@ -16,6 +16,11 @@ export interface CreateBatchParams {
   status?: 'draft' | 'posted';
   createdBy?: string | null;
   lines: CreateBatchLineParams[];
+  // Extended transaction type fields
+  destinationSourceId?: string | null; // For transfer transactions
+  destinationFundId?: string | null; // For fund_rollover transactions
+  referenceTransactionId?: string | null; // For reversal transactions
+  adjustmentReason?: string | null; // For adjustment transactions
 }
 
 export interface CreateBatchLineParams {
@@ -28,6 +33,9 @@ export interface CreateBatchLineParams {
   account_id?: string | null;
   batch_id?: string | null;
   line?: number | null;
+  // Extended transaction type fields
+  from_coa_id?: string | null; // For reclass transactions
+  to_coa_id?: string | null; // For reclass transactions
 }
 
 export interface CreateBatchResult {
@@ -80,6 +88,11 @@ export interface UpdateBatchParams {
   } | null;
   lines: UpdateBatchLineParams[];
   updatedBy?: string | null;
+  // Extended transaction type fields (header-level)
+  destinationSourceId?: string | null; // For transfer transactions
+  destinationFundId?: string | null; // For fund_rollover transactions
+  referenceTransactionId?: string | null; // For reversal transactions
+  adjustmentReason?: string | null; // For adjustment transactions
 }
 
 export interface UpdateBatchLineParams {
@@ -95,6 +108,9 @@ export interface UpdateBatchLineParams {
   line?: number | null;
   isDirty?: boolean;
   isDeleted?: boolean;
+  // Extended transaction type fields
+  from_coa_id?: string | null; // For reclass transactions
+  to_coa_id?: string | null; // For reclass transactions
 }
 
 export interface UpdateBatchResult {
@@ -160,6 +176,11 @@ export class IncomeExpenseTransactionRpcAdapter implements IIncomeExpenseTransac
       p_status: params.status ?? 'draft',
       p_created_by: params.createdBy ?? null,
       p_lines: params.lines,
+      // Extended transaction type parameters
+      p_destination_source_id: params.destinationSourceId ?? null,
+      p_destination_fund_id: params.destinationFundId ?? null,
+      p_reference_transaction_id: params.referenceTransactionId ?? null,
+      p_adjustment_reason: params.adjustmentReason ?? null,
     });
 
     if (error) {
@@ -214,6 +235,11 @@ export class IncomeExpenseTransactionRpcAdapter implements IIncomeExpenseTransac
       p_header_update: params.headerUpdate ?? null,
       p_lines: params.lines,
       p_updated_by: params.updatedBy ?? null,
+      // Extended transaction type parameters
+      p_destination_source_id: params.destinationSourceId ?? null,
+      p_destination_fund_id: params.destinationFundId ?? null,
+      p_reference_transaction_id: params.referenceTransactionId ?? null,
+      p_adjustment_reason: params.adjustmentReason ?? null,
     });
 
     if (error) {

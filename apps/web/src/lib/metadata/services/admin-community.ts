@@ -1208,9 +1208,9 @@ async function resolveMembersTable(
 ): Promise<MembersTableStaticConfig & { rows: unknown[] }> {
   const base = cloneBaseConfig(request.config.value);
   enhanceMembersTableColumns(base);
-  const limit = toNumber(request.config.limit, 100);
+  // No limit - fetch all members; client-side pagination handles display
   const service = createMembersDashboardService();
-  const directory = await service.getDirectory(undefined, limit);
+  const directory = await service.getDirectory(undefined, undefined);
   const rows = directory.map((member) => toMembersTableRow(member as MemberDirectoryRecord));
 
   // Fetch membership stages and centers from database for dynamic filter options

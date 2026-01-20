@@ -293,12 +293,17 @@ const resolveAccountManageForm: ServiceDataSourceHandler = async (request) => {
           label: 'Account type',
           type: 'select',
           colSpan: 'half',
-          helperText: 'Organization or individual',
+          helperText: isCreate
+            ? 'Person accounts are created via member sync'
+            : 'Account type cannot be changed',
           required: true,
-          options: [
-            { value: 'organization', label: 'Organization' },
-            { value: 'person', label: 'Person' },
-          ],
+          disabled: !isCreate,
+          options: isCreate
+            ? [{ value: 'organization', label: 'Organization' }]
+            : [
+                { value: 'organization', label: 'Organization' },
+                { value: 'person', label: 'Person' },
+              ],
         },
         {
           name: 'accountNumber',
@@ -380,15 +385,18 @@ const resolveAccountManageForm: ServiceDataSourceHandler = async (request) => {
 };
 
 const saveAccount: ServiceDataSourceHandler = async (request) => {
-  const params = request.params as any;
+  const params = request.params as Record<string, unknown>;
+  // Form values are wrapped in 'values' by AdminFormSubmitHandler
+  const values = (params.values ?? params) as Record<string, unknown>;
 
   console.log('[saveAccount] Full request object:', JSON.stringify({
     params: params,
+    values: values,
     config: request.config,
     id: request.id,
   }, null, 2));
 
-  const accountId = (params.accountId || params.id || request.config?.accountId) as string | undefined;
+  const accountId = (values.accountId ?? params.accountId ?? params.id ?? request.config?.accountId) as string | undefined;
 
   console.log('[saveAccount] Attempting to save account. ID:', accountId, 'Mode:', accountId ? 'update' : 'create');
 
@@ -402,14 +410,14 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
     const accountService = container.get<AccountService>(TYPES.AccountService);
 
     // Generate account number if not provided
-    let accountNumber = params.accountNumber as string;
-    if (!accountNumber || accountNumber.trim() === '') {
+    let accountNumber = (values.accountNumber as string) || '';
+    if (!accountNumber.trim()) {
       const generateResult = await accountService.generateAccountNumber({
         pageId: 'accounts-manage',
         changedField: 'name',
         model: {
-          name: params.name,
-          account_type: params.accountType,
+          name: values.name as string,
+          account_type: values.accountType as string,
         },
       });
       accountNumber = generateResult.updatedFields.account_number || '';
@@ -417,17 +425,17 @@ const saveAccount: ServiceDataSourceHandler = async (request) => {
 
     const accountData: Partial<Account> = {
       tenant_id: tenant.id,
-      name: params.name as string,
-      account_type: params.accountType as 'organization' | 'person',
+      name: values.name as string,
+      account_type: values.accountType as 'organization' | 'person',
       account_number: accountNumber,
-      description: params.description ? (params.description as string) : null,
-      email: params.email ? (params.email as string) : null,
-      phone: params.phone ? (params.phone as string) : null,
-      address: params.address ? (params.address as string) : null,
-      website: params.website ? (params.website as string) : null,
-      tax_id: params.taxId ? (params.taxId as string) : null,
-      is_active: params.isActive === true || params.isActive === 'true',
-      notes: params.notes ? (params.notes as string) : null,
+      description: values.description ? (values.description as string) : null,
+      email: values.email ? (values.email as string) : null,
+      phone: values.phone ? (values.phone as string) : null,
+      address: values.address ? (values.address as string) : null,
+      website: values.website ? (values.website as string) : null,
+      tax_id: values.taxId ? (values.taxId as string) : null,
+      is_active: values.isActive === true || values.isActive === 'true',
+      notes: values.notes ? (values.notes as string) : null,
     };
 
     console.log('[saveAccount] Account data to save:', JSON.stringify(accountData, null, 2));
@@ -626,6 +634,86 @@ const resolveAccountProfileSummary: ServiceDataSourceHandler = async (request) =
 // ==================== DASHBOARD PAGE HANDLERS ====================
 
 /**
+ * Lightweight account stats for dashboard - uses minimal fields.
+ * Returns simplified objects to avoid serialization issues with large datasets.
+ */
+async function fetchAccountStatsForDashboard(_tenantId: string): Promise<{
+  total: number;
+  active: number;
+  inactive: number;
+  organizations: number;
+  persons: number;
+  linkedToMembers: number;
+  recentCount: number;
+}> {
+  console.log('[fetchAccountStatsForDashboard] Fetching account stats');
+  const accountService = container.get<AccountService>(TYPES.AccountService);
+  const result = await accountService.findAll();
+  const accounts = result.data || [];
+
+  // Calculate stats without holding large objects
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  let active = 0, organizations = 0, persons = 0, linkedToMembers = 0, recentCount = 0;
+
+  for (const a of accounts) {
+    if (a.is_active) active++;
+    if (a.account_type === 'organization') organizations++;
+    if (a.account_type === 'person') persons++;
+    if (a.member_id) linkedToMembers++;
+    if (a.created_at && new Date(a.created_at) >= thirtyDaysAgo) recentCount++;
+  }
+
+  const stats = {
+    total: accounts.length,
+    active,
+    inactive: accounts.length - active,
+    organizations,
+    persons,
+    linkedToMembers,
+    recentCount,
+  };
+
+  console.log('[fetchAccountStatsForDashboard] Stats:', stats);
+  return stats;
+}
+
+/**
+ * Fetches recent accounts for timeline (limited to 10).
+ */
+async function fetchRecentAccountsForTimeline(_tenantId: string): Promise<Array<{
+  id: string;
+  name: string;
+  account_number: string;
+  account_type: string;
+  is_active: boolean;
+  created_at: string;
+}>> {
+  console.log('[fetchRecentAccountsForTimeline] Fetching recent accounts');
+  const accountService = container.get<AccountService>(TYPES.AccountService);
+  const result = await accountService.findAll();
+  const accounts = result.data || [];
+
+  // Sort by created_at and take only the 10 most recent
+  const recent = accounts
+    .filter(a => a.created_at)
+    .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
+    .slice(0, 10)
+    .map(a => ({
+      id: a.id,
+      name: a.name || 'Unnamed Account',
+      account_number: a.account_number || '',
+      account_type: a.account_type,
+      is_active: a.is_active,
+      created_at: a.created_at!,
+    }));
+
+  console.log('[fetchRecentAccountsForTimeline] Returning', recent.length, 'recent accounts');
+  return recent;
+}
+
+/**
  * Helper to format relative time
  */
 function formatDistanceToNow(date: Date): string {
@@ -644,27 +732,18 @@ function formatDistanceToNow(date: Date): string {
  * Dashboard Hero Handler
  */
 const resolveAccountsDashboardHero: ServiceDataSourceHandler = async (_request) => {
+  console.log('[resolveAccountsDashboardHero] START');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  const accounts = await accountService.findAll();
-  const allAccounts = accounts.data || [];
-  const totalCount = allAccounts.length;
-  const activeCount = allAccounts.filter(a => a.is_active).length;
-  const organizationCount = allAccounts.filter(a => a.account_type === 'organization').length;
-  const personCount = allAccounts.filter(a => a.account_type === 'person').length;
-
-  // Calculate recent additions (last 30 days)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentCount = allAccounts.filter(a =>
-    a.created_at && new Date(a.created_at) >= thirtyDaysAgo
-  ).length;
+  // Use lightweight stats to avoid serialization issues
+  const stats = await fetchAccountStatsForDashboard(tenant.id);
+  console.log('[resolveAccountsDashboardHero] Got stats');
+  const { total: totalCount, active: activeCount, organizations: organizationCount, persons: personCount, recentCount } = stats;
 
   return {
     eyebrow: 'Account intelligence dashboard',
@@ -699,29 +778,18 @@ const resolveAccountsDashboardHero: ServiceDataSourceHandler = async (_request) 
  * Dashboard KPIs Handler
  */
 const resolveAccountsDashboardKpis: ServiceDataSourceHandler = async (_request) => {
+  console.log('[resolveAccountsDashboardKpis] START');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  const accounts = await accountService.findAll();
-  const allAccounts = accounts.data || [];
-  const totalCount = allAccounts.length;
-  const activeCount = allAccounts.filter(a => a.is_active).length;
-  const inactiveCount = totalCount - activeCount;
-  const organizationCount = allAccounts.filter(a => a.account_type === 'organization').length;
-  const personCount = allAccounts.filter(a => a.account_type === 'person').length;
-  const linkedToMemberCount = allAccounts.filter(a => a.member_id).length;
-
-  // Calculate recent additions
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentCount = allAccounts.filter(a =>
-    a.created_at && new Date(a.created_at) >= thirtyDaysAgo
-  ).length;
+  // Use lightweight stats to avoid serialization issues
+  const stats = await fetchAccountStatsForDashboard(tenant.id);
+  console.log('[resolveAccountsDashboardKpis] Got stats');
+  const { total: totalCount, active: activeCount, organizations: organizationCount, persons: personCount, linkedToMembers: linkedToMemberCount, recentCount } = stats;
 
   return {
     items: [
@@ -773,19 +841,18 @@ const resolveAccountsDashboardKpis: ServiceDataSourceHandler = async (_request) 
  * Dashboard Quick Links Handler
  */
 const resolveAccountsDashboardQuickLinks: ServiceDataSourceHandler = async (_request) => {
+  console.log('[resolveAccountsDashboardQuickLinks] START');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  const accounts = await accountService.findAll();
-  const allAccounts = accounts.data || [];
-  const organizationCount = allAccounts.filter(a => a.account_type === 'organization').length;
-  const personCount = allAccounts.filter(a => a.account_type === 'person').length;
-  const inactiveCount = allAccounts.filter(a => !a.is_active).length;
+  // Use lightweight stats to avoid serialization issues
+  const stats = await fetchAccountStatsForDashboard(tenant.id);
+  console.log('[resolveAccountsDashboardQuickLinks] Got stats');
+  const { total, organizations: organizationCount, persons: personCount } = stats;
 
   return {
     items: [
@@ -795,7 +862,7 @@ const resolveAccountsDashboardQuickLinks: ServiceDataSourceHandler = async (_req
         description: 'View and manage all organization and individual accounts.',
         href: '/admin/community/accounts/list',
         badge: 'Directory',
-        stat: `${allAccounts.length} total accounts`,
+        stat: `${total} total accounts`,
       },
       {
         id: 'link-organizations',
@@ -840,21 +907,18 @@ const resolveAccountsDashboardQuickLinks: ServiceDataSourceHandler = async (_req
  * Dashboard Account Type Breakdown Handler
  */
 const resolveAccountsDashboardBreakdown: ServiceDataSourceHandler = async (_request) => {
+  console.log('[resolveAccountsDashboardBreakdown] START');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  const accounts = await accountService.findAll();
-  const allAccounts = accounts.data || [];
-  const totalCount = allAccounts.length;
-  const organizationCount = allAccounts.filter(a => a.account_type === 'organization').length;
-  const personCount = allAccounts.filter(a => a.account_type === 'person').length;
-  const activeCount = allAccounts.filter(a => a.is_active).length;
-  const inactiveCount = totalCount - activeCount;
+  // Use lightweight stats to avoid serialization issues
+  const stats = await fetchAccountStatsForDashboard(tenant.id);
+  console.log('[resolveAccountsDashboardBreakdown] Got stats');
+  const { total: totalCount, active: activeCount, inactive: inactiveCount, organizations: organizationCount, persons: personCount } = stats;
 
   return {
     breakdown: {
@@ -896,22 +960,17 @@ const resolveAccountsDashboardBreakdown: ServiceDataSourceHandler = async (_requ
  * Dashboard Recent Activity Timeline Handler
  */
 const resolveAccountsDashboardTimeline: ServiceDataSourceHandler = async (_request) => {
+  console.log('[resolveAccountsDashboardTimeline] START');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  const accounts = await accountService.findAll();
-  const allAccounts = accounts.data || [];
-
-  // Sort by created_at descending and take the most recent
-  const recentAccounts = [...allAccounts]
-    .filter(a => a.created_at)
-    .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
-    .slice(0, 10);
+  // Use lightweight function that only returns recent accounts
+  const recentAccounts = await fetchRecentAccountsForTimeline(tenant.id);
+  console.log('[resolveAccountsDashboardTimeline] Got recent accounts:', recentAccounts.length);
 
   if (recentAccounts.length === 0) {
     return {
@@ -952,7 +1011,65 @@ const resolveAccountsDashboardTimeline: ServiceDataSourceHandler = async (_reque
 // ==================== MEMBER SYNC HANDLERS ====================
 
 /**
- * Helper to get members without linked accounts
+ * Get just the sync stats (counts only) for the dashboard.
+ * This is optimized to avoid returning large member arrays.
+ */
+async function getMemberSyncStats(): Promise<{
+  totalMembers: number;
+  membersWithAccounts: number;
+  membersWithoutAccounts: number;
+}> {
+  console.log('[getMemberSyncStats] Fetching sync stats');
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Fetch members
+  const memberService = container.get<MemberService>(TYPES.MemberService);
+  const membersResult = await memberService.findAll();
+  const totalMembers = membersResult.data?.length || 0;
+
+  // Fetch accounts to get member_id mappings
+  const accountService = container.get<AccountService>(TYPES.AccountService);
+  const accountsResult = await accountService.findAll();
+  const accounts = accountsResult.data || [];
+
+  // Create a set of member IDs that have accounts (only need IDs, not full objects)
+  const memberIdsWithAccounts = new Set<string>();
+  for (const a of accounts) {
+    if (a.member_id) {
+      memberIdsWithAccounts.add(a.member_id);
+    }
+  }
+
+  // Count members with accounts using only IDs
+  let membersWithAccountsCount = 0;
+  if (membersResult.data) {
+    for (const m of membersResult.data) {
+      if (memberIdsWithAccounts.has(m.id)) {
+        membersWithAccountsCount++;
+      }
+    }
+  }
+
+  const stats = {
+    totalMembers,
+    membersWithAccounts: membersWithAccountsCount,
+    membersWithoutAccounts: totalMembers - membersWithAccountsCount,
+  };
+
+  console.log('[getMemberSyncStats] Stats:', stats);
+  return stats;
+}
+
+/**
+ * Helper to get members without linked accounts (for sync action).
+ * Returns full member objects for the sync operation.
+ * Note: This function needs to return full member objects for the sync operation,
+ * so we can't use the lightweight stats approach here.
  */
 async function getMembersWithoutAccounts(): Promise<{
   members: Member[];
@@ -960,53 +1077,61 @@ async function getMembersWithoutAccounts(): Promise<{
   membersWithAccounts: number;
   membersWithoutAccounts: number;
 }> {
+  console.log('[getMembersWithoutAccounts] Fetching members without accounts');
   const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const accountService = container.get<AccountService>(TYPES.AccountService);
-  const memberService = container.get<MemberService>(TYPES.MemberService);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
     throw new Error('No tenant context available');
   }
 
-  // Get all members
+  // Fetch members
+  const memberService = container.get<MemberService>(TYPES.MemberService);
   const membersResult = await memberService.findAll();
   const allMembers = membersResult.data || [];
 
-  // Get all accounts with member_id set
+  // Fetch accounts to get member_id mappings
+  const accountService = container.get<AccountService>(TYPES.AccountService);
   const accountsResult = await accountService.findAll();
-  const allAccounts = accountsResult.data || [];
+  const accounts = accountsResult.data || [];
 
   // Create a set of member IDs that have accounts
-  const memberIdsWithAccounts = new Set(
-    allAccounts
-      .filter(a => a.member_id)
-      .map(a => a.member_id as string)
-  );
+  const memberIdsWithAccounts = new Set<string>();
+  for (const a of accounts) {
+    if (a.member_id) {
+      memberIdsWithAccounts.add(a.member_id);
+    }
+  }
 
-  // Filter members that have linked accounts (only count existing members)
-  const membersWithAccounts = allMembers.filter(
+  // Filter members that have linked accounts
+  const membersWithAccountsList = allMembers.filter(
     m => memberIdsWithAccounts.has(m.id)
   );
 
   // Filter members without accounts
-  const membersWithoutAccounts = allMembers.filter(
+  const membersWithoutAccountsList = allMembers.filter(
     m => !memberIdsWithAccounts.has(m.id)
   );
 
+  console.log('[getMembersWithoutAccounts] Found', membersWithoutAccountsList.length, 'members without accounts');
+
   return {
-    members: membersWithoutAccounts,
+    members: membersWithoutAccountsList,
     totalMembers: allMembers.length,
-    membersWithAccounts: membersWithAccounts.length,
-    membersWithoutAccounts: membersWithoutAccounts.length,
+    membersWithAccounts: membersWithAccountsList.length,
+    membersWithoutAccounts: membersWithoutAccountsList.length,
   };
 }
 
 /**
  * Dashboard Sync Stats Handler - Shows members without accounts
+ * Uses optimized stats-only function to avoid processing large member arrays
  */
 const resolveAccountsDashboardSyncStats: ServiceDataSourceHandler = async (_request) => {
-  const stats = await getMembersWithoutAccounts();
+  console.log('[resolveAccountsDashboardSyncStats] START');
+  // Use optimized stats function that only returns counts
+  const stats = await getMemberSyncStats();
+  console.log('[resolveAccountsDashboardSyncStats] Got stats:', stats);
 
   return {
     title: 'Member account sync',

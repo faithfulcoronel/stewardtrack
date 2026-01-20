@@ -17,6 +17,8 @@
             <Prop name="currency" kind="binding" contract="lineItems.currency"/>
             <Prop name="defaultTransactionType" kind="binding" contract="lineItems.transactionType"/>
             <Prop name="initialData" kind="binding" contract="lineItems.initialData"/>
+            <Prop name="coaOptions" kind="binding" contract="lineItems.coaOptions"/>
+            <Prop name="postedTransactions" kind="binding" contract="lineItems.postedTransactions"/>
             <Prop name="cancelUrl" kind="static">/admin/finance/transactions</Prop>
           </Props>
         </Component>
@@ -40,9 +42,11 @@
           <Field name="fundOptions" path="fundOptions" description="Fund dropdown options"/>
           <Field name="accountOptions" path="accountOptions" description="Account dropdown options"/>
           <Field name="budgetOptions" path="budgetOptions" description="Budget dropdown options"/>
-          <Field name="transactionType" path="transactionType" description="Transaction type (income/expense)"/>
+          <Field name="transactionType" path="transactionType" description="Transaction type"/>
           <Field name="currency" path="currency" description="Tenant currency code"/>
           <Field name="initialData" path="initialData" description="Initial transaction data for editing"/>
+          <Field name="coaOptions" path="coaOptions" description="Chart of accounts options for reclass"/>
+          <Field name="postedTransactions" path="postedTransactions" description="Posted transactions for reversal"/>
         </Contract>
         <Config>
           <Handler>admin-finance.transactions.entry.lineItems</Handler>
