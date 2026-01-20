@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { Gate } from "@/lib/access-gate";
+import { getUserRoles, getUserPermissionCodes, checkSuperAdmin } from "@/lib/rbac/permissionHelpers";
 
 import { type AdminNavSection } from "@/components/admin/sidebar-nav";
 import { AdminLayoutShell } from "@/components/admin/layout-shell";
@@ -15,7 +15,8 @@ import type { MemberService } from "@/services/MemberService";
 import type { MembershipTypeService } from "@/services/MembershipTypeService";
 import type { MembershipStageService } from "@/services/MembershipStageService";
 
-export const dynamic = "force-dynamic";
+// PERFORMANCE: Removed force-dynamic to allow Next.js caching where possible
+// User-specific data is still dynamic, but static menu structure can be cached
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
@@ -137,9 +138,19 @@ export default async function AdminLayout({
 
   const user = authResult.user;
 
-  // Get user information using MemberRepository for proper decryption
+  // PERFORMANCE OPTIMIZATION: Parallelize initial data fetching
+  // These operations are independent and can run concurrently
   const memberRepository = container.get<IMemberRepository>(TYPES.IMemberRepository);
-  const memberData = await memberRepository.getCurrentUserMember();
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+
+  const [memberData, isSuperAdmin, currentTenant] = await Promise.all([
+    memberRepository.getCurrentUserMember(),
+    checkSuperAdmin(),
+    tenantService.getCurrentTenant().catch((error) => {
+      console.error('Failed to get tenant context:', error);
+      return null;
+    }),
+  ]);
 
   // Determine display name
   let displayName: string;
@@ -158,10 +169,6 @@ export default async function AdminLayout({
     ?? (user.user_metadata?.avatar_url as string | undefined)
     ?? null;
   const planLabel = (user.user_metadata?.plan as string | undefined) ?? "Pro";
-
-  // Use AccessGate to determine user role and permissions
-  const superAdminGate = Gate.superAdminOnly();
-  const isSuperAdmin = await superAdminGate.allows(user.id);
 
   // Super admins: Only show system administration menu
   // This prevents super admins from accessing tenant-specific sensitive data
@@ -182,41 +189,43 @@ export default async function AdminLayout({
     );
   }
 
-  // Non-super admin users: Require tenant context using service layer
-  const tenantService = container.get<TenantService>(TYPES.TenantService);
-
-  let tenantId: string | null = null;
-  try {
-    const currentTenant = await tenantService.getCurrentTenant();
-    tenantId = currentTenant?.id ?? null;
-  } catch (error) {
-    console.error('Failed to get tenant context:', error);
-  }
+  // Non-super admin users: Require tenant context
+  const tenantId = currentTenant?.id ?? null;
 
   if (!tenantId) {
     // No tenant context - redirect to unauthorized
     redirect("/unauthorized?reason=no_tenant");
   }
 
-  // Check if tenant setup is complete and run recovery if needed
-  // This ensures features, permissions, and role assignments are properly configured
-  // even if the async registration tasks failed or were interrupted
-  try {
-    const setupResult = await tenantService.ensureSetupComplete(tenantId, user.id);
-
-    if (!setupResult.success) {
-      console.warn('[AdminLayout] Tenant setup check returned non-success:', setupResult);
-    } else if (setupResult.featuresAdded > 0 || setupResult.permissionsDeployed > 0) {
-      console.log('[AdminLayout] Tenant setup auto-recovery completed:', {
-        featuresAdded: setupResult.featuresAdded,
-        permissionsDeployed: setupResult.permissionsDeployed,
-        roleAssignmentsCreated: setupResult.roleAssignmentsCreated,
-      });
-    }
-  } catch (setupError) {
-    // Log but don't block - user can still use the app even if setup check fails
-    console.error('[AdminLayout] Failed to check/complete tenant setup:', setupError);
-  }
+  // PERFORMANCE OPTIMIZATION: Run tenant setup check and fetch user permissions in parallel
+  // The setup check is a recovery mechanism that runs in the background
+  // The permissions/roles fetch is needed for menu filtering
+  const [_setupResult, userRoles, userPermissions, tenant] = await Promise.all([
+    // Tenant setup check (non-blocking, just logs)
+    tenantService.ensureSetupComplete(tenantId, user.id)
+      .then((result) => {
+        if (!result.success) {
+          console.warn('[AdminLayout] Tenant setup check returned non-success:', result);
+        } else if (result.featuresAdded > 0 || result.permissionsDeployed > 0) {
+          console.log('[AdminLayout] Tenant setup auto-recovery completed:', {
+            featuresAdded: result.featuresAdded,
+            permissionsDeployed: result.permissionsDeployed,
+            roleAssignmentsCreated: result.roleAssignmentsCreated,
+          });
+        }
+        return result;
+      })
+      .catch((error) => {
+        console.error('[AdminLayout] Failed to check/complete tenant setup:', error);
+        return null;
+      }),
+    // PERFORMANCE: Fetch all user roles once for menu filtering
+    getUserRoles(user.id, tenantId),
+    // PERFORMANCE: Fetch all user permissions once for menu filtering
+    getUserPermissionCodes(user.id, tenantId),
+    // Fetch tenant for member creation check
+    tenantService.findById(tenantId),
+  ]);
 
   // Create member profile for tenant admin if not exists (part of registration recovery)
   // This only applies to the user who created the tenant (tenant admin during registration)
@@ -224,7 +233,6 @@ export default async function AdminLayout({
   // Uses admin_member_created flag to prevent duplicate attempts
   try {
     // Check if current user is the tenant creator (tenant admin from registration)
-    const tenant = await tenantService.findById(tenantId);
 
     // Only process if: user is tenant creator AND admin member flag hasn't been set yet
     if (tenant && tenant.created_by === user.id && !tenant.admin_member_created) {
@@ -289,8 +297,9 @@ export default async function AdminLayout({
     console.error('[AdminLayout] Failed to create/check member profile:', memberError);
   }
 
-  // Use static menu system - filter using AccessGate
-  const filteredSections = await filterSectionsWithAccessGate(NAV_SECTIONS, user.id, tenantId);
+  // PERFORMANCE OPTIMIZATION: Use batched roles/permissions for menu filtering
+  // This avoids 80+ individual database queries by checking against cached data
+  const filteredSections = filterSectionsWithCachedAccess(NAV_SECTIONS, userRoles, userPermissions);
 
   return (
     <AdminLayoutShell
@@ -400,30 +409,30 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
 };
 
 /**
- * Check if a menu item has access based on the access matrix
+ * PERFORMANCE OPTIMIZED: Check menu item access using cached roles/permissions
+ * This is synchronous and does NOT make any database queries
  */
-async function checkMenuItemAccess(
+function checkMenuItemAccessCached(
   item: { title: string; href: string },
-  userId: string,
-  tenantId: string
-): Promise<boolean> {
-  // Special case: Licensing Studio - super admin only
+  userRoles: string[],
+  userPermissions: string[]
+): boolean {
+  // Special case: Licensing Studio - super admin only (handled by early return in layout)
   if (item.title === 'Licensing Studio') {
-    const gate = Gate.superAdminOnly();
-    return gate.allows(userId);
+    return false; // Super admins have their own menu
   }
   // Special case: Overview - visible to all authenticated users
   if (item.href === '/admin') {
     return true;
   }
-  // Special case: RBAC - uses composite gate
+  // Special case: RBAC - tenant admin or users with rbac permissions
   if (item.href === '/admin/security/rbac') {
-    const gate = Gate.rbacAdmin();
-    return gate.allows(userId, tenantId);
+    return userRoles.includes('role_tenant_admin') ||
+           userPermissions.includes('rbac:assign') ||
+           userPermissions.includes('rbac:roles_edit');
   }
 
   // Use menu access matrix for all other items
-  // Find matching config - try exact match first, then prefix match
   let accessConfig = MENU_ACCESS_MATRIX[item.href];
 
   // For finance sub-pages, use the finance root config
@@ -432,15 +441,13 @@ async function checkMenuItemAccess(
   }
 
   if (accessConfig) {
-    // Step 1: Role check first
-    const roleGate = Gate.withRole(accessConfig.roles, 'any');
-    const hasRole = await roleGate.allows(userId, tenantId);
+    // Step 1: Role check - user must have ANY of the required roles
+    const hasRole = accessConfig.roles.some(role => userRoles.includes(role));
 
     if (hasRole) {
       // Step 2: Permission check (if specified)
       if (accessConfig.permission) {
-        const permissionGate = Gate.withPermission(accessConfig.permission);
-        return permissionGate.allows(userId, tenantId);
+        return userPermissions.includes(accessConfig.permission);
       }
       // No permission required, role check was sufficient
       return true;
@@ -449,29 +456,29 @@ async function checkMenuItemAccess(
   }
 
   // No config found - default to role_tenant_admin only
-  const roleGate = Gate.withRole('role_tenant_admin');
-  return roleGate.allows(userId, tenantId);
+  return userRoles.includes('role_tenant_admin');
 }
 
 /**
- * Filter menu sections using AccessGate for security
- * Two-layer approach: Role check first, then permission check
- * This ensures menu items are only shown if user has proper role AND permission access
+ * PERFORMANCE OPTIMIZED: Filter menu sections using cached roles/permissions
+ * This is synchronous and does NOT make any database queries
+ *
+ * Previous implementation made 80+ individual database queries in nested loops.
+ * This version uses pre-fetched roles/permissions for O(1) lookups.
  */
-async function filterSectionsWithAccessGate(
+function filterSectionsWithCachedAccess(
   sections: AdminNavSection[],
-  userId: string,
-  tenantId: string
-): Promise<AdminNavSection[]> {
+  userRoles: string[],
+  userPermissions: string[]
+): AdminNavSection[] {
   const filteredSections: AdminNavSection[] = [];
 
   for (const section of sections) {
     const filteredItems = [];
 
-    // Filter main items
+    // Filter main items - synchronous check against cached data
     for (const item of section.items) {
-      const hasAccess = await checkMenuItemAccess(item, userId, tenantId);
-      if (hasAccess) {
+      if (checkMenuItemAccessCached(item, userRoles, userPermissions)) {
         filteredItems.push(item);
       }
     }
@@ -482,8 +489,7 @@ async function filterSectionsWithAccessGate(
       for (const subGroup of section.subGroups) {
         const filteredSubGroupItems = [];
         for (const item of subGroup.items) {
-          const hasAccess = await checkMenuItemAccess(item, userId, tenantId);
-          if (hasAccess) {
+          if (checkMenuItemAccessCached(item, userRoles, userPermissions)) {
             filteredSubGroupItems.push(item);
           }
         }
