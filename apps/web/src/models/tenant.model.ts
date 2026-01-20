@@ -24,6 +24,9 @@ export interface Tenant extends BaseModel {
   xendit_customer_id?: string | null;
   xendit_subscription_id?: string | null;
   xendit_payment_method_id?: string | null;
+  // XenPlatform sub-account (for donation collection and payouts)
+  xendit_sub_account_id?: string | null;
+  xendit_sub_account_status?: 'pending' | 'active' | 'suspended' | null;
   created_by: string;
   // Church denomination
   denomination?: string | null;

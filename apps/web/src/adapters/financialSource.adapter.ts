@@ -29,7 +29,16 @@ export class FinancialSourceAdapter
     created_by,
     updated_by,
     created_at,
-    updated_at
+    updated_at,
+    xendit_payout_channel_id,
+    xendit_payout_channel_type,
+    disbursement_schedule,
+    disbursement_minimum_amount,
+    last_disbursement_at,
+    is_donation_destination,
+    bank_account_holder_name,
+    bank_account_number_encrypted,
+    xendit_channel_code
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [

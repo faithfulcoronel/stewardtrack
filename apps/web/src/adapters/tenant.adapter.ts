@@ -52,6 +52,7 @@ export interface PublicTenantInfo {
   id: string;
   name: string;
   denomination: string | null;
+  xendit_sub_account_id: string | null;
 }
 
 export interface TenantCleanupResult {
@@ -135,7 +136,9 @@ export class TenantAdapter
     admin_member_created,
     church_image_url,
     onboarding_completed,
-    onboarding_completed_at
+    onboarding_completed_at,
+    xendit_sub_account_id,
+    xendit_sub_account_status
   `;
 
   protected defaultRelationships: QueryOptions['relationships'] = [];
@@ -702,8 +705,8 @@ export class TenantAdapter
   // ==================== PUBLIC REGISTRATION METHODS ====================
 
   /**
-   * Get public tenant information for member registration.
-   * Only returns non-sensitive tenant details (id, name, denomination).
+   * Get public tenant information for member registration and public donations.
+   * Only returns non-sensitive tenant details (id, name, denomination, xendit_sub_account_id).
    * Uses service role to bypass RLS for public access.
    */
   async getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
@@ -711,7 +714,7 @@ export class TenantAdapter
 
     const { data, error } = await serviceSupabase
       .from('tenants')
-      .select('id, name, denomination')
+      .select('id, name, denomination, xendit_sub_account_id')
       .eq('id', tenantId)
       .is('deleted_at', null)
       .single();

@@ -368,6 +368,43 @@ export const TYPES = {
   IStorageAdapter: Symbol.for('IStorageAdapter'),
   IStorageRepository: Symbol.for('IStorageRepository'),
   StorageService: Symbol.for('StorageService'),
+
+  // Donation System (Online Giving with Xendit)
+  IDonationAdapter: Symbol.for('IDonationAdapter'),
+  IDonationRepository: Symbol.for('IDonationRepository'),
+  DonationService: Symbol.for('DonationService'),
+
+  ICampaignAdapter: Symbol.for('ICampaignAdapter'),
+  ICampaignRepository: Symbol.for('ICampaignRepository'),
+  CampaignService: Symbol.for('CampaignService'),
+
+  IDonorPaymentMethodAdapter: Symbol.for('IDonorPaymentMethodAdapter'),
+  IDonorPaymentMethodRepository: Symbol.for('IDonorPaymentMethodRepository'),
+  DonorPaymentMethodService: Symbol.for('DonorPaymentMethodService'),
+
+  IDonationWebhookAdapter: Symbol.for('IDonationWebhookAdapter'),
+  IDonationWebhookRepository: Symbol.for('IDonationWebhookRepository'),
+  DonationWebhookService: Symbol.for('DonationWebhookService'),
+
+  IDonationFeeConfigAdapter: Symbol.for('IDonationFeeConfigAdapter'),
+  IDonationFeeConfigRepository: Symbol.for('IDonationFeeConfigRepository'),
+  DonationFeeService: Symbol.for('DonationFeeService'),
+  DonationConfigService: Symbol.for('DonationConfigService'),
+
+  // Recurring Donation Service
+  RecurringDonationService: Symbol.for('RecurringDonationService'),
+
+  // Recurring Charge History
+  IRecurringChargeHistoryAdapter: Symbol.for('IRecurringChargeHistoryAdapter'),
+  IRecurringChargeHistoryRepository: Symbol.for('IRecurringChargeHistoryRepository'),
+
+  // Disbursement System (Automated Payouts)
+  IDisbursementAdapter: Symbol.for('IDisbursementAdapter'),
+  IDisbursementRepository: Symbol.for('IDisbursementRepository'),
+  DisbursementService: Symbol.for('DisbursementService'),
+
+  // XenPlatform Integration (Multi-tenant sub-accounts)
+  XenPlatformService: Symbol.for('XenPlatformService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

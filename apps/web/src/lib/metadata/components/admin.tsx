@@ -74,6 +74,10 @@ import {
   type MemberRegistrationQRCodeProps,
 } from '@/components/dynamic/admin/MemberRegistrationQRCode';
 import {
+  DonationLinkShare,
+  type DonationLinkShareProps,
+} from '@/components/dynamic/admin/DonationLinkShare';
+import {
   GoalProgressRing,
   type GoalProgressRingProps,
 } from '@/components/dynamic/admin/goals/GoalProgressRing';
@@ -174,6 +178,10 @@ import {
   MemberImportActions,
   type MemberImportActionsProps,
 } from '@/components/dynamic/admin/MemberImportActions';
+import {
+  AdminPayoutConfigSection,
+  type AdminPayoutConfigSectionProps,
+} from '@/components/dynamic/admin/AdminPayoutConfigSection';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -333,6 +341,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MemberRegistrationQRCodeProps>(MemberRegistrationQRCode, 'MemberRegistrationQRCodeRenderer'),
+  },
+  {
+    type: 'DonationLinkShare',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<DonationLinkShareProps>(DonationLinkShare, 'DonationLinkShareRenderer'),
   },
   // Goals & Objectives Components
   {
@@ -526,5 +540,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MemberImportActionsProps>(MemberImportActions, 'MemberImportActionsRenderer'),
+  },
+  // Payout Configuration (XenPlatform)
+  {
+    type: 'AdminPayoutConfigSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminPayoutConfigSectionProps>(AdminPayoutConfigSection, 'AdminPayoutConfigSectionRenderer'),
   },
 ];

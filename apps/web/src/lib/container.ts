@@ -1024,4 +1024,67 @@ container.bind<IStorageAdapter>(TYPES.IStorageAdapter).to(StorageAdapter).inRequ
 container.bind<IStorageRepository>(TYPES.IStorageRepository).to(StorageRepository).inRequestScope();
 container.bind<StorageService>(TYPES.StorageService).to(SupabaseStorageService).inRequestScope();
 
+// ==================== DONATION SYSTEM (Online Giving with Xendit) ====================
+// Donation Adapters
+import { DonationAdapter, type IDonationAdapter } from '@/adapters/donation.adapter';
+import { CampaignAdapter, type ICampaignAdapter } from '@/adapters/campaign.adapter';
+import { DonorPaymentMethodAdapter, type IDonorPaymentMethodAdapter } from '@/adapters/donorPaymentMethod.adapter';
+import { DonationWebhookAdapter, type IDonationWebhookAdapter } from '@/adapters/donationWebhook.adapter';
+import { DonationFeeConfigAdapter, type IDonationFeeConfigAdapter } from '@/adapters/donationFeeConfig.adapter';
+
+// Donation Repositories
+import { DonationRepository, type IDonationRepository } from '@/repositories/donation.repository';
+import { CampaignRepository, type ICampaignRepository } from '@/repositories/campaign.repository';
+import { DonorPaymentMethodRepository, type IDonorPaymentMethodRepository } from '@/repositories/donorPaymentMethod.repository';
+import { DonationWebhookRepository, type IDonationWebhookRepository } from '@/repositories/donationWebhook.repository';
+import { DonationFeeConfigRepository, type IDonationFeeConfigRepository } from '@/repositories/donationFeeConfig.repository';
+
+// Donation Services
+import { DonationService } from '@/services/DonationService';
+import { DonorPaymentMethodService } from '@/services/DonorPaymentMethodService';
+import { DonationFeeService } from '@/services/DonationFeeService';
+import { DonationConfigService } from '@/services/DonationConfigService';
+import { CampaignService } from '@/services/CampaignService';
+import { RecurringDonationService } from '@/services/RecurringDonationService';
+import { RecurringChargeHistoryAdapter, type IRecurringChargeHistoryAdapter } from '@/adapters/recurringChargeHistory.adapter';
+import { RecurringChargeHistoryRepository, type IRecurringChargeHistoryRepository } from '@/repositories/recurringChargeHistory.repository';
+import { DisbursementService } from '@/services/DisbursementService';
+import { DisbursementAdapter, type IDisbursementAdapter } from '@/adapters/disbursement.adapter';
+import { DisbursementRepository, type IDisbursementRepository } from '@/repositories/disbursement.repository';
+
+// XenPlatform Integration (Multi-tenant sub-accounts)
+import { XenPlatformService } from '@/services/XenPlatformService';
+
+// Donation Adapters
+container.bind<IDonationAdapter>(TYPES.IDonationAdapter).to(DonationAdapter).inRequestScope();
+container.bind<ICampaignAdapter>(TYPES.ICampaignAdapter).to(CampaignAdapter).inRequestScope();
+container.bind<IDonorPaymentMethodAdapter>(TYPES.IDonorPaymentMethodAdapter).to(DonorPaymentMethodAdapter).inRequestScope();
+container.bind<IDonationWebhookAdapter>(TYPES.IDonationWebhookAdapter).to(DonationWebhookAdapter).inRequestScope();
+container.bind<IDonationFeeConfigAdapter>(TYPES.IDonationFeeConfigAdapter).to(DonationFeeConfigAdapter).inRequestScope();
+container.bind<IRecurringChargeHistoryAdapter>(TYPES.IRecurringChargeHistoryAdapter).to(RecurringChargeHistoryAdapter).inRequestScope();
+
+// Donation Repositories
+container.bind<IDonationRepository>(TYPES.IDonationRepository).to(DonationRepository).inRequestScope();
+container.bind<ICampaignRepository>(TYPES.ICampaignRepository).to(CampaignRepository).inRequestScope();
+container.bind<IDonorPaymentMethodRepository>(TYPES.IDonorPaymentMethodRepository).to(DonorPaymentMethodRepository).inRequestScope();
+container.bind<IDonationWebhookRepository>(TYPES.IDonationWebhookRepository).to(DonationWebhookRepository).inRequestScope();
+container.bind<IDonationFeeConfigRepository>(TYPES.IDonationFeeConfigRepository).to(DonationFeeConfigRepository).inRequestScope();
+container.bind<IRecurringChargeHistoryRepository>(TYPES.IRecurringChargeHistoryRepository).to(RecurringChargeHistoryRepository).inRequestScope();
+
+// Donation Services
+container.bind<DonationService>(TYPES.DonationService).to(DonationService).inRequestScope();
+container.bind<DonorPaymentMethodService>(TYPES.DonorPaymentMethodService).to(DonorPaymentMethodService).inRequestScope();
+container.bind<DonationFeeService>(TYPES.DonationFeeService).to(DonationFeeService).inRequestScope();
+container.bind<DonationConfigService>(TYPES.DonationConfigService).to(DonationConfigService).inRequestScope();
+container.bind<CampaignService>(TYPES.CampaignService).to(CampaignService).inRequestScope();
+container.bind<RecurringDonationService>(TYPES.RecurringDonationService).to(RecurringDonationService).inRequestScope();
+
+// Disbursement (Automated Payouts)
+container.bind<IDisbursementAdapter>(TYPES.IDisbursementAdapter).to(DisbursementAdapter).inRequestScope();
+container.bind<IDisbursementRepository>(TYPES.IDisbursementRepository).to(DisbursementRepository).inRequestScope();
+container.bind<DisbursementService>(TYPES.DisbursementService).to(DisbursementService).inRequestScope();
+
+// XenPlatform Integration (Multi-tenant sub-accounts)
+container.bind<XenPlatformService>(TYPES.XenPlatformService).to(XenPlatformService).inRequestScope();
+
 export { container };
