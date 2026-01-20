@@ -46,10 +46,11 @@ export async function GET(request: NextRequest) {
     );
 
     // Get active income categories (donation types) for the tenant
-    const categories = await categoryService.getActive('income_transaction', tenantId);
+    // Uses service role client to bypass RLS for public/unauthenticated access
+    const categories = await categoryService.getActivePublic(tenantId, 'income_transaction');
 
     // Map to simplified response format
-    const donationCategories = categories.map((cat: { id: string; name: string; code?: string; description?: string }) => ({
+    const donationCategories = categories.map((cat) => ({
       id: cat.id,
       name: cat.name,
       code: cat.code,

@@ -29,6 +29,12 @@
             <Prop name="metrics" kind="binding" contract="statusOverview.items"/>
           </Props>
         </Component>
+        <Component id="share-link" type="DonationLinkShare">
+          <Props>
+            <Prop name="triggerLabel" kind="static">Share Donation Link</Prop>
+            <Prop name="triggerVariant" kind="static">outline</Prop>
+          </Props>
+        </Component>
         <Component id="donations-grid" type="AdminDataGridSection">
           <Props>
             <Prop name="title" kind="static">Donation records</Prop>
@@ -36,6 +42,7 @@
             <Prop name="rows" kind="binding" contract="donationsTable.rows"/>
             <Prop name="columns" kind="binding" contract="donationsTable.columns"/>
             <Prop name="filters" kind="binding" contract="donationsTable.filters"/>
+            <Prop name="actions" kind="binding" contract="donationsTable.actions"/>
             <Prop name="emptyState" kind="static">{"title": "No donations yet", "description": "Online donations will appear here once your congregation starts giving through the donation portal. Share your church's donation link to get started."}</Prop>
           </Props>
         </Component>
@@ -74,6 +81,7 @@
           <Field name="rows" path="rows" description="Binding for donations-grid.rows"/>
           <Field name="columns" path="columns" description="Binding for donations-grid.columns"/>
           <Field name="filters" path="filters" description="Binding for donations-grid.filters"/>
+          <Field name="actions" path="actions" description="Toolbar actions for donations-grid"/>
         </Contract>
         <Config>
           <Handler>admin-finance.donations.list.table</Handler>

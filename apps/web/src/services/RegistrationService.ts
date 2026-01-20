@@ -7,6 +7,7 @@ import type { LicensingService } from '@/services/LicensingService';
 import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 import type { TenantService } from '@/services/TenantService';
 import type { SettingService } from '@/services/SettingService';
+import type { XenPlatformService } from '@/services/XenPlatformService';
 import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
@@ -66,7 +67,8 @@ export class RegistrationService {
     @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager,
     @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService,
     @inject(TYPES.TenantService) private tenantService: TenantService,
-    @inject(TYPES.SettingService) private settingService: SettingService
+    @inject(TYPES.SettingService) private settingService: SettingService,
+    @inject(TYPES.XenPlatformService) private xenPlatformService: XenPlatformService
   ) {
     // Initialize feature onboarding plugins on first use
     initializeFeaturePlugins();
@@ -235,7 +237,8 @@ export class RegistrationService {
       // The user can start using the app immediately while features are being synced
       // The tenant admin role already has full access, so this is not blocking
       // NOTE: Member profile creation is handled in admin layout on first access
-      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId);
+      // XENPLATFORM: Also provisions Xendit sub-account for donation collection
+      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId, churchName, email);
 
       // NOTE: Steps 10 & 11 now run in background. User gets immediate access.
       // - Feature sync: Runs async, handles features + permissions + role assignments
@@ -291,12 +294,31 @@ export class RegistrationService {
     tenantId: string,
     tier: string,
     offeringId: string,
-    userId: string
+    userId: string,
+    churchName?: string,
+    email?: string
   ): void {
     // Use setImmediate to ensure this runs after the current event loop
     // This allows the registration response to return immediately
     setImmediate(async () => {
       console.log(`[ASYNC] Starting background feature sync for tenant ${tenantId}`);
+
+      // ===== PROVISION XENPLATFORM SUB-ACCOUNT =====
+      // Create Xendit sub-account for donation collection (runs in background)
+      // This is non-blocking and will retry if it fails
+      if (churchName && email) {
+        try {
+          await this.xenPlatformService.provisionTenantSubAccount(
+            tenantId,
+            churchName,
+            email
+          );
+          console.log(`[ASYNC] Provisioned Xendit sub-account for tenant ${tenantId}`);
+        } catch (error) {
+          // Non-fatal - tenant can still use the app, sub-account can be created later
+          console.error(`[ASYNC] Failed to provision Xendit sub-account for tenant ${tenantId}:`, error);
+        }
+      }
       const startTime = Date.now();
       let hasErrors = false;
       let lastError = '';

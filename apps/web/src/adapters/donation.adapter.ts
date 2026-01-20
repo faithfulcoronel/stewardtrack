@@ -4,6 +4,7 @@ import { injectable, inject } from 'inversify';
 import { BaseAdapter, type IBaseAdapter, type QueryOptions } from '@/adapters/base.adapter';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import type {
   Donation,
   DonationStatus,
@@ -15,7 +16,20 @@ import type {
  */
 export interface IDonationAdapter extends IBaseAdapter<Donation> {
   createDonation(data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /**
+   * Create a new donation record for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   *
+   * SECURITY: Tenant ID must be explicitly provided - no session fallback.
+   * This is used for the public donation form where donors are not logged in.
+   */
+  createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation>;
   updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /**
+   * Update a donation record for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   */
+  updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
   updateDonationStatus(
     id: string,
     status: DonationStatus,
@@ -163,6 +177,58 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
+   * Create a new donation record for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   *
+   * SECURITY: Only used for public donation forms where donors are not logged in.
+   * Tenant ID must be explicitly provided - no session fallback.
+   */
+  async createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation> {
+    if (!tenantId) {
+      throw new Error('Failed to create donation: tenant ID is required');
+    }
+
+    const supabase = await getSupabaseServiceClient();
+
+    const record = {
+      ...data,
+      tenant_id: tenantId,
+      status: data.status || 'pending',
+      is_recurring: data.is_recurring || false,
+      anonymous: data.anonymous || false,
+      source: data.source || 'online',
+      // Terms acceptance (required for online donations)
+      terms_accepted: data.terms_accepted || false,
+      terms_accepted_at: data.terms_accepted_at || (data.terms_accepted ? new Date().toISOString() : null),
+      terms_version: data.terms_version || null,
+      // No created_by for public donations (unauthenticated)
+      created_by: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .insert([record])
+      .select(this.defaultSelect)
+      .single();
+
+    if (error) {
+      console.error('[DonationAdapter] Error creating public donation:', error);
+      throw new Error(`Failed to create donation: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Failed to create donation: missing response payload');
+    }
+
+    // Note: We skip the audit log for public donations since there's no user context
+    // The donation webhook will handle audit logging when payment is confirmed
+
+    return result as unknown as Donation;
+  }
+
+  /**
    * Update a donation record
    */
   async updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
@@ -188,6 +254,45 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
     }
 
     await this.onAfterUpdate(result as unknown as Donation);
+
+    return result as unknown as Donation;
+  }
+
+  /**
+   * Update a donation record for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   *
+   * SECURITY: Only used for public donation flows where donors are not logged in.
+   * Tenant ID must be explicitly provided for isolation.
+   */
+  async updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
+    if (!tenantId) {
+      throw new Error('Failed to update donation: tenant ID is required');
+    }
+
+    const supabase = await getSupabaseServiceClient();
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .update({
+        ...data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+      .select(this.defaultSelect)
+      .single();
+
+    if (error) {
+      console.error('[DonationAdapter] Error updating public donation:', error);
+      throw new Error(`Failed to update donation: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Failed to update donation: record not found');
+    }
+
+    // Note: We skip the audit log for public donations since there's no user context
 
     return result as unknown as Donation;
   }

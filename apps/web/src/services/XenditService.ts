@@ -147,6 +147,10 @@ export interface XenditWebhookEvent {
 export interface XenditErrorResponse {
   error_code: string;
   message: string;
+  errors?: Array<{
+    path: string;
+    message: string;
+  }>;
 }
 
 // ============================================================================
@@ -347,6 +351,50 @@ export interface XenditRefund {
   updated: string;
 }
 
+// ============================================================================
+// PAYOUT/DISBURSEMENT TYPES
+// ============================================================================
+
+/**
+ * Payout channel type
+ * Xendit supports various payout channels depending on the country
+ */
+export type PayoutChannelType = 'BANK' | 'EWALLET' | 'OTC';
+
+/**
+ * Create payout parameters
+ * Bank account details are managed in Xendit Dashboard
+ */
+export interface CreatePayoutParams {
+  externalId: string;
+  amount: number;
+  channelCode: string; // Xendit payout channel code (set up in Xendit Dashboard)
+  channelProperties?: Record<string, unknown>;
+  currency?: string;
+  description?: string;
+  referenceId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Xendit payout response
+ */
+export interface XenditPayout {
+  id: string;
+  external_id: string;
+  amount: number;
+  channel_code: string;
+  currency: string;
+  description: string | null;
+  reference_id: string | null;
+  status: 'ACCEPTED' | 'PENDING' | 'LOCKED' | 'CANCELLED' | 'REVERSED' | 'SUCCEEDED' | 'FAILED';
+  failure_code: string | null;
+  estimated_arrival_time: string | null;
+  created: string;
+  updated: string;
+  business_id: string;
+}
+
 @injectable()
 export class XenditService {
   private readonly apiKey: string;
@@ -385,27 +433,90 @@ export class XenditService {
 
   /**
    * Make a request to Xendit API
+   *
+   * @param endpoint API endpoint
+   * @param options Fetch options
+   * @param forUserId Optional sub-account ID for XenPlatform transactions
+   * @param withSplitRule Optional split rule ID for automatic platform fee collection
    */
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    forUserId?: string,
+    withSplitRule?: string
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Authorization': this.getAuthHeader(),
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
-    });
+    // Build headers with optional for-user-id for XenPlatform sub-accounts
+    const headers: Record<string, string> = {
+      'Authorization': this.getAuthHeader(),
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
 
-    const data = await response.json();
+    // Add for-user-id header for sub-account transactions
+    if (forUserId) {
+      headers['for-user-id'] = forUserId;
+    }
+
+    // Add with-split-rule header for automatic platform fee collection
+    // When set, Xendit automatically splits the payment according to the rule
+    // and sends the platform fee to the platform (StewardTrack) balance
+    if (withSplitRule) {
+      headers['with-split-rule'] = withSplitRule;
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } catch (networkError) {
+      console.error(`[XenditService] Network error on ${endpoint}:`, networkError);
+      throw new Error(`Xendit API Network Error: Unable to connect to payment service. Please try again.`);
+    }
+
+    // Handle non-JSON responses (e.g., "Service Unavailable", HTML error pages)
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const textBody = await response.text();
+      console.error(`[XenditService] Non-JSON response on ${endpoint}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: textBody.substring(0, 500), // Limit log size
+      });
+
+      if (response.status === 503 || textBody.includes('Service Unavailable')) {
+        throw new Error('Xendit payment service is temporarily unavailable. Please try again in a few moments.');
+      }
+      if (response.status === 502 || response.status === 504) {
+        throw new Error('Xendit payment service is experiencing connectivity issues. Please try again.');
+      }
+      if (response.status === 429) {
+        throw new Error('Too many requests to payment service. Please wait a moment and try again.');
+      }
+      throw new Error(`Xendit API Error: ${response.status} ${response.statusText}`);
+    }
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error(`[XenditService] JSON parse error on ${endpoint}:`, parseError);
+      throw new Error('Xendit API Error: Invalid response from payment service. Please try again.');
+    }
 
     if (!response.ok) {
       const error = data as XenditErrorResponse;
-      throw new Error(`Xendit API Error: ${error.error_code} - ${error.message}`);
+      // Log full error details for debugging
+      console.error(`[XenditService] API Error on ${endpoint}:`, JSON.stringify(error, null, 2));
+      if (options.body) {
+        console.error(`[XenditService] Request body:`, options.body);
+      }
+      const errorDetails = error.errors ? ` Details: ${JSON.stringify(error.errors)}` : '';
+      throw new Error(`Xendit API Error: ${error.error_code} - ${error.message}${errorDetails}`);
     }
 
     return data as T;
@@ -794,17 +905,41 @@ export class XenditService {
    * @returns Created customer object
    */
   async createCustomer(params: CreateCustomerParams): Promise<XenditCustomerFull> {
+    const customerType = params.type || 'INDIVIDUAL';
+
+    // Build request body according to Xendit API 2020-10-31 format
+    // For INDIVIDUAL type, names must be inside individual_detail object
+    const requestBody: Record<string, unknown> = {
+      reference_id: params.reference_id,
+      type: customerType,
+    };
+
+    // Add individual_detail for INDIVIDUAL customers (required by Xendit)
+    if (customerType === 'INDIVIDUAL') {
+      // Use provided name or default to "Anonymous Donor" for guests
+      const givenNames = params.given_names?.trim() || 'Anonymous';
+      const surname = params.surname?.trim() || 'Donor';
+
+      requestBody.individual_detail = {
+        given_names: givenNames,
+        surname: surname,
+      };
+    }
+
+    // Add optional fields at top level
+    if (params.email) {
+      requestBody.email = params.email;
+    }
+    if (params.mobile_number) {
+      requestBody.mobile_number = params.mobile_number;
+    }
+    if (params.phone_number) {
+      requestBody.phone_number = params.phone_number;
+    }
+
     return this.request<XenditCustomerFull>('/customers', {
       method: 'POST',
-      body: JSON.stringify({
-        reference_id: params.reference_id,
-        type: params.type || 'INDIVIDUAL',
-        email: params.email,
-        given_names: params.given_names,
-        surname: params.surname,
-        mobile_number: params.mobile_number,
-        phone_number: params.phone_number,
-      }),
+      body: JSON.stringify(requestBody),
       headers: {
         'API-VERSION': '2020-10-31',
       },
@@ -984,22 +1119,28 @@ export class XenditService {
 
   /**
    * Create a refund for a payment
+   * For XenPlatform sub-account payments, pass forUserId to refund from sub-account
    *
    * @param params Refund parameters
+   * @param forUserId Optional sub-account ID for XenPlatform refunds
    * @returns Refund object
    */
-  async createRefund(params: CreateRefundParams): Promise<XenditRefund> {
-    return this.request<XenditRefund>('/refunds', {
-      method: 'POST',
-      body: JSON.stringify({
-        payment_request_id: params.payment_request_id,
-        invoice_id: params.invoice_id,
-        reference_id: params.reference_id,
-        amount: params.amount,
-        reason: params.reason,
-        metadata: params.metadata,
-      }),
-    });
+  async createRefund(params: CreateRefundParams, forUserId?: string): Promise<XenditRefund> {
+    return this.request<XenditRefund>(
+      '/refunds',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          payment_request_id: params.payment_request_id,
+          invoice_id: params.invoice_id,
+          reference_id: params.reference_id,
+          amount: params.amount,
+          reason: params.reason,
+          metadata: params.metadata,
+        }),
+      },
+      forUserId  // Pass for-user-id header for sub-account refunds
+    );
   }
 
   /**
@@ -1109,4 +1250,508 @@ export class XenditService {
     const authAction = paymentRequest.actions?.find(a => a.action === 'AUTH');
     return authAction?.url || null;
   }
+
+  // ============================================================================
+  // PAYOUT/DISBURSEMENT METHODS
+  // ============================================================================
+
+  /**
+   * Create a payout/disbursement to a bank account or e-wallet
+   *
+   * IMPORTANT: The bank account details are managed in Xendit Dashboard.
+   * StewardTrack only stores the Xendit payout channel reference.
+   *
+   * @param params Payout parameters
+   * @returns Payout object
+   */
+  async createPayout(params: CreatePayoutParams): Promise<XenditPayout> {
+    const currency = params.currency || 'PHP';
+    const formattedAmount = this.formatAmount(params.amount, currency);
+
+    const requestBody = {
+      reference_id: params.referenceId || params.externalId,
+      channel_code: params.channelCode,
+      channel_properties: params.channelProperties || {},
+      amount: formattedAmount,
+      currency,
+      description: params.description || `Payout ${params.externalId}`,
+      ...(params.metadata && { metadata: params.metadata }),
+    };
+
+    console.log(`[XenditService] Creating payout: ${params.externalId}, amount: ${formattedAmount} ${currency}, channel: ${params.channelCode}`);
+
+    return this.request<XenditPayout>('/v2/payouts', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+  }
+
+  /**
+   * Get a payout by ID
+   *
+   * @param payoutId Xendit payout ID
+   * @returns Payout object
+   */
+  async getPayout(payoutId: string): Promise<XenditPayout> {
+    return this.request<XenditPayout>(`/v2/payouts/${payoutId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Cancel a pending payout
+   *
+   * @param payoutId Xendit payout ID
+   * @returns Updated payout object
+   */
+  async cancelPayout(payoutId: string): Promise<XenditPayout> {
+    return this.request<XenditPayout>(`/v2/payouts/${payoutId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * List payouts with optional filters
+   *
+   * @param options Query options
+   * @returns Array of payouts
+   */
+  async listPayouts(options?: {
+    reference_id?: string;
+    channel_code?: string;
+    status?: string;
+    limit?: number;
+    after_id?: string;
+  }): Promise<XenditPayout[]> {
+    const queryParams = new URLSearchParams();
+
+    if (options?.reference_id) queryParams.append('reference_id', options.reference_id);
+    if (options?.channel_code) queryParams.append('channel_code', options.channel_code);
+    if (options?.status) queryParams.append('status', options.status);
+    if (options?.limit) queryParams.append('limit', options.limit.toString());
+    if (options?.after_id) queryParams.append('after_id', options.after_id);
+
+    const query = queryParams.toString();
+    const endpoint = query ? `/v2/payouts?${query}` : '/v2/payouts';
+
+    const response = await this.request<{ data: XenditPayout[] }>(endpoint, {
+      method: 'GET',
+    });
+
+    return response.data || [];
+  }
+
+  // ============================================================================
+  // XENPLATFORM METHODS (Multi-tenant Sub-accounts)
+  // ============================================================================
+
+  /**
+   * Create a XenPlatform Owned Sub-account
+   * Used to create isolated accounts for each tenant for donation collection
+   *
+   * Documentation: https://docs.xendit.co/docs/xenplatform-overview
+   *
+   * @param params Account creation parameters
+   * @returns Created sub-account object
+   */
+  async createXenPlatformAccount(params: {
+    email: string;
+    type: 'OWNED';
+    publicProfile: { business_name: string };
+  }): Promise<XenPlatformAccount> {
+    const requestBody = {
+      email: params.email,
+      type: params.type,
+      public_profile: params.publicProfile,
+    };
+
+    console.log(`[XenditService] Creating XenPlatform sub-account for: ${params.publicProfile.business_name}`);
+
+    return this.request<XenPlatformAccount>('/v2/accounts', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+  }
+
+  /**
+   * Get a XenPlatform account by ID
+   *
+   * @param accountId The Xendit account ID
+   * @returns Account object
+   */
+  async getXenPlatformAccount(accountId: string): Promise<XenPlatformAccount> {
+    return this.request<XenPlatformAccount>(`/v2/accounts/${accountId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Get balance for a sub-account
+   * Uses the for-user-id header to query sub-account balance
+   *
+   * @param subAccountId The Xendit sub-account ID
+   * @returns Balance object
+   */
+  async getBalanceForSubAccount(subAccountId: string): Promise<XenPlatformBalance> {
+    return this.request<XenPlatformBalance>(
+      '/balance',
+      { method: 'GET' },
+      subAccountId  // Pass for-user-id header
+    );
+  }
+
+  /**
+   * Create a payment request with optional sub-account (for-user-id header)
+   * When forUserId is provided, funds go to sub-account balance, not master
+   *
+   * XenPlatform Split Rule (Platform Fee Collection):
+   * When withSplitRule is provided, Xendit automatically:
+   * - Splits the payment according to the rule configuration
+   * - Sends the platform fee to the platform (StewardTrack) balance
+   * - Sends the remaining amount to the sub-account balance
+   *
+   * @param params Payment request parameters
+   * @param forUserId Optional sub-account ID for XenPlatform
+   * @param withSplitRule Optional split rule ID for automatic platform fee collection
+   * @returns Created payment request with action URL
+   */
+  async createPaymentRequestForSubAccount(
+    params: CreatePaymentRequestParams,
+    forUserId?: string,
+    withSplitRule?: string
+  ): Promise<XenditPaymentRequest> {
+    const requestBody = {
+      reference_id: params.reference_id,
+      amount: params.amount,
+      currency: params.currency,
+      capture_method: params.capture_method || 'AUTOMATIC',
+      payment_method: params.payment_method,
+      ...(params.customer_id && { customer_id: params.customer_id }),
+      ...(params.description && { description: params.description }),
+      ...(params.metadata && { metadata: params.metadata }),
+    };
+
+    return this.request<XenditPaymentRequest>(
+      '/payment_requests',
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      },
+      forUserId,     // Pass for-user-id header if provided
+      withSplitRule  // Pass with-split-rule header for automatic platform fee collection
+    );
+  }
+
+  /**
+   * Create a payout from a sub-account balance
+   * Uses for-user-id header to payout from sub-account, not master balance
+   *
+   * @param params Payout parameters including bank account details
+   * @param forUserId Sub-account ID for XenPlatform (required for sub-account payouts)
+   * @returns Payout object
+   */
+  async createPayoutForSubAccount(
+    params: CreatePayoutParams & {
+      channelProperties: {
+        account_holder_name: string;
+        account_number: string;
+      };
+    },
+    forUserId: string
+  ): Promise<XenditPayout> {
+    const currency = params.currency || 'PHP';
+    const formattedAmount = this.formatAmount(params.amount, currency);
+
+    const requestBody = {
+      reference_id: params.referenceId || params.externalId,
+      channel_code: params.channelCode,
+      channel_properties: params.channelProperties,
+      amount: formattedAmount,
+      currency,
+      description: params.description || `Payout ${params.externalId}`,
+      ...(params.metadata && { metadata: params.metadata }),
+    };
+
+    console.log(`[XenditService] Creating payout from sub-account ${forUserId}: ${params.externalId}, amount: ${formattedAmount} ${currency}`);
+
+    return this.request<XenditPayout>(
+      '/v2/payouts',
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      },
+      forUserId  // Payout FROM sub-account balance
+    );
+  }
+
+  /**
+   * Create a donation payment with sub-account routing
+   * Funds go directly to the church's sub-account balance
+   *
+   * XenPlatform Split Rule (Platform Fee Collection):
+   * When withSplitRule is provided, Xendit automatically:
+   * - Splits the payment according to the rule configuration
+   * - Sends the platform fee to the platform (StewardTrack) balance
+   * - Sends the remaining amount to the sub-account balance
+   *
+   * @param params Donation parameters
+   * @param forUserId Sub-account ID for XenPlatform
+   * @param withSplitRule Optional split rule ID for automatic platform fee collection
+   * @returns Payment request with action URL for donor
+   */
+  async createDonationPaymentForSubAccount(params: {
+    donationId: string;
+    customerId?: string;
+    amount: number;
+    currency?: string;
+    paymentMethodType: 'CARD' | 'EWALLET' | 'DIRECT_DEBIT' | 'VIRTUAL_ACCOUNT' | 'QR_CODE';
+    channelCode?: string;
+    savePaymentMethod?: boolean;
+    successUrl: string;
+    failureUrl: string;
+    description?: string;
+    metadata?: Record<string, unknown>;
+  }, forUserId?: string, withSplitRule?: string): Promise<XenditPaymentRequest> {
+    const currency = this.getEffectiveCurrency(params.currency || 'PHP');
+    const formattedAmount = this.formatAmount(params.amount, currency);
+    const reusability: PaymentReusability = params.savePaymentMethod ? 'MULTIPLE_USE' : 'ONE_TIME_USE';
+
+    // Build payment method object based on type
+    const paymentMethod: CreatePaymentRequestParams['payment_method'] = {
+      type: params.paymentMethodType,
+      reusability,
+    };
+
+    // Add channel-specific properties
+    switch (params.paymentMethodType) {
+      case 'CARD':
+        paymentMethod.card = {
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'EWALLET':
+        paymentMethod.ewallet = {
+          channel_code: params.channelCode || 'GCASH',
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'DIRECT_DEBIT':
+        paymentMethod.direct_debit = {
+          channel_code: params.channelCode || 'BPI',
+          channel_properties: {
+            success_return_url: params.successUrl,
+            failure_return_url: params.failureUrl,
+          },
+        };
+        break;
+      case 'VIRTUAL_ACCOUNT':
+        paymentMethod.virtual_account = {
+          channel_code: params.channelCode || 'BPI',
+        };
+        break;
+      case 'QR_CODE':
+        paymentMethod.qr_code = {
+          channel_code: params.channelCode || 'QRPH',
+        };
+        break;
+    }
+
+    return this.createPaymentRequestForSubAccount(
+      {
+        reference_id: params.donationId,
+        customer_id: params.customerId,
+        amount: formattedAmount,
+        currency,
+        payment_method: paymentMethod,
+        description: params.description,
+        metadata: {
+          ...params.metadata,
+          donation_id: params.donationId,
+          payment_type: 'donation',
+        },
+      },
+      forUserId,
+      withSplitRule  // Pass with-split-rule header for automatic platform fee collection
+    );
+  }
+
+  // ============================================================================
+  // SPLIT RULE METHODS (for Platform Fee Collection)
+  // ============================================================================
+
+  /**
+   * Create a Split Rule for automatic platform fee collection
+   *
+   * Split Rules define how payments are split between the platform and sub-accounts.
+   * Use this to automatically collect platform fees/commissions on transactions.
+   *
+   * Example: 3% platform fee
+   * ```typescript
+   * const rule = await xenditService.createSplitRule({
+   *   reference_id: 'stewardtrack_platform_fee',
+   *   name: 'StewardTrack Platform Fee',
+   *   description: '3% platform fee on donations',
+   *   routes: [{
+   *     percent_amount: 3,
+   *     destination_account_id: null, // null = platform account
+   *     reference_id: 'platform_fee'
+   *   }]
+   * });
+   * ```
+   *
+   * Documentation: https://docs.xendit.co/docs/split-payments
+   *
+   * @param params Split rule parameters
+   * @returns Created split rule with ID to use in with-split-rule header
+   */
+  async createSplitRule(params: CreateSplitRuleParams): Promise<XenditSplitRule> {
+    const requestBody = {
+      reference_id: params.reference_id,
+      name: params.name,
+      description: params.description || null,
+      routes: params.routes.map(route => ({
+        flat_amount: route.flat_amount ?? null,
+        percent_amount: route.percent_amount ?? null,
+        destination_account_id: route.destination_account_id ?? null,
+        reference_id: route.reference_id,
+        currency: route.currency || 'PHP',
+      })),
+    };
+
+    console.log(`[XenditService] Creating split rule: ${params.name}`);
+
+    return this.request<XenditSplitRule>('/split_rules', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+  }
+
+  /**
+   * Get a Split Rule by ID
+   *
+   * @param splitRuleId The split rule ID
+   * @returns Split rule details
+   */
+  async getSplitRule(splitRuleId: string): Promise<XenditSplitRule> {
+    return this.request<XenditSplitRule>(`/split_rules/${splitRuleId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Create a platform fee split rule for StewardTrack
+   *
+   * Convenience method to create a standard platform fee rule.
+   * The fee is sent to the platform (master) account.
+   *
+   * @param feePercentage Platform fee percentage (e.g., 3 for 3%)
+   * @param referenceId Unique reference ID for the rule
+   * @returns Created split rule
+   */
+  async createPlatformFeeSplitRule(
+    feePercentage: number,
+    referenceId: string = 'stewardtrack_platform_fee'
+  ): Promise<XenditSplitRule> {
+    return this.createSplitRule({
+      reference_id: referenceId,
+      name: 'StewardTrack Platform Fee',
+      description: `${feePercentage}% platform fee on donations`,
+      routes: [{
+        percent_amount: feePercentage,
+        destination_account_id: null, // null = platform (StewardTrack) account
+        reference_id: 'platform_fee',
+      }],
+    });
+  }
+}
+
+// ============================================================================
+// XENPLATFORM TYPES
+// ============================================================================
+
+/**
+ * XenPlatform Account (Sub-account) response
+ */
+export interface XenPlatformAccount {
+  id: string;
+  created: string;
+  updated: string;
+  type: 'OWNED' | 'MANAGED';
+  email: string;
+  public_profile: {
+    business_name: string;
+  };
+  country: string;
+  status: 'REGISTERED' | 'AWAITING_DOCS' | 'LIVE' | 'SUSPENDED';
+}
+
+/**
+ * XenPlatform Balance response
+ */
+export interface XenPlatformBalance {
+  balance: number;
+  pending_balance: number;
+  currency: string;
+}
+
+// ============================================================================
+// SPLIT RULE TYPES (for Platform Fee Collection)
+// ============================================================================
+
+/**
+ * Split Rule Route - defines how to split a portion of the payment
+ * Either flat_amount or percent_amount must be provided (not both)
+ *
+ * Documentation: https://docs.xendit.co/docs/split-payments
+ */
+export interface SplitRuleRoute {
+  /** Flat amount to split (in currency's smallest unit). Required if percent_amount is null. */
+  flat_amount?: number;
+  /** Percentage amount to split (0-100). Required if flat_amount is null. */
+  percent_amount?: number;
+  /** Destination account ID. If null, defaults to Platform (master) account. */
+  destination_account_id?: string | null;
+  /** Unique reference ID for this route within the split rule */
+  reference_id: string;
+  /** Currency for flat_amount (defaults to transaction currency) */
+  currency?: string;
+}
+
+/**
+ * Parameters for creating a Split Rule
+ */
+export interface CreateSplitRuleParams {
+  /** Unique reference ID for the split rule */
+  reference_id: string;
+  /** Human-readable name for the split rule */
+  name: string;
+  /** Description of the split rule */
+  description?: string;
+  /** Routes defining how to split the payment (max 5 routes) */
+  routes: SplitRuleRoute[];
+}
+
+/**
+ * Split Rule response from Xendit API
+ */
+export interface XenditSplitRule {
+  id: string;
+  reference_id: string;
+  name: string;
+  description: string | null;
+  routes: Array<{
+    flat_amount: number | null;
+    percent_amount: number | null;
+    destination_account_id: string | null;
+    reference_id: string;
+    currency: string;
+  }>;
+  created: string;
+  updated: string;
 }

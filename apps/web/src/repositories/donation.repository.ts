@@ -13,7 +13,17 @@ import { TYPES } from '@/lib/types';
  */
 export interface IDonationRepository extends BaseRepository<Donation> {
   createDonation(data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /**
+   * Create a new donation for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   */
+  createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation>;
   updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /**
+   * Update a donation for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   */
+  updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
   updateDonationStatus(
     id: string,
     status: DonationStatus,
@@ -45,10 +55,26 @@ export class DonationRepository
   }
 
   /**
+   * Create a new donation for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   */
+  async createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation> {
+    return await this.donationAdapter.createDonationPublic(data, tenantId);
+  }
+
+  /**
    * Update a donation
    */
   async updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
     return await this.donationAdapter.updateDonation(id, data, tenantId);
+  }
+
+  /**
+   * Update a donation for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   */
+  async updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
+    return await this.donationAdapter.updateDonationPublic(id, data, tenantId);
   }
 
   /**

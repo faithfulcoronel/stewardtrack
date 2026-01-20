@@ -56,6 +56,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       // Overview & Daily Operations (frequently used)
       { title: "Treasury Overview", href: "/admin/finance", icon: "treasury" },
       { title: "Financial Records", href: "/admin/finance/transactions", icon: "transactions" },
+      { title: "Online Donations", href: "/admin/finance/donations", icon: "giving" },
       { title: "Ministry Budgets", href: "/admin/finance/budgets", icon: "ledger" },
       { title: "Financial Reports", href: "/admin/finance/reports", icon: "financialReports" },
     ],

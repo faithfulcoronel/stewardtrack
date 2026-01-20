@@ -9,6 +9,7 @@ import type {
   UpdateDonationFeeConfigDto,
 } from '@/models/donationFeeConfig.model';
 import { DEFAULT_FEE_CONFIG } from '@/models/donationFeeConfig.model';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 /**
  * Interface for DonationFeeConfig data access operations
@@ -56,9 +57,11 @@ export class DonationFeeConfigAdapter
 
   /**
    * Get fee config by tenant ID, create default if not exists
+   * Uses service role client to work with public (unauthenticated) API calls
    */
   async getConfigByTenantId(tenantId: string): Promise<DonationFeeConfig> {
-    const supabase = await this.getSupabaseClient();
+    // Use service role client to bypass RLS for public API access
+    const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
       .from(this.tableName)
@@ -120,10 +123,20 @@ export class DonationFeeConfigAdapter
 
   /**
    * Create default fee config for a tenant
+   * Uses service role client to work with public (unauthenticated) API calls
    */
   async createDefaultConfig(tenantId: string): Promise<DonationFeeConfig> {
-    const supabase = await this.getSupabaseClient();
-    const userId = await this.getUserId();
+    // Use service role client to bypass RLS for public API access
+    const supabase = await getSupabaseServiceClient();
+
+    // For public API calls, userId might be null - that's OK for auto-created configs
+    let userId: string | null = null;
+    try {
+      const uid = await this.getUserId();
+      userId = uid ?? null;
+    } catch {
+      // User ID not available in public context - that's expected
+    }
 
     const record = {
       tenant_id: tenantId,

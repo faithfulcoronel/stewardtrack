@@ -390,6 +390,21 @@ export const TYPES = {
   IDonationFeeConfigRepository: Symbol.for('IDonationFeeConfigRepository'),
   DonationFeeService: Symbol.for('DonationFeeService'),
   DonationConfigService: Symbol.for('DonationConfigService'),
+
+  // Recurring Donation Service
+  RecurringDonationService: Symbol.for('RecurringDonationService'),
+
+  // Recurring Charge History
+  IRecurringChargeHistoryAdapter: Symbol.for('IRecurringChargeHistoryAdapter'),
+  IRecurringChargeHistoryRepository: Symbol.for('IRecurringChargeHistoryRepository'),
+
+  // Disbursement System (Automated Payouts)
+  IDisbursementAdapter: Symbol.for('IDisbursementAdapter'),
+  IDisbursementRepository: Symbol.for('IDisbursementRepository'),
+  DisbursementService: Symbol.for('DisbursementService'),
+
+  // XenPlatform Integration (Multi-tenant sub-accounts)
+  XenPlatformService: Symbol.for('XenPlatformService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

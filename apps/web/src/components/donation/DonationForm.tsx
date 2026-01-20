@@ -21,6 +21,10 @@ import {
   Sparkles,
   Shield,
   Gift,
+  Star,
+  Wallet,
+  LogIn,
+  UserCheck,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -44,6 +48,16 @@ import {
 import { DonationTermsDialog } from '@/components/donation/DonationTermsDialog';
 import { cn } from '@/lib/utils';
 import type { PaymentMethodType, DonationFeeCalculation } from '@/models/donation.model';
+import { useSavedPaymentMethods, type SavedPaymentMethod } from '@/hooks/useSavedPaymentMethods';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import Link from 'next/link';
+
+interface MemberProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+}
 
 interface DonationCategory {
   id: string;
@@ -93,10 +107,11 @@ const formSchema = z.object({
   category_id: z.string().min(1, 'Please select a category'),
   payment_method_type: z.enum(['card', 'ewallet', 'bank_transfer', 'direct_debit']),
   channel_code: z.string().optional(),
+  saved_payment_method_id: z.string().optional(),
   donor_name: z.string().optional(),
   donor_email: z.string().email('Please enter a valid email'),
   donor_phone: z.string().optional(),
-  anonymous: z.boolean().default(false),
+  anonymous: z.boolean(),
   notes: z.string().optional(),
 });
 
@@ -111,6 +126,23 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
   const [isCalculatingFees, setIsCalculatingFees] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useSavedMethod, setUseSavedMethod] = useState(false);
+  const [selectedSavedMethod, setSelectedSavedMethod] = useState<SavedPaymentMethod | null>(null);
+  const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
+  const [isLoadingMember, setIsLoadingMember] = useState(true);
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+
+  // Fetch saved payment methods for logged-in members
+  const {
+    paymentMethods: savedPaymentMethods,
+    defaultMethod,
+    isAuthenticated: hasMemberWithPaymentMethods,
+    isLoading: isLoadingSavedMethods,
+  } = useSavedPaymentMethods();
+
+  // Get current URL for redirect after sign-in
+  const returnUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const signInUrl = `/login?redirect=${encodeURIComponent(returnUrl)}`;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -119,6 +151,7 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
       category_id: '',
       payment_method_type: 'ewallet',
       channel_code: 'GCASH',
+      saved_payment_method_id: '',
       donor_name: '',
       donor_email: '',
       donor_phone: '',
@@ -129,6 +162,66 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
 
   const watchAmount = form.watch('amount');
   const watchPaymentMethod = form.watch('payment_method_type');
+
+  // Check auth state and fetch member profile for authenticated users
+  useEffect(() => {
+    async function checkAuthAndLoadProfile() {
+      setIsLoadingMember(true);
+
+      try {
+        // Check Supabase auth state directly
+        const supabase = createSupabaseBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          setIsUserAuthenticated(false);
+          setMemberProfile(null);
+          setIsLoadingMember(false);
+          return;
+        }
+
+        // User is authenticated
+        setIsUserAuthenticated(true);
+
+        // Try to fetch member profile
+        const response = await fetch('/api/members/me/profile');
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const profile: MemberProfile = {
+            id: result.data.id,
+            full_name: result.data.full_name || result.data.first_name + ' ' + result.data.last_name || '',
+            email: result.data.email || '',
+            phone: result.data.phone || result.data.mobile_phone || '',
+          };
+          setMemberProfile(profile);
+
+          // Pre-fill form with member data
+          if (profile.full_name) {
+            form.setValue('donor_name', profile.full_name);
+          }
+          if (profile.email) {
+            form.setValue('donor_email', profile.email);
+          }
+          if (profile.phone) {
+            form.setValue('donor_phone', profile.phone);
+          }
+        } else {
+          // User is authenticated but doesn't have a linked member profile
+          // Pre-fill email from auth if available
+          if (user.email) {
+            form.setValue('donor_email', user.email);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth/loading member profile:', error);
+      } finally {
+        setIsLoadingMember(false);
+      }
+    }
+
+    checkAuthAndLoadProfile();
+  }, [form]);
 
   // Load categories on mount
   useEffect(() => {
@@ -159,12 +252,17 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
 
   // Calculate fees when amount or payment method changes
   const calculateFees = useCallback(async () => {
-    if (watchAmount <= 0 || !watchPaymentMethod) return;
+    // Use saved method's payment type if using a saved method
+    const paymentType = useSavedMethod && selectedSavedMethod
+      ? selectedSavedMethod.payment_type
+      : watchPaymentMethod;
+
+    if (watchAmount <= 0 || !paymentType) return;
 
     setIsCalculatingFees(true);
     try {
       const response = await fetch(
-        `/api/public/donations/fees?tenantToken=${tenantToken}&amount=${watchAmount}&payment_method_type=${watchPaymentMethod}`
+        `/api/public/donations/fees?tenantToken=${tenantToken}&amount=${watchAmount}&payment_method_type=${paymentType}`
       );
       const result = await response.json();
 
@@ -176,7 +274,7 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
     } finally {
       setIsCalculatingFees(false);
     }
-  }, [tenantToken, watchAmount, watchPaymentMethod]);
+  }, [tenantToken, watchAmount, watchPaymentMethod, useSavedMethod, selectedSavedMethod]);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -237,6 +335,14 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
     try {
       const formData = form.getValues();
 
+      // Use saved method data if using a saved payment method
+      const paymentType = useSavedMethod && selectedSavedMethod
+        ? selectedSavedMethod.payment_type
+        : formData.payment_method_type;
+      const channelCode = useSavedMethod && selectedSavedMethod
+        ? selectedSavedMethod.channel_code
+        : formData.channel_code;
+
       const response = await fetch('/api/public/donations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,8 +350,9 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
           tenantToken,
           amount: formData.amount,
           category_id: formData.category_id,
-          payment_method_type: formData.payment_method_type,
-          channel_code: formData.channel_code,
+          payment_method_type: paymentType,
+          channel_code: channelCode,
+          saved_payment_method_id: useSavedMethod && selectedSavedMethod ? selectedSavedMethod.id : undefined,
           donor_name: formData.donor_name,
           donor_email: formData.donor_email,
           donor_phone: formData.donor_phone,
@@ -253,6 +360,8 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
           notes: formData.notes,
           terms_accepted: true,
           terms_version: 'v1.0',
+          // If authenticated, include member_id so donation is recorded under their account
+          member_id: memberProfile?.id || undefined,
         }),
       });
 
@@ -549,6 +658,96 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                   </p>
                 </div>
 
+                {/* Sign-in banner for unauthenticated users */}
+                {!isUserAuthenticated && !isLoadingMember && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-green-400/5 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <LogIn className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          Have an account?
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Sign in to track your giving history and access saved payment methods
+                        </p>
+                        <Link href={signInUrl}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mt-3 border-primary/50 text-primary hover:bg-primary/10"
+                          >
+                            <LogIn className="w-4 h-4 mr-1.5" />
+                            Sign In to Your Account
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Signed-in indicator for authenticated users with member profile */}
+                {isUserAuthenticated && memberProfile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border-2 border-green-500/30 bg-gradient-to-r from-green-50 to-emerald-50 p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                        <UserCheck className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+                          Signed in as {memberProfile.full_name}
+                          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                            Member
+                          </span>
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          This donation will be recorded in your giving history
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Signed-in but no member profile linked */}
+                {isUserAuthenticated && !memberProfile && !isLoadingMember && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          Signed in
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Your email has been pre-filled. Contact your church to link your member profile for giving history.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {isLoadingMember && (
+                  <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Loading your profile...
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -693,6 +892,93 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                   </p>
                 </div>
 
+                {/* Saved Payment Methods Section */}
+                {hasMemberWithPaymentMethods && savedPaymentMethods.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium text-gray-700">Your Saved Methods</span>
+                    </div>
+                    <div className="space-y-2">
+                      {savedPaymentMethods.map((savedMethod) => (
+                        <motion.button
+                          key={savedMethod.id}
+                          type="button"
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          className={cn(
+                            'w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left',
+                            useSavedMethod && selectedSavedMethod?.id === savedMethod.id
+                              ? 'border-primary bg-gradient-to-r from-primary/10 to-green-400/10 shadow-lg shadow-primary/20'
+                              : 'border-border hover:border-primary/50 hover:shadow-md'
+                          )}
+                          onClick={() => {
+                            setUseSavedMethod(true);
+                            setSelectedSavedMethod(savedMethod);
+                          }}
+                        >
+                          <div
+                            className={cn(
+                              'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300',
+                              useSavedMethod && selectedSavedMethod?.id === savedMethod.id
+                                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                : 'bg-gray-100 text-gray-500'
+                            )}
+                          >
+                            {savedMethod.payment_type === 'card' && <CreditCard className="h-5 w-5" />}
+                            {savedMethod.payment_type === 'ewallet' && <Smartphone className="h-5 w-5" />}
+                            {savedMethod.payment_type === 'bank_transfer' && <Building2 className="h-5 w-5" />}
+                            {savedMethod.payment_type === 'direct_debit' && <Building2 className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-gray-900 truncate">
+                                {savedMethod.nickname || savedMethod.display_name}
+                              </p>
+                              {savedMethod.is_default && (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {savedMethod.channel_code?.replace(/_/g, ' ') || savedMethod.payment_type}
+                              {savedMethod.masked_account && ` - ${savedMethod.masked_account}`}
+                            </p>
+                          </div>
+                          <div
+                            className={cn(
+                              'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300',
+                              useSavedMethod && selectedSavedMethod?.id === savedMethod.id
+                                ? 'border-primary bg-primary'
+                                : 'border-gray-300'
+                            )}
+                          >
+                            {useSavedMethod && selectedSavedMethod?.id === savedMethod.id && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="w-2.5 h-2.5 rounded-full bg-white"
+                              />
+                            )}
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="flex-1 h-px bg-gray-200" />
+                      <span className="text-xs text-muted-foreground">or use a new method</span>
+                      <div className="flex-1 h-px bg-gray-200" />
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Payment Method Selection */}
                 <div className="space-y-3">
                   {PAYMENT_METHODS.map((method, index) => (
@@ -706,11 +992,13 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                       whileTap={{ scale: 0.98 }}
                       className={cn(
                         'w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left',
-                        watchPaymentMethod === method.type
+                        !useSavedMethod && watchPaymentMethod === method.type
                           ? 'border-primary bg-gradient-to-r from-primary/10 to-green-400/10 shadow-lg shadow-primary/20'
                           : 'border-border hover:border-primary/50 hover:shadow-md'
                       )}
                       onClick={() => {
+                        setUseSavedMethod(false);
+                        setSelectedSavedMethod(null);
                         form.setValue('payment_method_type', method.type);
                         if (method.channels && method.channels.length > 0) {
                           form.setValue('channel_code', method.channels[0].code);
@@ -722,7 +1010,7 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                       <div
                         className={cn(
                           'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300',
-                          watchPaymentMethod === method.type
+                          !useSavedMethod && watchPaymentMethod === method.type
                             ? 'bg-primary text-white shadow-lg shadow-primary/30'
                             : 'bg-gray-100 text-gray-500'
                         )}
@@ -740,12 +1028,12 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                       <div
                         className={cn(
                           'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300',
-                          watchPaymentMethod === method.type
+                          !useSavedMethod && watchPaymentMethod === method.type
                             ? 'border-primary bg-primary'
                             : 'border-gray-300'
                         )}
                       >
-                        {watchPaymentMethod === method.type && (
+                        {!useSavedMethod && watchPaymentMethod === method.type && (
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -757,9 +1045,9 @@ export function DonationForm({ tenantToken, churchName, onSuccess }: DonationFor
                   ))}
                 </div>
 
-                {/* E-Wallet Channel Selection */}
+                {/* E-Wallet Channel Selection (only shown when not using saved method) */}
                 <AnimatePresence>
-                  {selectedPaymentMethod?.channels && (
+                  {!useSavedMethod && selectedPaymentMethod?.channels && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}

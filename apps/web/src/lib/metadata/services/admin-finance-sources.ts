@@ -4,7 +4,7 @@ import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { FinancialSourceService } from '@/services/FinancialSourceService';
 import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
-import type { FinancialSource, SourceType } from '@/models/financialSource.model';
+import { type FinancialSource, type SourceType, PH_BANK_CHANNELS } from '@/models/financialSource.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 
@@ -422,6 +422,80 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
     });
   }
 
+  // Add payout configuration fields (visible only when sourceType is 'online')
+  const onlinePaymentCondition = { field: 'sourceType', equals: 'online' };
+
+  fields.push(
+    // Bank/wallet selection
+    {
+      name: 'xenditChannelCode',
+      label: 'Payout bank/wallet',
+      type: 'select',
+      colSpan: 'half',
+      placeholder: 'Select bank or wallet',
+      helperText: 'Where donation disbursements will be sent',
+      options: PH_BANK_CHANNELS.map((bank) => ({
+        value: bank.code,
+        label: bank.name,
+      })),
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Account holder name
+    {
+      name: 'bankAccountHolderName',
+      label: 'Account holder name',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., Juan Dela Cruz',
+      helperText: 'Must match the name on your bank account exactly',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Account number for payout (different from source account number)
+    {
+      name: 'payoutAccountNumber',
+      label: 'Payout account number',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'Bank account number',
+      helperText: 'Account number for receiving disbursements (encrypted)',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Disbursement schedule
+    {
+      name: 'disbursementSchedule',
+      label: 'Disbursement schedule',
+      type: 'select',
+      colSpan: 'half',
+      helperText: 'How often to automatically disburse donations',
+      options: [
+        { value: 'manual', label: 'Manual' },
+        { value: 'daily', label: 'Daily' },
+        { value: 'weekly', label: 'Weekly' },
+        { value: 'monthly', label: 'Monthly' },
+      ],
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Minimum disbursement amount
+    {
+      name: 'disbursementMinimumAmount',
+      label: 'Minimum amount (PHP)',
+      type: 'number',
+      colSpan: 'half',
+      placeholder: '1000',
+      helperText: 'Minimum balance before automatic disbursement',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Donation destination toggle
+    {
+      name: 'isDonationDestination',
+      label: 'Mark as donation destination',
+      type: 'toggle',
+      colSpan: 'half',
+      helperText: 'Only one source can be the donation destination for disbursements',
+      visibleWhen: onlinePaymentCondition,
+    }
+  );
+
   return {
     fields,
     values: {
@@ -433,11 +507,47 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
       createAssetAccount: !sourceId, // Default to true for new sources
       description: source.description || '',
       linkedAccount: linkedAccountDisplay,
+      // Payout configuration values
+      xenditChannelCode: source.xendit_channel_code || '',
+      bankAccountHolderName: source.bank_account_holder_name || '',
+      payoutAccountNumber: '', // Never pre-fill - requires re-entry for security
+      disbursementSchedule: source.disbursement_schedule || 'manual',
+      disbursementMinimumAmount: source.disbursement_minimum_amount || 1000,
+      isDonationDestination: source.is_donation_destination ?? false,
     },
     validation: {
       name: { required: true, minLength: 1 },
       sourceType: { required: true },
     },
+  };
+};
+
+const resolveSourceManagePayoutConfig: ServiceDataSourceHandler = async (request) => {
+  const sourceId = request.params?.sourceId as string;
+
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  if (!sourceId) {
+    // New source - no payout config yet
+    return {
+      sourceId: null,
+      sourceType: null,
+      tenantId: tenant.id,
+    };
+  }
+
+  const source = await sourceService.findById(sourceId);
+
+  return {
+    sourceId: source?.id || null,
+    sourceType: source?.source_type || null,
+    tenantId: tenant.id,
   };
 };
 
@@ -687,13 +797,25 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
       throw new Error('No tenant context available');
     }
 
+    const sourceType = values.sourceType as SourceType;
+    const isOnlinePayment = sourceType === 'online';
+
     const sourceData: Partial<FinancialSource> = {
       name: values.name as string,
-      source_type: values.sourceType as SourceType,
+      source_type: sourceType,
       account_number: values.accountNumber ? (values.accountNumber as string) : null,
       is_active: values.isActive === true || values.isActive === 'true',
       description: values.description ? (values.description as string) : null,
     };
+
+    // Add payout configuration fields for online payment sources
+    if (isOnlinePayment) {
+      sourceData.xendit_channel_code = values.xenditChannelCode ? (values.xenditChannelCode as string) : null;
+      sourceData.bank_account_holder_name = values.bankAccountHolderName ? (values.bankAccountHolderName as string) : null;
+      sourceData.disbursement_schedule = values.disbursementSchedule ? (values.disbursementSchedule as 'manual' | 'daily' | 'weekly' | 'monthly') : null;
+      sourceData.disbursement_minimum_amount = values.disbursementMinimumAmount ? Number(values.disbursementMinimumAmount) : null;
+      sourceData.is_donation_destination = values.isDonationDestination === true || values.isDonationDestination === 'true';
+    }
 
     const createAssetAccount = values.createAssetAccount === true || values.createAssetAccount === 'true';
 
@@ -713,6 +835,22 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
       });
     } else {
       source = await sourceService.create(sourceData);
+    }
+
+    // Handle encrypted bank account number for online payment sources
+    if (isOnlinePayment && values.payoutAccountNumber) {
+      const payoutAccountNumber = values.payoutAccountNumber as string;
+      if (payoutAccountNumber.trim()) {
+        // Update payout configuration with encrypted account number
+        await sourceService.updatePayoutConfiguration(source.id, tenant.id, {
+          xendit_channel_code: values.xenditChannelCode as string,
+          bank_account_holder_name: values.bankAccountHolderName as string,
+          bank_account_number: payoutAccountNumber, // Will be encrypted by the service
+          disbursement_schedule: (values.disbursementSchedule as 'manual' | 'daily' | 'weekly' | 'monthly') || 'manual',
+          disbursement_minimum_amount: Number(values.disbursementMinimumAmount) || 1000,
+          is_donation_destination: values.isDonationDestination === true || values.isDonationDestination === 'true',
+        });
+      }
     }
 
     console.log('[saveSource] Source saved:', source.id);
@@ -779,6 +917,7 @@ export const adminFinanceSourcesHandlers: Record<string, ServiceDataSourceHandle
   // Manage page handlers
   'admin-finance.sources.manage.header': resolveSourceManageHeader,
   'admin-finance.sources.manage.form': resolveSourceManageForm,
+  'admin-finance.sources.manage.payoutConfig': resolveSourceManagePayoutConfig,
   // Action handlers
   'admin-finance.sources.save': saveSource,
   'admin-finance.sources.delete': deleteSource,

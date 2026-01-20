@@ -30,6 +30,7 @@ export const runtime = 'nodejs';
  * - anonymous: boolean (optional) - Hide donor name
  * - notes: string (optional) - Donation notes
  * - terms_accepted: boolean (required) - Donor accepted terms and conditions
+ * - member_id: string (optional) - Member ID for authenticated donors (links donation to their account)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -106,9 +107,12 @@ export async function POST(request: NextRequest) {
       notes: donationData.notes,
       terms_accepted: donationData.terms_accepted,
       terms_version: donationData.terms_version || 'v1.0',
+      // Include member_id if provided (for authenticated donors)
+      member_id: donationData.member_id,
     };
 
-    const result = await donationService.createDonation(createDto, tenantId);
+    // Use createPublicDonation which uses service role to bypass RLS for unauthenticated users
+    const result = await donationService.createPublicDonation(createDto, tenantId);
 
     return NextResponse.json({
       success: true,

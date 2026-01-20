@@ -11,6 +11,12 @@ export type DonationStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'expir
 // Recurring frequency options
 export type RecurringFrequency = 'weekly' | 'monthly' | 'quarterly' | 'annually';
 
+// Recurring donation status
+export type RecurringStatus = 'active' | 'paused' | 'cancelled' | 'completed';
+
+// Recurring charge status
+export type RecurringChargeStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'skipped';
+
 // Donation source (how the donation was created)
 export type DonationSource = 'online' | 'kiosk' | 'import' | 'manual' | 'recurring';
 
@@ -77,6 +83,13 @@ export interface Donation extends BaseModel {
   recurring_next_date: string | null;
   recurring_end_date: string | null;
   recurring_parent_id: string | null;
+
+  // Recurring Donation Status (added for Phase 4)
+  recurring_status: RecurringStatus | null;
+  recurring_paused_at: string | null;
+  recurring_cancelled_at: string | null;
+  recurring_failure_count: number;
+  recurring_last_charge_at: string | null;
 
   // Financial Transaction Link
   financial_transaction_header_id: string | null;
@@ -168,4 +181,94 @@ export interface DonationFeeConfig {
   platform_fee_fixed: number;       // e.g., 10 for PHP 10
   platform_fee_min?: number;        // Minimum platform fee
   platform_fee_max?: number;        // Maximum platform fee (cap)
+}
+
+/**
+ * Recurring charge history record
+ * Tracks all charge attempts for recurring donations
+ */
+export interface RecurringChargeHistory {
+  id: string;
+  tenant_id: string;
+  recurring_donation_id: string;
+  child_donation_id: string | null;
+  attempt_number: number;
+  scheduled_date: string;
+  attempted_at: string;
+  amount: number;
+  currency: string;
+  status: RecurringChargeStatus;
+  xendit_payment_request_id: string | null;
+  xendit_payment_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  retry_scheduled_at: string | null;
+  max_retries: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * DTO for creating a recurring charge history record
+ */
+export interface CreateRecurringChargeHistoryDto {
+  tenant_id: string;
+  recurring_donation_id: string;
+  child_donation_id?: string;
+  attempt_number: number;
+  scheduled_date: string;
+  amount: number;
+  currency: string;
+  status: RecurringChargeStatus;
+  xendit_payment_request_id?: string;
+  xendit_payment_id?: string;
+  error_code?: string;
+  error_message?: string;
+  retry_scheduled_at?: string;
+}
+
+/**
+ * Result of processing recurring donations
+ */
+export interface ProcessRecurringDonationsResult {
+  tenant_id: string;
+  process_date: string;
+  total_processed: number;
+  successful: number;
+  failed: number;
+  skipped: number;
+  results: RecurringChargeResult[];
+}
+
+/**
+ * Result of a single recurring charge attempt
+ */
+export interface RecurringChargeResult {
+  recurring_donation_id: string;
+  child_donation_id: string | null;
+  status: 'succeeded' | 'failed' | 'skipped';
+  amount: number;
+  currency: string;
+  error_code?: string;
+  error_message?: string;
+}
+
+/**
+ * Recurring donation summary for display
+ */
+export interface RecurringDonationSummary {
+  id: string;
+  amount: number;
+  currency: string;
+  frequency: RecurringFrequency;
+  status: RecurringStatus;
+  next_charge_date: string | null;
+  last_charge_date: string | null;
+  failure_count: number;
+  category_name: string | null;
+  fund_name: string | null;
+  campaign_name: string | null;
+  created_at: string;
+  total_charges: number;
+  total_amount_donated: number;
 }

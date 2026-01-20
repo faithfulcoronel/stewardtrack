@@ -206,6 +206,14 @@ const resolveDashboardQuickLinks: ServiceDataSourceHandler = async (_request) =>
         badge: 'Budgets',
         stat: 'Budget tracking',
       },
+      {
+        id: 'link-online-donations',
+        title: 'Online donations',
+        description: 'Manage online donations and disbursements.',
+        href: '/admin/finance/donations',
+        badge: 'Donations',
+        stat: 'Online giving',
+      },
     ],
     actions: [
       {
