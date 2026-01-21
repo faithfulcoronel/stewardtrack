@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PageDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Metadata>
+    <Module>admin-ai</Module>
+    <Route>assistant</Route>
+    <Version>1.0.0</Version>
+    <Title>AI Assistant</Title>
+    <Description>Chat with StewardTrack AI Assistant for help with members, finances, events, and more</Description>
+    <RequiresFeature>ai_assistant</RequiresFeature>
+  </Metadata>
+
+  <Layout>
+    <Template>full-width</Template>
+    <MaxWidth>none</MaxWidth>
+  </Layout>
+
+  <Regions>
+    <!-- Main Chat Region -->
+    <Region id="main-chat" order="1">
+      <Component id="ai-chat-container" type="AIChat">
+        <Props>
+          <Prop name="title" kind="static" contract="AI Assistant"/>
+          <Prop name="subtitle" kind="static" contract="Your intelligent church management assistant"/>
+          <Prop name="placeholder" kind="static" contract="Ask me anything about members, finances, events..."/>
+          <Prop name="welcomeMessages" kind="static" contract='[
+            "Who has a birthday this month?",
+            "Show me financial categories",
+            "Find member John Smith",
+            "Create a new member",
+            "What anniversaries are coming up?"
+          ]'/>
+        </Props>
+        <Metadata>
+          <RoleVisibility>
+            <Role>tenant_admin</Role>
+            <Role>staff</Role>
+            <Role>volunteer</Role>
+          </RoleVisibility>
+        </Metadata>
+      </Component>
+    </Region>
+  </Regions>
+
+  <DataSources>
+    <!-- No data sources needed - chat is interactive -->
+  </DataSources>
+
+  <Actions>
+    <!-- No actions needed -->
+  </Actions>
+</PageDefinition>

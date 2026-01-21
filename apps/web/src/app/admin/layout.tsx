@@ -85,6 +85,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
   {
     label: "Administration",
     items: [
+      { title: "AI Assistant", href: "/admin/ai-assistant", icon: "aiAssistant" },
       { title: "Security", href: "/admin/security", icon: "security" },
       { title: "Access Control", href: "/admin/security/rbac", icon: "security" },
       { title: "Settings", href: "/admin/settings", icon: "settings" },
@@ -389,6 +390,12 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   '/admin/finance': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
     permission: 'finance:view',
+  },
+
+  // Administration - AI Assistant
+  '/admin/ai-assistant': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    // Feature flag checked at page level via metadata RequiresFeature
   },
 
   // Administration - Security
