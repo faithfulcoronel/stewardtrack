@@ -26,6 +26,7 @@ interface IAuthAdapter {
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   deleteUser(userId: string): Promise<{ error: AuthError | null }>;
   getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }>;
+  confirmUserEmail(userId: string): Promise<{ error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -116,6 +117,19 @@ export class AuthAdapter implements IAuthAdapter {
   async getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }> {
     const supabase = await this.getServiceClient();
     return supabase.auth.admin.getUserById(userId);
+  }
+
+  /**
+   * Confirm a user's email address using admin API
+   * This is used after email verification to mark the user's email as confirmed.
+   * Uses service role key to bypass normal email confirmation flow.
+   */
+  async confirmUserEmail(userId: string): Promise<{ error: AuthError | null }> {
+    const supabase = await this.getServiceClient();
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      email_confirm: true,
+    });
+    return { error };
   }
 
   async searchPublicTenants(query: string) {

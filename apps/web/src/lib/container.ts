@@ -21,6 +21,9 @@ import { PermissionDeploymentService } from '@/services/PermissionDeploymentServ
 import { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
 import { PublicMemberRegistrationService } from '@/services/PublicMemberRegistrationService';
+import { EmailVerificationService } from '@/services/EmailVerificationService';
+import { PendingRegistrationAdapter, type IPendingRegistrationAdapter } from '@/adapters/pendingRegistration.adapter';
+import { PendingRegistrationRepository, type IPendingRegistrationRepository } from '@/repositories/pendingRegistration.repository';
 import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
@@ -397,6 +400,22 @@ container
 container
   .bind<PublicMemberRegistrationService>(TYPES.PublicMemberRegistrationService)
   .to(PublicMemberRegistrationService)
+  .inRequestScope();
+
+// ==================== EMAIL VERIFICATION SERVICE ====================
+container
+  .bind<IPendingRegistrationAdapter>(TYPES.IPendingRegistrationAdapter)
+  .to(PendingRegistrationAdapter)
+  .inRequestScope();
+
+container
+  .bind<IPendingRegistrationRepository>(TYPES.IPendingRegistrationRepository)
+  .to(PendingRegistrationRepository)
+  .inRequestScope();
+
+container
+  .bind<EmailVerificationService>(TYPES.EmailVerificationService)
+  .to(EmailVerificationService)
   .inRequestScope();
 
 container

@@ -15,6 +15,7 @@ import {
   Settings,
   ArrowRight,
   RefreshCcw,
+  Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -78,6 +79,48 @@ const REGISTRATION_STEPS: RegistrationStep[] = [
   },
 ];
 
+/**
+ * Steps shown when coming from email verification
+ * (provisioning already completed by verify-email API)
+ */
+const VERIFIED_REGISTRATION_STEPS: RegistrationStep[] = [
+  {
+    id: 'email_verified',
+    label: 'Email Verified',
+    description: 'Your email has been confirmed',
+    icon: Mail,
+    estimatedSeconds: 0,
+  },
+  {
+    id: 'tenant',
+    label: 'Organization Created',
+    description: 'Your church workspace is ready',
+    icon: Building2,
+    estimatedSeconds: 0,
+  },
+  {
+    id: 'encryption',
+    label: 'Data Secured',
+    description: 'Encryption keys generated',
+    icon: Key,
+    estimatedSeconds: 0,
+  },
+  {
+    id: 'features',
+    label: 'Features Activated',
+    description: 'Your plan features are ready',
+    icon: Settings,
+    estimatedSeconds: 0,
+  },
+  {
+    id: 'roles',
+    label: 'Access Configured',
+    description: 'User roles and permissions set up',
+    icon: Users,
+    estimatedSeconds: 0,
+  },
+];
+
 // Calculate total estimated time
 const TOTAL_ESTIMATED_SECONDS = REGISTRATION_STEPS.reduce((sum, step) => sum + step.estimatedSeconds, 0);
 
@@ -95,21 +138,52 @@ function RegistrationProgressContent() {
   // Get registration data from URL params (base64 encoded)
   const encodedData = searchParams.get('data');
 
+  // Check if coming from email verification
+  const isVerified = searchParams.get('verified') === 'true';
+  const verifiedTenantId = searchParams.get('tenantId');
+  const verifiedSubdomain = searchParams.get('subdomain');
+
+  // Get offering type flags from URL params (for verified flow)
+  const verifiedOfferingId = searchParams.get('offeringId');
+  const verifiedIsTrial = searchParams.get('isTrial') === 'true';
+  const verifiedIsFree = searchParams.get('isFree') === 'true';
+  const verifiedPriceIsZero = searchParams.get('priceIsZero') === 'true';
+
+  // Get user data from URL params (for verified flow checkout)
+  const verifiedEmail = searchParams.get('email');
+  const verifiedFirstName = searchParams.get('firstName');
+  const verifiedLastName = searchParams.get('lastName');
+
+  // Get coupon data from URL params (for verified flow checkout)
+  const verifiedCouponCode = searchParams.get('couponCode');
+  const verifiedCouponDiscountId = searchParams.get('couponDiscountId');
+  const verifiedCouponDurationBillingCycles = searchParams.get('couponDurationBillingCycles');
+
+  // Use appropriate steps based on flow
+  const activeSteps = isVerified ? VERIFIED_REGISTRATION_STEPS : REGISTRATION_STEPS;
+
   const [stepStates, setStepStates] = useState<Record<string, StepState>>(() => {
     const initial: Record<string, StepState> = {};
-    REGISTRATION_STEPS.forEach((step) => {
-      initial[step.id] = { status: 'pending' };
-    });
+    // For verified flow, all steps are already completed
+    if (isVerified) {
+      VERIFIED_REGISTRATION_STEPS.forEach((step) => {
+        initial[step.id] = { status: 'completed' };
+      });
+    } else {
+      REGISTRATION_STEPS.forEach((step) => {
+        initial[step.id] = { status: 'pending' };
+      });
+    }
     return initial;
   });
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [overallStatus, setOverallStatus] = useState<'processing' | 'success' | 'error'>('processing');
+  const [currentStepIndex, setCurrentStepIndex] = useState(isVerified ? VERIFIED_REGISTRATION_STEPS.length : 0);
+  const [overallStatus, setOverallStatus] = useState<'processing' | 'success' | 'error'>(isVerified ? 'success' : 'processing');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [registrationResult, setRegistrationResult] = useState<{
     userId: string;
     tenantId: string;
     subdomain: string;
-  } | null>(null);
+  } | null>(isVerified && verifiedTenantId ? { userId: '', tenantId: verifiedTenantId, subdomain: verifiedSubdomain || '' } : null);
   const [registrationData, setRegistrationData] = useState<any>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(TOTAL_ESTIMATED_SECONDS);
@@ -162,8 +236,49 @@ function RegistrationProgressContent() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Decode registration data on mount
+  // Handle verified flow - auto-redirect based on offering type
   useEffect(() => {
+    if (isVerified && verifiedTenantId) {
+      console.log('[Processing] Verified flow - registration already complete');
+
+      // Determine if it's a free/trial plan
+      const isFreeOrTrial = verifiedIsTrial || verifiedIsFree || verifiedPriceIsZero;
+
+      // Auto-redirect after showing success briefly
+      const timer = setTimeout(() => {
+        if (isFreeOrTrial) {
+          // Free/trial plans go directly to onboarding
+          router.push('/onboarding');
+        } else {
+          // Paid plans go to checkout
+          const checkoutParams = new URLSearchParams({
+            tenant_id: verifiedTenantId,
+            ...(verifiedOfferingId && { offering_id: verifiedOfferingId }),
+            ...(verifiedEmail && { email: verifiedEmail }),
+            name: `${verifiedFirstName || ''} ${verifiedLastName || ''}`.trim(),
+          });
+          // Include coupon information if present
+          if (verifiedCouponCode) {
+            checkoutParams.set('coupon_code', verifiedCouponCode);
+          }
+          if (verifiedCouponDiscountId) {
+            checkoutParams.set('coupon_discount_id', verifiedCouponDiscountId);
+          }
+          if (verifiedCouponDurationBillingCycles) {
+            checkoutParams.set('coupon_duration_billing_cycles', verifiedCouponDurationBillingCycles);
+          }
+          router.push(`/signup/checkout?${checkoutParams.toString()}`);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVerified, verifiedTenantId, verifiedIsTrial, verifiedIsFree, verifiedPriceIsZero, verifiedOfferingId, verifiedEmail, verifiedFirstName, verifiedLastName, verifiedCouponCode, verifiedCouponDiscountId, verifiedCouponDurationBillingCycles, router]);
+
+  // Decode registration data on mount (only for non-verified flow)
+  useEffect(() => {
+    // Skip for verified flow
+    if (isVerified) return;
+
     console.log('[Processing] Page loaded, encodedData:', encodedData ? 'present' : 'missing');
 
     if (encodedData) {
@@ -186,7 +301,7 @@ function RegistrationProgressContent() {
       setOverallStatus('error');
       setTimeout(() => router.push('/signup'), 2000);
     }
-  }, [encodedData, router]);
+  }, [encodedData, router, isVerified]);
 
   /**
    * Update step state with animation timing
@@ -485,7 +600,7 @@ function RegistrationProgressContent() {
                 width:
                   overallStatus === 'success'
                     ? '100%'
-                    : `${((currentStepIndex + 1) / REGISTRATION_STEPS.length) * 100}%`,
+                    : `${((currentStepIndex + 1) / activeSteps.length) * 100}%`,
               }}
               transition={{ duration: 0.5 }}
             />
@@ -494,7 +609,7 @@ function RegistrationProgressContent() {
           {/* Steps List */}
           <div className="p-6 space-y-4">
             <AnimatePresence mode="popLayout">
-              {REGISTRATION_STEPS.map((step, index) => {
+              {activeSteps.map((step, index) => {
                 const state = stepStates[step.id];
                 const isActive = index === currentStepIndex && overallStatus === 'processing';
 
@@ -568,6 +683,33 @@ function RegistrationProgressContent() {
                 </div>
                 <Button
                   onClick={() => {
+                    // For verified flow, use URL params for redirect logic
+                    if (isVerified) {
+                      const isFreeOrTrial = verifiedIsTrial || verifiedIsFree || verifiedPriceIsZero;
+                      if (isFreeOrTrial) {
+                        router.push('/onboarding');
+                      } else {
+                        const checkoutParams = new URLSearchParams({
+                          tenant_id: verifiedTenantId || '',
+                          ...(verifiedOfferingId && { offering_id: verifiedOfferingId }),
+                          ...(verifiedEmail && { email: verifiedEmail }),
+                          name: `${verifiedFirstName || ''} ${verifiedLastName || ''}`.trim(),
+                        });
+                        // Include coupon information if present
+                        if (verifiedCouponCode) {
+                          checkoutParams.set('coupon_code', verifiedCouponCode);
+                        }
+                        if (verifiedCouponDiscountId) {
+                          checkoutParams.set('coupon_discount_id', verifiedCouponDiscountId);
+                        }
+                        if (verifiedCouponDurationBillingCycles) {
+                          checkoutParams.set('coupon_duration_billing_cycles', verifiedCouponDurationBillingCycles);
+                        }
+                        router.push(`/signup/checkout?${checkoutParams.toString()}`);
+                      }
+                      return;
+                    }
+                    // For non-verified flow, use registrationData
                     const isFreeOrTrial =
                       registrationData?.isTrial ||
                       registrationData?.isFree ||

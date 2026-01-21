@@ -13,6 +13,7 @@ export interface IAuthRepository {
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   deleteUser(userId: string): Promise<{ error: AuthError | null }>;
   getUserById(userId: string): ReturnType<IAuthAdapter['getUserById']>;
+  confirmUserEmail(userId: string): Promise<{ error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -57,6 +58,10 @@ export class AuthRepository implements IAuthRepository {
 
   getUserById(userId: string) {
     return this.adapter.getUserById(userId);
+  }
+
+  confirmUserEmail(userId: string) {
+    return this.adapter.confirmUserEmail(userId);
   }
 
   searchPublicTenants(query: string) {

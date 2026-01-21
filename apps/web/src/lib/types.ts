@@ -24,6 +24,11 @@ export const TYPES = {
   RegistrationService: Symbol.for('RegistrationService'),
   PublicMemberRegistrationService: Symbol.for('PublicMemberRegistrationService'),
 
+  // Email Verification Service (for registration flow)
+  EmailVerificationService: Symbol.for('EmailVerificationService'),
+  IPendingRegistrationAdapter: Symbol.for('IPendingRegistrationAdapter'),
+  IPendingRegistrationRepository: Symbol.for('IPendingRegistrationRepository'),
+
   // Authorization Service
   AuthorizationService: Symbol.for('AuthorizationService'),
   UserRoleAdapter: Symbol.for('UserRoleAdapter'),

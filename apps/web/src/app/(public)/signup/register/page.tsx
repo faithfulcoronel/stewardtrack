@@ -305,44 +305,54 @@ function RegisterFormContent() {
     setIsRegistering(true);
 
     try {
-      // Check if this is a free/trial offering (no payment required)
-      const isTrial = selectedOffering?.offering_type === 'trial';
-      const isFree = selectedOffering?.offering_type === 'free' ||
-        (selectedOffering?.metadata as any)?.pricing?.is_free;
-
-      // Also check if price is 0
+      // Determine offering type flags for redirect logic after verification
       const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
+      const isTrial = selectedOffering?.offering_type === 'trial';
+      const isFree = selectedOffering?.offering_type === 'free' || (selectedOffering?.metadata as any)?.pricing?.is_free;
       const priceIsZero = !priceInfo || priceInfo.price === 0;
 
-      // Prepare registration data for the processing page
-      const registrationData = {
-        ...formData,
-        offeringId,
-        isTrial,
-        isFree,
-        priceIsZero,
-        turnstileToken,
-        // Include coupon code if applied
-        couponCode: couponDiscount ? couponCode : null,
-        couponDiscountId: couponDiscount?.discount?.discount_id || null,
-        couponDiscountAmount: couponDiscount?.discountAmount || null,
-        couponDiscountedPrice: couponDiscount?.discountedPrice || null,
-        couponDurationBillingCycles: couponDiscount?.durationBillingCycles || null,
-      };
+      // Call the register-init API to create user and send verification email
+      const response = await fetch('/api/auth/register-init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          churchName: formData.churchName,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          offeringId,
+          denomination: formData.denomination,
+          contactNumber: formData.contactNumber,
+          address: formData.address,
+          turnstileToken,
+          // Include offering type flags
+          isTrial,
+          isFree,
+          priceIsZero,
+          // Include coupon code if applied
+          couponCode: couponDiscount ? couponCode : null,
+          couponDiscountId: couponDiscount?.discount?.discount_id || null,
+          couponDiscountAmount: couponDiscount?.discountAmount || null,
+          couponDiscountedPrice: couponDiscount?.discountedPrice || null,
+          couponDurationBillingCycles: couponDiscount?.durationBillingCycles || null,
+        }),
+      });
 
-      // Encode registration data as base64 for URL-safe transmission
-      // Use TextEncoder for proper UTF-8 support (handles special characters like accents)
-      const jsonString = JSON.stringify(registrationData);
-      console.log('[Register] Registration data prepared, size:', jsonString.length);
+      const result = await response.json();
 
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(jsonString);
-      const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-      const encodedData = btoa(binaryString);
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
+      }
 
-      console.log('[Register] Redirecting to processing page, encoded size:', encodedData.length);
-      // Redirect to processing page which will handle the registration
-      window.location.href = `/signup/register/processing?data=${encodedData}`;
+      console.log('[Register] Registration initiated successfully, redirecting to verify-email page');
+
+      // Redirect to verification pending page
+      const verifyParams = new URLSearchParams({
+        email: formData.email,
+        church: formData.churchName,
+      });
+      router.push(`/signup/verify-email?${verifyParams.toString()}`);
     } catch (error) {
       console.error('[Register] Registration error:', error);
       toast.error(`Failed to process registration: ${error instanceof Error ? error.message : 'Unknown error'}`);

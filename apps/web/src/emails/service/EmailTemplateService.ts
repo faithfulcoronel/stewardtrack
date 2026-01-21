@@ -18,6 +18,7 @@ import { NotificationEmail } from '../templates/NotificationEmail';
 import { WelcomeEmail } from '../templates/WelcomeEmail';
 import { InviteEmail } from '../templates/InviteEmail';
 import { PasswordResetEmail } from '../templates/PasswordResetEmail';
+import { EmailVerificationEmail } from '../templates/EmailVerificationEmail';
 
 // Member Templates
 import { MemberJoinedEmail } from '../templates/MemberJoinedEmail';
@@ -126,6 +127,14 @@ export interface InviteEmailData {
 export interface PasswordResetEmailData {
   recipientName?: string;
   resetUrl: string;
+  expiresIn?: string;
+  baseUrl?: string;
+}
+
+export interface EmailVerificationEmailData {
+  recipientName: string;
+  verificationUrl: string;
+  churchName: string;
   expiresIn?: string;
   baseUrl?: string;
 }
@@ -631,6 +640,25 @@ export async function renderPasswordResetEmail(
   const element = React.createElement(PasswordResetEmail, {
     recipientName: data.recipientName || options.recipientName,
     resetUrl: data.resetUrl,
+    expiresIn: data.expiresIn,
+    baseUrl: data.baseUrl || options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
+}
+
+/**
+ * Renders an email verification email template to HTML.
+ * Sent to new users during registration to verify their email address.
+ */
+export async function renderEmailVerificationEmail(
+  data: EmailVerificationEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(EmailVerificationEmail, {
+    recipientName: data.recipientName,
+    verificationUrl: data.verificationUrl,
+    churchName: data.churchName,
     expiresIn: data.expiresIn,
     baseUrl: data.baseUrl || options.baseUrl || DEFAULT_BASE_URL,
   });
@@ -1529,6 +1557,7 @@ export type EmailTemplateType =
   | 'welcome'
   | 'invite'
   | 'password-reset'
+  | 'email-verification'
   // Member
   | 'member-joined'
   | 'member-updated'
@@ -1598,6 +1627,8 @@ export async function renderEmailByType(
       return await renderInviteEmail(data as unknown as InviteEmailData, options);
     case 'password-reset':
       return await renderPasswordResetEmail(data as unknown as PasswordResetEmailData, options);
+    case 'email-verification':
+      return await renderEmailVerificationEmail(data as unknown as EmailVerificationEmailData, options);
 
     // Member
     case 'member-joined':

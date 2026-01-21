@@ -10,8 +10,10 @@ import { useTheme } from "./theme-provider";
 import { DEFAULT_THEME_ID } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
-// Pages where theme floater should be hidden
-const HIDDEN_PATHS = ["/", "/login", "/signup", "/signup/register"];
+// Public pages where theme floater should be hidden
+// Public pages should always use default light theme
+const HIDDEN_PATHS = ["/", "/login", "/terms", "/privacy", "/forgot-password"];
+const HIDDEN_PATH_PREFIXES = ["/signup", "/donate", "/join", "/auth"];
 
 const modes = [
   { id: "light" as const, label: "Light", icon: Sun },
@@ -169,10 +171,11 @@ export function ThemeFloater() {
   const activeMode = mounted ? mode : "system";
   const resolved = mounted ? resolvedMode : "light";
 
-  // Hide on public/landing pages
-  const isHiddenPath = HIDDEN_PATHS.some(path =>
-    pathname === path || pathname?.startsWith("/signup/")
-  );
+  // Hide on public/landing pages - these use fixed default theme
+  // Also hide until mounted to prevent hydration mismatches
+  const isHiddenPath = !mounted || !pathname ||
+    HIDDEN_PATHS.includes(pathname) ||
+    HIDDEN_PATH_PREFIXES.some(prefix => pathname.startsWith(prefix));
 
   if (isHiddenPath) {
     return null;
