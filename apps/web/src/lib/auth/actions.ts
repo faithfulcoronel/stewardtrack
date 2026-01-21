@@ -21,6 +21,49 @@ export type ForgotPasswordState = {
   success?: boolean;
 };
 
+/**
+ * Verify Cloudflare Turnstile token
+ */
+async function verifyTurnstileToken(token: string): Promise<{ success: boolean; error?: string }> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secretKey) {
+    console.warn('[Auth] TURNSTILE_SECRET_KEY not configured, skipping verification');
+    return { success: true };
+  }
+
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: secretKey,
+        response: token,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      console.error('[Auth] Turnstile verification failed:', result['error-codes']);
+      return {
+        success: false,
+        error: 'Security verification failed. Please try again.'
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Auth] Turnstile verification error:', error);
+    return {
+      success: false,
+      error: 'Security verification failed. Please try again.'
+    };
+  }
+}
+
 export async function signInWithPassword(
   _prevState: SignInState,
   formData: FormData
@@ -28,9 +71,20 @@ export async function signInWithPassword(
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
+  const turnstileToken = formData.get("turnstileToken");
 
   if (typeof email !== "string" || typeof password !== "string") {
     return { error: "Email and password are required." };
+  }
+
+  // Verify Turnstile CAPTCHA token
+  if (typeof turnstileToken !== "string" || !turnstileToken) {
+    return { error: "Please complete the security check." };
+  }
+
+  const turnstileResult = await verifyTurnstileToken(turnstileToken);
+  if (!turnstileResult.success) {
+    return { error: turnstileResult.error || "Security verification failed." };
   }
 
   const authService = container.get<AuthService>(TYPES.AuthService);

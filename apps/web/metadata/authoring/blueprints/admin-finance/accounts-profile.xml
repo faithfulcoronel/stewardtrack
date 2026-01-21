@@ -83,7 +83,7 @@
         <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit account</Label>
-          <Url>/admin/finance/accounts/manage?accountId={{id}}</Url>
+          <Url>/admin/finance/accounts/manage?accountId={{params.accountId}}</Url>
           <Variant>primary</Variant>
         </Config>
       </Action>
