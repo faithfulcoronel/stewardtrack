@@ -85,6 +85,11 @@ export interface MemberInvitationWithMember extends MemberInvitation {
     name: string;
     description?: string;
   };
+  tenant?: {
+    name: string;
+    logo_url?: string;
+    cover_url?: string;
+  };
 }
 
 // For email workflow tracking

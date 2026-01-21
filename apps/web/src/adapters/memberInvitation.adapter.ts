@@ -348,7 +348,8 @@ export class MemberInvitationAdapter
         p_invitation_type: data.invitation_type || 'email',
         p_invited_by: invitedBy,
         p_expires_in_days: data.expires_in_days || 7,
-        p_notes: data.notes
+        p_notes: data.notes,
+        p_assigned_role_id: data.assigned_role_id || null
       });
 
     if (error) {
@@ -365,53 +366,99 @@ export class MemberInvitationAdapter
       };
     }
 
-    // Fetch the created invitation
-    const invitation = await this.fetchById(response.invitation_id);
+    // Fetch the created invitation directly (bypassing buildSecureQuery which may not have tenant context)
+    // We use a direct query here because the context may not be set during onboarding
+    const { data: invitationData, error: fetchError } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', response.invitation_id)
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null)
+      .single();
+
+    if (fetchError) {
+      console.error('[MemberInvitationAdapter] Failed to fetch created invitation:', fetchError);
+      // Return success with minimal data from RPC response
+      return {
+        success: true,
+        invitation: {
+          id: response.invitation_id,
+          token: response.token,
+          expires_at: response.expires_at,
+          assigned_role_id: response.assigned_role_id,
+        } as MemberInvitation
+      };
+    }
+
+    // Decrypt PII fields if needed
+    let invitation = invitationData as MemberInvitation;
+    if (invitation.encrypted_fields && (invitation.encrypted_fields as any[]).length > 0) {
+      try {
+        invitation = await this.encryptionService.decryptFields(
+          invitation,
+          tenantId,
+          this.getPIIFields()
+        );
+      } catch (decryptError) {
+        console.error('[MemberInvitationAdapter] Decryption failed:', decryptError);
+      }
+    }
 
     return {
       success: true,
-      invitation: invitation!
+      invitation
     };
   }
 
   async getInvitationByToken(token: string): Promise<MemberInvitationWithMember | null> {
     const supabase = await this.getSupabaseClient();
 
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select(`
-        *,
-        member:member_id (
-          id,
-          first_name,
-          last_name,
-          email
-        ),
-        invited_by_user:invited_by (
-          id,
-          email,
-          raw_user_meta_data
-        ),
-        assigned_role:assigned_role_id (
-          id,
-          name,
-          description
-        )
-      `)
-      .eq('token', token)
-      .single();
+    // Use RPC function that bypasses RLS - needed because users clicking invitation
+    // links are not authenticated yet and don't have admin role
+    const { data, error } = await supabase.rpc('get_invitation_by_token', {
+      p_token: token
+    });
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
       throw new Error(`Failed to fetch invitation by token: ${error.message}`);
     }
 
+    const result = data as {
+      success: boolean;
+      error?: string;
+      error_code?: string;
+      invitation?: any;
+    };
+
+    if (!result.success) {
+      // Return null for not found, let the caller handle other error codes
+      if (result.error_code === 'NOT_FOUND') {
+        return null;
+      }
+      // For expired or invalid status, we still return the partial data
+      // so the UI can show appropriate messages
+      console.warn(`[MemberInvitationAdapter] Invitation lookup failed: ${result.error}`);
+      return null;
+    }
+
+    const inv = result.invitation;
     return {
-      ...data,
-      member: data.member,
-      assigned_role: data.assigned_role
+      id: inv.id,
+      tenant_id: inv.tenant_id,
+      member_id: inv.member_id,
+      email: inv.email,
+      status: inv.status,
+      invitation_type: inv.invitation_type,
+      expires_at: inv.expires_at,
+      invited_at: inv.invited_at,
+      assigned_role_id: inv.assigned_role_id,
+      member: inv.member,
+      tenant: {
+        name: inv.tenant?.name,
+        logo_url: inv.tenant?.logo_url,
+        cover_url: inv.tenant?.cover_url,
+      },
+      assigned_role: inv.assigned_role
     } as MemberInvitationWithMember;
   }
 

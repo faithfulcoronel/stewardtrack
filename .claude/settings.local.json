@@ -121,7 +121,11 @@
       "WebFetch(domain:developers.xendit.co)",
       "Bash(ren \"C:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\\\\supabase\\\\migrations\\\\20260120100005_add_audit_columns_to_donor_payment_methods.sql\" \"20260120100006_add_audit_columns_to_donor_payment_methods.sql\")",
       "WebFetch(domain:help.xendit.co)",
-      "WebFetch(domain:www.xendit.co)"
+      "WebFetch(domain:www.xendit.co)",
+      "Bash(head:*)",
+      "Bash(Sort-Object Name -Descending)",
+      "Bash(Select-Object -First 10)",
+      "Bash(ForEach-Object { $_Name })"
     ],
     "deny": [],
     "ask": []

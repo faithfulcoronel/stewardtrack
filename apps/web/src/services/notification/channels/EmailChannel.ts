@@ -62,33 +62,74 @@ export class EmailChannel implements IDeliveryChannel {
    * Get email configuration from system settings, with fallback to environment variables
    */
   private async getEmailConfiguration(): Promise<ResolvedEmailConfig | null> {
-    try {
-      // First, try to get configuration from system settings (database)
-      const dbConfig: EmailConfig | null = await this.settingService.getEmailConfig();
+    console.log('[EmailChannel] Getting email configuration...');
 
-      if (dbConfig && dbConfig.apiKey && dbConfig.fromEmail) {
+    // First, try tenant-level configuration
+    try {
+      const tenantConfig: EmailConfig | null = await this.settingService.getEmailConfig();
+      console.log('[EmailChannel] Tenant config result:', {
+        hasConfig: !!tenantConfig,
+        hasApiKey: !!tenantConfig?.apiKey,
+        hasFromEmail: !!tenantConfig?.fromEmail,
+        fromEmail: tenantConfig?.fromEmail,
+      });
+
+      if (tenantConfig && tenantConfig.apiKey && tenantConfig.fromEmail) {
+        console.log('[EmailChannel] Using tenant-level configuration');
         return {
-          apiKey: dbConfig.apiKey,
-          fromEmail: dbConfig.fromEmail,
-          fromName: dbConfig.fromName || undefined,
-          replyTo: dbConfig.replyTo,
+          apiKey: tenantConfig.apiKey,
+          fromEmail: tenantConfig.fromEmail,
+          fromName: tenantConfig.fromName || undefined,
+          replyTo: tenantConfig.replyTo,
         };
       }
-    } catch {
-      // If settings service fails (e.g., no tenant context), fall back to env vars
+    } catch (error) {
+      console.log('[EmailChannel] Tenant config failed:', error);
+    }
+
+    // Second, try system-level configuration (tenant_id = NULL)
+    try {
+      const systemConfig: EmailConfig | null = await this.settingService.getSystemEmailConfig();
+      console.log('[EmailChannel] System config result:', {
+        hasConfig: !!systemConfig,
+        hasApiKey: !!systemConfig?.apiKey,
+        hasFromEmail: !!systemConfig?.fromEmail,
+        fromEmail: systemConfig?.fromEmail,
+      });
+
+      if (systemConfig && systemConfig.apiKey && systemConfig.fromEmail) {
+        console.log('[EmailChannel] Using system-level configuration');
+        return {
+          apiKey: systemConfig.apiKey,
+          fromEmail: systemConfig.fromEmail,
+          fromName: systemConfig.fromName || undefined,
+          replyTo: systemConfig.replyTo,
+        };
+      }
+    } catch (error) {
+      console.log('[EmailChannel] System config failed:', error);
     }
 
     // Fallback to environment variables for backward compatibility
     const envApiKey = process.env.RESEND_API_KEY;
     const envFromEmail = process.env.RESEND_FROM_EMAIL;
 
+    console.log('[EmailChannel] Environment variables check:', {
+      hasApiKey: !!envApiKey,
+      apiKeyLength: envApiKey?.length,
+      hasFromEmail: !!envFromEmail,
+      fromEmail: envFromEmail,
+    });
+
     if (envApiKey && envFromEmail) {
+      console.log('[EmailChannel] Using environment variable configuration');
       return {
         apiKey: envApiKey,
         fromEmail: envFromEmail,
       };
     }
 
+    console.warn('[EmailChannel] No email configuration available');
     return null;
   }
 
@@ -98,7 +139,11 @@ export class EmailChannel implements IDeliveryChannel {
   }
 
   async send(message: NotificationMessage): Promise<DeliveryResult> {
+    console.log('[EmailChannel] send() called for message:', message.id);
+    console.log('[EmailChannel] Recipient email:', message.recipient.email);
+
     if (!message.recipient.email) {
+      console.error('[EmailChannel] No recipient email provided');
       return {
         success: false,
         messageId: message.id,
@@ -111,6 +156,7 @@ export class EmailChannel implements IDeliveryChannel {
       const config = await this.getEmailConfiguration();
 
       if (!config) {
+        console.error('[EmailChannel] No email configuration available');
         return {
           success: false,
           messageId: message.id,
@@ -120,9 +166,11 @@ export class EmailChannel implements IDeliveryChannel {
       }
 
       const { apiKey, fromEmail, fromName, replyTo } = config;
+      console.log('[EmailChannel] Config loaded, fromEmail:', fromEmail);
 
       // Build email HTML using React Email templates
       const htmlBody = message.htmlBody || await this.buildDefaultHtml(message);
+      console.log('[EmailChannel] HTML body length:', htmlBody?.length);
 
       // Build the "from" field with optional display name
       const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
@@ -140,6 +188,12 @@ export class EmailChannel implements IDeliveryChannel {
         emailPayload.reply_to = replyTo;
       }
 
+      console.log('[EmailChannel] Sending to Resend API...', {
+        from: fromField,
+        to: message.recipient.email,
+        subject: emailPayload.subject,
+      });
+
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -149,8 +203,11 @@ export class EmailChannel implements IDeliveryChannel {
         body: JSON.stringify(emailPayload),
       });
 
+      console.log('[EmailChannel] Resend API response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('[EmailChannel] Resend API error:', errorText);
         const isRetryable = response.status >= 500 || response.status === 429;
 
         return {
@@ -163,6 +220,7 @@ export class EmailChannel implements IDeliveryChannel {
       }
 
       const result = await response.json();
+      console.log('[EmailChannel] Email sent successfully, provider ID:', result.id);
 
       return {
         success: true,
@@ -171,6 +229,7 @@ export class EmailChannel implements IDeliveryChannel {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error sending email';
+      console.error('[EmailChannel] Exception during send:', error);
       return {
         success: false,
         messageId: message.id,

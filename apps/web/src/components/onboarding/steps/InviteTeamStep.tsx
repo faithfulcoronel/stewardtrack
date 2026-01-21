@@ -77,6 +77,8 @@ interface InvitationCardProps {
 }
 
 function InvitationCard({ invitation, roles, onUpdate, onRemove }: InvitationCardProps) {
+  const selectedRole = roles.find((r) => r.id === invitation.role_id);
+
   return (
     <motion.div
       layout
@@ -91,11 +93,13 @@ function InvitationCard({ invitation, roles, onUpdate, onRemove }: InvitationCar
       )}>
         <CardContent className="p-4">
           <div className="space-y-4">
-            {/* Fields Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* First Name */}
+            {/* Mobile: Stack all fields vertically */}
+            {/* Desktop: Two rows - Name & Email on first, Role & Actions on second */}
+
+            {/* Row 1: Name Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label htmlFor={`first-name-${invitation.id}`} className="text-sm">
+                <Label htmlFor={`first-name-${invitation.id}`} className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   First Name
                 </Label>
                 <Input
@@ -104,14 +108,12 @@ function InvitationCard({ invitation, roles, onUpdate, onRemove }: InvitationCar
                   placeholder="John"
                   value={invitation.first_name}
                   onChange={(e) => onUpdate(invitation.id, 'first_name', e.target.value)}
-                  className="mt-1"
+                  className="mt-1.5 h-10"
                   disabled={invitation.status === 'sent'}
                 />
               </div>
-
-              {/* Last Name */}
               <div>
-                <Label htmlFor={`last-name-${invitation.id}`} className="text-sm">
+                <Label htmlFor={`last-name-${invitation.id}`} className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Last Name
                 </Label>
                 <Input
@@ -120,50 +122,56 @@ function InvitationCard({ invitation, roles, onUpdate, onRemove }: InvitationCar
                   placeholder="Doe"
                   value={invitation.last_name}
                   onChange={(e) => onUpdate(invitation.id, 'last_name', e.target.value)}
-                  className="mt-1"
+                  className="mt-1.5 h-10"
                   disabled={invitation.status === 'sent'}
                 />
               </div>
+            </div>
 
-              {/* Email Input */}
-              <div>
-                <Label htmlFor={`email-${invitation.id}`} className="text-sm">
-                  Email Address
-                </Label>
-                <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id={`email-${invitation.id}`}
-                    type="email"
-                    placeholder="colleague@church.org"
-                    value={invitation.email}
-                    onChange={(e) => onUpdate(invitation.id, 'email', e.target.value)}
-                    className="pl-10"
-                    disabled={invitation.status === 'sent'}
-                  />
-                </div>
+            {/* Row 2: Email */}
+            <div>
+              <Label htmlFor={`email-${invitation.id}`} className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Email Address
+              </Label>
+              <div className="relative mt-1.5">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id={`email-${invitation.id}`}
+                  type="email"
+                  placeholder="colleague@church.org"
+                  value={invitation.email}
+                  onChange={(e) => onUpdate(invitation.id, 'email', e.target.value)}
+                  className="pl-10 h-10"
+                  disabled={invitation.status === 'sent'}
+                />
               </div>
+            </div>
 
-              {/* Role Select */}
-              <div>
-                <Label htmlFor={`role-${invitation.id}`} className="text-sm">
-                  Role
+            {/* Row 3: Role & Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="flex-1">
+                <Label htmlFor={`role-${invitation.id}`} className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Assigned Role
                 </Label>
                 <Select
                   value={invitation.role_id}
                   onValueChange={(value) => onUpdate(invitation.id, 'role_id', value)}
                   disabled={invitation.status === 'sent'}
                 >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select a role" />
+                  <SelectTrigger className="mt-1.5 h-10 w-full">
+                    <SelectValue placeholder="Select a role">
+                      {selectedRole && (
+                        <span className="truncate">{selectedRole.name}</span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]">
                     {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        <div className="flex flex-col">
-                          <span>{role.name}</span>
+                      <SelectItem key={role.id} value={role.id} className="py-2.5">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{role.name}</span>
                           {role.description && (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground line-clamp-1">
                               {role.description}
                             </span>
                           )}
@@ -173,30 +181,31 @@ function InvitationCard({ invitation, roles, onUpdate, onRemove }: InvitationCar
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            {/* Status/Actions - Always right aligned */}
-            <div className="flex justify-end">
-              {invitation.status === 'sent' ? (
-                <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Invited
-                </Badge>
-              ) : invitation.status === 'error' ? (
-                <Badge variant="outline" className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Error
-                </Badge>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemove(invitation.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+              {/* Actions */}
+              <div className="flex items-center justify-end sm:justify-start gap-2 sm:pb-0.5">
+                {invitation.status === 'sent' ? (
+                  <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 h-9 px-3">
+                    <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                    Invited
+                  </Badge>
+                ) : invitation.status === 'error' ? (
+                  <Badge variant="outline" className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 h-9 px-3">
+                    <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
+                    Error
+                  </Badge>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemove(invitation.id)}
+                    className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    title="Remove invitation"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -316,25 +325,57 @@ export function InviteTeamStep({ onComplete, onSkip }: InviteTeamStepProps) {
     setIsSending(true);
 
     try {
-      // This would call the member invitation API with role pre-assignment
-      // For now, we'll simulate success
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch('/api/onboarding/team-invitations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invitations: validInvitations.map((inv) => ({
+            first_name: inv.first_name,
+            last_name: inv.last_name,
+            email: inv.email,
+            role_id: inv.role_id,
+            role_name: inv.role_name,
+          })),
+        }),
+      });
 
-      // Mark invitations as sent
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send invitations');
+      }
+
+      // Update invitation statuses based on API response
       setInvitations((prev) =>
         prev.map((inv) => {
-          if (validInvitations.find((v) => v.id === inv.id)) {
-            return { ...inv, status: 'sent' as const };
+          const result = data.results?.find((r: { email: string; success: boolean }) => r.email === inv.email);
+          if (result) {
+            return { ...inv, status: result.success ? 'sent' as const : 'error' as const };
           }
           return inv;
         })
       );
 
-      toast.success(`${validInvitations.length} invitation(s) sent!`);
+      // Show appropriate message based on results
+      const { summary } = data;
+      if (summary.failed === 0) {
+        toast.success(`${summary.successful} invitation(s) sent successfully!`);
+      } else if (summary.successful > 0) {
+        toast.warning(`${summary.successful} sent, ${summary.failed} failed`);
+      } else {
+        toast.error('Failed to send invitations');
+        return; // Don't proceed if all failed
+      }
+
+      // Show email config warning if not configured
+      if (!data.emailConfigured) {
+        toast.info('Invitations created but email sending is not configured');
+      }
+
       onComplete();
     } catch (error) {
       console.error('Error sending invitations:', error);
-      toast.error('Failed to send invitations');
+      toast.error(error instanceof Error ? error.message : 'Failed to send invitations');
     } finally {
       setIsSending(false);
     }

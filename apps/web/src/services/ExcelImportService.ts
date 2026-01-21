@@ -3,7 +3,6 @@
  *
  * Coordinates the bulk import of data from Excel files during tenant onboarding.
  * Handles:
- * - Members (with membership status)
  * - Membership statuses
  * - Financial sources (with auto-created asset accounts)
  * - Funds (with auto-created equity accounts)
@@ -11,6 +10,8 @@
  * - Expense categories (with auto-created expense accounts)
  * - Budget categories
  * - Opening balances (double-entry journal creation)
+ *
+ * Note: Members are imported separately via the Members module.
  *
  * Also auto-creates Chart of Accounts structure and Fiscal Year when needed.
  */
@@ -288,21 +289,10 @@ export class ExcelImportService {
         errors
       );
 
-      // Step 9: Create members
-      onProgress?.({
-        stage: 'members',
-        current: 0,
-        total: data.members.length,
-        message: 'Creating members...',
-      });
-      summary.membersCreated = await this.createMembers(
-        data.members,
-        statusLookup,
-        effectiveTenantId,
-        errors
-      );
+      // Note: Members are imported separately via the Members module
+      // Step 9 (createMembers) has been removed from onboarding import
 
-      // Step 10: Create opening balances
+      // Step 9: Create opening balances
       onProgress?.({
         stage: 'opening_balances',
         current: 0,

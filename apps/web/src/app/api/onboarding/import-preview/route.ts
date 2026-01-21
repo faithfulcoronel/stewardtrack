@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       validationResult: result.validationResult,
       summary: result.summary,
       data: result.parseResult.data ? {
-        members: result.parseResult.data.members.slice(0, 10), // Preview first 10
+        // Note: Members are not included - they are imported via the Members module
         membershipStatuses: result.parseResult.data.membershipStatuses,
         financialSources: result.parseResult.data.financialSources,
         funds: result.parseResult.data.funds,

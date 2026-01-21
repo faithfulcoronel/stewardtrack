@@ -241,7 +241,7 @@ function parseMembers(worksheet: XLSX.WorkSheet): { data: ParsedMember[]; errors
   const data: ParsedMember[] = [];
   const errors: ParseError[] = [];
 
-  const sheetData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { header: 1 }) as unknown[][];
+  const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   if (sheetData.length === 0) return { data, errors };
 
   const headerRowIdx = findHeaderRow(sheetData);
@@ -274,7 +274,8 @@ function parseMembers(worksheet: XLSX.WorkSheet): { data: ParsedMember[]; errors
       if (field === 'birthdate') {
         member[field] = parseDate(value);
       } else {
-        member[field] = getCellString(value);
+        // Type assertion needed because Partial makes optional fields allow undefined
+        (member as Record<string, string | null>)[field] = getCellString(value);
       }
     }
 
@@ -315,7 +316,7 @@ function parseNameDescriptionSheet<T extends { name: string; description?: strin
   const data: T[] = [];
   const errors: ParseError[] = [];
 
-  const sheetData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { header: 1 }) as unknown[][];
+  const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   if (sheetData.length === 0) return { data, errors };
 
   const headerRowIdx = findHeaderRow(sheetData);
@@ -371,7 +372,7 @@ function parseFunds(worksheet: XLSX.WorkSheet): { data: ParsedFund[]; errors: Pa
   const data: ParsedFund[] = [];
   const errors: ParseError[] = [];
 
-  const sheetData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { header: 1 }) as unknown[][];
+  const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   if (sheetData.length === 0) return { data, errors };
 
   const headerRowIdx = findHeaderRow(sheetData);
@@ -433,7 +434,7 @@ function parseFinancialSources(worksheet: XLSX.WorkSheet): { data: ParsedFinanci
   const data: ParsedFinancialSource[] = [];
   const errors: ParseError[] = [];
 
-  const sheetData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { header: 1 }) as unknown[][];
+  const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   if (sheetData.length === 0) return { data, errors };
 
   const headerRowIdx = findHeaderRow(sheetData);
@@ -503,7 +504,7 @@ function parseOpeningBalances(worksheet: XLSX.WorkSheet): { data: ParsedOpeningB
   const data: ParsedOpeningBalance[] = [];
   const errors: ParseError[] = [];
 
-  const sheetData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { header: 1 }) as unknown[][];
+  const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
   if (sheetData.length === 0) return { data, errors };
 
   const headerRowIdx = findHeaderRow(sheetData);
@@ -691,10 +692,8 @@ export function parseImportFile(buffer: ArrayBuffer | Buffer): ParseResult {
       }
     }
 
-    // Add warnings for empty required sheets
-    if (data.members.length === 0) {
-      warnings.push('No members found in the Members sheet');
-    }
+    // Note: Members are imported separately via the Members module
+    // No warning needed for empty members sheet
 
     return {
       success: errors.length === 0,
