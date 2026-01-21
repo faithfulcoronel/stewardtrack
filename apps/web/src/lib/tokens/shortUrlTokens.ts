@@ -245,3 +245,125 @@ export function getPublicRegistrationUrl(
   const token = encodeTenantToken(tenantId);
   return `${baseUrl}/join/${token}`;
 }
+
+// ============================================================================
+// Team Invite Link (with expiration)
+// ============================================================================
+
+export interface TeamInviteTokenData {
+  tenantId: string;
+  expiresAt: number; // Unix timestamp in milliseconds
+}
+
+/**
+ * Encode a team invite token that includes tenant ID and expiration
+ *
+ * @param tenantId - The tenant's UUID
+ * @param expirationDays - Number of days until the link expires (default: 30)
+ * @returns A short token string safe for URLs
+ *
+ * @example
+ * encodeTeamInviteToken("56f5baf0-b7d9-4bdf-9416-547b1198e097", 30)
+ * // Returns: "XYZabc123..."
+ */
+export function encodeTeamInviteToken(tenantId: string, expirationDays: number = 30): string {
+  // Calculate expiration timestamp
+  const expiresAt = Date.now() + (expirationDays * 24 * 60 * 60 * 1000);
+
+  // Remove hyphens from UUID to make it shorter
+  const compactId = tenantId.replace(/-/g, "");
+
+  // Combine: "X" prefix (for team invite) + compact tenant ID + "|" + expiration timestamp
+  const payload = `X${compactId}|${expiresAt}`;
+
+  // XOR with secret key
+  const obfuscated = xorWithKey(payload, SECRET_KEY);
+
+  // Base64url encode
+  return base64UrlEncode(obfuscated);
+}
+
+/**
+ * Decode a team invite token back to tenant ID and expiration
+ *
+ * @param token - The encoded token
+ * @returns The decoded data with tenant ID and expiration, or null if invalid/expired
+ *
+ * @example
+ * decodeTeamInviteToken("XYZabc123...")
+ * // Returns: { tenantId: "56f5baf0-...", expiresAt: 1234567890000 }
+ */
+export function decodeTeamInviteToken(token: string): TeamInviteTokenData | null {
+  try {
+    // Base64url decode
+    const obfuscated = base64UrlDecode(token);
+
+    // XOR with secret key
+    const payload = xorWithKey(obfuscated, SECRET_KEY);
+
+    // Check for team invite prefix
+    if (!payload.startsWith("X")) {
+      return null;
+    }
+
+    // Split by delimiter
+    const parts = payload.slice(1).split("|");
+    if (parts.length !== 2) {
+      return null;
+    }
+
+    const [compactId, expiresAtStr] = parts;
+
+    // Validate compact ID looks like a UUID (32 hex chars)
+    if (!/^[0-9a-f]{32}$/i.test(compactId)) {
+      return null;
+    }
+
+    // Parse expiration timestamp
+    const expiresAt = parseInt(expiresAtStr, 10);
+    if (isNaN(expiresAt)) {
+      return null;
+    }
+
+    // Re-insert hyphens to form UUID
+    const tenantId = [
+      compactId.slice(0, 8),
+      compactId.slice(8, 12),
+      compactId.slice(12, 16),
+      compactId.slice(16, 20),
+      compactId.slice(20, 32),
+    ].join("-");
+
+    return { tenantId, expiresAt };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a team invite token is valid and not expired
+ *
+ * @param token - The encoded token
+ * @returns True if valid and not expired, false otherwise
+ */
+export function isTeamInviteTokenValid(token: string): boolean {
+  const data = decodeTeamInviteToken(token);
+  if (!data) return false;
+  return Date.now() < data.expiresAt;
+}
+
+/**
+ * Get the remaining validity of a team invite token
+ *
+ * @param token - The encoded token
+ * @returns Number of days remaining, or -1 if invalid/expired
+ */
+export function getTeamInviteTokenDaysRemaining(token: string): number {
+  const data = decodeTeamInviteToken(token);
+  if (!data) return -1;
+
+  const remaining = data.expiresAt - Date.now();
+  if (remaining <= 0) return -1;
+
+  return Math.ceil(remaining / (24 * 60 * 60 * 1000));
+}
