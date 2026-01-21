@@ -93,6 +93,7 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
   getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
   revokeAllFeatureGrants(tenantId: string): Promise<void>;
   getPaymentFailedCount(tenantId: string): Promise<number>;
+  cancelSubscription(tenantId: string, immediate?: boolean): Promise<{ previousStatus: string }>;
 
   // Public registration methods
   getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
@@ -694,6 +695,54 @@ export class TenantAdapter
     }
 
     return data?.payment_failed_count || 0;
+  }
+
+  /**
+   * Cancel a tenant's subscription
+   * @param tenantId - The tenant ID
+   * @param immediate - If true, clear next_billing_date immediately
+   * @returns The previous subscription status
+   */
+  async cancelSubscription(
+    tenantId: string,
+    immediate: boolean = false
+  ): Promise<{ previousStatus: string }> {
+    const supabase = await this.getSupabaseClient();
+
+    // Get current status first
+    const { data: currentTenant, error: fetchError } = await supabase
+      .from('tenants')
+      .select('subscription_status')
+      .eq('id', tenantId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch tenant: ${fetchError.message}`);
+    }
+
+    const previousStatus = currentTenant?.subscription_status || 'unknown';
+
+    // Prepare update data
+    const updateData: Record<string, any> = {
+      subscription_status: 'cancelled',
+      updated_at: new Date().toISOString(),
+    };
+
+    // If immediate cancellation, clear the next billing date
+    if (immediate) {
+      updateData.next_billing_date = null;
+    }
+
+    const { error: updateError } = await supabase
+      .from('tenants')
+      .update(updateData)
+      .eq('id', tenantId);
+
+    if (updateError) {
+      throw new Error(`Failed to cancel subscription: ${updateError.message}`);
+    }
+
+    return { previousStatus };
   }
 
   // ==================== PUBLIC REGISTRATION METHODS ====================

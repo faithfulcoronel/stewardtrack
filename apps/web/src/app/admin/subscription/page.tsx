@@ -7,9 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
+import { CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, ExternalLink, Ban } from "lucide-react";
 import { useRouter, useSearchParams  } from "next/navigation";
 import { PaymentHandleModal } from "@/components/payment-handler/PaymentHandleModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SubscriptionData {
   hasActiveSubscription: boolean;
@@ -154,6 +166,8 @@ function SubscriptionContent() {
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
   const searchParams = useSearchParams();
   const payment = searchParams.get("payment");
 
@@ -269,6 +283,36 @@ function SubscriptionContent() {
         .catch((err) => {
           console.error("Retry payment failed:", err);
         });
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    try {
+      setCancelling(true);
+      const response = await fetch("/api/subscription/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reason: cancelReason || "User requested cancellation",
+          immediate: false, // Cancel at end of billing period
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to cancel subscription");
+      }
+
+      // Refresh subscription data
+      await fetchSubscriptionData();
+      setCancelReason("");
+      alert("Subscription cancelled successfully. Your access will continue until the end of your billing period.");
+    } catch (err) {
+      console.error("Cancel subscription failed:", err);
+      alert(err instanceof Error ? err.message : "Failed to cancel subscription. Please try again.");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -447,6 +491,89 @@ function SubscriptionContent() {
               nextBillingDate={subscription.tenant.next_billing_date}
               onRenew={handleRenewSubscription}
             />
+
+            {/* Cancel Subscription - Only show if subscription is active */}
+            {subscription.tenant.subscription_status !== 'cancelled' && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Cancel Subscription</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your access will continue until the end of your billing period
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+                        <Ban className="mr-2 size-4" />
+                        Cancel Subscription
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to cancel your subscription? Your access will continue until{" "}
+                          {subscription.tenant.next_billing_date
+                            ? new Date(subscription.tenant.next_billing_date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })
+                            : "the end of your billing period"}
+                          . After that, you will lose access to premium features.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="py-4">
+                        <label className="text-sm font-medium">Reason for cancellation (optional)</label>
+                        <Textarea
+                          placeholder="Tell us why you're cancelling..."
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          className="mt-2"
+                        />
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleCancelSubscription}
+                          disabled={cancelling}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {cancelling ? "Cancelling..." : "Yes, Cancel Subscription"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </>
+            )}
+
+            {/* Show cancelled status message */}
+            {subscription.tenant.subscription_status === 'cancelled' && (
+              <>
+                <Separator />
+                <div className="flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <AlertCircle className="size-5 text-yellow-600" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                      Subscription Cancelled
+                    </p>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                      Your access will end on{" "}
+                      {subscription.tenant.next_billing_date
+                        ? new Date(subscription.tenant.next_billing_date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })
+                        : "the end of your billing period"}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}

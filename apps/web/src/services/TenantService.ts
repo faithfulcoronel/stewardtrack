@@ -282,6 +282,54 @@ export class TenantService {
   getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
     return this.repo.getPublicTenantInfo(tenantId);
   }
+
+  // ==================== SUBSCRIPTION MANAGEMENT METHODS ====================
+
+  /**
+   * Cancel the tenant's subscription.
+   * Sets subscription_status to 'cancelled'.
+   * If immediate is true, clears the next_billing_date.
+   *
+   * @param tenantId - The tenant ID
+   * @param reason - Optional cancellation reason for logging
+   * @param immediate - If true, cancel immediately; otherwise cancel at end of billing period
+   * @returns Object containing previous status and effective date
+   */
+  async cancelSubscription(
+    tenantId: string,
+    reason?: string,
+    immediate: boolean = false
+  ): Promise<{
+    success: boolean;
+    previousStatus: string;
+    effectiveDate: string | null;
+  }> {
+    // Get current tenant to determine effective date
+    const tenant = await this.repo.findById(tenantId);
+
+    if (!tenant) {
+      throw new Error('Tenant not found');
+    }
+
+    if (tenant.subscription_status === 'cancelled') {
+      throw new Error('Subscription is already cancelled');
+    }
+
+    // Cancel subscription via repository
+    const { previousStatus } = await this.repo.cancelSubscription(tenantId, immediate);
+
+    console.log(`[TenantService] Subscription cancelled for tenant ${tenantId}`, {
+      previousStatus,
+      reason: reason || 'No reason provided',
+      immediate,
+    });
+
+    return {
+      success: true,
+      previousStatus,
+      effectiveDate: immediate ? new Date().toISOString() : tenant.next_billing_date,
+    };
+  }
 }
 
 export type { Tenant, PublicTenantInfo };

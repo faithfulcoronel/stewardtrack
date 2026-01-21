@@ -45,6 +45,7 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
   getTenantAdmin(tenantId: string): Promise<TenantAdminInfo | null>;
   revokeAllFeatureGrants(tenantId: string): Promise<void>;
   getPaymentFailedCount(tenantId: string): Promise<number>;
+  cancelSubscription(tenantId: string, immediate?: boolean): Promise<{ previousStatus: string }>;
 
   // Public registration methods
   getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
@@ -138,6 +139,10 @@ export class TenantRepository
 
   async getPaymentFailedCount(tenantId: string): Promise<number> {
     return this.tenantAdapter.getPaymentFailedCount(tenantId);
+  }
+
+  async cancelSubscription(tenantId: string, immediate: boolean = false): Promise<{ previousStatus: string }> {
+    return this.tenantAdapter.cancelSubscription(tenantId, immediate);
   }
 
   // Public registration methods
