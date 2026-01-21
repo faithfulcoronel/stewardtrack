@@ -2,13 +2,14 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Eye, EyeOff, Loader2, Mail, CheckCircle2 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signInWithPassword, type SignInState } from "@/lib/auth/actions";
 
 const initialState: SignInState = {};
@@ -32,6 +33,122 @@ export function SignInForm({ redirectTo = '/admin' }: SignInFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
+
+  /**
+   * Handle resend verification email
+   */
+  const handleResendVerification = useCallback(async () => {
+    if (!state.email || resending) return;
+
+    setResending(true);
+    setResendError(null);
+    setResendSuccess(false);
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: state.email }),
+      });
+
+      const result = await response.json();
+
+      if (response.status === 429) {
+        setResendError(result.error || 'Too many attempts. Please wait before trying again.');
+      } else if (!result.success) {
+        setResendError(result.error || 'Failed to resend verification email.');
+      } else {
+        setResendSuccess(true);
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      setResendError('An error occurred. Please try again.');
+    } finally {
+      setResending(false);
+    }
+  }, [state.email, resending]);
+
+  // Show verification needed message
+  if (state.needsVerification && state.email) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4">
+          <div className="flex items-start gap-3">
+            <Mail className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Email Verification Required
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Please verify your email address before signing in.
+                Check your inbox for a verification link.
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 font-mono">
+                {state.email}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {resendSuccess && (
+          <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              Verification email sent! Please check your inbox.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {resendError && (
+          <Alert variant="destructive">
+            <AlertDescription>{resendError}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-3">
+          <Button
+            type="button"
+            onClick={handleResendVerification}
+            disabled={resending || resendSuccess}
+            className="w-full"
+          >
+            {resending ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : resendSuccess ? (
+              <>
+                <CheckCircle2 className="size-4 mr-2" />
+                Email Sent
+              </>
+            ) : (
+              <>
+                <Mail className="size-4 mr-2" />
+                Resend Verification Email
+              </>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="w-full"
+          >
+            Try Different Email
+          </Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Check your spam folder if you don't see the email.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form action={formAction} className="space-y-6">

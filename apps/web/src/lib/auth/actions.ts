@@ -14,6 +14,8 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
 export type SignInState = {
   error?: string;
+  needsVerification?: boolean;
+  email?: string;
 };
 
 export type ForgotPasswordState = {
@@ -92,6 +94,17 @@ export async function signInWithPassword(
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Check if email is verified
+  if (data.user && !data.user.email_confirmed_at) {
+    // Sign out the user since they shouldn't be logged in yet
+    await authService.signOut();
+    return {
+      error: "Please verify your email before signing in.",
+      needsVerification: true,
+      email: email,
+    };
   }
 
   const sessionId = (data.session?.access_token as string | undefined) ?? null;

@@ -29,6 +29,20 @@ export interface RegistrationData {
   address?: string;
 }
 
+/**
+ * Data needed for completing registration after email verification
+ */
+export interface VerifiedRegistrationData {
+  email: string;
+  churchName: string;
+  firstName: string;
+  lastName: string;
+  offeringId: string;
+  denomination?: string;
+  contactNumber?: string;
+  address?: string;
+}
+
 export interface RegistrationResult {
   success: true;
   userId: string;
@@ -269,6 +283,148 @@ export class RegistrationService {
 
       // Attempt cleanup if we created records
       await this.cleanup(userId, tenantId);
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Registration failed',
+      };
+    }
+  }
+
+  /**
+   * Complete registration after email verification
+   *
+   * This is called by EmailVerificationService after the user has verified their email.
+   * It performs all the tenant provisioning steps (Steps 3-11 from the original register method)
+   * using an existing Supabase auth user.
+   *
+   * @param userId - The existing Supabase auth user ID
+   * @param data - Registration data from pending_registrations table
+   */
+  async completeRegistrationAfterVerification(
+    userId: string,
+    data: VerifiedRegistrationData
+  ): Promise<RegistrationResult | RegistrationError> {
+    let tenantId: string | null = null;
+
+    try {
+      const { email, churchName, firstName, lastName: _lastName, offeringId, denomination, contactNumber, address } = data;
+
+      // ===== STEP 1: Get offering details =====
+      const offering = await this.tenantRepository.getPublicProductOffering(offeringId);
+
+      if (!offering) {
+        return { success: false, error: 'Selected product offering not found' };
+      }
+
+      // ===== STEP 2: Generate unique subdomain =====
+      const subdomain = await this.generateUniqueSubdomain(churchName);
+
+      // ===== STEP 3: Create tenant =====
+      // For trial offerings, get trial duration from metadata (default 14 days)
+      const isTrial = offering.offering_type === 'trial';
+      const trialDays: number = isTrial
+        ? (typeof offering.metadata?.trial_days === 'number' ? offering.metadata.trial_days : 14)
+        : 0;
+      const trialEndDate = isTrial
+        ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const tenant = await this.tenantRepository.createTenantForRegistration({
+        name: churchName,
+        subdomain,
+        subscription_tier: offering.tier,
+        subscription_status: isTrial ? 'trial' : 'active',
+        subscription_offering_id: offeringId,
+        subscription_end_date: trialEndDate,
+        status: 'active',
+        created_by: userId,
+        denomination: denomination || null,
+        contact_number: contactNumber || null,
+        address: address || null,
+        email: email, // Store the admin's email as the tenant contact email
+      });
+
+      tenantId = tenant.id;
+
+      // ===== STEP 4: Generate encryption key for tenant =====
+      try {
+        if (!tenantId) {
+          throw new Error('Tenant ID is required for encryption key generation');
+        }
+
+        await this.encryptionKeyManager.generateTenantKey(tenantId);
+        console.log(`Generated encryption key for tenant ${tenantId}`);
+      } catch (error) {
+        console.error('Failed to generate encryption key:', error);
+        // Critical error - tenant won't be able to encrypt PII
+        throw new Error('Failed to initialize tenant encryption');
+      }
+
+      // ===== STEP 5: Create tenant-user relationship =====
+      try {
+        await this.tenantRepository.createTenantUserRelationship({
+          tenant_id: tenantId,
+          user_id: userId,
+          role: 'admin',
+          admin_role: 'tenant_admin',
+          created_by: userId,
+        });
+      } catch (error) {
+        console.error('Failed to create tenant_users record:', error);
+        // Non-fatal - continue but log error
+      }
+
+      // ===== STEP 6: Seed default RBAC roles =====
+      try {
+        await seedDefaultRBAC(tenantId, offering.tier);
+      } catch (error) {
+        console.error('Failed to seed default RBAC:', error);
+        // Non-fatal - continue
+      }
+
+      // ===== STEP 7: Assign tenant admin role =====
+      try {
+        await assignTenantAdminRole(userId, tenantId);
+      } catch (error) {
+        console.error('Failed to assign tenant admin role:', error);
+        // Non-fatal - continue
+      }
+
+      // ===== STEP 8: Sync subscription features (async) =====
+      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId, churchName, email);
+
+      // ===== STEP 9: Send welcome email (async) =====
+      this.sendWelcomeEmailAsync({
+        email,
+        firstName,
+        tenantName: churchName,
+        subscriptionTier: offering.tier,
+        isTrial,
+        trialDays,
+      });
+
+      // ===== STEP 10: Return success =====
+      return {
+        success: true,
+        userId,
+        tenantId,
+        subdomain,
+        message: 'Registration completed successfully',
+      };
+
+    } catch (error) {
+      console.error('Registration completion error:', error);
+
+      // Attempt cleanup if we created tenant records
+      // Note: Don't delete the auth user - it already exists and was verified
+      if (tenantId) {
+        try {
+          await this.tenantRepository.deleteAllTenantDataForCleanup(tenantId);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup tenant data:', cleanupError);
+        }
+      }
 
       return {
         success: false,

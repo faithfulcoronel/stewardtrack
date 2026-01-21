@@ -11,7 +11,10 @@
 -- - Return xendit_channel_code, bank_account_holder_name instead of old fields
 -- ================================================================================
 
--- Update the get_payout_enabled_sources function for XenPlatform
+-- Drop the existing function first (required when changing return type)
+DROP FUNCTION IF EXISTS get_payout_enabled_sources(UUID);
+
+-- Recreate the get_payout_enabled_sources function for XenPlatform
 CREATE OR REPLACE FUNCTION get_payout_enabled_sources(p_tenant_id UUID)
 RETURNS TABLE (
   id UUID,
