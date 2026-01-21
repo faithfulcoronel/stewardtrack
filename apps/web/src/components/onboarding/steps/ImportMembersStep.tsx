@@ -5,16 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import {
   Upload,
@@ -41,8 +32,8 @@ interface ImportMembersStepProps {
   onSkip: () => void;
 }
 
-interface ImportSummary {
-  members: number;
+// Summary from preview API (counts of items to be imported)
+interface PreviewSummary {
   membershipStatuses: number;
   financialSources: number;
   funds: number;
@@ -52,14 +43,19 @@ interface ImportSummary {
   openingBalances: number;
 }
 
+// Summary from import API (counts of items created)
+interface ImportResultSummary {
+  membershipStatusesCreated: number;
+  financialSourcesCreated: number;
+  fundsCreated: number;
+  incomeCategoriesCreated: number;
+  expenseCategoriesCreated: number;
+  budgetCategoriesCreated: number;
+  openingBalancesCreated: number;
+}
+
 interface PreviewData {
-  members: Array<{
-    first_name: string;
-    last_name: string;
-    email?: string;
-    membership_status?: string;
-  }>;
-  summary: ImportSummary;
+  summary: PreviewSummary;
 }
 
 interface ValidationError {
@@ -108,7 +104,7 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [importProgress, setImportProgress] = useState(0);
-  const [importResult, setImportResult] = useState<ImportSummary | null>(null);
+  const [importResult, setImportResult] = useState<ImportResultSummary | null>(null);
 
   // ============================================================================
   // File Handlers
@@ -192,7 +188,6 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
       }
 
       setPreviewData({
-        members: data.data?.members || [],
         summary: data.summary || {},
       });
       setState('preview');
@@ -285,7 +280,7 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
         <div>
           <h3 className="font-semibold text-lg">Import Your Data</h3>
           <p className="text-muted-foreground">
-            Upload an Excel file to bulk import members, membership statuses,
+            Upload an Excel file to bulk import membership statuses,
             financial sources, funds, categories, and opening balances.
           </p>
         </div>
@@ -388,12 +383,6 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
       {previewData?.summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryCard
-            icon={<Users className="h-4 w-4" />}
-            label="Members"
-            count={previewData.summary.members}
-            color="bg-blue-50 dark:bg-blue-950/30"
-          />
-          <SummaryCard
             icon={<Building2 className="h-4 w-4" />}
             label="Funds"
             count={previewData.summary.funds}
@@ -409,11 +398,17 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
             icon={<FolderOpen className="h-4 w-4" />}
             label="Categories"
             count={
-              previewData.summary.incomeCategories +
-              previewData.summary.expenseCategories +
-              previewData.summary.budgetCategories
+              (previewData.summary.incomeCategories || 0) +
+              (previewData.summary.expenseCategories || 0) +
+              (previewData.summary.budgetCategories || 0)
             }
             color="bg-orange-50 dark:bg-orange-950/30"
+          />
+          <SummaryCard
+            icon={<Users className="h-4 w-4" />}
+            label="Statuses"
+            count={previewData.summary.membershipStatuses}
+            color="bg-blue-50 dark:bg-blue-950/30"
           />
         </div>
       )}
@@ -453,41 +448,6 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
             </ul>
           </AlertDescription>
         </Alert>
-      )}
-
-      {/* Members Preview */}
-      {previewData?.members && previewData.members.length > 0 && (
-        <div>
-          <h4 className="font-medium mb-2">Members Preview (first 10)</h4>
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {previewData.members.slice(0, 10).map((member, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">
-                      {member.first_name} {member.last_name}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {member.email || '—'}
-                    </TableCell>
-                    <TableCell>
-                      {member.membership_status && (
-                        <Badge variant="outline">{member.membership_status}</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
       )}
 
       {/* Actions */}
@@ -540,31 +500,31 @@ export function ImportMembersStep({ onComplete, onSkip }: ImportMembersStepProps
       {importResult && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-lg mx-auto">
           <SummaryCard
-            icon={<Users className="h-4 w-4" />}
-            label="Members"
-            count={importResult.membersCreated}
-            color="bg-green-50 dark:bg-green-950/30"
-          />
-          <SummaryCard
             icon={<Building2 className="h-4 w-4" />}
             label="Funds"
-            count={importResult.fundsCreated}
+            count={importResult.fundsCreated || 0}
             color="bg-green-50 dark:bg-green-950/30"
           />
           <SummaryCard
             icon={<Wallet className="h-4 w-4" />}
             label="Sources"
-            count={importResult.financialSourcesCreated}
+            count={importResult.financialSourcesCreated || 0}
             color="bg-green-50 dark:bg-green-950/30"
           />
           <SummaryCard
             icon={<FolderOpen className="h-4 w-4" />}
             label="Categories"
             count={
-              importResult.incomeCategoriesCreated +
-              importResult.expenseCategoriesCreated +
-              importResult.budgetCategoriesCreated
+              (importResult.incomeCategoriesCreated || 0) +
+              (importResult.expenseCategoriesCreated || 0) +
+              (importResult.budgetCategoriesCreated || 0)
             }
+            color="bg-green-50 dark:bg-green-950/30"
+          />
+          <SummaryCard
+            icon={<Users className="h-4 w-4" />}
+            label="Statuses"
+            count={importResult.membershipStatusesCreated || 0}
             color="bg-green-50 dark:bg-green-950/30"
           />
         </div>

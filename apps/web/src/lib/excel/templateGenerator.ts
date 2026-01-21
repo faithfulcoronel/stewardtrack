@@ -2,7 +2,6 @@
  * Excel Template Generator for Onboarding Import
  *
  * Generates a sample Excel workbook with multiple sheets for:
- * - Members
  * - Membership Status (with defaults)
  * - Financial Sources
  * - Funds
@@ -10,6 +9,8 @@
  * - Expense Categories
  * - Budget Categories
  * - Opening Balances
+ *
+ * Note: Members are imported separately via the Members module.
  */
 
 import * as XLSX from 'xlsx';
@@ -226,10 +227,10 @@ function getOpeningBalancesSheet(): TemplateSheet {
 
 /**
  * Generate all sheet definitions for the onboarding template
+ * Note: Members sheet is excluded - members are imported via the Members module
  */
 export function getTemplateSheets(): TemplateSheet[] {
   return [
-    getMembersSheet(),
     getMembershipStatusSheet(),
     getFinancialSourcesSheet(),
     getFundsSheet(),
