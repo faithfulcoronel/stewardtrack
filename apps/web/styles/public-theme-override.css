@@ -1,0 +1,63 @@
+/**
+ * Public Theme Override
+ *
+ * Forces the default emerald theme (light mode) for all public pages.
+ * This ensures consistent branding regardless of user's stored theme preferences.
+ *
+ * Apply by adding the class "public-theme-fixed" to a wrapper element.
+ * Uses !important to override any theme applied via data attributes or @theme inline.
+ */
+
+/* Override any theme selection for public pages */
+.public-theme-fixed,
+.public-theme-fixed *,
+[data-theme] .public-theme-fixed,
+[data-theme] .public-theme-fixed *,
+[data-mode="dark"] .public-theme-fixed,
+[data-mode="dark"] .public-theme-fixed *,
+.dark .public-theme-fixed,
+.dark .public-theme-fixed * {
+  /* Core palette - Emerald Light */
+  --background: 146 45% 97% !important;
+  --foreground: 162 30% 16% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 162 30% 16% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 162 30% 16% !important;
+  --primary: 152 82% 33% !important;
+  --primary-foreground: 0 0% 100% !important;
+  --secondary: 146 45% 90% !important;
+  --secondary-foreground: 160 25% 24% !important;
+  --muted: 150 30% 92% !important;
+  --muted-foreground: 158 18% 35% !important;
+  --accent: 148 38% 90% !important;
+  --accent-foreground: 162 30% 16% !important;
+  --destructive: 0 72% 52% !important;
+  --destructive-foreground: 0 0% 100% !important;
+  --border: 156 22% 84% !important;
+  --input: 156 22% 84% !important;
+  --input-background: 0 0% 100% !important;
+  --ring: 152 82% 33% !important;
+
+  /* Feedback colors */
+  --success: 152 82% 33% !important;
+  --success-foreground: 0 0% 100% !important;
+
+  /* Chart palette */
+  --chart-1: 152 82% 33% !important;
+  --chart-2: 201 96% 50% !important;
+  --chart-3: 32 97% 55% !important;
+  --chart-4: 267 85% 60% !important;
+  --chart-5: 12 92% 58% !important;
+}
+
+/* Ensure no dark mode affects public pages */
+.public-theme-fixed {
+  color-scheme: light !important;
+}
+
+/* Force body to not have dark class inside public pages */
+.public-theme-fixed,
+.public-theme-fixed * {
+  --tw-bg-opacity: 1 !important;
+}

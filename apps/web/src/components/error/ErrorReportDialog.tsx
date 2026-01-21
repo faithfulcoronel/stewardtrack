@@ -121,7 +121,7 @@ export function ErrorReportDialog({
   if (isDevelopment) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+        <DialogContent className="max-h-[90vh] max-w-[95vw] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
@@ -141,7 +141,7 @@ export function ErrorReportDialog({
             </div>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-hidden">
             {/* Sensitive Data Warning */}
             {sanitizedData.hasSensitiveData && (
               <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950">
@@ -153,33 +153,33 @@ export function ErrorReportDialog({
             )}
 
             {/* Error Message - Sanitized */}
-            <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-4">
+            <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-4 overflow-hidden">
               <div className="flex items-start gap-2">
                 <Bug className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
-                <div className="flex-1 space-y-1">
-                  <p className="font-mono text-sm font-semibold text-destructive">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="font-mono text-sm font-semibold text-destructive break-words">
                     {sanitizedData.name}
                   </p>
-                  <p className="font-mono text-sm text-destructive">
+                  <p className="font-mono text-sm text-destructive break-words whitespace-pre-wrap">
                     {sanitizedData.message}
                   </p>
                 </div>
               </div>
               {errorInfo.errorId && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Error ID: <code className="rounded bg-muted px-1">{errorInfo.errorId}</code>
+                  Error ID: <code className="rounded bg-muted px-1 break-all">{errorInfo.errorId}</code>
                 </p>
               )}
             </div>
 
             {/* Stack Trace - Sanitized, visible in dev mode */}
             {sanitizedData.stack && (
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-hidden">
                 <div className="flex items-center gap-2">
-                  <Code className="h-4 w-4 text-muted-foreground" />
+                  <Code className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <Label className="text-sm font-medium">Stack Trace (Sanitized)</Label>
                 </div>
-                <pre className="max-h-48 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900">
+                <pre className="max-h-48 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900 whitespace-pre-wrap break-words">
                   {sanitizedData.stack}
                 </pre>
               </div>
@@ -187,12 +187,12 @@ export function ErrorReportDialog({
 
             {/* Component Stack - Sanitized, visible in dev mode */}
             {sanitizedData.componentStack && (
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-hidden">
                 <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-muted-foreground" />
+                  <Layers className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <Label className="text-sm font-medium">Component Stack (Sanitized)</Label>
                 </div>
-                <pre className="max-h-48 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900">
+                <pre className="max-h-48 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900 whitespace-pre-wrap break-words">
                   {sanitizedData.componentStack}
                 </pre>
               </div>
