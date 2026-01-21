@@ -24,6 +24,7 @@
     "clean": "rimraf .next out node_modules/.cache"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@base-ui-components/react": "^1.0.0-beta.3",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^5.2.2",
