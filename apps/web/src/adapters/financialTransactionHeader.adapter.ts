@@ -8,6 +8,13 @@ import { TYPES } from '@/lib/types';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { format } from 'date-fns';
 
+export interface TransactionSummaryRow {
+  status: string;
+  transaction_type: string;
+  total_amount: number;
+  transaction_count: number;
+}
+
 export interface IFinancialTransactionHeaderAdapter
   extends BaseAdapter<FinancialTransactionHeader> {
   postTransaction(id: string): Promise<void>;
@@ -26,6 +33,11 @@ export interface IFinancialTransactionHeaderAdapter
     transactions: any[],
   ): Promise<{ header: FinancialTransactionHeader; transactions: any[] }>;
   getUnmappedHeaders(): Promise<FinancialTransactionHeader[]>;
+  getTransactionSummary(
+    tenantId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<TransactionSummaryRow[]>;
 }
 
 @injectable()
@@ -274,16 +286,16 @@ export class FinancialTransactionHeaderAdapter
         account:chart_of_accounts(id, code, name, account_type),
         account_holder:accounts(id, name, member_id),
         source_id,
-        source:source_id(id, name, source_type),
-        header:financial_transaction_headers(id, deleted_at)
+        source:source_id(id, name, source_type)
       `
       )
       .eq('tenant_id', tenantId)
       .eq('header_id', headerId)
-      .is('financial_transaction_headers.deleted_at', null)
+      .is('deleted_at', null)
       .order('updated_at', { ascending: true });
 
     if (error) throw error;
+
     return data || [];
   }
 
@@ -383,5 +395,29 @@ export class FinancialTransactionHeaderAdapter
       inserted = data || [];
     }
     return inserted;
+  }
+
+  /**
+   * Get transaction summary using RPC for efficient aggregation.
+   * Returns totals grouped by status and transaction type.
+   */
+  public async getTransactionSummary(
+    tenantId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<TransactionSummaryRow[]> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_transaction_summary', {
+      p_tenant_id: tenantId,
+      p_start_date: startDate || null,
+      p_end_date: endDate || null,
+    });
+
+    if (error) {
+      throw new Error(`Failed to get transaction summary: ${error.message}`);
+    }
+
+    return (data as TransactionSummaryRow[]) || [];
   }
 }

@@ -1,6 +1,7 @@
 /* Tailwind core */
 @import "tailwindcss";
 @import "../../styles/themes/index.css";
+@import "../../styles/public-theme-override.css";
 @import "ag-grid-community/styles/ag-grid.css";
 @import "ag-grid-community/styles/ag-theme-quartz.css";
 

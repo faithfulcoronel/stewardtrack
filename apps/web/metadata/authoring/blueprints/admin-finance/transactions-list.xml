@@ -36,7 +36,7 @@
             <Prop name="rows" kind="binding" contract="transactionsTable.rows"/>
             <Prop name="columns" kind="binding" contract="transactionsTable.columns"/>
             <Prop name="filters" kind="binding" contract="transactionsTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No transactions found", "description": "Record your first transaction to start tracking finances."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No transactions recorded yet", "description": "Start tracking your church finances by recording income from tithes, offerings, and donations, or log expenses for ministry operations. Click 'Record transaction' above to get started."}</Prop>
           </Props>
         </Component>
       </Region>

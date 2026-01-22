@@ -100,28 +100,31 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
     let tenantName = 'Your Church';
     let tenantLogoUrl: string | null = null;
+    let churchImageUrl: string | null = null;
 
     if (tenantId) {
       const { data: tenant } = await supabase
         .from('tenants')
-        .select('name, logo_url')
+        .select('name, logo_url, church_image_url')
         .eq('id', tenantId)
         .single();
 
       if (tenant) {
         tenantName = tenant.name;
         tenantLogoUrl = tenant.logo_url;
+        churchImageUrl = tenant.church_image_url;
       }
     }
 
-    // Get user's display name - check linked member first, then profile
+    // Get user's display name and profile picture - check linked member first, then profile
     let userName = userEmail.split('@')[0];
+    let userProfilePictureUrl: string | null = null;
 
     // Check if user is linked to a member record
     if (tenantId) {
       const { data: linkedMember } = await supabase
         .from('members')
-        .select('id, first_name, last_name, encrypted_fields')
+        .select('id, first_name, last_name, profile_picture_url, encrypted_fields')
         .eq('user_id', userId)
         .eq('tenant_id', tenantId)
         .is('deleted_at', null)
@@ -137,6 +140,8 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
         } else if (firstName) {
           userName = firstName;
         }
+        // Get profile picture from linked member record
+        userProfilePictureUrl = (decryptedMember.profile_picture_url as string) || null;
       }
     }
 
@@ -156,9 +161,11 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     return {
       userName,
       userEmail,
+      userProfilePictureUrl,
       tenantId,
       tenantName,
       tenantLogoUrl,
+      churchImageUrl,
       lastSignIn: null, // Will be filled from auth user data
       currentTime: new Date().toISOString(),
       greeting: this.getGreeting(),
@@ -381,6 +388,32 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     const tenantId = await this.getTenantId();
     const supabase = await this.getSupabaseClient();
 
+    // Check if onboarding is incomplete - this should be shown first
+    if (tenantId) {
+      try {
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('onboarding_completed')
+          .eq('id', tenantId)
+          .single();
+
+        if (tenant && !tenant.onboarding_completed) {
+          highlights.push({
+            id: 'complete-setup',
+            type: 'setup',
+            priority: 'urgent',
+            title: 'Complete Your Church Setup',
+            description: 'Finish setting up your church to unlock all features',
+            actionLabel: 'Continue Setup',
+            actionHref: '/admin/onboarding',
+            createdAt: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error('[AdminDashboardAdapter] Error checking onboarding status:', error);
+      }
+    }
+
     // Get upcoming birthdays this week as highlights
     const today = new Date();
     const weekEnd = endOfWeek(today);
@@ -602,12 +635,18 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
 
         const daysUntil = differenceInDays(thisYearBirthday, today);
 
+        // Calculate age they will be turning
+        const birthYear = birthdayDate.getFullYear();
+        const celebrationYear = thisYearBirthday.getFullYear();
+        const age = celebrationYear - birthYear;
+
         upcoming.push({
           memberId: member.id as string,
           firstName: member.first_name as string,
           lastName: member.last_name as string,
           birthday,
           daysUntil,
+          age: age > 0 ? age : undefined, // Only include if valid age
           profilePictureUrl: member.profile_picture_url as string | null,
         });
       }

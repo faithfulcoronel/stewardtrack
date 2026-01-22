@@ -292,7 +292,7 @@ export function AdminFormSection(props: AdminFormSectionProps) {
       <Form {...form}>
         <form
           onSubmit={handleSubmit}
-          className="space-y-8 rounded-3xl border border-border/60 bg-background p-6 shadow-sm"
+          className="space-y-8 rounded-3xl border border-border/60 bg-card p-6 shadow-sm"
         >
           {formErrors.length > 0 && (
             <Alert variant="destructive">

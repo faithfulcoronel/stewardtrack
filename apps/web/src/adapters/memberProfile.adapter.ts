@@ -32,6 +32,7 @@ export interface MemberRow {
   birthday?: string | null;
   anniversary?: string | null;
   profile_picture_url?: string | null;
+  cover_photo_url?: string | null;
   gender?: string | null;
   marital_status?: string | null;
   envelope_number?: string | null;
@@ -346,6 +347,7 @@ export class MemberProfileAdapter implements IMemberProfileAdapter {
           marital_status,
           occupation,
           profile_picture_url,
+          cover_photo_url,
           membership_stage:membership_status_id(id, name, code),
           membership_type:membership_type_id(id, name, code),
           membership_center:membership_center_id(id, name, code),

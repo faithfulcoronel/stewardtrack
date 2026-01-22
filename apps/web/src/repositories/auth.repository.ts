@@ -1,16 +1,19 @@
 import { injectable, inject } from 'inversify';
 import type { AuthError, AuthResponse } from '@supabase/supabase-js';
 
-import type { IAuthAdapter } from '@/adapters/auth.adapter';
+import type { IAuthAdapter, GenerateLinkResult } from '@/adapters/auth.adapter';
 import { TYPES } from '@/lib/types';
 
 export interface IAuthRepository {
   signIn(email: string, password: string): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
+  generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   deleteUser(userId: string): Promise<{ error: AuthError | null }>;
+  getUserById(userId: string): ReturnType<IAuthAdapter['getUserById']>;
+  confirmUserEmail(userId: string): Promise<{ error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -33,6 +36,10 @@ export class AuthRepository implements IAuthRepository {
     return this.adapter.resetPasswordForEmail(email, redirectTo);
   }
 
+  generatePasswordResetLink(email: string, redirectTo: string) {
+    return this.adapter.generatePasswordResetLink(email, redirectTo);
+  }
+
   updatePassword(password: string) {
     return this.adapter.updatePassword(password);
   }
@@ -47,6 +54,14 @@ export class AuthRepository implements IAuthRepository {
 
   deleteUser(userId: string) {
     return this.adapter.deleteUser(userId);
+  }
+
+  getUserById(userId: string) {
+    return this.adapter.getUserById(userId);
+  }
+
+  confirmUserEmail(userId: string) {
+    return this.adapter.confirmUserEmail(userId);
   }
 
   searchPublicTenants(query: string) {

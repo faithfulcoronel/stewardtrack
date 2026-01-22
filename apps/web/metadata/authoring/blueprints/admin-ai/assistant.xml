@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+AI ASSISTANT PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the AI Assistant chat interface that allows church
+staff to interact with an intelligent assistant for help with members,
+finances, events, and other church management tasks.
+
+FEATURE: AI Assistant Chat
+- Full-width chat interface with message history
+- Welcome messages for quick question suggestions
+- Support for multiple roles (tenant_admin, staff, volunteer)
+- Real-time streaming responses
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-ai"
+  route="assistant"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="ai_assistant"
+  requiredPermissions="ai_assistant:use"
+  locale="en-US">
+
+  <Page id="admin-ai-assistant">
+    <Title>AI Assistant</Title>
+
+    <Regions>
+      <Region id="main">
+        <!-- Main Chat Container -->
+        <Component id="ai-chat-container" type="AIChat">
+          <Props>
+            <Prop name="title" kind="static">AI Assistant</Prop>
+            <Prop name="subtitle" kind="static">Your intelligent church management assistant</Prop>
+            <Prop name="placeholder" kind="static">Ask me anything about members, finances, events...</Prop>
+            <Prop name="welcomeMessages" kind="static">[
+              "Who has a birthday this month?",
+              "Show me financial categories",
+              "Find member John Smith",
+              "Create a new member",
+              "What anniversaries are coming up?"
+            ]</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+  </Page>
+</PageDefinition>

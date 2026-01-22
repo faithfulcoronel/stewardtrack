@@ -69,6 +69,7 @@ export enum ProductOfferingType {
   ONE_TIME = 'one_time',
   USAGE_BASED = 'usage_based',
   TIERED = 'tiered',
+  TRIAL = 'trial',
   CUSTOM = 'custom',
 }
 
@@ -80,6 +81,7 @@ export const ProductOfferingTypeLabels: Record<ProductOfferingType, string> = {
   [ProductOfferingType.ONE_TIME]: 'One-Time Purchase',
   [ProductOfferingType.USAGE_BASED]: 'Usage-Based',
   [ProductOfferingType.TIERED]: 'Tiered Pricing',
+  [ProductOfferingType.TRIAL]: 'Trial',
   [ProductOfferingType.CUSTOM]: 'Custom',
 };
 

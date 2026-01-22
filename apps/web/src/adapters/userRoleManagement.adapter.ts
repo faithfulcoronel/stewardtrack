@@ -44,6 +44,7 @@ export interface IUserRoleManagementAdapter extends IBaseAdapter<UserRole> {
   replaceUserRoles(userId: string, roleIds: string[], tenantId: string): Promise<void>;
   getRolesByUser(userId: string, tenantId?: string): Promise<string[]>;
   getUsersByRole(roleId: string): Promise<UserRole[]>;
+  getUsersWithPermission(permissionCode: string, tenantId: string): Promise<string[]>;
   getUserAccessibleMenuItems(userId: string, tenantId?: string): Promise<any[]>;
   // Note: getUserAccessibleMetadataSurfaces removed - metadata access is controlled via
   // static XML files with featureCode and requiredPermissions attributes, not database
@@ -1034,5 +1035,70 @@ export class UserRoleManagementAdapter extends BaseAdapter<UserRole> implements 
 
     // Convert to unknown first, then to UserRole[] to satisfy TypeScript
     return (data as unknown) as UserRole[];
+  }
+
+  /**
+   * Get all users who have a specific permission in a tenant
+   * This queries through roles → role_permissions → permissions
+   */
+  async getUsersWithPermission(permissionCode: string, tenantId: string): Promise<string[]> {
+    // Validate parameters
+    if (!permissionCode || typeof permissionCode !== 'string') {
+      throw new Error('Invalid permissionCode provided to getUsersWithPermission');
+    }
+    if (!tenantId || typeof tenantId !== 'string') {
+      throw new Error('Invalid tenantId provided to getUsersWithPermission');
+    }
+
+    const supabase = await this.getSupabaseClient();
+
+    // Step 1: Get all roles that have this permission
+    const { data: rolePermissions, error: rpError } = await supabase
+      .from('role_permissions')
+      .select(`
+        role_id,
+        roles!inner (
+          id,
+          tenant_id,
+          scope
+        ),
+        permissions!inner (
+          code
+        )
+      `)
+      .eq('permissions.code', permissionCode);
+
+    if (rpError) {
+      console.error('[getUsersWithPermission] Failed to query role permissions:', rpError);
+      return [];
+    }
+
+    // Filter roles for this tenant or system scope
+    const roleIds = (rolePermissions || [])
+      .filter((rp: any) => {
+        const role = rp.roles;
+        return role?.scope === 'system' || role?.tenant_id === tenantId;
+      })
+      .map((rp: any) => rp.role_id);
+
+    if (roleIds.length === 0) {
+      return [];
+    }
+
+    // Step 2: Get users who have these roles in this tenant
+    const { data: userRoles, error: urError } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .in('role_id', roleIds)
+      .eq('tenant_id', tenantId);
+
+    if (urError) {
+      console.error('[getUsersWithPermission] Failed to query user roles:', urError);
+      return [];
+    }
+
+    // Deduplicate user IDs
+    const userIds = [...new Set((userRoles || []).map((ur: any) => ur.user_id))];
+    return userIds;
   }
 }

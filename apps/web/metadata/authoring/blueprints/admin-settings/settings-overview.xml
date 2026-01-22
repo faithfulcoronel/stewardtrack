@@ -80,6 +80,16 @@
                 <Prop name="description" kind="static">View and manage notifications scheduled for future delivery</Prop>
               </Props>
             </Component>
+            <Component id="ai-credits-tab-content" type="AdminAICreditsSettings">
+              <Props>
+                <Prop name="balance" kind="binding" contract="settingsOverview.aiCreditsBalance"/>
+                <Prop name="packages" kind="binding" contract="settingsOverview.aiCreditsPackages"/>
+                <Prop name="purchaseHistory" kind="binding" contract="settingsOverview.aiCreditsPurchaseHistory"/>
+                <Prop name="usageStats" kind="binding" contract="settingsOverview.aiCreditsUsageStats"/>
+                <Prop name="autoRecharge" kind="binding" contract="settingsOverview.aiCreditsAutoRecharge"/>
+                <Prop name="currency" kind="binding" contract="settingsOverview.aiCreditsCurrency"/>
+              </Props>
+            </Component>
           </Children>
         </Component>
       </Region>
@@ -108,6 +118,12 @@
           <Field name="notificationDescription" path="notification.description" description="Binding for notification-preferences.description"/>
           <Field name="integrationsTitle" path="integrations.title" description="Binding for integrations settings title"/>
           <Field name="integrationsDescription" path="integrations.description" description="Binding for integrations settings description"/>
+          <Field name="aiCreditsBalance" path="aiCredits.balance" description="AI Credits balance information"/>
+          <Field name="aiCreditsPackages" path="aiCredits.packages" description="Available AI credit packages"/>
+          <Field name="aiCreditsPurchaseHistory" path="aiCredits.purchaseHistory" description="AI credits purchase history"/>
+          <Field name="aiCreditsUsageStats" path="aiCredits.usageStats" description="AI credits usage statistics"/>
+          <Field name="aiCreditsAutoRecharge" path="aiCredits.autoRecharge" description="Auto-recharge configuration"/>
+          <Field name="aiCreditsCurrency" path="aiCredits.currency" description="Tenant currency for AI credits"/>
         </Contract>
         <Config>
           <Handler>admin-settings.settings.overview</Handler>

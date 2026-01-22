@@ -9,6 +9,7 @@ import {
   FinanceStatsRow,
   FundBalance,
   SourceBalance,
+  RecentTransactionRow,
 } from "@/models/financeDashboard.model";
 import type { RequestContext } from "@/lib/server/context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -24,6 +25,7 @@ export interface IFinanceDashboardAdapter {
   ): Promise<FinanceStatsRow | null>;
   fetchFundBalances(): Promise<FundBalance[]>;
   fetchSourceBalances(): Promise<SourceBalance[]>;
+  fetchRecentTransactions(limit?: number): Promise<RecentTransactionRow[]>;
 }
 
 @injectable()
@@ -124,5 +126,21 @@ export class FinanceDashboardAdapter implements IFinanceDashboardAdapter {
         balance: balanceMap.get(s.coa_id as string) ?? 0,
       }),
     );
+  }
+
+  async fetchRecentTransactions(limit = 10): Promise<RecentTransactionRow[]> {
+    const tenantId = await this.getTenantId();
+    if (!tenantId) return [];
+
+    const supabase = await this.getSupabaseClient();
+    const { data, error } = await supabase
+      .from("source_recent_transactions_view")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .order("date", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data as RecentTransactionRow[]) || [];
   }
 }

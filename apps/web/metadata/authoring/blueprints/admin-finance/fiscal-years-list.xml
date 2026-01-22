@@ -22,7 +22,7 @@
             <Prop name="rows" kind="binding" contract="fiscalYearsTable.rows"/>
             <Prop name="columns" kind="binding" contract="fiscalYearsTable.columns"/>
             <Prop name="filters" kind="binding" contract="fiscalYearsTable.filters"/>
-            <Prop name="emptyState" kind="static">{"title": "No fiscal years found", "description": "Create your first fiscal year to start tracking financial periods."}</Prop>
+            <Prop name="emptyState" kind="static">{"title": "No fiscal years defined", "description": "A fiscal year defines your organization's annual accounting period. Most churches use January-December. Create your fiscal year to enable period-based reporting and year-end closing procedures."}</Prop>
           </Props>
         </Component>
       </Region>

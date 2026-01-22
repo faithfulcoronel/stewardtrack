@@ -87,6 +87,17 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   reactStrictMode: true,
 
+  // Allow images from Supabase storage
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
+
 
   // Suppress hydration warnings caused by browser extensions (Grammarly, password managers, etc.)
   // These extensions inject attributes like fdprocessedid, data-gr-ext-installed into DOM elements

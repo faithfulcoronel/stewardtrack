@@ -56,7 +56,9 @@ export async function POST(request: Request) {
       ? config.handler
       : typeof payload.action.handler === 'string'
         ? payload.action.handler
-        : null;
+        : typeof payload.action.id === 'string'
+          ? payload.action.id
+          : null;
 
   if (kind !== SERVICE_KIND) {
     return NextResponse.json({ error: `Unsupported action kind: ${kind}` }, { status: 400 });

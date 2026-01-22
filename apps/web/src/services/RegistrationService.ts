@@ -6,9 +6,12 @@ import type { ITenantRepository } from '@/repositories/tenant.repository';
 import type { LicensingService } from '@/services/LicensingService';
 import type { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 import type { TenantService } from '@/services/TenantService';
+import type { SettingService } from '@/services/SettingService';
+import type { XenPlatformService } from '@/services/XenPlatformService';
 import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
+import { renderTenantSubscriptionWelcomeEmail } from '@/emails/service/EmailTemplateService';
 
 // Re-export types for convenience
 export type { PublicProductOffering } from '@/repositories/tenant.repository';
@@ -22,6 +25,22 @@ export interface RegistrationData {
   lastName: string;
   offeringId: string;
   denomination?: string;
+  contactNumber?: string;
+  address?: string;
+}
+
+/**
+ * Data needed for completing registration after email verification
+ */
+export interface VerifiedRegistrationData {
+  email: string;
+  churchName: string;
+  firstName: string;
+  lastName: string;
+  offeringId: string;
+  denomination?: string;
+  contactNumber?: string;
+  address?: string;
 }
 
 export interface RegistrationResult {
@@ -61,7 +80,9 @@ export class RegistrationService {
     @inject(TYPES.LicensingService) private licensingService: LicensingService,
     @inject(TYPES.EncryptionKeyManager) private encryptionKeyManager: EncryptionKeyManager,
     @inject(TYPES.FeatureOnboardingOrchestratorService) private featureOnboardingOrchestrator: FeatureOnboardingOrchestratorService,
-    @inject(TYPES.TenantService) private tenantService: TenantService
+    @inject(TYPES.TenantService) private tenantService: TenantService,
+    @inject(TYPES.SettingService) private settingService: SettingService,
+    @inject(TYPES.XenPlatformService) private xenPlatformService: XenPlatformService
   ) {
     // Initialize feature onboarding plugins on first use
     initializeFeaturePlugins();
@@ -122,7 +143,7 @@ export class RegistrationService {
         return { success: false, error: validation.error };
       }
 
-      const { email, password, churchName, firstName, lastName, offeringId, denomination } = data;
+      const { email, password, churchName, firstName, lastName, offeringId, denomination, contactNumber, address } = data;
 
       // ===== STEP 2: Create auth user =====
       const authResponse = await this.authRepository.signUp(email, password, {
@@ -170,6 +191,9 @@ export class RegistrationService {
         status: 'active',
         created_by: userId,
         denomination: denomination || null,
+        contact_number: contactNumber || null,
+        address: address || null,
+        email: email, // Store the admin's email as the tenant contact email
       });
 
       tenantId = tenant.id;
@@ -227,12 +251,23 @@ export class RegistrationService {
       // The user can start using the app immediately while features are being synced
       // The tenant admin role already has full access, so this is not blocking
       // NOTE: Member profile creation is handled in admin layout on first access
-      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId);
+      // XENPLATFORM: Also provisions Xendit sub-account for donation collection
+      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId, churchName, email);
 
       // NOTE: Steps 10 & 11 now run in background. User gets immediate access.
       // - Feature sync: Runs async, handles features + permissions + role assignments
       // - Feature onboarding plugins: Runs async, takes 5-15 seconds
       // Both are non-blocking and non-fatal to registration success.
+
+      // ===== STEP 11: Send welcome email (async) =====
+      this.sendWelcomeEmailAsync({
+        email,
+        firstName,
+        tenantName: churchName,
+        subscriptionTier: offering.tier,
+        isTrial,
+        trialDays,
+      });
 
       // ===== STEP 12: Return success =====
       return {
@@ -248,6 +283,148 @@ export class RegistrationService {
 
       // Attempt cleanup if we created records
       await this.cleanup(userId, tenantId);
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Registration failed',
+      };
+    }
+  }
+
+  /**
+   * Complete registration after email verification
+   *
+   * This is called by EmailVerificationService after the user has verified their email.
+   * It performs all the tenant provisioning steps (Steps 3-11 from the original register method)
+   * using an existing Supabase auth user.
+   *
+   * @param userId - The existing Supabase auth user ID
+   * @param data - Registration data from pending_registrations table
+   */
+  async completeRegistrationAfterVerification(
+    userId: string,
+    data: VerifiedRegistrationData
+  ): Promise<RegistrationResult | RegistrationError> {
+    let tenantId: string | null = null;
+
+    try {
+      const { email, churchName, firstName, lastName: _lastName, offeringId, denomination, contactNumber, address } = data;
+
+      // ===== STEP 1: Get offering details =====
+      const offering = await this.tenantRepository.getPublicProductOffering(offeringId);
+
+      if (!offering) {
+        return { success: false, error: 'Selected product offering not found' };
+      }
+
+      // ===== STEP 2: Generate unique subdomain =====
+      const subdomain = await this.generateUniqueSubdomain(churchName);
+
+      // ===== STEP 3: Create tenant =====
+      // For trial offerings, get trial duration from metadata (default 14 days)
+      const isTrial = offering.offering_type === 'trial';
+      const trialDays: number = isTrial
+        ? (typeof offering.metadata?.trial_days === 'number' ? offering.metadata.trial_days : 14)
+        : 0;
+      const trialEndDate = isTrial
+        ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const tenant = await this.tenantRepository.createTenantForRegistration({
+        name: churchName,
+        subdomain,
+        subscription_tier: offering.tier,
+        subscription_status: isTrial ? 'trial' : 'active',
+        subscription_offering_id: offeringId,
+        subscription_end_date: trialEndDate,
+        status: 'active',
+        created_by: userId,
+        denomination: denomination || null,
+        contact_number: contactNumber || null,
+        address: address || null,
+        email: email, // Store the admin's email as the tenant contact email
+      });
+
+      tenantId = tenant.id;
+
+      // ===== STEP 4: Generate encryption key for tenant =====
+      try {
+        if (!tenantId) {
+          throw new Error('Tenant ID is required for encryption key generation');
+        }
+
+        await this.encryptionKeyManager.generateTenantKey(tenantId);
+        console.log(`Generated encryption key for tenant ${tenantId}`);
+      } catch (error) {
+        console.error('Failed to generate encryption key:', error);
+        // Critical error - tenant won't be able to encrypt PII
+        throw new Error('Failed to initialize tenant encryption');
+      }
+
+      // ===== STEP 5: Create tenant-user relationship =====
+      try {
+        await this.tenantRepository.createTenantUserRelationship({
+          tenant_id: tenantId,
+          user_id: userId,
+          role: 'admin',
+          admin_role: 'tenant_admin',
+          created_by: userId,
+        });
+      } catch (error) {
+        console.error('Failed to create tenant_users record:', error);
+        // Non-fatal - continue but log error
+      }
+
+      // ===== STEP 6: Seed default RBAC roles =====
+      try {
+        await seedDefaultRBAC(tenantId, offering.tier);
+      } catch (error) {
+        console.error('Failed to seed default RBAC:', error);
+        // Non-fatal - continue
+      }
+
+      // ===== STEP 7: Assign tenant admin role =====
+      try {
+        await assignTenantAdminRole(userId, tenantId);
+      } catch (error) {
+        console.error('Failed to assign tenant admin role:', error);
+        // Non-fatal - continue
+      }
+
+      // ===== STEP 8: Sync subscription features (async) =====
+      this.syncFeaturesAsync(tenantId, offering.tier, offeringId, userId, churchName, email);
+
+      // ===== STEP 9: Send welcome email (async) =====
+      this.sendWelcomeEmailAsync({
+        email,
+        firstName,
+        tenantName: churchName,
+        subscriptionTier: offering.tier,
+        isTrial,
+        trialDays,
+      });
+
+      // ===== STEP 10: Return success =====
+      return {
+        success: true,
+        userId,
+        tenantId,
+        subdomain,
+        message: 'Registration completed successfully',
+      };
+
+    } catch (error) {
+      console.error('Registration completion error:', error);
+
+      // Attempt cleanup if we created tenant records
+      // Note: Don't delete the auth user - it already exists and was verified
+      if (tenantId) {
+        try {
+          await this.tenantRepository.deleteAllTenantDataForCleanup(tenantId);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup tenant data:', cleanupError);
+        }
+      }
 
       return {
         success: false,
@@ -273,12 +450,31 @@ export class RegistrationService {
     tenantId: string,
     tier: string,
     offeringId: string,
-    userId: string
+    userId: string,
+    churchName?: string,
+    email?: string
   ): void {
     // Use setImmediate to ensure this runs after the current event loop
     // This allows the registration response to return immediately
     setImmediate(async () => {
       console.log(`[ASYNC] Starting background feature sync for tenant ${tenantId}`);
+
+      // ===== PROVISION XENPLATFORM SUB-ACCOUNT =====
+      // Create Xendit sub-account for donation collection (runs in background)
+      // This is non-blocking and will retry if it fails
+      if (churchName && email) {
+        try {
+          await this.xenPlatformService.provisionTenantSubAccount(
+            tenantId,
+            churchName,
+            email
+          );
+          console.log(`[ASYNC] Provisioned Xendit sub-account for tenant ${tenantId}`);
+        } catch (error) {
+          // Non-fatal - tenant can still use the app, sub-account can be created later
+          console.error(`[ASYNC] Failed to provision Xendit sub-account for tenant ${tenantId}:`, error);
+        }
+      }
       const startTime = Date.now();
       let hasErrors = false;
       let lastError = '';
@@ -359,6 +555,107 @@ export class RegistrationService {
       }
 
       console.log(`[ASYNC] Background tasks completed for tenant ${tenantId} in ${Date.now() - startTime}ms`);
+    });
+  }
+
+  /**
+   * Get email configuration from system-level settings (tenant_id = NULL).
+   * Used for registration emails which do not have tenant context.
+   */
+  private async getEmailConfiguration(): Promise<{ apiKey: string; fromEmail: string; fromName?: string; replyTo?: string | null } | null> {
+    try {
+      // Get configuration from system-level settings (tenant_id = NULL)
+      const systemConfig = await this.settingService.getSystemEmailConfig();
+
+      if (systemConfig && systemConfig.apiKey && systemConfig.fromEmail) {
+        return {
+          apiKey: systemConfig.apiKey,
+          fromEmail: systemConfig.fromEmail,
+          fromName: systemConfig.fromName || undefined,
+          replyTo: systemConfig.replyTo,
+        };
+      }
+    } catch (error) {
+      console.error('[RegistrationService] Failed to get system email config:', error);
+    }
+
+    return null;
+  }
+
+  /**
+   * Send welcome email to new tenant admin asynchronously.
+   * Uses system-level email configuration (tenant_id = NULL) from settings table.
+   */
+  private sendWelcomeEmailAsync(params: {
+    email: string;
+    firstName: string;
+    tenantName: string;
+    subscriptionTier: string;
+    isTrial: boolean;
+    trialDays: number;
+  }): void {
+    setImmediate(async () => {
+      const { email, firstName, tenantName, subscriptionTier, isTrial, trialDays } = params;
+
+      try {
+        const config = await this.getEmailConfiguration();
+
+        if (!config) {
+          console.warn('[ASYNC] Email service not configured, skipping welcome email. Super admin must configure integration.email.* settings with tenant_id = NULL.');
+          return;
+        }
+
+        const { apiKey, fromEmail, fromName, replyTo } = config;
+
+        // Render the email template
+        const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://stewardtrack.com'}/admin`;
+        const htmlBody = await renderTenantSubscriptionWelcomeEmail({
+          adminName: firstName,
+          tenantName,
+          subscriptionTier,
+          isTrial,
+          trialDays: isTrial ? trialDays : undefined,
+          dashboardUrl,
+        });
+
+        // Build the "from" field with optional display name
+        const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+        // Build email payload
+        const emailPayload: Record<string, unknown> = {
+          from: fromField,
+          to: email,
+          subject: `Welcome to StewardTrack, ${tenantName}!`,
+          html: htmlBody,
+        };
+
+        // Add reply-to if configured
+        if (replyTo) {
+          emailPayload.reply_to = replyTo;
+        }
+
+        // Send via Resend API
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailPayload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[ASYNC] Failed to send welcome email: ${errorText}`);
+          return;
+        }
+
+        const result = await response.json();
+        console.log(`[ASYNC] Welcome email sent successfully to ${email}, messageId: ${result.id}`);
+      } catch (error) {
+        console.error('[ASYNC] Error sending welcome email:', error);
+        // Non-fatal - registration already succeeded
+      }
     });
   }
 

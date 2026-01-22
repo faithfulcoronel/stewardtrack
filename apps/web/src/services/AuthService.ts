@@ -2,11 +2,13 @@ import 'server-only';
 import { injectable, inject } from 'inversify';
 import type { AuthError, AuthResponse } from '@supabase/supabase-js';
 import type { IAuthRepository } from '@/repositories/auth.repository';
+import type { GenerateLinkResult } from '@/adapters/auth.adapter';
 import { TYPES } from '@/lib/types';
 
 export interface AuthService {
   signIn(email: string, password: string): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
+  generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
@@ -29,6 +31,10 @@ export class AuthServiceImpl implements AuthService {
 
   resetPasswordForEmail(email: string, redirectTo: string) {
     return this.repository.resetPasswordForEmail(email, redirectTo);
+  }
+
+  generatePasswordResetLink(email: string, redirectTo: string) {
+    return this.repository.generatePasswordResetLink(email, redirectTo);
   }
 
   updatePassword(password: string) {

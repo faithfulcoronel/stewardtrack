@@ -193,6 +193,7 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Code',
       type: 'text',
       flex: 0.6,
+      hideOnMobile: true,
     },
     {
       field: 'name',
@@ -214,12 +215,14 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Subtype',
       type: 'text',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'parentName',
       headerName: 'Parent',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'status',

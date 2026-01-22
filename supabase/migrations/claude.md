@@ -32,6 +32,33 @@ Examples:
 **Timestamp Format:** `YYYYMMDDHHMMSS`
 **Description:** Auto-generated (e.g., `wooden_coast`) or descriptive (e.g., `remove_permission_bundles`)
 
+### CRITICAL: Migration Timestamp Policy
+
+**New migrations MUST always be the LAST file in the migrations directory when sorted by filename.**
+
+Before creating a new migration:
+1. **Check existing migrations:** Run `ls supabase/migrations | sort | tail -5` to see the latest timestamps
+2. **Use a timestamp AFTER the latest migration:** If the latest is `20260116100002`, use `20260116100003` or later
+3. **Never backdate migrations:** Even if today's date is earlier than existing migrations, always use a timestamp that comes after all existing files
+
+**Why this matters:**
+- Supabase applies migrations in alphabetical/timestamp order
+- A migration with an earlier timestamp than existing ones may run before migrations it depends on
+- This can cause schema conflicts, missing dependencies, or failed deployments
+
+**Example:**
+```bash
+# Check latest migrations
+ls supabase/migrations | sort | tail -3
+# Output:
+# 20260116100001_fix_trial_balance_by_period_return_type.sql
+# 20260116100002_fix_trial_balance_schema_references.sql
+
+# Your new migration should be:
+# 20260116100003_your_new_migration.sql (or later)
+# NOT: 20260115200000_your_new_migration.sql (even if today is Jan 15)
+```
+
 ### Directory Structure
 
 ```

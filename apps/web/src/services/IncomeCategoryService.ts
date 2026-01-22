@@ -8,6 +8,7 @@ import { tenantUtils } from '@/utils/tenantUtils';
 import type { CrudService } from '@/services/CrudService';
 import { CategoryValidator } from '@/validators/category.validator';
 import { validateOrThrow } from '@/utils/validation';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 @injectable()
 export class IncomeCategoryService implements CrudService<Category> {
@@ -87,22 +88,59 @@ export class IncomeCategoryService implements CrudService<Category> {
 
   async getActive(
     type: CategoryType = 'income_transaction',
+    tenantId?: string,
   ): Promise<Category[]> {
-    const tenantId = await tenantUtils.getTenantId();
+    // Use provided tenantId or fall back to authenticated user's tenant
+    const effectiveTenantId = tenantId || (await tenantUtils.getTenantId());
+
+    if (!effectiveTenantId) return [];
 
     const options: Omit<QueryOptions, 'pagination'> = {
-      select: 'id,name',
+      select: 'id,name,code,description',
       filters: {
         is_active: { operator: 'eq', value: true },
         type: { operator: 'eq', value: type },
+        tenant_id: { operator: 'eq', value: effectiveTenantId },
       },
       order: { column: 'sort_order', ascending: true },
     };
 
-    if (!tenantId) return [];
-
-    options.filters!.tenant_id = { operator: 'eq', value: tenantId };
     const { data } = await this.repo.findAll(options);
     return data;
+  }
+
+  /**
+   * Get active categories for public/unauthenticated access.
+   * Uses service role client to bypass RLS policies.
+   *
+   * SECURITY: Only returns non-sensitive category data (id, name, code, description).
+   * Tenant ID must be explicitly provided - no session fallback.
+   *
+   * @param tenantId - Required tenant ID (typically decoded from tenant token)
+   * @param type - Category type (default: 'income_transaction' for donations)
+   */
+  async getActivePublic(
+    tenantId: string,
+    type: CategoryType = 'income_transaction',
+  ): Promise<Pick<Category, 'id' | 'name' | 'code' | 'description'>[]> {
+    if (!tenantId) return [];
+
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, code, description')
+      .eq('tenant_id', tenantId)
+      .eq('type', type)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      console.error('[IncomeCategoryService] Error fetching public categories:', error);
+      return [];
+    }
+
+    return data || [];
   }
 }

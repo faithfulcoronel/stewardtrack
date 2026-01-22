@@ -4,19 +4,21 @@
  * ================================================================================
  *
  * Delivers notifications via email using the Resend API.
- * Calls the email-service Supabase Edge Function.
+ * Uses React Email templates for professional, branded emails.
  *
  * Feature Code: integrations.email (Essential tier)
  *
- * Required Environment Variables:
- * - RESEND_API_KEY
- * - RESEND_FROM_EMAIL
+ * Configuration Priority:
+ * 1. System configuration from SettingService (database)
+ * 2. Fallback to environment variables (RESEND_API_KEY, RESEND_FROM_EMAIL)
  *
  * ================================================================================
  */
 
 import 'server-only';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
+import type { SettingService, EmailConfig } from '@/services/SettingService';
 import type {
   IDeliveryChannel,
   NotificationMessage,
@@ -24,21 +26,124 @@ import type {
   RecipientInfo,
 } from './IDeliveryChannel';
 import type { DeliveryChannelType } from '@/models/notification/notificationEvent.model';
+import {
+  renderNotificationEmail,
+  renderCarePlanAssignedEmail,
+  renderCarePlanMemberNotificationEmail,
+  renderCarePlanFollowUpEmail,
+  renderDiscipleshipPlanCreatedEmail,
+  renderDiscipleshipMilestoneEmail,
+  renderBirthdayGreetingEmail,
+  renderAnniversaryGreetingEmail,
+  renderTenantSubscriptionWelcomeEmail,
+} from '@/emails/service/EmailTemplateService';
+
+/**
+ * Resolved email configuration from system settings or environment variables
+ */
+interface ResolvedEmailConfig {
+  apiKey: string;
+  fromEmail: string;
+  fromName?: string;
+  replyTo?: string | null;
+}
 
 @injectable()
 export class EmailChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'email';
   readonly featureCode: string = 'integrations.email';
 
+  constructor(
+    @inject(TYPES.SettingService)
+    private settingService: SettingService
+  ) {}
+
+  /**
+   * Get email configuration from system settings, with fallback to environment variables
+   */
+  private async getEmailConfiguration(): Promise<ResolvedEmailConfig | null> {
+    console.log('[EmailChannel] Getting email configuration...');
+
+    // First, try tenant-level configuration
+    try {
+      const tenantConfig: EmailConfig | null = await this.settingService.getEmailConfig();
+      console.log('[EmailChannel] Tenant config result:', {
+        hasConfig: !!tenantConfig,
+        hasApiKey: !!tenantConfig?.apiKey,
+        hasFromEmail: !!tenantConfig?.fromEmail,
+        fromEmail: tenantConfig?.fromEmail,
+      });
+
+      if (tenantConfig && tenantConfig.apiKey && tenantConfig.fromEmail) {
+        console.log('[EmailChannel] Using tenant-level configuration');
+        return {
+          apiKey: tenantConfig.apiKey,
+          fromEmail: tenantConfig.fromEmail,
+          fromName: tenantConfig.fromName || undefined,
+          replyTo: tenantConfig.replyTo,
+        };
+      }
+    } catch (error) {
+      console.log('[EmailChannel] Tenant config failed:', error);
+    }
+
+    // Second, try system-level configuration (tenant_id = NULL)
+    try {
+      const systemConfig: EmailConfig | null = await this.settingService.getSystemEmailConfig();
+      console.log('[EmailChannel] System config result:', {
+        hasConfig: !!systemConfig,
+        hasApiKey: !!systemConfig?.apiKey,
+        hasFromEmail: !!systemConfig?.fromEmail,
+        fromEmail: systemConfig?.fromEmail,
+      });
+
+      if (systemConfig && systemConfig.apiKey && systemConfig.fromEmail) {
+        console.log('[EmailChannel] Using system-level configuration');
+        return {
+          apiKey: systemConfig.apiKey,
+          fromEmail: systemConfig.fromEmail,
+          fromName: systemConfig.fromName || undefined,
+          replyTo: systemConfig.replyTo,
+        };
+      }
+    } catch (error) {
+      console.log('[EmailChannel] System config failed:', error);
+    }
+
+    // Fallback to environment variables for backward compatibility
+    const envApiKey = process.env.RESEND_API_KEY;
+    const envFromEmail = process.env.RESEND_FROM_EMAIL;
+
+    console.log('[EmailChannel] Environment variables check:', {
+      hasApiKey: !!envApiKey,
+      apiKeyLength: envApiKey?.length,
+      hasFromEmail: !!envFromEmail,
+      fromEmail: envFromEmail,
+    });
+
+    if (envApiKey && envFromEmail) {
+      console.log('[EmailChannel] Using environment variable configuration');
+      return {
+        apiKey: envApiKey,
+        fromEmail: envFromEmail,
+      };
+    }
+
+    console.warn('[EmailChannel] No email configuration available');
+    return null;
+  }
+
   async isAvailable(): Promise<boolean> {
-    // Check if email service is configured
-    const apiKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.RESEND_FROM_EMAIL;
-    return !!apiKey && !!fromEmail;
+    const config = await this.getEmailConfiguration();
+    return config !== null;
   }
 
   async send(message: NotificationMessage): Promise<DeliveryResult> {
+    console.log('[EmailChannel] send() called for message:', message.id);
+    console.log('[EmailChannel] Recipient email:', message.recipient.email);
+
     if (!message.recipient.email) {
+      console.error('[EmailChannel] No recipient email provided');
       return {
         success: false,
         messageId: message.id,
@@ -48,20 +153,46 @@ export class EmailChannel implements IDeliveryChannel {
     }
 
     try {
-      const apiKey = process.env.RESEND_API_KEY;
-      const fromEmail = process.env.RESEND_FROM_EMAIL;
+      const config = await this.getEmailConfiguration();
 
-      if (!apiKey || !fromEmail) {
+      if (!config) {
+        console.error('[EmailChannel] No email configuration available');
         return {
           success: false,
           messageId: message.id,
-          error: 'Email service not configured',
+          error: 'Email service not configured. Please configure email settings in system settings or set RESEND_API_KEY and RESEND_FROM_EMAIL environment variables.',
           retryable: false,
         };
       }
 
-      // Build email HTML
-      const htmlBody = message.htmlBody || this.buildDefaultHtml(message);
+      const { apiKey, fromEmail, fromName, replyTo } = config;
+      console.log('[EmailChannel] Config loaded, fromEmail:', fromEmail);
+
+      // Build email HTML using React Email templates
+      const htmlBody = message.htmlBody || await this.buildDefaultHtml(message);
+      console.log('[EmailChannel] HTML body length:', htmlBody?.length);
+
+      // Build the "from" field with optional display name
+      const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+      // Build email payload
+      const emailPayload: Record<string, unknown> = {
+        from: fromField,
+        to: message.recipient.email,
+        subject: message.subject || message.title,
+        html: htmlBody,
+      };
+
+      // Add reply-to if configured
+      if (replyTo) {
+        emailPayload.reply_to = replyTo;
+      }
+
+      console.log('[EmailChannel] Sending to Resend API...', {
+        from: fromField,
+        to: message.recipient.email,
+        subject: emailPayload.subject,
+      });
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -69,16 +200,14 @@ export class EmailChannel implements IDeliveryChannel {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: message.recipient.email,
-          subject: message.subject || message.title,
-          html: htmlBody,
-        }),
+        body: JSON.stringify(emailPayload),
       });
+
+      console.log('[EmailChannel] Resend API response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('[EmailChannel] Resend API error:', errorText);
         const isRetryable = response.status >= 500 || response.status === 429;
 
         return {
@@ -91,6 +220,7 @@ export class EmailChannel implements IDeliveryChannel {
       }
 
       const result = await response.json();
+      console.log('[EmailChannel] Email sent successfully, provider ID:', result.id);
 
       return {
         success: true,
@@ -99,6 +229,7 @@ export class EmailChannel implements IDeliveryChannel {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error sending email';
+      console.error('[EmailChannel] Exception during send:', error);
       return {
         success: false,
         messageId: message.id,
@@ -119,7 +250,172 @@ export class EmailChannel implements IDeliveryChannel {
     return emailRegex.test(recipient.email);
   }
 
-  private buildDefaultHtml(message: NotificationMessage): string {
+  private async buildDefaultHtml(message: NotificationMessage): Promise<string> {
+    // Use React Email template for professional, branded emails
+    try {
+      // Check for specific email template type
+      const emailTemplate = message.metadata?.emailTemplate as string | undefined;
+      const tenantName = message.metadata?.tenantName as string | undefined;
+
+      // Route to appropriate template based on emailTemplate field
+      if (emailTemplate) {
+        return await this.renderSpecificTemplate(emailTemplate, message, tenantName);
+      }
+
+      // Default to notification template
+      const html = await renderNotificationEmail(
+        {
+          title: message.title,
+          body: message.body,
+          actionUrl: message.metadata?.actionPayload as string | undefined,
+          actionLabel: message.metadata?.actionLabel as string | undefined,
+          category: message.metadata?.category as string | undefined,
+        },
+        {
+          recipientName: message.metadata?.recipientName as string | undefined,
+          tenantName,
+          tenantLogoUrl: message.metadata?.tenantLogoUrl as string | undefined,
+        }
+      );
+      return html;
+    } catch {
+      // Fallback to basic HTML if template rendering fails
+      return this.buildFallbackHtml(message);
+    }
+  }
+
+  /**
+   * Render a specific email template based on the emailTemplate field
+   */
+  private async renderSpecificTemplate(
+    templateType: string,
+    message: NotificationMessage,
+    tenantName?: string
+  ): Promise<string> {
+    const metadata = message.metadata || {};
+
+    switch (templateType) {
+      case 'care-plan-assigned':
+        return await renderCarePlanAssignedEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberName: metadata.memberName as string,
+            followUpDate: metadata.followUpDate as string | undefined,
+            careContext: metadata.careContext as string | undefined,
+            carePlanUrl: metadata.carePlanUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'care-plan-member-notification':
+        return await renderCarePlanMemberNotificationEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            caregiverName: metadata.caregiverName as string | undefined,
+            followUpDate: metadata.followUpDate as string | undefined,
+            carePlanUrl: metadata.carePlanUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      case 'care-plan-follow-up':
+        return await renderCarePlanFollowUpEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberName: metadata.memberName as string,
+            followUpDate: metadata.followUpDate as string,
+            daysUntilFollowUp: metadata.daysUntilFollowUp as number,
+            carePlanUrl: metadata.carePlanUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'discipleship-plan-created':
+        return await renderDiscipleshipPlanCreatedEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            isRecipientMember: metadata.isRecipientMember as boolean | undefined,
+            memberName: metadata.memberName as string,
+            pathwayName: metadata.pathwayName as string,
+            mentorName: metadata.mentorName as string | undefined,
+            nextStep: metadata.nextStep as string | undefined,
+            planUrl: metadata.planUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'discipleship-milestone':
+        return await renderDiscipleshipMilestoneEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            isRecipientMember: metadata.isRecipientMember as boolean | undefined,
+            memberName: metadata.memberName as string,
+            milestoneName: metadata.milestoneName as string,
+            pathwayName: metadata.pathwayName as string,
+            message: metadata.celebrationMessage as string | undefined,
+            planUrl: metadata.planUrl as string,
+          },
+          { tenantName }
+        );
+
+      case 'birthday-greeting':
+        return await renderBirthdayGreetingEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            memberPhotoUrl: metadata.memberPhotoUrl as string | undefined,
+            customMessage: metadata.customMessage as string | undefined,
+            age: metadata.age as number | undefined,
+            profileUrl: metadata.profileUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      case 'anniversary-greeting':
+        return await renderAnniversaryGreetingEmail(
+          {
+            recipientName: metadata.recipientName as string,
+            spouseName: metadata.spouseName as string | undefined,
+            years: metadata.years as number | undefined,
+            customMessage: metadata.customMessage as string | undefined,
+            profileUrl: metadata.profileUrl as string | undefined,
+          },
+          { tenantName }
+        );
+
+      case 'tenant-subscription-welcome':
+        return await renderTenantSubscriptionWelcomeEmail(
+          {
+            adminName: metadata.adminName as string,
+            tenantName: metadata.tenantName as string,
+            subscriptionTier: metadata.subscriptionTier as string,
+            isTrial: metadata.isTrial as boolean | undefined,
+            trialDays: metadata.trialDays as number | undefined,
+            dashboardUrl: metadata.dashboardUrl as string,
+            baseUrl: metadata.baseUrl as string | undefined,
+          },
+          {}
+        );
+
+      default:
+        // Unknown template type, fall back to notification template
+        return await renderNotificationEmail(
+          {
+            title: message.title,
+            body: message.body,
+            actionUrl: metadata.actionPayload as string | undefined,
+            actionLabel: metadata.actionLabel as string | undefined,
+            category: metadata.category as string | undefined,
+          },
+          {
+            recipientName: metadata.recipientName as string | undefined,
+            tenantName,
+            tenantLogoUrl: metadata.tenantLogoUrl as string | undefined,
+          }
+        );
+    }
+  }
+
+  private buildFallbackHtml(message: NotificationMessage): string {
     return `
       <!DOCTYPE html>
       <html>

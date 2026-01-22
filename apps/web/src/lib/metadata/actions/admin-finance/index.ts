@@ -180,7 +180,7 @@ async function handleSaveSource(
     const result = (await serviceHandler({
       params: payload,
       context: execution.context,
-    })) as { success: boolean; message: string; sourceId?: string };
+    })) as { success: boolean; message: string; sourceId?: string; redirectUrl?: string };
 
     if (!result.success) {
       return {
@@ -201,7 +201,7 @@ async function handleSaveSource(
       toOptionalString(config.redirectUrl) ??
       toOptionalString(config.redirectTemplate) ??
       null;
-    const redirectUrl = buildRedirectUrl(redirectTemplate, context);
+    const redirectUrl = result.redirectUrl ?? buildRedirectUrl(redirectTemplate, context);
 
     return {
       success: true,
@@ -695,6 +695,89 @@ async function handleVoidTransaction(
       success: false,
       status: 500,
       message: 'Failed to void transaction. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handlePostTransaction(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.transactions.post'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.transactions.post');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to post transaction.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Transaction posted successfully.',
+    };
+  } catch (error) {
+    console.error('[handlePostTransaction] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to post transaction. Please try again.',
+      errors: {},
+    };
+  }
+}
+
+async function handleRecallTransaction(
+  execution: MetadataActionExecution
+): Promise<MetadataActionResult> {
+  const payload = execution.input as Record<string, unknown>;
+
+  const serviceHandler = adminFinanceHandlers['admin-finance.transactions.recall'];
+  if (!serviceHandler) {
+    throw new Error('Service handler not found: admin-finance.transactions.recall');
+  }
+
+  try {
+    const result = (await serviceHandler({
+      params: payload,
+      context: execution.context,
+    })) as { success: boolean; message: string; redirectUrl?: string };
+
+    if (!result.success) {
+      return {
+        success: false,
+        status: 400,
+        message: result.message || 'Failed to recall transaction.',
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      message: result.message || 'Transaction recalled to draft status.',
+      redirectUrl: result.redirectUrl,
+    };
+  } catch (error) {
+    console.error('[handleRecallTransaction] Failed:', error);
+    return {
+      success: false,
+      status: 500,
+      message: 'Failed to recall transaction. Please try again.',
       errors: {},
     };
   }
@@ -1278,6 +1361,8 @@ export const adminFinanceActionHandlers: Record<
   'admin-finance.transactions.saveDraft': handleSaveDraftTransaction,
   'admin-finance.transactions.approve': handleApproveTransaction,
   'admin-finance.transactions.void': handleVoidTransaction,
+  'admin-finance.transactions.post': handlePostTransaction,
+  'admin-finance.transactions.recall': handleRecallTransaction,
   // Report actions
   'admin-finance.reports.export': handleExportReport,
 };

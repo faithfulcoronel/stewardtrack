@@ -38,6 +38,13 @@ export interface IDiscountRepository {
     currency: string
   ): Promise<DiscountValidationResult>;
 
+  validateDiscountCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<DiscountValidationResult>;
+
   getActiveDiscountsForOffering(
     offeringId: string,
     currency?: string
@@ -112,6 +119,15 @@ export class DiscountRepository implements IDiscountRepository {
     currency: string
   ): Promise<DiscountValidationResult> {
     return this.adapter.validateDiscountCode(code, offeringId, tenantId, amount, currency);
+  }
+
+  async validateDiscountCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<DiscountValidationResult> {
+    return this.adapter.validateDiscountCodePublic(code, offeringId, amount, currency);
   }
 
   async getActiveDiscountsForOffering(

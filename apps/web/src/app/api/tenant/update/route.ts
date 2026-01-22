@@ -6,22 +6,24 @@ import type { TenantService } from '@/services/TenantService';
 import { AuthorizationService } from '@/services/AuthorizationService';
 
 interface UpdateTenantRequest {
+  name?: string;
   address?: string;
   contact_number?: string;
+  phone?: string; // Alias for contact_number
   email?: string;
   website?: string;
   logo_url?: string;
 }
 
 /**
- * PUT /api/tenant/update
+ * PUT/PATCH /api/tenant/update
  *
  * Updates the current tenant's information.
  */
-export async function PUT(request: NextRequest) {
+async function handleUpdate(request: NextRequest) {
   try {
     const body: UpdateTenantRequest = await request.json();
-    const { address, contact_number, email, website, logo_url } = body;
+    const { name, address, contact_number, phone, email, website, logo_url } = body;
 
     const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
     const authResult = await authService.checkAuthentication();
@@ -54,8 +56,10 @@ export async function PUT(request: NextRequest) {
     // Build update object (only include provided fields)
     const updates: Record<string, any> = {};
 
+    if (name !== undefined) updates.name = name;
     if (address !== undefined) updates.address = address;
     if (contact_number !== undefined) updates.contact_number = contact_number;
+    if (phone !== undefined) updates.contact_number = phone; // Alias support
     if (email !== undefined) updates.email = email;
     if (website !== undefined) updates.website = website;
     if (logo_url !== undefined) updates.logo_url = logo_url;
@@ -114,3 +118,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+// Export both PUT and PATCH methods
+export { handleUpdate as PUT, handleUpdate as PATCH };

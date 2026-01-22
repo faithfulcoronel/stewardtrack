@@ -145,18 +145,21 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Category',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'startDate',
       headerName: 'Start',
       type: 'text',
       flex: 0.7,
+      hideOnMobile: true,
     },
     {
       field: 'endDate',
       headerName: 'End',
       type: 'text',
       flex: 0.7,
+      hideOnMobile: true,
     },
     {
       field: 'budgeted',
@@ -169,12 +172,14 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Spent',
       type: 'currency',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'remaining',
       headerName: 'Remaining',
       type: 'currency',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'status',

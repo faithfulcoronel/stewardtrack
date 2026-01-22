@@ -6,9 +6,7 @@ export class AccountValidator {
       throw new Error('Account name is required');
     }
 
-    if (data.account_number !== undefined && !data.account_number.trim()) {
-      throw new Error('Account number is required');
-    }
+    // Note: account_number is auto-generated if not provided, so no validation needed here
 
     if (data.account_type !== undefined &&
         !['organization', 'person'].includes(data.account_type)) {

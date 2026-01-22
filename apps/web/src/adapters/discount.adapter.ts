@@ -35,6 +35,13 @@ export interface IDiscountAdapter extends IBaseAdapter<Discount> {
     currency: string
   ): Promise<DiscountValidationResult>;
 
+  validateDiscountCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<DiscountValidationResult>;
+
   getActiveDiscountsForOffering(
     offeringId: string,
     currency?: string
@@ -75,6 +82,7 @@ export class DiscountAdapter
     first_purchase_only,
     new_tenant_only,
     applicable_billing_cycles,
+    duration_billing_cycles,
     is_active,
     show_banner,
     banner_text,
@@ -112,7 +120,7 @@ export class DiscountAdapter
       throw new Error(`Failed to create discount: ${error.message}`);
     }
 
-    return discount as Discount;
+    return discount as unknown as Discount;
   }
 
   async updateDiscount(id: string, data: UpdateDiscountDto): Promise<Discount> {
@@ -135,7 +143,7 @@ export class DiscountAdapter
       throw new Error(`Failed to update discount: ${error.message}`);
     }
 
-    return discount as Discount;
+    return discount as unknown as Discount;
   }
 
   async deleteDiscount(id: string): Promise<void> {
@@ -170,7 +178,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch discount: ${error.message}`);
     }
 
-    return data as Discount;
+    return data as unknown as Discount;
   }
 
   async getDiscountByCode(code: string): Promise<Discount | null> {
@@ -188,7 +196,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch discount: ${error.message}`);
     }
 
-    return data as Discount;
+    return data as unknown as Discount;
   }
 
   // ==========================================================================
@@ -211,7 +219,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch active discounts: ${error.message}`);
     }
 
-    return (data || []) as Discount[];
+    return (data || []) as unknown as Discount[];
   }
 
   async getAutomaticDiscounts(): Promise<Discount[]> {
@@ -231,7 +239,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch automatic discounts: ${error.message}`);
     }
 
-    return (data || []) as Discount[];
+    return (data || []) as unknown as Discount[];
   }
 
   async getCouponDiscounts(): Promise<Discount[]> {
@@ -249,7 +257,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch coupon discounts: ${error.message}`);
     }
 
-    return (data || []) as Discount[];
+    return (data || []) as unknown as Discount[];
   }
 
   async getAllDiscounts(includeInactive: boolean = false): Promise<Discount[]> {
@@ -271,7 +279,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch discounts: ${error.message}`);
     }
 
-    return (data || []) as Discount[];
+    return (data || []) as unknown as Discount[];
   }
 
   // ==========================================================================
@@ -311,6 +319,7 @@ export class DiscountAdapter
       discount_value: result?.discount_value,
       discount_amount: result?.discount_amount,
       final_amount: result?.final_amount,
+      duration_billing_cycles: result?.duration_billing_cycles,
       error_message: result?.error_message,
     };
   }
@@ -339,6 +348,7 @@ export class DiscountAdapter
       badge_text: d.badge_text,
       banner_text: d.banner_text,
       ends_at: d.ends_at,
+      duration_billing_cycles: d.duration_billing_cycles,
     }));
   }
 
@@ -364,6 +374,153 @@ export class DiscountAdapter
   }
 
   // ==========================================================================
+  // Public Validation (no tenant required)
+  // ==========================================================================
+
+  async validateDiscountCodePublic(
+    code: string,
+    offeringId: string,
+    amount: number,
+    currency: string
+  ): Promise<DiscountValidationResult> {
+    // Use service client for public validation (no auth required)
+    const { getSupabaseServiceClient } = await import('@/lib/supabase/service');
+    const supabase = await getSupabaseServiceClient();
+    const normalizedCode = code.toUpperCase().trim();
+
+    // Fetch the discount by code
+    const { data: discount, error: discountError } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('code', normalizedCode)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .single();
+
+    if (discountError || !discount) {
+      return {
+        is_valid: false,
+        error_message: 'Invalid or expired discount code',
+      };
+    }
+
+    // Cast to proper type
+    const typedDiscount = discount as unknown as Discount;
+
+    // Check date validity
+    const now = new Date();
+    const startsAt = new Date(typedDiscount.starts_at);
+    const endsAt = typedDiscount.ends_at ? new Date(typedDiscount.ends_at) : null;
+
+    if (now < startsAt) {
+      return {
+        is_valid: false,
+        error_message: 'This discount code is not yet active',
+      };
+    }
+
+    if (endsAt && now > endsAt) {
+      return {
+        is_valid: false,
+        error_message: 'This discount code has expired',
+      };
+    }
+
+    // Check max global uses
+    if (typedDiscount.max_uses != null && typedDiscount.current_uses >= typedDiscount.max_uses) {
+      return {
+        is_valid: false,
+        error_message: 'This discount code has reached its maximum usage limit',
+      };
+    }
+
+    // Fetch the offering to check targeting
+    const { data: offering, error: offeringError } = await supabase
+      .from('product_offerings')
+      .select('id, tier, billing_cycle')
+      .eq('id', offeringId)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+      .single();
+
+    if (offeringError || !offering) {
+      return {
+        is_valid: false,
+        error_message: 'Invalid offering',
+      };
+    }
+
+    // Check targeting scope
+    if (typedDiscount.target_scope === 'tier') {
+      if (!typedDiscount.target_tiers || !typedDiscount.target_tiers.includes(offering.tier)) {
+        return {
+          is_valid: false,
+          error_message: 'This discount code is not valid for the selected plan',
+        };
+      }
+    } else if (typedDiscount.target_scope === 'offering') {
+      if (!typedDiscount.target_offering_ids || !typedDiscount.target_offering_ids.includes(offeringId)) {
+        return {
+          is_valid: false,
+          error_message: 'This discount code is not valid for the selected plan',
+        };
+      }
+    }
+
+    // Check billing cycle
+    if (offering.billing_cycle && typedDiscount.applicable_billing_cycles?.length > 0) {
+      if (!typedDiscount.applicable_billing_cycles.includes(offering.billing_cycle)) {
+        return {
+          is_valid: false,
+          error_message: 'This discount code is not valid for the selected billing cycle',
+        };
+      }
+    }
+
+    // Check minimum amount
+    if (typedDiscount.min_amount != null && amount < typedDiscount.min_amount) {
+      return {
+        is_valid: false,
+        error_message: `Minimum purchase of ${typedDiscount.min_amount} ${currency} required`,
+      };
+    }
+
+    // Check currency for fixed amount discounts
+    if (typedDiscount.calculation_type === 'fixed_amount') {
+      if (typedDiscount.discount_currency && typedDiscount.discount_currency !== currency) {
+        return {
+          is_valid: false,
+          error_message: 'This discount is not available in your currency',
+        };
+      }
+    }
+
+    // Calculate discount amount
+    let discountAmount: number;
+    if (typedDiscount.calculation_type === 'percentage') {
+      discountAmount = Math.round(amount * (typedDiscount.discount_value / 100) * 100) / 100;
+    } else {
+      discountAmount = typedDiscount.discount_value;
+    }
+
+    // Cap discount at original price
+    discountAmount = Math.min(discountAmount, amount);
+    const finalAmount = Math.round((amount - discountAmount) * 100) / 100;
+
+    return {
+      is_valid: true,
+      discount_id: typedDiscount.id,
+      discount_name: typedDiscount.name,
+      discount_type: typedDiscount.discount_type,
+      calculation_type: typedDiscount.calculation_type,
+      discount_value: typedDiscount.discount_value,
+      discount_amount: discountAmount,
+      final_amount: finalAmount,
+      duration_billing_cycles: typedDiscount.duration_billing_cycles,
+    };
+  }
+
+  // ==========================================================================
   // Redemption History
   // ==========================================================================
 
@@ -380,7 +537,7 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch discount redemptions: ${error.message}`);
     }
 
-    return (data || []) as DiscountRedemption[];
+    return (data || []) as unknown as DiscountRedemption[];
   }
 
   async getTenantRedemptions(tenantId: string): Promise<DiscountRedemption[]> {
@@ -396,6 +553,6 @@ export class DiscountAdapter
       throw new Error(`Failed to fetch tenant redemptions: ${error.message}`);
     }
 
-    return (data || []) as DiscountRedemption[];
+    return (data || []) as unknown as DiscountRedemption[];
   }
 }

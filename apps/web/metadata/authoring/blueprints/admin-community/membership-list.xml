@@ -11,8 +11,7 @@
             <Prop name="headline" kind="binding" contract="listHero.headline"/>
             <Prop name="description" kind="binding" contract="listHero.description"/>
             <Prop name="metrics" kind="binding" contract="listHero.metrics"/>
-            <Prop name="primaryCta" kind="action" actionId="launch-new-member"/>
-            <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
+            <Prop name="primaryCta" kind="action" actionId="open-dashboard"/>
           </Props>
         </Component>
         <Component id="list-segments" type="AdminMetricCards">
@@ -22,6 +21,12 @@
             <Prop name="metrics" kind="binding" contract="segmentHealth.items"/>
           </Props>
         </Component>
+        <Component id="member-import" type="MemberImportActions">
+          <Props>
+            <Prop name="variant" kind="static">primary</Prop>
+            <Prop name="showLabels" kind="static">true</Prop>
+          </Props>
+        </Component>
         <Component id="membership-grid" type="AdminDataGridSection">
           <Props>
             <Prop name="title" kind="static">Community roster</Prop>
@@ -29,7 +34,6 @@
             <Prop name="rows" kind="binding" contract="membersTable.rows"/>
             <Prop name="columns" kind="binding" contract="membersTable.columns"/>
             <Prop name="filters" kind="binding" contract="membersTable.filters"/>
-            <Prop name="actions" kind="binding" contract="membersTable.actions"/>
             <Prop name="emptyState" kind="static">{&quot;title&quot;: &quot;No members match your filters&quot;, &quot;description&quot;: &quot;Try expanding your filters to include additional centers or membership stages.&quot;}</Prop>
           </Props>
         </Component>
@@ -60,11 +64,9 @@
           <Field name="rows" path="rows" description="Binding for membership-grid.rows"/>
           <Field name="columns" path="columns" description="Binding for membership-grid.columns"/>
           <Field name="filters" path="filters" description="Binding for membership-grid.filters"/>
-          <Field name="actions" path="actions" description="Binding for membership-grid.actions"/>
         </Contract>
         <Config>
           <handler>admin-community.members.list.membersTable</handler>
-          <limit>100</limit>
         </Config>
         <Data>
           <Field name="filters">
@@ -153,31 +155,6 @@
                       </Field>
                     </Object>                    
                   </Array>
-                </Field>
-              </Object>
-            </Array>
-          </Field>
-          <Field name="actions">
-            <Array>
-              <Object>
-                <Field name="id">
-                  <Value>add-member-action</Value>
-                </Field>
-                <Field name="kind">
-                  <Value>link</Value>
-                </Field>
-                <Field name="config">
-                  <Object>
-                    <Field name="label">
-                      <Value>Add member</Value>
-                    </Field>
-                    <Field name="url">
-                      <Value>/admin/members/manage</Value>
-                    </Field>
-                    <Field name="variant">
-                      <Value>primary</Value>
-                    </Field>
-                  </Object>
                 </Field>
               </Object>
             </Array>

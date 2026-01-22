@@ -83,7 +83,7 @@
         <RBAC requirePermissions="finance:edit" />
         <Config>
           <Label>Edit source</Label>
-          <Url>/admin/finance/sources/manage?sourceId={{id}}</Url>
+          <Url>/admin/finance/sources/manage?sourceId={{params.sourceId}}</Url>
           <Variant>primary</Variant>
         </Config>
       </Action>

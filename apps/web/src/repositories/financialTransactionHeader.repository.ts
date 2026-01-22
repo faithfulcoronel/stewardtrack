@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import { FinancialTransactionHeader } from '@/models/financialTransactionHeader.model';
-import type { IFinancialTransactionHeaderAdapter } from '@/adapters/financialTransactionHeader.adapter';
+import type { IFinancialTransactionHeaderAdapter, TransactionSummaryRow } from '@/adapters/financialTransactionHeader.adapter';
 import { NotificationService } from '@/services/NotificationService';
 import { FinancialTransactionHeaderValidator } from '@/validators/financialTransactionHeader.validator';
 import { TYPES } from '@/lib/types';
@@ -13,6 +13,7 @@ export interface IFinancialTransactionHeaderRepository
   approveTransaction(id: string): Promise<void>;
   voidTransaction(id: string, reason: string): Promise<void>;
   getTransactionEntries(headerId: string): Promise<any[]>;
+  getLineItems(headerId: string): Promise<any[]>;
   isTransactionBalanced(headerId: string): Promise<boolean>;
   createWithTransactions(
     data: Partial<FinancialTransactionHeader>,
@@ -24,6 +25,11 @@ export interface IFinancialTransactionHeaderRepository
     transactions: any[],
   ): Promise<{ header: FinancialTransactionHeader; transactions: any[] }>;
   getUnmappedHeaders(): Promise<FinancialTransactionHeader[]>;
+  getTransactionSummary(
+    tenantId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<TransactionSummaryRow[]>;
 }
 
 @injectable()
@@ -182,11 +188,24 @@ export class FinancialTransactionHeaderRepository
     return this.financialTransactionHeaderAdapter.getTransactionEntries(headerId);
   }
 
+  public async getLineItems(headerId: string): Promise<any[]> {
+    // Line items are the same as transaction entries, formatted for display
+    return this.financialTransactionHeaderAdapter.getTransactionEntries(headerId);
+  }
+
   public async isTransactionBalanced(headerId: string): Promise<boolean> {
     return this.financialTransactionHeaderAdapter.isTransactionBalanced(headerId);
   }
 
   public async getUnmappedHeaders(): Promise<FinancialTransactionHeader[]> {
     return this.financialTransactionHeaderAdapter.getUnmappedHeaders();
+  }
+
+  public async getTransactionSummary(
+    tenantId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<TransactionSummaryRow[]> {
+    return this.financialTransactionHeaderAdapter.getTransactionSummary(tenantId, startDate, endDate);
   }
 }

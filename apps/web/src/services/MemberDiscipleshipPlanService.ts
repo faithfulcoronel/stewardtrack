@@ -146,9 +146,9 @@ export class MemberDiscipleshipPlanService {
 
     const plan = await this.repo.create(planData);
 
-    // Send notification to the member
+    // Send notifications to both the member and mentor
     if (plan.member_id) {
-      await this.sendDiscipleshipPlanAssignedNotification(plan);
+      await this.sendDiscipleshipPlanNotifications(plan);
     }
 
     // Auto-sync to calendar if there's a target date
@@ -164,9 +164,21 @@ export class MemberDiscipleshipPlanService {
   }
 
   /**
-   * Send notification when a discipleship plan is assigned to a member
+   * Send notifications when a discipleship plan is created
+   * Notifies both the member on the journey and the mentor (if assigned)
    */
-  private async sendDiscipleshipPlanAssignedNotification(plan: MemberDiscipleshipPlan): Promise<void> {
+  private async sendDiscipleshipPlanNotifications(plan: MemberDiscipleshipPlan): Promise<void> {
+    // Notify both parties in parallel
+    await Promise.all([
+      this.sendNotificationToMemberForPlan(plan),
+      this.sendNotificationToMentorForPlan(plan),
+    ]);
+  }
+
+  /**
+   * Send notification to the member starting their discipleship journey
+   */
+  private async sendNotificationToMemberForPlan(plan: MemberDiscipleshipPlan): Promise<void> {
     try {
       // Get member details to find their user account and contact info
       const member = await this.memberRepo.findById(plan.member_id);
@@ -183,15 +195,12 @@ export class MemberDiscipleshipPlanService {
       }
 
       // Build message based on plan details
-      let message = 'A discipleship plan has been created for you.';
+      let message = 'Your journey of faith begins! A discipleship plan has been created for you.';
       if (plan.pathway) {
-        message = `You've been enrolled in the "${plan.pathway}" discipleship pathway.`;
+        message = `Your journey of faith begins! You've been enrolled in the "${plan.pathway}" pathway.`;
       }
       if (plan.mentor_name) {
-        message += ` Your mentor is ${plan.mentor_name}.`;
-      }
-      if (plan.next_step) {
-        message += ` Next step: ${plan.next_step}`;
+        message += ` ${plan.mentor_name} will be walking alongside you as your mentor.`;
       }
 
       await this.notificationBus.publish({
@@ -206,22 +215,97 @@ export class MemberDiscipleshipPlanService {
           phone: member.contact_number || undefined,
         },
         payload: {
-          title: 'Discipleship Plan Started',
+          title: 'Your Journey of Growth Begins',
           message,
           memberName: `${member.first_name} ${member.last_name}`,
+          recipientName: member.first_name,
+          isRecipientMember: true,
           planId: plan.id,
-          pathway: plan.pathway,
+          pathwayName: plan.pathway,
           mentorName: plan.mentor_name,
           nextStep: plan.next_step,
           targetDate: plan.target_date,
+          planUrl: `/members/${plan.member_id}/discipleship`,
           actionType: 'redirect',
           actionPayload: `/members/${plan.member_id}/discipleship`,
+          // Email template type indicator
+          emailTemplate: 'discipleship-plan-created',
         },
-        channels: recipientUserId ? ['in_app', 'email', 'sms'] : ['email', 'sms'],
+        channels: recipientUserId ? ['in_app', 'email'] : ['email'],
       });
     } catch (error) {
       // Log error but don't fail the plan creation
-      console.error('Failed to send discipleship plan notification:', error);
+      console.error('Failed to send discipleship plan notification to member:', error);
+    }
+  }
+
+  /**
+   * Send notification to the mentor assigned to the discipleship plan
+   */
+  private async sendNotificationToMentorForPlan(plan: MemberDiscipleshipPlan): Promise<void> {
+    try {
+      // Only notify if there's a mentor assigned
+      if (!plan.mentor_name) {
+        return; // No mentor assigned
+      }
+
+      // Get member details (the person on the journey)
+      const member = await this.memberRepo.findById(plan.member_id);
+      if (!member) {
+        return; // Member not found
+      }
+
+      // Try to find the mentor by name to get their contact info
+      // Note: mentor_name is a text field, so we search by name
+      const allMembers = await this.memberRepo.findAll();
+      const mentor = allMembers.data.find(
+        (m) => `${m.first_name} ${m.last_name}`.toLowerCase() === plan.mentor_name?.toLowerCase()
+      );
+
+      // If we can't find the mentor as a member, we can't notify them
+      if (!mentor) {
+        console.warn(`Mentor "${plan.mentor_name}" not found as a member, skipping notification`);
+        return;
+      }
+
+      const recipientUserId = mentor.user_id;
+      if (!recipientUserId && !mentor.email) {
+        return;
+      }
+
+      await this.notificationBus.publish({
+        id: randomUUID(),
+        eventType: NotificationEventType.DISCIPLESHIP_PLAN_ASSIGNED,
+        category: 'member',
+        priority: 'normal',
+        tenantId: plan.tenant_id!,
+        recipient: {
+          userId: recipientUserId || '',
+          email: mentor.email || undefined,
+          phone: mentor.contact_number || undefined,
+        },
+        payload: {
+          title: 'New Discipleship Assignment',
+          message: `${member.first_name} ${member.last_name} is starting their "${plan.pathway || 'discipleship'}" journey, and you've been invited to walk alongside them as their mentor.`,
+          memberName: `${member.first_name} ${member.last_name}`,
+          recipientName: mentor.first_name,
+          isRecipientMember: false,
+          planId: plan.id,
+          pathwayName: plan.pathway,
+          mentorName: plan.mentor_name,
+          nextStep: plan.next_step,
+          targetDate: plan.target_date,
+          planUrl: `/admin/community/discipleship/${plan.id}`,
+          actionType: 'redirect',
+          actionPayload: `/admin/community/discipleship/${plan.id}`,
+          // Email template type indicator
+          emailTemplate: 'discipleship-plan-created',
+        },
+        channels: recipientUserId ? ['in_app', 'email'] : ['email'],
+      });
+    } catch (error) {
+      // Log error but don't fail the plan creation
+      console.error('Failed to send discipleship plan notification to mentor:', error);
     }
   }
 

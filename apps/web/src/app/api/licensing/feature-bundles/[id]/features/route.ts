@@ -4,9 +4,9 @@ import { TYPES } from '@/lib/types';
 import { LicensingService } from '@/services/LicensingService';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**

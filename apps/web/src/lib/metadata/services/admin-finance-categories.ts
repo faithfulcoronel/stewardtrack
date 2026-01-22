@@ -9,7 +9,38 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { ICategoryRepository } from '@/repositories/category.repository';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
+
+// Helper to get user-friendly transaction type display
+const getTransactionTypeDisplay = (type: string): { label: string; variant: string } => {
+  switch (type) {
+    case 'income':
+      return { label: 'Income', variant: 'positive' };
+    case 'expense':
+      return { label: 'Expense', variant: 'negative' };
+    case 'transfer':
+      return { label: 'Transfer', variant: 'informative' };
+    case 'adjustment':
+      return { label: 'Adjustment', variant: 'warning' };
+    case 'opening_balance':
+      return { label: 'Opening Balance', variant: 'informative' };
+    case 'closing_entry':
+      return { label: 'Closing Entry', variant: 'secondary' };
+    case 'fund_rollover':
+      return { label: 'Fund Rollover', variant: 'informative' };
+    case 'reversal':
+      return { label: 'Reversal', variant: 'warning' };
+    case 'allocation':
+      return { label: 'Allocation', variant: 'informative' };
+    case 'reclass':
+      return { label: 'Reclass', variant: 'secondary' };
+    case 'refund':
+      return { label: 'Refund', variant: 'warning' };
+    default:
+      return { label: type, variant: 'secondary' };
+  }
+};
 
 // ==================== SHARED UTILITIES ====================
 
@@ -22,8 +53,16 @@ interface CategoryRecord {
   description?: string;
   type?: string;
   isActive?: boolean;
+  is_active?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  chart_of_account_id?: string | null;
+  chart_of_accounts?: {
+    id: string;
+    code: string;
+    name: string;
+    account_type: string;
+  } | null;
 }
 
 const getCategoryLabel = (type: CategoryType): string => {
@@ -127,25 +166,46 @@ const resolveIncomeCategoriesListSummary: ServiceDataSourceHandler = async (_req
 
 const resolveIncomeCategoriesListTable: ServiceDataSourceHandler = async (_request) => {
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+  const currency = await getTenantCurrency();
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
 
   const result = await categoryRepository.findAll();
   const categories = (result.data || []) as CategoryRecord[];
   const incomeCategories = categories.filter((cat) => cat.type === 'income_transaction');
 
-  const rows = incomeCategories.map((category) => ({
-    id: category.id,
-    name: category.name,
-    code: category.code || '—',
-    description: category.description || '—',
-    status: category.isActive !== false ? 'Active' : 'Inactive',
-    statusVariant: category.isActive !== false ? 'success' : 'secondary',
-  }));
+  // Fetch balance for each category
+  const rows = await Promise.all(
+    incomeCategories.map(async (category) => {
+      const balance = await transactionRepository.getCategoryBalance(category.id, tenant.id);
+      const formattedBalance = balance.balance < 0
+        ? `(${formatCurrency(Math.abs(balance.balance), currency)})`
+        : formatCurrency(balance.balance, currency);
+      return {
+        id: category.id,
+        name: category.name,
+        code: category.code || '—',
+        description: category.description || '—',
+        balance: formattedBalance,
+        transactions: String(balance.transaction_count),
+        status: category.isActive !== false ? 'Active' : 'Inactive',
+        statusVariant: category.isActive !== false ? 'success' : 'secondary',
+      };
+    })
+  );
 
   const columns = [
     { field: 'name', headerName: 'Name', type: 'text', flex: 1.2 },
-    { field: 'code', headerName: 'Code', type: 'text', flex: 0.6 },
-    { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-    { field: 'status', headerName: 'Status', type: 'badge', badgeVariantField: 'statusVariant', flex: 0.6 },
+    { field: 'code', headerName: 'Code', type: 'text', flex: 0.5 },
+    { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+    { field: 'balance', headerName: 'Balance', type: 'text', align: 'right', flex: 0.7 },
+    { field: 'transactions', headerName: 'Txns', type: 'text', align: 'right', flex: 0.4 },
+    { field: 'status', headerName: 'Status', type: 'badge', badgeVariantField: 'statusVariant', flex: 0.5 },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -192,10 +252,17 @@ const resolveIncomeCategoriesListTable: ServiceDataSourceHandler = async (_reque
 const resolveIncomeCategoryProfileHeader: ServiceDataSourceHandler = async (request) => {
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
   const currency = await getTenantCurrency();
 
   if (!categoryId) {
     throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
   }
 
   const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
@@ -203,6 +270,9 @@ const resolveIncomeCategoryProfileHeader: ServiceDataSourceHandler = async (requ
   if (!category) {
     throw new Error('Category not found');
   }
+
+  // Get real balance data
+  const balance = await transactionRepository.getCategoryBalance(categoryId, tenant.id);
 
   return {
     eyebrow: category.code || 'INC',
@@ -215,17 +285,17 @@ const resolveIncomeCategoryProfileHeader: ServiceDataSourceHandler = async (requ
     metrics: [
       {
         label: 'Total income',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balance.total_income, currency),
         caption: 'All time',
       },
       {
-        label: 'This month',
-        value: formatCurrency(0, currency),
-        caption: 'Current period',
+        label: 'Total expense',
+        value: formatCurrency(balance.total_expense, currency),
+        caption: 'All time',
       },
       {
         label: 'Transactions',
-        value: '0',
+        value: String(balance.transaction_count),
         caption: 'Total count',
       },
     ],
@@ -266,33 +336,48 @@ const resolveIncomeCategoryProfileDetails: ServiceDataSourceHandler = async (req
   };
 };
 
-const resolveIncomeCategoryProfileUsageSummary: ServiceDataSourceHandler = async (_request) => {
+const resolveIncomeCategoryProfileUsageSummary: ServiceDataSourceHandler = async (request) => {
+  const categoryId = request.params?.categoryId as string;
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
   const currency = await getTenantCurrency();
+
+  if (!categoryId) {
+    throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get real balance data
+  const balance = await transactionRepository.getCategoryBalance(categoryId, tenant.id);
 
   return {
     items: [
       {
         id: 'total-income',
         label: 'Total income',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balance.total_income, currency),
         change: '',
         changeLabel: 'all time',
         trend: 'flat',
         tone: 'positive',
       },
       {
-        id: 'mtd-income',
-        label: 'This month',
-        value: formatCurrency(0, currency),
+        id: 'total-expense',
+        label: 'Total expense',
+        value: formatCurrency(balance.total_expense, currency),
         change: '',
-        changeLabel: 'current period',
+        changeLabel: 'all time',
         trend: 'flat',
-        tone: 'informative',
+        tone: 'negative',
       },
       {
         id: 'transaction-count',
         label: 'Transactions',
-        value: '0',
+        value: String(balance.transaction_count),
         change: '',
         changeLabel: 'total count',
         trend: 'flat',
@@ -302,15 +387,58 @@ const resolveIncomeCategoryProfileUsageSummary: ServiceDataSourceHandler = async
   };
 };
 
-const resolveIncomeCategoryProfileTransactions: ServiceDataSourceHandler = async (_request) => {
+const resolveIncomeCategoryProfileTransactions: ServiceDataSourceHandler = async (request) => {
+  const categoryId = request.params?.categoryId as string;
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+  const currency = await getTenantCurrency();
+
+  if (!categoryId) {
+    throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get real transactions
+  const transactions = await transactionRepository.getByCategoryId(categoryId, tenant.id);
+
+  const rows = transactions.map((txn) => {
+    const typeDisplay = getTransactionTypeDisplay(txn.transaction_type);
+    const isDebit = ['expense', 'adjustment', 'allocation', 'closing_entry'].includes(txn.transaction_type);
+    const formattedAmount = isDebit
+      ? `(${formatCurrency(txn.amount, currency)})`
+      : formatCurrency(txn.amount, currency);
+
+    return {
+      id: txn.id,
+      date: new Date(txn.transaction_date).toLocaleDateString(),
+      type: typeDisplay.label,
+      typeVariant: typeDisplay.variant,
+      description: txn.description || '—',
+      fund: txn.fund_name || '—',
+      source: txn.source_name || '—',
+      amount: formattedAmount,
+      reference: txn.reference || '—',
+    };
+  });
+
   return {
-    rows: [],
+    rows,
     columns: [
-      { field: 'date', headerName: 'Date', type: 'text', flex: 0.8 },
-      { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-      { field: 'amount', headerName: 'Amount', type: 'currency', flex: 0.8 },
+      { field: 'date', headerName: 'Date', type: 'text', flex: 0.7 },
+      { field: 'type', headerName: 'Type', type: 'badge', badgeVariantField: 'typeVariant', flex: 0.6 },
+      { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+      { field: 'fund', headerName: 'Fund', type: 'text', flex: 0.8 },
       { field: 'source', headerName: 'Source', type: 'text', flex: 0.8 },
+      { field: 'amount', headerName: 'Amount', type: 'text', align: 'right', flex: 0.8 },
     ],
+    emptyState: {
+      title: 'No transactions',
+      description: 'No transactions have been recorded for this category yet.',
+    },
   };
 };
 
@@ -336,59 +464,82 @@ const resolveIncomeCategoryManageForm: ServiceDataSourceHandler = async (request
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
-  let values = {
+  let values: Record<string, unknown> = {
     name: '',
     code: '',
     description: '',
     isActive: true,
+    linkedAccount: '',
   };
+
+  let hasLinkedAccount = false;
 
   if (categoryId) {
     const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
 
     if (category) {
+      hasLinkedAccount = !!category.chart_of_account_id;
+      const linkedAccountDisplay = category.chart_of_accounts
+        ? `${category.chart_of_accounts.code} - ${category.chart_of_accounts.name}`
+        : '';
+
       values = {
         name: category.name,
         code: category.code || '',
         description: category.description || '',
-        isActive: category.isActive !== false,
+        isActive: category.isActive !== false && category.is_active !== false,
+        linkedAccount: linkedAccountDisplay,
       };
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    {
+      name: 'name',
+      label: 'Category name',
+      type: 'text',
+      colSpan: 'half',
+      required: true,
+      placeholder: 'e.g., Tithes, Offerings, Donations',
+    },
+    {
+      name: 'code',
+      label: 'Category code',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., INC-001',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Describe this income category...',
+      rows: 3,
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Inactive categories cannot be used for new transactions.',
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (categoryId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked COA account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this category. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      {
-        name: 'name',
-        label: 'Category name',
-        type: 'text',
-        colSpan: 'half',
-        required: true,
-        placeholder: 'e.g., Tithes, Offerings, Donations',
-      },
-      {
-        name: 'code',
-        label: 'Category code',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., INC-001',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Describe this income category...',
-        rows: 3,
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'full',
-        helperText: 'Inactive categories cannot be used for new transactions.',
-      },
-    ],
+    fields,
     values,
     validation: {
       name: { required: true },
@@ -572,25 +723,46 @@ const resolveExpenseCategoriesListSummary: ServiceDataSourceHandler = async (_re
 
 const resolveExpenseCategoriesListTable: ServiceDataSourceHandler = async (_request) => {
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+  const currency = await getTenantCurrency();
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
 
   const result = await categoryRepository.findAll();
   const categories = (result.data || []) as CategoryRecord[];
   const expenseCategories = categories.filter((cat) => cat.type === 'expense_transaction');
 
-  const rows = expenseCategories.map((category) => ({
-    id: category.id,
-    name: category.name,
-    code: category.code || '—',
-    description: category.description || '—',
-    status: category.isActive !== false ? 'Active' : 'Inactive',
-    statusVariant: category.isActive !== false ? 'success' : 'secondary',
-  }));
+  // Fetch balance for each category
+  const rows = await Promise.all(
+    expenseCategories.map(async (category) => {
+      const balance = await transactionRepository.getCategoryBalance(category.id, tenant.id);
+      const formattedBalance = balance.balance < 0
+        ? `(${formatCurrency(Math.abs(balance.balance), currency)})`
+        : formatCurrency(balance.balance, currency);
+      return {
+        id: category.id,
+        name: category.name,
+        code: category.code || '—',
+        description: category.description || '—',
+        balance: formattedBalance,
+        transactions: String(balance.transaction_count),
+        status: category.isActive !== false ? 'Active' : 'Inactive',
+        statusVariant: category.isActive !== false ? 'success' : 'secondary',
+      };
+    })
+  );
 
   const columns = [
     { field: 'name', headerName: 'Name', type: 'text', flex: 1.2 },
-    { field: 'code', headerName: 'Code', type: 'text', flex: 0.6 },
-    { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-    { field: 'status', headerName: 'Status', type: 'badge', badgeVariantField: 'statusVariant', flex: 0.6 },
+    { field: 'code', headerName: 'Code', type: 'text', flex: 0.5 },
+    { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+    { field: 'balance', headerName: 'Balance', type: 'text', align: 'right', flex: 0.7 },
+    { field: 'transactions', headerName: 'Txns', type: 'text', align: 'right', flex: 0.4 },
+    { field: 'status', headerName: 'Status', type: 'badge', badgeVariantField: 'statusVariant', flex: 0.5 },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -637,10 +809,17 @@ const resolveExpenseCategoriesListTable: ServiceDataSourceHandler = async (_requ
 const resolveExpenseCategoryProfileHeader: ServiceDataSourceHandler = async (request) => {
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
   const currency = await getTenantCurrency();
 
   if (!categoryId) {
     throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
   }
 
   const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
@@ -648,6 +827,9 @@ const resolveExpenseCategoryProfileHeader: ServiceDataSourceHandler = async (req
   if (!category) {
     throw new Error('Category not found');
   }
+
+  // Get real balance data
+  const balance = await transactionRepository.getCategoryBalance(categoryId, tenant.id);
 
   return {
     eyebrow: category.code || 'EXP',
@@ -660,17 +842,17 @@ const resolveExpenseCategoryProfileHeader: ServiceDataSourceHandler = async (req
     metrics: [
       {
         label: 'Total expenses',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balance.total_expense, currency),
         caption: 'All time',
       },
       {
-        label: 'This month',
-        value: formatCurrency(0, currency),
-        caption: 'Current period',
+        label: 'Total income',
+        value: formatCurrency(balance.total_income, currency),
+        caption: 'All time',
       },
       {
         label: 'Transactions',
-        value: '0',
+        value: String(balance.transaction_count),
         caption: 'Total count',
       },
     ],
@@ -711,33 +893,48 @@ const resolveExpenseCategoryProfileDetails: ServiceDataSourceHandler = async (re
   };
 };
 
-const resolveExpenseCategoryProfileUsageSummary: ServiceDataSourceHandler = async (_request) => {
+const resolveExpenseCategoryProfileUsageSummary: ServiceDataSourceHandler = async (request) => {
+  const categoryId = request.params?.categoryId as string;
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
   const currency = await getTenantCurrency();
+
+  if (!categoryId) {
+    throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get real balance data
+  const balance = await transactionRepository.getCategoryBalance(categoryId, tenant.id);
 
   return {
     items: [
       {
         id: 'total-expenses',
         label: 'Total expenses',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balance.total_expense, currency),
         change: '',
         changeLabel: 'all time',
         trend: 'flat',
         tone: 'negative',
       },
       {
-        id: 'mtd-expenses',
-        label: 'This month',
-        value: formatCurrency(0, currency),
+        id: 'total-income',
+        label: 'Total income',
+        value: formatCurrency(balance.total_income, currency),
         change: '',
-        changeLabel: 'current period',
+        changeLabel: 'all time',
         trend: 'flat',
-        tone: 'informative',
+        tone: 'positive',
       },
       {
         id: 'transaction-count',
         label: 'Transactions',
-        value: '0',
+        value: String(balance.transaction_count),
         change: '',
         changeLabel: 'total count',
         trend: 'flat',
@@ -747,15 +944,58 @@ const resolveExpenseCategoryProfileUsageSummary: ServiceDataSourceHandler = asyn
   };
 };
 
-const resolveExpenseCategoryProfileTransactions: ServiceDataSourceHandler = async (_request) => {
+const resolveExpenseCategoryProfileTransactions: ServiceDataSourceHandler = async (request) => {
+  const categoryId = request.params?.categoryId as string;
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const transactionRepository = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+  const currency = await getTenantCurrency();
+
+  if (!categoryId) {
+    throw new Error('Category ID is required');
+  }
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get real transactions
+  const transactions = await transactionRepository.getByCategoryId(categoryId, tenant.id);
+
+  const rows = transactions.map((txn) => {
+    const typeDisplay = getTransactionTypeDisplay(txn.transaction_type);
+    const isDebit = ['expense', 'adjustment', 'allocation', 'closing_entry'].includes(txn.transaction_type);
+    const formattedAmount = isDebit
+      ? `(${formatCurrency(txn.amount, currency)})`
+      : formatCurrency(txn.amount, currency);
+
+    return {
+      id: txn.id,
+      date: new Date(txn.transaction_date).toLocaleDateString(),
+      type: typeDisplay.label,
+      typeVariant: typeDisplay.variant,
+      description: txn.description || '—',
+      fund: txn.fund_name || '—',
+      source: txn.source_name || '—',
+      amount: formattedAmount,
+      reference: txn.reference || '—',
+    };
+  });
+
   return {
-    rows: [],
+    rows,
     columns: [
-      { field: 'date', headerName: 'Date', type: 'text', flex: 0.8 },
-      { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-      { field: 'amount', headerName: 'Amount', type: 'currency', flex: 0.8 },
-      { field: 'vendor', headerName: 'Vendor', type: 'text', flex: 0.8 },
+      { field: 'date', headerName: 'Date', type: 'text', flex: 0.7 },
+      { field: 'type', headerName: 'Type', type: 'badge', badgeVariantField: 'typeVariant', flex: 0.6 },
+      { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+      { field: 'fund', headerName: 'Fund', type: 'text', flex: 0.8 },
+      { field: 'source', headerName: 'Source', type: 'text', flex: 0.8 },
+      { field: 'amount', headerName: 'Amount', type: 'text', align: 'right', flex: 0.8 },
     ],
+    emptyState: {
+      title: 'No transactions',
+      description: 'No transactions have been recorded for this category yet.',
+    },
   };
 };
 
@@ -781,59 +1021,82 @@ const resolveExpenseCategoryManageForm: ServiceDataSourceHandler = async (reques
   const categoryId = request.params?.categoryId as string;
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
 
-  let values = {
+  let values: Record<string, unknown> = {
     name: '',
     code: '',
     description: '',
     isActive: true,
+    linkedAccount: '',
   };
+
+  let hasLinkedAccount = false;
 
   if (categoryId) {
     const category = await categoryRepository.findById(categoryId) as CategoryRecord | null;
 
     if (category) {
+      hasLinkedAccount = !!category.chart_of_account_id;
+      const linkedAccountDisplay = category.chart_of_accounts
+        ? `${category.chart_of_accounts.code} - ${category.chart_of_accounts.name}`
+        : '';
+
       values = {
         name: category.name,
         code: category.code || '',
         description: category.description || '',
-        isActive: category.isActive !== false,
+        isActive: category.isActive !== false && category.is_active !== false,
+        linkedAccount: linkedAccountDisplay,
       };
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    {
+      name: 'name',
+      label: 'Category name',
+      type: 'text',
+      colSpan: 'half',
+      required: true,
+      placeholder: 'e.g., Utilities, Salaries, Supplies',
+    },
+    {
+      name: 'code',
+      label: 'Category code',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., EXP-001',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Describe this expense category...',
+      rows: 3,
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Inactive categories cannot be used for new transactions.',
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (categoryId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked COA account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this category. This field cannot be changed.',
+    });
+  }
+
   return {
-    fields: [
-      {
-        name: 'name',
-        label: 'Category name',
-        type: 'text',
-        colSpan: 'half',
-        required: true,
-        placeholder: 'e.g., Utilities, Salaries, Supplies',
-      },
-      {
-        name: 'code',
-        label: 'Category code',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., EXP-001',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Describe this expense category...',
-        rows: 3,
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'full',
-        helperText: 'Inactive categories cannot be used for new transactions.',
-      },
-    ],
+    fields,
     values,
     validation: {
       name: { required: true },

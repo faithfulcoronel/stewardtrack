@@ -3,8 +3,10 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
 import type { FinancialSourceService } from '@/services/FinancialSourceService';
-import type { FinancialSource, SourceType } from '@/models/financialSource.model';
+import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
+import { type FinancialSource, type SourceType, PH_BANK_CHANNELS } from '@/models/financialSource.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getTenantTimezone, formatDate } from './datetime-utils';
 
 function getSourceTypeLabel(type: SourceType): string {
   const labels: Record<SourceType, string> = {
@@ -35,6 +37,7 @@ function getSourceTypeBadgeVariant(type: SourceType): string {
 const resolveSourcesListHero: ServiceDataSourceHandler = async (_request) => {
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
 
   const tenant = await tenantService.getCurrentTenant();
   if (!tenant) {
@@ -49,6 +52,9 @@ const resolveSourcesListHero: ServiceDataSourceHandler = async (_request) => {
   const totalCount = allSources.length;
   const activeCount = allSources.filter((s) => s.is_active).length;
   const bankCount = allSources.filter((s) => s.source_type === 'bank').length;
+
+  // Get total balance across all sources
+  const balanceSummary = await incomeExpenseRepo.getAllSourcesBalance(tenant.id);
 
   return {
     eyebrow: 'Financial sources',
@@ -67,7 +73,7 @@ const resolveSourcesListHero: ServiceDataSourceHandler = async (_request) => {
       },
       {
         label: 'Total balance',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balanceSummary.total_balance, currency),
         caption: 'Across all sources',
       },
     ],
@@ -194,12 +200,14 @@ const resolveSourcesListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Account #',
       type: 'text',
       flex: 0.8,
+      hideOnMobile: true,
     },
     {
       field: 'linkedAccount',
       headerName: 'GL Account',
       type: 'text',
       flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'status',
@@ -310,7 +318,6 @@ const resolveSourceManageHeader: ServiceDataSourceHandler = async (request) => {
 
 const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
   const sourceId = request.params?.sourceId as string;
-  const isCreate = !sourceId;
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
   const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
@@ -321,86 +328,226 @@ const resolveSourceManageForm: ServiceDataSourceHandler = async (request) => {
   }
 
   let source: Partial<FinancialSource> = {};
+  let hasLinkedAccount = false;
+  let linkedAccountDisplay = '';
 
   if (sourceId) {
     const existing = await sourceService.findById(sourceId);
     if (existing) {
       source = existing;
+      hasLinkedAccount = !!source.coa_id;
+      linkedAccountDisplay = source.chart_of_accounts
+        ? `${source.chart_of_accounts.code} - ${source.chart_of_accounts.name}`
+        : '';
     }
   }
 
+  const fields: Array<Record<string, unknown>> = [
+    ...(sourceId
+      ? [
+          {
+            name: 'sourceId',
+            type: 'hidden' as const,
+          },
+        ]
+      : []),
+    {
+      name: 'name',
+      label: 'Source name',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., Main Checking Account',
+      helperText: 'Descriptive name for this source',
+      required: true,
+    },
+    {
+      name: 'sourceType',
+      label: 'Source type',
+      type: 'select',
+      colSpan: 'half',
+      helperText: 'Type of financial source',
+      required: true,
+      options: [
+        { value: 'bank', label: 'Bank Account' },
+        { value: 'cash', label: 'Cash' },
+        { value: 'wallet', label: 'Digital Wallet' },
+        { value: 'online', label: 'Online Payment' },
+        { value: 'fund', label: 'Fund' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    {
+      name: 'accountNumber',
+      label: 'Account number',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'Account number (encrypted)',
+      helperText: 'Optional account identifier',
+    },
+    {
+      name: 'isActive',
+      label: 'Active',
+      type: 'toggle',
+      colSpan: 'half',
+      helperText: 'Active sources can be used in transactions',
+    },
+    {
+      name: 'createAssetAccount',
+      label: 'Create asset account',
+      type: 'toggle',
+      colSpan: 'full',
+      helperText: 'Automatically create a linked asset account in the chart of accounts',
+      hidden: !!sourceId && !!source.coa_id,
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      colSpan: 'full',
+      placeholder: 'Additional notes about this source...',
+      helperText: 'Optional description',
+      rows: 3,
+    },
+  ];
+
+  // Add linked COA account field in edit mode when there's a linked account
+  if (sourceId && hasLinkedAccount) {
+    fields.push({
+      name: 'linkedAccount',
+      label: 'Linked GL account',
+      type: 'text',
+      colSpan: 'full',
+      disabled: true,
+      helperText: 'The chart of accounts entry linked to this source. This field cannot be changed.',
+    });
+  }
+
+  // Add payout configuration fields (visible only when sourceType is 'online')
+  const onlinePaymentCondition = { field: 'sourceType', equals: 'online' };
+
+  fields.push(
+    // Bank/wallet selection
+    {
+      name: 'xenditChannelCode',
+      label: 'Payout bank/wallet',
+      type: 'select',
+      colSpan: 'half',
+      placeholder: 'Select bank or wallet',
+      helperText: 'Where donation disbursements will be sent',
+      options: PH_BANK_CHANNELS.map((bank) => ({
+        value: bank.code,
+        label: bank.name,
+      })),
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Account holder name
+    {
+      name: 'bankAccountHolderName',
+      label: 'Account holder name',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'e.g., Juan Dela Cruz',
+      helperText: 'Must match the name on your bank account exactly',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Account number for payout (different from source account number)
+    {
+      name: 'payoutAccountNumber',
+      label: 'Payout account number',
+      type: 'text',
+      colSpan: 'half',
+      placeholder: 'Bank account number',
+      helperText: 'Account number for receiving disbursements (encrypted)',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Disbursement schedule
+    {
+      name: 'disbursementSchedule',
+      label: 'Disbursement schedule',
+      type: 'select',
+      colSpan: 'half',
+      helperText: 'How often to automatically disburse donations',
+      options: [
+        { value: 'manual', label: 'Manual' },
+        { value: 'daily', label: 'Daily' },
+        { value: 'weekly', label: 'Weekly' },
+        { value: 'monthly', label: 'Monthly' },
+      ],
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Minimum disbursement amount
+    {
+      name: 'disbursementMinimumAmount',
+      label: 'Minimum amount (PHP)',
+      type: 'number',
+      colSpan: 'half',
+      placeholder: '1000',
+      helperText: 'Minimum balance before automatic disbursement',
+      visibleWhen: onlinePaymentCondition,
+    },
+    // Donation destination toggle
+    {
+      name: 'isDonationDestination',
+      label: 'Mark as donation destination',
+      type: 'toggle',
+      colSpan: 'half',
+      helperText: 'Only one source can be the donation destination for disbursements',
+      visibleWhen: onlinePaymentCondition,
+    }
+  );
+
   return {
-    fields: [
-      ...(sourceId
-        ? [
-            {
-              name: 'sourceId',
-              type: 'hidden' as const,
-            },
-          ]
-        : []),
-      {
-        name: 'name',
-        label: 'Source name',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'e.g., Main Checking Account',
-        helperText: 'Descriptive name for this source',
-        required: true,
-      },
-      {
-        name: 'sourceType',
-        label: 'Source type',
-        type: 'select',
-        colSpan: 'half',
-        helperText: 'Type of financial source',
-        required: true,
-        options: [
-          { value: 'bank', label: 'Bank Account' },
-          { value: 'cash', label: 'Cash' },
-          { value: 'wallet', label: 'Digital Wallet' },
-          { value: 'online', label: 'Online Payment' },
-          { value: 'fund', label: 'Fund' },
-          { value: 'other', label: 'Other' },
-        ],
-      },
-      {
-        name: 'accountNumber',
-        label: 'Account number',
-        type: 'text',
-        colSpan: 'half',
-        placeholder: 'Account number (encrypted)',
-        helperText: 'Optional account identifier',
-      },
-      {
-        name: 'isActive',
-        label: 'Active',
-        type: 'toggle',
-        colSpan: 'half',
-        helperText: 'Active sources can be used in transactions',
-      },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        colSpan: 'full',
-        placeholder: 'Additional notes about this source...',
-        helperText: 'Optional description',
-        rows: 3,
-      },
-    ],
+    fields,
     values: {
       ...(sourceId ? { sourceId: source.id } : {}),
       name: source.name || '',
       sourceType: source.source_type || 'bank',
       accountNumber: source.account_number || '',
       isActive: source.is_active ?? true,
+      createAssetAccount: !sourceId, // Default to true for new sources
       description: source.description || '',
+      linkedAccount: linkedAccountDisplay,
+      // Payout configuration values
+      xenditChannelCode: source.xendit_channel_code || '',
+      bankAccountHolderName: source.bank_account_holder_name || '',
+      payoutAccountNumber: '', // Never pre-fill - requires re-entry for security
+      disbursementSchedule: source.disbursement_schedule || 'manual',
+      disbursementMinimumAmount: source.disbursement_minimum_amount || 1000,
+      isDonationDestination: source.is_donation_destination ?? false,
     },
     validation: {
       name: { required: true, minLength: 1 },
       sourceType: { required: true },
     },
+  };
+};
+
+const resolveSourceManagePayoutConfig: ServiceDataSourceHandler = async (request) => {
+  const sourceId = request.params?.sourceId as string;
+
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  if (!sourceId) {
+    // New source - no payout config yet
+    return {
+      sourceId: null,
+      sourceType: null,
+      tenantId: tenant.id,
+    };
+  }
+
+  const source = await sourceService.findById(sourceId);
+
+  return {
+    sourceId: source?.id || null,
+    sourceType: source?.source_type || null,
+    tenantId: tenant.id,
   };
 };
 
@@ -414,14 +561,25 @@ const resolveSourceProfileHeader: ServiceDataSourceHandler = async (request) => 
   }
 
   const sourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+
   const source = await sourceService.findById(sourceId);
 
   if (!source) {
     throw new Error('Source not found');
   }
 
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
   // Get tenant currency (cached)
   const currency = await getTenantCurrency();
+
+  // Get balance summary from RPC
+  const balanceSummary = await incomeExpenseRepo.getSourceBalance(sourceId, tenant.id);
 
   return {
     eyebrow: getSourceTypeLabel(source.source_type),
@@ -430,13 +588,13 @@ const resolveSourceProfileHeader: ServiceDataSourceHandler = async (request) => 
     metrics: [
       {
         label: 'Balance',
-        value: formatCurrency(0, currency),
+        value: formatCurrency(balanceSummary.balance, currency),
         caption: 'Current balance',
       },
       {
-        label: 'Type',
-        value: getSourceTypeLabel(source.source_type),
-        caption: 'Source type',
+        label: 'Transactions',
+        value: balanceSummary.transaction_count.toString(),
+        caption: 'Total entries',
       },
       {
         label: 'Account',
@@ -514,16 +672,109 @@ const resolveSourceProfileLinkedAccount: ServiceDataSourceHandler = async (reque
   };
 };
 
-const resolveSourceProfileTransactions: ServiceDataSourceHandler = async (_request) => {
+// Transaction type labels and variants for user-friendly display
+function getTransactionTypeDisplay(type: string): { label: string; variant: string; isDebit: boolean } {
+  const typeMap: Record<string, { label: string; variant: string; isDebit: boolean }> = {
+    income: { label: 'Income', variant: 'success', isDebit: false },
+    expense: { label: 'Expense', variant: 'warning', isDebit: true },
+    transfer: { label: 'Transfer', variant: 'info', isDebit: false },
+    adjustment: { label: 'Adjustment', variant: 'neutral', isDebit: true },
+    opening_balance: { label: 'Opening', variant: 'info', isDebit: false },
+    closing_entry: { label: 'Closing', variant: 'neutral', isDebit: true },
+    fund_rollover: { label: 'Rollover', variant: 'info', isDebit: false },
+    reversal: { label: 'Reversal', variant: 'destructive', isDebit: true },
+    allocation: { label: 'Allocation', variant: 'neutral', isDebit: true },
+    reclass: { label: 'Reclass', variant: 'neutral', isDebit: false },
+    refund: { label: 'Refund', variant: 'success', isDebit: false },
+  };
+
+  return typeMap[type] || { label: type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' '), variant: 'neutral', isDebit: false };
+}
+
+const resolveSourceProfileTransactions: ServiceDataSourceHandler = async (request) => {
+  const sourceId = request.params?.sourceId as string;
+
+  const defaultColumns = [
+    { field: 'date', headerName: 'Date', type: 'text', flex: 0.7 },
+    { field: 'description', headerName: 'Description', type: 'text', flex: 1.2 },
+    { field: 'category', headerName: 'Category', type: 'text', flex: 0.8 },
+    { field: 'type', headerName: 'Type', type: 'badge', badgeVariantField: 'typeVariant', flex: 0.5 },
+    { field: 'amount', headerName: 'Amount', type: 'text', flex: 0.6, align: 'right' },
+  ];
+
+  if (!sourceId) {
+    return {
+      rows: [],
+      columns: defaultColumns,
+      filters: [],
+    };
+  }
+
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const incomeExpenseRepo = container.get<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    return {
+      rows: [],
+      columns: defaultColumns,
+      filters: [],
+    };
+  }
+
+  const currency = await getTenantCurrency();
+  const timezone = await getTenantTimezone();
+
+  // Fetch income/expense transactions for this source using RPC
+  const transactions = await incomeExpenseRepo.getBySourceId(sourceId, tenant.id);
+
+  // Map to row format
+  const rows = transactions.map((txn, index) => {
+    const typeDisplay = getTransactionTypeDisplay(txn.transaction_type);
+
+    // Format amount with sign indicator for debit transactions
+    const formattedAmount = formatCurrency(txn.amount, currency);
+    const displayAmount = typeDisplay.isDebit ? `(${formattedAmount})` : formattedAmount;
+
+    return {
+      id: txn.id || `txn-${index}`,
+      date: txn.transaction_date ? formatDate(new Date(txn.transaction_date), timezone) : '—',
+      description: txn.description || '—',
+      category: txn.category_name || 'Uncategorized',
+      categoryCode: txn.category_code || '',
+      fund: txn.fund_name || '—',
+      type: typeDisplay.label,
+      typeVariant: typeDisplay.variant,
+      amount: displayAmount,
+      rawAmount: txn.amount,
+      transactionType: txn.transaction_type,
+    };
+  });
+
   return {
-    rows: [],
-    columns: [
-      { field: 'date', headerName: 'Date', type: 'text', flex: 0.8 },
-      { field: 'description', headerName: 'Description', type: 'text', flex: 1.5 },
-      { field: 'amount', headerName: 'Amount', type: 'currency', flex: 0.8 },
-      { field: 'type', headerName: 'Type', type: 'badge', flex: 0.6 },
+    rows,
+    columns: defaultColumns,
+    filters: [
+      {
+        id: 'search',
+        type: 'search',
+        placeholder: 'Search transactions...',
+      },
+      {
+        id: 'type',
+        type: 'select',
+        placeholder: 'Transaction type',
+        field: 'type',
+        options: [
+          { label: 'All types', value: 'all' },
+          { label: 'Income', value: 'Income' },
+          { label: 'Expense', value: 'Expense' },
+          { label: 'Transfer', value: 'Transfer' },
+          { label: 'Adjustment', value: 'Adjustment' },
+          { label: 'Refund', value: 'Refund' },
+        ],
+      },
     ],
-    filters: [],
   };
 };
 
@@ -546,20 +797,60 @@ const saveSource: ServiceDataSourceHandler = async (request) => {
       throw new Error('No tenant context available');
     }
 
+    const sourceType = values.sourceType as SourceType;
+    const isOnlinePayment = sourceType === 'online';
+
     const sourceData: Partial<FinancialSource> = {
       name: values.name as string,
-      source_type: values.sourceType as SourceType,
+      source_type: sourceType,
       account_number: values.accountNumber ? (values.accountNumber as string) : null,
       is_active: values.isActive === true || values.isActive === 'true',
       description: values.description ? (values.description as string) : null,
     };
 
+    // Add payout configuration fields for online payment sources
+    if (isOnlinePayment) {
+      sourceData.xendit_channel_code = values.xenditChannelCode ? (values.xenditChannelCode as string) : null;
+      sourceData.bank_account_holder_name = values.bankAccountHolderName ? (values.bankAccountHolderName as string) : null;
+      sourceData.disbursement_schedule = values.disbursementSchedule ? (values.disbursementSchedule as 'manual' | 'daily' | 'weekly' | 'monthly') : null;
+      sourceData.disbursement_minimum_amount = values.disbursementMinimumAmount ? Number(values.disbursementMinimumAmount) : null;
+      sourceData.is_donation_destination = values.isDonationDestination === true || values.isDonationDestination === 'true';
+    }
+
+    const createAssetAccount = values.createAssetAccount === true || values.createAssetAccount === 'true';
+
     let source: FinancialSource;
 
     if (sourceId) {
-      source = await sourceService.update(sourceId, sourceData);
+      // Use updateWithAccountCheck for updates - it handles creating COA if needed
+      source = await sourceService.updateWithAccountCheck(sourceId, {
+        ...sourceData,
+        auto_create: createAssetAccount,
+      });
+    } else if (createAssetAccount) {
+      // Create source with auto-created asset account
+      source = await sourceService.createWithAccount({
+        ...sourceData,
+        auto_create: true,
+      });
     } else {
       source = await sourceService.create(sourceData);
+    }
+
+    // Handle encrypted bank account number for online payment sources
+    if (isOnlinePayment && values.payoutAccountNumber) {
+      const payoutAccountNumber = values.payoutAccountNumber as string;
+      if (payoutAccountNumber.trim()) {
+        // Update payout configuration with encrypted account number
+        await sourceService.updatePayoutConfiguration(source.id, tenant.id, {
+          xendit_channel_code: values.xenditChannelCode as string,
+          bank_account_holder_name: values.bankAccountHolderName as string,
+          bank_account_number: payoutAccountNumber, // Will be encrypted by the service
+          disbursement_schedule: (values.disbursementSchedule as 'manual' | 'daily' | 'weekly' | 'monthly') || 'manual',
+          disbursement_minimum_amount: Number(values.disbursementMinimumAmount) || 1000,
+          is_donation_destination: values.isDonationDestination === true || values.isDonationDestination === 'true',
+        });
+      }
     }
 
     console.log('[saveSource] Source saved:', source.id);
@@ -626,6 +917,7 @@ export const adminFinanceSourcesHandlers: Record<string, ServiceDataSourceHandle
   // Manage page handlers
   'admin-finance.sources.manage.header': resolveSourceManageHeader,
   'admin-finance.sources.manage.form': resolveSourceManageForm,
+  'admin-finance.sources.manage.payoutConfig': resolveSourceManagePayoutConfig,
   // Action handlers
   'admin-finance.sources.save': saveSource,
   'admin-finance.sources.delete': deleteSource,

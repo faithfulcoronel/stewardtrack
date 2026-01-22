@@ -15,24 +15,32 @@ export interface RequestContext {
 export const defaultRequestContext: RequestContext = {};
 
 interface UserOptions {
+  optional?: boolean;
   redirectTo?: string;
 }
 
-export async function getCurrentUser(options: UserOptions = {}): Promise<User> {
+export async function getCurrentUser(): Promise<User>;
+export async function getCurrentUser(options: UserOptions & { optional: true }): Promise<User | null>;
+export async function getCurrentUser(options: UserOptions = {}): Promise<User | null> {
   const redirectTo = options.redirectTo ?? '/login';
   const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
   const authResult = await authService.checkAuthentication();
 
   if (!authResult.authorized || !authResult.user) {
+    if (options.optional) {
+      return null;
+    }
     redirect(redirectTo);
   }
 
   return authResult.user;
 }
 
-export async function getCurrentUserId(options: UserOptions = {}): Promise<string> {
-  const user = await getCurrentUser(options);
-  return user.id;
+export async function getCurrentUserId(): Promise<string>;
+export async function getCurrentUserId(options: UserOptions & { optional: true }): Promise<string | null>;
+export async function getCurrentUserId(options: UserOptions = {}): Promise<string | null> {
+  const user = await getCurrentUser(options as UserOptions & { optional: true });
+  return user?.id ?? null;
 }
 
 interface TenantOptions {

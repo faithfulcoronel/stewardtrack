@@ -1,11 +1,9 @@
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import type { IOpeningBalanceRepository } from '@/repositories/openingBalance.repository';
-import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
-import type { IFinancialTransactionRepository } from '@/repositories/financialTransaction.repository';
-
 import type { IFundRepository } from '@/repositories/fund.repository';
-import type { IFinancialSourceRepository } from '@/repositories/financialSource.repository';
+import type { IAccountRepository } from '@/repositories/account.repository';
+import { IncomeExpenseTransactionService, type IncomeExpenseEntry } from './IncomeExpenseTransactionService';
 import { TYPES } from '@/lib/types';
 import type { OpeningBalance } from '@/models/openingBalance.model';
 
@@ -20,14 +18,12 @@ export class OpeningBalanceService {
   constructor(
     @inject(TYPES.IOpeningBalanceRepository)
     private obRepo: IOpeningBalanceRepository,
-    @inject(TYPES.IFinancialTransactionHeaderRepository)
-    private headerRepo: IFinancialTransactionHeaderRepository,
-    @inject(TYPES.IFinancialTransactionRepository)
-    private ftRepo: IFinancialTransactionRepository,
     @inject(TYPES.IFundRepository)
     private fundRepo: IFundRepository,
-    @inject(TYPES.IFinancialSourceRepository)
-    private sourceRepo: IFinancialSourceRepository,
+    @inject(TYPES.IAccountRepository)
+    private accountRepo: IAccountRepository,
+    @inject(TYPES.IncomeExpenseTransactionService)
+    private ieService: IncomeExpenseTransactionService,
   ) {}
 
   async createBatch(
@@ -71,44 +67,59 @@ export class OpeningBalanceService {
     if (!balance.source_id) throw new Error('Financial source required');
 
     const fund = await this.fundRepo.findById(balance.fund_id);
-    const source = await this.sourceRepo.findById(balance.source_id);
 
     if (!fund?.coa_id) {
       throw new Error('Fund missing equity account');
     }
-    if (!source?.coa_id) {
-      throw new Error('Financial source missing asset account');
+
+    // Get tenant_id from the fund (all tenant-scoped entities have tenant_id)
+    const tenantId = fund.tenant_id;
+    if (!tenantId) {
+      throw new Error('Unable to determine tenant context from fund');
     }
 
-    const header = await this.headerRepo.create({
-      transaction_date:
-        (balance.fiscal_year as any)?.start_date ??
-        new Date().toISOString().slice(0, 10),
-      description: 'Opening Balance',
-      status: 'posted',
-      source_id: balance.source_id ?? null,
+    // Look up the organization account for this tenant
+    const { data: orgAccounts } = await this.accountRepo.find({
+      filters: {
+        tenant_id: { operator: 'eq', value: tenantId },
+        account_type: { operator: 'eq', value: 'organization' },
+      },
     });
 
-    await this.ftRepo.create({
-      header_id: header.id,
-      coa_id: source.coa_id,
+    if (!orgAccounts || orgAccounts.length === 0) {
+      throw new Error(
+        'No organization account found for this tenant. Please ensure the church account is created during onboarding.'
+      );
+    }
+
+    const accountId = orgAccounts[0].id;
+
+    // Build the opening balance entry for the unified transaction service
+    const entry: IncomeExpenseEntry = {
+      transaction_type: 'opening_balance',
+      account_id: accountId,
       fund_id: balance.fund_id,
-      type: 'opening_balance',
-      date: header.transaction_date,
+      source_id: balance.source_id,
+      category_id: null,
+      amount: balance.amount,
+      source_coa_id: null, // Will be populated by the service
+      category_coa_id: null,
+      fund_coa_id: null, // Will be populated by the service
       description: 'Opening Balance',
-      debit: balance.amount,
-      credit: 0,
-    });
-    await this.ftRepo.create({
-      header_id: header.id,
-      coa_id: fund.coa_id,
-      fund_id: balance.fund_id,
-      type: 'opening_balance',
-      date: header.transaction_date,
-      description: 'Opening Balance',
-      debit: 0,
-      credit: balance.amount,
-    });
+    };
+
+    // Use the unified income/expense transaction service to create journal entries
+    const header = await this.ieService.create(
+      {
+        transaction_date:
+          (balance.fiscal_year as any)?.start_date ??
+          new Date().toISOString().slice(0, 10),
+        description: 'Opening Balance',
+        status: 'posted',
+        source_id: balance.source_id ?? null,
+      },
+      [entry]
+    );
 
     await this.obRepo.update(id, {
       status: 'posted',

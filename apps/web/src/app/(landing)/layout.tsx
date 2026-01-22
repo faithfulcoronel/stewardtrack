@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PublicThemeEnforcer } from '@/components/theme/public-theme-enforcer';
 
 export const metadata: Metadata = {
   title: 'StewardTrack - Modern Church Management System',
@@ -23,11 +24,23 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Landing Layout
+ *
+ * Theme is enforced to default light mode for consistent branding.
+ * The landing page handles its own header/footer.
+ * The "public-theme-fixed" class ensures theme CSS variables are fixed
+ * to the default emerald theme from the first render (no flash).
+ */
 export default function LandingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // This layout renders only the children (the landing page handles its own header/footer)
-  return <>{children}</>;
+  return (
+    <div className="public-theme-fixed">
+      <PublicThemeEnforcer />
+      {children}
+    </div>
+  );
 }

@@ -23,8 +23,7 @@
             <Prop name="contextParams" kind="binding" contract="accountForm.contextParams"/>
             <Prop name="initialValues" kind="binding" contract="accountForm.initialValues"/>
             <Prop name="fields" kind="binding" contract="accountForm.fields"/>
-            <Prop name="saveHandler" kind="static">admin-community.accounts.manage.save</Prop>
-            <Prop name="redirectOnSuccess" kind="static">/admin/community/accounts</Prop>
+            <Prop name="submitAction" kind="action" actionId="save-account"/>
           </Props>
         </Component>
       </Region>
@@ -57,6 +56,18 @@
       </DataSource>
     </DataSources>
     <Actions>
+      <Action id="save-account" kind="service">
+        <Config>
+          <Handler>admin-community.accounts.manage.save</Handler>
+          <OnSuccess>
+            <Navigate>/admin/community/accounts</Navigate>
+            <ShowToast>Account saved successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to save account. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
       <Action id="back-to-list" kind="link">
         <Config>
           <Label>Cancel</Label>

@@ -110,7 +110,7 @@ function PricingContent() {
 
   // Find trial offering (for "Start Free Trial" CTA on paid tiers)
   const trialOffering = allOfferings.find(o => o.offering_type === 'trial');
-  const trialDays = (trialOffering?.metadata as any)?.trial_days || 14;
+  const trialDays = (trialOffering as any)?.trial_days || 14;
 
   // Filter offerings based on selected billing cycle
   // Note: Trial offerings are NOT shown as separate cards - trials are a CTA option on paid tiers
@@ -315,19 +315,20 @@ function PricingContent() {
                     }
                   `}
                 >
-                  {offering.is_featured && (
+                  {/* Badge - from metadata or default for featured */}
+                  {((offering.metadata as any)?.badge_text || offering.is_featured) && (
                     <div className="absolute -top-4 left-0 right-0 text-center">
                       <span className="inline-flex items-center gap-1 bg-white text-[#179a65] text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
                         <Sparkles className="h-3 w-3" />
-                        Most Popular
+                        {(offering.metadata as any)?.badge_text || 'Most Popular'}
                       </span>
                     </div>
                   )}
 
                   <div className="mb-6 pt-2">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className={`text-2xl font-bold capitalize ${offering.is_featured ? 'text-white' : 'text-[#179a65]'}`}>
-                        {offering.tier}
+                      <h3 className={`text-2xl font-bold ${offering.is_featured ? 'text-white' : 'text-[#179a65]'}`}>
+                        {offering.name}
                       </h3>
                       {offering.offering_type === 'trial' && (
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -337,6 +338,12 @@ function PricingContent() {
                         </span>
                       )}
                     </div>
+                    {/* Highlight text from metadata */}
+                    {(offering.metadata as any)?.highlight_text && (
+                      <p className={`text-xs font-semibold mb-2 ${offering.is_featured ? 'text-yellow-300' : 'text-orange-500'}`}>
+                        {(offering.metadata as any).highlight_text}
+                      </p>
+                    )}
                     {/* Price with discount display */}
                     {(() => {
                       const discount = offeringDiscounts.get(offering.id);
@@ -403,6 +410,12 @@ function PricingContent() {
                   </div>
 
                   <div className="flex-1 mb-8">
+                    {/* Features headline from metadata */}
+                    {(offering.metadata as any)?.features_headline && (
+                      <p className={`text-xs font-semibold mb-3 ${offering.is_featured ? 'text-green-100' : 'text-gray-500'}`}>
+                        {(offering.metadata as any).features_headline}
+                      </p>
+                    )}
                     <ul className="space-y-3">
                       {offering.max_users && (
                         <li className="flex items-start gap-3 text-sm">
@@ -445,7 +458,7 @@ function PricingContent() {
                             }
                           `}
                         >
-                          Start {trialDays}-Day Free Trial
+                          {(trialOffering?.metadata as any)?.cta_text || `Start ${trialDays}-Day Free Trial`}
                         </Link>
                       </motion.div>
                       {/* Secondary: Subscribe directly */}
@@ -474,7 +487,7 @@ function PricingContent() {
                           }
                         `}
                       >
-                        {(offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Get Started'}
+                        {(offering.metadata as any)?.cta_text || ((offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Get Started')}
                       </Link>
                     </motion.div>
                   )}
@@ -492,7 +505,7 @@ function PricingContent() {
                 className="max-w-7xl mx-auto bg-gradient-to-r from-gray-800 to-gray-800 border border-gray-700 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-[#179a65]/50 transition-colors"
               >
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 capitalize">{customOffering.tier}</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{customOffering.name}</h3>
                   <p className="text-gray-400 mb-6 max-w-xl">{customOffering.description}</p>
                   <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3">
                     {customOffering.features && customOffering.features.slice(0, 5).map((feature) => (

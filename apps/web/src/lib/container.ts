@@ -21,6 +21,9 @@ import { PermissionDeploymentService } from '@/services/PermissionDeploymentServ
 import { ProductOfferingDeploymentService } from '@/services/ProductOfferingDeploymentService';
 import { RegistrationService } from '@/services/RegistrationService';
 import { PublicMemberRegistrationService } from '@/services/PublicMemberRegistrationService';
+import { EmailVerificationService } from '@/services/EmailVerificationService';
+import { PendingRegistrationAdapter, type IPendingRegistrationAdapter } from '@/adapters/pendingRegistration.adapter';
+import { PendingRegistrationRepository, type IPendingRegistrationRepository } from '@/repositories/pendingRegistration.repository';
 import { AuthorizationService } from '@/services/AuthorizationService';
 import { MaterializedViewRefreshService } from '@/services/MaterializedViewRefreshService';
 import { LicenseMonitoringService } from '@/services/LicenseMonitoringService';
@@ -54,10 +57,19 @@ import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/
 import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import { PlanningService } from '@/services/PlanningService';
 
+// Planning Notebooks Feature (OneNote-style)
+import { NotebookAdapter, type INotebookAdapter } from '@/adapters/notebook.adapter';
+import { NotebookRepository, type INotebookRepository } from '@/repositories/notebook.repository';
+import { NotebookService } from '@/services/NotebookService';
+
 // Admin Dashboard Feature
 import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/adminDashboard.adapter';
 import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
 import { AdminDashboardService } from '@/services/AdminDashboardService';
+
+// Announcement Feature
+import { AnnouncementAdapter, type IAnnouncementAdapter } from '@/adapters/announcement.adapter';
+import { AnnouncementRepository, type IAnnouncementRepository } from '@/repositories/announcement.repository';
 
 // Discount System
 import { DiscountAdapter, type IDiscountAdapter } from '@/adapters/discount.adapter';
@@ -393,6 +405,22 @@ container
 container
   .bind<PublicMemberRegistrationService>(TYPES.PublicMemberRegistrationService)
   .to(PublicMemberRegistrationService)
+  .inRequestScope();
+
+// ==================== EMAIL VERIFICATION SERVICE ====================
+container
+  .bind<IPendingRegistrationAdapter>(TYPES.IPendingRegistrationAdapter)
+  .to(PendingRegistrationAdapter)
+  .inRequestScope();
+
+container
+  .bind<IPendingRegistrationRepository>(TYPES.IPendingRegistrationRepository)
+  .to(PendingRegistrationRepository)
+  .inRequestScope();
+
+container
+  .bind<EmailVerificationService>(TYPES.EmailVerificationService)
+  .to(EmailVerificationService)
   .inRequestScope();
 
 container
@@ -776,6 +804,28 @@ import { FinancialTransactionRepository, type IFinancialTransactionRepository } 
 container.bind<IFinancialTransactionAdapter>(TYPES.IFinancialTransactionAdapter).to(FinancialTransactionAdapter).inRequestScope();
 container.bind<IFinancialTransactionRepository>(TYPES.IFinancialTransactionRepository).to(FinancialTransactionRepository).inRequestScope();
 
+// ==================== FINANCIAL TRANSACTION HEADER (Double-entry transaction headers) ====================
+import { FinancialTransactionHeaderAdapter, type IFinancialTransactionHeaderAdapter } from '@/adapters/financialTransactionHeader.adapter';
+import { FinancialTransactionHeaderRepository, type IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
+container.bind<IFinancialTransactionHeaderAdapter>(TYPES.IFinancialTransactionHeaderAdapter).to(FinancialTransactionHeaderAdapter).inRequestScope();
+container.bind<IFinancialTransactionHeaderRepository>(TYPES.IFinancialTransactionHeaderRepository).to(FinancialTransactionHeaderRepository).inRequestScope();
+
+// ==================== INCOME/EXPENSE TRANSACTIONS (User-friendly transaction view) ====================
+import { IncomeExpenseTransactionAdapter, type IIncomeExpenseTransactionAdapter } from '@/adapters/incomeExpenseTransaction.adapter';
+import { IncomeExpenseTransactionRepository, type IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
+import { IncomeExpenseTransactionService } from '@/services/IncomeExpenseTransactionService';
+import { IncomeExpenseTransactionMappingAdapter, type IIncomeExpenseTransactionMappingAdapter } from '@/adapters/incomeExpenseTransactionMapping.adapter';
+import { IncomeExpenseTransactionMappingRepository, type IIncomeExpenseTransactionMappingRepository } from '@/repositories/incomeExpenseTransactionMapping.repository';
+import { IncomeExpenseTransactionRpcAdapter, type IIncomeExpenseTransactionRpcAdapter } from '@/adapters/incomeExpenseTransactionRpc.adapter';
+import { IncomeExpenseTransactionRpcRepository, type IIncomeExpenseTransactionRpcRepository } from '@/repositories/incomeExpenseTransactionRpc.repository';
+container.bind<IIncomeExpenseTransactionAdapter>(TYPES.IIncomeExpenseTransactionAdapter).to(IncomeExpenseTransactionAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionRepository>(TYPES.IIncomeExpenseTransactionRepository).to(IncomeExpenseTransactionRepository).inRequestScope();
+container.bind<IIncomeExpenseTransactionMappingAdapter>(TYPES.IIncomeExpenseTransactionMappingAdapter).to(IncomeExpenseTransactionMappingAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionMappingRepository>(TYPES.IIncomeExpenseTransactionMappingRepository).to(IncomeExpenseTransactionMappingRepository).inRequestScope();
+container.bind<IIncomeExpenseTransactionRpcAdapter>(TYPES.IIncomeExpenseTransactionRpcAdapter).to(IncomeExpenseTransactionRpcAdapter).inRequestScope();
+container.bind<IIncomeExpenseTransactionRpcRepository>(TYPES.IIncomeExpenseTransactionRpcRepository).to(IncomeExpenseTransactionRpcRepository).inRequestScope();
+container.bind<IncomeExpenseTransactionService>(TYPES.IncomeExpenseTransactionService).to(IncomeExpenseTransactionService).inRequestScope();
+
 // ==================== CHART OF ACCOUNTS ====================
 import { ChartOfAccountAdapter, type IChartOfAccountAdapter } from '@/adapters/chartOfAccount.adapter';
 import { ChartOfAccountRepository, type IChartOfAccountRepository } from '@/repositories/chartOfAccount.repository';
@@ -799,6 +849,18 @@ import { FinancialSourceService } from '@/services/FinancialSourceService';
 container.bind<IFinancialSourceAdapter>(TYPES.IFinancialSourceAdapter).to(FinancialSourceAdapter).inRequestScope();
 container.bind<IFinancialSourceRepository>(TYPES.IFinancialSourceRepository).to(FinancialSourceRepository).inRequestScope();
 container.bind<FinancialSourceService>(TYPES.FinancialSourceService).to(FinancialSourceService).inRequestScope();
+
+// ==================== FINANCIAL REPORTS ====================
+import { FinancialReportAdapter, type IFinancialReportAdapter } from '@/adapters/financialReport.adapter';
+import { FinancialReportRepository, type IFinancialReportRepository } from '@/repositories/financialReport.repository';
+container.bind<IFinancialReportAdapter>(TYPES.IFinancialReportAdapter).to(FinancialReportAdapter).inRequestScope();
+container.bind<IFinancialReportRepository>(TYPES.IFinancialReportRepository).to(FinancialReportRepository).inRequestScope();
+
+// ==================== FINANCE DASHBOARD ====================
+import { FinanceDashboardAdapter, type IFinanceDashboardAdapter } from '@/adapters/financeDashboard.adapter';
+import { FinanceDashboardRepository, type IFinanceDashboardRepository } from '@/repositories/financeDashboard.repository';
+container.bind<IFinanceDashboardAdapter>(TYPES.IFinanceDashboardAdapter).to(FinanceDashboardAdapter).inRequestScope();
+container.bind<IFinanceDashboardRepository>(TYPES.IFinanceDashboardRepository).to(FinanceDashboardRepository).inRequestScope();
 
 // ==================== FISCAL YEAR & PERIOD ====================
 import { FiscalYearAdapter, type IFiscalYearAdapter } from '@/adapters/fiscalYear.adapter';
@@ -845,6 +907,15 @@ container.bind<ICalendarCategoryRepository>(TYPES.ICalendarCategoryRepository).t
 container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEventAdapter).inRequestScope();
 container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
 container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
+
+// ==================== NOTEBOOKS ====================
+container.bind<INotebookAdapter>(TYPES.INotebookAdapter).to(NotebookAdapter).inRequestScope();
+container.bind<INotebookRepository>(TYPES.INotebookRepository).to(NotebookRepository).inRequestScope();
+container.bind<NotebookService>(TYPES.NotebookService).to(NotebookService).inRequestScope();
+
+// ==================== ANNOUNCEMENTS ====================
+container.bind<IAnnouncementAdapter>(TYPES.IAnnouncementAdapter).to(AnnouncementAdapter).inRequestScope();
+container.bind<IAnnouncementRepository>(TYPES.IAnnouncementRepository).to(AnnouncementRepository).inRequestScope();
 
 // ==================== NOTIFICATION SYSTEM ====================
 // Adapters
@@ -934,5 +1005,145 @@ container.bind<ISchedulerService>(TYPES.SchedulerService).to(SchedulerService).i
 container.bind<IScheduleOccurrenceService>(TYPES.ScheduleOccurrenceService).to(ScheduleOccurrenceService).inRequestScope();
 container.bind<IScheduleRegistrationService>(TYPES.ScheduleRegistrationService).to(ScheduleRegistrationService).inRequestScope();
 container.bind<IScheduleAttendanceService>(TYPES.ScheduleAttendanceService).to(ScheduleAttendanceService).inRequestScope();
+
+// ==================== SCHEDULED EVENTS (Background Jobs) ====================
+import { ScheduledNotificationAdapter, type IScheduledNotificationAdapter } from '@/adapters/scheduledNotification.adapter';
+import { ScheduledNotificationRepository, type IScheduledNotificationRepository } from '@/repositories/scheduledNotification.repository';
+import { ScheduledEventsService } from '@/services/ScheduledEventsService';
+
+// Adapters
+container.bind<IScheduledNotificationAdapter>(TYPES.IScheduledNotificationAdapter).to(ScheduledNotificationAdapter).inRequestScope();
+
+// Repositories
+container.bind<IScheduledNotificationRepository>(TYPES.IScheduledNotificationRepository).to(ScheduledNotificationRepository).inRequestScope();
+
+// Services
+container.bind<ScheduledEventsService>(TYPES.ScheduledEventsService).to(ScheduledEventsService).inRequestScope();
+
+// ==================== CATEGORY SERVICES ====================
+import { IncomeCategoryService } from '@/services/IncomeCategoryService';
+container.bind<IncomeCategoryService>(TYPES.IncomeCategoryService).to(IncomeCategoryService).inRequestScope();
+
+// ==================== EXCEL IMPORT SERVICE (Onboarding) ====================
+import { ExcelImportService } from '@/services/ExcelImportService';
+container.bind<ExcelImportService>(TYPES.ExcelImportService).to(ExcelImportService).inRequestScope();
+
+// ==================== FEATURE IMPORT (Licensing) ====================
+import { FeatureImportAdapter, type IFeatureImportAdapter } from '@/adapters/featureImport.adapter';
+import { FeatureImportRepository, type IFeatureImportRepository } from '@/repositories/featureImport.repository';
+import { FeatureImportService } from '@/services/FeatureImportService';
+container.bind<IFeatureImportAdapter>(TYPES.IFeatureImportAdapter).to(FeatureImportAdapter).inRequestScope();
+container.bind<IFeatureImportRepository>(TYPES.IFeatureImportRepository).to(FeatureImportRepository).inRequestScope();
+container.bind<FeatureImportService>(TYPES.FeatureImportService).to(FeatureImportService).inRequestScope();
+
+// ==================== MEMBER IMPORT (Bulk) ====================
+import { MemberImportAdapter, type IMemberImportAdapter } from '@/adapters/memberImport.adapter';
+import { MemberImportRepository, type IMemberImportRepository } from '@/repositories/memberImport.repository';
+import { MemberImportService } from '@/services/MemberImportService';
+container.bind<IMemberImportAdapter>(TYPES.IMemberImportAdapter).to(MemberImportAdapter).inRequestScope();
+container.bind<IMemberImportRepository>(TYPES.IMemberImportRepository).to(MemberImportRepository).inRequestScope();
+container.bind<MemberImportService>(TYPES.MemberImportService).to(MemberImportService).inRequestScope();
+
+// ==================== STORAGE ====================
+import { StorageAdapter, type IStorageAdapter } from '@/adapters/storage.adapter';
+import { StorageRepository, type IStorageRepository } from '@/repositories/storage.repository';
+import { SupabaseStorageService, type StorageService } from '@/services/StorageService';
+
+container.bind<IStorageAdapter>(TYPES.IStorageAdapter).to(StorageAdapter).inRequestScope();
+container.bind<IStorageRepository>(TYPES.IStorageRepository).to(StorageRepository).inRequestScope();
+container.bind<StorageService>(TYPES.StorageService).to(SupabaseStorageService).inRequestScope();
+
+// ==================== DONATION SYSTEM (Online Giving with Xendit) ====================
+// Donation Adapters
+import { DonationAdapter, type IDonationAdapter } from '@/adapters/donation.adapter';
+import { CampaignAdapter, type ICampaignAdapter } from '@/adapters/campaign.adapter';
+import { DonorPaymentMethodAdapter, type IDonorPaymentMethodAdapter } from '@/adapters/donorPaymentMethod.adapter';
+import { DonationWebhookAdapter, type IDonationWebhookAdapter } from '@/adapters/donationWebhook.adapter';
+import { DonationFeeConfigAdapter, type IDonationFeeConfigAdapter } from '@/adapters/donationFeeConfig.adapter';
+
+// Donation Repositories
+import { DonationRepository, type IDonationRepository } from '@/repositories/donation.repository';
+import { CampaignRepository, type ICampaignRepository } from '@/repositories/campaign.repository';
+import { DonorPaymentMethodRepository, type IDonorPaymentMethodRepository } from '@/repositories/donorPaymentMethod.repository';
+import { DonationWebhookRepository, type IDonationWebhookRepository } from '@/repositories/donationWebhook.repository';
+import { DonationFeeConfigRepository, type IDonationFeeConfigRepository } from '@/repositories/donationFeeConfig.repository';
+
+// Donation Services
+import { DonationService } from '@/services/DonationService';
+import { DonorPaymentMethodService } from '@/services/DonorPaymentMethodService';
+import { DonationFeeService } from '@/services/DonationFeeService';
+import { DonationConfigService } from '@/services/DonationConfigService';
+import { CampaignService } from '@/services/CampaignService';
+import { RecurringDonationService } from '@/services/RecurringDonationService';
+import { RecurringChargeHistoryAdapter, type IRecurringChargeHistoryAdapter } from '@/adapters/recurringChargeHistory.adapter';
+import { RecurringChargeHistoryRepository, type IRecurringChargeHistoryRepository } from '@/repositories/recurringChargeHistory.repository';
+import { DisbursementService } from '@/services/DisbursementService';
+import { DisbursementAdapter, type IDisbursementAdapter } from '@/adapters/disbursement.adapter';
+import { DisbursementRepository, type IDisbursementRepository } from '@/repositories/disbursement.repository';
+
+// XenPlatform Integration (Multi-tenant sub-accounts)
+import { XenPlatformService } from '@/services/XenPlatformService';
+
+// AI Credits System
+import { AICreditService } from '@/services/AICreditService';
+import { AICreditPackageService } from '@/services/AICreditPackageService';
+import { AICreditPurchaseService } from '@/services/AICreditPurchaseService';
+import { AICreditAdapter, type IAICreditAdapter } from '@/adapters/aiCredit.adapter';
+import { AICreditPackageAdapter, type IAICreditPackageAdapter } from '@/adapters/aiCreditPackage.adapter';
+import { AICreditPurchaseAdapter, type IAICreditPurchaseAdapter } from '@/adapters/aiCreditPurchase.adapter';
+import { AICreditTransactionAdapter, type IAICreditTransactionAdapter } from '@/adapters/aiCreditTransaction.adapter';
+import { AICreditRepository, type IAICreditRepository } from '@/repositories/aiCredit.repository';
+import { AICreditPackageRepository, type IAICreditPackageRepository } from '@/repositories/aiCreditPackage.repository';
+import { AICreditPurchaseRepository, type IAICreditPurchaseRepository } from '@/repositories/aiCreditPurchase.repository';
+import { AICreditTransactionRepository, type IAICreditTransactionRepository } from '@/repositories/aiCreditTransaction.repository';
+
+// Donation Adapters
+container.bind<IDonationAdapter>(TYPES.IDonationAdapter).to(DonationAdapter).inRequestScope();
+container.bind<ICampaignAdapter>(TYPES.ICampaignAdapter).to(CampaignAdapter).inRequestScope();
+container.bind<IDonorPaymentMethodAdapter>(TYPES.IDonorPaymentMethodAdapter).to(DonorPaymentMethodAdapter).inRequestScope();
+container.bind<IDonationWebhookAdapter>(TYPES.IDonationWebhookAdapter).to(DonationWebhookAdapter).inRequestScope();
+container.bind<IDonationFeeConfigAdapter>(TYPES.IDonationFeeConfigAdapter).to(DonationFeeConfigAdapter).inRequestScope();
+container.bind<IRecurringChargeHistoryAdapter>(TYPES.IRecurringChargeHistoryAdapter).to(RecurringChargeHistoryAdapter).inRequestScope();
+
+// Donation Repositories
+container.bind<IDonationRepository>(TYPES.IDonationRepository).to(DonationRepository).inRequestScope();
+container.bind<ICampaignRepository>(TYPES.ICampaignRepository).to(CampaignRepository).inRequestScope();
+container.bind<IDonorPaymentMethodRepository>(TYPES.IDonorPaymentMethodRepository).to(DonorPaymentMethodRepository).inRequestScope();
+container.bind<IDonationWebhookRepository>(TYPES.IDonationWebhookRepository).to(DonationWebhookRepository).inRequestScope();
+container.bind<IDonationFeeConfigRepository>(TYPES.IDonationFeeConfigRepository).to(DonationFeeConfigRepository).inRequestScope();
+container.bind<IRecurringChargeHistoryRepository>(TYPES.IRecurringChargeHistoryRepository).to(RecurringChargeHistoryRepository).inRequestScope();
+
+// Donation Services
+container.bind<DonationService>(TYPES.DonationService).to(DonationService).inRequestScope();
+container.bind<DonorPaymentMethodService>(TYPES.DonorPaymentMethodService).to(DonorPaymentMethodService).inRequestScope();
+container.bind<DonationFeeService>(TYPES.DonationFeeService).to(DonationFeeService).inRequestScope();
+container.bind<DonationConfigService>(TYPES.DonationConfigService).to(DonationConfigService).inRequestScope();
+container.bind<CampaignService>(TYPES.CampaignService).to(CampaignService).inRequestScope();
+container.bind<RecurringDonationService>(TYPES.RecurringDonationService).to(RecurringDonationService).inRequestScope();
+
+// Disbursement (Automated Payouts)
+container.bind<IDisbursementAdapter>(TYPES.IDisbursementAdapter).to(DisbursementAdapter).inRequestScope();
+container.bind<IDisbursementRepository>(TYPES.IDisbursementRepository).to(DisbursementRepository).inRequestScope();
+container.bind<DisbursementService>(TYPES.DisbursementService).to(DisbursementService).inRequestScope();
+
+// XenPlatform Integration (Multi-tenant sub-accounts)
+container.bind<XenPlatformService>(TYPES.XenPlatformService).to(XenPlatformService).inRequestScope();
+
+// AI Credits System - Adapters
+container.bind<IAICreditAdapter>(TYPES.IAICreditAdapter).to(AICreditAdapter).inRequestScope();
+container.bind<IAICreditPackageAdapter>(TYPES.IAICreditPackageAdapter).to(AICreditPackageAdapter).inRequestScope();
+container.bind<IAICreditPurchaseAdapter>(TYPES.IAICreditPurchaseAdapter).to(AICreditPurchaseAdapter).inRequestScope();
+container.bind<IAICreditTransactionAdapter>(TYPES.IAICreditTransactionAdapter).to(AICreditTransactionAdapter).inRequestScope();
+
+// AI Credits System - Repositories
+container.bind<IAICreditRepository>(TYPES.IAICreditRepository).to(AICreditRepository).inRequestScope();
+container.bind<IAICreditPackageRepository>(TYPES.IAICreditPackageRepository).to(AICreditPackageRepository).inRequestScope();
+container.bind<IAICreditPurchaseRepository>(TYPES.IAICreditPurchaseRepository).to(AICreditPurchaseRepository).inRequestScope();
+container.bind<IAICreditTransactionRepository>(TYPES.IAICreditTransactionRepository).to(AICreditTransactionRepository).inRequestScope();
+
+// AI Credits System - Services
+container.bind<AICreditService>(TYPES.AICreditService).to(AICreditService).inRequestScope();
+container.bind<AICreditPackageService>(TYPES.AICreditPackageService).to(AICreditPackageService).inRequestScope();
+container.bind<AICreditPurchaseService>(TYPES.AICreditPurchaseService).to(AICreditPurchaseService).inRequestScope();
 
 export { container };

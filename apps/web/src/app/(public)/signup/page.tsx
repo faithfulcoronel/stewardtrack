@@ -99,7 +99,7 @@ export default function SignupPage() {
 
   // Find trial offering (for "Start Free Trial" CTA on paid tiers)
   const trialOffering = allOfferings.find(o => o.offering_type === 'trial');
-  const trialDays = (trialOffering?.metadata as any)?.trial_days || 14;
+  const trialDays = (trialOffering as any)?.trial_days || 14;
 
   // Filter offerings based on selected billing cycle
   // Note: Trial offerings are NOT shown as separate cards - trials are a CTA option on paid tiers
@@ -323,7 +323,7 @@ export default function SignupPage() {
 
           <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-white mb-6">
             <span className="size-2 rounded-full bg-white animate-pulse" />
-            14-Day Free Trial &bull; No Credit Card Required
+            {trialDays}-Day Free Trial &bull; No Credit Card Required
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-white">
@@ -386,19 +386,20 @@ export default function SignupPage() {
                     : 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:-translate-y-1'
                 }`}
               >
-                {offering.is_featured && (
+                {/* Badge - from metadata or default for featured */}
+                {((offering.metadata as any)?.badge_text || offering.is_featured) && (
                   <div className="absolute -top-4 left-0 right-0 text-center">
                     <span className="inline-flex items-center gap-1 bg-[#179a65] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
                       <Sparkles className="h-3 w-3" />
-                      Most Popular
+                      {(offering.metadata as any)?.badge_text || 'Most Popular'}
                     </span>
                   </div>
                 )}
 
                 <div className="mb-6 pt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className={`text-xl font-bold capitalize ${offering.is_featured ? 'text-[#179a65]' : 'text-white'}`}>
-                      {offering.tier}
+                    <h3 className={`text-xl font-bold ${offering.is_featured ? 'text-[#179a65]' : 'text-white'}`}>
+                      {offering.name}
                     </h3>
                     {offering.offering_type === 'trial' && (
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -408,6 +409,12 @@ export default function SignupPage() {
                       </span>
                     )}
                   </div>
+                  {/* Highlight text from metadata */}
+                  {(offering.metadata as any)?.highlight_text && (
+                    <p className={`text-xs font-semibold mb-2 ${offering.is_featured ? 'text-orange-500' : 'text-yellow-300'}`}>
+                      {(offering.metadata as any).highlight_text}
+                    </p>
+                  )}
 
                   {offeringDiscounts[offering.id] ? (
                     <div className="space-y-1">
@@ -455,6 +462,12 @@ export default function SignupPage() {
                     {offering.description}
                   </p>
 
+                  {/* Features headline from metadata */}
+                  {(offering.metadata as any)?.features_headline && (
+                    <p className={`text-xs font-semibold mb-3 ${offering.is_featured ? 'text-gray-500' : 'text-white/70'}`}>
+                      {(offering.metadata as any).features_headline}
+                    </p>
+                  )}
                   <div className="space-y-3">
                     {offering.max_users && (
                       <div className="flex items-start gap-3 text-sm">
@@ -501,7 +514,7 @@ export default function SignupPage() {
                           Starting Trial...
                         </span>
                       ) : (
-                        `Start ${trialDays}-Day Free Trial`
+                        (trialOffering?.metadata as any)?.cta_text || `Start ${trialDays}-Day Free Trial`
                       )}
                     </button>
                     {/* Secondary: Subscribe directly */}
@@ -540,7 +553,7 @@ export default function SignupPage() {
                         Selecting...
                       </span>
                     ) : (
-                      (offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Choose Plan'
+                      (offering.metadata as any)?.cta_text || ((offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Choose Plan')
                     )}
                   </button>
                 )}

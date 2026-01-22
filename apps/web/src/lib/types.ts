@@ -24,6 +24,11 @@ export const TYPES = {
   RegistrationService: Symbol.for('RegistrationService'),
   PublicMemberRegistrationService: Symbol.for('PublicMemberRegistrationService'),
 
+  // Email Verification Service (for registration flow)
+  EmailVerificationService: Symbol.for('EmailVerificationService'),
+  IPendingRegistrationAdapter: Symbol.for('IPendingRegistrationAdapter'),
+  IPendingRegistrationRepository: Symbol.for('IPendingRegistrationRepository'),
+
   // Authorization Service
   AuthorizationService: Symbol.for('AuthorizationService'),
   UserRoleAdapter: Symbol.for('UserRoleAdapter'),
@@ -140,6 +145,8 @@ export const TYPES = {
   IFamilyRelationshipRepository: Symbol.for('IFamilyRelationshipRepository'),
   IFinanceDashboardAdapter: Symbol.for('IFinanceDashboardAdapter'),
   IFinanceDashboardRepository: Symbol.for('IFinanceDashboardRepository'),
+  IFinancialReportAdapter: Symbol.for('IFinancialReportAdapter'),
+  IFinancialReportRepository: Symbol.for('IFinancialReportRepository'),
   IFinancialSourceAdapter: Symbol.for('IFinancialSourceAdapter'),
   IFinancialSourceRepository: Symbol.for('IFinancialSourceRepository'),
   FinancialSourceService: Symbol.for('FinancialSourceService'),
@@ -163,6 +170,8 @@ export const TYPES = {
   IIncomeExpenseTransactionMappingRepository: Symbol.for('IIncomeExpenseTransactionMappingRepository'),
   IIncomeExpenseTransactionMappingAdapter: Symbol.for('IIncomeExpenseTransactionMappingAdapter'),
   IIncomeExpenseTransactionRepository: Symbol.for('IIncomeExpenseTransactionRepository'),
+  IIncomeExpenseTransactionRpcAdapter: Symbol.for('IIncomeExpenseTransactionRpcAdapter'),
+  IIncomeExpenseTransactionRpcRepository: Symbol.for('IIncomeExpenseTransactionRpcRepository'),
   ILicenseAdapter: Symbol.for('ILicenseAdapter'),
   ILicenseFeatureAdapter: Symbol.for('ILicenseFeatureAdapter'),
   ILicenseFeatureRepository: Symbol.for('ILicenseFeatureRepository'),
@@ -285,6 +294,11 @@ export const TYPES = {
   ICalendarEventRepository: Symbol.for('ICalendarEventRepository'),
   PlanningService: Symbol.for('PlanningService'),
 
+  // Planning Notebooks Feature (OneNote-style)
+  INotebookAdapter: Symbol.for('INotebookAdapter'),
+  INotebookRepository: Symbol.for('INotebookRepository'),
+  NotebookService: Symbol.for('NotebookService'),
+
   // Admin Dashboard Feature
   IAdminDashboardAdapter: Symbol.for('IAdminDashboardAdapter'),
   IAdminDashboardRepository: Symbol.for('IAdminDashboardRepository'),
@@ -336,6 +350,89 @@ export const TYPES = {
   ScheduleOccurrenceService: Symbol.for('ScheduleOccurrenceService'),
   ScheduleRegistrationService: Symbol.for('ScheduleRegistrationService'),
   ScheduleAttendanceService: Symbol.for('ScheduleAttendanceService'),
+
+  // Background Job Services
+  ScheduledEventsService: Symbol.for('ScheduledEventsService'),
+
+  // Category Services
+  IncomeCategoryService: Symbol.for('IncomeCategoryService'),
+
+  // Excel Import Service (Onboarding)
+  ExcelImportService: Symbol.for('ExcelImportService'),
+
+  // Feature Import (Licensing)
+  IFeatureImportAdapter: Symbol.for('IFeatureImportAdapter'),
+  IFeatureImportRepository: Symbol.for('IFeatureImportRepository'),
+  FeatureImportService: Symbol.for('FeatureImportService'),
+
+  // Member Import (Bulk)
+  IMemberImportAdapter: Symbol.for('IMemberImportAdapter'),
+  IMemberImportRepository: Symbol.for('IMemberImportRepository'),
+  MemberImportService: Symbol.for('MemberImportService'),
+
+  // Scheduled Notification (Background Jobs)
+  IScheduledNotificationAdapter: Symbol.for('IScheduledNotificationAdapter'),
+  IScheduledNotificationRepository: Symbol.for('IScheduledNotificationRepository'),
+
+  // Storage
+  IStorageAdapter: Symbol.for('IStorageAdapter'),
+  IStorageRepository: Symbol.for('IStorageRepository'),
+  StorageService: Symbol.for('StorageService'),
+
+  // Donation System (Online Giving with Xendit)
+  IDonationAdapter: Symbol.for('IDonationAdapter'),
+  IDonationRepository: Symbol.for('IDonationRepository'),
+  DonationService: Symbol.for('DonationService'),
+
+  ICampaignAdapter: Symbol.for('ICampaignAdapter'),
+  ICampaignRepository: Symbol.for('ICampaignRepository'),
+  CampaignService: Symbol.for('CampaignService'),
+
+  IDonorPaymentMethodAdapter: Symbol.for('IDonorPaymentMethodAdapter'),
+  IDonorPaymentMethodRepository: Symbol.for('IDonorPaymentMethodRepository'),
+  DonorPaymentMethodService: Symbol.for('DonorPaymentMethodService'),
+
+  IDonationWebhookAdapter: Symbol.for('IDonationWebhookAdapter'),
+  IDonationWebhookRepository: Symbol.for('IDonationWebhookRepository'),
+  DonationWebhookService: Symbol.for('DonationWebhookService'),
+
+  IDonationFeeConfigAdapter: Symbol.for('IDonationFeeConfigAdapter'),
+  IDonationFeeConfigRepository: Symbol.for('IDonationFeeConfigRepository'),
+  DonationFeeService: Symbol.for('DonationFeeService'),
+  DonationConfigService: Symbol.for('DonationConfigService'),
+
+  // Recurring Donation Service
+  RecurringDonationService: Symbol.for('RecurringDonationService'),
+
+  // Recurring Charge History
+  IRecurringChargeHistoryAdapter: Symbol.for('IRecurringChargeHistoryAdapter'),
+  IRecurringChargeHistoryRepository: Symbol.for('IRecurringChargeHistoryRepository'),
+
+  // Disbursement System (Automated Payouts)
+  IDisbursementAdapter: Symbol.for('IDisbursementAdapter'),
+  IDisbursementRepository: Symbol.for('IDisbursementRepository'),
+  DisbursementService: Symbol.for('DisbursementService'),
+
+  // XenPlatform Integration (Multi-tenant sub-accounts)
+  XenPlatformService: Symbol.for('XenPlatformService'),
+
+  // AI Credits System
+  AICreditService: Symbol.for('AICreditService'),
+  AICreditPackageService: Symbol.for('AICreditPackageService'),
+  AICreditPurchaseService: Symbol.for('AICreditPurchaseService'),
+  AICreditTransactionService: Symbol.for('AICreditTransactionService'),
+
+  // AI Credits Repositories
+  IAICreditRepository: Symbol.for('IAICreditRepository'),
+  IAICreditPackageRepository: Symbol.for('IAICreditPackageRepository'),
+  IAICreditPurchaseRepository: Symbol.for('IAICreditPurchaseRepository'),
+  IAICreditTransactionRepository: Symbol.for('IAICreditTransactionRepository'),
+
+  // AI Credits Adapters
+  IAICreditAdapter: Symbol.for('IAICreditAdapter'),
+  IAICreditPackageAdapter: Symbol.for('IAICreditPackageAdapter'),
+  IAICreditPurchaseAdapter: Symbol.for('IAICreditPurchaseAdapter'),
+  IAICreditTransactionAdapter: Symbol.for('IAICreditTransactionAdapter'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

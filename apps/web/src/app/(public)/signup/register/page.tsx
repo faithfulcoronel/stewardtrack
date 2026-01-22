@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-import { Loader2, CheckCircle2, AlertCircle, Shield, Clock, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Shield, Clock, Sparkles, ArrowLeft, Tag, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { Button } from '@/components/ui/button';
@@ -20,18 +20,18 @@ import { svgPaths } from '@/components/landing/svg-paths';
 
 // Common church denominations
 const DENOMINATION_OPTIONS = [
-  { value: 'UCCP', label: 'United Church of Christ in the Philippines (UCCP)' },
-  { value: 'Catholic', label: 'Roman Catholic' },
   { value: 'Baptist', label: 'Baptist' },
   { value: 'Methodist', label: 'Methodist' },
   { value: 'Presbyterian', label: 'Presbyterian' },
   { value: 'Pentecostal', label: 'Pentecostal' },
   { value: 'Evangelical', label: 'Evangelical' },
   { value: 'Lutheran', label: 'Lutheran' },
+  { value: 'UCCP', label: 'United Church of Christ in the Philippines (UCCP)' },
   { value: 'Anglican', label: 'Anglican / Episcopal' },
   { value: 'Seventh-day Adventist', label: 'Seventh-day Adventist' },
   { value: 'Church of Christ', label: 'Church of Christ' },
   { value: 'Assemblies of God', label: 'Assemblies of God' },
+  { value: 'Catholic', label: 'Roman Catholic' },
   { value: 'Iglesia ni Cristo', label: 'Iglesia ni Cristo' },
   { value: 'Born Again', label: 'Born Again Christian' },
   { value: 'Non-denominational', label: 'Non-denominational' },
@@ -56,6 +56,20 @@ interface OfferingDiscount {
   originalPrice: number;
   discountedPrice: number;
   discountAmount: number;
+}
+
+interface CouponDiscount {
+  discount: {
+    discount_id: string;
+    discount_name: string;
+    calculation_type: string;
+    discount_value: number;
+    duration_billing_cycles?: number | null;
+  };
+  originalPrice: number;
+  discountedPrice: number;
+  discountAmount: number;
+  durationBillingCycles?: number | null;
 }
 
 function BackgroundVectors() {
@@ -106,6 +120,8 @@ function RegisterFormContent() {
     confirmPassword: '',
     churchName: '',
     denomination: '',
+    contactNumber: '',
+    address: '',
     firstName: '',
     lastName: '',
   });
@@ -116,6 +132,13 @@ function RegisterFormContent() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [offeringDiscount, setOfferingDiscount] = useState<OfferingDiscount | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [couponDiscount, setCouponDiscount] = useState<CouponDiscount | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const couponValidationTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -228,6 +251,21 @@ function RegisterFormContent() {
       newErrors.churchName = 'Church name is required';
     }
 
+    // Denomination validation (required)
+    if (!formData.denomination) {
+      newErrors.denomination = 'Denomination is required';
+    }
+
+    // Contact number validation (required)
+    if (!formData.contactNumber || formData.contactNumber.trim().length === 0) {
+      newErrors.contactNumber = 'Contact number is required';
+    }
+
+    // Address validation (required)
+    if (!formData.address || formData.address.trim().length === 0) {
+      newErrors.address = 'Church address is required';
+    }
+
     // First name validation
     if (!formData.firstName || formData.firstName.trim().length === 0) {
       newErrors.firstName = 'First name is required';
@@ -267,38 +305,54 @@ function RegisterFormContent() {
     setIsRegistering(true);
 
     try {
-      // Check if this is a free/trial offering (no payment required)
-      const isTrial = selectedOffering?.offering_type === 'trial';
-      const isFree = selectedOffering?.offering_type === 'free' ||
-        (selectedOffering?.metadata as any)?.pricing?.is_free;
-
-      // Also check if price is 0
+      // Determine offering type flags for redirect logic after verification
       const priceInfo = selectedOffering ? getOfferingPrice(selectedOffering) : null;
+      const isTrial = selectedOffering?.offering_type === 'trial';
+      const isFree = selectedOffering?.offering_type === 'free' || (selectedOffering?.metadata as any)?.pricing?.is_free;
       const priceIsZero = !priceInfo || priceInfo.price === 0;
 
-      // Prepare registration data for the processing page
-      const registrationData = {
-        ...formData,
-        offeringId,
-        isTrial,
-        isFree,
-        priceIsZero,
-        turnstileToken,
-      };
+      // Call the register-init API to create user and send verification email
+      const response = await fetch('/api/auth/register-init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          churchName: formData.churchName,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          offeringId,
+          denomination: formData.denomination,
+          contactNumber: formData.contactNumber,
+          address: formData.address,
+          turnstileToken,
+          // Include offering type flags
+          isTrial,
+          isFree,
+          priceIsZero,
+          // Include coupon code if applied
+          couponCode: couponDiscount ? couponCode : null,
+          couponDiscountId: couponDiscount?.discount?.discount_id || null,
+          couponDiscountAmount: couponDiscount?.discountAmount || null,
+          couponDiscountedPrice: couponDiscount?.discountedPrice || null,
+          couponDurationBillingCycles: couponDiscount?.durationBillingCycles || null,
+        }),
+      });
 
-      // Encode registration data as base64 for URL-safe transmission
-      // Use TextEncoder for proper UTF-8 support (handles special characters like accents)
-      const jsonString = JSON.stringify(registrationData);
-      console.log('[Register] Registration data prepared, size:', jsonString.length);
+      const result = await response.json();
 
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(jsonString);
-      const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-      const encodedData = btoa(binaryString);
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
+      }
 
-      console.log('[Register] Redirecting to processing page, encoded size:', encodedData.length);
-      // Redirect to processing page which will handle the registration
-      window.location.href = `/signup/register/processing?data=${encodedData}`;
+      console.log('[Register] Registration initiated successfully, redirecting to verify-email page');
+
+      // Redirect to verification pending page
+      const verifyParams = new URLSearchParams({
+        email: formData.email,
+        church: formData.churchName,
+      });
+      router.push(`/signup/verify-email?${verifyParams.toString()}`);
     } catch (error) {
       console.error('[Register] Registration error:', error);
       toast.error(`Failed to process registration: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -312,6 +366,88 @@ function RegisterFormContent() {
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
+  }
+
+  // Coupon validation function
+  const validateCoupon = useCallback(async (code: string) => {
+    if (!code.trim() || !selectedOffering) {
+      setCouponDiscount(null);
+      setCouponError(null);
+      return;
+    }
+
+    const priceInfo = getOfferingPrice(selectedOffering);
+    if (!priceInfo || priceInfo.price === 0) {
+      setCouponError('Coupons cannot be applied to free plans');
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const response = await fetch('/api/licensing/discounts/validate-public', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: code.trim(),
+          offeringId: selectedOffering.id,
+          amount: priceInfo.price,
+          currency: priceInfo.currency,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setCouponDiscount({
+          discount: result.data.discount,
+          originalPrice: result.data.originalPrice,
+          discountedPrice: result.data.discountedPrice,
+          discountAmount: result.data.discountAmount,
+          durationBillingCycles: result.data.durationBillingCycles,
+        });
+        setCouponError(null);
+      } else {
+        setCouponDiscount(null);
+        setCouponError(result.error || 'Invalid coupon code');
+      }
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      setCouponDiscount(null);
+      setCouponError('Failed to validate coupon');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  }, [selectedOffering]);
+
+  // Handle coupon input change with debouncing
+  function handleCouponChange(value: string) {
+    setCouponCode(value);
+
+    // Clear previous timeout
+    if (couponValidationTimeout.current) {
+      clearTimeout(couponValidationTimeout.current);
+    }
+
+    // Clear states immediately if empty
+    if (!value.trim()) {
+      setCouponDiscount(null);
+      setCouponError(null);
+      return;
+    }
+
+    // Debounce validation (500ms)
+    couponValidationTimeout.current = setTimeout(() => {
+      validateCoupon(value);
+    }, 500);
+  }
+
+  // Clear coupon
+  function clearCoupon() {
+    setCouponCode('');
+    setCouponDiscount(null);
+    setCouponError(null);
   }
 
   /**
@@ -421,22 +557,29 @@ function RegisterFormContent() {
                 className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  {selectedOffering.is_featured && (
+                  {((selectedOffering.metadata as any)?.badge_text || selectedOffering.is_featured) && (
                     <span className="inline-flex items-center gap-1 bg-white text-[#179a65] text-xs font-bold px-3 py-1 rounded-full">
                       <Sparkles className="h-3 w-3" />
-                      Most Popular
+                      {(selectedOffering.metadata as any)?.badge_text || 'Most Popular'}
                     </span>
                   )}
                 </div>
 
-                <h3 className="text-2xl font-bold text-white capitalize mb-2">
-                  {selectedOffering.tier} Plan
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  {selectedOffering.name}
                   {selectedOffering.offering_type === 'trial' && (
                     <span className="ml-2 text-xs font-bold px-2 py-1 rounded-full bg-green-500 text-white align-middle">
                       FREE TRIAL
                     </span>
                   )}
                 </h3>
+
+                {/* Highlight Text */}
+                {(selectedOffering.metadata as any)?.highlight_text && (
+                  <p className="text-sm text-green-200 mb-3">
+                    {(selectedOffering.metadata as any).highlight_text}
+                  </p>
+                )}
 
                 {/* Trial Pricing Display */}
                 {selectedOffering.offering_type === 'trial' ? (
@@ -446,7 +589,7 @@ function RegisterFormContent() {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-4xl font-bold text-white">Free</span>
                         <span className="text-lg text-white/70">
-                          for {(selectedOffering.metadata as any)?.trial_days || 14} days
+                          for {(selectedOffering as any)?.trial_days || 14} days
                         </span>
                       </div>
                       <p className="text-sm text-green-200">
@@ -469,6 +612,39 @@ function RegisterFormContent() {
                       <p className="text-xs text-white/50 mt-1">
                         You&apos;ll be notified before your trial ends. Cancel anytime.
                       </p>
+                    </div>
+                  </div>
+                ) : couponDiscount ? (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-4xl font-bold text-white">
+                        {formatPriceValue(couponDiscount.discountedPrice, getOfferingPrice(selectedOffering)?.currency || 'PHP')}
+                      </span>
+                      {hasPrice(selectedOffering) && (
+                        <span className="text-lg text-white/70">
+                          {getBillingPeriod(selectedOffering)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white/50 line-through">
+                        {formatPrice(selectedOffering)}
+                      </span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-400 text-gray-900">
+                        {couponDiscount.discount.calculation_type === 'percentage'
+                          ? `${couponDiscount.discount.discount_value}% OFF`
+                          : `Save ${formatPriceValue(couponDiscount.discountAmount, getOfferingPrice(selectedOffering)?.currency || 'PHP')}`
+                        }
+                      </span>
+                    </div>
+                    <div className="text-xs text-green-200 mt-1 flex items-center gap-1">
+                      <Tag className="size-3" />
+                      Coupon: {couponCode}
+                      {couponDiscount.durationBillingCycles && (
+                        <span className="ml-1 text-green-300">
+                          (first {couponDiscount.durationBillingCycles} {couponDiscount.durationBillingCycles === 1 ? 'month' : 'months'})
+                        </span>
+                      )}
                     </div>
                   </div>
                 ) : offeringDiscount ? (
@@ -514,7 +690,9 @@ function RegisterFormContent() {
                 </p>
 
                 <div className="space-y-3 border-t border-white/20 pt-4">
-                  <h4 className="text-sm font-semibold text-white/90">Includes:</h4>
+                  <h4 className="text-sm font-semibold text-white/90">
+                    {(selectedOffering.metadata as any)?.features_headline || 'Includes:'}
+                  </h4>
                   <ul className="space-y-2 text-sm text-white/80">
                     {selectedOffering.max_users ? (
                       <li className="flex items-center gap-2">
@@ -530,7 +708,7 @@ function RegisterFormContent() {
                     {selectedOffering.offering_type === 'trial' && (
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="size-4 text-green-200" />
-                        {(selectedOffering.metadata as any)?.trial_days || 14}-day trial period
+                        {(selectedOffering as any)?.trial_days || 14}-day trial period
                       </li>
                     )}
                     <li className="flex items-center gap-2">
@@ -614,12 +792,23 @@ function RegisterFormContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs text-gray-500">Selected Plan</span>
-                      <h3 className="font-semibold text-gray-900 capitalize">{selectedOffering.tier}</h3>
+                      <h3 className="font-semibold text-gray-900">{selectedOffering.name}</h3>
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-[#179a65]">
-                        {formatPrice(selectedOffering)}
-                      </span>
+                      {couponDiscount ? (
+                        <>
+                          <span className="text-lg font-bold text-[#179a65]">
+                            {formatPriceValue(couponDiscount.discountedPrice, getOfferingPrice(selectedOffering)?.currency || 'PHP')}
+                          </span>
+                          <div className="text-xs text-gray-400 line-through">
+                            {formatPrice(selectedOffering)}
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-lg font-bold text-[#179a65]">
+                          {formatPrice(selectedOffering)}
+                        </span>
+                      )}
                       {hasPrice(selectedOffering) && (
                         <span className="text-sm text-gray-500">
                           {getBillingPeriod(selectedOffering)}
@@ -627,6 +816,12 @@ function RegisterFormContent() {
                       )}
                     </div>
                   </div>
+                  {couponDiscount && (
+                    <div className="mt-2 pt-2 border-t border-[#179a65]/10 flex items-center gap-1 text-xs text-green-600">
+                      <Tag className="size-3" />
+                      <span>Coupon {couponCode} applied</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -656,7 +851,7 @@ function RegisterFormContent() {
                 {/* Denomination */}
                 <div className="space-y-2">
                   <label htmlFor="denomination" className="block text-sm font-medium text-foreground">
-                    Denomination
+                    Denomination <span className="text-destructive">*</span>
                   </label>
                   <Select
                     value={formData.denomination}
@@ -664,7 +859,7 @@ function RegisterFormContent() {
                     disabled={isRegistering}
                   >
                     <SelectTrigger className={`h-11 ${errors.denomination ? 'border-destructive' : ''}`}>
-                      <SelectValue placeholder="Select denomination (optional)" />
+                      <SelectValue placeholder="Select denomination" />
                     </SelectTrigger>
                     <SelectContent>
                       {DENOMINATION_OPTIONS.map((option) => (
@@ -678,6 +873,50 @@ function RegisterFormContent() {
                     <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.denomination}
+                    </p>
+                  )}
+                </div>
+
+                {/* Contact Number */}
+                <div className="space-y-2">
+                  <label htmlFor="contactNumber" className="block text-sm font-medium text-foreground">
+                    Contact Number <span className="text-destructive">*</span>
+                  </label>
+                  <Input
+                    id="contactNumber"
+                    type="tel"
+                    placeholder="+63 917 123 4567"
+                    value={formData.contactNumber}
+                    onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+                    disabled={isRegistering}
+                    className={`h-11 ${errors.contactNumber ? 'border-destructive' : ''}`}
+                  />
+                  {errors.contactNumber && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.contactNumber}
+                    </p>
+                  )}
+                </div>
+
+                {/* Address */}
+                <div className="space-y-2">
+                  <label htmlFor="address" className="block text-sm font-medium text-foreground">
+                    Church Address <span className="text-destructive">*</span>
+                  </label>
+                  <Input
+                    id="address"
+                    type="text"
+                    placeholder="123 Main Street, City, Province"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    disabled={isRegistering}
+                    className={`h-11 ${errors.address ? 'border-destructive' : ''}`}
+                  />
+                  {errors.address && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.address}
                     </p>
                   )}
                 </div>
@@ -793,6 +1032,73 @@ function RegisterFormContent() {
                     </p>
                   )}
                 </div>
+
+                {/* Coupon Code - Only show for paid plans */}
+                {selectedOffering && hasPrice(selectedOffering) && selectedOffering.offering_type !== 'trial' && (
+                  <div className="space-y-2">
+                    <label htmlFor="couponCode" className="block text-sm font-medium text-foreground">
+                      Coupon Code
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <Tag className="h-4 w-4" />
+                      </div>
+                      <Input
+                        id="couponCode"
+                        type="text"
+                        placeholder="Enter coupon code (optional)"
+                        value={couponCode}
+                        onChange={(e) => handleCouponChange(e.target.value.toUpperCase())}
+                        disabled={isRegistering}
+                        className={`h-11 pl-10 pr-10 uppercase ${
+                          couponDiscount ? 'border-green-500 bg-green-50' :
+                          couponError ? 'border-destructive' : ''
+                        }`}
+                      />
+                      {isValidatingCoupon && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        </div>
+                      )}
+                      {!isValidatingCoupon && couponCode && (
+                        <button
+                          type="button"
+                          onClick={clearCoupon}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    {couponDiscount && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>
+                          <strong>{couponDiscount.discount.discount_name}</strong> applied!{' '}
+                          {couponDiscount.discount.calculation_type === 'percentage'
+                            ? `${couponDiscount.discount.discount_value}% off`
+                            : `${formatPriceValue(couponDiscount.discountAmount, getOfferingPrice(selectedOffering)?.currency || 'PHP')} off`
+                          }
+                          {couponDiscount.durationBillingCycles && (
+                            <span className="text-green-700">
+                              {' '}for first {couponDiscount.durationBillingCycles} {couponDiscount.durationBillingCycles === 1 ? 'month' : 'months'}
+                            </span>
+                          )}
+                        </span>
+                      </motion.div>
+                    )}
+                    {couponError && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {couponError}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Cloudflare Turnstile CAPTCHA */}
                 <div className="space-y-2">

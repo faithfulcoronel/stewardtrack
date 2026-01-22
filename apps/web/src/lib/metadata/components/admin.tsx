@@ -74,6 +74,10 @@ import {
   type MemberRegistrationQRCodeProps,
 } from '@/components/dynamic/admin/MemberRegistrationQRCode';
 import {
+  DonationLinkShare,
+  type DonationLinkShareProps,
+} from '@/components/dynamic/admin/DonationLinkShare';
+import {
   GoalProgressRing,
   type GoalProgressRingProps,
 } from '@/components/dynamic/admin/goals/GoalProgressRing';
@@ -97,6 +101,9 @@ import {
   PlanningCalendar,
   type PlanningCalendarProps,
 } from '@/components/dynamic/admin/PlanningCalendar';
+// Notebook Components
+import NotebookCard, { type NotebookCardProps } from '@/components/dynamic/admin/notebooks/NotebookCard';
+import NotebookSectionTree, { type NotebookSectionTreeProps } from '@/components/dynamic/admin/notebooks/NotebookSectionTree';
 import {
   PlanningDashboard,
   type PlanningDashboardProps,
@@ -158,6 +165,46 @@ import {
   AdminTransactionEntry,
   type AdminTransactionEntryProps,
 } from '@/components/dynamic/admin/AdminTransactionEntry';
+import {
+  AdminCollapsibleSection,
+  type AdminCollapsibleSectionProps,
+} from '@/components/dynamic/admin/AdminCollapsibleSection';
+import {
+  AdminReportHeader,
+  type AdminReportHeaderProps,
+} from '@/components/dynamic/admin/AdminReportHeader';
+import {
+  AdminReportTable,
+  type AdminReportTableProps,
+} from '@/components/dynamic/admin/AdminReportTable';
+import {
+  MemberImportActions,
+  type MemberImportActionsProps,
+} from '@/components/dynamic/admin/MemberImportActions';
+import {
+  AdminPayoutConfigSection,
+  type AdminPayoutConfigSectionProps,
+} from '@/components/dynamic/admin/AdminPayoutConfigSection';
+import {
+  CanvaStyleSettingsLayout,
+  type CanvaStyleSettingsLayoutProps,
+} from '@/components/dynamic/admin/CanvaStyleSettingsLayout';
+import {
+  ChurchProfileSection,
+  type ChurchProfileSectionProps,
+} from '@/components/dynamic/admin/ChurchProfileSection';
+import {
+  CanvaStyleSettingsPage,
+  type CanvaStyleSettingsPageProps,
+} from '@/components/dynamic/admin/CanvaStyleSettingsPage';
+import {
+  TeamMembersSection,
+  type TeamMembersSectionProps,
+} from '@/components/dynamic/admin/TeamMembersSection';
+import {
+  AdminAICreditsSettings,
+  type AdminAICreditsSettingsProps,
+} from '@/components/dynamic/admin/AdminAICreditsSettings';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -317,6 +364,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MemberRegistrationQRCodeProps>(MemberRegistrationQRCode, 'MemberRegistrationQRCodeRenderer'),
+  },
+  {
+    type: 'DonationLinkShare',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<DonationLinkShareProps>(DonationLinkShare, 'DonationLinkShareRenderer'),
   },
   // Goals & Objectives Components
   {
@@ -484,5 +537,82 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminTransactionEntryProps>(AdminTransactionEntry, 'AdminTransactionEntryRenderer'),
+  },
+  {
+    type: 'AdminCollapsibleSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withChildren<AdminCollapsibleSectionProps>(AdminCollapsibleSection, 'AdminCollapsibleSectionRenderer'),
+  },
+  // Report Components
+  {
+    type: 'AdminReportHeader',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminReportHeaderProps>(AdminReportHeader, 'AdminReportHeaderRenderer'),
+  },
+  {
+    type: 'AdminReportTable',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminReportTableProps>(AdminReportTable, 'AdminReportTableRenderer'),
+  },
+  // Member Import Component
+  {
+    type: 'MemberImportActions',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MemberImportActionsProps>(MemberImportActions, 'MemberImportActionsRenderer'),
+  },
+  // Payout Configuration (XenPlatform)
+  {
+    type: 'AdminPayoutConfigSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminPayoutConfigSectionProps>(AdminPayoutConfigSection, 'AdminPayoutConfigSectionRenderer'),
+  },
+  // Canva-Style Settings Components
+  {
+    type: 'CanvaStyleSettingsLayout',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withChildren<CanvaStyleSettingsLayoutProps>(CanvaStyleSettingsLayout, 'CanvaStyleSettingsLayoutRenderer'),
+  },
+  {
+    type: 'ChurchProfileSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ChurchProfileSectionProps>(ChurchProfileSection, 'ChurchProfileSectionRenderer'),
+  },
+  {
+    type: 'CanvaStyleSettingsPage',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<CanvaStyleSettingsPageProps>(CanvaStyleSettingsPage, 'CanvaStyleSettingsPageRenderer'),
+  },
+  {
+    type: 'TeamMembersSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TeamMembersSectionProps>(TeamMembersSection, 'TeamMembersSectionRenderer'),
+  },
+  {
+    type: 'AdminAICreditsSettings',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
+  },
+  // Notebook Components
+  {
+    type: 'NotebookCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookCardProps>(NotebookCard, 'NotebookCardRenderer'),
+  },
+  {
+    type: 'NotebookSectionTree',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookSectionTreeProps>(NotebookSectionTree, 'NotebookSectionTreeRenderer'),
   },
 ];

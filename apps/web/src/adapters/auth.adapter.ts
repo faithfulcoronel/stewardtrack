@@ -8,13 +8,25 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getCachedUser, getCachedAdminRole, isCachedSuperAdmin } from '@/lib/auth/authCache';
 import { UnauthorizedError } from '@/utils/errorHandler';
 
+interface GenerateLinkResult {
+  data: {
+    properties?: {
+      action_link?: string;
+    };
+  } | null;
+  error: AuthError | null;
+}
+
 interface IAuthAdapter {
   signIn(email: string, password: string): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
+  generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   deleteUser(userId: string): Promise<{ error: AuthError | null }>;
+  getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }>;
+  confirmUserEmail(userId: string): Promise<{ error: AuthError | null }>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
   completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
@@ -53,6 +65,26 @@ export class AuthAdapter implements IAuthAdapter {
     return supabase.auth.resetPasswordForEmail(email, { redirectTo });
   }
 
+  /**
+   * Generate a password reset link using the admin API
+   * This creates a reset link without sending an email, allowing us to use custom email
+   */
+  async generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult> {
+    const supabase = await this.getServiceClient();
+    const result = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: {
+        redirectTo,
+      },
+    });
+
+    return {
+      data: result.data ? { properties: result.data.properties } : null,
+      error: result.error,
+    };
+  }
+
   async updatePassword(password: string) {
     const supabase = await this.getServerClient();
     return supabase.auth.updateUser({ password });
@@ -76,6 +108,28 @@ export class AuthAdapter implements IAuthAdapter {
 
     const supabase = await this.getServiceClient();
     return supabase.auth.admin.deleteUser(userId);
+  }
+
+  /**
+   * Get a user by ID using admin API
+   * This requires service role key access
+   */
+  async getUserById(userId: string): Promise<{ data: { user: any } | null; error: AuthError | null }> {
+    const supabase = await this.getServiceClient();
+    return supabase.auth.admin.getUserById(userId);
+  }
+
+  /**
+   * Confirm a user's email address using admin API
+   * This is used after email verification to mark the user's email as confirmed.
+   * Uses service role key to bypass normal email confirmation flow.
+   */
+  async confirmUserEmail(userId: string): Promise<{ error: AuthError | null }> {
+    const supabase = await this.getServiceClient();
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      email_confirm: true,
+    });
+    return { error };
   }
 
   async searchPublicTenants(query: string) {
@@ -153,4 +207,4 @@ export class AuthAdapter implements IAuthAdapter {
   }
 }
 
-export type { IAuthAdapter };
+export type { IAuthAdapter, GenerateLinkResult };

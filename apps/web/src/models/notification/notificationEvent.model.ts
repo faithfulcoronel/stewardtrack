@@ -31,6 +31,7 @@ export enum NotificationEventType {
   DISCIPLESHIP_PLAN_ASSIGNED = 'discipleship_plan.assigned',
   DISCIPLESHIP_PLAN_UPDATED = 'discipleship_plan.updated',
   DISCIPLESHIP_PLAN_MILESTONE_DUE = 'discipleship_plan.milestone_due',
+  DISCIPLESHIP_MILESTONE_REACHED = 'discipleship_plan.milestone_reached',
   DISCIPLESHIP_PLAN_COMPLETED = 'discipleship_plan.completed',
 
   // Finance Events
@@ -62,6 +63,10 @@ export enum NotificationEventType {
   OBJECTIVE_ASSIGNED = 'objective.assigned',
   KEY_RESULT_UPDATE_DUE = 'key_result.update_due',
   KEY_RESULT_COMPLETED = 'key_result.completed',
+
+  // Birthday & Anniversary Events
+  MEMBER_BIRTHDAY = 'member.birthday',
+  MEMBER_ANNIVERSARY = 'member.anniversary',
 
   // System Events
   SYSTEM_MAINTENANCE = 'system.maintenance',

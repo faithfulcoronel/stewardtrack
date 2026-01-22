@@ -4,6 +4,7 @@ import { TYPES } from '@/lib/types';
 import { XenditService } from '@/services/XenditService';
 import { PaymentService } from '@/services/PaymentService';
 import { PaymentSubscriptionService } from '@/services/PaymentSubscriptionService';
+import type { AICreditPurchaseService } from '@/services/AICreditPurchaseService';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
@@ -60,11 +61,44 @@ export async function POST(request: NextRequest) {
       id: event.id,
       external_id: event.external_id,
       status: event.status,
+      payment_type: event.metadata?.payment_type,
     });
 
     // Log event to database
     const supabase = await createSupabaseServerClient();
 
+    // === AI CREDITS: Check if this is an AI credit purchase ===
+    if (event.metadata?.payment_type === 'ai_credits') {
+      console.log('[Xendit Webhook] Processing AI credit purchase:', event.external_id);
+
+      const purchaseService = container.get<AICreditPurchaseService>(
+        TYPES.AICreditPurchaseService
+      );
+
+      try {
+        const status = event.status as string;
+
+        if (status === 'PAID' || status === 'SETTLED') {
+          await purchaseService.processPaidPurchase(event.id);
+          console.log('[Xendit Webhook] AI credit purchase processed successfully');
+        } else if (status === 'EXPIRED' || status === 'FAILED' || status.toLowerCase() === 'failed') {
+          await purchaseService.markPurchaseFailed(event.id, status);
+          console.log('[Xendit Webhook] AI credit purchase marked as failed/expired');
+        } else {
+          console.log('[Xendit Webhook] AI credit purchase status:', status);
+        }
+
+        return NextResponse.json({ success: true, type: 'ai_credits' });
+      } catch (error: any) {
+        console.error('[Xendit Webhook] AI credit purchase processing error:', error);
+        return NextResponse.json(
+          { error: 'Failed to process AI credit purchase', details: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // === SUBSCRIPTION PAYMENT: Continue with existing logic ===
     // Get payment record
     const payment = await paymentService.getPaymentByXenditId(event.id);
 
