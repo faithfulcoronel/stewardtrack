@@ -1,5 +1,5 @@
 /**
- * GraphQL Resolvers for Member Queries
+ * GraphQL Resolvers for Member and Family Queries
  *
  * Implements efficient database queries with caching
  * Note: Member names are encrypted, so we cache decrypted results
@@ -11,6 +11,7 @@ import type { IMemberRepository } from '@/repositories/member.repository';
 import { memberCache } from './memberCache';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { Member } from '@/models/member.model';
+import { familyResolvers } from './familyResolvers';
 
 export interface SearchMembersArgs {
   searchTerm: string;
@@ -67,6 +68,7 @@ async function getAllMembers(): Promise<Member[]> {
 
 export const resolvers = {
   Query: {
+    // Member queries
     /**
      * Search members with caching optimization
      * Note: Member names are encrypted, so we cache decrypted results
@@ -216,5 +218,11 @@ export const resolvers = {
         return anniversaryDate.getMonth() + 1 === currentMonth;
       });
     },
+
+    // Family queries (from familyResolvers)
+    ...familyResolvers.Query,
   },
+
+  // Family mutations (from familyResolvers)
+  Mutation: familyResolvers.Mutation,
 };

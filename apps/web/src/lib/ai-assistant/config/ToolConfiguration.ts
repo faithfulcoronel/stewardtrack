@@ -29,6 +29,13 @@ import {
   GetMemberAnniversariesTool,
 } from '../infrastructure/tools/plugins/members';
 
+// Import family tools
+import {
+  SearchFamiliesTool,
+  GetFamilyDetailsTool,
+  ManageFamilyMembersTool,
+} from '../infrastructure/tools/plugins/families';
+
 /**
  * Configure and register all tools for the AI Assistant
  *
@@ -74,6 +81,16 @@ export async function configureTools(): Promise<ToolRegistry> {
   registry.register(new SearchMembersTool());
   registry.register(new GetMemberBirthdaysTool());
   registry.register(new GetMemberAnniversariesTool());
+
+  // ============================================================================
+  // FAMILY TOOLS
+  // ============================================================================
+  console.log('👨‍👩‍👧‍👦 Registering family tools...');
+
+  // Family information and management tools (no dependencies required)
+  registry.register(new SearchFamiliesTool());
+  registry.register(new GetFamilyDetailsTool());
+  registry.register(new ManageFamilyMembersTool());
 
   // ============================================================================
   // TODO: Add more tool categories here
