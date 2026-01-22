@@ -3,6 +3,10 @@ import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
 import type { SettingService } from "@/services/SettingService";
+import type { AICreditService } from "@/services/AICreditService";
+import type { AICreditPackageService } from "@/services/AICreditPackageService";
+import type { AICreditPurchaseService } from "@/services/AICreditPurchaseService";
+import type { AICreditTransactionRepository } from "@/repositories/aiCreditTransaction.repository";
 import { TIMEZONE_OPTIONS, clearTimezoneCache, formatDate } from "./datetime-utils";
 
 const SETTINGS_OVERVIEW_HANDLER_ID = "admin-settings.settings.overview";
@@ -107,7 +111,14 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
         description: 'Future notification delivery',
         badge: 'Enterprise',
       },
+      {
+        id: 'ai-credits',
+        label: 'AI Credits',
+        icon: 'zap',
+        description: 'Manage AI Assistant credits and usage',
+      },
     ],
+    aiCredits: await resolveAICreditsTab(tenant.id, currency, timezone),
     hero: {
       eyebrow: "StewardTrack Admin",
       headline: `Configure ${ministryName} Settings`,
@@ -345,7 +356,7 @@ const saveSettings: ServiceDataSourceHandler = async (request) => {
   // Save timezone to settings table and clear cache
   if (params.timezone) {
     await settingService.setTenantTimezone(params.timezone as string);
-    clearTimezoneCache(tenant.id);
+    await clearTimezoneCache();
   }
 
   return {
@@ -353,6 +364,134 @@ const saveSettings: ServiceDataSourceHandler = async (request) => {
     message: "Settings saved successfully",
     tenantId: tenant.id,
   };
+};
+
+/**
+ * Resolve AI Credits tab data
+ */
+const resolveAICreditsTab = async (tenantId: string, currency: string, timezone: string) => {
+  try {
+    const creditService = container.get<AICreditService>(TYPES.AICreditService);
+    const packageService = container.get<AICreditPackageService>(TYPES.AICreditPackageService);
+    const purchaseService = container.get<AICreditPurchaseService>(TYPES.AICreditPurchaseService);
+    const transactionRepo = container.get<AICreditTransactionRepository>(TYPES.IAICreditTransactionRepository);
+
+    // Fetch all data in parallel
+    const [balance, packages, purchaseHistory, usageStats] = await Promise.all([
+      creditService.getBalance(tenantId),
+      packageService.getActivePackages(currency),
+      purchaseService.getPurchaseHistory(tenantId, { limit: 10 }),
+      transactionRepo.getUsageStatistics(tenantId, 30)
+    ]);
+
+    // Calculate usage percentage
+    const usagePercentage = balance.total_credits > 0
+      ? Math.round((balance.remaining_credits / balance.total_credits) * 100)
+      : 0;
+
+    return {
+      balance: {
+        total: balance.total_credits,
+        used: balance.used_credits,
+        remaining: balance.remaining_credits,
+        percentage: usagePercentage,
+        lowThreshold: balance.low_credit_threshold,
+        isLow: balance.remaining_credits < balance.low_credit_threshold,
+      },
+      packages: packages.map(pkg => ({
+        id: pkg.id,
+        name: pkg.name,
+        description: pkg.description,
+        credits: pkg.credits,
+        price: pkg.price,
+        currency: pkg.currency,
+        badge: pkg.badge,
+        savings: pkg.savings,
+        featured: pkg.featured,
+        pricePerCredit: (pkg.price / pkg.credits).toFixed(4),
+      })),
+      purchaseHistory: purchaseHistory.map(p => {
+        console.log('[AI Credits Tab] Processing purchase for UI:', {
+          id: p.id,
+          created_at: p.created_at,
+          package_name: p.package_name,
+          credits_purchased: p.credits_purchased,
+          amount_paid: p.amount_paid,
+          currency: p.currency,
+          payment_status: p.payment_status,
+        });
+
+        const formattedDate = formatDate(new Date(p.created_at), timezone, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const result = {
+          id: p.id,
+          date: formattedDate,
+          packageName: p.package_name,
+          credits: p.credits_purchased,
+          amount: p.amount_paid,
+          currency: p.currency,
+          status: p.payment_status,
+          statusLabel: p.payment_status.charAt(0).toUpperCase() + p.payment_status.slice(1),
+        };
+
+        console.log('[AI Credits Tab] Formatted purchase for UI:', result);
+
+        return result;
+      }),
+      usageStats: {
+        totalConversations: usageStats.total_conversations,
+        avgCreditsPerConversation: Math.round(usageStats.avg_credits_per_conversation * 10) / 10,
+        totalInputTokens: usageStats.total_input_tokens,
+        totalOutputTokens: usageStats.total_output_tokens,
+        dailyUsage: usageStats.daily_usage?.map(day => ({
+          date: formatDate(new Date(day.date), timezone, { month: 'short', day: 'numeric' }),
+          credits: day.credits_used,
+          conversations: day.conversations,
+        })) || [],
+      },
+      autoRecharge: {
+        enabled: balance.auto_recharge_enabled,
+        packageId: balance.auto_recharge_package_id,
+        threshold: balance.low_credit_threshold,
+      },
+      currency,
+    };
+  } catch (error) {
+    console.error('[AI Credits Tab] Error fetching data:', error);
+    // Return empty state on error
+    return {
+      balance: {
+        total: 0,
+        used: 0,
+        remaining: 0,
+        percentage: 0,
+        lowThreshold: 10,
+        isLow: true,
+      },
+      packages: [],
+      purchaseHistory: [],
+      usageStats: {
+        totalConversations: 0,
+        avgCreditsPerConversation: 0,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        dailyUsage: [],
+      },
+      autoRecharge: {
+        enabled: false,
+        packageId: null,
+        threshold: 10,
+      },
+      currency: 'PHP',
+      error: error instanceof Error ? error.message : 'Failed to load AI Credits data',
+    };
+  }
 };
 
 export const adminSettingsHandlers: Record<string, ServiceDataSourceHandler> = {

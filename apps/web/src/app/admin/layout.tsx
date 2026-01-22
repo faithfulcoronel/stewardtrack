@@ -25,6 +25,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
       { title: "My Profile", href: "/admin/my-profile", icon: "customers" },
+      { title: "AI Assistant", href: "/admin/ai-assistant", icon: "aiAssistant" },
     ],
   },
   {
@@ -43,6 +44,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { title: "Calendar", href: "/admin/community/planning/calendar", icon: "calendar" },
       { title: "Scheduler", href: "/admin/community/planning/scheduler", icon: "scheduler" },
       { title: "Goals & Objectives", href: "/admin/community/planning/goals", icon: "goals" },
+      { title: "Notebooks", href: "/admin/community/planning/notebooks", icon: "notebooks" },
     ],
   },
   {
@@ -378,6 +380,10 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
     permission: 'goals:view',
   },
+  '/admin/community/planning/notebooks': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer'],
+    permission: 'notebooks:view',
+  },
 
   // Accounts
   '/admin/community/accounts': {
@@ -389,6 +395,12 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   '/admin/finance': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
     permission: 'finance:view',
+  },
+
+  // Administration - AI Assistant
+  '/admin/ai-assistant': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    // Feature flag checked at page level via metadata RequiresFeature
   },
 
   // Administration - Security

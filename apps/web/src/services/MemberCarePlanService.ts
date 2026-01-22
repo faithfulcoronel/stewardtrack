@@ -87,6 +87,13 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
   }
 
   /**
+   * Get all care plans with member and caregiver information for GraphQL
+   */
+  async getCarePlansWithMembers(): Promise<MemberCarePlan[]> {
+    return this.repo.getAllWithMembers();
+  }
+
+  /**
    * Get a specific care plan by ID (tenant-scoped)
    */
   async getCarePlanById(carePlanId: string): Promise<MemberCarePlan | null> {

@@ -39,6 +39,7 @@ import {
   CircleDollarSign,
   ChevronDown,
   Cog,
+  Bot,
 } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -64,6 +65,7 @@ export const ADMIN_NAV_ICONS = {
   discipleship: GraduationCap,
   goals: Target,
   scheduler: Clock,
+  notebooks: BookOpen,
   accounts: UserCircle,
   // Finance-specific icons
   treasury: Landmark,
@@ -80,6 +82,8 @@ export const ADMIN_NAV_ICONS = {
   chartOfAccounts: CircleDollarSign,
   // Collapsible group icons
   setup: Cog,
+  // AI Assistant
+  aiAssistant: Bot,
 } satisfies Record<string, ComponentType<{ className?: string }>>;
 
 type IconKey = keyof typeof ADMIN_NAV_ICONS;

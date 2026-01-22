@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { decodeTeamInviteToken } from '@/lib/tokens/shortUrlTokens';
 
 // ============================================================================
 // Types
@@ -53,6 +54,14 @@ interface InvitationDetails {
   };
 }
 
+interface TeamInviteDetails {
+  tenantId: string;
+  tenantName: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  expiresAt: number;
+}
+
 interface AuthenticatedUser {
   id: string;
   email: string;
@@ -67,9 +76,11 @@ interface AuthenticatedUser {
 function InvitationAcceptanceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get('token'); // Email-based invitation token
+  const inviteToken = searchParams.get('invite'); // Team invite link token
 
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
+  const [teamInvite, setTeamInvite] = useState<TeamInviteDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authenticatedUser, setAuthenticatedUser] = useState<AuthenticatedUser | null>(null);
@@ -81,6 +92,7 @@ function InvitationAcceptanceContent() {
   const [signupData, setSignupData] = useState({
     firstName: '',
     lastName: '',
+    email: '', // For team invites, user provides their email
     password: '',
     confirmPassword: '',
   });
@@ -89,6 +101,72 @@ function InvitationAcceptanceContent() {
 
   useEffect(() => {
     async function loadInvitationAndAuth() {
+      // Handle team invite link (invite param)
+      if (inviteToken) {
+        console.log('[Join] Processing team invite token:', inviteToken);
+        const decoded = decodeTeamInviteToken(inviteToken);
+        console.log('[Join] Decoded token:', decoded);
+
+        if (!decoded) {
+          console.error('[Join] Failed to decode token');
+          setError('Invalid invite link');
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if expired
+        if (Date.now() >= decoded.expiresAt) {
+          console.error('[Join] Token expired. Expires at:', new Date(decoded.expiresAt));
+          setError('This invite link has expired. Please request a new one from your church administrator.');
+          setIsLoading(false);
+          return;
+        }
+
+        const supabase = createSupabaseBrowserClient();
+
+        try {
+          // Check if user is authenticated
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (user) {
+            setAuthenticatedUser({
+              id: user.id,
+              email: user.email || '',
+              firstName: user.user_metadata?.first_name,
+              lastName: user.user_metadata?.last_name,
+            });
+          }
+
+          // Fetch tenant details
+          console.log('[Join] Fetching tenant:', decoded.tenantId);
+          const response = await fetch(`/api/tenant/public/${decoded.tenantId}`);
+          const data = await response.json();
+          console.log('[Join] Tenant API response:', response.status, data);
+
+          if (!response.ok) {
+            console.error('[Join] Tenant not found:', data);
+            setError('Unable to find the organization');
+            setIsLoading(false);
+            return;
+          }
+
+          setTeamInvite({
+            tenantId: decoded.tenantId,
+            tenantName: data.name || 'Organization',
+            logoUrl: data.logo_url,
+            coverUrl: data.church_image_url,
+            expiresAt: decoded.expiresAt,
+          });
+        } catch (err) {
+          console.error('Error loading team invite:', err);
+          setError('Failed to load invitation details');
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Handle email-based invitation (token param)
       if (!token) {
         setError('No invitation token provided');
         setIsLoading(false);
@@ -130,15 +208,44 @@ function InvitationAcceptanceContent() {
     }
 
     loadInvitationAndAuth();
-  }, [token]);
+  }, [token, inviteToken]);
 
   // Accept invitation (for authenticated users)
   const handleAcceptInvitation = async () => {
-    if (!token || !authenticatedUser) return;
+    if (!authenticatedUser) return;
 
     setIsAccepting(true);
 
     try {
+      // Handle team invite link
+      if (teamInvite) {
+        const response = await fetch('/api/team-invite/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenantId: teamInvite.tenantId,
+            inviteToken: inviteToken,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to join church');
+        }
+
+        setIsSuccess(true);
+        toast.success('Welcome to the church!');
+
+        setTimeout(() => {
+          router.push('/admin');
+        }, 2000);
+        return;
+      }
+
+      // Handle email-based invitation
+      if (!token) return;
+
       const response = await fetch('/api/member-invitations/accept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -179,6 +286,12 @@ function InvitationAcceptanceContent() {
     if (!signupData.lastName.trim()) {
       errors.lastName = 'Last name is required';
     }
+    // For team invites, email is required
+    if (teamInvite && !signupData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (teamInvite && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
     if (!signupData.password) {
       errors.password = 'Password is required';
     } else if (signupData.password.length < 8) {
@@ -201,9 +314,12 @@ function InvitationAcceptanceContent() {
     try {
       const supabase = createSupabaseBrowserClient();
 
+      // Determine email: from invitation (email-based) or form (team invite)
+      const email = teamInvite ? signupData.email : (invitation?.email || '');
+
       // Create user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: invitation?.email || '',
+        email,
         password: signupData.password,
         options: {
           data: {
@@ -229,19 +345,38 @@ function InvitationAcceptanceContent() {
         lastName: signupData.lastName,
       });
 
-      toast.success('Account created! Accepting invitation...');
+      toast.success('Account created! Joining church...');
 
-      // Now accept the invitation
-      const acceptResponse = await fetch('/api/member-invitations/accept', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
+      // Accept the invitation based on type
+      if (teamInvite) {
+        // Team invite link
+        const acceptResponse = await fetch('/api/team-invite/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenantId: teamInvite.tenantId,
+            inviteToken: inviteToken,
+          }),
+        });
 
-      const acceptData = await acceptResponse.json();
+        const acceptData = await acceptResponse.json();
 
-      if (!acceptResponse.ok) {
-        throw new Error(acceptData.error || 'Failed to accept invitation');
+        if (!acceptResponse.ok) {
+          throw new Error(acceptData.error || 'Failed to join church');
+        }
+      } else {
+        // Email-based invitation
+        const acceptResponse = await fetch('/api/member-invitations/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+
+        const acceptData = await acceptResponse.json();
+
+        if (!acceptResponse.ok) {
+          throw new Error(acceptData.error || 'Failed to accept invitation');
+        }
       }
 
       setIsSuccess(true);
@@ -259,15 +394,19 @@ function InvitationAcceptanceContent() {
     }
   };
 
-  const tenantName = invitation?.tenant?.name || 'the organization';
+  // Derive tenant info from either invitation or team invite
+  const tenantName = teamInvite?.tenantName || invitation?.tenant?.name || 'the organization';
 
   // Validate logo URL - must be a non-empty string starting with https://
-  const rawLogoUrl = invitation?.tenant?.logo_url;
+  const rawLogoUrl = teamInvite?.logoUrl || invitation?.tenant?.logo_url;
   const tenantLogo = rawLogoUrl && rawLogoUrl.startsWith('https://') ? rawLogoUrl : null;
 
   // Validate cover URL similarly
-  const rawCoverUrl = invitation?.tenant?.cover_url;
+  const rawCoverUrl = teamInvite?.coverUrl || invitation?.tenant?.cover_url;
   const tenantCover = rawCoverUrl && rawCoverUrl.startsWith('https://') ? rawCoverUrl : null;
+
+  // Check if this is a team invite (requires email input)
+  const isTeamInvite = !!teamInvite;
 
   // Loading state
   if (isLoading) {
@@ -467,14 +606,26 @@ function InvitationAcceptanceContent() {
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground">Join as team member</p>
-                  <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                    {invitation?.email}
-                  </p>
+                  {isTeamInvite ? (
+                    <>
+                      <p className="text-xs sm:text-sm text-muted-foreground">You&apos;ve been invited to join</p>
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                        {tenantName}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Join as a member</p>
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                        {invitation?.email}
+                      </p>
+                    </>
+                  )}
                 </div>
               </motion.div>
 
-              {invitation?.assigned_role && (
+              {/* Role info - for team invites show "Member", for email invites show assigned role */}
+              {(isTeamInvite || invitation?.assigned_role) && (
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -485,17 +636,21 @@ function InvitationAcceptanceContent() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-gray-900 text-sm">
-                        {invitation.assigned_role.name}
+                        {isTeamInvite ? 'Member' : invitation?.assigned_role?.name}
                       </span>
                       <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                        Auto-assigned
+                        {isTeamInvite ? 'Default role' : 'Auto-assigned'}
                       </Badge>
                     </div>
-                    {invitation.assigned_role.description && (
+                    {isTeamInvite ? (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        You&apos;ll join as a member of this church
+                      </p>
+                    ) : invitation?.assigned_role?.description ? (
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                         {invitation.assigned_role.description}
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 </motion.div>
               )}
@@ -518,7 +673,9 @@ function InvitationAcceptanceContent() {
                     </p>
                   </div>
 
-                  {authenticatedUser.email.toLowerCase() === invitation?.email.toLowerCase() ? (
+                  {/* Team invite: anyone can join */}
+                  {/* Email invite: must match the invitation email */}
+                  {isTeamInvite || authenticatedUser.email.toLowerCase() === invitation?.email?.toLowerCase() ? (
                     <motion.div whileTap={{ scale: 0.98 }}>
                       <Button
                         onClick={handleAcceptInvitation}
@@ -529,11 +686,11 @@ function InvitationAcceptanceContent() {
                         {isAccepting ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                            Accepting...
+                            {isTeamInvite ? 'Joining...' : 'Accepting...'}
                           </>
                         ) : (
                           <>
-                            Accept Invitation
+                            {isTeamInvite ? 'Join Church' : 'Accept Invitation'}
                             <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                           </>
                         )}
@@ -585,22 +742,43 @@ function InvitationAcceptanceContent() {
                     Create your account to join {tenantName}
                   </p>
 
-                  {/* Email (read-only) */}
+                  {/* Email field - editable for team invites, read-only for email invites */}
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     className="space-y-1.5"
                   >
-                    <label className="text-xs sm:text-sm font-medium text-gray-700">Email</label>
+                    <label className="text-xs sm:text-sm font-medium text-gray-700">
+                      Email {isTeamInvite && <span className="text-red-500">*</span>}
+                    </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        value={invitation?.email || ''}
-                        disabled
-                        className="bg-gray-50 pl-10 h-10 sm:h-11 text-sm"
-                      />
+                      {isTeamInvite ? (
+                        <Input
+                          type="email"
+                          value={signupData.email}
+                          onChange={(e) => {
+                            setSignupData({ ...signupData, email: e.target.value });
+                            if (signupErrors.email) {
+                              setSignupErrors({ ...signupErrors, email: '' });
+                            }
+                          }}
+                          placeholder="your@email.com"
+                          disabled={isSigningUp}
+                          className={`pl-10 h-10 sm:h-11 text-sm ${signupErrors.email ? 'border-red-500' : ''}`}
+                        />
+                      ) : (
+                        <Input
+                          value={invitation?.email || ''}
+                          disabled
+                          className="bg-gray-50 pl-10 h-10 sm:h-11 text-sm"
+                        />
+                      )}
                     </div>
+                    {signupErrors.email && (
+                      <p className="text-xs text-red-500">{signupErrors.email}</p>
+                    )}
                   </motion.div>
 
                   {/* Name fields */}

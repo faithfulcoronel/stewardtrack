@@ -57,6 +57,11 @@ import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/
 import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import { PlanningService } from '@/services/PlanningService';
 
+// Planning Notebooks Feature (OneNote-style)
+import { NotebookAdapter, type INotebookAdapter } from '@/adapters/notebook.adapter';
+import { NotebookRepository, type INotebookRepository } from '@/repositories/notebook.repository';
+import { NotebookService } from '@/services/NotebookService';
+
 // Admin Dashboard Feature
 import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/adminDashboard.adapter';
 import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
@@ -903,6 +908,11 @@ container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEv
 container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
 container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
 
+// ==================== NOTEBOOKS ====================
+container.bind<INotebookAdapter>(TYPES.INotebookAdapter).to(NotebookAdapter).inRequestScope();
+container.bind<INotebookRepository>(TYPES.INotebookRepository).to(NotebookRepository).inRequestScope();
+container.bind<NotebookService>(TYPES.NotebookService).to(NotebookService).inRequestScope();
+
 // ==================== ANNOUNCEMENTS ====================
 container.bind<IAnnouncementAdapter>(TYPES.IAnnouncementAdapter).to(AnnouncementAdapter).inRequestScope();
 container.bind<IAnnouncementRepository>(TYPES.IAnnouncementRepository).to(AnnouncementRepository).inRequestScope();
@@ -1074,6 +1084,19 @@ import { DisbursementRepository, type IDisbursementRepository } from '@/reposito
 // XenPlatform Integration (Multi-tenant sub-accounts)
 import { XenPlatformService } from '@/services/XenPlatformService';
 
+// AI Credits System
+import { AICreditService } from '@/services/AICreditService';
+import { AICreditPackageService } from '@/services/AICreditPackageService';
+import { AICreditPurchaseService } from '@/services/AICreditPurchaseService';
+import { AICreditAdapter, type IAICreditAdapter } from '@/adapters/aiCredit.adapter';
+import { AICreditPackageAdapter, type IAICreditPackageAdapter } from '@/adapters/aiCreditPackage.adapter';
+import { AICreditPurchaseAdapter, type IAICreditPurchaseAdapter } from '@/adapters/aiCreditPurchase.adapter';
+import { AICreditTransactionAdapter, type IAICreditTransactionAdapter } from '@/adapters/aiCreditTransaction.adapter';
+import { AICreditRepository, type IAICreditRepository } from '@/repositories/aiCredit.repository';
+import { AICreditPackageRepository, type IAICreditPackageRepository } from '@/repositories/aiCreditPackage.repository';
+import { AICreditPurchaseRepository, type IAICreditPurchaseRepository } from '@/repositories/aiCreditPurchase.repository';
+import { AICreditTransactionRepository, type IAICreditTransactionRepository } from '@/repositories/aiCreditTransaction.repository';
+
 // Donation Adapters
 container.bind<IDonationAdapter>(TYPES.IDonationAdapter).to(DonationAdapter).inRequestScope();
 container.bind<ICampaignAdapter>(TYPES.ICampaignAdapter).to(CampaignAdapter).inRequestScope();
@@ -1105,5 +1128,22 @@ container.bind<DisbursementService>(TYPES.DisbursementService).to(DisbursementSe
 
 // XenPlatform Integration (Multi-tenant sub-accounts)
 container.bind<XenPlatformService>(TYPES.XenPlatformService).to(XenPlatformService).inRequestScope();
+
+// AI Credits System - Adapters
+container.bind<IAICreditAdapter>(TYPES.IAICreditAdapter).to(AICreditAdapter).inRequestScope();
+container.bind<IAICreditPackageAdapter>(TYPES.IAICreditPackageAdapter).to(AICreditPackageAdapter).inRequestScope();
+container.bind<IAICreditPurchaseAdapter>(TYPES.IAICreditPurchaseAdapter).to(AICreditPurchaseAdapter).inRequestScope();
+container.bind<IAICreditTransactionAdapter>(TYPES.IAICreditTransactionAdapter).to(AICreditTransactionAdapter).inRequestScope();
+
+// AI Credits System - Repositories
+container.bind<IAICreditRepository>(TYPES.IAICreditRepository).to(AICreditRepository).inRequestScope();
+container.bind<IAICreditPackageRepository>(TYPES.IAICreditPackageRepository).to(AICreditPackageRepository).inRequestScope();
+container.bind<IAICreditPurchaseRepository>(TYPES.IAICreditPurchaseRepository).to(AICreditPurchaseRepository).inRequestScope();
+container.bind<IAICreditTransactionRepository>(TYPES.IAICreditTransactionRepository).to(AICreditTransactionRepository).inRequestScope();
+
+// AI Credits System - Services
+container.bind<AICreditService>(TYPES.AICreditService).to(AICreditService).inRequestScope();
+container.bind<AICreditPackageService>(TYPES.AICreditPackageService).to(AICreditPackageService).inRequestScope();
+container.bind<AICreditPurchaseService>(TYPES.AICreditPurchaseService).to(AICreditPurchaseService).inRequestScope();
 
 export { container };

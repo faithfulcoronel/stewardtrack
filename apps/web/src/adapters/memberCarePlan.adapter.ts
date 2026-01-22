@@ -10,6 +10,7 @@ import { TenantContextError } from '@/utils/errorHandler';
 
 export interface IMemberCarePlanAdapter extends IBaseAdapter<MemberCarePlan> {
   getAll(): Promise<MemberCarePlan[]>;
+  getAllWithMembers(): Promise<MemberCarePlan[]>;
   getById(carePlanId: string): Promise<MemberCarePlan | null>;
   getByMember(memberId: string): Promise<MemberCarePlan[]>;
 }
@@ -103,6 +104,53 @@ export class MemberCarePlanAdapter
 
     if (error) {
       throw new Error(`Failed to find care plans: ${error.message}`);
+    }
+
+    if (!data) {
+      return [];
+    }
+
+    return data as unknown as MemberCarePlan[];
+  }
+
+  /**
+   * Get all care plans with member and assigned caregiver information
+   * Used by GraphQL resolvers to return complete care plan data
+   */
+  async getAllWithMembers(): Promise<MemberCarePlan[]> {
+    const tenantId = await this.getTenantId();
+    const supabase = await this.getSupabaseClient();
+
+    const selectWithMembers = `
+      ${this.defaultSelect},
+      member:members!member_id(
+        id,
+        first_name,
+        last_name,
+        middle_name,
+        preferred_name,
+        email,
+        contact_number,
+        profile_picture_url
+      ),
+      assigned_to_member:members!assigned_to_member_id(
+        id,
+        first_name,
+        last_name,
+        email,
+        contact_number
+      )
+    `;
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(selectWithMembers)
+      .eq('tenant_id', tenantId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to find care plans with members: ${error.message}`);
     }
 
     if (!data) {

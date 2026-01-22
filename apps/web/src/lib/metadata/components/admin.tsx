@@ -101,6 +101,9 @@ import {
   PlanningCalendar,
   type PlanningCalendarProps,
 } from '@/components/dynamic/admin/PlanningCalendar';
+// Notebook Components
+import NotebookCard, { type NotebookCardProps } from '@/components/dynamic/admin/notebooks/NotebookCard';
+import NotebookSectionTree, { type NotebookSectionTreeProps } from '@/components/dynamic/admin/notebooks/NotebookSectionTree';
 import {
   PlanningDashboard,
   type PlanningDashboardProps,
@@ -182,6 +185,26 @@ import {
   AdminPayoutConfigSection,
   type AdminPayoutConfigSectionProps,
 } from '@/components/dynamic/admin/AdminPayoutConfigSection';
+import {
+  CanvaStyleSettingsLayout,
+  type CanvaStyleSettingsLayoutProps,
+} from '@/components/dynamic/admin/CanvaStyleSettingsLayout';
+import {
+  ChurchProfileSection,
+  type ChurchProfileSectionProps,
+} from '@/components/dynamic/admin/ChurchProfileSection';
+import {
+  CanvaStyleSettingsPage,
+  type CanvaStyleSettingsPageProps,
+} from '@/components/dynamic/admin/CanvaStyleSettingsPage';
+import {
+  TeamMembersSection,
+  type TeamMembersSectionProps,
+} from '@/components/dynamic/admin/TeamMembersSection';
+import {
+  AdminAICreditsSettings,
+  type AdminAICreditsSettingsProps,
+} from '@/components/dynamic/admin/AdminAICreditsSettings';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -547,5 +570,49 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminPayoutConfigSectionProps>(AdminPayoutConfigSection, 'AdminPayoutConfigSectionRenderer'),
+  },
+  // Canva-Style Settings Components
+  {
+    type: 'CanvaStyleSettingsLayout',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withChildren<CanvaStyleSettingsLayoutProps>(CanvaStyleSettingsLayout, 'CanvaStyleSettingsLayoutRenderer'),
+  },
+  {
+    type: 'ChurchProfileSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ChurchProfileSectionProps>(ChurchProfileSection, 'ChurchProfileSectionRenderer'),
+  },
+  {
+    type: 'CanvaStyleSettingsPage',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<CanvaStyleSettingsPageProps>(CanvaStyleSettingsPage, 'CanvaStyleSettingsPageRenderer'),
+  },
+  {
+    type: 'TeamMembersSection',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TeamMembersSectionProps>(TeamMembersSection, 'TeamMembersSectionRenderer'),
+  },
+  {
+    type: 'AdminAICreditsSettings',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
+  },
+  // Notebook Components
+  {
+    type: 'NotebookCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookCardProps>(NotebookCard, 'NotebookCardRenderer'),
+  },
+  {
+    type: 'NotebookSectionTree',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookSectionTreeProps>(NotebookSectionTree, 'NotebookSectionTreeRenderer'),
   },
 ];
