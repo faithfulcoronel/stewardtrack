@@ -410,6 +410,24 @@ export const TYPES = {
 
   // XenPlatform Integration (Multi-tenant sub-accounts)
   XenPlatformService: Symbol.for('XenPlatformService'),
+
+  // AI Credits System
+  AICreditService: Symbol.for('AICreditService'),
+  AICreditPackageService: Symbol.for('AICreditPackageService'),
+  AICreditPurchaseService: Symbol.for('AICreditPurchaseService'),
+  AICreditTransactionService: Symbol.for('AICreditTransactionService'),
+
+  // AI Credits Repositories
+  IAICreditRepository: Symbol.for('IAICreditRepository'),
+  IAICreditPackageRepository: Symbol.for('IAICreditPackageRepository'),
+  IAICreditPurchaseRepository: Symbol.for('IAICreditPurchaseRepository'),
+  IAICreditTransactionRepository: Symbol.for('IAICreditTransactionRepository'),
+
+  // AI Credits Adapters
+  IAICreditAdapter: Symbol.for('IAICreditAdapter'),
+  IAICreditPackageAdapter: Symbol.for('IAICreditPackageAdapter'),
+  IAICreditPurchaseAdapter: Symbol.for('IAICreditPurchaseAdapter'),
+  IAICreditTransactionAdapter: Symbol.for('IAICreditTransactionAdapter'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

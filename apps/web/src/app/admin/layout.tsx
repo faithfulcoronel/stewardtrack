@@ -25,6 +25,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { title: "Overview", href: "/admin", icon: "dashboard" },
       { title: "My Profile", href: "/admin/my-profile", icon: "customers" },
+      { title: "AI Assistant", href: "/admin/ai-assistant", icon: "aiAssistant" },
     ],
   },
   {
@@ -85,7 +86,6 @@ const NAV_SECTIONS: AdminNavSection[] = [
   {
     label: "Administration",
     items: [
-      { title: "AI Assistant", href: "/admin/ai-assistant", icon: "aiAssistant" },
       { title: "Security", href: "/admin/security", icon: "security" },
       { title: "Access Control", href: "/admin/security/rbac", icon: "security" },
       { title: "Settings", href: "/admin/settings", icon: "settings" },

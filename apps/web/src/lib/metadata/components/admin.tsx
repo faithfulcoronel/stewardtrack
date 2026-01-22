@@ -198,6 +198,10 @@ import {
   TeamMembersSection,
   type TeamMembersSectionProps,
 } from '@/components/dynamic/admin/TeamMembersSection';
+import {
+  AdminAICreditsSettings,
+  type AdminAICreditsSettingsProps,
+} from '@/components/dynamic/admin/AdminAICreditsSettings';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -588,5 +592,11 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<TeamMembersSectionProps>(TeamMembersSection, 'TeamMembersSectionRenderer'),
+  },
+  {
+    type: 'AdminAICreditsSettings',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
   },
 ];

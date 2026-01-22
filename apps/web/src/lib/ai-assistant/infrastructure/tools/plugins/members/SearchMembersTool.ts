@@ -1,18 +1,17 @@
 /**
  * SearchMembersTool
- * Searches for members by various criteria
+ * Searches for members by various criteria using GraphQL
  *
  * Features:
  * - Search by name, email, phone, or other criteria
  * - Returns list of matching members
  * - Supports filtering and limits
+ * - Uses GraphQL with caching for better performance
  */
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import { container } from '@/lib/container';
-import { TYPES } from '@/lib/types';
-import type { IMemberRepository } from '@/repositories/member.repository';
+import { graphqlQuery, MemberQueries } from '@/lib/graphql/client';
 
 export interface SearchMembersInput {
   search_term?: string;
@@ -24,7 +23,8 @@ export interface SearchMembersInput {
 export class SearchMembersTool extends BaseTool {
   readonly name = 'search_members';
   readonly description =
-    'Searches for church members by name, email, phone, gender, or marital status. ' +
+    'Searches for church members by partial name (first, middle, last, or preferred), email, phone, gender, or marital status. ' +
+    'Supports partial matching - e.g., searching "Coronel" will find "Faithful Eli Coronel". ' +
     'Returns a list of matching members. Use this when the user wants to find multiple members ' +
     'or search by criteria like "all married members" or "members named John".';
 
@@ -48,7 +48,7 @@ export class SearchMembersTool extends BaseTool {
       properties: {
         search_term: {
           type: 'string',
-          description: 'Search term to match against name, email, or phone number',
+          description: 'Search term to match against first name, middle name, last name, preferred name, email, or phone number. Supports partial matching (e.g., "Faithful", "Eli", or "Coronel" will all find "Faithful Eli Coronel")',
         },
         gender: {
           type: 'string',
@@ -74,44 +74,19 @@ export class SearchMembersTool extends BaseTool {
     const startTime = Date.now();
 
     try {
-      // Get member repository
-      const memberRepo = container.get<IMemberRepository>(TYPES.IMemberRepository);
+      console.log(`[SearchMembersTool] Using GraphQL query with searchTerm="${input.search_term}", gender=${input.gender}, maritalStatus=${input.marital_status}, limit=${input.limit || 50}`);
 
-      // Get all members
-      const result = await memberRepo.findAll();
+      // Use GraphQL searchMembers query (with caching)
+      const result = await graphqlQuery<{ searchMembers: any[] }>(MemberQueries.SEARCH_MEMBERS, {
+        searchTerm: input.search_term || '',
+        gender: input.gender,
+        maritalStatus: input.marital_status,
+        limit: input.limit || 50,
+      });
 
-      if (!result.success || !result.data) {
-        return this.error('Failed to retrieve members');
-      }
+      const members = result.searchMembers;
 
-      let members = result.data;
-
-      // Apply search term filter
-      if (input.search_term) {
-        const searchLower = input.search_term.toLowerCase();
-        members = members.filter(m => {
-          const fullName = `${m.first_name} ${m.last_name}`.toLowerCase();
-          const email = m.email?.toLowerCase() || '';
-          const phone = m.contact_number?.toLowerCase() || '';
-          return fullName.includes(searchLower) ||
-                 email.includes(searchLower) ||
-                 phone.includes(searchLower);
-        });
-      }
-
-      // Apply gender filter
-      if (input.gender) {
-        members = members.filter(m => m.gender === input.gender);
-      }
-
-      // Apply marital status filter
-      if (input.marital_status) {
-        members = members.filter(m => m.marital_status === input.marital_status);
-      }
-
-      // Apply limit
-      const limit = input.limit && input.limit > 0 ? input.limit : 50;
-      members = members.slice(0, limit);
+      console.log(`[SearchMembersTool] Found ${members.length} members via GraphQL (filtering done by GraphQL resolver)`);
 
       // Format member data for response
       const formattedMembers = members.map(m => ({

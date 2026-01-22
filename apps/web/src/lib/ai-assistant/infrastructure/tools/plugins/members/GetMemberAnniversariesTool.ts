@@ -1,18 +1,17 @@
 /**
  * GetMemberAnniversariesTool
- * Retrieves upcoming member anniversaries (wedding anniversaries)
+ * Retrieves upcoming member anniversaries (wedding anniversaries) using GraphQL
  *
  * Features:
  * - Get anniversaries for current month or specific month
  * - Returns sorted list by date
  * - Shows days until anniversary and years married
+ * - Uses GraphQL with caching for better performance
  */
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import { container } from '@/lib/container';
-import { TYPES } from '@/lib/types';
-import type { IMemberRepository } from '@/repositories/member.repository';
+import { graphqlQuery, MemberQueries } from '@/lib/graphql/client';
 
 export interface GetMemberAnniversariesInput {
   month?: number; // 1-12, defaults to current month
@@ -59,30 +58,24 @@ export class GetMemberAnniversariesTool extends BaseTool {
     const startTime = Date.now();
 
     try {
-      // Get member repository
-      const memberRepo = container.get<IMemberRepository>(TYPES.IMemberRepository);
+      console.log(`[GetMemberAnniversariesTool] Using GraphQL query with month=${input.month || 'current'}`);
 
-      // Get all members
-      const result = await memberRepo.findAll();
+      // Use GraphQL getMemberAnniversaries query (with caching)
+      const result = await graphqlQuery<{ getMemberAnniversaries: any[] }>(MemberQueries.GET_MEMBER_ANNIVERSARIES, {
+        month: input.month,
+      });
 
-      if (!result.success || !result.data) {
-        return this.error('Failed to retrieve members');
-      }
+      const members = result.getMemberAnniversaries;
 
-      // Determine which month to query
+      console.log(`[GetMemberAnniversariesTool] Found ${members.length} members via GraphQL`);
+
+      // Determine which month we queried
       const today = new Date();
       const targetMonth = input.month && input.month >= 1 && input.month <= 12
         ? input.month
-        : today.getMonth() + 1; // getMonth() returns 0-11
+        : today.getMonth() + 1;
 
-      // Filter members who have anniversaries in the target month
-      const membersWithAnniversaries = result.data.filter(m => {
-        if (!m.anniversary) return false;
-        const anniversaryDate = new Date(m.anniversary);
-        return anniversaryDate.getMonth() + 1 === targetMonth;
-      });
-
-      if (membersWithAnniversaries.length === 0) {
+      if (members.length === 0) {
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                            'July', 'August', 'September', 'October', 'November', 'December'];
         return this.success({
@@ -95,7 +88,7 @@ export class GetMemberAnniversariesTool extends BaseTool {
       }
 
       // Format anniversary data
-      const formattedAnniversaries = membersWithAnniversaries.map(m => {
+      const formattedAnniversaries = members.map(m => {
         const anniversaryDate = new Date(m.anniversary!);
         const thisYearAnniversary = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
 

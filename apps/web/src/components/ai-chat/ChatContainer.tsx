@@ -3,13 +3,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import { MemberCard } from './MemberCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export interface ChatContainerProps {
-  onSendMessage: (message: string, attachments?: File[]) => Promise<void>;
+  onSendMessage: (message: string, attachments?: File[]) => Promise<Response | void>;
   initialMessages?: ChatMessageProps[];
 }
 
@@ -17,6 +18,7 @@ export function ChatContainer({ onSendMessage, initialMessages = [] }: ChatConta
   const [messages, setMessages] = useState<ChatMessageProps[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [thinkingMessage, setThinkingMessage] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,13 +54,96 @@ export function ChatContainer({ onSendMessage, initialMessages = [] }: ChatConta
 
     try {
       // Call the API
-      await onSendMessage(message, attachments);
+      const response = await onSendMessage(message, attachments);
 
       // Remove typing indicator
       setMessages((prev) => prev.filter((msg) => !msg.isTyping));
 
-      // Note: The actual assistant response will be added via streaming
-      // or in the onSendMessage callback
+      // Handle streaming response if Response object is returned
+      if (response && typeof response === 'object' && 'body' in response) {
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error('No response body');
+        }
+
+        let buffer = '';
+        let assistantContent = '';
+        let currentComponents: any[] = [];
+        const assistantMessageId = `assistant-${Date.now()}`;
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.substring(6));
+
+                switch (data.type) {
+                  case 'progress':
+                    const step = data.step;
+                    if (step.type === 'thinking' || step.type === 'tool_use') {
+                      // Show ephemeral thinking/progress messages
+                      setThinkingMessage(step.content);
+                    } else if (step.type === 'response') {
+                      // Clear thinking message and show actual response
+                      setThinkingMessage(null);
+                      assistantContent = step.content;
+
+                      setMessages(prev => {
+                        const existing = prev.find((m: any) => m.id === assistantMessageId);
+                        if (existing) {
+                          return prev.map((m: any) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: assistantContent }
+                              : m
+                          );
+                        } else {
+                          return [
+                            ...prev,
+                            {
+                              id: assistantMessageId,
+                              role: 'assistant' as const,
+                              content: assistantContent,
+                              timestamp: new Date(),
+                            },
+                          ];
+                        }
+                      });
+                    }
+                    break;
+
+                  case 'complete':
+                    setThinkingMessage(null);
+                    currentComponents = data.components || [];
+                    setMessages(prev =>
+                      prev.map((m: any) =>
+                        m.id === assistantMessageId
+                          ? { ...m, content: assistantContent, components: currentComponents }
+                          : m
+                      )
+                    );
+                    break;
+
+                  case 'error':
+                    throw new Error(data.error);
+                }
+              } catch (parseError) {
+                console.error('Failed to parse SSE data:', line, parseError);
+              }
+            }
+          }
+        }
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to send message');
 
@@ -66,6 +151,7 @@ export function ChatContainer({ onSendMessage, initialMessages = [] }: ChatConta
       setMessages((prev) => prev.filter((msg) => !msg.isTyping));
     } finally {
       setIsLoading(false);
+      setThinkingMessage(null);
     }
   };
 
@@ -129,8 +215,42 @@ export function ChatContainer({ onSendMessage, initialMessages = [] }: ChatConta
 
           {/* Messages */}
           {messages.map((message, index) => (
-            <ChatMessage key={index} {...message} />
+            <div key={index} className="space-y-4">
+              <ChatMessage role={message.role} content={message.content} timestamp={message.timestamp} isTyping={message.isTyping} />
+
+              {/* Render rich components */}
+              {message.components?.map((component, compIndex) => (
+                <div key={`${index}-component-${compIndex}`}>
+                  {component.type === 'MemberCard' && component.data?.member && (
+                    <MemberCard member={component.data.member} />
+                  )}
+                  {/* Fallback: Show JSON for unknown component types during development */}
+                  {component.type !== 'MemberCard' && (
+                    <div className="bg-card border rounded-lg p-3 shadow-sm max-w-2xl mx-auto">
+                      <pre className="text-xs overflow-x-auto">
+                        {JSON.stringify(component, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           ))}
+
+          {/* Thinking Message - Ephemeral */}
+          {thinkingMessage && (
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg className="h-3 w-3 text-primary animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <span className="text-sm text-muted-foreground italic flex-1">{thinkingMessage}</span>
+              </div>
+            </div>
+          )}
 
           {/* Error Alert */}
           {error && (

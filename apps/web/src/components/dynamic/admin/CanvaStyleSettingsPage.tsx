@@ -11,6 +11,7 @@ import { ChurchProfileSection, type ChurchProfileData } from './ChurchProfileSec
 import { AdminNotificationPreferences } from './AdminNotificationPreferences';
 import { AdminIntegrationSettings } from './AdminIntegrationSettings';
 import { TeamMembersSection } from './TeamMembersSection';
+import { AdminAICreditsSettings } from './AdminAICreditsSettings';
 
 // ============================================================================
 // Types
@@ -67,6 +68,18 @@ const defaultSections: SettingsNavSection[] = [
         label: 'Integrations',
         icon: 'link',
         description: 'Email, SMS, webhooks',
+      },
+    ],
+  },
+  {
+    id: 'ai-features',
+    title: 'AI Features',
+    items: [
+      {
+        id: 'ai-credits',
+        label: 'AI Credits',
+        icon: 'zap',
+        description: 'Manage AI Assistant credits',
       },
     ],
   },
@@ -179,6 +192,139 @@ function PreferencesSection({ data, onUpdate }: PreferencesSectionProps) {
   );
 }
 
+
+// ============================================================================
+// AI Credits Section Component
+// ============================================================================
+
+interface AICreditsSectionProps {
+  currency: string;
+}
+
+function AICreditsSection({ currency }: AICreditsSectionProps) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [aiCreditsData, setAICreditsData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchAICreditsData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch all AI Credits data in parallel
+        const [balanceRes, packagesRes, purchaseHistoryRes, transactionsRes] = await Promise.all([
+          fetch('/api/ai-credits/balance'),
+          fetch(`/api/ai-credits/packages?currency=${currency}`),
+          fetch('/api/ai-credits/purchase-history?limit=10'),
+          fetch('/api/ai-credits/transactions?limit=30'),
+        ]);
+
+        if (!balanceRes.ok || !packagesRes.ok || !purchaseHistoryRes.ok || !transactionsRes.ok) {
+          throw new Error('Failed to fetch AI Credits data');
+        }
+
+        const [balance, packages, purchaseHistory, transactions] = await Promise.all([
+          balanceRes.json(),
+          packagesRes.json(),
+          purchaseHistoryRes.json(),
+          transactionsRes.json(),
+        ]);
+
+        // Calculate usage stats from transactions
+        const txData = transactions.data?.transactions || [];
+        const uniqueSessions = new Set(txData.map((t: any) => t.session_id));
+        const totalConversations = uniqueSessions.size;
+        const totalCredits = txData.reduce((sum: number, t: any) => sum + t.credits_used, 0);
+        const avgCreditsPerConversation = totalConversations > 0 ? totalCredits / totalConversations : 0;
+        const totalInputTokens = txData.reduce((sum: number, t: any) => sum + t.input_tokens, 0);
+        const totalOutputTokens = txData.reduce((sum: number, t: any) => sum + t.output_tokens, 0);
+
+        // Get auto-recharge settings from balance
+        const autoRecharge = {
+          enabled: balance.data?.auto_recharge_enabled || false,
+          packageId: balance.data?.auto_recharge_package_id || null,
+          threshold: balance.data?.low_credit_threshold || 10,
+        };
+
+        setAICreditsData({
+          balance: {
+            total: balance.data?.total_credits || 0,
+            used: balance.data?.used_credits || 0,
+            remaining: balance.data?.remaining_credits || 0,
+            percentage: balance.data?.total_credits > 0
+              ? Math.round((balance.data.remaining_credits / balance.data.total_credits) * 100)
+              : 0,
+            lowThreshold: balance.data?.low_credit_threshold || 10,
+            isLow: balance.data?.remaining_credits < (balance.data?.low_credit_threshold || 10),
+          },
+          packages: (packages.data?.packages || []).map((pkg: any) => ({
+            ...pkg,
+            pricePerCredit: (pkg.price / pkg.credits).toFixed(4),
+          })),
+          purchaseHistory: (purchaseHistory.data?.purchases || []).map((p: any) => ({
+            id: p.id,
+            date: new Date(p.created_at).toLocaleString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            packageName: p.package_name,
+            credits: p.credits_purchased,
+            amount: p.amount_paid,
+            currency: p.currency,
+            status: p.payment_status,
+            statusLabel: p.payment_status.charAt(0).toUpperCase() + p.payment_status.slice(1),
+          })),
+          usageStats: {
+            totalConversations,
+            avgCreditsPerConversation: Math.round(avgCreditsPerConversation * 10) / 10,
+            totalInputTokens,
+            totalOutputTokens,
+            dailyUsage: [],
+          },
+          autoRecharge,
+          currency: packages.data?.currency || currency,
+        });
+      } catch (err: any) {
+        console.error('Error fetching AI Credits data:', err);
+        setError(err.message || 'Failed to load AI Credits data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAICreditsData();
+  }, [currency]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading AI Credits...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !aiCreditsData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error || 'Failed to load AI Credits data'}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return <AdminAICreditsSettings {...aiCreditsData} />;
+}
 
 // ============================================================================
 // Main Component
@@ -371,6 +517,9 @@ export function CanvaStyleSettingsPage({
       ) : (
         <div className="text-center py-12 text-muted-foreground">Integrations not available</div>
       )}
+
+      {/* AI Credits Section */}
+      <AICreditsSection currency={data.currency || 'PHP'} />
 
       {/* Team Section */}
       {showTeam ? (

@@ -14,16 +14,20 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createClaudeAPIService } from '@/lib/ai-assistant/infrastructure/ai';
+import { createAIService, validateAIProviderConfig } from '@/lib/ai-assistant/infrastructure/ai';
 import { createChatOrchestrator } from '@/lib/ai-assistant/AIAssistantFactory';
-import type { ExecutionRequest } from '@/lib/ai-assistant/core/interfaces/IExecutor';
-import type { AttachmentType } from '@/lib/ai-assistant/application/services/ChatOrchestrator';
+import type { ChatRequest as OrchestratorChatRequest, ChatMessage, Attachment } from '@/lib/ai-assistant/application/services/ChatOrchestrator';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { AICreditService } from '@/services/AICreditService';
+import type { AuthorizationService } from '@/services/AuthorizationService';
+import { tenantUtils } from '@/utils/tenantUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Request body interface
+ * Request body interface (from client)
  */
 interface ChatRequest {
   message: string;
@@ -34,7 +38,7 @@ interface ChatRequest {
   }>;
   attachments?: Array<{
     name: string;
-    type: AttachmentType;
+    type: string;
     url: string;
     size?: number;
   }>;
@@ -47,12 +51,16 @@ interface ChatRequest {
  * Supports multi-turn conversations with tool execution.
  */
 export async function POST(request: NextRequest) {
-  let streamController: ReadableStreamDefaultController | null = null;
+  let tenantId: string | null = null;
+  let userId: string | null = null;
+  let sessionId: string = '';
+  let authResult: any = null;
 
   try {
     // Parse request body
     const body: ChatRequest = await request.json();
-    const { message, sessionId, conversationHistory = [], attachments = [] } = body;
+    const { message, sessionId: reqSessionId, conversationHistory = [], attachments = [] } = body;
+    sessionId = reqSessionId;
 
     // Validate required fields
     if (!message || typeof message !== 'string') {
@@ -75,11 +83,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for API key
-    if (!process.env.ANTHROPIC_API_KEY) {
+    // Validate AI provider configuration
+    const providerValidation = validateAIProviderConfig();
+    if (!providerValidation.valid) {
       return new Response(
         JSON.stringify({
-          error: 'ANTHROPIC_API_KEY environment variable is not configured. Please set it to enable AI Assistant.',
+          error: providerValidation.error || 'AI service is not configured properly.',
         }),
         {
           status: 503,
@@ -88,14 +97,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // === AI CREDITS: Check authentication and credits before processing ===
+    const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
+    authResult = await authService.checkAuthentication();
+
+    if (!authResult.authorized || !authResult.user) {
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized. Please sign in to use AI Assistant.',
+          error_code: 'UNAUTHORIZED'
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    userId = authResult.user.id;
+    tenantId = await tenantUtils.getTenantId();
+
+    if (!tenantId) {
+      return new Response(
+        JSON.stringify({
+          error: 'Tenant context not found. Please ensure you are properly logged in.',
+          error_code: 'NO_TENANT'
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Check if tenant has sufficient credits
+    const creditService = container.get<AICreditService>(TYPES.AICreditService);
+    const hasSufficientCredits = await creditService.hasSufficientCredits(tenantId, 1);
+
+    if (!hasSufficientCredits) {
+      // Check if auto-recharge should be triggered
+      const shouldAutoRecharge = await creditService.shouldTriggerAutoRecharge(tenantId);
+
+      if (shouldAutoRecharge) {
+        return new Response(
+          JSON.stringify({
+            error: 'Insufficient credits. Auto-recharge has been initiated. Please wait a moment and try again.',
+            error_code: 'AUTO_RECHARGE_PENDING',
+            action_required: 'wait'
+          }),
+          {
+            status: 402,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          error: 'Insufficient AI credits. Please purchase more credits to continue using the AI Assistant.',
+          error_code: 'INSUFFICIENT_CREDITS',
+          purchase_url: '/admin/settings?tab=ai-credits',
+          action_required: 'purchase'
+        }),
+        {
+          status: 402,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Create a streaming response
     const stream = new ReadableStream({
       async start(controller) {
-        streamController = controller;
+        let controllerClosed = false;
 
         try {
-          // Initialize Claude API service
-          const aiService = createClaudeAPIService();
+          // Initialize AI service (supports both Anthropic API and AWS Bedrock)
+          const aiService = createAIService();
 
           // Create chat orchestrator with streaming support
           const orchestrator = await createChatOrchestrator(
@@ -107,51 +185,111 @@ export async function POST(request: NextRequest) {
             }
           );
 
-          // Build execution request
-          const executionRequest: ExecutionRequest = {
-            userMessage: message,
-            conversationHistory: conversationHistory.map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-            attachments: attachments.map((att) => ({
-              name: att.name,
-              type: att.type,
-              url: att.url,
-              size: att.size,
-            })),
+          // Build chat request for orchestrator
+          const chatMessages: ChatMessage[] = conversationHistory.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          }));
+
+          const currentAttachments: Attachment[] = attachments.map((att, index) => ({
+            id: `att_${Date.now()}_${index}`,
+            name: att.name,
+            type: att.type,
+            url: att.url,
+            size: att.size || 0,
+            uploadedAt: new Date().toISOString(),
+          }));
+
+          const orchestratorRequest: OrchestratorChatRequest = {
+            userQuery: message,
+            messages: chatMessages,
+            currentAttachments: currentAttachments.length > 0 ? currentAttachments : undefined,
             sessionId,
-            // TODO: Add tenant context when available
-            // tenantId: getTenantIdFromRequest(request),
+            userId: userId || undefined,
+            userEmail: authResult.user?.email || '',
+            tenantId: tenantId || undefined,
           };
 
           // Execute the chat request with streaming
-          await orchestrator.processMessage(executionRequest);
+          const result = await orchestrator.processMessage(orchestratorRequest);
+
+          // === AI CREDITS: Deduct credits based on token usage ===
+          try {
+            if (tenantId && userId && result.tokensUsed) {
+              const creditService = container.get<AICreditService>(TYPES.AICreditService);
+
+              // Calculate conversation turn (incrementing number for this session)
+              const conversationTurn = conversationHistory.length / 2 + 1;
+
+              // Count tool executions (if any)
+              const toolCount = result.steps?.filter((step) => step.type === 'tool_use').length || 0;
+
+              const deductionResult = await creditService.deductCredits(
+                tenantId,
+                userId,
+                sessionId,
+                conversationTurn,
+                result.tokensUsed.input,
+                result.tokensUsed.output,
+                toolCount,
+                'claude-sonnet-4-20250514'
+              );
+
+              if (!deductionResult.success) {
+                console.error('[AI Chat] Failed to deduct credits:', deductionResult.error_message);
+                // Log error but don't fail the user's request - they already got their response
+              } else {
+                console.log(
+                  `[AI Chat] Credits deducted: ${deductionResult.credits_deducted}. ` +
+                  `New balance: ${deductionResult.new_balance}`
+                );
+              }
+            }
+          } catch (creditError) {
+            console.error('[AI Chat] Credit deduction error:', creditError);
+            // Non-blocking - don't fail the user request
+          }
 
           // Close the stream
-          controller.close();
+          if (!controllerClosed) {
+            controllerClosed = true;
+            try {
+              controller.close();
+            } catch (closeError) {
+              console.log('[AI Chat API] Controller already closed on completion');
+            }
+          }
         } catch (error: any) {
           console.error('[AI Chat API] Streaming error:', error);
 
-          // Send error event to client
-          const errorEvent = `data: ${JSON.stringify({
-            type: 'error',
-            error: error.message || 'An error occurred while processing your message',
-          })}\n\n`;
+          // Send error event to client if controller is still open
+          if (!controllerClosed) {
+            try {
+              const errorEvent = `data: ${JSON.stringify({
+                type: 'error',
+                error: error.message || 'An error occurred while processing your message',
+              })}\n\n`;
 
-          try {
-            controller.enqueue(new TextEncoder().encode(errorEvent));
-          } catch (enqueueError) {
-            console.error('[AI Chat API] Failed to enqueue error:', enqueueError);
+              controller.enqueue(new TextEncoder().encode(errorEvent));
+            } catch (enqueueError) {
+              console.log('[AI Chat API] Could not enqueue error (controller closed):', enqueueError);
+            }
           }
 
-          controller.close();
+          // Close controller only if not already closed
+          if (!controllerClosed) {
+            controllerClosed = true;
+            try {
+              controller.close();
+            } catch (closeError) {
+              console.log('[AI Chat API] Could not close controller (already closed):', closeError);
+            }
+          }
         }
       },
 
       cancel() {
         console.log('[AI Chat API] Stream cancelled by client');
-        streamController = null;
       },
     });
 
@@ -167,24 +305,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[AI Chat API] Request error:', error);
 
-    // If we have a stream controller, send error through it
-    if (streamController) {
-      try {
-        const errorEvent = `data: ${JSON.stringify({
-          type: 'error',
-          error: error.message || 'Internal server error',
-        })}\n\n`;
-
-        streamController.enqueue(new TextEncoder().encode(errorEvent));
-        streamController.close();
-      } catch (streamError) {
-        console.error('[AI Chat API] Failed to send error through stream:', streamError);
-      }
-
-      return new Response(null, { status: 200 }); // Stream was started, can't change status
-    }
-
-    // Return JSON error if stream wasn't started
+    // Return JSON error response
     return new Response(
       JSON.stringify({
         error: error.message || 'Internal server error',

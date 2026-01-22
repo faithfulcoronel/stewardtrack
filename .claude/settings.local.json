@@ -125,7 +125,9 @@
       "Bash(head:*)",
       "Bash(Sort-Object Name -Descending)",
       "Bash(Select-Object -First 10)",
-      "Bash(ForEach-Object { $_Name })"
+      "Bash(ForEach-Object { $_Name })",
+      "Bash(docker exec:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
