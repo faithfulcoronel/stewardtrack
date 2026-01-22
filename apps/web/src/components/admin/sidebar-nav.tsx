@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,11 +19,14 @@ import {
   Layers,
   BookOpen,
   CalendarDays,
+  Crown,
 } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 export const ADMIN_NAV_ICONS = {
   dashboard: LayoutDashboard,
@@ -48,6 +51,8 @@ export type AdminNavItem = {
   href: string;
   icon: IconKey;
   badge?: string;
+  /** If true, this menu item requires an active subscription (shows crown icon) */
+  isPro?: boolean;
 };
 
 export type AdminNavSection = {
@@ -74,6 +79,14 @@ export function AdminSidebar({
   const setMobileOpen = onMobileOpenChange ?? setInternalMobileOpen;
   const showLabels = !collapsed;
 
+  // Subscription status for gating pro features
+  const { status: subscriptionStatus, isLoading: isSubscriptionLoading } = useSubscriptionStatus();
+
+  // Only show expired state after loading completes to prevent hydration mismatch
+  const isSubscriptionExpired = !isSubscriptionLoading && subscriptionStatus.isExpired;
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [blockedFeature, setBlockedFeature] = useState<string>("");
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
 
@@ -95,6 +108,19 @@ export function AdminSidebar({
     mediaQuery.addListener(handler);
     return () => mediaQuery.removeListener(handler);
   }, [setMobileOpen]);
+
+  // Handle click on pro feature when subscription is expired
+  const handleProItemClick = useCallback(
+    (e: React.MouseEvent, item: { title: string; href: string; isPro?: boolean }) => {
+      if (item.isPro && isSubscriptionExpired) {
+        e.preventDefault();
+        setBlockedFeature(item.title);
+        setShowUpgradeModal(true);
+        setMobileOpen(false);
+      }
+    },
+    [isSubscriptionExpired, setMobileOpen]
+  );
 
   const navSections = sections.map((section) => ({
     ...section,
@@ -142,7 +168,12 @@ export function AdminSidebar({
                         href={item.href}
                         prefetch={false}
                         title={item.title}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={(e) => {
+                          handleProItemClick(e, item);
+                          if (!item.isPro || !isSubscriptionExpired) {
+                            setMobileOpen(false);
+                          }
+                        }}
                         className={cn(
                           "group flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition",
                           "hover:bg-white/15",
@@ -151,6 +182,9 @@ export function AdminSidebar({
                       >
                         <item.Icon className="size-4 flex-none" />
                         <span className="flex-1">{item.title}</span>
+                        {item.isPro && isSubscriptionExpired && (
+                          <Crown className="size-3.5 flex-none" />
+                        )}
                         {item.badge ? (
                           <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white">
                             {item.badge}
@@ -194,7 +228,8 @@ export function AdminSidebar({
                       key={item.title + item.href}
                       href={item.href}
                       prefetch={false}
-                      title={item.title}
+                      title={item.isPro && isSubscriptionExpired ? `${item.title} (Pro)` : item.title}
+                      onClick={(e) => handleProItemClick(e, item)}
                       className={cn(
                         "group flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition",
                         "hover:bg-white/15",
@@ -204,6 +239,9 @@ export function AdminSidebar({
                     >
                       <item.Icon className="size-4 flex-none" />
                       {showLabels && <span className="flex-1">{item.title}</span>}
+                      {showLabels && item.isPro && isSubscriptionExpired && (
+                        <Crown className="size-3.5 flex-none" />
+                      )}
                       {showLabels && item.badge ? (
                         <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white">
                           {item.badge}
@@ -225,6 +263,13 @@ export function AdminSidebar({
           </div>
         )}
       </aside>
+
+      {/* Upgrade Modal for Pro Features */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        featureName={blockedFeature}
+      />
     </>
   );
 }

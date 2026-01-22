@@ -4,6 +4,7 @@
  * Display financial KPIs, cash flow, budget overview, and activity timeline.
  *
  * SECURITY: Protected by AccessGate requiring finance:view permission.
+ * SUBSCRIPTION: Requires active subscription (handled by finance layout).
  */
 
 import type { Metadata } from 'next';
