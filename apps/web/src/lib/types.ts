@@ -294,6 +294,11 @@ export const TYPES = {
   ICalendarEventRepository: Symbol.for('ICalendarEventRepository'),
   PlanningService: Symbol.for('PlanningService'),
 
+  // Planning Notebooks Feature (OneNote-style)
+  INotebookAdapter: Symbol.for('INotebookAdapter'),
+  INotebookRepository: Symbol.for('INotebookRepository'),
+  NotebookService: Symbol.for('NotebookService'),
+
   // Admin Dashboard Feature
   IAdminDashboardAdapter: Symbol.for('IAdminDashboardAdapter'),
   IAdminDashboardRepository: Symbol.for('IAdminDashboardRepository'),

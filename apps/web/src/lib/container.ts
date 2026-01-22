@@ -57,6 +57,11 @@ import { CalendarCategoryRepository, type ICalendarCategoryRepository } from '@/
 import { CalendarEventRepository, type ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import { PlanningService } from '@/services/PlanningService';
 
+// Planning Notebooks Feature (OneNote-style)
+import { NotebookAdapter, type INotebookAdapter } from '@/adapters/notebook.adapter';
+import { NotebookRepository, type INotebookRepository } from '@/repositories/notebook.repository';
+import { NotebookService } from '@/services/NotebookService';
+
 // Admin Dashboard Feature
 import { AdminDashboardAdapter, type IAdminDashboardAdapter } from '@/adapters/adminDashboard.adapter';
 import { AdminDashboardRepository, type IAdminDashboardRepository } from '@/repositories/adminDashboard.repository';
@@ -902,6 +907,11 @@ container.bind<ICalendarCategoryRepository>(TYPES.ICalendarCategoryRepository).t
 container.bind<ICalendarEventAdapter>(TYPES.ICalendarEventAdapter).to(CalendarEventAdapter).inRequestScope();
 container.bind<ICalendarEventRepository>(TYPES.ICalendarEventRepository).to(CalendarEventRepository).inRequestScope();
 container.bind<PlanningService>(TYPES.PlanningService).to(PlanningService).inRequestScope();
+
+// ==================== NOTEBOOKS ====================
+container.bind<INotebookAdapter>(TYPES.INotebookAdapter).to(NotebookAdapter).inRequestScope();
+container.bind<INotebookRepository>(TYPES.INotebookRepository).to(NotebookRepository).inRequestScope();
+container.bind<NotebookService>(TYPES.NotebookService).to(NotebookService).inRequestScope();
 
 // ==================== ANNOUNCEMENTS ====================
 container.bind<IAnnouncementAdapter>(TYPES.IAnnouncementAdapter).to(AnnouncementAdapter).inRequestScope();

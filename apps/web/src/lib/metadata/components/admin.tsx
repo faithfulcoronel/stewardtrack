@@ -101,6 +101,9 @@ import {
   PlanningCalendar,
   type PlanningCalendarProps,
 } from '@/components/dynamic/admin/PlanningCalendar';
+// Notebook Components
+import NotebookCard, { type NotebookCardProps } from '@/components/dynamic/admin/notebooks/NotebookCard';
+import NotebookSectionTree, { type NotebookSectionTreeProps } from '@/components/dynamic/admin/notebooks/NotebookSectionTree';
 import {
   PlanningDashboard,
   type PlanningDashboardProps,
@@ -598,5 +601,18 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
+  },
+  // Notebook Components
+  {
+    type: 'NotebookCard',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookCardProps>(NotebookCard, 'NotebookCardRenderer'),
+  },
+  {
+    type: 'NotebookSectionTree',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<NotebookSectionTreeProps>(NotebookSectionTree, 'NotebookSectionTreeRenderer'),
   },
 ];

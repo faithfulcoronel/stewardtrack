@@ -11,16 +11,14 @@
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import { container } from '@/lib/container';
-import { TYPES } from '@/lib/types';
-import type { IncomeExpenseTransactionService, IncomeExpenseEntry } from '@/services/IncomeExpenseTransactionService';
-import type { TenantService } from '@/services/TenantService';
+import { graphqlQuery, FinancialTransactionMutations } from '@/lib/graphql/client';
 
 export interface CreateFinancialTransactionInput {
   transaction_type: 'income' | 'expense';
   amount: number;
   description: string;
   transaction_date?: string; // ISO date string, defaults to today
+  reference?: string; // Optional reference number
   category_id: string;
   source_id: string;
   fund_id: string;
@@ -89,7 +87,7 @@ export class CreateFinancialTransactionTool extends BaseTool {
     };
   }
 
-  async execute(input: CreateFinancialTransactionInput, context: ToolExecutionContext): Promise<ToolResult> {
+  async execute(input: CreateFinancialTransactionInput, _context: ToolExecutionContext): Promise<ToolResult> {
     this.logStart(input);
     const startTime = Date.now();
 
@@ -118,60 +116,45 @@ export class CreateFinancialTransactionTool extends BaseTool {
         return this.error('Transaction type must be either "income" or "expense"');
       }
 
-      // Get tenant context
-      const tenantService = container.get<TenantService>(TYPES.TenantService);
-      const tenant = await tenantService.getCurrentTenant();
-
-      if (!tenant) {
-        return this.error('No tenant context available. Please ensure you are logged in.');
-      }
-
       // Get transaction date (default to today)
       const transactionDate = input.transaction_date || new Date().toISOString().split('T')[0];
 
-      // Get current user ID from context
-      const createdBy = context.userId || null;
+      console.log(`[CreateFinancialTransactionTool] Creating ${input.transaction_type} transaction using GraphQL`);
 
-      // Get IncomeExpenseTransactionService
-      const transactionService = container.get<IncomeExpenseTransactionService>(
-        TYPES.IncomeExpenseTransactionService
+      // Create the transaction using GraphQL
+      const result = await graphqlQuery<{ createFinancialTransaction: any }>(
+        FinancialTransactionMutations.CREATE_FINANCIAL_TRANSACTION,
+        {
+          input: {
+            transaction_type: input.transaction_type,
+            transaction_date: transactionDate,
+            description: input.description,
+            reference: input.reference,
+            amount: input.amount,
+            category_id: input.category_id,
+            source_id: input.source_id,
+            fund_id: input.fund_id,
+            account_id: input.account_id,
+          },
+        }
       );
 
-      // Build header
-      const header = {
-        tenant_id: tenant.id,
-        transaction_date: transactionDate,
-        description: input.description,
-        status: 'draft' as const, // Always create as draft
-        created_by: createdBy,
-      };
-
-      // Build transaction line
-      const line: IncomeExpenseEntry = {
-        transaction_type: input.transaction_type,
-        amount: input.amount,
-        description: input.description,
-        category_id: input.category_id,
-        source_id: input.source_id,
-        fund_id: input.fund_id,
-        account_id: input.account_id || null,
-        source_coa_id: null, // Will be populated by service
-        category_coa_id: null, // Will be populated by service
-      };
-
-      // Create the transaction
-      const result = await transactionService.create(header, [line]);
+      const transaction = result.createFinancialTransaction;
 
       this.logSuccess(Date.now() - startTime);
 
       return this.success({
-        transaction_id: result.header.id,
+        transaction_id: transaction.id,
+        transaction_number: transaction.transaction_number,
         transaction_type: input.transaction_type,
         amount: input.amount,
         description: input.description,
         date: transactionDate,
-        status: 'draft',
-        message: `Successfully created ${input.transaction_type} transaction of $${input.amount.toFixed(2)} as draft. The transaction is pending approval.`,
+        status: transaction.status,
+        source: transaction.source,
+        category: transaction.category,
+        fund: transaction.fund,
+        message: `Successfully created ${input.transaction_type} transaction #${transaction.transaction_number} for $${input.amount.toFixed(2)} as draft. The transaction is pending approval.`,
       });
     } catch (error: any) {
       this.logError(error);

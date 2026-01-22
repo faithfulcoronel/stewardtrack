@@ -92,6 +92,96 @@ export const typeDefs = `#graphql
     Get care plan statistics for dashboard
     """
     getCarePlanStats: CarePlanStats!
+
+    """
+    Search for discipleship plans with filtering options
+    """
+    searchDiscipleshipPlans(
+      searchTerm: String
+      status: String
+      pathwayId: String
+      mentorId: String
+      limit: Int = 50
+    ): [DiscipleshipPlan!]!
+
+    """
+    Get a specific discipleship plan by ID
+    """
+    getDiscipleshipPlan(id: String!): DiscipleshipPlan
+
+    """
+    Get all discipleship plans for a specific member
+    """
+    getMemberDiscipleshipPlans(memberId: String!): [DiscipleshipPlan!]!
+
+    """
+    Get all available discipleship pathways
+    """
+    getDiscipleshipPathways: [DiscipleshipPathway!]!
+
+    """
+    Get a specific discipleship pathway by ID
+    """
+    getDiscipleshipPathway(id: String!): DiscipleshipPathway
+
+    """
+    Get discipleship plan statistics for dashboard
+    """
+    getDiscipleshipPlanStats: DiscipleshipPlanStats!
+
+    """
+    Search for accounts with filtering options
+    """
+    searchAccounts(
+      searchTerm: String
+      accountType: AccountType
+      isActive: Boolean
+      memberId: String
+      limit: Int = 50
+    ): [Account!]!
+
+    """
+    Get a specific account by ID
+    """
+    getAccount(id: String!): Account
+
+    """
+    Get account by member ID
+    """
+    getAccountByMember(memberId: String!): Account
+
+    """
+    Get account statistics for dashboard
+    """
+    getAccountStats: AccountStats!
+
+    """
+    Search for financial transactions with filtering options
+    """
+    searchFinancialTransactions(
+      searchTerm: String
+      transactionType: TransactionType
+      status: TransactionStatus
+      startDate: String
+      endDate: String
+      categoryId: String
+      sourceId: String
+      fundId: String
+      limit: Int = 50
+    ): [FinancialTransactionItem!]!
+
+    """
+    Get a specific financial transaction by ID
+    """
+    getFinancialTransaction(id: String!): FinancialTransactionItem
+
+    """
+    Get financial transaction statistics for dashboard
+    """
+    getFinancialTransactionStats(
+      startDate: String
+      endDate: String
+    ): FinancialTransactionStats!
   }
 
   type Mutation {
@@ -149,6 +239,101 @@ export const typeDefs = `#graphql
     Delete a care plan (soft delete)
     """
     deleteCarePlan(id: String!): Boolean!
+
+    """
+    Create a new discipleship plan
+    """
+    createDiscipleshipPlan(input: CreateDiscipleshipPlanInput!): DiscipleshipPlan!
+
+    """
+    Update an existing discipleship plan
+    """
+    updateDiscipleshipPlan(id: String!, input: UpdateDiscipleshipPlanInput!): DiscipleshipPlan!
+
+    """
+    Complete a discipleship plan
+    """
+    completeDiscipleshipPlan(id: String!): DiscipleshipPlan!
+
+    """
+    Archive a discipleship plan
+    """
+    archiveDiscipleshipPlan(id: String!): DiscipleshipPlan!
+
+    """
+    Delete a discipleship plan (soft delete)
+    """
+    deleteDiscipleshipPlan(id: String!): Boolean!
+
+    """
+    Celebrate a milestone for a discipleship plan
+    """
+    celebrateMilestone(planId: String!, milestoneId: String!): DiscipleshipMilestone!
+
+    """
+    Uncelebrate a milestone for a discipleship plan
+    """
+    uncelebrateMilestone(planId: String!, milestoneId: String!): DiscipleshipMilestone!
+
+    """
+    Create a new account
+    """
+    createAccount(input: CreateAccountInput!): Account!
+
+    """
+    Update an existing account
+    """
+    updateAccount(id: String!, input: UpdateAccountInput!): Account!
+
+    """
+    Deactivate an account
+    """
+    deactivateAccount(id: String!): Account!
+
+    """
+    Activate an account
+    """
+    activateAccount(id: String!): Account!
+
+    """
+    Delete an account (soft delete)
+    """
+    deleteAccount(id: String!): Boolean!
+
+    """
+    Create a new financial transaction
+    """
+    createFinancialTransaction(input: CreateFinancialTransactionInput!): FinancialTransactionItem!
+
+    """
+    Update an existing financial transaction
+    """
+    updateFinancialTransaction(id: String!, input: UpdateFinancialTransactionInput!): FinancialTransactionItem!
+
+    """
+    Submit a financial transaction for approval
+    """
+    submitFinancialTransaction(id: String!): FinancialTransactionItem!
+
+    """
+    Approve a financial transaction
+    """
+    approveFinancialTransaction(id: String!): FinancialTransactionItem!
+
+    """
+    Post a financial transaction (finalize to ledger)
+    """
+    postFinancialTransaction(id: String!): FinancialTransactionItem!
+
+    """
+    Void a financial transaction
+    """
+    voidFinancialTransaction(id: String!, reason: String!): FinancialTransactionItem!
+
+    """
+    Delete a financial transaction (soft delete - only drafts)
+    """
+    deleteFinancialTransaction(id: String!): Boolean!
   }
 
   type Member {
@@ -336,5 +521,275 @@ export const typeDefs = `#graphql
     details: String
     membership_stage_id: String
     is_active: Boolean
+  }
+
+  type DiscipleshipPlan {
+    id: ID!
+    tenant_id: ID!
+    member_id: ID!
+    pathway_id: ID!
+    mentor_id: ID
+    status: String!
+    start_date: String!
+    target_completion_date: String
+    actual_completion_date: String
+    notes: String
+    is_active: Boolean!
+    member: MemberBasicInfo
+    mentor: MemberBasicInfo
+    pathway: DiscipleshipPathway
+    milestones: [DiscipleshipMilestone!]!
+    completed_milestones_count: Int!
+    total_milestones_count: Int!
+    progress_percentage: Int!
+    created_at: String!
+    updated_at: String!
+  }
+
+  type DiscipleshipPathway {
+    id: ID!
+    name: String!
+    description: String
+    duration_weeks: Int
+    milestones: [String!]!
+    sort_order: Int!
+    is_active: Boolean!
+    is_default: Boolean!
+    created_at: String!
+    updated_at: String!
+  }
+
+  type DiscipleshipMilestone {
+    id: ID!
+    plan_id: ID!
+    milestone_name: String!
+    milestone_description: String
+    completed_at: String
+    celebrated_at: String
+    notes: String
+    sort_order: Int!
+    created_at: String!
+    updated_at: String!
+  }
+
+  type DiscipleshipPlanStats {
+    total: Int!
+    active: Int!
+    completed: Int!
+    archived: Int!
+    by_pathway: [PathwayCount!]!
+    by_status: [StatusCount!]!
+    avg_completion_percentage: Float!
+  }
+
+  type PathwayCount {
+    pathway_id: String!
+    pathway_name: String!
+    count: Int!
+  }
+
+  input CreateDiscipleshipPlanInput {
+    member_id: String!
+    pathway_id: String!
+    mentor_id: String
+    start_date: String!
+    target_completion_date: String
+    notes: String
+  }
+
+  input UpdateDiscipleshipPlanInput {
+    mentor_id: String
+    status: String
+    target_completion_date: String
+    actual_completion_date: String
+    notes: String
+    is_active: Boolean
+  }
+
+  type Account {
+    id: ID!
+    tenant_id: ID!
+    name: String!
+    account_type: AccountType!
+    account_number: String!
+    description: String
+    email: String
+    phone: String
+    address: String
+    website: String
+    tax_id: String
+    is_active: Boolean!
+    notes: String
+    member_id: String
+    member: MemberBasicInfo
+    created_at: String!
+    updated_at: String!
+  }
+
+  enum AccountType {
+    organization
+    person
+  }
+
+  type AccountStats {
+    total: Int!
+    active: Int!
+    inactive: Int!
+    by_type: [AccountTypeCount!]!
+    with_members: Int!
+  }
+
+  type AccountTypeCount {
+    account_type: String!
+    count: Int!
+  }
+
+  input CreateAccountInput {
+    name: String!
+    account_type: AccountType!
+    account_number: String
+    description: String
+    email: String
+    phone: String
+    address: String
+    website: String
+    tax_id: String
+    is_active: Boolean
+    notes: String
+    member_id: String
+  }
+
+  input UpdateAccountInput {
+    name: String
+    description: String
+    email: String
+    phone: String
+    address: String
+    website: String
+    tax_id: String
+    is_active: Boolean
+    notes: String
+    member_id: String
+  }
+
+  type FinancialTransactionItem {
+    id: ID!
+    tenant_id: ID!
+    transaction_number: String!
+    transaction_date: String!
+    transaction_type: TransactionType
+    description: String!
+    reference: String
+    status: TransactionStatus!
+    amount: Float!
+    source_id: String
+    source: FinancialSourceBasicInfo
+    category_id: String
+    category: CategoryBasicInfo
+    fund_id: String
+    fund: FundBasicInfo
+    account_id: String
+    account: AccountBasicInfo
+    submitted_at: String
+    submitted_by: String
+    approved_at: String
+    approved_by: String
+    posted_at: String
+    posted_by: String
+    voided_at: String
+    voided_by: String
+    void_reason: String
+    created_at: String!
+    updated_at: String!
+  }
+
+  type FinancialSourceBasicInfo {
+    id: ID!
+    name: String!
+    code: String
+    type: String
+  }
+
+  type CategoryBasicInfo {
+    id: ID!
+    name: String!
+    code: String
+    type: String
+  }
+
+  type FundBasicInfo {
+    id: ID!
+    name: String!
+    code: String
+  }
+
+  type AccountBasicInfo {
+    id: ID!
+    name: String!
+    account_number: String
+    account_type: String
+  }
+
+  enum TransactionType {
+    income
+    expense
+    transfer
+    opening_balance
+    fund_rollover
+    refund
+    adjustment
+    reclass
+    reversal
+  }
+
+  enum TransactionStatus {
+    draft
+    submitted
+    approved
+    posted
+    voided
+  }
+
+  type FinancialTransactionStats {
+    total: Int!
+    by_type: [TransactionTypeCount!]!
+    by_status: [TransactionStatusCount!]!
+    total_income: Float!
+    total_expense: Float!
+    net_income: Float!
+  }
+
+  type TransactionTypeCount {
+    transaction_type: String!
+    count: Int!
+    total_amount: Float!
+  }
+
+  type TransactionStatusCount {
+    status: String!
+    count: Int!
+  }
+
+  input CreateFinancialTransactionInput {
+    transaction_type: TransactionType!
+    transaction_date: String!
+    description: String!
+    reference: String
+    amount: Float!
+    category_id: String!
+    source_id: String!
+    fund_id: String!
+    account_id: String
+  }
+
+  input UpdateFinancialTransactionInput {
+    transaction_date: String
+    description: String
+    reference: String
+    amount: Float
+    category_id: String
+    source_id: String
+    fund_id: String
+    account_id: String
   }
 `;
