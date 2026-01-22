@@ -1,5 +1,5 @@
 /**
- * GraphQL Resolvers for Member and Family Queries
+ * GraphQL Resolvers for Member, Family, and Care Plan Queries
  *
  * Implements efficient database queries with caching
  * Note: Member names are encrypted, so we cache decrypted results
@@ -12,6 +12,7 @@ import { memberCache } from './memberCache';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { Member } from '@/models/member.model';
 import { familyResolvers } from './familyResolvers';
+import { carePlanResolvers } from './carePlanResolvers';
 
 export interface SearchMembersArgs {
   searchTerm: string;
@@ -221,8 +222,14 @@ export const resolvers = {
 
     // Family queries (from familyResolvers)
     ...familyResolvers.Query,
+
+    // Care plan queries (from carePlanResolvers)
+    ...carePlanResolvers.Query,
   },
 
-  // Family mutations (from familyResolvers)
-  Mutation: familyResolvers.Mutation,
+  // Mutations (combined from familyResolvers and carePlanResolvers)
+  Mutation: {
+    ...familyResolvers.Mutation,
+    ...carePlanResolvers.Mutation,
+  },
 };

@@ -36,6 +36,13 @@ import {
   ManageFamilyMembersTool,
 } from '../infrastructure/tools/plugins/families';
 
+// Import care plan tools
+import {
+  SearchCarePlansTool,
+  GetCarePlanDetailsTool,
+  ManageCarePlanTool,
+} from '../infrastructure/tools/plugins/careplans';
+
 /**
  * Configure and register all tools for the AI Assistant
  *
@@ -91,6 +98,16 @@ export async function configureTools(): Promise<ToolRegistry> {
   registry.register(new SearchFamiliesTool());
   registry.register(new GetFamilyDetailsTool());
   registry.register(new ManageFamilyMembersTool());
+
+  // ============================================================================
+  // CARE PLAN TOOLS
+  // ============================================================================
+  console.log('💙 Registering care plan tools...');
+
+  // Care plan information and management tools (no dependencies required)
+  registry.register(new SearchCarePlansTool());
+  registry.register(new GetCarePlanDetailsTool());
+  registry.register(new ManageCarePlanTool());
 
   // ============================================================================
   // TODO: Add more tool categories here

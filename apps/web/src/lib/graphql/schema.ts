@@ -65,6 +65,33 @@ export const typeDefs = `#graphql
     Get a member's primary family
     """
     getPrimaryFamily(memberId: String!): FamilyMemberInfo
+
+    """
+    Search for care plans with filtering options
+    """
+    searchCarePlans(
+      searchTerm: String
+      status: String
+      priority: String
+      assignedToMemberId: String
+      upcomingFollowUps: Boolean
+      limit: Int = 50
+    ): [CarePlan!]!
+
+    """
+    Get a specific care plan by ID
+    """
+    getCarePlan(id: String!): CarePlan
+
+    """
+    Get all care plans for a specific member
+    """
+    getMemberCarePlans(memberId: String!): [CarePlan!]!
+
+    """
+    Get care plan statistics for dashboard
+    """
+    getCarePlanStats: CarePlanStats!
   }
 
   type Mutation {
@@ -97,6 +124,31 @@ export const typeDefs = `#graphql
     Set a family as a member's primary family
     """
     setPrimaryFamily(memberId: String!, familyId: String!): Boolean!
+
+    """
+    Create a new care plan
+    """
+    createCarePlan(input: CreateCarePlanInput!): CarePlan!
+
+    """
+    Update an existing care plan
+    """
+    updateCarePlan(id: String!, input: UpdateCarePlanInput!): CarePlan!
+
+    """
+    Close a care plan (mark as completed)
+    """
+    closeCarePlan(id: String!): CarePlan!
+
+    """
+    Reopen a closed care plan
+    """
+    reopenCarePlan(id: String!): CarePlan!
+
+    """
+    Delete a care plan (soft delete)
+    """
+    deleteCarePlan(id: String!): Boolean!
   }
 
   type Member {
@@ -223,5 +275,66 @@ export const typeDefs = `#graphql
     role: FamilyRole!
     role_notes: String
     is_primary: Boolean
+  }
+
+  type CarePlan {
+    id: ID!
+    tenant_id: ID!
+    member_id: ID!
+    status_code: String!
+    status_label: String
+    priority: String
+    assigned_to: String
+    assigned_to_member_id: String
+    follow_up_at: String
+    closed_at: String
+    details: String
+    membership_stage_id: String
+    is_active: Boolean!
+    member: MemberBasicInfo
+    assigned_to_member: MemberBasicInfo
+    created_at: String!
+    updated_at: String!
+  }
+
+  type CarePlanStats {
+    total: Int!
+    active: Int!
+    upcoming_follow_ups: Int!
+    by_status: [StatusCount!]!
+    by_priority: [PriorityCount!]!
+  }
+
+  type StatusCount {
+    status: String!
+    count: Int!
+  }
+
+  type PriorityCount {
+    priority: String!
+    count: Int!
+  }
+
+  input CreateCarePlanInput {
+    member_id: String!
+    status_code: String!
+    status_label: String
+    priority: String
+    assigned_to_member_id: String
+    follow_up_at: String
+    details: String
+    membership_stage_id: String
+    is_active: Boolean
+  }
+
+  input UpdateCarePlanInput {
+    status_code: String
+    status_label: String
+    priority: String
+    assigned_to_member_id: String
+    follow_up_at: String
+    details: String
+    membership_stage_id: String
+    is_active: Boolean
   }
 `;

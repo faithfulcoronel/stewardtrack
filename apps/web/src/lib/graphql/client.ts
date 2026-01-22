@@ -25,6 +25,13 @@ import type {
   RemoveMemberFromFamilyArgs,
   SetPrimaryFamilyArgs,
 } from './familyResolvers';
+import type {
+  SearchCarePlansArgs,
+  GetCarePlanArgs,
+  GetMemberCarePlansArgs,
+  CreateCarePlanInput,
+  UpdateCarePlanInput,
+} from './carePlanResolvers';
 
 /**
  * Execute a GraphQL query by calling resolvers directly
@@ -163,6 +170,67 @@ export async function graphqlQuery<T = any>(
     };
     const result = await resolvers.Mutation.setPrimaryFamily(null, args);
     return { setPrimaryFamily: result } as T;
+  }
+
+  // Care plan queries
+  if (query.includes('searchCarePlans')) {
+    const args: SearchCarePlansArgs = {
+      searchTerm: vars.searchTerm,
+      status: vars.status,
+      priority: vars.priority,
+      assignedToMemberId: vars.assignedToMemberId,
+      upcomingFollowUps: vars.upcomingFollowUps,
+      limit: vars.limit,
+    };
+    const result = await resolvers.Query.searchCarePlans(null, args);
+    return { searchCarePlans: result } as T;
+  }
+
+  if (query.includes('getCarePlan(')) {
+    const args: GetCarePlanArgs = {
+      id: vars.id,
+    };
+    const result = await resolvers.Query.getCarePlan(null, args);
+    return { getCarePlan: result } as T;
+  }
+
+  if (query.includes('getMemberCarePlans')) {
+    const args: GetMemberCarePlansArgs = {
+      memberId: vars.memberId,
+    };
+    const result = await resolvers.Query.getMemberCarePlans(null, args);
+    return { getMemberCarePlans: result } as T;
+  }
+
+  if (query.includes('getCarePlanStats')) {
+    const result = await resolvers.Query.getCarePlanStats();
+    return { getCarePlanStats: result } as T;
+  }
+
+  // Care plan mutations
+  if (query.includes('createCarePlan')) {
+    const result = await resolvers.Mutation.createCarePlan(null, { input: vars.input as CreateCarePlanInput });
+    return { createCarePlan: result } as T;
+  }
+
+  if (query.includes('updateCarePlan')) {
+    const result = await resolvers.Mutation.updateCarePlan(null, { id: vars.id, input: vars.input as UpdateCarePlanInput });
+    return { updateCarePlan: result } as T;
+  }
+
+  if (query.includes('closeCarePlan')) {
+    const result = await resolvers.Mutation.closeCarePlan(null, { id: vars.id });
+    return { closeCarePlan: result } as T;
+  }
+
+  if (query.includes('reopenCarePlan')) {
+    const result = await resolvers.Mutation.reopenCarePlan(null, { id: vars.id });
+    return { reopenCarePlan: result } as T;
+  }
+
+  if (query.includes('deleteCarePlan')) {
+    const result = await resolvers.Mutation.deleteCarePlan(null, { id: vars.id });
+    return { deleteCarePlan: result } as T;
   }
 
   throw new Error(`Unknown GraphQL query/mutation: ${query.substring(0, 100)}`);
@@ -535,6 +603,247 @@ export const FamilyMutations = {
   SET_PRIMARY_FAMILY: `
     mutation SetPrimaryFamily($memberId: String!, $familyId: String!) {
       setPrimaryFamily(memberId: $memberId, familyId: $familyId)
+    }
+  `,
+};
+
+/**
+ * GraphQL Queries for Care Plan Operations
+ */
+export const CarePlanQueries = {
+  /**
+   * Search for care plans with various filters
+   */
+  SEARCH_CARE_PLANS: `
+    query SearchCarePlans($searchTerm: String, $status: String, $priority: String, $assignedToMemberId: String, $upcomingFollowUps: Boolean, $limit: Int) {
+      searchCarePlans(searchTerm: $searchTerm, status: $status, priority: $priority, assignedToMemberId: $assignedToMemberId, upcomingFollowUps: $upcomingFollowUps, limit: $limit) {
+        id
+        tenant_id
+        member_id
+        status_code
+        status_label
+        priority
+        assigned_to
+        assigned_to_member_id
+        follow_up_at
+        closed_at
+        details
+        membership_stage_id
+        is_active
+        member {
+          id
+          first_name
+          last_name
+          email
+          contact_number
+        }
+        assigned_to_member {
+          id
+          first_name
+          last_name
+          email
+        }
+        created_at
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Get a specific care plan by ID
+   */
+  GET_CARE_PLAN: `
+    query GetCarePlan($id: String!) {
+      getCarePlan(id: $id) {
+        id
+        tenant_id
+        member_id
+        status_code
+        status_label
+        priority
+        assigned_to
+        assigned_to_member_id
+        follow_up_at
+        closed_at
+        details
+        membership_stage_id
+        is_active
+        member {
+          id
+          first_name
+          last_name
+          middle_name
+          preferred_name
+          email
+          contact_number
+          profile_picture_url
+        }
+        assigned_to_member {
+          id
+          first_name
+          last_name
+          email
+          contact_number
+        }
+        created_at
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Get all care plans for a specific member
+   */
+  GET_MEMBER_CARE_PLANS: `
+    query GetMemberCarePlans($memberId: String!) {
+      getMemberCarePlans(memberId: $memberId) {
+        id
+        status_code
+        status_label
+        priority
+        assigned_to
+        assigned_to_member_id
+        follow_up_at
+        closed_at
+        details
+        is_active
+        assigned_to_member {
+          id
+          first_name
+          last_name
+          email
+        }
+        created_at
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Get care plan statistics for the tenant
+   */
+  GET_CARE_PLAN_STATS: `
+    query GetCarePlanStats {
+      getCarePlanStats {
+        total
+        active
+        upcoming_follow_ups
+        by_status {
+          status_code
+          status_label
+          count
+        }
+        by_priority {
+          priority
+          count
+        }
+      }
+    }
+  `,
+};
+
+/**
+ * GraphQL Mutations for Care Plan Operations
+ */
+export const CarePlanMutations = {
+  /**
+   * Create a new care plan
+   */
+  CREATE_CARE_PLAN: `
+    mutation CreateCarePlan($input: CreateCarePlanInput!) {
+      createCarePlan(input: $input) {
+        id
+        tenant_id
+        member_id
+        status_code
+        status_label
+        priority
+        assigned_to_member_id
+        follow_up_at
+        details
+        membership_stage_id
+        is_active
+        member {
+          id
+          first_name
+          last_name
+          email
+        }
+        assigned_to_member {
+          id
+          first_name
+          last_name
+          email
+        }
+        created_at
+      }
+    }
+  `,
+
+  /**
+   * Update an existing care plan
+   */
+  UPDATE_CARE_PLAN: `
+    mutation UpdateCarePlan($id: String!, $input: UpdateCarePlanInput!) {
+      updateCarePlan(id: $id, input: $input) {
+        id
+        status_code
+        status_label
+        priority
+        assigned_to_member_id
+        follow_up_at
+        details
+        membership_stage_id
+        is_active
+        assigned_to_member {
+          id
+          first_name
+          last_name
+          email
+        }
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Close a care plan
+   */
+  CLOSE_CARE_PLAN: `
+    mutation CloseCarePlan($id: String!) {
+      closeCarePlan(id: $id) {
+        id
+        status_code
+        status_label
+        closed_at
+        is_active
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Reopen a closed care plan
+   */
+  REOPEN_CARE_PLAN: `
+    mutation ReopenCarePlan($id: String!) {
+      reopenCarePlan(id: $id) {
+        id
+        status_code
+        status_label
+        closed_at
+        is_active
+        updated_at
+      }
+    }
+  `,
+
+  /**
+   * Delete a care plan (soft delete)
+   */
+  DELETE_CARE_PLAN: `
+    mutation DeleteCarePlan($id: String!) {
+      deleteCarePlan(id: $id)
     }
   `,
 };
