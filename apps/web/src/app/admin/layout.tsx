@@ -15,8 +15,8 @@ import type { MemberService } from "@/services/MemberService";
 import type { MembershipTypeService } from "@/services/MembershipTypeService";
 import type { MembershipStageService } from "@/services/MembershipStageService";
 
-// PERFORMANCE: Removed force-dynamic to allow Next.js caching where possible
-// User-specific data is still dynamic, but static menu structure can be cached
+// Force dynamic rendering for all admin routes since authentication requires cookies
+export const dynamic = 'force-dynamic';
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
