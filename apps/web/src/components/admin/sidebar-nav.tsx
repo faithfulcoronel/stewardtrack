@@ -65,6 +65,7 @@ export const ADMIN_NAV_ICONS = {
   discipleship: GraduationCap,
   goals: Target,
   scheduler: Clock,
+  notebooks: BookOpen,
   accounts: UserCircle,
   // Finance-specific icons
   treasury: Landmark,

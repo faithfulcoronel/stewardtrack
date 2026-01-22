@@ -1,18 +1,17 @@
 /**
  * GetMemberBirthdaysTool
- * Retrieves upcoming member birthdays
+ * Retrieves upcoming member birthdays using GraphQL
  *
  * Features:
  * - Get birthdays for current month or specific month
  * - Returns sorted list by date
  * - Shows days until birthday
+ * - Uses GraphQL with caching for better performance
  */
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import { container } from '@/lib/container';
-import { TYPES } from '@/lib/types';
-import type { IMemberRepository } from '@/repositories/member.repository';
+import { graphqlQuery, MemberQueries } from '@/lib/graphql/client';
 
 export interface GetMemberBirthdaysInput {
   month?: number; // 1-12, defaults to current month
@@ -59,24 +58,22 @@ export class GetMemberBirthdaysTool extends BaseTool {
     const startTime = Date.now();
 
     try {
-      // Get member repository
-      const memberRepo = container.get<IMemberRepository>(TYPES.IMemberRepository);
-
       // Determine which month to query
       const today = new Date();
       const targetMonth = input.month && input.month >= 1 && input.month <= 12
         ? input.month
         : today.getMonth() + 1; // getMonth() returns 0-11
 
-      // Get birthdays for the specified month
-      let members;
-      if (targetMonth === today.getMonth() + 1) {
-        // Current month - use optimized method
-        members = await memberRepo.getCurrentMonthBirthdays();
-      } else {
-        // Specific month
-        members = await memberRepo.getBirthdaysByMonth(targetMonth);
-      }
+      console.log(`[GetMemberBirthdaysTool] Using GraphQL query for month=${targetMonth}`);
+
+      // Use GraphQL getMemberBirthdays query (with caching)
+      const result = await graphqlQuery<{ getMemberBirthdays: any[] }>(MemberQueries.GET_MEMBER_BIRTHDAYS, {
+        month: input.month, // Pass undefined for current month
+      });
+
+      const members = result.getMemberBirthdays;
+
+      console.log(`[GetMemberBirthdaysTool] Found ${members.length} birthdays via GraphQL`);
 
       if (!members || members.length === 0) {
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',

@@ -14,7 +14,7 @@ export interface ChatMessageProps {
   components?: any[];
 }
 
-export function ChatMessage({ role, content, timestamp, isTyping, components }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, isTyping }: ChatMessageProps) {
   const isUser = role === 'user';
 
   return (
@@ -78,22 +78,6 @@ export function ChatMessage({ role, content, timestamp, isTyping, components }: 
             </div>
           )}
         </div>
-
-        {/* Components rendered by tools */}
-        {components && components.length > 0 && (
-          <div className="mt-2 space-y-2 w-full">
-            {components.map((component, index) => (
-              <div
-                key={index}
-                className="bg-card border rounded-lg p-3 shadow-sm"
-              >
-                <pre className="text-xs overflow-x-auto">
-                  {JSON.stringify(component, null, 2)}
-                </pre>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Timestamp */}
         {timestamp && (

@@ -8,6 +8,7 @@ import type { IMemberCarePlanAdapter } from '@/adapters/memberCarePlan.adapter';
 
 export interface IMemberCarePlanRepository extends BaseRepository<MemberCarePlan> {
   getAll(): Promise<MemberCarePlan[]>;
+  getAllWithMembers(): Promise<MemberCarePlan[]>;
   getById(carePlanId: string): Promise<MemberCarePlan | null>;
   getByMember(memberId: string): Promise<MemberCarePlan[]>;
 }
@@ -34,6 +35,10 @@ export class MemberCarePlanRepository
 
   async getAll(): Promise<MemberCarePlan[]> {
     return this.memberCarePlanAdapter.getAll();
+  }
+
+  async getAllWithMembers(): Promise<MemberCarePlan[]> {
+    return this.memberCarePlanAdapter.getAllWithMembers();
   }
 
   async getById(carePlanId: string): Promise<MemberCarePlan | null> {

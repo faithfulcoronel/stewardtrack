@@ -1,18 +1,17 @@
 /**
  * GetMemberDetailsTool
- * Retrieves detailed information about a specific member
+ * Retrieves detailed information about a specific member using GraphQL
  *
  * Features:
  * - Get member by ID, name, or email
  * - Returns comprehensive member information
  * - Includes birthday, anniversary, contact info, etc.
+ * - Uses GraphQL with caching for better performance
  */
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import { container } from '@/lib/container';
-import { TYPES } from '@/lib/types';
-import type { IMemberRepository } from '@/repositories/member.repository';
+import { graphqlQuery, MemberQueries } from '@/lib/graphql/client';
 
 export interface GetMemberDetailsInput {
   member_id?: string;
@@ -73,47 +72,23 @@ export class GetMemberDetailsTool extends BaseTool {
         return this.error('Please provide at least one search criteria: member_id, name, or email');
       }
 
-      // Get member repository
-      const memberRepo = container.get<IMemberRepository>(TYPES.IMemberRepository);
+      console.log(`[GetMemberDetailsTool] Using GraphQL query with id=${input.member_id}, email=${input.email}, name=${input.name}`);
 
-      let member = null;
+      // Use GraphQL getMember query (with caching)
+      const result = await graphqlQuery<{ getMember: any }>(MemberQueries.GET_MEMBER, {
+        id: input.member_id,
+        email: input.email,
+        name: input.name,
+      });
 
-      // Search by ID first (most specific)
-      if (input.member_id) {
-        const result = await memberRepo.findById(input.member_id);
-        if (result) {
-          member = result;
-        }
-      }
-
-      // Search by email if not found by ID
-      if (!member && input.email) {
-        const result = await memberRepo.findAll();
-        if (result.success && result.data) {
-          member = result.data.find(m =>
-            m.email?.toLowerCase() === input.email?.toLowerCase()
-          );
-        }
-      }
-
-      // Search by name if not found by ID or email
-      if (!member && input.name) {
-        const result = await memberRepo.findAll();
-        if (result.success && result.data) {
-          const searchName = input.name.toLowerCase();
-          member = result.data.find(m => {
-            const fullName = `${m.first_name} ${m.last_name}`.toLowerCase();
-            const firstName = m.first_name?.toLowerCase() || '';
-            const lastName = m.last_name?.toLowerCase() || '';
-            return fullName.includes(searchName) || firstName.includes(searchName) || lastName.includes(searchName);
-          });
-        }
-      }
+      const member = result.getMember;
 
       if (!member) {
         const searchCriteria = input.member_id || input.email || input.name;
         return this.error(`Member not found with criteria: ${searchCriteria}`);
       }
+
+      console.log(`[GetMemberDetailsTool] Found member via GraphQL: ${member.first_name} ${member.last_name}`);
 
       // Format the response with key information
       const memberInfo: any = {
@@ -216,8 +191,10 @@ export class GetMemberDetailsTool extends BaseTool {
 
     return [
       {
-        type: 'MemberDetailCard',
-        props: result.data.member,
+        type: 'MemberCard',
+        data: {
+          member: result.data.member,
+        },
       },
     ];
   }

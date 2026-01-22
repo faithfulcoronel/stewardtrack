@@ -18,6 +18,9 @@ import {
   GetFinancialCategoriesTool,
   GetFinancialFundsTool,
   GetFinancialSourcesTool,
+  SearchFinancialTransactionsTool,
+  GetFinancialTransactionDetailsTool,
+  ManageFinancialTransactionTool,
 } from '../infrastructure/tools/plugins/finance';
 
 // Import member tools
@@ -28,6 +31,34 @@ import {
   GetMemberBirthdaysTool,
   GetMemberAnniversariesTool,
 } from '../infrastructure/tools/plugins/members';
+
+// Import family tools
+import {
+  SearchFamiliesTool,
+  GetFamilyDetailsTool,
+  ManageFamilyMembersTool,
+} from '../infrastructure/tools/plugins/families';
+
+// Import care plan tools
+import {
+  SearchCarePlansTool,
+  GetCarePlanDetailsTool,
+  ManageCarePlanTool,
+} from '../infrastructure/tools/plugins/careplans';
+
+// Import discipleship plan tools
+import {
+  SearchDiscipleshipPlansTool,
+  GetDiscipleshipPlanDetailsTool,
+  ManageDiscipleshipPlanTool,
+} from '../infrastructure/tools/plugins/discipleshipplans';
+
+// Import account tools
+import {
+  SearchAccountsTool,
+  GetAccountDetailsTool,
+  ManageAccountTool,
+} from '../infrastructure/tools/plugins/accounts';
 
 /**
  * Configure and register all tools for the AI Assistant
@@ -60,8 +91,11 @@ export async function configureTools(): Promise<ToolRegistry> {
   registry.register(new GetFinancialFundsTool());
   registry.register(new GetFinancialSourcesTool());
 
-  // Transaction creation tool (no dependencies required - uses container internally)
+  // Transaction tools (using GraphQL)
+  registry.register(new SearchFinancialTransactionsTool());
+  registry.register(new GetFinancialTransactionDetailsTool());
   registry.register(new CreateFinancialTransactionTool());
+  registry.register(new ManageFinancialTransactionTool());
 
   // ============================================================================
   // MEMBER TOOLS
@@ -74,6 +108,46 @@ export async function configureTools(): Promise<ToolRegistry> {
   registry.register(new SearchMembersTool());
   registry.register(new GetMemberBirthdaysTool());
   registry.register(new GetMemberAnniversariesTool());
+
+  // ============================================================================
+  // FAMILY TOOLS
+  // ============================================================================
+  console.log('👨‍👩‍👧‍👦 Registering family tools...');
+
+  // Family information and management tools (no dependencies required)
+  registry.register(new SearchFamiliesTool());
+  registry.register(new GetFamilyDetailsTool());
+  registry.register(new ManageFamilyMembersTool());
+
+  // ============================================================================
+  // CARE PLAN TOOLS
+  // ============================================================================
+  console.log('💙 Registering care plan tools...');
+
+  // Care plan information and management tools (no dependencies required)
+  registry.register(new SearchCarePlansTool());
+  registry.register(new GetCarePlanDetailsTool());
+  registry.register(new ManageCarePlanTool());
+
+  // ============================================================================
+  // DISCIPLESHIP PLAN TOOLS
+  // ============================================================================
+  console.log('✝️ Registering discipleship plan tools...');
+
+  // Discipleship plan information and management tools (no dependencies required)
+  registry.register(new SearchDiscipleshipPlansTool());
+  registry.register(new GetDiscipleshipPlanDetailsTool());
+  registry.register(new ManageDiscipleshipPlanTool());
+
+  // ============================================================================
+  // ACCOUNT TOOLS
+  // ============================================================================
+  console.log('💼 Registering account tools...');
+
+  // Account information and management tools (no dependencies required)
+  registry.register(new SearchAccountsTool());
+  registry.register(new GetAccountDetailsTool());
+  registry.register(new ManageAccountTool());
 
   // ============================================================================
   // TODO: Add more tool categories here

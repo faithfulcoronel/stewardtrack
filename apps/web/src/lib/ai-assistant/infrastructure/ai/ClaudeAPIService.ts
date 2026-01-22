@@ -22,9 +22,9 @@ import type { ToolDefinition } from '../../core/interfaces/ITool';
 
 /**
  * Default model to use for Claude API
- * Currently using Claude 3.5 Sonnet for best performance
+ * Currently using Claude Sonnet 4 (latest version)
  */
-const DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
+const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 
 /**
  * Default max tokens for responses

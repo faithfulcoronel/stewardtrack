@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+NOTEBOOK DETAIL PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the notebook detail page that displays a specific
+notebook's sections, pages, and activity. Users can navigate through the
+hierarchical structure, view recent changes, and manage content.
+
+FEATURE: Notebook Detail View
+- Notebook header with metadata and actions
+- Hierarchical section/page navigation
+- Recent activity timeline
+- Quick actions for adding sections and pages
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/notebooks/[id]"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="notebooks.core"
+  requiredPermissions="notebooks:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-notebooks-detail">
+    <Title>Notebook Details</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Notebook header with metadata
+        -->
+        <Component id="notebook-detail-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">detail</Prop>
+            <Prop name="eyebrow" kind="binding" contract="notebookDetailHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="notebookDetailHero.headline"/>
+            <Prop name="description" kind="binding" contract="notebookDetailHero.description"/>
+            <Prop name="metadata" kind="binding" contract="notebookDetailHero.metadata"/>
+            <Prop name="actions" kind="binding" contract="notebookDetailHero.actions"/>
+          </Props>
+        </Component>
+
+        <!--
+        SECTIONS AND PAGES: Hierarchical navigation tree
+        OneNote-style collapsible sections with pages
+        -->
+        <Component id="notebook-sections" type="NotebookSectionTree">
+          <Props>
+            <Prop name="title" kind="static">Sections &amp; Pages</Prop>
+            <Prop name="description" kind="static">Navigate through notebook sections and pages.</Prop>
+            <Prop name="sections" kind="binding" contract="notebookSections.items"/>
+            <Prop name="emptyState" kind="binding" contract="notebookSections.emptyState"/>
+            <Prop name="allowCollapse" kind="static">true</Prop>
+            <Prop name="showPageCount" kind="static">true</Prop>
+            <Prop name="enableReorder" kind="static">true</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        RECENT ACTIVITY: Activity timeline
+        -->
+        <Component id="notebook-activity" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent activity</Prop>
+            <Prop name="description" kind="static">Latest changes and actions in this notebook.</Prop>
+            <Prop name="events" kind="binding" contract="notebookActivity.items"/>
+            <Prop name="limit" kind="static">20</Prop>
+            <Prop name="showTimestamp" kind="static">true</Prop>
+          </Props>
+        </Component>
+      </Region>
+
+      <!--
+      SIDEBAR: Quick actions and notebook info
+      -->
+      <Region id="sidebar">
+        <Component id="notebook-actions" type="QuickActionsPanel">
+          <Props>
+            <Prop name="title" kind="static">Quick actions</Prop>
+            <Prop name="actions" kind="static">
+              [
+                {
+                  "id": "add-section",
+                  "label": "Add section",
+                  "icon": "folder-plus",
+                  "href": "/admin/community/planning/notebooks/{notebookId}/sections/create"
+                },
+                {
+                  "id": "add-page",
+                  "label": "Add page",
+                  "icon": "file-plus",
+                  "href": "/admin/community/planning/notebooks/{notebookId}/pages/create"
+                },
+                {
+                  "id": "share",
+                  "label": "Share notebook",
+                  "icon": "share",
+                  "href": "/admin/community/planning/notebooks/{notebookId}/share"
+                },
+                {
+                  "id": "settings",
+                  "label": "Settings",
+                  "icon": "settings",
+                  "href": "/admin/community/planning/notebooks/{notebookId}/settings"
+                }
+              ]
+            </Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="notebookDetailHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Breadcrumb/module text"/>
+          <Field name="headline" path="headline" description="Notebook title"/>
+          <Field name="description" path="description" description="Notebook description"/>
+          <Field name="metadata" path="metadata" description="Notebook metadata (visibility, dates, etc.)"/>
+          <Field name="actions" path="actions" description="Available actions"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.detail.hero</Handler>
+          <Params>
+            <Param name="notebookId" source="route" key="id"/>
+          </Params>
+        </Config>
+      </DataSource>
+
+      <!-- Sections and pages data -->
+      <DataSource id="notebookSections" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Section tree with pages"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.detail.sections</Handler>
+          <Params>
+            <Param name="notebookId" source="route" key="id"/>
+          </Params>
+        </Config>
+      </DataSource>
+
+      <!-- Activity timeline data -->
+      <DataSource id="notebookActivity" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Activity log entries"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.detail.activity</Handler>
+          <Params>
+            <Param name="notebookId" source="route" key="id"/>
+          </Params>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <!-- Edit notebook -->
+      <Action id="edit-notebook" kind="link">
+        <RBAC requirePermissions="notebooks:edit"/>
+        <Config>
+          <Label>Edit notebook</Label>
+          <Url>/admin/community/planning/notebooks/{notebookId}/edit</Url>
+          <Variant>secondary</Variant>
+          <Icon>edit</Icon>
+        </Config>
+      </Action>
+
+      <!-- Add section -->
+      <Action id="add-section" kind="link">
+        <RBAC requirePermissions="notebooks:edit"/>
+        <Config>
+          <Label>Add section</Label>
+          <Url>/admin/community/planning/notebooks/{notebookId}/sections/create</Url>
+          <Variant>primary</Variant>
+          <Icon>folder-plus</Icon>
+        </Config>
+      </Action>
+
+      <!-- Delete notebook -->
+      <Action id="delete-notebook" kind="confirm">
+        <RBAC requirePermissions="notebooks:delete"/>
+        <Config>
+          <Label>Delete notebook</Label>
+          <Variant>danger</Variant>
+          <Icon>trash</Icon>
+          <ConfirmTitle>Delete notebook?</ConfirmTitle>
+          <ConfirmMessage>This will permanently delete this notebook and all its sections and pages. This action cannot be undone.</ConfirmMessage>
+          <ConfirmButton>Delete notebook</ConfirmButton>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

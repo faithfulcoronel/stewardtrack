@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+NOTEBOOKS PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the notebooks page that allows churches to organize
+their ministry notes, documentation, and meeting minutes in a OneNote-style
+hierarchical structure with sections and pages.
+
+FEATURE: Notebooks (OneNote-style)
+- Dashboard with notebook statistics and recent activity
+- Notebook list with filtering by visibility, status, and ownership
+- Visual card display and table view
+- Privacy controls: private, shared, or tenant-wide visibility
+- Quick actions for creating notebooks and accessing favorites
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/notebooks"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="notebooks.core"
+  requiredPermissions="notebooks:view"
+  locale="en-US">
+
+  <Page id="admin-community-planning-notebooks">
+    <Title>Notebooks</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="notebooks-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="notebooksHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="notebooksHero.headline"/>
+            <Prop name="description" kind="binding" contract="notebooksHero.description"/>
+            <Prop name="highlights" kind="binding" contract="notebooksHero.highlights"/>
+            <Prop name="metrics" kind="binding" contract="notebooksHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-notebook"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-favorites"/>
+          </Props>
+        </Component>
+
+        <!--
+        KPI METRICS: Notebook usage statistics
+        -->
+        <Component id="notebooks-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Notebook overview</Prop>
+            <Prop name="description" kind="static">Track notebook activity and engagement across your organization.</Prop>
+            <Prop name="metrics" kind="binding" contract="notebooksMetrics.items"/>
+            <Prop name="footnote" kind="static">Statistics updated in real-time as notebooks are created and edited.</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        QUICK LINKS: Navigation to notebooks features
+        -->
+        <Component id="notebooks-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Quick access</Prop>
+            <Prop name="description" kind="static">Jump to frequently used notebooks and views.</Prop>
+            <Prop name="columns" kind="static">4</Prop>
+            <Prop name="links" kind="binding" contract="notebooksQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="notebooksQuickLinks.actions"/>
+          </Props>
+        </Component>
+
+        <!--
+        NOTEBOOK CARDS: Visual card-based display of notebooks
+        Mobile-first design with color coding and pin indicators
+        -->
+        <Component id="notebooks-cards" type="NotebookCard">
+          <Props>
+            <Prop name="notebooks" kind="binding" contract="notebooksCards.items"/>
+            <Prop name="layout" kind="binding" contract="notebooksCards.layout"/>
+            <Prop name="columns" kind="binding" contract="notebooksCards.columns"/>
+            <Prop name="showVisibility" kind="static">true</Prop>
+            <Prop name="showMetrics" kind="static">true</Prop>
+            <Prop name="baseUrl" kind="static">/admin/community/planning/notebooks</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        NOTEBOOKS TABLE: Data grid for detailed list view (alternative to cards)
+        -->
+        <Component id="notebooks-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">All notebooks</Prop>
+            <Prop name="description" kind="static">Comprehensive list of notebooks with detailed information.</Prop>
+            <Prop name="rows" kind="binding" contract="notebooksTable.rows"/>
+            <Prop name="columns" kind="binding" contract="notebooksTable.columns"/>
+            <Prop name="totalCount" kind="binding" contract="notebooksTable.totalCount"/>
+            <Prop name="emptyState" kind="binding" contract="notebooksTable.emptyState"/>
+            <Prop name="sortable" kind="static">true</Prop>
+            <Prop name="filterable" kind="static">true</Prop>
+            <Prop name="searchable" kind="static">true</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="notebooksHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Notebooks module eyebrow text"/>
+          <Field name="headline" path="headline" description="Notebooks headline"/>
+          <Field name="description" path="description" description="Notebooks description"/>
+          <Field name="highlights" path="highlights" description="Feature highlights"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- KPI metrics -->
+      <DataSource id="notebooksMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Notebook usage metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.metrics</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Quick links -->
+      <DataSource id="notebooksQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.quicklinks</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Notebook cards -->
+      <DataSource id="notebooksCards" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Notebook cards for visual display"/>
+          <Field name="layout" path="layout" description="Card layout style"/>
+          <Field name="columns" path="columns" description="Number of columns"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.cards</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Notebooks table -->
+      <DataSource id="notebooksTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Notebook table rows"/>
+          <Field name="columns" path="columns" description="Table column definitions"/>
+          <Field name="totalCount" path="totalCount" description="Total notebook count"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <!-- Primary action: Create new notebook -->
+      <Action id="create-notebook" kind="link">
+        <RBAC requirePermissions="notebooks:create"/>
+        <Config>
+          <Label>Create notebook</Label>
+          <Url>/admin/community/planning/notebooks/create</Url>
+          <Variant>primary</Variant>
+          <Icon>plus</Icon>
+        </Config>
+      </Action>
+
+      <!-- Secondary action: View favorites -->
+      <Action id="view-favorites" kind="link">
+        <Config>
+          <Label>Favorites</Label>
+          <Url>/admin/community/planning/notebooks/favorites</Url>
+          <Variant>secondary</Variant>
+          <Icon>star</Icon>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
