@@ -53,6 +53,7 @@ import { adminCommunityGoalsHandlers } from './admin-community-goals';
 import { adminCommunitySchedulerHandlers } from './admin-community-scheduler';
 import { adminCommunityAccountsHandlers } from './admin-community-accounts';
 import { adminCommunityNotebooksHandlers } from './admin-community-notebooks';
+import { adminCommunityReportsHandlers } from './admin-community-reports';
 
 type MemberDirectoryRecord = DirectoryMember & {
   id?: string;
@@ -1207,7 +1208,7 @@ async function resolveMembersListSegments(
 async function resolveMembersTable(
   request: ServiceDataSourceRequest
 ): Promise<MembersTableStaticConfig & { rows: unknown[] }> {
-  const base = cloneBaseConfig(request.config.value);
+  const base = cloneBaseConfig(request.config?.value);
   enhanceMembersTableColumns(base);
   // No limit - fetch all members; client-side pagination handles display
   const service = createMembersDashboardService();
@@ -1741,10 +1742,10 @@ async function buildMemberProfileRecord(
 async function resolveMemberProfile(
   request: ServiceDataSourceRequest
 ): Promise<{ records: MemberProfileRecord[]; notFound?: boolean }> {
-  const fallback = cloneMemberRecords(request.config.value);
+  const fallback = cloneMemberRecords(request.config?.value);
   try {
-    const memberId = firstParam(request.params.memberId);
-    const limit = toNumber(request.config.limit, memberId ? 1 : 5);
+    const memberId = firstParam(request.params?.memberId);
+    const limit = toNumber(request.config?.limit, memberId ? 1 : 5);
     const timelineLimit = toNumber((request.config as { timelineLimit?: unknown }).timelineLimit, 10);
     const service = createMemberProfileService();
     const members = await service.getMembers({ memberId, limit });
@@ -1765,7 +1766,7 @@ async function resolveMemberProfile(
   } catch (error) {
     console.error('Failed to resolve member profile data source', error);
     // On error with a specific memberId, indicate not found rather than showing fallback
-    const memberId = firstParam(request.params.memberId);
+    const memberId = firstParam(request.params?.memberId);
     if (memberId) {
       return { records: [], notFound: true };
     }
@@ -1779,7 +1780,7 @@ async function resolveMemberProfile(
 async function resolveMembershipLookups(
   request: ServiceDataSourceRequest
 ): Promise<{ lookups: LookupGroups }> {
-  const fallback = cloneLookupGroups(request.config.value);
+  const fallback = cloneLookupGroups(request.config?.value);
   try {
     const lookups = await fetchMembershipLookupGroups(request);
     if (Object.keys(lookups).length > 0) {
@@ -1826,12 +1827,12 @@ async function resolveMembershipManage(
   familyOptions: FamilyOptionRecord[];
   familyMemberships: FamilyMembershipRecord[];
 }> {
-  const fallback = cloneManageRecords(request.config.value);
+  const fallback = cloneManageRecords(request.config?.value);
   const emptyResult = { records: [], familyOptions: [], familyMemberships: [] };
 
   try {
-    const memberId = firstParam(request.params.memberId);
-    const limit = toNumber(request.config.limit, memberId ? 1 : 5);
+    const memberId = firstParam(request.params?.memberId);
+    const limit = toNumber(request.config?.limit, memberId ? 1 : 5);
     const service = createMemberProfileService();
     const members = await service.getMembers({ memberId, limit });
 
@@ -1943,4 +1944,5 @@ export const adminCommunityHandlers: Record<string, ServiceDataSourceHandler> = 
   ...adminCommunitySchedulerHandlers,
   ...adminCommunityAccountsHandlers,
   ...adminCommunityNotebooksHandlers,
+  ...adminCommunityReportsHandlers,
 };

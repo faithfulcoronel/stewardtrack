@@ -44,6 +44,7 @@ import { MemberService } from '@/services/MemberService';
 import { MembershipTypeService } from '@/services/MembershipTypeService';
 import { MembershipStageService } from '@/services/MembershipStageService';
 import { MemberProfileService } from '@/services/MemberProfileService';
+import { MemberReportsService } from '@/services/MemberReportsService';
 import { RolePermissionService } from '@/services/RolePermissionService';
 import { FeatureOnboardingOrchestratorService } from '@/services/FeatureOnboardingOrchestratorService';
 
@@ -239,6 +240,7 @@ import { DiscipleshipPathwayAdapter, type IDiscipleshipPathwayAdapter } from '@/
 import { MemberDiscipleshipMilestoneAdapter, type IMemberDiscipleshipMilestoneAdapter } from '@/adapters/memberDiscipleshipMilestone.adapter';
 import { MembersDashboardAdapter, type IMembersDashboardAdapter } from '@/adapters/membersDashboard.adapter';
 import { MemberProfileAdapter, type IMemberProfileAdapter } from '@/adapters/memberProfile.adapter';
+import { MemberReportsAdapter, type IMemberReportsAdapter } from '@/adapters/memberReports.adapter';
 import { UserAdapter } from '@/adapters/user.adapter';
 import { MemberInvitationAdapter, type IMemberInvitationAdapter } from '@/adapters/memberInvitation.adapter';
 import { OnboardingProgressAdapter, type IOnboardingProgressAdapter } from '@/adapters/onboardingProgress.adapter';
@@ -257,6 +259,7 @@ import { DiscipleshipPathwayRepository, type IDiscipleshipPathwayRepository } fr
 import { MemberDiscipleshipMilestoneRepository, type IMemberDiscipleshipMilestoneRepository } from '@/repositories/memberDiscipleshipMilestone.repository';
 import { MembersDashboardRepository, type IMembersDashboardRepository } from '@/repositories/membersDashboard.repository';
 import { MemberProfileRepository, type IMemberProfileRepository } from '@/repositories/memberProfile.repository';
+import { MemberReportsRepository, type IMemberReportsRepository } from '@/repositories/memberReports.repository';
 import { AuthRepository } from '@/repositories/auth.repository';
 import { TenantRepository } from '@/repositories/tenant.repository';
 import { OnboardingProgressRepository, type IOnboardingProgressRepository } from '@/repositories/onboardingProgress.repository';
@@ -754,6 +757,11 @@ container.bind<MembersDashboardService>(TYPES.MembersDashboardService).to(Member
 container.bind<IMemberProfileAdapter>(TYPES.IMemberProfileAdapter).to(MemberProfileAdapter).inRequestScope();
 container.bind<IMemberProfileRepository>(TYPES.IMemberProfileRepository).to(MemberProfileRepository).inRequestScope();
 container.bind<MemberProfileService>(TYPES.MemberProfileService).to(MemberProfileService).inRequestScope();
+
+// ==================== MEMBER REPORTS ====================
+container.bind<IMemberReportsAdapter>(TYPES.IMemberReportsAdapter).to(MemberReportsAdapter).inRequestScope();
+container.bind<IMemberReportsRepository>(TYPES.IMemberReportsRepository).to(MemberReportsRepository).inRequestScope();
+container.bind<MemberReportsService>(TYPES.MemberReportsService).to(MemberReportsService).inRequestScope();
 
 // ==================== MEMBER INVITATION ====================
 container.bind<IMemberInvitationAdapter>(TYPES.IMemberInvitationAdapter).to(MemberInvitationAdapter).inRequestScope();

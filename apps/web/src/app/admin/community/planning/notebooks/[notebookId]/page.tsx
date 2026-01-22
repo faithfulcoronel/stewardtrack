@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 export default async function NotebookDetailPage({ params, searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["notebooks:view"], "any", {
+  const gate = Gate.withPermission(["members:view"], "any", {
     fallbackPath: "/unauthorized?reason=notebooks_access",
   });
 

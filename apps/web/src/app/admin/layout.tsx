@@ -15,8 +15,8 @@ import type { MemberService } from "@/services/MemberService";
 import type { MembershipTypeService } from "@/services/MembershipTypeService";
 import type { MembershipStageService } from "@/services/MembershipStageService";
 
-// PERFORMANCE: Removed force-dynamic to allow Next.js caching where possible
-// User-specific data is still dynamic, but static menu structure can be cached
+// Force dynamic rendering for all admin routes since authentication requires cookies
+export const dynamic = 'force-dynamic';
 
 // Static menu configuration (fallback)
 const NAV_SECTIONS: AdminNavSection[] = [
@@ -32,6 +32,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     label: "Community",
     items: [
       { title: "Dashboard", href: "/admin/members", icon: "dashboard" },
+      { title: "Reports", href: "/admin/community/reports", icon: "reports" },
       { title: "Families", href: "/admin/community/families", icon: "families" },
       { title: "Care Plans", href: "/admin/community/care-plans", icon: "carePlans" },
       { title: "Discipleship Plans", href: "/admin/community/discipleship-plans", icon: "discipleship" },
@@ -382,7 +383,7 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   },
   '/admin/community/planning/notebooks': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer'],
-    permission: 'notebooks:view',
+    permission: 'members:view',
   },
 
   // Accounts

@@ -24,8 +24,8 @@ FEATURE: Notebooks (OneNote-style)
   route="planning/notebooks"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="notebooks.core"
-  requiredPermissions="notebooks:view"
+  featureCode="members.core"
+  requiredPermissions="members:view"
   locale="en-US">
 
   <Page id="admin-community-planning-notebooks">
