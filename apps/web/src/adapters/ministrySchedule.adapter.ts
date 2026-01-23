@@ -283,27 +283,97 @@ export class MinistryScheduleAdapter
   }
 
   async softDelete(id: string, tenantId: string): Promise<void> {
+    console.log(`[MinistryScheduleAdapter.softDelete] Starting soft delete for schedule: ${id}, tenant: ${tenantId}`);
+
     const supabase = await this.getSupabaseClient();
 
-    const { data, error } = await supabase
+    // Check auth context
+    const { data: authData } = await supabase.auth.getUser();
+    console.log(`[MinistryScheduleAdapter.softDelete] Auth user ID: ${authData?.user?.id ?? 'NULL'}`);
+
+    // First verify the record exists and belongs to this tenant
+    console.log(`[MinistryScheduleAdapter.softDelete] Step 1: Verifying record exists...`);
+    const { data: existingRecord, error: fetchError } = await supabase
+      .from(this.tableName)
+      .select('id, deleted_at, tenant_id')
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    console.log(`[MinistryScheduleAdapter.softDelete] Fetch result:`, {
+      existingRecord,
+      fetchError: fetchError?.message ?? null,
+    });
+
+    if (fetchError) {
+      console.error(`[MinistryScheduleAdapter.softDelete] Fetch error:`, fetchError);
+      throw new Error(`Failed to verify schedule: ${fetchError.message}`);
+    }
+
+    if (!existingRecord) {
+      console.error(`[MinistryScheduleAdapter.softDelete] Record not found for id: ${id}, tenant: ${tenantId}`);
+      throw new Error('Schedule not found or not authorized');
+    }
+
+    if (existingRecord.deleted_at) {
+      console.log(`[MinistryScheduleAdapter.softDelete] Record already deleted at: ${existingRecord.deleted_at}`);
+      return;
+    }
+
+    // Perform the soft delete
+    const deletedAt = new Date().toISOString();
+    console.log(`[MinistryScheduleAdapter.softDelete] Step 2: Performing soft delete with deleted_at: ${deletedAt}`);
+
+    const { data: updateData, error: updateError, count } = await supabase
       .from(this.tableName)
       .update({
-        deleted_at: new Date().toISOString(),
+        deleted_at: deletedAt,
         is_active: false,
       })
       .eq('id', id)
       .eq('tenant_id', tenantId)
-      .select('id')
-      .single();
+      .is('deleted_at', null)
+      .select('id, deleted_at');
 
-    if (error) {
-      throw new Error(`Failed to delete schedule: ${error.message}`);
+    console.log(`[MinistryScheduleAdapter.softDelete] Update result:`, {
+      updateData,
+      updateError: updateError?.message ?? null,
+      count,
+    });
+
+    if (updateError) {
+      console.error(`[MinistryScheduleAdapter.softDelete] Update error:`, updateError);
+      throw new Error(`Failed to delete schedule: ${updateError.message}`);
     }
 
-    if (!data) {
-      throw new Error('Failed to delete schedule: record not found or not authorized');
+    // Verify the soft delete actually happened
+    console.log(`[MinistryScheduleAdapter.softDelete] Step 3: Verifying deletion...`);
+    const { data: verifyRecord, error: verifyError } = await supabase
+      .from(this.tableName)
+      .select('id, deleted_at, is_active')
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    console.log(`[MinistryScheduleAdapter.softDelete] Verify result:`, {
+      verifyRecord,
+      verifyError: verifyError?.message ?? null,
+    });
+
+    if (verifyError) {
+      console.error(`[MinistryScheduleAdapter.softDelete] Verify error:`, verifyError);
+      throw new Error(`Failed to verify schedule deletion: ${verifyError.message}`);
     }
 
+    if (!verifyRecord?.deleted_at) {
+      console.error(`[MinistryScheduleAdapter.softDelete] DELETION FAILED - deleted_at is still null!`, {
+        verifyRecord,
+        expectedDeletedAt: deletedAt,
+      });
+      throw new Error('Schedule deletion failed - record was not updated. This may be a permissions issue.');
+    }
+
+    console.log(`[MinistryScheduleAdapter.softDelete] SUCCESS - Schedule ${id} soft deleted`);
     await this.auditService.logAuditEvent('delete', 'ministry_schedules', id, { id });
   }
 }

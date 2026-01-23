@@ -106,6 +106,7 @@ const handleMinistrySave: MetadataActionHandler = async (
 
 /**
  * Action handler for deleting ministries
+ * Supports both `id` (from row actions) and `ministryId` (from profile pages)
  */
 const handleMinistryDelete: MetadataActionHandler = async (
   execution: MetadataActionExecution
@@ -117,7 +118,8 @@ const handleMinistryDelete: MetadataActionHandler = async (
       return { success: false, message: "No tenant context available" };
     }
 
-    const ministryId = execution.context.params?.ministryId as string;
+    // Support both 'id' (from row actions) and 'ministryId' (from profile pages)
+    const ministryId = (execution.context.params?.id ?? execution.context.params?.ministryId) as string;
     if (!ministryId) {
       return { success: false, message: "Ministry ID is required" };
     }
@@ -128,7 +130,6 @@ const handleMinistryDelete: MetadataActionHandler = async (
     return {
       success: true,
       message: "Ministry deleted successfully",
-      redirectUrl: "/admin/community/planning/scheduler/ministries",
     };
   } catch (error) {
     console.error("[scheduler action] Ministry delete failed:", error);
@@ -240,6 +241,7 @@ const handleScheduleSave: MetadataActionHandler = async (
 
 /**
  * Action handler for deleting schedules
+ * Supports both `id` (from row actions) and `scheduleId` (from profile pages)
  */
 const handleScheduleDelete: MetadataActionHandler = async (
   execution: MetadataActionExecution
@@ -251,7 +253,8 @@ const handleScheduleDelete: MetadataActionHandler = async (
       return { success: false, message: "No tenant context available" };
     }
 
-    const scheduleId = execution.context.params?.scheduleId as string;
+    // Support both 'id' (from row actions) and 'scheduleId' (from profile pages)
+    const scheduleId = (execution.context.params?.id ?? execution.context.params?.scheduleId) as string;
     if (!scheduleId) {
       return { success: false, message: "Schedule ID is required" };
     }
@@ -262,7 +265,6 @@ const handleScheduleDelete: MetadataActionHandler = async (
     return {
       success: true,
       message: "Schedule deleted successfully",
-      redirectUrl: "/admin/community/planning/scheduler/schedules",
     };
   } catch (error) {
     console.error("[scheduler action] Schedule delete failed:", error);

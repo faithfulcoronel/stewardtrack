@@ -70,10 +70,14 @@ interface DeleteConfirmState {
 }
 
 export interface GridColumnConfig {
-  field: string;
+  field?: string;
+  /** Alias for field - used by some service handlers */
+  key?: string;
   headerName?: string | null;
+  /** Alias for headerName - used by some service handlers */
+  label?: string | null;
   type?: "text" | "badge" | "currency" | "date" | "chip-list" | "actions" | "link" | null;
-  width?: number | null;
+  width?: number | string | null;
   minWidth?: number | null;
   flex?: number | null;
   badgeVariantField?: string | null;
@@ -88,6 +92,20 @@ export interface GridColumnConfig {
   dateFormat?: Intl.DateTimeFormatOptions | null;
   align?: "left" | "center" | "right" | null;
   hideOnMobile?: boolean | null;
+}
+
+/** Normalized column with required field property */
+interface NormalizedGridColumnConfig extends GridColumnConfig {
+  field: string;
+}
+
+/** Normalize column config to ensure field is set (handles key/label aliases) */
+function normalizeColumn(column: GridColumnConfig): NormalizedGridColumnConfig {
+  return {
+    ...column,
+    field: column.field || column.key || '',
+    headerName: column.headerName || column.label || undefined,
+  };
 }
 
 export interface GridFilterOption {
@@ -133,7 +151,7 @@ const actionIntentIcons: Record<string, React.ReactNode> = {
 
 export function AdminDataGridSection(props: AdminDataGridSectionProps) {
   const columns = React.useMemo(
-    () => normalizeList<GridColumnConfig>(props.columns),
+    () => normalizeList<GridColumnConfig>(props.columns).map(normalizeColumn),
     [props.columns]
   );
   const filters = React.useMemo(
@@ -282,6 +300,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           body: JSON.stringify({
             action: {
               id: action.handler,
+            },
+            context: {
               params: { id: rowId },
             },
           }),
@@ -323,6 +343,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
       const style: React.CSSProperties = {};
       if (typeof column.width === "number") {
         style.width = `${column.width}px`;
+      } else if (typeof column.width === "string") {
+        style.width = column.width;
       }
       if (typeof column.minWidth === "number") {
         style.minWidth = `${column.minWidth}px`;
@@ -850,7 +872,8 @@ function RowActions({
   );
 }
 
-function startCase(value: string): string {
+function startCase(value: string | undefined): string {
+  if (!value) return '';
   return value
     .replace(/[-_]/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -859,7 +882,8 @@ function startCase(value: string): string {
     .replace(/^\w/, (match) => match.toUpperCase());
 }
 
-function resolveValue(source: GridValue, path: string): unknown {
+function resolveValue(source: GridValue, path: string | undefined): unknown {
+  if (!path) return undefined;
   if (!path.includes(".")) {
     return source[path];
   }
@@ -940,8 +964,11 @@ function getComparableValue(value: unknown): string | number | null {
   if (value instanceof Date) {
     return value.getTime();
   }
-  if (typeof value === "number" || typeof value === "boolean") {
+  if (typeof value === "number") {
     return value;
+  }
+  if (typeof value === "boolean") {
+    return value ? 1 : 0;
   }
   return String(value).toLowerCase();
 }

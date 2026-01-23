@@ -126,11 +126,15 @@ export class SchedulerService implements ISchedulerService {
   }
 
   async deleteSchedule(id: string, tenantId?: string): Promise<void> {
+    console.log(`[SchedulerService.deleteSchedule] Called with id: ${id}, tenantId: ${tenantId ?? 'undefined'}`);
+
     const effectiveTenantId = await this.resolveTenantId(tenantId);
+    console.log(`[SchedulerService.deleteSchedule] Resolved tenantId: ${effectiveTenantId}`);
 
     // First, get all occurrences for this schedule and delete their calendar events
     try {
       const occurrences = await this.occurrenceRepository.getBySchedule(id, effectiveTenantId);
+      console.log(`[SchedulerService.deleteSchedule] Found ${occurrences.length} occurrences to clean up`);
       for (const occurrence of occurrences) {
         try {
           await this.calendarEventRepository.deleteBySource('schedule_occurrence', occurrence.id);
@@ -142,7 +146,9 @@ export class SchedulerService implements ISchedulerService {
       console.error(`[SchedulerService] Failed to delete calendar events for schedule:`, error);
     }
 
-    return await this.scheduleRepository.softDelete(id, effectiveTenantId);
+    console.log(`[SchedulerService.deleteSchedule] Calling scheduleRepository.softDelete...`);
+    await this.scheduleRepository.softDelete(id, effectiveTenantId);
+    console.log(`[SchedulerService.deleteSchedule] softDelete completed for schedule: ${id}`);
   }
 
   // ==================== Occurrence Generation ====================

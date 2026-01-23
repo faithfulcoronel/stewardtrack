@@ -138,34 +138,11 @@ export class PlanningService {
     return this.categoryRepo.seedDefaultCategories();
   }
 
-  // ==================== SYNC OPERATIONS ====================
-
-  async syncAllSources(): Promise<{ carePlans: number; discipleshipPlans: number; birthdays: number; anniversaries: number; scheduleOccurrences: number }> {
-    const carePlans = await this.eventRepo.syncFromCarePlans();
-    const discipleshipPlans = await this.eventRepo.syncFromDiscipleshipPlans();
-    const birthdays = await this.eventRepo.syncFromMemberBirthdays();
-    const anniversaries = await this.eventRepo.syncFromMemberAnniversaries();
-    const scheduleOccurrences = await this.eventRepo.syncFromScheduleOccurrences();
-    return { carePlans, discipleshipPlans, birthdays, anniversaries, scheduleOccurrences };
-  }
-
-  async syncCarePlans(): Promise<number> {
-    return this.eventRepo.syncFromCarePlans();
-  }
-
-  async syncDiscipleshipPlans(): Promise<number> {
-    return this.eventRepo.syncFromDiscipleshipPlans();
-  }
-
-  async syncBirthdays(): Promise<number> {
-    return this.eventRepo.syncFromMemberBirthdays();
-  }
-
-  async syncAnniversaries(): Promise<number> {
-    return this.eventRepo.syncFromMemberAnniversaries();
-  }
-
   // ==================== SINGLE ITEM SYNC ====================
+  // Note: Bulk sync methods have been removed. All calendar events are now
+  // synced in real-time when their source entities are created, updated, or deleted.
+  // See: CarePlanService, DiscipleshipPlanService, MemberService, SchedulerService,
+  //      GoalService, and ObjectiveService for auto-sync implementations.
 
   /**
    * Sync a single care plan to the calendar (create or update)

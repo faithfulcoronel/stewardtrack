@@ -103,6 +103,7 @@ export interface PlanningCalendarProps {
   onEventClick?: (event: CalendarEvent) => void;
   onDateSelect?: (date: Date) => void;
   onCreateEvent?: () => void;
+  /** @deprecated Bulk sync has been removed. Events sync in real-time via source services. */
   onSync?: () => Promise<void>;
   onDateRangeChange?: (startDate: Date, endDate: Date) => void;
 }
@@ -571,7 +572,7 @@ export function PlanningCalendar({
   onEventClick,
   onDateSelect,
   onCreateEvent,
-  onSync,
+  onSync: _deprecatedOnSync, // Deprecated: bulk sync removed, events sync in real-time
   onDateRangeChange,
 }: PlanningCalendarProps) {
   const searchParams = useSearchParams();
@@ -602,7 +603,6 @@ export function PlanningCalendar({
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialView);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   // Self-contained data fetching
   const fetchCalendarData = useCallback(async (startDate: Date, endDate: Date) => {
@@ -644,69 +644,9 @@ export function PlanningCalendar({
     }
   }, [isSelfContained]);
 
-  // Self-contained sync handler
-  const handleSelfSync = useCallback(async () => {
-    try {
-      setIsSyncing(true);
-      const response = await fetch('/api/community/planning/sync', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to sync events');
-      }
-
-      // Refresh calendar data - clear range key to force refetch
-      currentRangeRef.current = '';
-
-      // Trigger refetch based on current view
-      let startDate: Date;
-      let endDate: Date;
-
-      if (viewMode === 'month') {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - startDate.getDay());
-        endDate = new Date(lastDay);
-        endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
-      } else if (viewMode === 'week') {
-        startDate = new Date(currentDate);
-        startDate.setDate(currentDate.getDate() - currentDate.getDay());
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 6);
-      } else if (viewMode === 'day') {
-        startDate = new Date(currentDate);
-        endDate = new Date(currentDate);
-      } else {
-        startDate = new Date();
-        endDate = new Date();
-        endDate.setDate(endDate.getDate() + 90);
-      }
-
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-
-      await fetchCalendarData(startDate, endDate);
-    } catch (error) {
-      console.error('Error syncing events:', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [viewMode, currentDate, fetchCalendarData]);
-
-  // Auto-sync on initial load for self-contained mode
-  const hasInitialSyncRef = React.useRef(false);
-  useEffect(() => {
-    if (isSelfContained && !hasInitialSyncRef.current) {
-      hasInitialSyncRef.current = true;
-      // Trigger sync on initial load to ensure events from care plans,
-      // discipleship plans, birthdays, and anniversaries are up-to-date
-      handleSelfSync();
-    }
-  }, [isSelfContained, handleSelfSync]);
+  // Note: The bulk sync functionality has been removed. Calendar events are now
+  // synced in real-time when their source entities are created, updated, or deleted.
+  // The calendar simply displays events that already exist in the calendar_events table.
 
   // Update URL when view mode changes
   const handleViewModeChange = useCallback((newView: ViewMode) => {
@@ -811,15 +751,7 @@ export function PlanningCalendar({
     setCurrentDate(new Date());
   }, []);
 
-  const handleSync = useCallback(async () => {
-    if (!onSync) return;
-    setIsSyncing(true);
-    try {
-      await onSync();
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [onSync]);
+  // Note: Sync functionality removed - events sync in real-time via source services
 
   const handleEventClick = useCallback(
     (event: CalendarEvent) => {
@@ -1005,17 +937,7 @@ export function PlanningCalendar({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Sync Button - show for both prop-based and self-contained mode */}
-          {(onSync || isSelfContained) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSync ? handleSync : handleSelfSync}
-              disabled={isSyncing}
-            >
-              {isSyncing ? 'Syncing...' : 'Sync'}
-            </Button>
-          )}
+          {/* Note: Sync button removed - events sync in real-time via source services */}
 
           {/* Create Event Button - show for both prop-based and self-contained mode */}
           {(onCreateEvent || isSelfContained) && (

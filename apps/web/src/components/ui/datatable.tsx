@@ -243,7 +243,7 @@ export function DataTable<TData>({
                         <SortIcon
                           direction={
                             sortState?.columnId === column.id
-                              ? sortState.direction
+                              ? sortState?.direction
                               : undefined
                           }
                         />

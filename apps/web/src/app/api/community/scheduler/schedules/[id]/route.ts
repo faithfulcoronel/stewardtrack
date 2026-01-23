@@ -75,22 +75,33 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * Delete (soft delete) a schedule
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  console.log(`[API DELETE /schedules/[id]] Request received`);
+
   try {
     const authService = container.get<AuthorizationService>(TYPES.AuthorizationService);
     const authResult = await authService.checkAuthentication();
+
+    console.log(`[API DELETE /schedules/[id]] Auth result:`, {
+      authorized: authResult.authorized,
+      userId: authResult.userId ?? 'undefined',
+    });
 
     if (!authResult.authorized) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
+    console.log(`[API DELETE /schedules/[id]] Schedule ID: ${id}`);
+
     const schedulerService = container.get<ISchedulerService>(TYPES.SchedulerService);
 
+    console.log(`[API DELETE /schedules/[id]] Calling schedulerService.deleteSchedule...`);
     await schedulerService.deleteSchedule(id);
+    console.log(`[API DELETE /schedules/[id]] deleteSchedule completed successfully`);
 
     return NextResponse.json({ success: true, message: 'Schedule deleted' });
   } catch (error) {
-    console.error('Error deleting schedule:', error);
+    console.error('[API DELETE /schedules/[id]] Error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to delete schedule' },
       { status: 500 }
