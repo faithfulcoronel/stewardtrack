@@ -102,8 +102,8 @@ export class NotebookAdapter
   /**
    * Get current user ID or throw if not available
    */
-  private async getCurrentUserId(): Promise<string> {
-    const userId = await this.getCurrentUserId();
+  private async getCurrentUserIdInternal(): Promise<string> {
+    const userId = await this.getUserId();
     if (!userId) {
       throw new Error('No authenticated user');
     }
@@ -215,7 +215,7 @@ export class NotebookAdapter
       .from(this.tableName)
       .select(`
         ${this.defaultSelect},
-        sections:notebook_sections(
+        sections:notebook_sections!notebook_sections_notebook_id_fkey(
           id,
           title,
           description,
@@ -224,7 +224,16 @@ export class NotebookAdapter
           sort_order,
           is_collapsed,
           created_at,
-          updated_at
+          updated_at,
+          pages:notebook_pages!notebook_pages_section_id_fkey(
+            id,
+            title,
+            content,
+            sort_order,
+            is_favorite,
+            created_at,
+            updated_at
+          )
         )
       `)
       .eq('id', notebookId)
@@ -236,7 +245,22 @@ export class NotebookAdapter
       throw new Error(`Failed to fetch notebook with sections: ${error.message}`);
     }
 
-    return data as unknown as Notebook | null;
+    if (!data) {
+      return null;
+    }
+
+    // Sort sections and pages by sort_order
+    const notebook = data as any;
+    if (notebook.sections) {
+      notebook.sections.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+      notebook.sections.forEach((section: any) => {
+        if (section.pages) {
+          section.pages.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+        }
+      });
+    }
+
+    return notebook as Notebook;
   }
 
   /**
@@ -244,7 +268,7 @@ export class NotebookAdapter
    */
   async createNotebook(input: NotebookCreateInput): Promise<Notebook> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const notebookData = {
@@ -275,7 +299,7 @@ export class NotebookAdapter
    */
   async updateNotebook(notebookId: string, input: NotebookUpdateInput): Promise<Notebook> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const updateData = {
@@ -375,7 +399,7 @@ export class NotebookAdapter
    */
   async createSection(input: NotebookSectionCreateInput): Promise<NotebookSection> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const sectionData = {
@@ -403,7 +427,7 @@ export class NotebookAdapter
    */
   async updateSection(sectionId: string, input: NotebookSectionUpdateInput): Promise<NotebookSection> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const updateData = {
@@ -569,7 +593,7 @@ export class NotebookAdapter
    */
   async createPage(input: NotebookPageCreateInput): Promise<NotebookPage> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const pageData = {
@@ -597,7 +621,7 @@ export class NotebookAdapter
    */
   async updatePage(pageId: string, input: NotebookPageUpdateInput): Promise<NotebookPage> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const updateData = {
@@ -699,7 +723,7 @@ export class NotebookAdapter
    */
   async createShare(input: NotebookShareCreateInput): Promise<NotebookShare> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     const shareData = {
@@ -822,7 +846,7 @@ export class NotebookAdapter
    */
   async getNotebookStats(): Promise<NotebookStats> {
     const tenantId = await this.getTenantId();
-    const userId = await this.getCurrentUserId();
+    const userId = await this.getCurrentUserIdInternal();
     const supabase = await this.getSupabaseClient();
 
     // Get notebook counts

@@ -103,7 +103,7 @@ export const resolveNotebooksQuickLinks: ServiceDataSourceHandler = async () => 
         id: 'create-notebook',
         title: 'Create Notebook',
         description: 'Start a new notebook to organize your notes and documentation.',
-        href: '/admin/community/planning/notebooks/create',
+        href: '/admin/community/planning/notebooks/manage',
         icon: '➕',
       },
       {
@@ -133,7 +133,7 @@ export const resolveNotebooksQuickLinks: ServiceDataSourceHandler = async () => 
         id: 'create',
         label: 'Create notebook',
         variant: 'primary',
-        href: '/admin/community/planning/notebooks/create',
+        href: '/admin/community/planning/notebooks/manage',
       },
     ],
   };
@@ -189,15 +189,9 @@ export const resolveNotebooksTable: ServiceDataSourceHandler = async (request) =
     }),
     actions: [
       {
-        id: 'view',
-        label: 'View',
-        href: `/admin/community/planning/notebooks/${notebook.id}`,
-        icon: '👁️',
-      },
-      {
         id: 'edit',
         label: 'Edit',
-        href: `/admin/community/planning/notebooks/${notebook.id}/edit`,
+        href: `/admin/community/planning/notebooks/manage?notebookId=${notebook.id}`,
         icon: '✏️',
       },
     ],
@@ -205,50 +199,50 @@ export const resolveNotebooksTable: ServiceDataSourceHandler = async (request) =
 
   const columns = [
     {
-      id: 'title',
-      label: 'Title',
+      field: 'title',
+      headerName: 'Title',
       type: 'text',
       sortable: true,
       width: 'flexible',
     },
     {
-      id: 'description',
-      label: 'Description',
+      field: 'description',
+      headerName: 'Description',
       type: 'text',
       sortable: false,
       width: 'flexible',
     },
     {
-      id: 'visibilityLabel',
-      label: 'Visibility',
+      field: 'visibilityLabel',
+      headerName: 'Visibility',
       type: 'badge',
       sortable: true,
       width: '120px',
     },
     {
-      id: 'sectionCount',
-      label: 'Sections',
+      field: 'sectionCount',
+      headerName: 'Sections',
       type: 'number',
       sortable: true,
       width: '100px',
     },
     {
-      id: 'pageCount',
-      label: 'Pages',
+      field: 'pageCount',
+      headerName: 'Pages',
       type: 'number',
       sortable: true,
       width: '100px',
     },
     {
-      id: 'updatedAt',
-      label: 'Last Updated',
+      field: 'updatedAt',
+      headerName: 'Last Updated',
       type: 'date',
       sortable: true,
       width: '150px',
     },
     {
-      id: 'actions',
-      label: 'Actions',
+      field: 'actions',
+      headerName: 'Actions',
       type: 'actions',
       sortable: false,
       width: '100px',
@@ -540,6 +534,158 @@ export const resolveNotebookPage: ServiceDataSourceHandler = async (request) => 
   };
 };
 
+// ==================== NOTEBOOK MANAGE PAGE HANDLERS ====================
+
+/**
+ * Resolves notebook form data for the manage page.
+ * Returns field definitions and initial values for create or edit mode.
+ */
+export const resolveNotebookManageForm: ServiceDataSourceHandler = async (request) => {
+  const notebookId = request?.params?.notebookId as string | undefined;
+
+  // Define form fields
+  const fields = [
+    {
+      name: 'title',
+      label: 'Title',
+      type: 'text',
+      required: true,
+      placeholder: 'e.g., Ministry Planning, Meeting Notes',
+      helperText: 'A clear, descriptive name for this notebook',
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      required: false,
+      placeholder: 'What will this notebook be used for?',
+      rows: 3,
+    },
+    {
+      name: 'visibility',
+      label: 'Visibility',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'private', label: 'Private - Only me' },
+        { value: 'shared', label: 'Shared - Specific users' },
+        { value: 'tenant', label: 'Tenant-wide - All staff' },
+      ],
+      helperText: 'Who can access this notebook',
+    },
+    {
+      name: 'color',
+      label: 'Color',
+      type: 'color',
+      required: false,
+      helperText: 'Visual identifier for this notebook',
+    },
+    {
+      name: 'icon',
+      label: 'Icon',
+      type: 'select',
+      required: false,
+      options: [
+        { value: 'book', label: '📚 Book' },
+        { value: 'notebook', label: '📓 Notebook' },
+        { value: 'clipboard', label: '📋 Clipboard' },
+        { value: 'folder', label: '📁 Folder' },
+        { value: 'briefcase', label: '💼 Briefcase' },
+      ],
+    },
+    {
+      name: 'tags',
+      label: 'Tags',
+      type: 'tags',
+      required: false,
+      placeholder: 'Add tags...',
+      helperText: 'Categorize with keywords (optional)',
+    },
+  ];
+
+  // Create mode - return empty initial values
+  if (!notebookId) {
+    return {
+      fields,
+      values: {
+        title: '',
+        description: '',
+        visibility: 'private',
+        color: '#4F46E5',
+        icon: 'book',
+        tags: [],
+      },
+    };
+  }
+
+  // Edit mode - fetch existing notebook and populate values
+  const notebookService = container.get<NotebookService>(TYPES.NotebookService);
+  const notebook = await notebookService.getNotebookById(notebookId);
+
+  if (!notebook) {
+    throw new Error('Notebook not found');
+  }
+
+  return {
+    fields,
+    values: {
+      title: notebook.title || '',
+      description: notebook.description || '',
+      visibility: notebook.visibility || 'private',
+      color: notebook.color || '#4F46E5',
+      icon: notebook.icon || 'book',
+      tags: notebook.tags || [],
+    },
+  };
+};
+
+/**
+ * Handles saving a notebook (create or update).
+ */
+export const resolveNotebookManageSave: ServiceDataSourceHandler = async (request) => {
+  const notebookService = container.get<NotebookService>(TYPES.NotebookService);
+  const formData = request?.params?.formData as any;
+  const notebookId = request?.params?.notebookId as string | undefined;
+
+  if (!formData) {
+    throw new Error('Form data is required');
+  }
+
+  if (notebookId) {
+    // Update existing notebook
+    await notebookService.updateNotebook(notebookId, {
+      title: formData.title,
+      description: formData.description,
+      visibility: formData.visibility,
+      color: formData.color,
+      icon: formData.icon,
+      tags: formData.tags,
+    });
+
+    return {
+      success: true,
+      message: 'Notebook updated successfully',
+      notebookId,
+    };
+  } else {
+    // Create new notebook
+    const newNotebook = await notebookService.createNotebook({
+      title: formData.title,
+      description: formData.description,
+      visibility: formData.visibility || 'private',
+      color: formData.color || '#4F46E5',
+      icon: formData.icon || 'book',
+      tags: formData.tags || [],
+    });
+
+    return {
+      success: true,
+      message: 'Notebook created successfully',
+      notebookId: newNotebook.id,
+    };
+  }
+};
+
 // ==================== HANDLER REGISTRY ====================
 
 /**
@@ -553,6 +699,9 @@ export const adminCommunityNotebooksHandlers: Record<string, ServiceDataSourceHa
   'admin-community.planning.notebooks.quicklinks': resolveNotebooksQuickLinks,
   'admin-community.planning.notebooks.table': resolveNotebooksTable,
   'admin-community.planning.notebooks.cards': resolveNotebooksCards,
+
+  // Manage page handlers (create/edit)
+  'admin-community.planning.notebooks.manage.form': resolveNotebookManageForm,
 
   // Detail page handlers
   'admin-community.planning.notebooks.detail.hero': resolveNotebookDetailHero,

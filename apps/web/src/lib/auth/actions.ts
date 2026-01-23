@@ -74,6 +74,7 @@ export async function signInWithPassword(
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
   const turnstileToken = formData.get("turnstileToken");
+  const remember = formData.get("remember") === "on"; // Checkbox value
 
   if (typeof email !== "string" || typeof password !== "string") {
     return { error: "Email and password are required." };
@@ -90,7 +91,7 @@ export async function signInWithPassword(
   }
 
   const authService = container.get<AuthService>(TYPES.AuthService);
-  const { data, error } = await authService.signIn(email, password);
+  const { data, error } = await authService.signIn(email, password, remember);
 
   if (error) {
     return { error: error.message };
