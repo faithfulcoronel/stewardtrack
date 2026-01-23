@@ -66,6 +66,11 @@ export async function getSubscriptionStatus(tenantId: string): Promise<Subscript
       isExpired = true;
     }
   }
+  else {
+    if(subscriptionStatus?.toLowerCase() !== 'trial') {
+      isExpired = true;
+    }
+  }
 
   // Subscription is active if:
   // 1. Status is active/paid/trial AND

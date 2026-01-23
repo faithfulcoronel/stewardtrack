@@ -105,6 +105,10 @@ export function useSubscriptionStatus(): {
       if (now > gracePeriodEndDate) {
         isExpired = true;
       }
+    } else {
+      if(subscription_status?.toLowerCase() !== 'trial') {
+        isExpired = true;
+      }
     }
 
     // Subscription is active if:
@@ -165,6 +169,7 @@ export function isSubscriptionExpired(
       return true;
     }
   }
+  // No billing date but status is active - not expired
 
   return false;
 }
