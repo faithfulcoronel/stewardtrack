@@ -129,7 +129,8 @@
       "Bash(docker exec:*)",
       "Bash(test:*)",
       "Bash(npm run:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(timeout 45 pnpm dev:web:*)"
     ],
     "deny": [],
     "ask": []
