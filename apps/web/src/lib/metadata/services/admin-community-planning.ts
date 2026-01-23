@@ -229,10 +229,10 @@ const handleSyncEvents: ServiceDataSourceHandler = async () => {
 
   try {
     const result = await planningService.syncAllSources();
-    const totalSynced = result.carePlans + result.discipleshipPlans + result.birthdays + result.anniversaries;
+    const totalSynced = result.carePlans + result.discipleshipPlans + result.birthdays + result.anniversaries + result.scheduleOccurrences;
     return {
       success: true,
-      message: `Synced ${totalSynced} events from care plans, discipleship plans, birthdays, and anniversaries.`,
+      message: `Synced ${totalSynced} events (${result.scheduleOccurrences} schedules, ${result.carePlans} care plans, ${result.discipleshipPlans} discipleship, ${result.birthdays} birthdays, ${result.anniversaries} anniversaries).`,
       synced: totalSynced,
     };
   } catch (error) {

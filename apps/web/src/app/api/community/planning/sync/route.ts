@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     // Sync from all sources
     const result = await planningService.syncAllSources();
 
+    const totalSynced = result.carePlans + result.discipleshipPlans + result.birthdays + result.anniversaries + result.scheduleOccurrences;
     return NextResponse.json({
       success: true,
       synced: result,
-      message: `Synced ${result.carePlans} care plans, ${result.discipleshipPlans} discipleship plans, ${result.birthdays} birthdays, and ${result.anniversaries} anniversaries`,
+      message: `Synced ${totalSynced} events (${result.scheduleOccurrences} schedules, ${result.carePlans} care plans, ${result.discipleshipPlans} discipleship, ${result.birthdays} birthdays, ${result.anniversaries} anniversaries)`,
     });
   } catch (error) {
     console.error('Error syncing calendar events:', error);

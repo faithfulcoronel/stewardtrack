@@ -140,12 +140,13 @@ export class PlanningService {
 
   // ==================== SYNC OPERATIONS ====================
 
-  async syncAllSources(): Promise<{ carePlans: number; discipleshipPlans: number; birthdays: number; anniversaries: number }> {
+  async syncAllSources(): Promise<{ carePlans: number; discipleshipPlans: number; birthdays: number; anniversaries: number; scheduleOccurrences: number }> {
     const carePlans = await this.eventRepo.syncFromCarePlans();
     const discipleshipPlans = await this.eventRepo.syncFromDiscipleshipPlans();
     const birthdays = await this.eventRepo.syncFromMemberBirthdays();
     const anniversaries = await this.eventRepo.syncFromMemberAnniversaries();
-    return { carePlans, discipleshipPlans, birthdays, anniversaries };
+    const scheduleOccurrences = await this.eventRepo.syncFromScheduleOccurrences();
+    return { carePlans, discipleshipPlans, birthdays, anniversaries, scheduleOccurrences };
   }
 
   async syncCarePlans(): Promise<number> {
@@ -812,6 +813,7 @@ export class PlanningService {
       reminder: 0,
       goal: 0,
       general: 0,
+      schedule: 0,
     };
 
     for (const event of events) {
@@ -829,6 +831,7 @@ export class PlanningService {
       completed: 0,
       cancelled: 0,
       postponed: 0,
+      overdue: 0,
     };
 
     for (const event of events) {

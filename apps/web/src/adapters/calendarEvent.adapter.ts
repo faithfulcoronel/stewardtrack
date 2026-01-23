@@ -997,12 +997,11 @@ export class CalendarEventAdapter
         start_at,
         end_at,
         status,
-        title_override,
-        location_override,
-        notes,
-        capacity,
-        registration_count,
-        attendance_count,
+        override_name,
+        override_location,
+        override_capacity,
+        registered_count,
+        checked_in_count,
         ministry_schedules (
           id,
           name,
@@ -1045,12 +1044,11 @@ export class CalendarEventAdapter
       start_at: string;
       end_at: string | null;
       status: string;
-      title_override: string | null;
-      location_override: string | null;
-      notes: string | null;
-      capacity: number | null;
-      registration_count: number;
-      attendance_count: number;
+      override_name: string | null;
+      override_location: string | null;
+      override_capacity: number | null;
+      registered_count: number;
+      checked_in_count: number;
       ministry_schedules: {
         id: string;
         name: string;
@@ -1079,9 +1077,9 @@ export class CalendarEventAdapter
 
       // Build event data
       const ministryName = schedule.ministries?.name || 'Ministry';
-      const eventTitle = occurrence.title_override || schedule.name;
-      const eventDescription = occurrence.notes || schedule.description || '';
-      const eventLocation = occurrence.location_override || schedule.location || '';
+      const eventTitle = occurrence.override_name || schedule.name;
+      const eventDescription = schedule.description || '';
+      const eventLocation = occurrence.override_location || schedule.location || '';
       const eventStatus = occurrence.status === 'cancelled' ? 'cancelled' : 'scheduled';
 
       // Build metadata with scheduler-specific info
@@ -1090,9 +1088,9 @@ export class CalendarEventAdapter
         ministry_id: schedule.ministry_id,
         ministry_name: ministryName,
         schedule_type: schedule.schedule_type,
-        capacity: occurrence.capacity,
-        registration_count: occurrence.registration_count,
-        attendance_count: occurrence.attendance_count,
+        capacity: occurrence.override_capacity,
+        registered_count: occurrence.registered_count,
+        checked_in_count: occurrence.checked_in_count,
         registration_required: schedule.registration_required,
       };
 
@@ -1182,12 +1180,11 @@ export class CalendarEventAdapter
         start_at,
         end_at,
         status,
-        title_override,
-        location_override,
-        notes,
-        capacity,
-        registration_count,
-        attendance_count,
+        override_name,
+        override_location,
+        override_capacity,
+        registered_count,
+        checked_in_count,
         ministry_schedules (
           id,
           name,
@@ -1217,12 +1214,11 @@ export class CalendarEventAdapter
       start_at: string;
       end_at: string | null;
       status: string;
-      title_override: string | null;
-      location_override: string | null;
-      notes: string | null;
-      capacity: number | null;
-      registration_count: number;
-      attendance_count: number;
+      override_name: string | null;
+      override_location: string | null;
+      override_capacity: number | null;
+      registered_count: number;
+      checked_in_count: number;
       ministry_schedules: {
         id: string;
         name: string;
@@ -1260,9 +1256,9 @@ export class CalendarEventAdapter
 
     // Build event data
     const ministryName = schedule.ministries?.name || 'Ministry';
-    const eventTitle = typedOccurrence.title_override || schedule.name;
-    const eventDescription = typedOccurrence.notes || schedule.description || '';
-    const eventLocation = typedOccurrence.location_override || schedule.location || '';
+    const eventTitle = typedOccurrence.override_name || schedule.name;
+    const eventDescription = schedule.description || '';
+    const eventLocation = typedOccurrence.override_location || schedule.location || '';
 
     // Map occurrence status to calendar event status
     let eventStatus: 'scheduled' | 'cancelled' | 'completed' = 'scheduled';
@@ -1277,9 +1273,9 @@ export class CalendarEventAdapter
       ministry_id: schedule.ministry_id,
       ministry_name: ministryName,
       schedule_type: schedule.schedule_type,
-      capacity: typedOccurrence.capacity,
-      registration_count: typedOccurrence.registration_count,
-      attendance_count: typedOccurrence.attendance_count,
+      capacity: typedOccurrence.override_capacity,
+      registered_count: typedOccurrence.registered_count,
+      checked_in_count: typedOccurrence.checked_in_count,
       registration_required: schedule.registration_required,
     };
 

@@ -14,6 +14,7 @@ import type {
   CarePlanPriorityBreakdown,
   DiscipleshipPathwayBreakdown,
   MembershipCenterDistribution,
+  AgeDistribution,
 } from '@/models/memberReports.model';
 
 export interface IMemberReportsRepository {
@@ -26,6 +27,7 @@ export interface IMemberReportsRepository {
   getCarePriorityBreakdown(tenantId: string): Promise<CarePlanPriorityBreakdown>;
   getDiscipleshipPathwayBreakdown(tenantId: string): Promise<DiscipleshipPathwayBreakdown>;
   getCenterDistribution(tenantId: string): Promise<MembershipCenterDistribution>;
+  getAgeDistribution(tenantId: string): Promise<AgeDistribution>;
   getAllReportsData(tenantId: string): Promise<MemberReportsData>;
 }
 
@@ -70,6 +72,10 @@ export class MemberReportsRepository implements IMemberReportsRepository {
 
   async getCenterDistribution(tenantId: string): Promise<MembershipCenterDistribution> {
     return this.adapter.getCenterDistribution(tenantId);
+  }
+
+  async getAgeDistribution(tenantId: string): Promise<AgeDistribution> {
+    return this.adapter.getAgeDistribution(tenantId);
   }
 
   async getAllReportsData(tenantId: string): Promise<MemberReportsData> {
