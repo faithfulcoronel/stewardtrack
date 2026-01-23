@@ -137,11 +137,17 @@ export function AdminSidebar({
   // Subscription status for gating pro features
   const { status: subscriptionStatus, isLoading: isSubscriptionLoading } = useSubscriptionStatus();
 
-  // Only show expired state after loading completes to prevent hydration mismatch
-  const isSubscriptionExpired = !isSubscriptionLoading && subscriptionStatus.isExpired;
+  // Track subscription expired state - only update after loading completes to prevent hydration mismatch
+  const [isSubscriptionExpired, setIsSubscriptionExpired] = useState(false);
+
+  useEffect(() => {
+    if (!isSubscriptionLoading) {
+      setIsSubscriptionExpired(subscriptionStatus.isExpired);
+    }
+  }, [isSubscriptionLoading, subscriptionStatus.isExpired]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [blockedFeature, setBlockedFeature] = useState<string>("");
-  
+
   // Toggle sub-group expansion
   const toggleSubGroup = (groupKey: string) => {
     setExpandedGroups((prev) => {

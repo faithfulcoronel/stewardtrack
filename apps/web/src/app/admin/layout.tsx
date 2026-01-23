@@ -79,7 +79,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
           { title: "Expense Categories", href: "/admin/finance/expense-categories", icon: "expenseCategories", isPro: true },
           { title: "Budget Categories", href: "/admin/finance/budget-categories", icon: "categories", isPro: true },
           // Initial Setup
-          { title: "Opening Balances", href: "/admin/finance/opening-balances", icon: "balances" },
+          { title: "Opening Balances", href: "/admin/finance/opening-balances", icon: "balances", isPro: true },
         ],
       },
     ],
