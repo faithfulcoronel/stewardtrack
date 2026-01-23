@@ -82,19 +82,19 @@ export async function signInWithPassword(
 
   // Verify Turnstile CAPTCHA token
   if (typeof turnstileToken !== "string" || !turnstileToken) {
-    return { error: "Please complete the security check." };
+    return { error: "Please complete the security check.", email };
   }
 
   const turnstileResult = await verifyTurnstileToken(turnstileToken);
   if (!turnstileResult.success) {
-    return { error: turnstileResult.error || "Security verification failed." };
+    return { error: turnstileResult.error || "Security verification failed.", email };
   }
 
   const authService = container.get<AuthService>(TYPES.AuthService);
   const { data, error } = await authService.signIn(email, password, remember);
 
   if (error) {
-    return { error: error.message };
+    return { error: error.message, email };
   }
 
   // Check if email is verified

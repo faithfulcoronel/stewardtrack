@@ -168,6 +168,7 @@ export function SignInForm({ redirectTo = '/admin' }: SignInFormProps) {
           required
           placeholder="pastor@church.com"
           className="h-11"
+          defaultValue={state.email || ''}
         />
       </div>
 

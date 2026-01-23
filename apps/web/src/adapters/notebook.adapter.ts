@@ -139,14 +139,21 @@ export class NotebookAdapter
 
   /**
    * Get all notebooks for current tenant with optional filters
+   * Includes section_count and page_count computed from related tables
    */
   async getAllNotebooks(filters?: NotebookFilters): Promise<Notebook[]> {
     const tenantId = await this.getTenantId();
     const supabase = await this.getSupabaseClient();
 
+    // Select notebooks with section counts via relationship
+    const selectWithCounts = `
+      ${this.defaultSelect},
+      notebook_sections!notebook_sections_notebook_id_fkey(id)
+    `;
+
     let query = supabase
       .from(this.tableName)
-      .select(this.defaultSelect)
+      .select(selectWithCounts)
       .eq('tenant_id', tenantId)
       .is('deleted_at', null);
 
@@ -179,7 +186,61 @@ export class NotebookAdapter
       throw new Error(`Failed to fetch notebooks: ${error.message}`);
     }
 
-    return (data || []) as unknown as Notebook[];
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Get notebook IDs to fetch page counts
+    const notebookIds = data.map((n: any) => n.id);
+
+    // Get section IDs for all notebooks to count pages
+    const { data: sections } = await supabase
+      .from('notebook_sections')
+      .select('id, notebook_id')
+      .in('notebook_id', notebookIds)
+      .is('deleted_at', null);
+
+    const sectionIds = (sections || []).map((s: any) => s.id);
+
+    // Get page counts per section
+    let pageCounts: Record<string, number> = {};
+    if (sectionIds.length > 0) {
+      const { data: pages } = await supabase
+        .from('notebook_pages')
+        .select('section_id')
+        .in('section_id', sectionIds)
+        .is('deleted_at', null);
+
+      // Count pages per section
+      const pageCountsBySection: Record<string, number> = {};
+      (pages || []).forEach((p: any) => {
+        pageCountsBySection[p.section_id] = (pageCountsBySection[p.section_id] || 0) + 1;
+      });
+
+      // Map section page counts to notebooks
+      (sections || []).forEach((s: any) => {
+        pageCounts[s.notebook_id] = (pageCounts[s.notebook_id] || 0) + (pageCountsBySection[s.id] || 0);
+      });
+    }
+
+    // Transform data to include counts
+    const notebooks = data.map((notebook: any) => {
+      const sectionCount = Array.isArray(notebook.notebook_sections)
+        ? notebook.notebook_sections.length
+        : 0;
+      const pageCount = pageCounts[notebook.id] || 0;
+
+      // Remove the nested sections array from the result
+      const { notebook_sections, ...notebookData } = notebook;
+
+      return {
+        ...notebookData,
+        section_count: sectionCount,
+        page_count: pageCount,
+      };
+    });
+
+    return notebooks as Notebook[];
   }
 
   /**

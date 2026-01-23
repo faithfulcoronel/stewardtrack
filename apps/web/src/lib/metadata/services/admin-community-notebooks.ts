@@ -187,14 +187,6 @@ export const resolveNotebooksTable: ServiceDataSourceHandler = async (request) =
       month: 'short',
       day: 'numeric',
     }),
-    actions: [
-      {
-        id: 'edit',
-        label: 'Edit',
-        href: `/admin/community/planning/notebooks/manage?notebookId=${notebook.id}`,
-        icon: '✏️',
-      },
-    ],
   }));
 
   const columns = [
@@ -203,49 +195,67 @@ export const resolveNotebooksTable: ServiceDataSourceHandler = async (request) =
       headerName: 'Title',
       type: 'text',
       sortable: true,
-      width: 'flexible',
+      flex: 1.5,
     },
     {
       field: 'description',
       headerName: 'Description',
       type: 'text',
       sortable: false,
-      width: 'flexible',
+      flex: 1,
+      hideOnMobile: true,
     },
     {
       field: 'visibilityLabel',
       headerName: 'Visibility',
       type: 'badge',
       sortable: true,
-      width: '120px',
+      flex: 0.6,
     },
     {
       field: 'sectionCount',
       headerName: 'Sections',
-      type: 'number',
+      type: 'text',
       sortable: true,
-      width: '100px',
+      flex: 0.5,
+      hideOnMobile: true,
     },
     {
       field: 'pageCount',
       headerName: 'Pages',
-      type: 'number',
+      type: 'text',
       sortable: true,
-      width: '100px',
+      flex: 0.5,
+      hideOnMobile: true,
     },
     {
       field: 'updatedAt',
       headerName: 'Last Updated',
-      type: 'date',
+      type: 'text',
       sortable: true,
-      width: '150px',
+      flex: 0.8,
     },
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
       sortable: false,
-      width: '100px',
+      flex: 0.6,
+      actions: [
+        {
+          id: 'view-record',
+          label: 'View',
+          intent: 'view',
+          urlTemplate: '/admin/community/planning/notebooks/{{id}}',
+        },
+        {
+          id: 'edit-record',
+          label: 'Edit',
+          intent: 'edit',
+          urlTemplate: '/admin/community/planning/notebooks/manage?notebookId={{id}}',
+          variant: 'secondary',
+        },
+      ],
     },
   ];
 

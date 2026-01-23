@@ -73,6 +73,7 @@ const handleNotebookSave: MetadataActionHandler = async (
         success: true,
         data: { notebookId },
         message: "Notebook updated successfully",
+        redirectUrl: "/admin/community/planning/notebooks",
       };
     } else {
       const newNotebook = await notebookService.createNotebook(notebookData);
@@ -80,6 +81,7 @@ const handleNotebookSave: MetadataActionHandler = async (
         success: true,
         data: { notebookId: newNotebook.id },
         message: "Notebook created successfully",
+        redirectUrl: "/admin/community/planning/notebooks",
       };
     }
   } catch (error) {

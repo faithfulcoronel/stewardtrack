@@ -79,56 +79,56 @@ import {
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
 
-// Editor styles
-const editorStyles = `
-  .tiptap-editor {
+// Rich text styles - exported for use in viewer components
+export const richTextStyles = `
+  .rich-text-content {
     min-height: 100%;
   }
-  .tiptap-editor > * + * {
+  .rich-text-content > * + * {
     margin-top: 0.75em;
   }
-  .tiptap-editor h1 {
+  .rich-text-content h1 {
     font-size: 1.875rem;
     font-weight: 700;
     line-height: 1.2;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
   }
-  .tiptap-editor h2 {
+  .rich-text-content h2 {
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.3;
     margin-top: 1.25rem;
     margin-bottom: 0.5rem;
   }
-  .tiptap-editor h3 {
+  .rich-text-content h3 {
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.4;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
   }
-  .tiptap-editor p {
+  .rich-text-content p {
     margin: 0.5rem 0;
     line-height: 1.6;
   }
-  .tiptap-editor ul {
+  .rich-text-content ul {
     list-style-type: disc;
     padding-left: 1.5rem;
     margin: 0.5rem 0;
   }
-  .tiptap-editor ol {
+  .rich-text-content ol {
     list-style-type: decimal;
     padding-left: 1.5rem;
     margin: 0.5rem 0;
   }
-  .tiptap-editor li {
+  .rich-text-content li {
     margin: 0.25rem 0;
   }
-  .tiptap-editor li p {
+  .rich-text-content li p {
     margin: 0;
   }
-  .tiptap-editor blockquote {
+  .rich-text-content blockquote {
     border-left: 4px solid hsl(var(--primary) / 0.3);
     padding-left: 1rem;
     margin: 1rem 0;
@@ -137,14 +137,14 @@ const editorStyles = `
     padding: 0.75rem 1rem;
     border-radius: 0 0.5rem 0.5rem 0;
   }
-  .tiptap-editor code {
+  .rich-text-content code {
     background: hsl(var(--muted));
     padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-size: 0.875rem;
     font-family: ui-monospace, monospace;
   }
-  .tiptap-editor pre {
+  .rich-text-content pre {
     background: #18181b;
     color: #fafafa;
     padding: 1rem;
@@ -152,73 +152,73 @@ const editorStyles = `
     overflow-x: auto;
     margin: 1rem 0;
   }
-  .tiptap-editor pre code {
+  .rich-text-content pre code {
     background: none;
     padding: 0;
     font-size: 0.875rem;
     color: inherit;
   }
-  .tiptap-editor hr {
+  .rich-text-content hr {
     border: none;
     border-top: 1px solid hsl(var(--border));
     margin: 1.5rem 0;
   }
-  .tiptap-editor a {
+  .rich-text-content a {
     color: hsl(var(--primary));
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-  .tiptap-editor a:hover {
+  .rich-text-content a:hover {
     opacity: 0.8;
   }
-  .tiptap-editor img {
+  .rich-text-content img {
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
     margin: 1rem auto;
     display: block;
   }
-  .tiptap-editor table {
+  .rich-text-content table {
     border-collapse: collapse;
     width: 100%;
     margin: 1rem 0;
   }
-  .tiptap-editor th,
-  .tiptap-editor td {
+  .rich-text-content th,
+  .rich-text-content td {
     border: 1px solid hsl(var(--border));
     padding: 0.5rem;
     text-align: left;
   }
-  .tiptap-editor th {
+  .rich-text-content th {
     background: hsl(var(--muted) / 0.5);
     font-weight: 600;
   }
-  .tiptap-editor ul[data-type="taskList"] {
+  .rich-text-content ul[data-type="taskList"] {
     list-style: none;
     padding-left: 0;
   }
-  .tiptap-editor ul[data-type="taskList"] li {
+  .rich-text-content ul[data-type="taskList"] li {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  .tiptap-editor ul[data-type="taskList"] li > label {
+  .rich-text-content ul[data-type="taskList"] li > label {
     flex-shrink: 0;
     margin-top: 0.25rem;
   }
-  .tiptap-editor ul[data-type="taskList"] li > label input[type="checkbox"] {
+  .rich-text-content ul[data-type="taskList"] li > label input[type="checkbox"] {
     width: 1rem;
     height: 1rem;
     accent-color: hsl(var(--primary));
   }
-  .tiptap-editor ul[data-type="taskList"] li > div {
+  .rich-text-content ul[data-type="taskList"] li > div {
     flex: 1;
   }
-  .tiptap-editor mark {
+  .rich-text-content mark {
     border-radius: 0.25rem;
     padding: 0.125rem 0;
   }
-  .tiptap-editor .is-empty::before {
+  .rich-text-content .is-empty::before {
     content: attr(data-placeholder);
     float: left;
     color: hsl(var(--muted-foreground) / 0.5);
@@ -945,7 +945,7 @@ function RichTextEditor({
     },
     editorProps: {
       attributes: {
-        class: "tiptap-editor focus:outline-none px-4 py-3",
+        class: "rich-text-content focus:outline-none px-4 py-3",
       },
     },
     immediatelyRender: false,
@@ -973,7 +973,7 @@ function RichTextEditor({
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: editorStyles }} />
+      <style dangerouslySetInnerHTML={{ __html: richTextStyles }} />
       <div
         className={cn(
           "overflow-hidden rounded-xl border border-border/50 bg-card/50 shadow-sm transition-all duration-200",

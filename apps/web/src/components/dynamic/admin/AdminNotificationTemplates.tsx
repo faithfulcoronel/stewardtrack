@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { RichTextViewerInline } from '@/components/ui/rich-text-viewer';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -472,9 +473,9 @@ export function AdminNotificationTemplates({
                               <Label className="text-xs text-muted-foreground">Body</Label>
                               {/* Render HTML for email/in_app, plain text for others */}
                               {template.channel === 'email' || template.channel === 'in_app' ? (
-                                <div
-                                  className="text-sm bg-background rounded p-2 mt-1 prose prose-sm dark:prose-invert max-w-none"
-                                  dangerouslySetInnerHTML={{ __html: template.body_template }}
+                                <RichTextViewerInline
+                                  content={template.body_template}
+                                  className="text-sm bg-background rounded p-2 mt-1 max-w-none"
                                 />
                               ) : (
                                 <pre className="text-sm font-mono bg-background rounded p-2 mt-1 whitespace-pre-wrap overflow-x-auto">

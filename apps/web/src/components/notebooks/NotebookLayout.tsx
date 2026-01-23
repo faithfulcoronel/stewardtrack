@@ -99,6 +99,12 @@ function getContentStats(content: string) {
 export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
   const router = useRouter();
 
+  // Hydration safety - prevent client/server mismatch
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // Mobile sidebar state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -112,29 +118,25 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Get initial page ID from URL or fallback to first page
-  const getInitialPageId = () => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const pageIdFromUrl = params.get("pageId");
+  // Initialize to first page deterministically (same on server and client)
+  const firstPageId = notebook.sections?.[0]?.pages?.[0]?.id || null;
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(firstPageId);
 
-      // Validate that the page exists in the notebook
-      if (pageIdFromUrl) {
-        const pageExists = notebook.sections
-          ?.flatMap((s) => s.pages || [])
-          .some((p) => p?.id === pageIdFromUrl);
-        if (pageExists) {
-          return pageIdFromUrl;
-        }
+  // Sync page ID from URL on client-side only (after hydration)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pageIdFromUrl = params.get("pageId");
+
+    // Validate that the page exists in the notebook
+    if (pageIdFromUrl) {
+      const pageExists = notebook.sections
+        ?.flatMap((s) => s.pages || [])
+        .some((p) => p?.id === pageIdFromUrl);
+      if (pageExists && pageIdFromUrl !== selectedPageId) {
+        setSelectedPageId(pageIdFromUrl);
       }
     }
-    // Fallback to first page
-    return notebook.sections?.[0]?.pages?.[0]?.id || null;
-  };
-
-  const [selectedPageId, setSelectedPageId] = useState<string | null>(
-    getInitialPageId()
-  );
+  }, [notebook.sections, selectedPageId]);
 
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
     // Expand all sections by default
@@ -838,7 +840,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                                 }
                                 className={cn(
                                   "flex-1 flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
-                                  selectedPageId === page.id
+                                  hasMounted && selectedPageId === page.id
                                     ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-md shadow-primary/20 scale-[1.02]"
                                     : "hover:bg-accent/70 active:bg-accent text-foreground/70 hover:text-foreground"
                                 )}
@@ -846,14 +848,14 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                                 <FileText
                                   className={cn(
                                     "h-4 w-4 shrink-0 transition-all duration-200",
-                                    selectedPageId === page.id
+                                    hasMounted && selectedPageId === page.id
                                       ? "text-primary-foreground"
                                       : "text-muted-foreground/60"
                                   )}
                                 />
                                 <span className="truncate">{page.title}</span>
                               </button>
-                              {canEdit && selectedPageId !== page.id && (
+                              {canEdit && hasMounted && selectedPageId !== page.id && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
