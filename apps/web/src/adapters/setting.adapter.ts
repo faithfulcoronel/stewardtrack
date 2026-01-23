@@ -5,6 +5,7 @@ import { BaseAdapter, type IBaseAdapter } from '@/adapters/base.adapter';
 import { Setting } from '@/models/setting.model';
 import { TYPES } from '@/lib/types';
 import type { AuditService } from '@/services/AuditService';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface ISettingAdapter extends IBaseAdapter<Setting> {
   getSystemSettings(keyPrefix: string): Promise<Setting[]>;
@@ -40,7 +41,7 @@ export class SettingAdapter
    * Used for system-wide configuration like email settings for registration.
    */
   async getSystemSettings(keyPrefix: string): Promise<Setting[]> {
-    const supabase = await this.getSupabaseClient();
+    const supabase = await getSupabaseServiceClient();
 
     const { data, error } = await supabase
       .from(this.tableName)
