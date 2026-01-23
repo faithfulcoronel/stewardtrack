@@ -19,7 +19,9 @@ export interface IMinistryTeamAdapter extends IBaseAdapter<MinistryTeam> {
   getByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<MinistryTeam | null>;
   createTeamMember(data: MinistryTeamCreateInput, tenantId: string): Promise<MinistryTeam>;
   updateTeamMember(id: string, data: MinistryTeamUpdateInput, tenantId: string): Promise<MinistryTeam>;
+  updateTeamMemberByMinistryAndMember(ministryId: string, memberId: string, data: MinistryTeamUpdateInput, tenantId: string): Promise<MinistryTeam>;
   deleteTeamMember(id: string, tenantId: string): Promise<void>;
+  deleteTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<void>;
 }
 
 @injectable()
@@ -251,6 +253,45 @@ export class MinistryTeamAdapter
     return teamMember;
   }
 
+  async updateTeamMemberByMinistryAndMember(
+    ministryId: string,
+    memberId: string,
+    data: MinistryTeamUpdateInput,
+    tenantId: string
+  ): Promise<MinistryTeam> {
+    const supabase = await this.getSupabaseClient();
+
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.role !== undefined) updateData.role = data.role;
+    if (data.position !== undefined) updateData.position = data.position;
+    if (data.status !== undefined) updateData.status = data.status;
+
+    const { data: result, error } = await supabase
+      .from(this.tableName)
+      .update(updateData)
+      .eq('ministry_id', ministryId)
+      .eq('member_id', memberId)
+      .eq('tenant_id', tenantId)
+      .select(this.defaultSelect)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update team member: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Failed to update team member: not found');
+    }
+
+    const teamMember = result as unknown as MinistryTeam;
+    await this.auditService.logAuditEvent('update', 'ministry_teams', teamMember.id, teamMember);
+
+    return teamMember;
+  }
+
   async deleteTeamMember(id: string, tenantId: string): Promise<void> {
     const supabase = await this.getSupabaseClient();
 
@@ -265,5 +306,33 @@ export class MinistryTeamAdapter
     }
 
     await this.auditService.logAuditEvent('delete', 'ministry_teams', id, { id });
+  }
+
+  async deleteTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<void> {
+    const supabase = await this.getSupabaseClient();
+
+    // First get the team record to log the ID in the audit
+    const { data: teamRecord } = await supabase
+      .from(this.tableName)
+      .select('id')
+      .eq('ministry_id', ministryId)
+      .eq('member_id', memberId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    const { error } = await supabase
+      .from(this.tableName)
+      .delete()
+      .eq('ministry_id', ministryId)
+      .eq('member_id', memberId)
+      .eq('tenant_id', tenantId);
+
+    if (error) {
+      throw new Error(`Failed to remove team member: ${error.message}`);
+    }
+
+    if (teamRecord) {
+      await this.auditService.logAuditEvent('delete', 'ministry_teams', teamRecord.id, { ministryId, memberId });
+    }
   }
 }

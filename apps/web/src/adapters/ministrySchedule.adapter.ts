@@ -285,17 +285,23 @@ export class MinistryScheduleAdapter
   async softDelete(id: string, tenantId: string): Promise<void> {
     const supabase = await this.getSupabaseClient();
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from(this.tableName)
       .update({
         deleted_at: new Date().toISOString(),
         is_active: false,
       })
       .eq('id', id)
-      .eq('tenant_id', tenantId);
+      .eq('tenant_id', tenantId)
+      .select('id')
+      .single();
 
     if (error) {
       throw new Error(`Failed to delete schedule: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('Failed to delete schedule: record not found or not authorized');
     }
 
     await this.auditService.logAuditEvent('delete', 'ministry_schedules', id, { id });

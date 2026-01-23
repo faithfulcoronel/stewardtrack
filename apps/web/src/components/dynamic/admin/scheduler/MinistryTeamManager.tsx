@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -415,18 +416,18 @@ export function MinistryTeamManager({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Member</Label>
-              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredAvailableMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={filteredAvailableMembers.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                  description: member.email || undefined,
+                }))}
+                value={selectedMemberId}
+                onChange={setSelectedMemberId}
+                placeholder="Select a member"
+                searchPlaceholder="Search members..."
+                emptyMessage="No members found."
+              />
             </div>
 
             <div className="space-y-2">

@@ -12,6 +12,7 @@ export interface ICalendarEventRepository extends BaseRepository<CalendarEvent> 
   getByDateRange(startDate: string, endDate: string): Promise<CalendarEvent[]>;
   getByFilters(filters: CalendarEventFilters): Promise<CalendarEvent[]>;
   getBySource(sourceType: string, sourceId: string): Promise<CalendarEvent[]>;
+  existsBySource(sourceType: string, sourceId: string): Promise<boolean>;
   getByMember(memberId: string): Promise<CalendarEvent[]>;
   getUpcoming(days?: number): Promise<CalendarEvent[]>;
   getOverdueEvents(limit?: number): Promise<CalendarEventView[]>;
@@ -20,6 +21,9 @@ export interface ICalendarEventRepository extends BaseRepository<CalendarEvent> 
   syncFromDiscipleshipPlans(): Promise<number>;
   syncFromMemberBirthdays(): Promise<number>;
   syncFromMemberAnniversaries(): Promise<number>;
+  syncFromScheduleOccurrences(): Promise<number>;
+  syncSingleOccurrence(occurrenceId: string): Promise<boolean>;
+  deleteBySource(sourceType: string, sourceId: string): Promise<boolean>;
 }
 
 @injectable()
@@ -92,5 +96,21 @@ export class CalendarEventRepository
 
   async syncFromMemberAnniversaries(): Promise<number> {
     return this.calendarEventAdapter.syncFromMemberAnniversaries();
+  }
+
+  async syncFromScheduleOccurrences(): Promise<number> {
+    return this.calendarEventAdapter.syncFromScheduleOccurrences();
+  }
+
+  async syncSingleOccurrence(occurrenceId: string): Promise<boolean> {
+    return this.calendarEventAdapter.syncSingleOccurrence(occurrenceId);
+  }
+
+  async deleteBySource(sourceType: string, sourceId: string): Promise<boolean> {
+    return this.calendarEventAdapter.deleteBySource(sourceType, sourceId);
+  }
+
+  async existsBySource(sourceType: string, sourceId: string): Promise<boolean> {
+    return this.calendarEventAdapter.existsBySource(sourceType, sourceId);
   }
 }

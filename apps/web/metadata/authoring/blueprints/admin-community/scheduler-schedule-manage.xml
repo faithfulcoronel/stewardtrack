@@ -89,7 +89,7 @@
               <Value>params.scheduleId</Value>
             </Array>
           </IdentifierCandidates>
-          <RedirectTemplate>/admin/community/planning/scheduler/schedules/{{scheduleId}}</RedirectTemplate>
+          <RedirectTemplate>/admin/community/planning/scheduler/schedules</RedirectTemplate>
         </Config>
       </Action>
 
