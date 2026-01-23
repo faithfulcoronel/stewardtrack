@@ -127,7 +127,9 @@
       "Bash(Select-Object -First 10)",
       "Bash(ForEach-Object { $_Name })",
       "Bash(docker exec:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(npm run:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []

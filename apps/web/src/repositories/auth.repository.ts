@@ -5,7 +5,7 @@ import type { IAuthAdapter, GenerateLinkResult } from '@/adapters/auth.adapter';
 import { TYPES } from '@/lib/types';
 
 export interface IAuthRepository {
-  signIn(email: string, password: string): Promise<AuthResponse>;
+  signIn(email: string, password: string, rememberMe?: boolean): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
   generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
@@ -28,8 +28,8 @@ export interface IAuthRepository {
 export class AuthRepository implements IAuthRepository {
   constructor(@inject(TYPES.IAuthAdapter) private adapter: IAuthAdapter) {}
 
-  signIn(email: string, password: string) {
-    return this.adapter.signIn(email, password);
+  signIn(email: string, password: string, rememberMe = false) {
+    return this.adapter.signIn(email, password, rememberMe);
   }
 
   resetPasswordForEmail(email: string, redirectTo: string) {

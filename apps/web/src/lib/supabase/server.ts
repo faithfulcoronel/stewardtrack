@@ -18,7 +18,7 @@ const getEnv = (): EnvConfig => {
   return { url, anonKey };
 };
 
-export async function createSupabaseServerClient(): Promise<SupabaseClient> {
+export async function createSupabaseServerClient(cookieMaxAge?: number): Promise<SupabaseClient> {
   const env = getEnv();
 
   if (!env) {
@@ -41,10 +41,16 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
 
         for (const { name, value, options } of cookiesToSet) {
           try {
+            // Apply custom maxAge if provided (for remember me functionality)
+            const cookieOptions = options ?? {};
+            if (cookieMaxAge !== undefined) {
+              cookieOptions.maxAge = cookieMaxAge;
+            }
+
             await (cookieStore as any).set({
               name,
               value: value ?? "",
-              ...(options ?? {}),
+              ...cookieOptions,
             });
           } catch {
             // noop when invoked outside a mutable cookies context

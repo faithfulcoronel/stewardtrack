@@ -8,7 +8,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getCachedUser, getCachedAdminRole, isCachedSuperAdmin } from '@/lib/auth/authCache';
 import { UnauthorizedError } from '@/utils/errorHandler';
 
-interface GenerateLinkResult {
+export interface GenerateLinkResult {
   data: {
     properties?: {
       action_link?: string;
@@ -17,8 +17,8 @@ interface GenerateLinkResult {
   error: AuthError | null;
 }
 
-interface IAuthAdapter {
-  signIn(email: string, password: string): Promise<AuthResponse>;
+export interface IAuthAdapter {
+  signIn(email: string, password: string, rememberMe?: boolean): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
   generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
@@ -43,8 +43,8 @@ export class AuthAdapter implements IAuthAdapter {
    * Get server client for user-scoped auth operations
    * Uses the user's session context from cookies
    */
-  private async getServerClient() {
-    return await createSupabaseServerClient();
+  private async getServerClient(cookieMaxAge?: number) {
+    return await createSupabaseServerClient(cookieMaxAge);
   }
 
   /**
@@ -55,8 +55,13 @@ export class AuthAdapter implements IAuthAdapter {
     return await getSupabaseServiceClient();
   }
 
-  async signIn(email: string, password: string) {
-    const supabase = await this.getServerClient();
+  async signIn(email: string, password: string, rememberMe = false) {
+    // Session duration based on remember me preference:
+    // Remember me checked: 30 days (2,592,000 seconds)
+    // Remember me unchecked: 1 day (86,400 seconds) - shorter session
+    const cookieMaxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60;
+
+    const supabase = await this.getServerClient(cookieMaxAge);
     return supabase.auth.signInWithPassword({ email, password });
   }
 

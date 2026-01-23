@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+NOTEBOOKS MANAGE PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the notebooks manage page for creating new notebooks
+and editing existing ones. The page adapts based on whether a notebookId is provided.
+
+FEATURE: Notebook Management (Create/Edit)
+- Dynamic header that shows "Create notebook" or "Edit notebook"
+- Form fields for notebook details (title, description, visibility, etc.)
+- Section management for existing notebooks
+- Save/cancel actions
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-community"
+  route="planning/notebooks/manage"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="members.core"
+  requiredPermissions="members:edit"
+  locale="en-US">
+
+  <Page id="admin-community-planning-notebooks-manage">
+    <Title>Manage notebook</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Adaptive header for create/edit mode
+        -->
+        <Component id="manage-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="expression">
+              (() => {
+                const mode = params.notebookId ? 'Edit notebook' : 'Create notebook';
+                return `${mode} · Planning module`;
+              })()
+            </Prop>
+            <Prop name="headline" kind="expression">
+              (() => {
+                if (!params.notebookId) {
+                  return 'Create a new notebook';
+                }
+                const notebook = data.notebookData?.notebook;
+                return `Edit ${notebook?.title ?? 'notebook'}`;
+              })()
+            </Prop>
+            <Prop name="description" kind="static">Organize your ministry notes, meeting minutes, and documentation in OneNote-style notebooks with hierarchical sections.</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        NOTEBOOK FORM: Main form for notebook details
+        -->
+        <Component id="notebook-form" type="AdminFormSection">
+          <Props>
+            <Prop name="title" kind="static">Notebook details</Prop>
+            <Prop name="description" kind="static">Basic information about this notebook.</Prop>
+            <Prop name="fields" kind="binding" contract="notebookForm.fields"/>
+            <Prop name="initialValues" kind="binding" contract="notebookForm.values"/>
+            <Prop name="submitAction" kind="action" actionId="save-notebook"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Notebook form data (fields and initial values) -->
+      <DataSource id="notebookForm" kind="service">
+        <Contract>
+          <Field name="fields" path="fields" description="Form field definitions"/>
+          <Field name="values" path="values" description="Initial form values"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.planning.notebooks.manage.form</Handler>
+          <Params>
+            <Param name="notebookId" source="query" key="notebookId"/>
+          </Params>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <!-- Save notebook -->
+      <Action id="save-notebook" kind="submit">
+        <Config>
+          <Label>Save notebook</Label>
+          <Handler>admin-community.planning.notebooks.save</Handler>
+          <SuccessUrl>/admin/community/planning/notebooks</SuccessUrl>
+          <SuccessMessage>Notebook saved successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+
+      <!-- Cancel -->
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/community/planning/notebooks</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

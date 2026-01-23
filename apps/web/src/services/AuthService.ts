@@ -6,14 +6,14 @@ import type { GenerateLinkResult } from '@/adapters/auth.adapter';
 import { TYPES } from '@/lib/types';
 
 export interface AuthService {
-  signIn(email: string, password: string): Promise<AuthResponse>;
+  signIn(email: string, password: string, rememberMe?: boolean): Promise<AuthResponse>;
   resetPasswordForEmail(email: string, redirectTo: string): Promise<{ error: AuthError | null }>;
   generatePasswordResetLink(email: string, redirectTo: string): Promise<GenerateLinkResult>;
   updatePassword(password: string): Promise<{ error: AuthError | null }>;
   signUp(email: string, password: string, profile?: Record<string, any>): Promise<AuthResponse>;
   signUpMember(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse>;
   searchPublicTenants(query: string): Promise<{ data: any[] | null; error: any }>;
-  completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>; 
+  completeMemberRegistration(params: { userId: string; tenantId: string; firstName: string; lastName: string }): Promise<{ data: any; error: any }>;
   handleNewTenantRegistration(params: { userId: string; churchName: string; subdomain: string; address: string; contactNumber: string; churchEmail: string; website: string | null }): Promise<{ error: any }>;
   signOut(): Promise<{ error: AuthError | null }>;
   getUser(): ReturnType<IAuthRepository['getUser']>;
@@ -25,8 +25,8 @@ export interface AuthService {
 export class AuthServiceImpl implements AuthService {
   constructor(@inject(TYPES.IAuthRepository) private repository: IAuthRepository) {}
 
-  signIn(email: string, password: string) {
-    return this.repository.signIn(email, password);
+  signIn(email: string, password: string, rememberMe = false) {
+    return this.repository.signIn(email, password, rememberMe);
   }
 
   resetPasswordForEmail(email: string, redirectTo: string) {

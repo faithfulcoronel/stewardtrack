@@ -20,7 +20,7 @@ FEATURE: Notebook Detail View
 <PageDefinition
   kind="blueprint"
   module="admin-community"
-  route="planning/notebooks/[id]"
+  route="planning/notebooks/detail"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
   featureCode="members.core"
