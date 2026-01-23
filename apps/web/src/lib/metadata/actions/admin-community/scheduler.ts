@@ -200,13 +200,34 @@ const handleScheduleSave: MetadataActionHandler = async (
     } else {
       const newSchedule = await schedulerService.createSchedule(scheduleData, tenant.id);
       resultScheduleId = newSchedule.id;
+
+      // Auto-generate occurrences for the next 90 days after creating a new schedule
+      // This also syncs the occurrences to the planner calendar
+      if (scheduleData.recurrence_start_date) {
+        try {
+          const startDate = scheduleData.recurrence_start_date;
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + 90);
+          await schedulerService.generateOccurrences(
+            resultScheduleId,
+            startDate,
+            endDate.toISOString().split('T')[0],
+            tenant.id
+          );
+        } catch (error) {
+          console.error("[scheduler action] Failed to generate initial occurrences:", error);
+          // Don't fail the entire operation - schedule was created successfully
+        }
+      }
     }
 
     return {
       success: true,
       data: { scheduleId: resultScheduleId },
       message: isEditMode ? "Schedule updated successfully" : "Schedule created successfully",
-      redirectUrl: `/admin/community/planning/scheduler/schedules/${resultScheduleId}`,
+      redirectUrl: isEditMode
+        ? `/admin/community/planning/scheduler/schedules/${resultScheduleId}`
+        : '/admin/community/planning/scheduler/schedules',
     };
   } catch (error) {
     console.error("[scheduler action] Schedule save failed:", error);

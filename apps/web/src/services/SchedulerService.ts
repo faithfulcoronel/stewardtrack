@@ -4,6 +4,7 @@ import { TYPES } from '@/lib/types';
 import { tenantUtils } from '@/utils/tenantUtils';
 import type { IMinistryScheduleRepository } from '@/repositories/ministrySchedule.repository';
 import type { IScheduleOccurrenceRepository } from '@/repositories/scheduleOccurrence.repository';
+import type { ICalendarEventRepository } from '@/repositories/calendarEvent.repository';
 import type {
   MinistrySchedule,
   MinistryScheduleWithMinistry,
@@ -59,7 +60,8 @@ export interface ISchedulerService {
 export class SchedulerService implements ISchedulerService {
   constructor(
     @inject(TYPES.IMinistryScheduleRepository) private scheduleRepository: IMinistryScheduleRepository,
-    @inject(TYPES.IScheduleOccurrenceRepository) private occurrenceRepository: IScheduleOccurrenceRepository
+    @inject(TYPES.IScheduleOccurrenceRepository) private occurrenceRepository: IScheduleOccurrenceRepository,
+    @inject(TYPES.ICalendarEventRepository) private calendarEventRepository: ICalendarEventRepository
   ) {}
 
   private async resolveTenantId(tenantId?: string): Promise<string> {
@@ -104,11 +106,42 @@ export class SchedulerService implements ISchedulerService {
 
   async updateSchedule(id: string, data: MinistryScheduleUpdateInput, tenantId?: string, userId?: string): Promise<MinistrySchedule> {
     const effectiveTenantId = await this.resolveTenantId(tenantId);
-    return await this.scheduleRepository.updateSchedule(id, data, effectiveTenantId, userId);
+    const updatedSchedule = await this.scheduleRepository.updateSchedule(id, data, effectiveTenantId, userId);
+
+    // Sync existing occurrences to the planner calendar after schedule update
+    try {
+      const existingOccurrences = await this.occurrenceRepository.getBySchedule(id, effectiveTenantId);
+      for (const occurrence of existingOccurrences) {
+        try {
+          await this.calendarEventRepository.syncSingleOccurrence(occurrence.id);
+        } catch (error) {
+          console.error(`[SchedulerService] Failed to sync occurrence ${occurrence.id} to calendar:`, error);
+        }
+      }
+    } catch (error) {
+      console.error(`[SchedulerService] Failed to sync schedule occurrences to calendar:`, error);
+    }
+
+    return updatedSchedule;
   }
 
   async deleteSchedule(id: string, tenantId?: string): Promise<void> {
     const effectiveTenantId = await this.resolveTenantId(tenantId);
+
+    // First, get all occurrences for this schedule and delete their calendar events
+    try {
+      const occurrences = await this.occurrenceRepository.getBySchedule(id, effectiveTenantId);
+      for (const occurrence of occurrences) {
+        try {
+          await this.calendarEventRepository.deleteBySource('schedule_occurrence', occurrence.id);
+        } catch (error) {
+          console.error(`[SchedulerService] Failed to delete calendar event for occurrence ${occurrence.id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error(`[SchedulerService] Failed to delete calendar events for schedule:`, error);
+    }
+
     return await this.scheduleRepository.softDelete(id, effectiveTenantId);
   }
 
@@ -161,6 +194,16 @@ export class SchedulerService implements ISchedulerService {
     });
 
     const occurrences = await this.occurrenceRepository.createMany(occurrenceInputs, effectiveTenantId);
+
+    // Sync each new occurrence to the planner calendar
+    for (const occurrence of occurrences) {
+      try {
+        await this.calendarEventRepository.syncSingleOccurrence(occurrence.id);
+      } catch (error) {
+        console.error(`[SchedulerService] Failed to sync occurrence ${occurrence.id} to calendar:`, error);
+        // Continue syncing other occurrences even if one fails
+      }
+    }
 
     return {
       created: occurrences.length,

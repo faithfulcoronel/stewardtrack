@@ -1005,12 +1005,12 @@ export class CalendarEventAdapter
         attendance_count,
         ministry_schedules (
           id,
-          title,
+          name,
           description,
           location,
           ministry_id,
-          event_type,
-          registration_enabled,
+          schedule_type,
+          registration_required,
           ministries (
             id,
             name
@@ -1053,12 +1053,12 @@ export class CalendarEventAdapter
       attendance_count: number;
       ministry_schedules: {
         id: string;
-        title: string;
+        name: string;
         description: string | null;
         location: string | null;
         ministry_id: string;
-        event_type: string;
-        registration_enabled: boolean;
+        schedule_type: string;
+        registration_required: boolean;
         ministries: { id: string; name: string } | null;
       } | null;
     }>) {
@@ -1079,7 +1079,7 @@ export class CalendarEventAdapter
 
       // Build event data
       const ministryName = schedule.ministries?.name || 'Ministry';
-      const eventTitle = occurrence.title_override || schedule.title;
+      const eventTitle = occurrence.title_override || schedule.name;
       const eventDescription = occurrence.notes || schedule.description || '';
       const eventLocation = occurrence.location_override || schedule.location || '';
       const eventStatus = occurrence.status === 'cancelled' ? 'cancelled' : 'scheduled';
@@ -1089,11 +1089,11 @@ export class CalendarEventAdapter
         schedule_id: occurrence.schedule_id,
         ministry_id: schedule.ministry_id,
         ministry_name: ministryName,
-        event_type: schedule.event_type,
+        schedule_type: schedule.schedule_type,
         capacity: occurrence.capacity,
         registration_count: occurrence.registration_count,
         attendance_count: occurrence.attendance_count,
-        registration_enabled: schedule.registration_enabled,
+        registration_required: schedule.registration_required,
       };
 
       console.log('[syncFromScheduleOccurrences] Processing occurrence:', occurrence.id, 'existingEvent:', existingEvent?.id ?? 'NONE');
@@ -1148,7 +1148,7 @@ export class CalendarEventAdapter
           is_recurring: false,
           is_private: false,
           visibility: 'public',
-          tags: ['scheduler', schedule.event_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
+          tags: ['scheduler', schedule.schedule_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
           metadata,
           is_active: true,
           created_at: new Date().toISOString(),
@@ -1190,12 +1190,12 @@ export class CalendarEventAdapter
         attendance_count,
         ministry_schedules (
           id,
-          title,
+          name,
           description,
           location,
           ministry_id,
-          event_type,
-          registration_enabled,
+          schedule_type,
+          registration_required,
           ministries (
             id,
             name
@@ -1225,12 +1225,12 @@ export class CalendarEventAdapter
       attendance_count: number;
       ministry_schedules: {
         id: string;
-        title: string;
+        name: string;
         description: string | null;
         location: string | null;
         ministry_id: string;
-        event_type: string;
-        registration_enabled: boolean;
+        schedule_type: string;
+        registration_required: boolean;
         ministries: { id: string; name: string } | null;
       } | null;
     };
@@ -1260,7 +1260,7 @@ export class CalendarEventAdapter
 
     // Build event data
     const ministryName = schedule.ministries?.name || 'Ministry';
-    const eventTitle = typedOccurrence.title_override || schedule.title;
+    const eventTitle = typedOccurrence.title_override || schedule.name;
     const eventDescription = typedOccurrence.notes || schedule.description || '';
     const eventLocation = typedOccurrence.location_override || schedule.location || '';
 
@@ -1276,11 +1276,11 @@ export class CalendarEventAdapter
       schedule_id: typedOccurrence.schedule_id,
       ministry_id: schedule.ministry_id,
       ministry_name: ministryName,
-      event_type: schedule.event_type,
+      schedule_type: schedule.schedule_type,
       capacity: typedOccurrence.capacity,
       registration_count: typedOccurrence.registration_count,
       attendance_count: typedOccurrence.attendance_count,
-      registration_enabled: schedule.registration_enabled,
+      registration_required: schedule.registration_required,
     };
 
     if (existingEvent) {
@@ -1322,7 +1322,7 @@ export class CalendarEventAdapter
         is_recurring: false,
         is_private: false,
         visibility: 'public',
-        tags: ['scheduler', schedule.event_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
+        tags: ['scheduler', schedule.schedule_type, ministryName.toLowerCase().replace(/\s+/g, '-')],
         metadata,
         is_active: true,
         created_at: new Date().toISOString(),

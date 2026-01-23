@@ -44,6 +44,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { title: "Dashboard", href: "/admin/community/planning", icon: "dashboard" },
       { title: "Calendar", href: "/admin/community/planning/calendar", icon: "calendar" },
       { title: "Scheduler", href: "/admin/community/planning/scheduler", icon: "scheduler" },
+      { title: "Ministries", href: "/admin/community/planning/scheduler/ministries", icon: "ministries" },
       { title: "Goals & Objectives", href: "/admin/community/planning/goals", icon: "goals" },
       { title: "Notebooks", href: "/admin/community/planning/notebooks", icon: "notebooks" },
     ],
@@ -374,6 +375,10 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
     permission: 'events:view',
   },
   '/admin/community/planning/scheduler': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    permission: 'events:view',
+  },
+  '/admin/community/planning/scheduler/ministries': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
     permission: 'events:view',
   },

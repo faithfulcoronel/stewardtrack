@@ -15,7 +15,9 @@ export interface IMinistryTeamRepository extends BaseRepository<MinistryTeam> {
   getByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<MinistryTeam | null>;
   createTeamMember(data: MinistryTeamCreateInput, tenantId: string): Promise<MinistryTeam>;
   updateTeamMember(id: string, data: MinistryTeamUpdateInput, tenantId: string): Promise<MinistryTeam>;
+  updateTeamMemberByMinistryAndMember(ministryId: string, memberId: string, data: MinistryTeamUpdateInput, tenantId: string): Promise<MinistryTeam>;
   deleteTeamMember(id: string, tenantId: string): Promise<void>;
+  deleteTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<void>;
 }
 
 @injectable()
@@ -44,7 +46,15 @@ export class MinistryTeamRepository extends BaseRepository<MinistryTeam> impleme
     return await this.ministryTeamAdapter.updateTeamMember(id, data, tenantId);
   }
 
+  async updateTeamMemberByMinistryAndMember(ministryId: string, memberId: string, data: MinistryTeamUpdateInput, tenantId: string): Promise<MinistryTeam> {
+    return await this.ministryTeamAdapter.updateTeamMemberByMinistryAndMember(ministryId, memberId, data, tenantId);
+  }
+
   async deleteTeamMember(id: string, tenantId: string): Promise<void> {
     return await this.ministryTeamAdapter.deleteTeamMember(id, tenantId);
+  }
+
+  async deleteTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId: string): Promise<void> {
+    return await this.ministryTeamAdapter.deleteTeamMemberByMinistryAndMember(ministryId, memberId, tenantId);
   }
 }

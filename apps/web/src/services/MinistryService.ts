@@ -46,7 +46,9 @@ export interface IMinistryService {
   getMemberMinistries(memberId: string, tenantId?: string): Promise<MinistryTeam[]>;
   addTeamMember(data: MinistryTeamCreateInput, tenantId?: string): Promise<MinistryTeam>;
   updateTeamMember(id: string, data: MinistryTeamUpdateInput, tenantId?: string): Promise<MinistryTeam>;
+  updateTeamMemberByMinistryAndMember(ministryId: string, memberId: string, data: MinistryTeamUpdateInput, tenantId?: string): Promise<MinistryTeam>;
   removeTeamMember(id: string, tenantId?: string): Promise<void>;
+  removeTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId?: string): Promise<void>;
   isMemberInTeam(ministryId: string, memberId: string, tenantId?: string): Promise<boolean>;
 
   // View Transformation
@@ -160,9 +162,19 @@ export class MinistryService implements IMinistryService {
     return await this.ministryTeamRepository.updateTeamMember(id, data, effectiveTenantId);
   }
 
+  async updateTeamMemberByMinistryAndMember(ministryId: string, memberId: string, data: MinistryTeamUpdateInput, tenantId?: string): Promise<MinistryTeam> {
+    const effectiveTenantId = await this.resolveTenantId(tenantId);
+    return await this.ministryTeamRepository.updateTeamMemberByMinistryAndMember(ministryId, memberId, data, effectiveTenantId);
+  }
+
   async removeTeamMember(id: string, tenantId?: string): Promise<void> {
     const effectiveTenantId = await this.resolveTenantId(tenantId);
     return await this.ministryTeamRepository.deleteTeamMember(id, effectiveTenantId);
+  }
+
+  async removeTeamMemberByMinistryAndMember(ministryId: string, memberId: string, tenantId?: string): Promise<void> {
+    const effectiveTenantId = await this.resolveTenantId(tenantId);
+    return await this.ministryTeamRepository.deleteTeamMemberByMinistryAndMember(ministryId, memberId, effectiveTenantId);
   }
 
   async isMemberInTeam(ministryId: string, memberId: string, tenantId?: string): Promise<boolean> {

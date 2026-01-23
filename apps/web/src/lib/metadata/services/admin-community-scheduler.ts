@@ -73,13 +73,6 @@ const resolveSchedulerDashboardQuickLinks: ServiceDataSourceHandler = async () =
         href: '/admin/community/planning/scheduler/occurrences',
         icon: 'list',
       },
-      {
-        id: 'calendar',
-        title: 'Calendar View',
-        description: 'See all events in a calendar format.',
-        href: '/admin/community/planning/scheduler/calendar',
-        icon: 'calendar-days',
-      },
     ],
     actions: [],
   };
@@ -215,7 +208,7 @@ const resolveMinistriesTable: ServiceDataSourceHandler = async () => {
           {
             id: 'edit',
             label: 'Edit',
-            urlTemplate: '/admin/community/planning/scheduler/ministries/{{id}}/edit',
+            urlTemplate: '/admin/community/planning/scheduler/ministries/manage?ministryId={{id}}',
             intent: 'edit',
           },
           {
@@ -341,7 +334,7 @@ const resolveSchedulesTable: ServiceDataSourceHandler = async () => {
           {
             id: 'edit',
             label: 'Edit',
-            urlTemplate: '/admin/community/planning/scheduler/schedules/{{id}}/edit',
+            urlTemplate: '/admin/community/planning/scheduler/schedules/manage?scheduleId={{id}}',
             intent: 'edit',
           },
           {

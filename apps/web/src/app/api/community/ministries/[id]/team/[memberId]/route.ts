@@ -20,11 +20,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { memberId } = await params;
+    const { id: ministryId, memberId } = await params;
     const ministryService = container.get<IMinistryService>(TYPES.MinistryService);
     const body: MinistryTeamUpdateInput = await request.json();
 
-    const teamMember = await ministryService.updateTeamMember(memberId, body);
+    const teamMember = await ministryService.updateTeamMemberByMinistryAndMember(ministryId, memberId, body);
 
     return NextResponse.json({ success: true, data: teamMember });
   } catch (error) {
@@ -49,10 +49,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { memberId } = await params;
+    const { id: ministryId, memberId } = await params;
     const ministryService = container.get<IMinistryService>(TYPES.MinistryService);
 
-    await ministryService.removeTeamMember(memberId);
+    await ministryService.removeTeamMemberByMinistryAndMember(ministryId, memberId);
 
     return NextResponse.json({ success: true, message: 'Team member removed' });
   } catch (error) {

@@ -128,7 +128,7 @@ const getSourceUrl = (sourceType?: string | null, sourceId?: string | null): str
       return `/admin/community/discipleship-plans/manage?discipleshipPlanId=${sourceId}`;
     case 'member_birthday':
     case 'member_anniversary':
-      return `/admin/community/membership/manage?memberId=${sourceId}`;
+      return `/admin/community/members/${sourceId}/view`;
     default:
       return null;
   }

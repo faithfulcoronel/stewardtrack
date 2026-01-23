@@ -48,7 +48,7 @@ SERVICE HANDLERS:
             <Prop name="description" kind="binding" contract="schedulerHero.description"/>
             <Prop name="metrics" kind="binding" contract="schedulerHero.metrics"/>
             <Prop name="primaryCta" kind="action" actionId="create-schedule"/>
-            <Prop name="secondaryCta" kind="action" actionId="view-calendar"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-dashboard"/>
           </Props>
         </Component>
 
@@ -124,10 +124,10 @@ SERVICE HANDLERS:
           <Variant>primary</Variant>
         </Config>
       </Action>
-      <Action id="view-calendar" kind="link">
+      <Action id="view-dashboard" kind="link">
         <Config>
-          <Label>Calendar view</Label>
-          <Url>/admin/community/planning/scheduler/calendar</Url>
+          <Label>Dashboard</Label>
+          <Url>/admin/community/planning</Url>
           <Variant>secondary</Variant>
         </Config>
       </Action>
