@@ -335,6 +335,11 @@ export interface NotebookDetailView extends Notebook {
   shares: NotebookShare[];
 }
 
+// Notebook with sections populated (used by getNotebookWithSections)
+export interface NotebookWithSections extends Notebook {
+  sections?: NotebookSectionWithPages[];
+}
+
 export interface NotebookSectionWithPages extends NotebookSection {
   pages: NotebookPage[];
 }
