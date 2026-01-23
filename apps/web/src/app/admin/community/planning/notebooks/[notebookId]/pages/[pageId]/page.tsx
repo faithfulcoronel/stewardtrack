@@ -27,6 +27,7 @@ import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { NotebookService } from "@/services/NotebookService";
 import { notFound } from "next/navigation";
+import { RichTextViewer } from "@/components/ui/rich-text-viewer";
 
 type Awaitable<T> = T | Promise<T>;
 
@@ -85,13 +86,16 @@ export default async function NotebookPageDetailPage({ params }: PageProps) {
         </div>
 
         {/* Page Content */}
-        <div className="prose max-w-none bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          {page.content ? (
-            <div dangerouslySetInnerHTML={{ __html: page.content }} />
-          ) : (
-            <p className="text-gray-500 italic">No content yet. Click Edit to add content.</p>
-          )}
-        </div>
+        {page.content ? (
+          <RichTextViewer
+            content={page.content}
+            className="bg-card dark:bg-card rounded-lg border border-border p-4 sm:p-6 shadow-sm"
+          />
+        ) : (
+          <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
+            <p className="text-muted-foreground italic">No content yet. Click Edit to add content.</p>
+          </div>
+        )}
 
         {/* Attachments */}
         {(page as any).attachments && (page as any).attachments.length > 0 && (
