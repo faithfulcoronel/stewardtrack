@@ -301,6 +301,14 @@ export class TenantService {
     );
   }
 
+  /**
+   * Fetch tenant by ID using service role client (bypasses RLS).
+   * Use this for webhook/cron contexts where there is no authenticated user.
+   */
+  findByIdWithServiceRole(tenantId: string): Promise<Tenant | null> {
+    return this.repo.getTenantByIdWithServiceRole(tenantId);
+  }
+
   // ==================== SUBSCRIPTION MANAGEMENT METHODS ====================
 
   /**

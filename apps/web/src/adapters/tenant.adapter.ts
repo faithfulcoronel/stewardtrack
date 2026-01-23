@@ -109,6 +109,12 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
     status: string,
     paidAt: string | null
   ): Promise<void>;
+
+  /**
+   * Fetch tenant by ID using service role client (bypasses RLS).
+   * Use this for webhook/cron contexts where there is no authenticated user.
+   */
+  getTenantByIdWithServiceRole(tenantId: string): Promise<Tenant | null>;
 }
 
 @injectable()
@@ -812,5 +818,26 @@ export class TenantAdapter
     if (error) {
       throw new Error(`Failed to update tenant payment status: ${error.message}`);
     }
+  }
+
+  /**
+   * Fetch tenant by ID using service role client (bypasses RLS).
+   * Use this for webhook/cron contexts where there is no authenticated user.
+   */
+  async getTenantByIdWithServiceRole(tenantId: string): Promise<Tenant | null> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { data, error } = await serviceSupabase
+      .from('tenants')
+      .select('*')
+      .eq('id', tenantId)
+      .single();
+
+    if (error) {
+      console.error('[TenantAdapter] Failed to fetch tenant with service role:', error.message);
+      return null;
+    }
+
+    return data as Tenant;
   }
 }

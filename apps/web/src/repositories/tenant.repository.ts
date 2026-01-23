@@ -60,6 +60,12 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
     status: string,
     paidAt: string | null
   ): Promise<void>;
+
+  /**
+   * Fetch tenant by ID using service role client (bypasses RLS).
+   * Use this for webhook/cron contexts where there is no authenticated user.
+   */
+  getTenantByIdWithServiceRole(tenantId: string): Promise<Tenant | null>;
 }
 
 @injectable()
@@ -173,5 +179,9 @@ export class TenantRepository
       status,
       paidAt
     );
+  }
+
+  async getTenantByIdWithServiceRole(tenantId: string): Promise<Tenant | null> {
+    return this.tenantAdapter.getTenantByIdWithServiceRole(tenantId);
   }
 }

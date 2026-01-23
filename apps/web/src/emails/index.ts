@@ -181,6 +181,13 @@ export { SystemAnnouncementEmail } from './templates/SystemAnnouncementEmail';
 export type { SystemAnnouncementEmailProps } from './templates/SystemAnnouncementEmail';
 
 // =============================================================================
+// Subscription Templates
+// =============================================================================
+
+export { SubscriptionGracePeriodEmail } from './templates/SubscriptionGracePeriodEmail';
+export type { SubscriptionGracePeriodEmailProps } from './templates/SubscriptionGracePeriodEmail';
+
+// =============================================================================
 // Service Exports - Render Functions
 // =============================================================================
 
@@ -236,6 +243,8 @@ export {
   // System
   renderSystemMaintenanceEmail,
   renderSystemAnnouncementEmail,
+  // Subscription
+  renderSubscriptionGracePeriodEmail,
   // Dynamic
   renderEmailByType,
 } from './service/EmailTemplateService';
@@ -297,6 +306,8 @@ export type {
   // System
   SystemMaintenanceEmailData,
   SystemAnnouncementEmailData,
+  // Subscription
+  SubscriptionGracePeriodEmailData,
   // Template Type
   EmailTemplateType,
 } from './service/EmailTemplateService';

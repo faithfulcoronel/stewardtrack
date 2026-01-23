@@ -79,6 +79,7 @@ import { ErrorReportEmail } from '../templates/ErrorReportEmail';
 
 // Subscription Templates
 import { TenantSubscriptionWelcomeEmail } from '../templates/TenantSubscriptionWelcomeEmail';
+import { SubscriptionGracePeriodEmail } from '../templates/SubscriptionGracePeriodEmail';
 
 /** Default base URL for email assets */
 const DEFAULT_BASE_URL = 'https://stewardtrack.com';
@@ -561,6 +562,16 @@ export interface TenantSubscriptionWelcomeEmailData {
   trialDays?: number;
   dashboardUrl: string;
   baseUrl?: string;
+}
+
+export interface SubscriptionGracePeriodEmailData {
+  recipientName: string;
+  tenantName: string;
+  subscriptionTier: string;
+  daysRemaining: number;
+  gracePeriodEndDate: string;
+  paymentUrl?: string;
+  supportEmail?: string;
 }
 
 // =============================================================================
@@ -1544,6 +1555,28 @@ export async function renderTenantSubscriptionWelcomeEmail(
   return await renderEmail(element);
 }
 
+/**
+ * Renders a subscription grace period warning email template to HTML.
+ * Sent to tenants when their payment is overdue and they are in the grace period.
+ */
+export async function renderSubscriptionGracePeriodEmail(
+  data: SubscriptionGracePeriodEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(SubscriptionGracePeriodEmail, {
+    recipientName: data.recipientName,
+    tenantName: data.tenantName,
+    subscriptionTier: data.subscriptionTier,
+    daysRemaining: data.daysRemaining,
+    gracePeriodEndDate: data.gracePeriodEndDate,
+    paymentUrl: data.paymentUrl,
+    supportEmail: data.supportEmail,
+    baseUrl: options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
+}
+
 // =============================================================================
 // Dynamic Template Rendering
 // =============================================================================
@@ -1606,7 +1639,8 @@ export type EmailTemplateType =
   | 'system-announcement'
   | 'error-report'
   // Subscription
-  | 'tenant-subscription-welcome';
+  | 'tenant-subscription-welcome'
+  | 'subscription-grace-period';
 
 /**
  * Renders an email template by type.
@@ -1727,6 +1761,8 @@ export async function renderEmailByType(
     // Subscription
     case 'tenant-subscription-welcome':
       return await renderTenantSubscriptionWelcomeEmail(data as unknown as TenantSubscriptionWelcomeEmailData, options);
+    case 'subscription-grace-period':
+      return await renderSubscriptionGracePeriodEmail(data as unknown as SubscriptionGracePeriodEmailData, options);
 
     default:
       throw new Error(`Unknown email template type: ${templateType}`);
