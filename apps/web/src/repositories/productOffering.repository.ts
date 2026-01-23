@@ -16,6 +16,11 @@ export interface IProductOfferingRepository extends BaseRepository<ProductOfferi
   updateOffering(id: string, data: UpdateProductOfferingDto): Promise<ProductOffering>;
   deleteOffering(id: string): Promise<void>;
   getOffering(id: string): Promise<ProductOffering | null>;
+  /**
+   * Get offering by ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  getOfferingWithServiceRole(id: string): Promise<ProductOffering | null>;
   getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null>;
   getActiveOfferings(): Promise<ProductOffering[]>;
   getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
@@ -73,6 +78,10 @@ export class ProductOfferingRepository
 
   async getOffering(id: string): Promise<ProductOffering | null> {
     return await this.findById(id);
+  }
+
+  async getOfferingWithServiceRole(id: string): Promise<ProductOffering | null> {
+    return await this.productOfferingAdapter.getOfferingByIdWithServiceRole(id);
   }
 
   async getOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null> {

@@ -118,6 +118,32 @@ export class PaymentService {
   }
 
   /**
+   * Get payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   *
+   * @param xenditInvoiceId Xendit invoice ID
+   * @returns Payment record or null
+   */
+  async getPaymentByXenditIdWithServiceRole(xenditInvoiceId: string): Promise<SubscriptionPayment | null> {
+    return this.paymentRepository.getPaymentByXenditIdWithServiceRole(xenditInvoiceId);
+  }
+
+  /**
+   * Update payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   *
+   * @param xenditInvoiceId Xendit invoice ID
+   * @param data Payment data to update
+   * @returns Updated payment record or null
+   */
+  async updatePaymentByXenditIdWithServiceRole(
+    xenditInvoiceId: string,
+    data: Partial<SubscriptionPayment>
+  ): Promise<SubscriptionPayment | null> {
+    return this.paymentRepository.updatePaymentByXenditIdWithServiceRole(xenditInvoiceId, data);
+  }
+
+  /**
    * Get payment by external ID
    *
    * @param externalId External payment ID

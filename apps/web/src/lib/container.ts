@@ -220,6 +220,11 @@ import { PaymentSubscriptionService } from '@/services/PaymentSubscriptionServic
 import { SubscriptionPaymentAdapter, type ISubscriptionPaymentAdapter } from '@/adapters/subscriptionPayment.adapter';
 import { SubscriptionPaymentRepository, type ISubscriptionPaymentRepository } from '@/repositories/subscriptionPayment.repository';
 
+// Billing Event (webhook logging)
+import { BillingEventAdapter, type IBillingEventAdapter } from '@/adapters/billingEvent.adapter';
+import { BillingEventRepository, type IBillingEventRepository } from '@/repositories/billingEvent.repository';
+import { BillingEventService } from '@/services/BillingEventService';
+
 // Encryption Services
 import { EncryptionService } from '@/lib/encryption/EncryptionService';
 import { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager';
@@ -452,6 +457,22 @@ container
 container
   .bind<ISubscriptionPaymentRepository>(TYPES.ISubscriptionPaymentRepository)
   .to(SubscriptionPaymentRepository)
+  .inRequestScope();
+
+// Billing Event (webhook logging)
+container
+  .bind<IBillingEventAdapter>(TYPES.IBillingEventAdapter)
+  .to(BillingEventAdapter)
+  .inRequestScope();
+
+container
+  .bind<IBillingEventRepository>(TYPES.IBillingEventRepository)
+  .to(BillingEventRepository)
+  .inRequestScope();
+
+container
+  .bind<BillingEventService>(TYPES.BillingEventService)
+  .to(BillingEventService)
   .inRequestScope();
 
 // Services

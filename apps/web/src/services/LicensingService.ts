@@ -124,6 +124,14 @@ export class LicensingService {
   }
 
   /**
+   * Gets a product offering by ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  async getProductOfferingWithServiceRole(id: string): Promise<ProductOffering | null> {
+    return await this.productOfferingRepository.getOfferingWithServiceRole(id);
+  }
+
+  /**
    * Gets a product offering with its associated features
    */
   async getProductOfferingWithFeatures(id: string): Promise<ProductOfferingWithFeatures | null> {

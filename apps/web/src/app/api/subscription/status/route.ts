@@ -144,7 +144,7 @@ export async function GET() {
           church_name: tenant?.name,
           subscription_status: tenant?.subscription_status,
           payment_status: latestPayment?.status || null,
-          next_billing_date: tenant?.subscription_end_date,
+          next_billing_date: tenant?.next_billing_date,
         },
         currentOffering,
         latestPayment: latestPayment

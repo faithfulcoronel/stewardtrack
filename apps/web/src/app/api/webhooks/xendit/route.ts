@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { XenditService } from '@/services/XenditService';
-import { PaymentService } from '@/services/PaymentService';
 import { PaymentSubscriptionService } from '@/services/PaymentSubscriptionService';
+import { PaymentService } from '@/services/PaymentService';
+import { BillingEventService } from '@/services/BillingEventService';
+import { TenantService } from '@/services/TenantService';
 import type { AICreditPurchaseService } from '@/services/AICreditPurchaseService';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { LicensingService } from '@/services/LicensingService';
 
 /**
  * POST /api/webhooks/xendit
@@ -39,10 +41,12 @@ export async function POST(request: NextRequest) {
 
     // Get services from container
     const xenditService = container.get<XenditService>(TYPES.XenditService);
-    const paymentService = container.get<PaymentService>(TYPES.PaymentService);
     const subscriptionService = container.get<PaymentSubscriptionService>(
       TYPES.PaymentSubscriptionService
     );
+    const paymentService = container.get<PaymentService>(TYPES.PaymentService);
+    const billingEventService = container.get<BillingEventService>(TYPES.BillingEventService);
+    const tenantService = container.get<TenantService>(TYPES.TenantService);
 
     // Verify webhook signature
     if (!xenditService.verifyWebhookSignature(callbackToken)) {
@@ -63,9 +67,6 @@ export async function POST(request: NextRequest) {
       status: event.status,
       payment_type: event.metadata?.payment_type,
     });
-
-    // Log event to database
-    const supabase = await createSupabaseServerClient();
 
     // === AI CREDITS: Check if this is an AI credit purchase ===
     if (event.metadata?.payment_type === 'ai_credits') {
@@ -99,21 +100,20 @@ export async function POST(request: NextRequest) {
     }
 
     // === SUBSCRIPTION PAYMENT: Continue with existing logic ===
-    // Get payment record
-    const payment = await paymentService.getPaymentByXenditId(event.id);
+    // Get payment record using service role client (bypasses RLS for webhook context)
+    const payment = await paymentService.getPaymentByXenditIdWithServiceRole(event.id);
 
+    console.log('[Xendit Webhook] Payment lookup result:', { payment });
     if (!payment) {
       console.error('[Xendit Webhook] Payment not found:', event.external_id);
 
-      // Still log the event
-      await supabase.from('billing_events').insert({
-        event_id: event.external_id,
-        event_type: `invoice.${event.status.toLowerCase()}`,
-        xendit_event_id: event.id,
-        payload: payload,
-        processed: false,
-        processing_error: 'Payment record not found',
-      });
+      // Still log the event via BillingEventService
+      await billingEventService.logEventNotFound(
+        event.external_id,
+        `invoice.${event.status.toLowerCase()}`,
+        event.id,
+        payload
+      );
 
       return NextResponse.json(
         { error: 'Payment not found' },
@@ -121,27 +121,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert billing event log
-    await supabase.from('billing_events').insert({
-      event_id: event.external_id,
-      event_type: `invoice.${event.status.toLowerCase()}`,
-      tenant_id: payment.tenant_id,
-      payment_id: payment.id,
-      xendit_event_id: event.id,
-      payload: payload,
-      processed: false,
-    });
+    // Insert billing event log via BillingEventService
+    await billingEventService.logEvent(
+      event.external_id,
+      `invoice.${event.status.toLowerCase()}`,
+      payment.tenant_id,
+      payment.id,
+      event.id,
+      payload
+    );
 
     // Handle event based on status
     try {
       switch (event.status) {
         case 'PAID':
         case 'SETTLED':
-          await handlePaidInvoice(event, payment, paymentService, subscriptionService, supabase);
+          await handlePaidInvoice(
+            event,
+            payment,
+            paymentService,
+            tenantService,
+            subscriptionService
+          );
           break;
 
         case 'EXPIRED':
-          await handleExpiredInvoice(event, payment, paymentService, subscriptionService, supabase);
+          await handleExpiredInvoice(
+            event,
+            payment,
+            paymentService,
+            tenantService,
+            subscriptionService
+          );
           break;
 
         case 'PENDING':
@@ -153,27 +164,15 @@ export async function POST(request: NextRequest) {
           console.warn('[Xendit Webhook] Unknown status:', event.status);
       }
 
-      // Mark event as processed
-      await supabase
-        .from('billing_events')
-        .update({
-          processed: true,
-          processed_at: new Date().toISOString(),
-        })
-        .eq('event_id', event.external_id);
+      // Mark event as processed via BillingEventService
+      await billingEventService.markAsProcessed(event.external_id);
 
       return NextResponse.json({ success: true });
     } catch (error: any) {
       console.error('[Xendit Webhook] Error processing event:', error);
 
-      // Log processing error
-      await supabase
-        .from('billing_events')
-        .update({
-          processing_error: error.message,
-          retry_count: supabase.rpc('increment', { x: 1 }),
-        })
-        .eq('event_id', event.external_id);
+      // Log processing error via BillingEventService
+      await billingEventService.logProcessingError(event.external_id, error.message);
 
       throw error;
     }
@@ -197,43 +196,53 @@ async function handlePaidInvoice(
   event: any,
   payment: any,
   paymentService: PaymentService,
-  subscriptionService: PaymentSubscriptionService,
-  supabase: any
+  tenantService: TenantService,
+  subscriptionService: PaymentSubscriptionService
 ) {
   console.log('[Xendit Webhook] Processing paid invoice:', event.external_id);
 
-  // Update payment status
-  await paymentService.updatePaymentStatus(
+  // Update payment status via PaymentService
+  await paymentService.updatePaymentByXenditIdWithServiceRole(event.id, {
+    status: 'paid',
+    xendit_payment_id: event.id,
+    payment_method: event.payment_method,
+    payment_channel: event.payment_channel,
+    paid_at: event.paid_at,
+  });
+
+  // Update tenant payment status via TenantService
+  await tenantService.updateTenantPaymentStatusWithServiceRole(
+    payment.tenant_id,
     event.id,
     'paid',
-    {
-      xendit_payment_id: event.id,
-      payment_method: event.payment_method,
-      payment_channel: event.payment_channel,
-      paid_at: event.paid_at,
-    }
+    event.paid_at
   );
 
-  // Call database function to update tenant payment status
-  await supabase.rpc('update_tenant_payment_status', {
-    p_tenant_id: payment.tenant_id,
-    p_xendit_invoice_id: event.id,
-    p_status: 'paid',
-    p_paid_at: event.paid_at,
-  });
+  console.log('[Xendit Webhook] Tenant payment status updated successfully for tenant:', payment.tenant_id);
 
   // Activate subscription and provision features
   if (payment.offering_id) {
+    const licensingService = container.get<LicensingService>(TYPES.LicensingService);
+    const offering = await licensingService.getProductOfferingWithServiceRole(payment.offering_id);
+
+    console.log('[Xendit Webhook] Payment offering_id:', payment.offering_id);
+    console.log('[Xendit Webhook] Retrieved offering:', offering);
+
+    if (!offering) {
+      console.error('[Xendit Webhook] Product offering not found for id:', payment.offering_id);
+      throw new Error(`Product offering not found: ${payment.offering_id}`);
+    }
+
     await subscriptionService.activateSubscription(
       payment.tenant_id,
-      payment.offering_id,
+      offering,
       new Date(event.paid_at)
     );
+  } else {
+    console.warn('[Xendit Webhook] Payment has no offering_id, skipping subscription activation');
   }
 
   console.log('[Xendit Webhook] Successfully processed paid invoice');
-
-  // TODO: Send payment confirmation email to tenant
 }
 
 /**
@@ -243,28 +252,25 @@ async function handleExpiredInvoice(
   event: any,
   payment: any,
   paymentService: PaymentService,
-  subscriptionService: PaymentSubscriptionService,
-  supabase: any
+  tenantService: TenantService,
+  subscriptionService: PaymentSubscriptionService
 ) {
   console.log('[Xendit Webhook] Processing expired invoice:', event.external_id);
 
-  // Update payment status
-  await paymentService.updatePaymentStatus(
+  // Update payment status via PaymentService
+  await paymentService.updatePaymentByXenditIdWithServiceRole(event.id, {
+    status: 'expired',
+    failed_at: new Date().toISOString(),
+    failure_reason: 'Invoice expired without payment',
+  });
+
+  // Update tenant payment status via TenantService
+  await tenantService.updateTenantPaymentStatusWithServiceRole(
+    payment.tenant_id,
     event.id,
     'expired',
-    {
-      failed_at: new Date().toISOString(),
-      failure_reason: 'Invoice expired without payment',
-    }
+    null
   );
-
-  // Call database function to update tenant payment status
-  await supabase.rpc('update_tenant_payment_status', {
-    p_tenant_id: payment.tenant_id,
-    p_xendit_invoice_id: event.id,
-    p_status: 'expired',
-    p_paid_at: null,
-  });
 
   // Handle payment failure
   await subscriptionService.handlePaymentFailure(
@@ -273,8 +279,6 @@ async function handleExpiredInvoice(
   );
 
   console.log('[Xendit Webhook] Successfully processed expired invoice');
-
-  // TODO: Send payment failed email with retry link
 }
 
 /**

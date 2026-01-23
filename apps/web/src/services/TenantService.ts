@@ -283,6 +283,24 @@ export class TenantService {
     return this.repo.getPublicTenantInfo(tenantId);
   }
 
+  /**
+   * Update tenant payment status via RPC using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  updateTenantPaymentStatusWithServiceRole(
+    tenantId: string,
+    xenditInvoiceId: string,
+    status: string,
+    paidAt: string | null
+  ): Promise<void> {
+    return this.repo.updateTenantPaymentStatusWithServiceRole(
+      tenantId,
+      xenditInvoiceId,
+      status,
+      paidAt
+    );
+  }
+
   // ==================== SUBSCRIPTION MANAGEMENT METHODS ====================
 
   /**

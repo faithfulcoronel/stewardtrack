@@ -43,6 +43,11 @@ export const TYPES = {
   ISubscriptionPaymentAdapter: Symbol.for('ISubscriptionPaymentAdapter'),
   ISubscriptionPaymentRepository: Symbol.for('ISubscriptionPaymentRepository'),
 
+  // Billing Event (webhook logging)
+  BillingEventService: Symbol.for('BillingEventService'),
+  IBillingEventAdapter: Symbol.for('IBillingEventAdapter'),
+  IBillingEventRepository: Symbol.for('IBillingEventRepository'),
+
   // Phase 5 Optimization & Monitoring Services
   MaterializedViewRefreshService: Symbol.for('MaterializedViewRefreshService'),
   LicenseMonitoringService: Symbol.for('LicenseMonitoringService'),

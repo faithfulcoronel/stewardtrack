@@ -5,11 +5,17 @@ import { BaseAdapter, type IBaseAdapter, QueryOptions } from '@/adapters/base.ad
 import { ProductOffering, ProductOfferingWithFeatures, ProductOfferingWithBundles, ProductOfferingComplete } from '@/models/productOffering.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface IProductOfferingAdapter extends IBaseAdapter<ProductOffering> {
   getOfferingWithFeatures(offeringId: string): Promise<ProductOfferingWithFeatures | null>;
   getActiveOfferings(): Promise<ProductOffering[]>;
   getOfferingsByTier(tier: string): Promise<ProductOffering[]>;
+  /**
+   * Get offering by ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  getOfferingByIdWithServiceRole(id: string): Promise<ProductOffering | null>;
   getPublicProductOfferings(options: {
     includeFeatures: boolean;
     includeBundles: boolean;
@@ -98,6 +104,36 @@ export class ProductOfferingAdapter
         return null;
       }
       throw new Error(`Failed to fetch product offering: ${error.message}`);
+    }
+
+    return data as ProductOffering;
+  }
+
+  /**
+   * Get offering by ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   *
+   * @param id - The product offering ID
+   * @returns The product offering or null if not found
+   */
+  public async getOfferingByIdWithServiceRole(id: string): Promise<ProductOffering | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    // Use 'any' to bypass strict typing since product_offerings is not in the typed schema
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - not found
+        return null;
+      }
+      throw new Error(`Failed to fetch product offering with service role: ${error.message}`);
     }
 
     return data as ProductOffering;

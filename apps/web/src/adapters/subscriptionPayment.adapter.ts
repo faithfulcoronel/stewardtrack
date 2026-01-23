@@ -10,9 +10,15 @@ import {
 } from '@/models/subscriptionPayment.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export interface ISubscriptionPaymentAdapter extends IBaseAdapter<SubscriptionPayment> {
   getPaymentByXenditId(xenditInvoiceId: string): Promise<SubscriptionPayment | null>;
+  /**
+   * Get payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  getPaymentByXenditIdWithServiceRole(xenditInvoiceId: string): Promise<SubscriptionPayment | null>;
   getPaymentByExternalId(externalId: string): Promise<SubscriptionPayment | null>;
   getTenantPayments(
     tenantId: string,
@@ -32,6 +38,15 @@ export interface ISubscriptionPaymentAdapter extends IBaseAdapter<SubscriptionPa
     payment_count: number;
     last_payment_date: string | null;
   }>;
+
+  /**
+   * Update payment status by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  updatePaymentByXenditIdWithServiceRole(
+    xenditInvoiceId: string,
+    data: Partial<SubscriptionPayment>
+  ): Promise<SubscriptionPayment | null>;
 }
 
 @injectable()
@@ -94,6 +109,60 @@ export class SubscriptionPaymentAdapter
     }
 
     return data as SubscriptionPayment;
+  }
+
+  /**
+   * Get payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  async getPaymentByXenditIdWithServiceRole(xenditInvoiceId: string): Promise<SubscriptionPayment | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('xendit_invoice_id', xenditInvoiceId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw new Error(`Failed to get payment by Xendit ID with service role: ${error.message}`);
+    }
+
+    return data as SubscriptionPayment;
+  }
+
+  /**
+   * Update payment status by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  async updatePaymentByXenditIdWithServiceRole(
+    xenditInvoiceId: string,
+    data: Partial<SubscriptionPayment>
+  ): Promise<SubscriptionPayment | null> {
+    const supabase = await getSupabaseServiceClient();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: result, error } = await (supabase as any)
+      .from(this.tableName)
+      .update({
+        ...data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('xendit_invoice_id', xenditInvoiceId)
+      .select(this.defaultSelect)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw new Error(`Failed to update payment by Xendit ID with service role: ${error.message}`);
+    }
+
+    return result as SubscriptionPayment;
   }
 
   async getPaymentByExternalId(externalId: string): Promise<SubscriptionPayment | null> {

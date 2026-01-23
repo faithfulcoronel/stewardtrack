@@ -98,6 +98,17 @@ export interface ITenantAdapter extends IBaseAdapter<Tenant> {
 
   // Public registration methods
   getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
+
+  /**
+   * Update tenant payment status via RPC using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  updateTenantPaymentStatusWithServiceRole(
+    tenantId: string,
+    xenditInvoiceId: string,
+    status: string,
+    paidAt: string | null
+  ): Promise<void>;
 }
 
 @injectable()
@@ -777,5 +788,29 @@ export class TenantAdapter
     }
 
     return data as unknown as PublicTenantInfo;
+  }
+
+  /**
+   * Update tenant payment status via RPC using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  async updateTenantPaymentStatusWithServiceRole(
+    tenantId: string,
+    xenditInvoiceId: string,
+    status: string,
+    paidAt: string | null
+  ): Promise<void> {
+    const serviceSupabase = await getSupabaseServiceClient();
+
+    const { error } = await serviceSupabase.rpc('update_tenant_payment_status', {
+      p_tenant_id: tenantId,
+      p_xendit_invoice_id: xenditInvoiceId,
+      p_status: status,
+      p_paid_at: paidAt,
+    });
+
+    if (error) {
+      throw new Error(`Failed to update tenant payment status: ${error.message}`);
+    }
   }
 }

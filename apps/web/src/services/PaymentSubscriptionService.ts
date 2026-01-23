@@ -96,15 +96,9 @@ export class PaymentSubscriptionService {
    */
   async activateSubscription(
     tenantId: string,
-    offeringId: string,
+    offering: any,
     paidAt: Date = new Date()
   ): Promise<void> {
-    // Get offering details via LicensingService
-    const offering = await this.licensingService.getProductOffering(offeringId);
-
-    if (!offering) {
-      throw new Error(`Failed to fetch offering: ${offeringId}`);
-    }
 
     // Calculate next billing date
     const nextBillingDate = new Date(paidAt);
@@ -119,14 +113,14 @@ export class PaymentSubscriptionService {
       subscription_status: 'active',
       subscription_tier: offering.tier,
       billing_cycle: offering.billing_cycle as 'monthly' | 'annual',
-      subscription_offering_id: offeringId,
+      subscription_offering_id: offering.id,
       payment_status: 'paid',
       last_payment_date: paidAt.toISOString(),
       next_billing_date: nextBillingDate.toISOString(),
     });
 
     // Provision license features
-    await this.licensingService.provisionTenantLicense(tenantId, offeringId);
+    await this.licensingService.provisionTenantLicense(tenantId, offering.id);
   }
 
   /**

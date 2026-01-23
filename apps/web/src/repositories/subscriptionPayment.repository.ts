@@ -23,6 +23,19 @@ export interface ISubscriptionPaymentRepository {
   // Read operations
   getPaymentById(id: string): Promise<SubscriptionPayment | null>;
   getPaymentByXenditId(xenditInvoiceId: string): Promise<SubscriptionPayment | null>;
+  /**
+   * Get payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  getPaymentByXenditIdWithServiceRole(xenditInvoiceId: string): Promise<SubscriptionPayment | null>;
+  /**
+   * Update payment by Xendit invoice ID using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  updatePaymentByXenditIdWithServiceRole(
+    xenditInvoiceId: string,
+    data: Partial<SubscriptionPayment>
+  ): Promise<SubscriptionPayment | null>;
   getPaymentByExternalId(externalId: string): Promise<SubscriptionPayment | null>;
   getTenantPayments(
     tenantId: string,
@@ -93,6 +106,17 @@ export class SubscriptionPaymentRepository implements ISubscriptionPaymentReposi
 
   async getPaymentByXenditId(xenditInvoiceId: string): Promise<SubscriptionPayment | null> {
     return this.adapter.getPaymentByXenditId(xenditInvoiceId);
+  }
+
+  async getPaymentByXenditIdWithServiceRole(xenditInvoiceId: string): Promise<SubscriptionPayment | null> {
+    return this.adapter.getPaymentByXenditIdWithServiceRole(xenditInvoiceId);
+  }
+
+  async updatePaymentByXenditIdWithServiceRole(
+    xenditInvoiceId: string,
+    data: Partial<SubscriptionPayment>
+  ): Promise<SubscriptionPayment | null> {
+    return this.adapter.updatePaymentByXenditIdWithServiceRole(xenditInvoiceId, data);
   }
 
   async getPaymentByExternalId(externalId: string): Promise<SubscriptionPayment | null> {

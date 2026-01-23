@@ -49,6 +49,17 @@ export interface ITenantRepository extends BaseRepository<Tenant> {
 
   // Public registration methods
   getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null>;
+
+  /**
+   * Update tenant payment status via RPC using service role client (bypasses RLS).
+   * Use this for webhook contexts where there is no authenticated user.
+   */
+  updateTenantPaymentStatusWithServiceRole(
+    tenantId: string,
+    xenditInvoiceId: string,
+    status: string,
+    paidAt: string | null
+  ): Promise<void>;
 }
 
 @injectable()
@@ -148,5 +159,19 @@ export class TenantRepository
   // Public registration methods
   async getPublicTenantInfo(tenantId: string): Promise<PublicTenantInfo | null> {
     return this.tenantAdapter.getPublicTenantInfo(tenantId);
+  }
+
+  async updateTenantPaymentStatusWithServiceRole(
+    tenantId: string,
+    xenditInvoiceId: string,
+    status: string,
+    paidAt: string | null
+  ): Promise<void> {
+    return this.tenantAdapter.updateTenantPaymentStatusWithServiceRole(
+      tenantId,
+      xenditInvoiceId,
+      status,
+      paidAt
+    );
   }
 }
