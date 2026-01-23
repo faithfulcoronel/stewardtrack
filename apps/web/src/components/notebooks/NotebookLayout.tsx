@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
-  ChevronDown,
   ChevronRight,
   Plus,
   Edit,
@@ -166,6 +165,9 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Local cache for edited content - persists content changes when switching between pages
+  const editedContentCache = useRef<Map<string, string>>(new Map());
+
   // Update URL when page is selected
   const selectPage = (pageId: string | null) => {
     setSelectedPageId(pageId);
@@ -246,12 +248,12 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
     }
   };
 
-  const startEditingSection = (section: Section) => {
+  const startEditingSection = (section: NotebookSectionWithPages) => {
     setEditingSectionId(section.id);
     setEditValue(section.title);
   };
 
-  const startEditingPage = (page: Page) => {
+  const startEditingPage = (page: NotebookPage) => {
     setEditingPageId(page.id);
     setEditValue(page.title);
   };
@@ -384,18 +386,34 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
   );
 
   // Sync content when selected page changes
+  // Use cached content if available (user's edits), otherwise fall back to server content
+  // Note: Intentionally only depend on selectedPage?.id to avoid overwriting user edits
+  // when other properties of selectedPage change
   useEffect(() => {
     if (selectedPage) {
-      setPageContent(selectedPage.content || "");
+      const cachedContent = editedContentCache.current.get(selectedPage.id);
+      if (cachedContent !== undefined) {
+        // Use locally cached content (user's edits)
+        setPageContent(cachedContent);
+      } else {
+        // Fall back to server content
+        setPageContent(selectedPage.content || "");
+      }
     } else {
       setPageContent("");
     }
-  }, [selectedPage?.id, selectedPage?.content]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPage?.id]);
 
   // Auto-save content with debounce
   const handleContentChange = useCallback(
     (newContent: string) => {
       setPageContent(newContent);
+
+      // Cache the edited content immediately so it persists when switching pages
+      if (selectedPageId) {
+        editedContentCache.current.set(selectedPageId, newContent);
+      }
 
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -519,30 +537,31 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
     <div className="flex flex-col h-full">
       {/* Back Button + Quick Actions */}
       {showBackButton && (
-        <div className="px-3 py-2 border-b border-border/30 flex items-center justify-between">
+        <div className="px-3 py-2.5 border-b border-border/40 flex items-center justify-between bg-gradient-to-r from-muted/30 to-transparent">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 text-muted-foreground hover:text-foreground"
+            className="h-9 px-3 text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all duration-200 rounded-lg group"
             onClick={handleBack}
           >
-            <ArrowLeft className="h-4 w-4 mr-1.5" />
-            <span className="text-xs">All Notebooks</span>
+            <ArrowLeft className="h-4 w-4 mr-2 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <span className="text-xs font-medium">All Notebooks</span>
           </Button>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-8 w-8 rounded-lg hover:bg-accent/80 transition-all duration-200"
                   onClick={() => setIsSearchOpen(true)}
                 >
-                  <Search className="h-3.5 w-3.5" />
+                  <Search className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Search notebook <kbd className="ml-1 px-1 py-0.5 text-[10px] bg-muted rounded">Shift+Cmd+F</kbd></p>
+              <TooltipContent side="bottom" className="flex items-center gap-2">
+                <span>Search notebook</span>
+                <kbd className="px-1.5 py-0.5 text-[10px] bg-muted/80 rounded border border-border/50 font-mono">Shift+Cmd+F</kbd>
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -550,14 +569,15 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-8 w-8 rounded-lg hover:bg-accent/80 transition-all duration-200"
                   onClick={() => setIsCommandOpen(true)}
                 >
-                  <Command className="h-3.5 w-3.5" />
+                  <Command className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Commands <kbd className="ml-1 px-1 py-0.5 text-[10px] bg-muted rounded">Cmd+K</kbd></p>
+              <TooltipContent side="bottom" className="flex items-center gap-2">
+                <span>Commands</span>
+                <kbd className="px-1.5 py-0.5 text-[10px] bg-muted/80 rounded border border-border/50 font-mono">Cmd+K</kbd>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -565,36 +585,38 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
       )}
 
       {/* Notebook Header */}
-      <div className="p-4 md:p-5 border-b border-border/50">
-        <div className="flex items-start gap-3">
-          <div className="relative shrink-0">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center ring-1 ring-primary/20">
-              <BookOpen className="w-6 h-6 text-primary" />
+      <div className="p-4 md:p-5 border-b border-border/40 bg-gradient-to-b from-background to-muted/20">
+        <div className="flex items-start gap-3.5">
+          <div className="relative shrink-0 group/icon">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center ring-1 ring-primary/25 shadow-sm shadow-primary/10 transition-all duration-300 group-hover/icon:shadow-md group-hover/icon:shadow-primary/20 group-hover/icon:scale-105">
+              <BookOpen className="w-7 h-7 text-primary transition-transform duration-300 group-hover/icon:scale-110" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background ring-2 ring-background flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-amber-500" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 ring-2 ring-background flex items-center justify-center shadow-lg shadow-amber-500/20 animate-pulse">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold text-foreground truncate leading-tight">
+          <div className="flex-1 min-w-0 pt-0.5">
+            <h1 className="text-base font-semibold text-foreground truncate leading-tight tracking-tight">
               {notebook.title}
             </h1>
             {notebook.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground/80 line-clamp-2 mt-1.5 leading-relaxed">
                 {notebook.description}
               </p>
             )}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-3">
               <Badge
                 variant="secondary"
-                className="text-[10px] px-1.5 py-0 h-5 font-normal"
+                className="text-[10px] px-2 py-0.5 h-5 font-medium bg-secondary/80 hover:bg-secondary transition-colors"
               >
+                <Folder className="w-3 h-3 mr-1 opacity-70" />
                 {totalSections} section{totalSections !== 1 ? "s" : ""}
               </Badge>
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 h-5 font-normal"
+                className="text-[10px] px-2 py-0.5 h-5 font-medium border-border/60 hover:border-border transition-colors"
               >
+                <FileText className="w-3 h-3 mr-1 opacity-70" />
                 {totalPages} page{totalPages !== 1 ? "s" : ""}
               </Badge>
             </div>
@@ -605,7 +627,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary active:scale-95 transition-all duration-200"
                   asChild
                 >
                   <a
@@ -625,14 +647,14 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
           <Button
             variant="outline"
             size="sm"
-            className="w-full mt-4 h-9 text-sm font-medium border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary transition-all"
+            className="w-full mt-4 h-10 text-sm font-medium border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-[0.98] transition-all duration-200 rounded-xl group"
             onClick={handleCreateSection}
             disabled={isCreating}
           >
             {isCreating ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <FolderPlus className="h-4 w-4 mr-2" />
+              <FolderPlus className="h-4 w-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
             )}
             {isCreating ? "Creating..." : "New Section"}
           </Button>
@@ -640,45 +662,45 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
       </div>
 
       {/* Sections List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         {!notebook.sections || notebook.sections.length === 0 ? (
-          <div className="p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-              <Folder className="w-8 h-8 text-muted-foreground/50" />
+          <div className="p-8 text-center">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted/80 via-muted/50 to-transparent flex items-center justify-center mx-auto mb-5 ring-1 ring-border/50">
+              <Folder className="w-10 h-10 text-muted-foreground/40" />
             </div>
-            <p className="text-sm font-medium text-foreground mb-1">
+            <p className="text-sm font-semibold text-foreground mb-1.5">
               No sections yet
             </p>
-            <p className="text-xs text-muted-foreground">
-              Create a section to start organizing your notes
+            <p className="text-xs text-muted-foreground/80 max-w-[200px] mx-auto leading-relaxed">
+              Create a section to start organizing your thoughts and ideas
             </p>
           </div>
         ) : (
-          <div className="py-2">
-            {notebook.sections.map((section, sectionIndex) => (
+          <div className="py-3 space-y-1">
+            {notebook.sections.map((section) => (
               <div key={section.id} className="px-2">
                 {/* Section Header */}
-                <div className="flex items-center gap-1 group rounded-lg hover:bg-accent/50 transition-colors">
+                <div className="flex items-center gap-1 group rounded-xl hover:bg-accent/60 active:bg-accent/80 transition-all duration-200">
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className="flex items-center gap-2 px-3 py-2.5 flex-1 min-w-0"
+                    className="flex items-center gap-2.5 px-3 py-3 flex-1 min-w-0"
                   >
                     <div
                       className={cn(
-                        "transition-transform duration-200",
+                        "transition-transform duration-300 ease-out",
                         expandedSections.has(section.id) && "rotate-90"
                       )}
                     >
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/70" />
                     </div>
-                    <Folder
-                      className={cn(
-                        "h-4 w-4 shrink-0 transition-colors",
-                        expandedSections.has(section.id)
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      )}
-                    />
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+                      expandedSections.has(section.id)
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted/60 text-muted-foreground"
+                    )}>
+                      <Folder className="h-4 w-4" />
+                    </div>
                     {editingSectionId === section.id ? (
                       <Input
                         value={editValue}
@@ -692,13 +714,18 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                           }
                         }}
                         onBlur={() => saveSection(section.id)}
-                        className="h-7 text-sm px-2 bg-background"
+                        className="h-8 text-sm px-3 bg-background border-primary/30 focus:border-primary rounded-lg"
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
                       <span
-                        className="text-sm font-medium truncate flex-1 text-left text-foreground"
+                        className={cn(
+                          "text-sm font-medium truncate flex-1 text-left transition-colors duration-200",
+                          expandedSections.has(section.id)
+                            ? "text-foreground"
+                            : "text-foreground/80"
+                        )}
                         onDoubleClick={() =>
                           canEdit && startEditingSection(section)
                         }
@@ -708,7 +735,12 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                     )}
                     <Badge
                       variant="secondary"
-                      className="text-[10px] px-1.5 py-0 h-5 shrink-0 font-normal"
+                      className={cn(
+                        "text-[10px] px-2 py-0.5 h-5 shrink-0 font-medium transition-all duration-200",
+                        expandedSections.has(section.id)
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted/80"
+                      )}
                     >
                       {section.pages?.length || 0}
                     </Badge>
@@ -719,27 +751,29 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity mr-1"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 mr-1 rounded-lg hover:bg-background/80"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg">
                         <DropdownMenuItem
                           onClick={() => startEditingSection(section)}
+                          className="rounded-lg"
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Rename section
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleCreatePage(section.id)}
+                          className="rounded-lg"
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Add page
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10 rounded-lg"
                           onClick={() =>
                             setDeletingSection({
                               id: section.id,
@@ -759,15 +793,16 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                 {/* Pages List */}
                 <div
                   className={cn(
-                    "overflow-hidden transition-all duration-200",
+                    "overflow-hidden transition-all duration-300 ease-out",
                     expandedSections.has(section.id)
-                      ? "max-h-[1000px] opacity-100"
+                      ? "max-h-[2000px] opacity-100"
                       : "max-h-0 opacity-0"
                   )}
                 >
-                  <div className="ml-5 pl-4 border-l border-border/50 space-y-0.5 py-1">
+                  <div className="ml-6 pl-4 border-l-2 border-border/40 space-y-0.5 py-2">
                     {!section.pages || section.pages.length === 0 ? (
-                      <div className="text-xs text-muted-foreground px-3 py-2 italic">
+                      <div className="text-xs text-muted-foreground/60 px-3 py-3 italic flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5" />
                         No pages in this section
                       </div>
                     ) : (
@@ -777,7 +812,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                           className="flex items-center gap-1 group/page"
                         >
                           {editingPageId === page.id ? (
-                            <div className="flex-1 px-2">
+                            <div className="flex-1 px-2 py-1">
                               <Input
                                 value={editValue}
                                 onChange={(e) => setEditValue(e.target.value)}
@@ -790,7 +825,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                                   }
                                 }}
                                 onBlur={() => savePage(page.id)}
-                                className="h-7 text-sm px-2 bg-background"
+                                className="h-8 text-sm px-3 bg-background border-primary/30 focus:border-primary rounded-lg"
                                 autoFocus
                               />
                             </div>
@@ -802,18 +837,18 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                                   canEdit && startEditingPage(page)
                                 }
                                 className={cn(
-                                  "flex-1 flex items-center gap-2 text-left px-3 py-2 rounded-lg text-sm transition-all",
+                                  "flex-1 flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                                   selectedPageId === page.id
-                                    ? "bg-primary text-primary-foreground font-medium shadow-sm"
-                                    : "hover:bg-accent text-foreground/80 hover:text-foreground"
+                                    ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-md shadow-primary/20 scale-[1.02]"
+                                    : "hover:bg-accent/70 active:bg-accent text-foreground/70 hover:text-foreground"
                                 )}
                               >
                                 <FileText
                                   className={cn(
-                                    "h-4 w-4 shrink-0",
+                                    "h-4 w-4 shrink-0 transition-all duration-200",
                                     selectedPageId === page.id
                                       ? "text-primary-foreground"
-                                      : "text-muted-foreground"
+                                      : "text-muted-foreground/60"
                                   )}
                                 />
                                 <span className="truncate">{page.title}</span>
@@ -824,24 +859,25 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7 opacity-0 group-hover/page:opacity-100 transition-opacity mr-1"
+                                      className="h-8 w-8 opacity-0 group-hover/page:opacity-100 transition-all duration-200 mr-1 rounded-lg hover:bg-background/80"
                                     >
                                       <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent
                                     align="end"
-                                    className="w-40"
+                                    className="w-44 rounded-xl shadow-lg"
                                   >
                                     <DropdownMenuItem
                                       onClick={() => startEditingPage(page)}
+                                      className="rounded-lg"
                                     >
                                       <Edit className="h-4 w-4 mr-2" />
                                       Rename
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
-                                      className="text-destructive focus:text-destructive"
+                                      className="text-destructive focus:text-destructive focus:bg-destructive/10 rounded-lg"
                                       onClick={() =>
                                         setDeletingPage({
                                           id: page.id,
@@ -864,11 +900,11 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full justify-start h-8 px-3 text-xs text-muted-foreground hover:text-foreground"
+                        className="w-full justify-start h-9 px-3 text-xs text-muted-foreground/70 hover:text-foreground hover:bg-accent/50 rounded-xl mt-1 transition-all duration-200 group/add"
                         onClick={() => handleCreatePage(section.id)}
                         disabled={isCreating}
                       >
-                        <Plus className="h-3 w-3 mr-2" />
+                        <Plus className="h-3.5 w-3.5 mr-2 transition-transform duration-200 group-hover/add:scale-110" />
                         Add page
                       </Button>
                     )}
@@ -886,7 +922,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
     <TooltipProvider>
       <div
         className={cn(
-          "flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-muted/20 transition-all duration-300",
+          "flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-muted/10 transition-all duration-500 ease-out",
           isFullscreen
             ? "fixed inset-0 z-50 h-screen"
             : "h-[calc(100vh-4rem)]"
@@ -895,7 +931,7 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
         {/* Desktop Sidebar - Hidden in fullscreen */}
         <aside
           className={cn(
-            "hidden md:flex w-80 lg:w-96 border-r border-border/50 bg-card/50 backdrop-blur-sm flex-col transition-all duration-300",
+            "hidden md:flex w-80 lg:w-[22rem] border-r border-border/30 bg-gradient-to-b from-card/80 via-card/60 to-card/40 backdrop-blur-md flex-col transition-all duration-500 ease-out shadow-[1px_0_20px_-10px_rgba(0,0,0,0.1)]",
             isFullscreen && "md:hidden"
           )}
         >
@@ -905,20 +941,20 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
         {/* Mobile Header + Drawer */}
         <div
           className={cn(
-            "md:hidden border-b border-border/50 bg-card/80 backdrop-blur-sm",
+            "md:hidden border-b border-border/40 bg-gradient-to-r from-card/95 via-card/90 to-card/95 backdrop-blur-md shadow-sm",
             isFullscreen && "hidden"
           )}
         >
-          <div className="flex items-center gap-2 px-3 py-2">
+          <div className="flex items-center gap-2 px-3 py-2.5 safe-area-inset-top">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0"
+                  className="h-10 w-10 shrink-0 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
                   onClick={handleBack}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Go back</TooltipContent>
@@ -926,34 +962,36 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-10 w-10 shrink-0 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
               onClick={() => setIsMobileSidebarOpen(true)}
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-muted-foreground truncate leading-tight">
+            <div className="flex-1 min-w-0 px-1">
+              <p className="text-[11px] text-muted-foreground/70 truncate leading-tight font-medium">
                 {notebook.title}
               </p>
-              <p className="text-sm font-medium truncate leading-tight">
+              <p className="text-sm font-semibold truncate leading-tight text-foreground">
                 {selectedPage?.title || "Select a page"}
               </p>
             </div>
             <div className="flex items-center gap-1">
               {isSaving ? (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground px-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                <div className="flex items-center gap-1.5 text-xs text-amber-500 dark:text-amber-400 px-2.5 py-1.5 bg-amber-500/10 rounded-full">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 </div>
               ) : lastSaved ? (
-                <Check className="h-3.5 w-3.5 text-emerald-500" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 rounded-full">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
+                </div>
               ) : null}
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-10 w-10 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
                 onClick={() => setIsCommandOpen(true)}
               >
-                <Command className="h-4 w-4" />
+                <Command className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -961,29 +999,37 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
 
         {/* Mobile Drawer */}
         <Drawer open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-          <DrawerContent className="h-[85vh]">
-            <DrawerHeader className="border-b px-4 py-3">
+          <DrawerContent className="h-[90vh] rounded-t-3xl">
+            <DrawerHeader className="border-b border-border/40 px-5 py-4 bg-gradient-to-b from-muted/30 to-transparent">
               <div className="flex items-center justify-between">
-                <DrawerTitle className="text-base">Navigation</DrawerTitle>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-1 ring-primary/20">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <DrawerTitle className="text-base font-semibold">Navigation</DrawerTitle>
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">{totalPages} pages in {totalSections} sections</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-10 w-10 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
                     onClick={() => {
                       setIsSearchOpen(true);
                       setIsMobileSidebarOpen(false);
                     }}
                   >
-                    <Search className="h-4 w-4" />
+                    <Search className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-10 w-10 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
                     onClick={() => setIsMobileSidebarOpen(false)}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -995,47 +1041,54 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
         </Drawer>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-transparent via-transparent to-muted/5">
           {selectedPage ? (
             <>
               {/* Fullscreen Header - Only visible in fullscreen mode */}
               {isFullscreen && (
-                <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
-                  <div className="px-4 py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="border-b border-border/30 bg-gradient-to-r from-card/90 via-card/80 to-card/90 backdrop-blur-md">
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 px-2"
+                        className="h-9 px-3 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200 group"
                         onClick={() => setIsFullscreen(false)}
                       >
-                        <Minimize2 className="h-4 w-4 mr-1.5" />
-                        <span className="text-xs">Exit Focus</span>
+                        <Minimize2 className="h-4 w-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
+                        <span className="text-xs font-medium">Exit Focus</span>
                       </Button>
-                      <span className="text-sm font-medium truncate">
+                      <div className="h-5 w-px bg-border/50" />
+                      <span className="text-sm font-semibold truncate text-foreground">
                         {selectedPage.title}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="hidden sm:flex items-center gap-3 px-3 py-1 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                        <span>{contentStats.words.toLocaleString()} words</span>
-                        <span className="w-px h-3 bg-border" />
-                        <span>{contentStats.readingTime} min</span>
+                    <div className="flex items-center gap-3">
+                      <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-muted/40 text-xs text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Type className="h-3.5 w-3.5 opacity-60" />
+                          {contentStats.words.toLocaleString()} words
+                        </span>
+                        <span className="w-px h-4 bg-border/60" />
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 opacity-60" />
+                          {contentStats.readingTime} min
+                        </span>
                       </div>
                       <div
                         className={cn(
-                          "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium",
+                          "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300",
                           isSaving
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/10"
                             : lastSaved
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-500/10"
+                            : "bg-muted/60 text-muted-foreground"
                         )}
                       >
                         {isSaving ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : lastSaved ? (
-                          <Check className="h-3 w-3" />
+                          <Check className="h-3.5 w-3.5" />
                         ) : null}
                         <span>{isSaving ? "Saving" : lastSaved ? "Saved" : "Ready"}</span>
                       </div>
@@ -1046,36 +1099,38 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
 
               {/* Page Header - Desktop (hidden in fullscreen) */}
               <div className={cn(
-                "hidden md:block border-b border-border/50 bg-card/30 backdrop-blur-sm",
+                "hidden md:block border-b border-border/30 bg-gradient-to-r from-card/50 via-card/30 to-card/50 backdrop-blur-sm",
                 isFullscreen && "md:hidden"
               )}>
-                <div className="px-6 lg:px-8 py-4">
-                  <div className="flex items-center justify-between gap-4">
+                <div className="px-6 lg:px-8 py-5">
+                  <div className="flex items-center justify-between gap-6">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Folder className="h-3.5 w-3.5" />
-                        <span className="truncate">{selectedSection?.title}</span>
-                        <ChevronRight className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground/80 mb-2">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/40 text-xs font-medium">
+                          <Folder className="h-3.5 w-3.5 opacity-60" />
+                          <span className="truncate">{selectedSection?.title}</span>
+                        </div>
+                        <ChevronRight className="h-4 w-4 opacity-40" />
                         <span className="text-foreground font-medium truncate">
                           {selectedPage.title}
                         </span>
                       </div>
-                      <h2 className="text-xl lg:text-2xl font-bold text-foreground truncate">
+                      <h2 className="text-xl lg:text-2xl font-bold text-foreground truncate tracking-tight">
                         {selectedPage.title}
                       </h2>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0">
                       {/* Word Count & Reading Time */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                          <div className="hidden lg:flex items-center gap-3 px-4 py-2 rounded-xl bg-muted/40 text-xs text-muted-foreground font-medium">
                             <span className="flex items-center gap-1.5">
-                              <Type className="h-3 w-3" />
+                              <Type className="h-3.5 w-3.5 opacity-60" />
                               {contentStats.words.toLocaleString()} words
                             </span>
-                            <span className="w-px h-3 bg-border" />
+                            <span className="w-px h-4 bg-border/60" />
                             <span className="flex items-center gap-1.5">
-                              <Clock className="h-3 w-3" />
+                              <Clock className="h-3.5 w-3.5 opacity-60" />
                               {contentStats.readingTime} min read
                             </span>
                           </div>
@@ -1088,27 +1143,27 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                       {/* Save Status Indicator */}
                       <div
                         className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                          "flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold transition-all duration-300",
                           isSaving
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/10"
                             : lastSaved
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-500/10"
+                            : "bg-muted/60 text-muted-foreground"
                         )}
                       >
                         {isSaving ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             Saving...
                           </>
                         ) : lastSaved ? (
                           <>
-                            <Check className="h-3 w-3" />
+                            <Check className="h-3.5 w-3.5" />
                             Saved
                           </>
                         ) : (
                           <>
-                            <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                            <div className="h-2 w-2 rounded-full bg-current animate-pulse" />
                             Ready
                           </>
                         )}
@@ -1120,13 +1175,13 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-10 w-10 rounded-xl hover:bg-accent/80 active:scale-95 transition-all duration-200"
                             onClick={() => setIsFullscreen(!isFullscreen)}
                           >
                             {isFullscreen ? (
-                              <Minimize2 className="h-4 w-4" />
+                              <Minimize2 className="h-5 w-5" />
                             ) : (
-                              <Maximize2 className="h-4 w-4" />
+                              <Maximize2 className="h-5 w-5" />
                             )}
                           </Button>
                         </TooltipTrigger>
@@ -1138,20 +1193,21 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                       {canEdit && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8">
-                              <MoreHorizontal className="h-4 w-4" />
+                            <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-border/50 hover:bg-accent/80 active:scale-95 transition-all duration-200">
+                              <MoreHorizontal className="h-5 w-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg">
                             <DropdownMenuItem
                               onClick={() => startEditingPage(selectedPage)}
+                              className="rounded-lg"
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Rename page
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10 rounded-lg"
                               onClick={() =>
                                 setDeletingPage({
                                   id: selectedPage.id,
@@ -1172,8 +1228,8 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
 
               {/* Page Content - Inline Editor */}
               <div className="flex-1 overflow-hidden">
-                <div className="h-full p-4 md:p-6 lg:p-8">
-                  <div className="h-full bg-card/50 rounded-xl border border-border/50 shadow-sm overflow-hidden">
+                <div className="h-full p-3 md:p-5 lg:p-6">
+                  <div className="h-full bg-card/70 rounded-2xl border border-border/40 shadow-sm shadow-black/5 overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-md hover:shadow-black/5">
                     <RichTextEditor
                       value={pageContent}
                       onChange={handleContentChange}
@@ -1190,20 +1246,20 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
             /* Empty State */
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center max-w-md">
-                <div className="relative mx-auto mb-6">
-                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center ring-1 ring-primary/20 mx-auto">
-                    <FileText className="w-12 h-12 text-primary/60" />
+                <div className="relative mx-auto mb-8">
+                  <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center ring-1 ring-primary/20 mx-auto shadow-lg shadow-primary/10 transition-all duration-500 hover:shadow-xl hover:shadow-primary/20 hover:scale-105">
+                    <FileText className="w-14 h-14 text-primary/70 transition-transform duration-500 hover:scale-110" />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-background ring-4 ring-background flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-5 h-5 text-amber-500" />
+                  <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 ring-4 ring-background flex items-center justify-center shadow-lg shadow-amber-500/30 animate-bounce">
+                    <Sparkles className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
                   {notebook.sections?.length === 0
                     ? "Start your notebook"
                     : "Select a page"}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-sm text-muted-foreground/80 mb-8 leading-relaxed max-w-xs mx-auto">
                   {notebook.sections?.length === 0
                     ? "Create your first section to begin organizing your thoughts and ideas."
                     : "Choose a page from the sidebar to view and edit its content."}
@@ -1212,18 +1268,20 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                   <Button
                     onClick={handleCreateSection}
                     disabled={isCreating}
-                    className="gap-2"
+                    size="lg"
+                    className="gap-2.5 h-12 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-95 transition-all duration-200 group"
                   >
                     {isCreating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <FolderPlus className="h-4 w-4" />
+                      <FolderPlus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
                     )}
                     Create first section
                   </Button>
                 )}
                 {/* Mobile hint */}
-                <p className="md:hidden text-xs text-muted-foreground mt-4">
+                <p className="md:hidden text-xs text-muted-foreground/60 mt-6 flex items-center justify-center gap-2">
+                  <Menu className="h-3.5 w-3.5" />
                   Tap the menu icon to browse pages
                 </p>
               </div>
@@ -1236,31 +1294,35 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
           open={!!deletingSection}
           onOpenChange={() => setDeletingSection(null)}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl border-border/50 shadow-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Section</AlertDialogTitle>
-              <AlertDialogDescription>
+              <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4 ring-1 ring-destructive/20">
+                <Folder className="w-7 h-7 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-center text-xl">Delete Section</AlertDialogTitle>
+              <AlertDialogDescription className="text-center leading-relaxed">
                 {deletingSection && deletingSection.pageCount > 0 ? (
                   <>
-                    Are you sure you want to delete &quot;{deletingSection.title}
-                    &quot; and all {deletingSection.pageCount} page(s) within it?
-                    This action cannot be undone.
+                    Are you sure you want to delete <span className="font-semibold text-foreground">&quot;{deletingSection.title}&quot;</span> and all <span className="font-semibold text-destructive">{deletingSection.pageCount} page(s)</span> within it?
+                    <br />
+                    <span className="text-xs mt-2 inline-block opacity-70">This action cannot be undone.</span>
                   </>
                 ) : (
                   <>
-                    Are you sure you want to delete &quot;
-                    {deletingSection?.title}&quot;? This action cannot be undone.
+                    Are you sure you want to delete <span className="font-semibold text-foreground">&quot;{deletingSection?.title}&quot;</span>?
+                    <br />
+                    <span className="text-xs mt-2 inline-block opacity-70">This action cannot be undone.</span>
                   </>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogFooter className="gap-3 sm:gap-3">
+              <AlertDialogCancel className="rounded-xl h-11 px-6 font-medium">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDeleteSection}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-11 px-6 font-medium shadow-lg shadow-destructive/20 active:scale-95 transition-all duration-200"
               >
-                Delete
+                Delete Section
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1271,21 +1333,25 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
           open={!!deletingPage}
           onOpenChange={() => setDeletingPage(null)}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl border-border/50 shadow-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Page</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete &quot;{deletingPage?.title}
-                &quot;? This action cannot be undone.
+              <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4 ring-1 ring-destructive/20">
+                <FileText className="w-7 h-7 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-center text-xl">Delete Page</AlertDialogTitle>
+              <AlertDialogDescription className="text-center leading-relaxed">
+                Are you sure you want to delete <span className="font-semibold text-foreground">&quot;{deletingPage?.title}&quot;</span>?
+                <br />
+                <span className="text-xs mt-2 inline-block opacity-70">This action cannot be undone.</span>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogFooter className="gap-3 sm:gap-3">
+              <AlertDialogCancel className="rounded-xl h-11 px-6 font-medium">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDeletePage}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-11 px-6 font-medium shadow-lg shadow-destructive/20 active:scale-95 transition-all duration-200"
               >
-                Delete
+                Delete Page
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1293,31 +1359,43 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
 
         {/* Command Palette */}
         <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
-          <CommandInput placeholder="Type a command or search..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+          <CommandInput placeholder="Type a command or search..." className="h-12" />
+          <CommandList className="max-h-[400px]">
+            <CommandEmpty className="py-8 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                <Search className="w-6 h-6 text-muted-foreground/50" />
+              </div>
+              <p className="text-sm text-muted-foreground">No results found.</p>
+            </CommandEmpty>
             <CommandGroup heading="Navigation">
-              <CommandItem onSelect={() => { handleBack(); setIsCommandOpen(false); }}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <CommandItem onSelect={() => { handleBack(); setIsCommandOpen(false); }} className="rounded-lg py-3">
+                <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center mr-3">
+                  <ArrowLeft className="h-4 w-4" />
+                </div>
                 <span>Go to all notebooks</span>
               </CommandItem>
-              <CommandItem onSelect={() => { setIsSearchOpen(true); setIsCommandOpen(false); }}>
-                <Search className="mr-2 h-4 w-4" />
+              <CommandItem onSelect={() => { setIsSearchOpen(true); setIsCommandOpen(false); }} className="rounded-lg py-3">
+                <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center mr-3">
+                  <Search className="h-4 w-4" />
+                </div>
                 <span>Search in notebook</span>
-                <CommandShortcut>Shift+Cmd+F</CommandShortcut>
+                <CommandShortcut className="ml-auto opacity-60">Shift+Cmd+F</CommandShortcut>
               </CommandItem>
             </CommandGroup>
             {canEdit && (
               <>
-                <CommandSeparator />
+                <CommandSeparator className="my-2" />
                 <CommandGroup heading="Actions">
                   <CommandItem
                     onSelect={() => {
                       handleCreateSection();
                       setIsCommandOpen(false);
                     }}
+                    className="rounded-lg py-3"
                   >
-                    <FolderPlus className="mr-2 h-4 w-4" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                      <FolderPlus className="h-4 w-4 text-primary" />
+                    </div>
                     <span>Create new section</span>
                   </CommandItem>
                   {selectedSection && (
@@ -1326,8 +1404,11 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                         handleCreatePage(selectedSection.id);
                         setIsCommandOpen(false);
                       }}
+                      className="rounded-lg py-3"
                     >
-                      <Plus className="mr-2 h-4 w-4" />
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                        <Plus className="h-4 w-4 text-primary" />
+                      </div>
                       <span>Create new page in current section</span>
                     </CommandItem>
                   )}
@@ -1337,33 +1418,39 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                         startEditingPage(selectedPage);
                         setIsCommandOpen(false);
                       }}
+                      className="rounded-lg py-3"
                     >
-                      <Edit className="mr-2 h-4 w-4" />
+                      <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center mr-3">
+                        <Edit className="h-4 w-4" />
+                      </div>
                       <span>Rename current page</span>
                     </CommandItem>
                   )}
                 </CommandGroup>
               </>
             )}
-            <CommandSeparator />
+            <CommandSeparator className="my-2" />
             <CommandGroup heading="View">
               <CommandItem
                 onSelect={() => {
                   setIsFullscreen(!isFullscreen);
                   setIsCommandOpen(false);
                 }}
+                className="rounded-lg py-3"
               >
-                {isFullscreen ? (
-                  <Minimize2 className="mr-2 h-4 w-4" />
-                ) : (
-                  <Maximize2 className="mr-2 h-4 w-4" />
-                )}
+                <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center mr-3">
+                  {isFullscreen ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
+                </div>
                 <span>{isFullscreen ? "Exit focus mode" : "Enter focus mode"}</span>
               </CommandItem>
             </CommandGroup>
             {notebook.sections && notebook.sections.length > 0 && (
               <>
-                <CommandSeparator />
+                <CommandSeparator className="my-2" />
                 <CommandGroup heading="Quick Navigate">
                   {notebook.sections.flatMap((section) =>
                     section.pages?.map((page) => (
@@ -1373,10 +1460,19 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                           selectPage(page.id);
                           setIsCommandOpen(false);
                         }}
+                        className="rounded-lg py-2.5"
                       >
-                        <FileText className="mr-2 h-4 w-4" />
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center mr-3",
+                          selectedPageId === page.id ? "bg-primary/15" : "bg-muted/50"
+                        )}>
+                          <FileText className={cn(
+                            "h-4 w-4",
+                            selectedPageId === page.id ? "text-primary" : "text-muted-foreground"
+                          )} />
+                        </div>
                         <span className="truncate">{page.title}</span>
-                        <span className="ml-auto text-xs text-muted-foreground truncate">
+                        <span className="ml-auto text-xs text-muted-foreground/70 truncate px-2 py-0.5 rounded-md bg-muted/50">
                           {section.title}
                         </span>
                       </CommandItem>
@@ -1390,53 +1486,75 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
 
         {/* Search Dialog */}
         <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Search in Notebook
+          <DialogContent className="sm:max-w-lg rounded-2xl border-border/50 shadow-2xl p-0 gap-0 overflow-hidden">
+            <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/40 bg-gradient-to-b from-muted/30 to-transparent">
+              <DialogTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <span className="text-lg font-semibold">Search in Notebook</span>
+                  <p className="text-xs text-muted-foreground/70 font-normal mt-0.5">{totalPages} pages to search</p>
+                </div>
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Search pages and content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10"
-                autoFocus
-              />
-              <div className="max-h-[300px] overflow-y-auto space-y-2">
+            <div className="p-5 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                <Input
+                  placeholder="Search pages and content..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-12 pl-11 rounded-xl border-border/50 focus:border-primary/50 bg-muted/30 transition-all duration-200"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-[320px] overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {searchQuery.trim() === "" ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    Type to search across all pages in this notebook
-                  </p>
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/40 flex items-center justify-center mx-auto mb-4">
+                      <Keyboard className="w-8 h-8 text-muted-foreground/40" />
+                    </div>
+                    <p className="text-sm text-muted-foreground/70">
+                      Type to search across all pages
+                    </p>
+                  </div>
                 ) : searchResults.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No results found for &quot;{searchQuery}&quot;
-                  </p>
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/40 flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-muted-foreground/40" />
+                    </div>
+                    <p className="text-sm text-muted-foreground/70">
+                      No results found for <span className="font-medium text-foreground">&quot;{searchQuery}&quot;</span>
+                    </p>
+                  </div>
                 ) : (
                   searchResults.map((result) => (
                     <button
                       key={result.pageId}
-                      className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent transition-colors"
+                      className="w-full text-left p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-accent/50 active:bg-accent transition-all duration-200 group"
                       onClick={() => {
                         selectPage(result.pageId);
-                        // Expand the section
                         setExpandedSections((prev) => new Set([...prev, result.sectionId]));
                         setIsSearchOpen(false);
                         setSearchQuery("");
                       }}
                     >
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium truncate">{result.pageTitle}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                        <Folder className="h-3 w-3" />
-                        <span>{result.sectionTitle}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-muted/60 group-hover:bg-primary/10 flex items-center justify-center transition-colors duration-200">
+                          <FileText className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold truncate block text-foreground">{result.pageTitle}</span>
+                          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground/70">
+                            <Folder className="h-3 w-3" />
+                            <span>{result.sectionTitle}</span>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/60 transition-colors duration-200" />
                       </div>
                       {result.preview && (
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                        <p className="text-xs text-muted-foreground/60 mt-3 line-clamp-2 pl-12 leading-relaxed">
                           {result.preview}
                         </p>
                       )}
@@ -1445,9 +1563,11 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
                 )}
               </div>
               {searchResults.length > 0 && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}
-                </p>
+                <div className="pt-2 border-t border-border/40">
+                  <p className="text-xs text-muted-foreground/60 text-center">
+                    Found <span className="font-semibold text-foreground">{searchResults.length}</span> result{searchResults.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
               )}
             </div>
           </DialogContent>

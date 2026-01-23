@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { Plus, Loader2, Tag } from "lucide-react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -112,21 +113,45 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
 
   return (
     <div className={cn("space-y-6", props.className)}>
-      <DialogHeader className="space-y-2 text-left">
-        <DialogTitle className="text-xl font-semibold text-foreground">Add {lookupLabel.toLowerCase()}</DialogTitle>
-        {props.description && <DialogDescription>{props.description}</DialogDescription>}
+      {/* Header with icon */}
+      <DialogHeader className="space-y-3 text-left">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <Tag className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
+              Add {lookupLabel.toLowerCase()}
+            </DialogTitle>
+            {props.description && (
+              <DialogDescription className="text-sm mt-0.5">
+                {props.description}
+              </DialogDescription>
+            )}
+          </div>
+        </div>
       </DialogHeader>
+
       <Form {...form}>
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <FormField
             control={form.control}
             name="name"
             rules={{ required: "Name is required" }}
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="text-sm font-medium">Name</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder={`e.g. New ${lookupLabel.toLowerCase()}`} />
+                  <Input
+                    {...field}
+                    placeholder={`e.g. New ${lookupLabel.toLowerCase()}`}
+                    className={cn(
+                      "h-10 sm:h-11",
+                      "border-border/60 bg-background/50",
+                      "focus:border-primary/40 focus:ring-primary/20",
+                      "transition-colors"
+                    )}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -139,7 +164,7 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
             rules={{ required: "Code is required" }}
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel>Code</FormLabel>
+                <FormLabel className="text-sm font-medium">Code</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -148,20 +173,51 @@ export function AdminLookupQuickCreate(props: AdminLookupQuickCreateProps) {
                       field.onChange(event.target.value);
                     }}
                     placeholder="auto-generated"
+                    className={cn(
+                      "h-10 sm:h-11 font-mono text-sm",
+                      "border-border/60 bg-muted/30",
+                      "focus:border-primary/40 focus:ring-primary/20",
+                      "transition-colors"
+                    )}
                   />
                 </FormControl>
                 <FormMessage />
-                <p className="text-xs text-muted-foreground">Auto-generated from the name. Adjust if needed before saving.</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground">
+                  Auto-generated from the name. Adjust if needed before saving.
+                </p>
               </FormItem>
             )}
           />
 
-          <DialogFooter className="sm:justify-between">
-            <Button type="button" variant="ghost" onClick={props.onCancel} disabled={isSubmitting}>
+          <DialogFooter className="sm:justify-between pt-2 gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={props.onCancel}
+              disabled={isSubmitting}
+              className="hover:bg-muted/60"
+            >
               Cancel
             </Button>
-            <Button type="submit" className="px-5" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : submitLabel}
+            <Button
+              type="submit"
+              className={cn(
+                "px-5 gap-2",
+                "transition-all hover:shadow-md hover:shadow-primary/20"
+              )}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  {submitLabel}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

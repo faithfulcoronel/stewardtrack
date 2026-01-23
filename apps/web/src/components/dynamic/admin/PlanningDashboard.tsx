@@ -352,16 +352,34 @@ function StatCard({
   trendUp?: boolean;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className={cn(
+      "group relative overflow-hidden",
+      "border-border/40 bg-card/50 backdrop-blur-sm",
+      "transition-all duration-300",
+      "hover:border-border hover:shadow-lg hover:shadow-primary/5"
+    )}>
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/30" />
+
+      {/* Gradient overlay on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+
+      <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
+      <CardContent className="relative">
+        <div className="text-2xl sm:text-3xl font-bold text-foreground">{value}</div>
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{description}</p>
         {trend && (
-          <div className={cn('text-xs mt-1', trendUp ? 'text-green-600' : 'text-red-600')}>
+          <div className={cn(
+            'text-xs mt-2 font-medium flex items-center gap-1',
+            trendUp
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-destructive'
+          )}>
             {trendUp ? '+' : ''}{trend}
           </div>
         )}
@@ -376,38 +394,62 @@ function FeatureCardComponent({ card }: { card: FeatureCard }) {
 
   if (card.comingSoon) {
     return (
-      <Card className="relative overflow-hidden opacity-75">
+      <Card className={cn(
+        "relative overflow-hidden",
+        "border-border/40 bg-card/30 backdrop-blur-sm",
+        "opacity-75"
+      )}>
         <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/30" />
-        <CardHeader>
+        <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <div
-              className={cn('w-10 h-10 rounded-lg flex items-center justify-center', card.color)}
+              className={cn(
+                'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center',
+                'ring-2 ring-white/20',
+                card.color
+              )}
             >
               <Icon className="w-5 h-5 text-white" />
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
           </div>
-          <CardTitle className="mt-4">{card.title}</CardTitle>
-          <CardDescription>{card.description}</CardDescription>
+          <CardTitle className="mt-4 text-base sm:text-lg">{card.title}</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
         </CardHeader>
       </Card>
     );
   }
 
   return (
-    <Link href={card.href}>
-      <Card className="group hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
-        <CardHeader>
+    <Link href={card.href} className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl">
+      <Card className={cn(
+        "relative overflow-hidden h-full",
+        "border-border/40 bg-card/50 backdrop-blur-sm",
+        "transition-all duration-300",
+        "hover:border-border hover:shadow-lg hover:shadow-primary/5",
+        "active:scale-[0.99]"
+      )}>
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+
+        <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <div
-              className={cn('w-10 h-10 rounded-lg flex items-center justify-center', card.color)}
+              className={cn(
+                'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center',
+                'ring-2 ring-white/20 shadow-lg',
+                'transition-transform duration-300 group-hover:scale-110',
+                card.color
+              )}
             >
               <Icon className="w-5 h-5 text-white" />
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
           </div>
-          <CardTitle className="mt-4">{card.title}</CardTitle>
-          <CardDescription>{card.description}</CardDescription>
+          <CardTitle className="mt-4 text-base sm:text-lg group-hover:text-primary transition-colors duration-300">
+            {card.title}
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
         </CardHeader>
       </Card>
     </Link>
@@ -670,21 +712,34 @@ export function PlanningDashboard({ className }: PlanningDashboardProps) {
       </div>
 
       {/* Upcoming Events & Alerts */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         {/* Upcoming Events */}
-        <Card>
+        <Card className={cn(
+          "relative overflow-hidden",
+          "border-border/40 bg-card/50 backdrop-blur-sm",
+          "transition-all duration-300",
+          "hover:border-border"
+        )}>
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500/50" />
+
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Upcoming This Week</CardTitle>
-                <CardDescription>
-                  Care plan follow-ups and discipleship milestones
-                </CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg">Upcoming This Week</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Care plan follow-ups and discipleship milestones
+                  </CardDescription>
+                </div>
               </div>
               <Link href="/admin/community/planning/calendar?view=week">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="gap-1.5 hover:bg-blue-500/5 hover:text-blue-600 dark:hover:text-blue-400">
                   View All
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </div>
@@ -713,20 +768,33 @@ export function PlanningDashboard({ className }: PlanningDashboardProps) {
         </Card>
 
         {/* Alerts / Overdue */}
-        <Card>
+        <Card className={cn(
+          "relative overflow-hidden",
+          "border-border/40 bg-card/50 backdrop-blur-sm",
+          "transition-all duration-300",
+          "hover:border-border"
+        )}>
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-500/50" />
+
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Needs Attention</CardTitle>
-                <CardDescription>
-                  Overdue items and urgent priorities
-                </CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 ring-1 ring-amber-500/20">
+                  <AlertCircle className="h-4 w-4 text-amber-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg">Needs Attention</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Overdue items and urgent priorities
+                  </CardDescription>
+                </div>
               </div>
               {overdueEvents.length > 0 && (
                 <Link href="/admin/community/planning/calendar?filter=overdue">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="gap-1.5 hover:bg-amber-500/5 hover:text-amber-600 dark:hover:text-amber-400">
                     View All
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               )}

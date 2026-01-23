@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Edit3, ExternalLink, AlertCircle } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -71,11 +71,11 @@ interface ManageSectionResponsePayload {
 }
 
 const badgeTone: Record<string, string> = {
-  success: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  warning: "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  info: "bg-sky-500/15 text-sky-600 border-sky-500/30",
+  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  info: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30",
   neutral: "bg-muted text-muted-foreground border-border/60",
-  critical: "bg-destructive/15 text-destructive border-destructive/30",
+  critical: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
 };
 
 const initialDialogState: PanelActionPayload & { open: boolean } = {
@@ -177,30 +177,48 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
   }, [dialogState.memberId]);
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-5 sm:space-y-6">
       <div
         className={cn(
-          "grid gap-4",
-          columns <= 1 ? "grid-cols-1" : undefined,
-          columns === 2 ? "md:grid-cols-2" : undefined,
-          columns >= 3 ? "lg:grid-cols-3" : undefined,
+          "grid gap-3 sm:gap-4",
+          columns <= 1 && "grid-cols-1",
+          columns === 2 && "grid-cols-1 md:grid-cols-2",
+          columns >= 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
         )}
       >
-        {panels.map((panel) => (
-          <Card key={panel.id ?? panel.title} className="border-border/60">
-            <CardHeader className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <CardTitle className="text-base font-semibold text-foreground">{panel.title}</CardTitle>
+        {panels.map((panel, index) => (
+          <Card
+            key={panel.id ?? panel.title}
+            className={cn(
+              "group relative overflow-hidden",
+              "border-border/40 bg-card/50 backdrop-blur-sm",
+              "transition-all duration-300",
+              "hover:border-border hover:shadow-lg hover:shadow-primary/5"
+            )}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            {/* Gradient overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 group-hover:bg-primary/40 transition-colors" />
+
+            <CardHeader className="relative space-y-3 pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0 flex-1">
+                  <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+                    <span className="truncate">{panel.title}</span>
+                  </CardTitle>
                   {panel.description && (
-                    <p className="mt-1 text-sm text-muted-foreground">{panel.description}</p>
+                    <p className="text-sm text-muted-foreground pl-3 line-clamp-2">{panel.description}</p>
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {panel.badge && (
                     <Badge
                       variant="outline"
-                      className="border-border/60 text-xs uppercase tracking-widest text-muted-foreground"
+                      className="border-border/60 bg-muted/50 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground font-medium"
                     >
                       {panel.badge}
                     </Badge>
@@ -218,20 +236,25 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
                 </div>
               )}
             </CardHeader>
-            <CardContent>
-              <dl className="grid gap-4 text-sm">
-                {normalizeList<DetailItem>(panel.items).map((item) => (
-                  <div key={`${panel.id ?? panel.title}-${item.label}`} className="space-y-1">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
-                      <span className="flex items-center gap-2">
-                        {item.icon && <span aria-hidden>{item.icon}</span>}
+
+            <CardContent className="relative pt-0">
+              <dl className="grid gap-3 sm:gap-4 text-sm">
+                {normalizeList<DetailItem>(panel.items).map((item, itemIndex) => (
+                  <div
+                    key={`${panel.id ?? panel.title}-${item.label}`}
+                    className="group/item space-y-1 rounded-lg p-2.5 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+                    style={{ animationDelay: `${(index * 50) + (itemIndex * 30)}ms` }}
+                  >
+                    <dt className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                      <span className="flex items-center gap-1.5">
+                        {item.icon && <span aria-hidden className="text-sm">{item.icon}</span>}
                         <span>{item.label}</span>
                       </span>
                     </dt>
-                    <dd className="text-foreground">
+                    <dd className="text-foreground font-medium">
                       {renderValue(item)}
                       {item.description && (
-                        <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>
+                        <p className="mt-1 text-xs text-muted-foreground font-normal">{item.description}</p>
                       )}
                     </dd>
                   </div>
@@ -243,25 +266,29 @@ export function AdminDetailPanels(props: AdminDetailPanelsProps) {
       </div>
 
       <Dialog open={dialogState.open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" showCloseButton>
-          <DialogHeader>
-            <DialogTitle>{dialogState.actionLabel || "Update section"}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto sm:rounded-2xl" showCloseButton>
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <Edit3 className="h-4 w-4 text-primary" />
+              {dialogState.actionLabel || "Update section"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
               {formState?.helperText ?? dialogState.panelTitle ?? "Edit this member section."}
             </DialogDescription>
           </DialogHeader>
 
           {status === "loading" && (
-            <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" aria-hidden />
-              <span>Loading form…</span>
+            <div className="flex items-center justify-center gap-3 py-8 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden />
+              <span>Loading form...</span>
             </div>
           )}
 
           {status === "error" && errorMessage && (
-            <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-              {errorMessage}
-            </p>
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-600 dark:text-rose-400">{errorMessage}</p>
+            </div>
           )}
 
           {status === "idle" && formState && (
@@ -340,11 +367,15 @@ function DetailPanelActionButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        "inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "inline-flex items-center gap-1.5 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium",
+        "transition-all duration-200",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "active:scale-[0.98]",
         buttonStyles(variant),
-        fullWidth ? "w-full justify-center" : undefined,
+        fullWidth && "w-full justify-center",
       )}
     >
+      <Edit3 className="h-3.5 w-3.5" />
       {label}
     </button>
   );
@@ -352,10 +383,15 @@ function DetailPanelActionButton({
 
 function renderValue(item: DetailItem) {
   const tone = item.variant ?? "neutral";
+
+  if (item.value === null || item.value === undefined || item.value === "") {
+    return <span className="text-muted-foreground/50">—</span>;
+  }
+
   switch (item.type) {
     case "badge":
       return (
-        <Badge variant="outline" className={cn("border", badgeTone[tone] ?? badgeTone.neutral)}>
+        <Badge variant="outline" className={cn("border font-medium", badgeTone[tone] ?? badgeTone.neutral)}>
           {String(item.value ?? "")}
         </Badge>
       );
@@ -364,29 +400,45 @@ function renderValue(item: DetailItem) {
         return <span>{String(item.value ?? "")}</span>;
       }
       return (
-        <a href={item.href} className="font-medium text-primary hover:underline">
-          {String(item.value ?? item.href)}
+        <a
+          href={item.href}
+          className="inline-flex items-center gap-1 text-primary hover:underline group/link"
+        >
+          <span>{String(item.value ?? item.href)}</span>
+          <ExternalLink className="h-3 w-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
         </a>
       );
     case "chips":
       return (
-        <div className="flex flex-wrap gap-2">
-          {(item.items ?? []).map((chip, index) => (
-            <Badge key={`${chip}-${index}`} variant="outline" className="border-border/60 text-xs">
-              {chip}
-            </Badge>
-          ))}
+        <div className="flex flex-wrap gap-1.5">
+          {(item.items ?? []).length === 0 ? (
+            <span className="text-muted-foreground/50">—</span>
+          ) : (
+            (item.items ?? []).map((chip, index) => (
+              <Badge
+                key={`${chip}-${index}`}
+                variant="secondary"
+                className="text-[10px] sm:text-xs bg-muted/60 hover:bg-muted transition-colors"
+              >
+                {chip}
+              </Badge>
+            ))
+          )}
         </div>
       );
     case "multiline":
-      return <div className="whitespace-pre-line text-sm text-muted-foreground">{String(item.value ?? "")}</div>;
+      return (
+        <div className="whitespace-pre-line text-sm text-muted-foreground leading-relaxed">
+          {String(item.value ?? "")}
+        </div>
+      );
     case "currency": {
       const amount = Number(item.value ?? 0);
       if (Number.isNaN(amount)) {
         return <span>{String(item.value ?? "")}</span>;
       }
       return (
-        <span className="font-medium">
+        <span className="font-semibold tabular-nums text-foreground">
           {new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",

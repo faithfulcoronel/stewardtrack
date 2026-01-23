@@ -2,12 +2,23 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Calendar as CalendarIcon, Download, FileSpreadsheet, FileText, Play, Printer, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Play,
+  Printer,
+  Loader2,
+  FileBarChart,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,7 +126,6 @@ export function AdminReportHeader({
   generateButtonLabel = 'Generate Report',
   reportUrl,
 }: AdminReportHeaderProps) {
-  const router = useRouter();
   const currentSearchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(() => {
     if (dateSelector?.type === 'single' && dateSelector.defaultValue) {
@@ -265,153 +275,195 @@ export function AdminReportHeader({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Title and Description */}
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+    <section className="space-y-5 sm:space-y-6">
+      {/* Header */}
+      <header className="space-y-1.5 sm:space-y-2">
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+          <span className="h-5 w-1 rounded-full bg-primary" />
+          {title}
+        </h2>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm text-muted-foreground pl-3">{description}</p>
         )}
-      </div>
+      </header>
 
-      {/* Controls Row */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Filter Selectors */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Fiscal Year Selector */}
-          {fiscalYearSelector && fiscalYearSelector.options.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {fiscalYearSelector.label && (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {fiscalYearSelector.label}
-                </span>
-              )}
-              <Select value={selectedFiscalYear} onValueChange={handleFiscalYearChange}>
-                <SelectTrigger className="min-w-[160px]">
-                  <SelectValue placeholder="Select fiscal year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fiscalYearSelector.options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+      {/* Controls Card */}
+      <Card className={cn(
+        "group relative overflow-hidden",
+        "border-border/40 bg-card/50 backdrop-blur-sm",
+        "transition-all duration-300"
+      )}>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20" />
 
-          {/* View By Selector */}
-          {viewBySelector && viewBySelector.options.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {viewBySelector.label && (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {viewBySelector.label}
-                </span>
-              )}
-              <Select value={selectedViewBy} onValueChange={handleViewByChange}>
-                <SelectTrigger className="min-w-[140px]">
-                  <SelectValue placeholder="Select view" />
-                </SelectTrigger>
-                <SelectContent>
-                  {viewBySelector.options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Date Selector */}
-          {dateSelector && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {isRangeSelector ? 'Period:' : 'As of:'}
-              </span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'min-w-[200px] justify-start text-left font-normal',
-                      !selectedDate && !dateRange.from && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formatDisplayDate()}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  {isRangeSelector ? (
-                    <Calendar
-                      mode="range"
-                      selected={dateRange as { from: Date; to: Date }}
-                      onSelect={(range) => handleRangeDateSelect({ from: range?.from, to: range?.to })}
-                      numberOfMonths={2}
-                      initialFocus
-                    />
-                  ) : (
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={handleSingleDateSelect}
-                      initialFocus
-                    />
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            {/* Filter Selectors */}
+            <div className="flex flex-wrap items-end gap-3 sm:gap-4">
+              {/* Fiscal Year Selector */}
+              {fiscalYearSelector && fiscalYearSelector.options.length > 0 && (
+                <div className="flex flex-col gap-1.5 min-w-[140px] sm:min-w-[160px]">
+                  {fiscalYearSelector.label && (
+                    <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                      {fiscalYearSelector.label}
+                    </span>
                   )}
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Generate Report Button */}
-          {(showGenerateButton || reportUrl) && (
-            <Button onClick={handleGenerateReport} disabled={isGenerating || (!selectedFiscalYear && fiscalYearSelector)}>
-              {isGenerating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Play className="mr-2 h-4 w-4" />
+                  <Select value={selectedFiscalYear} onValueChange={handleFiscalYearChange}>
+                    <SelectTrigger className="h-9 sm:h-10 border-border/60 bg-background/50 hover:border-primary/40 transition-colors">
+                      <SelectValue placeholder="Select fiscal year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fiscalYearSelector.options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
-              {isGenerating ? 'Generating...' : generateButtonLabel}
-            </Button>
-          )}
 
-          {/* Export Actions */}
-          {hasExportActions && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={isExporting}>
-                  <Download className="mr-2 h-4 w-4" />
-                  {isExporting ? 'Exporting...' : 'Export'}
+              {/* View By Selector */}
+              {viewBySelector && viewBySelector.options.length > 0 && (
+                <div className="flex flex-col gap-1.5 min-w-[120px] sm:min-w-[140px]">
+                  {viewBySelector.label && (
+                    <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                      {viewBySelector.label}
+                    </span>
+                  )}
+                  <Select value={selectedViewBy} onValueChange={handleViewByChange}>
+                    <SelectTrigger className="h-9 sm:h-10 border-border/60 bg-background/50 hover:border-primary/40 transition-colors">
+                      <SelectValue placeholder="Select view" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {viewBySelector.options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Date Selector */}
+              {dateSelector && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                    {isRangeSelector ? 'Period' : 'As of Date'}
+                  </span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'h-9 sm:h-10 min-w-[180px] sm:min-w-[220px] justify-start text-left font-normal',
+                          'border-border/60 bg-background/50 hover:border-primary/40 transition-colors',
+                          !selectedDate && !dateRange.from && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1 truncate">{formatDisplayDate()}</span>
+                        <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground/60" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      {isRangeSelector ? (
+                        <Calendar
+                          mode="range"
+                          selected={dateRange as { from: Date; to: Date }}
+                          onSelect={(range) => handleRangeDateSelect({ from: range?.from, to: range?.to })}
+                          numberOfMonths={2}
+                          initialFocus
+                        />
+                      ) : (
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={handleSingleDateSelect}
+                          initialFocus
+                        />
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Generate Report Button */}
+              {(showGenerateButton || reportUrl) && (
+                <Button
+                  onClick={handleGenerateReport}
+                  disabled={isGenerating || (!selectedFiscalYear && !!fiscalYearSelector)}
+                  className={cn(
+                    "h-9 sm:h-10 px-4 sm:px-5 gap-2 font-semibold",
+                    "transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
+                  )}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {isGenerating ? 'Generating...' : generateButtonLabel}
+                  </span>
+                  <span className="sm:hidden">
+                    {isGenerating ? 'Running...' : 'Run'}
+                  </span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('excel')}>
-                  <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  Export as Excel
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('csv')}>
-                  <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  Export as CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
 
-          <Button variant="ghost" onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print
-          </Button>
-        </div>
-      </div>
-    </div>
+              {/* Export Actions */}
+              {hasExportActions && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      disabled={isExporting}
+                      className="h-9 sm:h-10 px-3 sm:px-4 gap-2 border-border/60 hover:border-primary/40 transition-colors"
+                    >
+                      {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      <span className="hidden sm:inline">
+                        {isExporting ? 'Exporting...' : 'Export'}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleExport('pdf')} className="gap-3">
+                      <FileText className="h-4 w-4 text-rose-500" />
+                      <span>Export as PDF</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('excel')} className="gap-3">
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+                      <span>Export as Excel</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('csv')} className="gap-3">
+                      <FileBarChart className="h-4 w-4 text-sky-500" />
+                      <span>Export as CSV</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              <Button
+                variant="ghost"
+                onClick={handlePrint}
+                className="h-9 sm:h-10 px-3 sm:px-4 gap-2 hover:bg-muted/50"
+              >
+                <Printer className="h-4 w-4" />
+                <span className="hidden sm:inline">Print</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
   );
 }

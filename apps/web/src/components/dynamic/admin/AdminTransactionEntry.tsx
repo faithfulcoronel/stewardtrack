@@ -1145,16 +1145,17 @@ export function AdminTransactionEntry({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Page Header - Dynamic based on transaction type and editing state */}
-      <header className="space-y-1">
-        <p className="text-sm font-medium text-primary">{eyebrow}</p>
-        <h1 className="text-2xl font-bold text-foreground">
+      <header className="space-y-1.5 sm:space-y-2">
+        <p className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-primary/80">{eyebrow}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+          <span className="h-6 w-1 rounded-full bg-primary shrink-0" />
           {isEditing
             ? `Edit ${getTransactionTypeConfig(transactionType).label.toLowerCase()} transaction`
             : `Record ${getTransactionTypeConfig(transactionType).label.toLowerCase()}`}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground pl-3">
           {isEditing
             ? "Update the transaction details below."
             : getTransactionTypeDescription(transactionType)}
@@ -1164,24 +1165,43 @@ export function AdminTransactionEntry({
       {/* Status Banner - Shows when transaction is not in draft status */}
       {currentStatus && currentStatus !== 'draft' && (
         <div className={cn(
-          "flex items-center gap-3 rounded-xl border p-4",
-          currentStatus === 'submitted' && "border-amber-200 bg-amber-50 text-amber-800",
-          currentStatus === 'approved' && "border-blue-200 bg-blue-50 text-blue-800",
-          currentStatus === 'posted' && "border-emerald-200 bg-emerald-50 text-emerald-800",
-          currentStatus === 'voided' && "border-red-200 bg-red-50 text-red-800"
+          "group relative overflow-hidden",
+          "flex items-center gap-3 rounded-xl sm:rounded-2xl border p-4 sm:p-5",
+          "backdrop-blur-sm transition-all duration-200",
+          currentStatus === 'submitted' && "border-amber-300/60 bg-amber-50/80 text-amber-800",
+          currentStatus === 'approved' && "border-blue-300/60 bg-blue-50/80 text-blue-800",
+          currentStatus === 'posted' && "border-emerald-300/60 bg-emerald-50/80 text-emerald-800",
+          currentStatus === 'voided' && "border-red-300/60 bg-red-50/80 text-red-800"
         )}>
-          {currentStatus === 'submitted' && <Clock className="size-5" />}
-          {currentStatus === 'approved' && <CheckCircle2 className="size-5" />}
-          {currentStatus === 'posted' && <Lock className="size-5" />}
-          {currentStatus === 'voided' && <Ban className="size-5" />}
-          <div className="flex-1">
-            <p className="font-medium">
+          {/* Top accent line based on status */}
+          <div className={cn(
+            "absolute top-0 left-0 right-0 h-0.5",
+            currentStatus === 'submitted' && "bg-amber-400",
+            currentStatus === 'approved' && "bg-blue-400",
+            currentStatus === 'posted' && "bg-emerald-400",
+            currentStatus === 'voided' && "bg-red-400"
+          )} />
+
+          <div className={cn(
+            "flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl",
+            currentStatus === 'submitted' && "bg-amber-100",
+            currentStatus === 'approved' && "bg-blue-100",
+            currentStatus === 'posted' && "bg-emerald-100",
+            currentStatus === 'voided' && "bg-red-100"
+          )}>
+            {currentStatus === 'submitted' && <Clock className="size-5 sm:size-6" />}
+            {currentStatus === 'approved' && <CheckCircle2 className="size-5 sm:size-6" />}
+            {currentStatus === 'posted' && <Lock className="size-5 sm:size-6" />}
+            {currentStatus === 'voided' && <Ban className="size-5 sm:size-6" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm sm:text-base">
               {currentStatus === 'submitted' && "Pending Approval"}
               {currentStatus === 'approved' && "Approved - Ready to Post"}
               {currentStatus === 'posted' && "Posted to Ledger"}
               {currentStatus === 'voided' && "Transaction Voided"}
             </p>
-            <p className="text-sm opacity-80">
+            <p className="text-xs sm:text-sm opacity-80">
               {currentStatus === 'submitted' && "This transaction is awaiting approval. Line items cannot be modified."}
               {currentStatus === 'approved' && "This transaction has been approved and is ready to be posted. Line items cannot be modified."}
               {currentStatus === 'posted' && "This transaction has been posted to the ledger and cannot be modified."}
@@ -1193,21 +1213,31 @@ export function AdminTransactionEntry({
 
       {/* Main Form Container */}
       <div className={cn(
-        "rounded-3xl border border-border/60 bg-background p-6 shadow-sm transition-opacity",
+        "group relative overflow-hidden",
+        "rounded-2xl sm:rounded-3xl border border-border/40 p-4 sm:p-6",
+        "bg-card/50 backdrop-blur-sm shadow-sm",
+        "transition-all duration-200",
         isSubmitting && "pointer-events-none opacity-60"
       )}>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20" />
         {/* Transaction Type Selector - Disabled when editing */}
-        <div className="mb-6">
-          <Label className="mb-3 block text-sm font-semibold text-foreground">
+        <div className="mb-5 sm:mb-6">
+          <Label className="mb-3 block text-sm font-semibold text-foreground flex items-center gap-2">
+            <span className="h-3 w-0.5 rounded-full bg-primary/60" />
             Transaction Type
             {isEditing && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">(cannot be changed)</span>
+              <span className="text-xs font-normal text-muted-foreground">(cannot be changed)</span>
             )}
           </Label>
           <div className="space-y-4">
-            {TRANSACTION_TYPE_GROUPS.map((group) => (
-              <div key={group.label}>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {TRANSACTION_TYPE_GROUPS.map((group, groupIndex) => (
+              <div
+                key={group.label}
+                className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                style={{ animationDelay: `${groupIndex * 50}ms` }}
+              >
+                <p className="mb-2 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {group.label}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -1223,16 +1253,17 @@ export function AdminTransactionEntry({
                         onClick={() => !isEditing && setTransactionType(typeConfig.value)}
                         disabled={isEditing}
                         className={cn(
-                          "flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all",
+                          "flex items-center gap-2 rounded-lg sm:rounded-xl border-2 px-2.5 sm:px-3 py-1.5 sm:py-2",
+                          "text-xs sm:text-sm font-medium transition-all duration-200",
                           isSelected
-                            ? colorClasses.selected
-                            : "border-border/60 bg-background text-muted-foreground",
+                            ? cn(colorClasses.selected, "shadow-sm")
+                            : "border-border/60 bg-background/50 text-muted-foreground",
                           !isEditing && !isSelected && colorClasses.hover,
                           isEditing && "cursor-not-allowed opacity-60"
                         )}
                       >
                         <Icon className={cn(
-                          "size-4",
+                          "size-3.5 sm:size-4",
                           isSelected ? colorClasses.icon : "text-muted-foreground"
                         )} />
                         <span>{typeConfig.label}</span>
@@ -1248,8 +1279,13 @@ export function AdminTransactionEntry({
         {/* Extended Transaction Type Fields */}
         {/* Transfer: Destination Source */}
         {transactionType === "transfer" && (
-          <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-foreground">
+          <div className={cn(
+            "mb-5 sm:mb-6 rounded-xl sm:rounded-2xl border p-4",
+            "border-blue-200/60 bg-blue-50/30 backdrop-blur-sm",
+            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          )}>
+            <Label className="mb-2 block text-sm font-semibold text-foreground flex items-center gap-2">
+              <ArrowLeftRight className="size-4 text-blue-600" />
               Transfer To <span className="text-destructive">*</span>
             </Label>
             <p className="mb-3 text-xs text-muted-foreground">
@@ -1268,8 +1304,13 @@ export function AdminTransactionEntry({
 
         {/* Fund Rollover: Destination Fund */}
         {transactionType === "fund_rollover" && (
-          <div className="mb-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-foreground">
+          <div className={cn(
+            "mb-5 sm:mb-6 rounded-xl sm:rounded-2xl border p-4",
+            "border-violet-200/60 bg-violet-50/30 backdrop-blur-sm",
+            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          )}>
+            <Label className="mb-2 block text-sm font-semibold text-foreground flex items-center gap-2">
+              <RefreshCw className="size-4 text-violet-600" />
               Rollover To Fund <span className="text-destructive">*</span>
             </Label>
             <p className="mb-3 text-xs text-muted-foreground">
@@ -1288,8 +1329,13 @@ export function AdminTransactionEntry({
 
         {/* Reversal: Original Transaction Reference */}
         {transactionType === "reversal" && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50/50 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-foreground">
+          <div className={cn(
+            "mb-5 sm:mb-6 rounded-xl sm:rounded-2xl border p-4",
+            "border-red-200/60 bg-red-50/30 backdrop-blur-sm",
+            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          )}>
+            <Label className="mb-2 block text-sm font-semibold text-foreground flex items-center gap-2">
+              <RotateCcw className="size-4 text-red-600" />
               Original Transaction <span className="text-destructive">*</span>
             </Label>
             <p className="mb-3 text-xs text-muted-foreground">
@@ -1308,8 +1354,13 @@ export function AdminTransactionEntry({
 
         {/* Adjustment: Reason */}
         {transactionType === "adjustment" && (
-          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/50 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-foreground">
+          <div className={cn(
+            "mb-5 sm:mb-6 rounded-xl sm:rounded-2xl border p-4",
+            "border-amber-200/60 bg-amber-50/30 backdrop-blur-sm",
+            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          )}>
+            <Label className="mb-2 block text-sm font-semibold text-foreground flex items-center gap-2">
+              <Sliders className="size-4 text-amber-600" />
               Adjustment Reason <span className="text-destructive">*</span>
             </Label>
             <p className="mb-3 text-xs text-muted-foreground">
@@ -1320,7 +1371,7 @@ export function AdminTransactionEntry({
               onChange={(e) => setAdjustmentReason(e.target.value)}
               placeholder="Explain the reason for this adjustment..."
               rows={2}
-              className="resize-none"
+              className="resize-none border-border/60 bg-background/50"
               disabled={isFullyLocked}
             />
           </div>
@@ -1328,8 +1379,13 @@ export function AdminTransactionEntry({
 
         {/* Allocation: Destination Fund */}
         {transactionType === "allocation" && (
-          <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-foreground">
+          <div className={cn(
+            "mb-5 sm:mb-6 rounded-xl sm:rounded-2xl border p-4",
+            "border-indigo-200/60 bg-indigo-50/30 backdrop-blur-sm",
+            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          )}>
+            <Label className="mb-2 block text-sm font-semibold text-foreground flex items-center gap-2">
+              <Share2 className="size-4 text-indigo-600" />
               Allocate To Fund <span className="text-destructive">*</span>
             </Label>
             <p className="mb-3 text-xs text-muted-foreground">
@@ -1414,17 +1470,18 @@ export function AdminTransactionEntry({
         </div>
 
         {/* Line Items Section */}
-        <div className="mb-6">
-          <div className="mb-3 flex items-center justify-between">
-            <Label className="text-sm font-semibold text-foreground">
+        <div className="mb-5 sm:mb-6">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <span className="h-3 w-0.5 rounded-full bg-primary/60" />
               Line Items
               {isLineItemsLocked && (
-                <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
                   <Lock className="size-3" /> Locked
                 </span>
               )}
             </Label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {!isLineItemsLocked && (
                 <>
                   <Button
@@ -1432,35 +1489,38 @@ export function AdminTransactionEntry({
                     variant="outline"
                     size="sm"
                     onClick={excelImport.downloadTemplate}
-                    className="h-8 gap-1.5 text-xs"
+                    className="h-8 gap-1.5 text-xs border-border/60 hover:border-primary/40 transition-colors"
                   >
                     <Download className="size-3.5" />
-                    Template
+                    <span className="hidden sm:inline">Template</span>
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setIsImportDialogOpen(true)}
-                    className="h-8 gap-1.5 text-xs"
+                    className="h-8 gap-1.5 text-xs border-border/60 hover:border-primary/40 transition-colors"
                   >
                     <Upload className="size-3.5" />
-                    Import Excel
+                    <span className="hidden sm:inline">Import Excel</span>
                   </Button>
                 </>
               )}
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
                 {lines.length} {lines.length === 1 ? "item" : "items"}
               </span>
             </div>
           </div>
 
           {/* Line Items Table */}
-          <div className="overflow-hidden rounded-xl border border-border/60">
+          <div className={cn(
+            "overflow-hidden rounded-xl sm:rounded-2xl border border-border/40",
+            "bg-background/50 backdrop-blur-sm"
+          )}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border/60 bg-muted/30">
+                  <tr className="border-b border-border/40 bg-muted/20">
                     <th className="w-10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       #
                     </th>
@@ -1688,20 +1748,21 @@ export function AdminTransactionEntry({
         </div>
 
         {/* Action Buttons - Changes based on transaction status */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between border-t border-border/40 pt-5 sm:pt-6">
           {/* Left side - Back/Cancel button */}
           <Button
             type="button"
             variant="ghost"
             onClick={() => router.push(cancelUrl)}
             disabled={isSubmitting}
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
             <ArrowLeft className="mr-2 size-4" />
             {isEditing && currentStatus && currentStatus !== 'draft' ? 'Back' : 'Cancel'}
           </Button>
 
           {/* Right side - Action buttons based on status */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 order-1 sm:order-2">
             {/* Draft or New: Show Save Draft + Submit */}
             {canSubmit && (
               <>
@@ -1710,6 +1771,7 @@ export function AdminTransactionEntry({
                   variant="outline"
                   onClick={() => handleSubmit(true)}
                   disabled={isSubmitting}
+                  className="w-full sm:w-auto border-border/60 hover:border-primary/40"
                 >
                   <Save className="mr-2 size-4" />
                   Save as Draft
@@ -1718,7 +1780,11 @@ export function AdminTransactionEntry({
                   type="button"
                   onClick={() => handleSubmit(false)}
                   disabled={isSubmitting}
-                  className={getSubmitButtonClass(transactionType)}
+                  className={cn(
+                    "w-full sm:w-auto",
+                    "transition-all hover:shadow-lg active:scale-[0.98]",
+                    getSubmitButtonClass(transactionType)
+                  )}
                 >
                   <Send className="mr-2 size-4" />
                   {isSubmitting ? "Submitting..." : "Submit for Approval"}
@@ -1733,7 +1799,7 @@ export function AdminTransactionEntry({
                 variant="outline"
                 onClick={handleRecall}
                 disabled={isSubmitting}
-                className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                className="w-full sm:w-auto border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
               >
                 <RotateCcw className="mr-2 size-4" />
                 {isSubmitting ? "Recalling..." : "Recall to Draft"}
@@ -1742,7 +1808,7 @@ export function AdminTransactionEntry({
 
             {/* Approved: Show status message (no edits allowed, only authorized users can post) */}
             {currentStatus === 'approved' && (
-              <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-blue-50/80 px-4 py-2.5 text-sm font-medium text-blue-700">
                 <CheckCircle2 className="size-4" />
                 Awaiting posting by authorized user
               </div>
@@ -1750,7 +1816,7 @@ export function AdminTransactionEntry({
 
             {/* Posted: Show posted confirmation */}
             {currentStatus === 'posted' && (
-              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-50/80 px-4 py-2.5 text-sm font-medium text-emerald-700">
                 <Lock className="size-4" />
                 Posted to ledger
               </div>
@@ -1758,7 +1824,7 @@ export function AdminTransactionEntry({
 
             {/* Voided: Show voided status */}
             {currentStatus === 'voided' && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-red-50/80 px-4 py-2.5 text-sm font-medium text-red-700">
                 <Ban className="size-4" />
                 Transaction voided
               </div>
@@ -1770,7 +1836,7 @@ export function AdminTransactionEntry({
       {/* Submission Progress Dialog */}
       <Dialog open={isSubmitting} onOpenChange={() => {}}>
         <DialogContent
-          className="sm:max-w-md"
+          className="sm:max-w-md border-border/40 bg-background/95 backdrop-blur-md"
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           aria-describedby={undefined}
@@ -1778,42 +1844,42 @@ export function AdminTransactionEntry({
           <DialogTitle className="sr-only">
             {submitProgress === 100 ? "Transaction Complete" : "Processing Transaction"}
           </DialogTitle>
-          <div className="flex flex-col items-center gap-6 py-4">
+          <div className="flex flex-col items-center gap-6 py-6">
             {/* Spinner or Checkmark */}
             <div className={cn(
-              "flex size-16 items-center justify-center rounded-full",
+              "flex size-16 sm:size-20 items-center justify-center rounded-2xl transition-all duration-300",
               submitProgress === 100
-                ? "bg-emerald-100 text-emerald-600"
+                ? "bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20"
                 : "bg-primary/10 text-primary"
             )}>
               {submitProgress === 100 ? (
-                <CheckCircle2 className="size-8" />
+                <CheckCircle2 className="size-8 sm:size-10 animate-in zoom-in-50 duration-300" />
               ) : (
-                <Loader2 className="size-8 animate-spin" />
+                <Loader2 className="size-8 sm:size-10 animate-spin" />
               )}
             </div>
 
             {/* Status Text */}
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="text-center space-y-1.5">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">
                 {submitProgress === 100 ? "Complete!" : "Processing..."}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {submitStatus}
               </p>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full space-y-2">
-              <Progress value={submitProgress} className="h-2" />
-              <p className="text-center text-xs text-muted-foreground">
+            <div className="w-full space-y-2 px-4">
+              <Progress value={submitProgress} className="h-2.5 bg-muted/50" />
+              <p className="text-center text-xs font-medium text-muted-foreground tabular-nums">
                 {submitProgress}%
               </p>
             </div>
 
             {/* Info Text */}
             {submitProgress < 100 && (
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-muted-foreground/80">
                 Please wait while we process your transaction...
               </p>
             )}

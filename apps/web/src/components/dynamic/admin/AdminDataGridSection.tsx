@@ -3,6 +3,18 @@
 import Link from "next/link";
 import React from "react";
 import { toast } from "sonner";
+import {
+  Search,
+  Filter,
+  X,
+  AlertTriangle,
+  Trash2,
+  Eye,
+  Edit,
+  ExternalLink,
+  FileQuestion,
+  ChevronRight,
+} from "lucide-react";
 
 import {
   AlertDialog,
@@ -105,11 +117,18 @@ export interface AdminDataGridSectionProps {
 }
 
 const badgeVariants: Record<string, string> = {
-  success: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
-  warning: "bg-amber-500/15 text-amber-600 border-amber-500/30",
-  info: "bg-sky-500/15 text-sky-600 border-sky-500/30",
+  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  info: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30",
   neutral: "bg-muted text-muted-foreground border-border/60",
-  critical: "bg-destructive/10 text-destructive border-destructive/40",
+  critical: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
+};
+
+const actionIntentIcons: Record<string, React.ReactNode> = {
+  view: <Eye className="h-3.5 w-3.5" />,
+  edit: <Edit className="h-3.5 w-3.5" />,
+  delete: <Trash2 className="h-3.5 w-3.5" />,
+  link: <ExternalLink className="h-3.5 w-3.5" />,
 };
 
 export function AdminDataGridSection(props: AdminDataGridSectionProps) {
@@ -238,6 +257,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     (rowId: string, row: GridValue, action: GridActionConfig) => {
       setDeleteConfirm({
         isOpen: true,
+        isDeleting: false,
         rowId,
         row,
         action,
@@ -345,7 +365,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           tableColumn.renderCell = (row: GridValue) => {
             const value = resolveValue(row, column.field);
             if (!value) {
-              return <span className="text-muted-foreground">—</span>;
+              return <span className="text-muted-foreground/50">—</span>;
             }
             const variantField = column.badgeVariantField ?? `${column.field}Variant`;
             const variant = String(resolveValue(row, variantField) ?? "neutral");
@@ -353,7 +373,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               column.badgeMap?.[String(value)] ??
               (typeof value === "string" ? value : String(value));
             return (
-              <Badge variant="outline" className={cn("border", badgeVariants[variant] ?? badgeVariants.neutral)}>
+              <Badge variant="outline" className={cn("border font-medium", badgeVariants[variant] ?? badgeVariants.neutral)}>
                 {badgeLabel}
               </Badge>
             );
@@ -368,16 +388,20 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
             const raw = resolveValue(row, column.field);
             const amount = Number(raw);
             if (Number.isNaN(amount)) {
-              return <span className="text-muted-foreground">—</span>;
+              return <span className="text-muted-foreground/50">—</span>;
             }
             const currency = column.currency?.currency ?? "USD";
             const notation = column.currency?.notation ?? "standard";
-            return new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency,
-              notation,
-              maximumFractionDigits: notation === "compact" ? 1 : 0,
-            }).format(amount);
+            return (
+              <span className="font-medium tabular-nums">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency,
+                  notation,
+                  maximumFractionDigits: notation === "compact" ? 1 : 0,
+                }).format(amount)}
+              </span>
+            );
           };
           tableColumn.getSortValue = (row: GridValue) => {
             const raw = resolveValue(row, column.field);
@@ -389,17 +413,21 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           tableColumn.renderCell = (row: GridValue) => {
             const raw = resolveValue(row, column.field);
             if (!raw) {
-              return <span className="text-muted-foreground">—</span>;
+              return <span className="text-muted-foreground/50">—</span>;
             }
             const date = new Date(String(raw));
             if (Number.isNaN(date.getTime())) {
               return String(raw);
             }
-            return new Intl.DateTimeFormat("en-US", column.dateFormat ?? {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }).format(date);
+            return (
+              <span className="text-muted-foreground">
+                {new Intl.DateTimeFormat("en-US", column.dateFormat ?? {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                }).format(date)}
+              </span>
+            );
           };
           tableColumn.getSortValue = (row: GridValue) => {
             const raw = resolveValue(row, column.field);
@@ -415,15 +443,20 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
             const raw = resolveValue(row, column.field);
             const list = Array.isArray(raw) ? raw : [];
             if (list.length === 0) {
-              return <span className="text-muted-foreground">—</span>;
+              return <span className="text-muted-foreground/50">—</span>;
             }
             return (
-              <div className="flex flex-wrap gap-2">
-                {list.map((item: unknown, index: number) => (
-                  <Badge key={`${String(item)}-${index}`} variant="outline" className="border-border/60 text-xs">
+              <div className="flex flex-wrap gap-1.5">
+                {list.slice(0, 3).map((item: unknown, index: number) => (
+                  <Badge key={`${String(item)}-${index}`} variant="secondary" className="text-xs bg-muted/60">
                     {String(item)}
                   </Badge>
                 ))}
+                {list.length > 3 && (
+                  <Badge variant="secondary" className="text-xs bg-muted/60">
+                    +{list.length - 3}
+                  </Badge>
+                )}
               </div>
             );
           };
@@ -460,25 +493,36 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               );
               return (
                 <div className="flex items-center gap-3">
-                  <Avatar className="size-12 border border-border/60">
-                    <AvatarImage src={avatarSrc ?? undefined} alt={label} />
-                    <AvatarFallback className="text-xs font-semibold uppercase">{initials}</AvatarFallback>
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-sm ring-1 ring-border/40">
+                    <AvatarImage src={avatarSrc ?? undefined} alt={label} className="object-cover" />
+                    <AvatarFallback className="text-xs font-semibold uppercase bg-primary/10 text-primary">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
+                  <div className="flex flex-col min-w-0">
+                    <Link
+                      href={href}
+                      className="text-sm font-semibold text-foreground hover:text-primary transition-colors truncate"
+                      prefetch={false}
+                    >
                       {label}
                     </Link>
-                    {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+                    {subtitle && <span className="text-xs text-muted-foreground truncate">{subtitle}</span>}
                   </div>
                 </div>
               );
             }
             return (
-              <div className="flex flex-col">
-                <Link href={href} className="text-sm font-semibold text-primary hover:underline" prefetch={false}>
+              <div className="flex flex-col min-w-0">
+                <Link
+                  href={href}
+                  className="text-sm font-semibold text-primary hover:underline truncate inline-flex items-center gap-1 group"
+                  prefetch={false}
+                >
                   {label}
+                  <ChevronRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                 </Link>
-                {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+                {subtitle && <span className="text-xs text-muted-foreground truncate">{subtitle}</span>}
               </div>
             );
           };
@@ -496,24 +540,43 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     });
   }, [columns, requestDeleteConfirmation]);
 
+  const hasActiveFilters = Object.values(filterState).some((v) => {
+    if (!v) return false;
+    if (typeof v === "string") return v.trim().length > 0;
+    if (typeof v === "object" && "from" in v) {
+      const range = v as DateRange;
+      return Boolean(range.from || range.to);
+    }
+    return true;
+  });
+
   return (
-    <section className="space-y-6">
+    <section className="space-y-5 sm:space-y-6">
       {(props.title || props.description || topActions.length > 0) && (
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2">
-            {props.title && <h2 className="text-xl font-semibold text-foreground">{props.title}</h2>}
-            {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}
+        <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-1.5 sm:space-y-2">
+            {props.title && (
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+                <span className="h-5 w-1 rounded-full bg-primary" />
+                {props.title}
+              </h2>
+            )}
+            {props.description && (
+              <p className="text-sm text-muted-foreground pl-3">{props.description}</p>
+            )}
           </div>
           {topActions.length > 0 && (
-            <div className="flex flex-wrap gap-3">{topActions.map((action) => renderAction(action, "primary"))}</div>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {topActions.map((action) => renderAction(action, "primary"))}
+            </div>
           )}
         </header>
       )}
 
-      <div className="space-y-4 rounded-3xl border border-border/60 bg-background p-4 shadow-sm">
+      <div className="space-y-4 rounded-xl sm:rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
         {filters.length > 0 && (
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-1 flex-wrap gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between pb-3 border-b border-border/40">
+            <div className="flex flex-1 flex-wrap gap-2 sm:gap-3">
               {filters.map((filter) => (
                 <FilterInput
                   key={filter.id}
@@ -528,21 +591,15 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
                 />
               ))}
             </div>
-            {Object.values(filterState).some((v) => {
-              if (!v) return false;
-              if (typeof v === "string") return v.trim().length > 0;
-              if (typeof v === "object" && "from" in v) {
-                const range = v as DateRange;
-                return Boolean(range.from || range.to);
-              }
-              return true;
-            }) && (
+            {hasActiveFilters && (
               <Button
                 type="button"
                 variant="ghost"
-                className="self-start text-sm"
+                size="sm"
+                className="self-start text-xs sm:text-sm gap-1.5 text-muted-foreground hover:text-foreground"
                 onClick={() => setFilterState({})}
               >
+                <X className="h-3.5 w-3.5" />
                 Clear filters
               </Button>
             )}
@@ -562,13 +619,32 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
         />
 
         {filteredRows.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-8 text-center">
-            <h3 className="text-base font-semibold text-foreground">
-              {props.emptyState?.title ?? "No matching members"}
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {props.emptyState?.description ?? "Adjust your filters to see a different segment of the community."}
-            </p>
+          <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 p-8 sm:p-12 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+                <FileQuestion className="h-6 w-6 text-muted-foreground/60" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold text-foreground">
+                  {props.emptyState?.title ?? "No matching records"}
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  {props.emptyState?.description ?? "Adjust your filters to see a different segment of the data."}
+                </p>
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 gap-1.5"
+                  onClick={() => setFilterState({})}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Clear all filters
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -582,14 +658,19 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {deleteConfirm.action?.confirmTitle
-                ? applyTemplate(deleteConfirm.action.confirmTitle, deleteConfirm.row ?? {})
-                : "Delete Record"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/10">
+                <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <AlertDialogTitle className="text-lg">
+                {deleteConfirm.action?.confirmTitle
+                  ? applyTemplate(deleteConfirm.action.confirmTitle, deleteConfirm.row ?? {})
+                  : "Delete Record"}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-2 text-muted-foreground">
               {deleteConfirm.action?.confirmDescription
                 ? applyTemplate(deleteConfirm.action.confirmDescription, deleteConfirm.row ?? {})
                 : deleteConfirm.action?.confirm
@@ -597,16 +678,26 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
                   : `Are you sure you want to delete "${String(deleteConfirm.row?.name ?? deleteConfirm.row?.title ?? "this record")}"? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteConfirm.isDeleting}>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel disabled={deleteConfirm.isDeleting} className="mt-0">
               {deleteConfirm.action?.cancelLabel ?? "Cancel"}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={deleteConfirm.isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-700"
             >
-              {deleteConfirm.isDeleting ? "Deleting..." : (deleteConfirm.action?.confirmLabel ?? "Delete")}
+              {deleteConfirm.isDeleting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  {deleteConfirm.action?.confirmLabel ?? "Delete"}
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -628,10 +719,15 @@ function FilterInput({
     const options = normalizeList<GridFilterOption>(filter.options);
     const stringValue = typeof value === "string" ? value : "";
     return (
-      <div className="flex flex-col gap-2">
-        {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
+      <div className="flex flex-col gap-1.5 sm:gap-2 min-w-[140px] sm:min-w-[160px]">
+        {filter.label && (
+          <label className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+            <Filter className="h-3 w-3" />
+            {filter.label}
+          </label>
+        )}
         <Select value={stringValue || filter.defaultValue || ""} onValueChange={onChange}>
-          <SelectTrigger className="min-w-[10rem]">
+          <SelectTrigger className="h-9 sm:h-10 text-sm bg-background/50 border-border/60 hover:border-border transition-colors">
             <SelectValue placeholder={filter.placeholder ?? "Choose"} />
           </SelectTrigger>
           <SelectContent>
@@ -651,8 +747,13 @@ function FilterInput({
   if (filter.type === "daterange") {
     const rangeValue = (value && typeof value === "object" && "from" in value) ? value as DateRange : undefined;
     return (
-      <div className="flex flex-col gap-2">
-        {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
+      <div className="flex flex-col gap-1.5 sm:gap-2 min-w-[180px] sm:min-w-[200px]">
+        {filter.label && (
+          <label className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+            <Filter className="h-3 w-3" />
+            {filter.label}
+          </label>
+        )}
         <DatePicker
           mode="range"
           value={rangeValue}
@@ -660,7 +761,7 @@ function FilterInput({
           placeholder={filter.placeholder ?? "Filter by date"}
           clearable
           closeOnSelect
-          className="min-w-[14rem]"
+          className="h-9 sm:h-10 text-sm bg-background/50 border-border/60 hover:border-border transition-colors"
         />
       </div>
     );
@@ -668,14 +769,22 @@ function FilterInput({
 
   const stringValue = typeof value === "string" ? value : "";
   return (
-    <div className="flex flex-col gap-2">
-      {filter.label && <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{filter.label}</span>}
-      <Input
-        value={stringValue}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={filter.placeholder ?? "Search"}
-        className="w-full min-w-[14rem]"
-      />
+    <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-[180px] sm:min-w-[220px] max-w-sm">
+      {filter.label && (
+        <label className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+          <Search className="h-3 w-3" />
+          {filter.label}
+        </label>
+      )}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+        <Input
+          value={stringValue}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={filter.placeholder ?? "Search..."}
+          className="h-9 sm:h-10 pl-9 text-sm bg-background/50 border-border/60 hover:border-border focus:border-primary transition-colors"
+        />
+      </div>
     </div>
   );
 }
@@ -694,10 +803,12 @@ function RowActions({
   }
   const rowId = getRowIdentifier(row);
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
       {actions.map((action) => {
         const intent = action.intent ?? "link";
         const href = action.urlTemplate ? applyTemplate(action.urlTemplate, row) : "#";
+        const icon = actionIntentIcons[intent];
+
         if (intent === "delete") {
           return (
             <Button
@@ -705,29 +816,33 @@ function RowActions({
               type="button"
               size="sm"
               variant="ghost"
-              className="text-destructive hover:bg-destructive/10"
+              className="h-8 px-2 sm:px-3 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 gap-1.5"
               onClick={() => {
                 onRequestDelete(rowId, row, action);
               }}
             >
-              {action.label}
+              {icon}
+              <span className="hidden sm:inline">{action.label}</span>
             </Button>
           );
         }
+
         const variant = action.variant ?? (intent === "view" ? "ghost" : intent === "edit" ? "secondary" : "ghost");
+
         return (
           <Link
             key={action.id ?? `${rowId}-${action.label}`}
             href={href}
             className={cn(
-              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold transition",
+              "inline-flex items-center gap-1.5 rounded-lg px-2 sm:px-3 py-1.5 text-xs font-medium transition-all",
               variant === "secondary"
-                ? "border border-border/60 bg-background hover:bg-muted/40"
-                : "text-primary hover:underline"
+                ? "border border-border/60 bg-background hover:bg-muted/50 hover:border-border"
+                : "text-primary hover:bg-primary/10"
             )}
             prefetch={false}
           >
-            {action.label}
+            {icon}
+            <span className="hidden sm:inline">{action.label}</span>
           </Link>
         );
       })}
@@ -766,10 +881,10 @@ function applyTemplate(template: string, context: GridValue): string {
 
 function renderDefaultCell(value: unknown) {
   if (value === null || value === undefined) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-muted-foreground/50">—</span>;
   }
   if (Array.isArray(value)) {
-    return value.length ? value.join(", ") : <span className="text-muted-foreground">—</span>;
+    return value.length ? value.join(", ") : <span className="text-muted-foreground/50">—</span>;
   }
   if (typeof value === "object") {
     return JSON.stringify(value);

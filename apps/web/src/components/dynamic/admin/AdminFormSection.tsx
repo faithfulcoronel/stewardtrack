@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AlertCircle, Plus, Loader2, Save } from "lucide-react";
 
 import {
   Form,
@@ -14,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { normalizeList } from "../shared";
-import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { renderAction } from "../shared";
@@ -281,24 +281,32 @@ export function AdminFormSection(props: AdminFormSectionProps) {
   const shouldRenderHeader = !props.hideHeader && Boolean(props.title || props.description);
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-5 sm:space-y-6">
       {shouldRenderHeader && (
-        <header className="space-y-2">
-          {props.title && <h2 className="text-xl font-semibold text-foreground">{props.title}</h2>}
-          {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}
+        <header className="space-y-1.5 sm:space-y-2">
+          {props.title && (
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+              <span className="h-5 w-1 rounded-full bg-primary" />
+              {props.title}
+            </h2>
+          )}
+          {props.description && (
+            <p className="text-sm text-muted-foreground pl-3">{props.description}</p>
+          )}
         </header>
       )}
 
       <Form {...form}>
         <form
           onSubmit={handleSubmit}
-          className="space-y-8 rounded-3xl border border-border/60 bg-card p-6 shadow-sm"
+          className="space-y-6 sm:space-y-8 rounded-xl sm:rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-4 sm:p-6 shadow-sm"
         >
           {formErrors.length > 0 && (
-            <Alert variant="destructive">
-              <AlertTitle>We couldn&apos;t save your changes</AlertTitle>
+            <Alert variant="destructive" className="border-rose-500/30 bg-rose-500/10">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="font-semibold">We couldn&apos;t save your changes</AlertTitle>
               <AlertDescription>
-                <ul className="list-disc space-y-1 pl-4">
+                <ul className="mt-2 list-disc space-y-1 pl-4">
                   {formErrors.map((error, index) => (
                     <li key={index} className="text-sm">
                       {error}
@@ -308,8 +316,9 @@ export function AdminFormSection(props: AdminFormSectionProps) {
               </AlertDescription>
             </Alert>
           )}
-          <div className="grid gap-6 sm:grid-cols-2">
-            {augmentedFields.map((field) => (
+
+          <div className="grid gap-5 sm:gap-6 sm:grid-cols-2">
+            {augmentedFields.map((field, index) => (
               <ConditionalField
                 key={field.name}
                 field={field}
@@ -328,72 +337,104 @@ export function AdminFormSection(props: AdminFormSectionProps) {
 
                     return (
                       <FormItem
-                        className={cn("space-y-3", getFieldGridClassName(field.colSpan ?? null))}
-                      >
-                      {field.label && <FormLabel className="text-sm font-semibold text-foreground">{field.label}</FormLabel>}
-                      <FormControl>
-                        {field.type === "select" && field.quickCreate ? (
-                          <div className="flex flex-wrap items-center gap-2">
-                            <div className="flex-none">
-                              {renderFieldInput(field, controller as ControllerRender)}
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              className="shrink-0"
-                              aria-label={field.quickCreate.label ?? `Add new ${field.label ?? "option"}`}
-                              onClick={() => handleQuickCreate(field)}
-                            >
-                              <Plus className="size-4" aria-hidden="true" />
-                              <span className="sr-only">{field.quickCreate.label ?? "Add"}</span>
-                            </Button>
-                          </div>
-                        ) : (
-                          renderFieldInput(field, controller as ControllerRender)
+                        className={cn(
+                          "space-y-2 sm:space-y-3",
+                          getFieldGridClassName(field.colSpan ?? null)
                         )}
-                      </FormControl>
-                      {(() => {
-                        const helperText = typeof field.helperText === "string" ? field.helperText : "";
-                        const hasHelperText = helperText.trim().length > 0;
-                        const rowHasHelperText = fieldRowHelperMap.get(field.name) ?? false;
-                        const shouldRenderPlaceholder = rowHasHelperText && !hasHelperText;
+                        style={{ animationDelay: `${index * 30}ms` }}
+                      >
+                        {field.label && (
+                          <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                            {field.label}
+                            {field.required && (
+                              <span className="text-rose-500 text-xs">*</span>
+                            )}
+                          </FormLabel>
+                        )}
+                        <FormControl>
+                          {field.type === "select" && field.quickCreate ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex-1 min-w-0">
+                                {renderFieldInput(field, controller as ControllerRender)}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                                aria-label={field.quickCreate.label ?? `Add new ${field.label ?? "option"}`}
+                                onClick={() => handleQuickCreate(field)}
+                              >
+                                <Plus className="h-4 w-4" aria-hidden="true" />
+                                <span className="sr-only">{field.quickCreate.label ?? "Add"}</span>
+                              </Button>
+                            </div>
+                          ) : (
+                            renderFieldInput(field, controller as ControllerRender)
+                          )}
+                        </FormControl>
+                        {(() => {
+                          const helperText = typeof field.helperText === "string" ? field.helperText : "";
+                          const hasHelperText = helperText.trim().length > 0;
+                          const rowHasHelperText = fieldRowHelperMap.get(field.name) ?? false;
+                          const shouldRenderPlaceholder = rowHasHelperText && !hasHelperText;
 
-                        if (hasHelperText) {
-                          return <FormDescription>{helperText}</FormDescription>;
-                        }
+                          if (hasHelperText) {
+                            return <FormDescription className="text-xs sm:text-sm">{helperText}</FormDescription>;
+                          }
 
-                        if (shouldRenderPlaceholder) {
-                          return (
-                            <FormDescription aria-hidden="true" className="select-none opacity-0">
-                              Placeholder helper text
-                            </FormDescription>
-                          );
-                        }
+                          if (shouldRenderPlaceholder) {
+                            return (
+                              <FormDescription aria-hidden="true" className="select-none opacity-0 text-xs sm:text-sm">
+                                Placeholder helper text
+                              </FormDescription>
+                            );
+                          }
 
-                        return null;
-                      })()}
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
+                          return null;
+                        })()}
+                        <FormMessage className="text-xs sm:text-sm" />
+                      </FormItem>
+                    );
+                  }}
+                />
               </ConditionalField>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
-            {props.cancelAction ? <div>{renderAction(props.cancelAction, "ghost")}</div> : <span />}
-            <Button type="submit" className="px-6" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting
-                ? "Saving..."
-                : props.submitLabel ?? (props.mode === "edit" ? "Save changes" : "Submit")}
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border/40 pt-5 sm:pt-6">
+            {props.cancelAction ? (
+              <div>{renderAction(props.cancelAction, "ghost")}</div>
+            ) : (
+              <span className="hidden sm:block" />
+            )}
+            <Button
+              type="submit"
+              className="w-full sm:w-auto px-6 h-10 sm:h-11 gap-2 font-semibold transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  <span>{props.submitLabel ?? (props.mode === "edit" ? "Save changes" : "Submit")}</span>
+                </>
+              )}
             </Button>
           </div>
         </form>
       </Form>
 
-      {props.footnote && <p className="text-xs text-muted-foreground/80">{props.footnote}</p>}
+      {props.footnote && (
+        <p className="text-xs text-muted-foreground/70 flex items-center gap-1.5 pl-1">
+          <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+          {props.footnote}
+        </p>
+      )}
 
       <Dialog
         open={Boolean(activeQuickCreateField)}

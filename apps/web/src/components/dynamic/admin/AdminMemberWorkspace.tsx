@@ -11,6 +11,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -35,7 +36,7 @@ import {
   getFieldGridClassName,
   groupFieldsIntoRows,
 } from "./formLayout";
-import { Plus } from "lucide-react";
+import { Plus, Users, FileText, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Command,
@@ -166,10 +167,21 @@ export function AdminMemberWorkspace(props: AdminMemberWorkspaceProps) {
     const emptyDescription =
       props.emptyState?.description ?? "Metadata configuration did not provide any workspace sections.";
     return (
-      <div className="rounded-3xl border border-border/60 bg-background p-8 text-center">
-        <h3 className="text-lg font-semibold text-foreground">{emptyTitle}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{emptyDescription}</p>
-      </div>
+      <Card className={cn(
+        "group relative overflow-hidden",
+        "border-border/40 bg-card/50 backdrop-blur-sm"
+      )}>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20" />
+
+        <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 shadow-inner mb-4">
+            <Users className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground/60" aria-hidden />
+          </div>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">{emptyTitle}</h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md">{emptyDescription}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -225,14 +237,19 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
   );
 
   return (
-    <section className="space-y-6">
-      <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList>
+    <section className="space-y-5 sm:space-y-6">
+      <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-5 sm:space-y-6">
+        <TabsList className="h-10 sm:h-11 p-1 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/40">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
-              className={isPending && optimisticTab === tab.id ? "opacity-70" : ""}
+              className={cn(
+                "h-8 sm:h-9 px-3 sm:px-4 rounded-lg transition-all duration-200",
+                "data-[state=active]:bg-background data-[state=active]:shadow-sm",
+                "data-[state=active]:border-border/60",
+                isPending && optimisticTab === tab.id && "opacity-70"
+              )}
             >
               {tab.label}
               {isPending && optimisticTab === tab.id && (
@@ -248,29 +265,44 @@ function ProfileWorkspace({ tabs }: { tabs: WorkspaceTabConfig[] }) {
           );
 
           return (
-            <TabsContent key={tab.id} value={tab.id} className={`space-y-6 ${isPending ? "opacity-70 transition-opacity" : ""}`}>
+            <TabsContent key={tab.id} value={tab.id} className={cn(
+              "space-y-5 sm:space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
+              isPending && "opacity-70 transition-opacity"
+            )}>
               {tab.description && (
-                <p className="text-sm text-muted-foreground/90">{tab.description}</p>
+                <p className="text-sm text-muted-foreground/90 pl-3">{tab.description}</p>
               )}
-              {sections.map((section) => (
-                <div key={section.id ?? section.title ?? tab.id} className="space-y-4">
+              {sections.map((section, sectionIndex) => (
+                <div
+                  key={section.id ?? section.title ?? tab.id}
+                  className="space-y-4"
+                  style={{ animationDelay: `${sectionIndex * 50}ms` }}
+                >
                   {(section.title || section.summary) && (
-                    <header className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="space-y-1">
+                    <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                      <div className="space-y-1.5">
                         {section.title && (
-                          <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                            <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+                            {section.title}
+                          </h3>
                         )}
                         {section.description && (
-                          <p className="text-sm text-muted-foreground">{section.description}</p>
+                          <p className="text-sm text-muted-foreground pl-3">{section.description}</p>
                         )}
                       </div>
                       {section.summary && (
-                        <Card className="border-border/60">
-                          <CardContent className="py-3">
-                            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <Card className={cn(
+                          "border-border/40 bg-card/50 backdrop-blur-sm",
+                          "transition-all duration-200 hover:border-primary/30"
+                        )}>
+                          <CardContent className="py-3 px-4">
+                            <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
                               {section.summary.label}
                             </div>
-                            <div className="text-base font-semibold text-foreground">{section.summary.value}</div>
+                            <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">
+                              {section.summary.value}
+                            </div>
                             {section.summary.description && (
                               <p className="mt-1 text-xs text-muted-foreground">{section.summary.description}</p>
                             )}
@@ -467,7 +499,12 @@ function HouseholdSelector({
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
           disabled={isBrowseDisabled}
+          className={cn(
+            "border-border/60 hover:border-primary/40",
+            "transition-all hover:shadow-sm"
+          )}
         >
+          <Users className="mr-2 h-4 w-4 text-muted-foreground" />
           Browse households
         </Button>
         {(hasSelection || currentValue) && (
@@ -475,7 +512,7 @@ function HouseholdSelector({
             type="button"
             variant="ghost"
             onClick={handleClear}
-            className="text-muted-foreground"
+            className="text-muted-foreground hover:text-foreground"
           >
             Clear selection
           </Button>
@@ -486,26 +523,42 @@ function HouseholdSelector({
         onChange={handleInputChange}
         placeholder={field.placeholder ?? "Start typing or select a household"}
         disabled={hasSelection}
+        className={cn(
+          "border-border/60 bg-background/50",
+          "focus:border-primary/40 focus:ring-primary/20",
+          hasSelection && "bg-muted/30"
+        )}
       />
 
       <CommandDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <Command>
-          <CommandInput placeholder="Search households..." />
-          <CommandList>
-            <CommandEmpty>
-              {isLoading ? "Loading households..." : "No households found."}
+        <Command className="rounded-xl border-border/40 bg-background/95 backdrop-blur-sm">
+          <CommandInput placeholder="Search households..." className="border-b-border/40" />
+          <CommandList className="max-h-[300px] sm:max-h-[400px]">
+            <CommandEmpty className="py-8 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <Users className="h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">
+                  {isLoading ? "Loading households..." : "No households found."}
+                </p>
+              </div>
             </CommandEmpty>
             <CommandGroup>
-              {households.map((household) => (
+              {households.map((household, index) => (
                 <CommandItem
                   key={household.key}
                   value={`${household.name} ${household.members.join(" ")}`}
                   onSelect={() => handleSelect(household)}
+                  className={cn(
+                    "px-3 py-2.5 cursor-pointer",
+                    "transition-colors hover:bg-muted/50",
+                    "animate-in fade-in-0 slide-in-from-left-2 duration-200"
+                  )}
+                  style={{ animationDelay: `${index * 20}ms` }}
                 >
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium text-foreground">{household.name}</span>
                     {household.members.length > 0 && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground line-clamp-1">
                         {household.members.join(", ")}
                       </span>
                     )}
@@ -753,7 +806,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
     [controller, familyOptions]
   );
 
-  const [isCreatingFamily, setIsCreatingFamily] = React.useState(false);
+  const [_isCreatingFamily, setIsCreatingFamily] = React.useState(false);
 
   const handleCreateFamily = React.useCallback(
     async (name: string): Promise<FamilyOption | null> => {
@@ -1218,12 +1271,18 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
   );
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-5 sm:space-y-6">
       <Form {...controller}>
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 rounded-3xl border border-border/60 bg-background p-6 shadow-sm"
+          className={cn(
+            "space-y-5 sm:space-y-6 rounded-2xl sm:rounded-3xl p-4 sm:p-6",
+            "border border-border/40 bg-card/50 backdrop-blur-sm",
+            "relative overflow-hidden shadow-sm"
+          )}
         >
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20" />
           {formErrors.length > 0 && (
             <Alert variant="destructive">
               <AlertTitle>We couldn&apos;t save your changes</AlertTitle>
@@ -1239,13 +1298,18 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
             </Alert>
           )}
 
-          <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList>
+          <Tabs value={optimisticTab} onValueChange={handleTabChange} className="space-y-5 sm:space-y-6">
+            <TabsList className="h-10 sm:h-11 p-1 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/40">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className={isPending && optimisticTab === tab.id ? "opacity-70" : ""}
+                  className={cn(
+                    "h-8 sm:h-9 px-3 sm:px-4 rounded-lg transition-all duration-200",
+                    "data-[state=active]:bg-background data-[state=active]:shadow-sm",
+                    "data-[state=active]:border-border/60",
+                    isPending && optimisticTab === tab.id && "opacity-70"
+                  )}
                 >
                   {tab.label}
                   {isPending && optimisticTab === tab.id && (
@@ -1256,28 +1320,43 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
             </TabsList>
 
             {groupedTabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className={`space-y-6 ${isPending ? "opacity-70 transition-opacity" : ""}`}>
+              <TabsContent key={tab.id} value={tab.id} className={cn(
+                "space-y-5 sm:space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
+                isPending && "opacity-70 transition-opacity"
+              )}>
                 {tab.description && <p className="text-sm text-muted-foreground/90">{tab.description}</p>}
 
-                {tab.panelSections.map((section) => (
-                  <div key={section.id ?? section.title ?? `${tab.id}-summary`} className="space-y-4">
+                {tab.panelSections.map((section, sectionIndex) => (
+                  <div
+                    key={section.id ?? section.title ?? `${tab.id}-summary`}
+                    className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                    style={{ animationDelay: `${sectionIndex * 50}ms` }}
+                  >
                     {(section.title || section.summary) && (
-                      <header className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="space-y-1">
+                      <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                        <div className="space-y-1.5">
                           {section.title && (
-                            <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                            <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                              <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+                              {section.title}
+                            </h3>
                           )}
                           {section.description && (
-                            <p className="text-sm text-muted-foreground">{section.description}</p>
+                            <p className="text-sm text-muted-foreground pl-3">{section.description}</p>
                           )}
                         </div>
                         {section.summary && (
-                          <Card className="border-border/60">
-                            <CardContent className="py-3">
-                              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          <Card className={cn(
+                            "border-border/40 bg-background/50 backdrop-blur-sm",
+                            "transition-all duration-200 hover:border-primary/30"
+                          )}>
+                            <CardContent className="py-3 px-4">
+                              <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
                                 {section.summary.label}
                               </div>
-                              <div className="text-base font-semibold text-foreground">{section.summary.value}</div>
+                              <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">
+                                {section.summary.value}
+                              </div>
                               {section.summary.description && (
                                 <p className="mt-1 text-xs text-muted-foreground">{section.summary.description}</p>
                               )}
@@ -1290,25 +1369,37 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                   </div>
                 ))}
 
-                {tab.listSections.map((section) => (
-                  <div key={section.id ?? section.title ?? `${tab.id}-list`} className="space-y-4">
+                {tab.listSections.map((section, sectionIndex) => (
+                  <div
+                    key={section.id ?? section.title ?? `${tab.id}-list`}
+                    className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                    style={{ animationDelay: `${(tab.panelSections.length + sectionIndex) * 50}ms` }}
+                  >
                     {(section.title || section.summary) && (
-                      <header className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="space-y-1">
+                      <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                        <div className="space-y-1.5">
                           {section.title && (
-                            <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                            <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                              <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+                              {section.title}
+                            </h3>
                           )}
                           {section.description && (
-                            <p className="text-sm text-muted-foreground">{section.description}</p>
+                            <p className="text-sm text-muted-foreground pl-3">{section.description}</p>
                           )}
                         </div>
                         {section.summary && (
-                          <Card className="border-border/60">
-                            <CardContent className="py-3">
-                              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          <Card className={cn(
+                            "border-border/40 bg-background/50 backdrop-blur-sm",
+                            "transition-all duration-200 hover:border-primary/30"
+                          )}>
+                            <CardContent className="py-3 px-4">
+                              <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
                                 {section.summary.label}
                               </div>
-                              <div className="text-base font-semibold text-foreground">{section.summary.value}</div>
+                              <div className="text-base sm:text-lg font-bold text-foreground tabular-nums">
+                                {section.summary.value}
+                              </div>
                               {section.summary.description && (
                                 <p className="mt-1 text-xs text-muted-foreground">{section.summary.description}</p>
                               )}
@@ -1336,7 +1427,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                 {tab.editableSections.length > 0 && (
                   <Accordion
                     type="multiple"
-                    className="space-y-4"
+                    className="space-y-3 sm:space-y-4"
                     defaultValue={(() => {
                       // Open the first accordion section by default
                       const firstSection = tab.editableSections[0];
@@ -1345,7 +1436,7 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                       return [firstValue];
                     })()}
                   >
-                    {tab.editableSections.map((section) => {
+                    {tab.editableSections.map((section, sectionIndex) => {
                       const sectionFields = normalizeList<FormFieldConfig>(section.fields).map((field) => {
                         const augmented = fieldMap.get(field.name);
                         if (!augmented) {
@@ -1367,24 +1458,37 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
                         <AccordionItem
                           key={accordionValue}
                           value={accordionValue}
-                          className="rounded-2xl border border-border/60 bg-card"
+                          className={cn(
+                            "group relative overflow-hidden",
+                            "rounded-xl sm:rounded-2xl border border-border/40",
+                            "bg-background/50 backdrop-blur-sm",
+                            "transition-all duration-200 hover:border-border/60",
+                            "animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                          )}
+                          style={{ animationDelay: `${(tab.panelSections.length + tab.listSections.length + sectionIndex) * 50}ms` }}
                         >
-                          <AccordionTrigger className="px-6 py-4 text-left text-base font-semibold text-foreground">
+                          {/* Top accent line */}
+                          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/10 group-hover:bg-primary/20 transition-colors" />
+
+                          <AccordionTrigger className="px-4 sm:px-6 py-3 sm:py-4 text-left text-sm sm:text-base font-semibold text-foreground hover:no-underline">
                             <div className="flex w-full flex-col gap-1 text-left">
-                              <span>{section.title ?? "Untitled section"}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="h-3 w-0.5 rounded-full bg-primary/60 shrink-0" />
+                                {section.title ?? "Untitled section"}
+                              </span>
                               {section.description && (
-                                <span className="text-sm font-normal text-muted-foreground">
+                                <span className="text-xs sm:text-sm font-normal text-muted-foreground pl-3">
                                   {section.description}
                                 </span>
                               )}
                               {section.summary && (
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  {section.summary.label}: <span className="text-foreground">{section.summary.value}</span>
+                                <span className="text-xs font-medium text-muted-foreground pl-3">
+                                  {section.summary.label}: <span className="text-foreground tabular-nums">{section.summary.value}</span>
                                 </span>
                               )}
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent className="border-t border-border/60 px-6 pb-6 pt-4">
+                          <AccordionContent className="border-t border-border/40 px-4 sm:px-6 pb-4 sm:pb-6 pt-4">
                             <div className="grid gap-6 sm:grid-cols-2">
                               {sectionFields.map((field) => (
                                 <FormField
@@ -1473,9 +1577,16 @@ function ManageWorkspace({ tabs, form }: ManageWorkspaceProps) {
             ))}
           </Tabs>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
-            {form?.cancelAction ? <div>{renderAction(form.cancelAction, "ghost")}</div> : <span />}
-            <Button type="submit" className="px-6" disabled={controller.formState.isSubmitting}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between border-t border-border/40 pt-5 sm:pt-6">
+            {form?.cancelAction ? <div>{renderAction(form.cancelAction, "ghost")}</div> : <span className="hidden sm:block" />}
+            <Button
+              type="submit"
+              className={cn(
+                "w-full sm:w-auto px-6 sm:px-8 h-10 sm:h-11 font-semibold",
+                "transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
+              )}
+              disabled={controller.formState.isSubmitting}
+            >
               {controller.formState.isSubmitting
                 ? "Saving..."
                 : form?.submitLabel ?? (form?.mode === "edit" ? "Save changes" : "Submit")}
@@ -1522,9 +1633,17 @@ function WorkspaceListSectionRenderer({ section }: { section: WorkspaceListSecti
 
   if (items.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="py-6 text-center text-sm text-muted-foreground">
-          {section.emptyMessage ?? "No items to display."}
+      <Card className={cn(
+        "border-dashed border-border/60 bg-muted/20",
+        "backdrop-blur-sm"
+      )}>
+        <CardContent className="flex flex-col items-center justify-center py-8 sm:py-10 text-center">
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-muted/80 to-muted/40 shadow-inner mb-3">
+            <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground/60" aria-hidden />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {section.emptyMessage ?? "No items to display."}
+          </p>
         </CardContent>
       </Card>
     );
@@ -1532,37 +1651,60 @@ function WorkspaceListSectionRenderer({ section }: { section: WorkspaceListSecti
 
   return (
     <div className="space-y-3">
-      <div className="divide-y divide-border rounded-md border">
-        {items.map((item) => (
-          <div key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              {item.href ? (
-                <Link
-                  href={item.href}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <span className="font-medium text-foreground">{item.label}</span>
+      <Card className={cn(
+        "overflow-hidden",
+        "border-border/40 bg-card/50 backdrop-blur-sm"
+      )}>
+        <div className="divide-y divide-border/40">
+          {items.map((item, index) => (
+            <div
+              key={item.id}
+              className={cn(
+                "group flex items-center justify-between gap-4 px-4 py-3",
+                "transition-colors hover:bg-muted/30",
+                "animate-in fade-in-0 slide-in-from-left-2 duration-200"
               )}
-              {item.description && (
-                <p className="mt-0.5 text-sm text-muted-foreground truncate">{item.description}</p>
+              style={{ animationDelay: `${index * 30}ms` }}
+            >
+              <div className="min-w-0 flex-1">
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1 font-medium text-primary hover:underline transition-colors"
+                  >
+                    {item.label}
+                    <ChevronRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                ) : (
+                  <span className="font-medium text-foreground">{item.label}</span>
+                )}
+                {item.description && (
+                  <p className="mt-0.5 text-sm text-muted-foreground truncate">{item.description}</p>
+                )}
+              </div>
+              {item.badge && (
+                <Badge
+                  variant={item.badgeVariant ?? "secondary"}
+                  className="shrink-0"
+                >
+                  {item.badge}
+                </Badge>
               )}
             </div>
-            {item.badge && (
-              <Badge variant={item.badgeVariant ?? "secondary"}>{item.badge}</Badge>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </Card>
       {section.viewAllHref && (
         <div className="text-right">
           <Link
             href={section.viewAllHref}
-            className="text-sm font-medium text-primary hover:underline"
+            className={cn(
+              "inline-flex items-center gap-1 text-sm font-medium text-primary",
+              "hover:underline transition-colors"
+            )}
           >
-            {section.viewAllLabel ?? "View all"} →
+            {section.viewAllLabel ?? "View all"}
+            <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       )}

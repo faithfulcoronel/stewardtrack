@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, QrCode, ExternalLink, Share2, Loader2 } from 'lucide-react';
+import { Copy, Check, QrCode, ExternalLink, Share2, Loader2, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 
 interface DonationLinkData {
   tenantId: string;
@@ -133,49 +134,78 @@ export function DonationLinkShare({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant={triggerVariant} className="gap-2">
+        <Button
+          variant={triggerVariant}
+          className={cn(
+            "gap-2",
+            triggerVariant === 'outline' && "border-border/60 hover:border-primary/40"
+          )}
+        >
           <Share2 className="h-4 w-4" />
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Share Donation Link</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-md border-border/40 bg-background/95 backdrop-blur-md">
+        <DialogHeader className="space-y-1.5">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <span className="h-5 w-1 rounded-full bg-primary" />
+            Share Donation Link
+          </DialogTitle>
+          <DialogDescription className="pl-3">
             Share this link with your congregation to receive online donations.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center gap-3 py-12">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">Loading donation link...</p>
           </div>
         ) : linkData ? (
           <Tabs defaultValue="link" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="link">Link</TabsTrigger>
-              <TabsTrigger value="qr">QR Code</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-muted/50 rounded-xl">
+              <TabsTrigger
+                value="link"
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
+                <Link2 className="mr-2 h-4 w-4" />
+                Link
+              </TabsTrigger>
+              <TabsTrigger
+                value="qr"
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
+                <QrCode className="mr-2 h-4 w-4" />
+                QR Code
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="link" className="space-y-4">
+            <TabsContent value="link" className="space-y-4 mt-4 animate-in fade-in-0 slide-in-from-left-2 duration-200">
               <div className="space-y-2">
-                <Label htmlFor="donation-link">Donation URL</Label>
+                <Label htmlFor="donation-link" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                  Donation URL
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="donation-link"
                     value={linkData.donationUrl}
                     readOnly
-                    className="font-mono text-sm"
+                    className="font-mono text-xs sm:text-sm border-border/60 bg-muted/30"
                   />
                   <Button
                     type="button"
                     size="icon"
                     variant="outline"
                     onClick={handleCopyLink}
-                    className="shrink-0"
+                    className={cn(
+                      "shrink-0 border-border/60 transition-all duration-200",
+                      copied && "border-emerald-500/50 bg-emerald-500/10"
+                    )}
                   >
                     {copied ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-emerald-600" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -186,7 +216,7 @@ export function DonationLinkShare({
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="outline"
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-2 border-border/60 hover:border-primary/40"
                   onClick={handleOpenLink}
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -194,7 +224,7 @@ export function DonationLinkShare({
                 </Button>
                 <Button
                   variant="default"
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-2 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
                   onClick={handleShare}
                 >
                   <Share2 className="h-4 w-4" />
@@ -202,45 +232,52 @@ export function DonationLinkShare({
                 </Button>
               </div>
 
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground/80 bg-muted/30 rounded-lg p-3">
                 Donors can use this link to make one-time or recurring donations
                 securely via Xendit.
               </p>
             </TabsContent>
 
-            <TabsContent value="qr" className="space-y-4">
+            <TabsContent value="qr" className="space-y-4 mt-4 animate-in fade-in-0 slide-in-from-right-2 duration-200">
               <div className="flex flex-col items-center gap-4">
-                <div className="rounded-lg border bg-white p-4">
+                <div className={cn(
+                  "rounded-2xl border-2 border-border/40 bg-white p-4 sm:p-5",
+                  "shadow-lg shadow-black/5 transition-all duration-200",
+                  "hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10"
+                )}>
                   <QRCodeSVG
                     id="donation-qr-code"
                     value={linkData.donationUrl}
-                    size={200}
+                    size={180}
                     level="H"
                     includeMargin
                   />
                 </div>
                 <p className="text-center text-sm text-muted-foreground">
-                  Scan to donate to {linkData.tenantName}
+                  Scan to donate to <span className="font-medium text-foreground">{linkData.tenantName}</span>
                 </p>
               </div>
 
               <Button
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full gap-2 border-border/60 hover:border-primary/40"
                 onClick={handleDownloadQR}
               >
                 <QrCode className="h-4 w-4" />
                 Download QR Code
               </Button>
 
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground/80 bg-muted/30 rounded-lg p-3">
                 Print this QR code for bulletins, posters, or display screens.
               </p>
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            Unable to load donation link
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/50">
+              <Link2 className="h-6 w-6 text-muted-foreground/60" />
+            </div>
+            <p className="text-sm text-muted-foreground">Unable to load donation link</p>
           </div>
         )}
       </DialogContent>

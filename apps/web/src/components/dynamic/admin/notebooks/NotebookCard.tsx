@@ -5,7 +5,16 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  Lock,
+  Users,
+  Globe,
+  Pin,
+  FolderOpen,
+  FileText,
+  Clock,
+  ArrowUpRight
+} from "lucide-react";
 import { normalizeList } from "../../shared";
 
 export type NotebookVisibility = "private" | "shared" | "tenant";
@@ -41,27 +50,33 @@ export interface NotebookCardProps {
   showVisibility?: boolean;
   /** Show section/page metrics */
   showMetrics?: boolean;
-  /** Base URL for notebook links */
-  baseUrl?: string;
   /** Additional CSS classes */
   className?: string;
 }
 
-const visibilityConfig: Record<NotebookVisibility, { label: string; icon: string; className: string }> = {
+const visibilityConfig: Record<NotebookVisibility, {
+  label: string;
+  icon: React.ReactNode;
+  className: string;
+  bgClassName: string;
+}> = {
   private: {
     label: "Private",
-    icon: "🔒",
-    className: "bg-muted/50 text-muted-foreground border-muted-foreground/30",
+    icon: <Lock className="h-3 w-3" />,
+    className: "text-muted-foreground border-muted-foreground/30",
+    bgClassName: "bg-muted/50",
   },
   shared: {
     label: "Shared",
-    icon: "🤝",
-    className: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30",
+    icon: <Users className="h-3 w-3" />,
+    className: "text-sky-600 dark:text-sky-400 border-sky-500/30",
+    bgClassName: "bg-sky-500/10",
   },
   tenant: {
     label: "Tenant-wide",
-    icon: "🌐",
-    className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    icon: <Globe className="h-3 w-3" />,
+    className: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    bgClassName: "bg-emerald-500/10",
   },
 };
 
@@ -72,74 +87,105 @@ function SingleNotebookCard({
   className,
 }: Omit<NotebookCardProps, "notebooks"> & { notebook: NotebookCardData }) {
   const visibilityInfo = visibilityConfig[notebook.visibility] || visibilityConfig.private;
-  const notebookColor = notebook.color || "#4F46E5";
+  const notebookColor = notebook.color || "#6366f1";
   const notebookIcon = notebook.icon || "📚";
 
   return (
-    <Link href={notebook.href}>
+    <Link href={notebook.href} className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl">
       <Card
         className={cn(
-          "group relative overflow-hidden border-border/60",
-          "transition-all duration-200",
-          "hover:border-border hover:shadow-md cursor-pointer",
-          "active:scale-[0.98]",
-          notebook.is_pinned && "border-amber-500/40 bg-amber-500/5",
+          "relative overflow-hidden",
+          "border-border/40 bg-card/50 backdrop-blur-sm",
+          "transition-all duration-300",
+          "hover:border-border hover:shadow-lg hover:shadow-primary/5",
+          "active:scale-[0.99]",
+          notebook.is_pinned && "ring-2 ring-amber-500/20 bg-amber-500/5",
           className
         )}
       >
-        {/* Color indicator */}
+        {/* Color indicator bar */}
         <div
-          className="absolute left-0 top-0 h-full w-1"
+          className="absolute left-0 top-0 h-full w-1 transition-all duration-300 group-hover:w-1.5"
           style={{ backgroundColor: notebookColor }}
         />
 
-        <CardHeader className="space-y-3 pl-4">
-          {/* Top row: Icon + Pinned/Visibility badges */}
+        {/* Gradient overlay on hover */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `linear-gradient(135deg, ${notebookColor}08 0%, transparent 60%)`
+          }}
+        />
+
+        {/* Arrow indicator */}
+        <ArrowUpRight
+          className="absolute right-3 top-3 h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          aria-hidden
+        />
+
+        <CardHeader className="relative space-y-3 pl-5">
+          {/* Top row: Icon + Badges */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{notebookIcon}</span>
+            <div className="flex items-center gap-2.5">
+              <span
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-transform duration-300 group-hover:scale-110"
+                style={{
+                  backgroundColor: `${notebookColor}15`,
+                  boxShadow: `0 0 0 1px ${notebookColor}30`
+                }}
+              >
+                {notebookIcon}
+              </span>
+
               {notebook.is_pinned && (
                 <Badge
                   variant="outline"
-                  className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs"
+                  className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-medium gap-1"
                 >
-                  📌 Pinned
+                  <Pin className="h-3 w-3" />
+                  <span className="hidden sm:inline">Pinned</span>
                 </Badge>
               )}
             </div>
+
             {showVisibility && (
               <Badge
                 variant="outline"
-                className={cn("text-xs font-medium", visibilityInfo.className)}
+                className={cn(
+                  "text-[10px] sm:text-xs font-medium gap-1",
+                  visibilityInfo.className,
+                  visibilityInfo.bgClassName
+                )}
               >
-                {visibilityInfo.icon} {visibilityInfo.label}
+                {visibilityInfo.icon}
+                <span className="hidden sm:inline">{visibilityInfo.label}</span>
               </Badge>
             )}
           </div>
 
-          {/* Title */}
-          <div className="space-y-1">
-            <h3 className="font-semibold text-lg leading-none tracking-tight group-hover:text-primary transition-colors">
+          {/* Title and description */}
+          <div className="space-y-1.5">
+            <h3 className="font-semibold text-base sm:text-lg leading-tight text-foreground group-hover:text-primary transition-colors duration-300 pr-6">
               {notebook.title}
             </h3>
             {notebook.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                 {notebook.description}
               </p>
             )}
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="relative space-y-3 pl-5">
           {/* Metrics */}
           {showMetrics && (
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <span>📁</span>
+            <div className="flex items-center gap-4 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <FolderOpen className="h-3.5 w-3.5" />
                 <span>{notebook.section_count ?? 0} sections</span>
               </div>
-              <div className="flex items-center gap-1">
-                <span>📄</span>
+              <div className="flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5" />
                 <span>{notebook.page_count ?? 0} pages</span>
               </div>
             </div>
@@ -147,18 +193,21 @@ function SingleNotebookCard({
 
           {/* Tags */}
           {notebook.tags && notebook.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {notebook.tags.slice(0, 3).map((tag) => (
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="text-xs"
+                  className="text-[10px] sm:text-xs bg-muted/60 hover:bg-muted transition-colors"
                 >
                   {tag}
                 </Badge>
               ))}
               {notebook.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] sm:text-xs bg-muted/60"
+                >
                   +{notebook.tags.length - 3}
                 </Badge>
               )}
@@ -166,14 +215,24 @@ function SingleNotebookCard({
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-            {notebook.owner_name && (
-              <span>By {notebook.owner_name}</span>
-            )}
-            {notebook.last_updated && (
-              <span>{notebook.last_updated}</span>
-            )}
-          </div>
+          {(notebook.owner_name || notebook.last_updated) && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground/70 pt-2 border-t border-border/40">
+              {notebook.owner_name && (
+                <span className="flex items-center gap-1.5">
+                  <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary uppercase">
+                    {notebook.owner_name.charAt(0)}
+                  </div>
+                  <span>By {notebook.owner_name}</span>
+                </span>
+              )}
+              {notebook.last_updated && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {notebook.last_updated}
+                </span>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </Link>
@@ -184,12 +243,13 @@ function SingleNotebookCard({
  * NotebookCard Component - Mobile-first notebook display
  *
  * Displays notebooks as cards with:
- * - Visual color coding
+ * - Visual color coding with dynamic accent colors
  * - Visibility indicators (private/shared/tenant)
- * - Pin indicators
+ * - Pin indicators with animation
  * - Section/page metrics
- * - Tags
+ * - Tags with overflow handling
  * - Responsive grid layout
+ * - Smooth hover animations and transitions
  */
 export default function NotebookCard({
   notebook,
@@ -198,7 +258,6 @@ export default function NotebookCard({
   columns = 3,
   showVisibility = true,
   showMetrics = true,
-  baseUrl = "/admin/community/planning/notebooks",
   className,
 }: NotebookCardProps) {
   // Handle both single notebook and multiple notebooks
@@ -209,19 +268,29 @@ export default function NotebookCard({
   }
 
   const gridClass = layout === "grid"
-    ? `grid gap-4 md:grid-cols-2 lg:grid-cols-${columns}`
-    : "flex flex-col gap-4";
+    ? cn(
+        "grid gap-3 sm:gap-4",
+        columns === 1 && "grid-cols-1",
+        columns === 2 && "grid-cols-1 sm:grid-cols-2",
+        columns >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+        columns >= 4 && "xl:grid-cols-4"
+      )
+    : "flex flex-col gap-3 sm:gap-4";
 
   return (
     <div className={cn(gridClass, className)}>
-      {notebookList.map((nb) => (
-        <SingleNotebookCard
+      {notebookList.map((nb, index) => (
+        <div
           key={nb.id}
-          notebook={nb}
-          showVisibility={showVisibility}
-          showMetrics={showMetrics}
-          className={layout === "list" ? "max-w-none" : undefined}
-        />
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <SingleNotebookCard
+            notebook={nb}
+            showVisibility={showVisibility}
+            showMetrics={showMetrics}
+            className={layout === "list" ? "max-w-none" : undefined}
+          />
+        </div>
       ))}
     </div>
   );

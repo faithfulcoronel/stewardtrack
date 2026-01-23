@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Copy, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -171,52 +171,65 @@ function LineCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border bg-background shadow-sm transition-all",
+        "group relative overflow-hidden",
+        "rounded-xl sm:rounded-2xl border shadow-sm transition-all duration-200",
+        "bg-card/50 backdrop-blur-sm",
         line.isDeleted && "opacity-50",
-        line.isDirty && "border-amber-500/50",
-        line.isNew && "border-primary/50"
+        line.isDirty && "border-amber-500/40 bg-amber-500/5",
+        line.isNew && "border-primary/40 bg-primary/5",
+        !line.isDeleted && !line.isDirty && !line.isNew && "border-border/40 hover:border-border/60"
       )}
     >
+      {/* Top accent line */}
+      <div className={cn(
+        "absolute top-0 left-0 right-0 h-0.5",
+        line.isDirty && "bg-amber-500/40",
+        line.isNew && "bg-primary/40",
+        !line.isDirty && !line.isNew && "bg-primary/10"
+      )} />
+
       {/* Card Header - Always Visible */}
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-3 p-4"
+        className="flex w-full items-center justify-between gap-3 p-3 sm:p-4"
         onClick={onToggleExpand}
         disabled={readOnly}
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-muted/50 text-sm font-semibold">
             {index + 1}
           </div>
-          <div className="text-left">
-            <div className="font-medium text-foreground">
+          <div className="text-left min-w-0">
+            <div className="font-medium text-foreground truncate">
               {categoryLabel}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs sm:text-sm text-muted-foreground truncate">
               {fundLabel} {line.description && `• ${line.description.slice(0, 30)}${line.description.length > 30 ? "..." : ""}`}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="text-right">
-            <div className="font-semibold text-foreground tabular-nums">
+            <div className="font-bold text-foreground tabular-nums">
               {formatCurrencyInput(line.amount, currency)}
             </div>
           </div>
-          {isExpanded ? (
-            <ChevronUp className="size-5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="size-5 text-muted-foreground" />
-          )}
+          <div className="flex size-6 items-center justify-center rounded-md bg-muted/30">
+            {isExpanded ? (
+              <ChevronUp className="size-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="size-4 text-muted-foreground" />
+            )}
+          </div>
         </div>
       </button>
 
       {/* Expanded Content */}
       {isExpanded && !readOnly && (
-        <div className="space-y-4 border-t px-4 pb-4 pt-4">
+        <div className="space-y-4 border-t border-border/40 px-3 sm:px-4 pb-4 pt-4 animate-in fade-in-0 slide-in-from-top-2 duration-200">
           {/* Amount - Prominent Input */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
               Amount *
             </label>
             <Input
@@ -225,20 +238,20 @@ function LineCard({
               value={line.amount === 0 ? "" : line.amount.toString()}
               onChange={(e) => onUpdate("amount", parseCurrencyInput(e.target.value))}
               placeholder="0.00"
-              className="h-12 text-lg font-semibold tabular-nums"
+              className="h-11 sm:h-12 text-lg font-bold tabular-nums border-border/60 bg-background/50"
             />
           </div>
 
           {/* Category */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
               Category *
             </label>
             <Select
               value={line.categoryId}
               onValueChange={(value) => onUpdate("categoryId", value)}
             >
-              <SelectTrigger className="h-11">
+              <SelectTrigger className="h-10 sm:h-11 border-border/60 bg-background/50">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -259,14 +272,14 @@ function LineCard({
           {/* Fund & Source - Side by Side */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
                 Fund
               </label>
               <Select
                 value={toSelectValue(line.fundId)}
                 onValueChange={(value) => onUpdate("fundId", fromSelectValue(value))}
               >
-                <SelectTrigger className="h-11">
+                <SelectTrigger className="h-10 sm:h-11 border-border/60 bg-background/50">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,14 +293,14 @@ function LineCard({
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
                 Source
               </label>
               <Select
                 value={toSelectValue(line.sourceId)}
                 onValueChange={(value) => onUpdate("sourceId", fromSelectValue(value))}
               >
-                <SelectTrigger className="h-11">
+                <SelectTrigger className="h-10 sm:h-11 border-border/60 bg-background/50">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -304,14 +317,14 @@ function LineCard({
 
           {/* Account (Bank/Cash) */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
               Account
             </label>
             <Select
               value={toSelectValue(line.accountId)}
               onValueChange={(value) => onUpdate("accountId", fromSelectValue(value))}
             >
-              <SelectTrigger className="h-11">
+              <SelectTrigger className="h-10 sm:h-11 border-border/60 bg-background/50">
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>
               <SelectContent>
@@ -327,7 +340,7 @@ function LineCard({
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
               Description
             </label>
             <Textarea
@@ -335,18 +348,18 @@ function LineCard({
               onChange={(e) => onUpdate("description", e.target.value)}
               placeholder="Line item description..."
               rows={2}
-              className="resize-none"
+              className="resize-none border-border/60 bg-background/50"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between border-t pt-4">
+          <div className="flex items-center justify-between border-t border-border/40 pt-4">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={onDuplicate}
-              className="text-muted-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               <Copy className="mr-2 size-4" />
               Duplicate
@@ -391,7 +404,7 @@ function LineRow({
   categoryOptions,
   fundOptions,
   sourceOptions,
-  accountOptions,
+  accountOptions: _accountOptions,
   currency,
   readOnly,
   onUpdate,
@@ -696,39 +709,51 @@ export function AdminTransactionLines({
   };
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 sm:space-y-5">
       {/* Header */}
       {(title || description) && (
-        <header className="space-y-1">
-          {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        <header className="space-y-1.5">
+          {title && (
+            <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+              <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+              {title}
+            </h3>
+          )}
+          {description && <p className="text-sm text-muted-foreground pl-3">{description}</p>}
         </header>
       )}
 
       {/* Transaction Type Badge */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge
           variant="outline"
           className={cn(
-            "border",
+            "border font-medium",
             transactionType === "income"
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
-              : "border-rose-500/30 bg-rose-500/10 text-rose-600"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+              : "border-rose-500/40 bg-rose-500/10 text-rose-600"
           )}
         >
           {transactionType === "income" ? "Income" : "Expense"} Entry
         </Badge>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs sm:text-sm text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
           {activeLines.length} {activeLines.length === 1 ? "line" : "lines"}
         </div>
       </div>
 
       {/* Desktop Table View */}
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
+      <div className={cn(
+        "group relative overflow-hidden",
+        "rounded-xl sm:rounded-2xl border border-border/40",
+        "bg-card/50 backdrop-blur-sm shadow-sm"
+      )}>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20" />
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border/60 bg-muted/30">
+              <tr className="border-b border-border/40 bg-muted/20">
                 <th className="w-12 px-2 py-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   #
                 </th>
@@ -851,22 +876,32 @@ export function AdminTransactionLines({
 
       {/* Empty State */}
       {activeLines.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-8 text-center">
-          <h3 className="text-base font-semibold text-foreground">No line items</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Add at least one line item to record this transaction.
-          </p>
-          {!readOnly && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAddLine}
-              className="mt-4"
-            >
-              <Plus className="mr-2 size-4" />
-              Add first line
-            </Button>
-          )}
+        <div className={cn(
+          "rounded-xl sm:rounded-2xl border border-dashed border-border/60",
+          "bg-muted/20 backdrop-blur-sm p-8 sm:p-12 text-center"
+        )}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 shadow-inner">
+              <FileText className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground/60" aria-hidden />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="text-base font-semibold text-foreground">No line items</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Add at least one line item to record this transaction.
+              </p>
+            </div>
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddLine}
+                className="mt-3 border-border/60 hover:border-primary/40"
+              >
+                <Plus className="mr-2 size-4" />
+                Add first line
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
