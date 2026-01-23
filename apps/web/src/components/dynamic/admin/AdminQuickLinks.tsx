@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -15,6 +17,7 @@ import {
   Shield,
   Target,
   Users,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import React from "react";
@@ -44,6 +47,7 @@ const iconMap: Record<string, LucideIcon> = {
   Bell,
   Church,
   Target,
+  Zap,
   // Lowercase aliases for flexibility
   folderopen: FolderOpen,
   barchart3: BarChart3,
@@ -59,6 +63,7 @@ const iconMap: Record<string, LucideIcon> = {
   bell: Bell,
   church: Church,
   target: Target,
+  zap: Zap,
 };
 
 export interface QuickLinkItem {
@@ -87,80 +92,132 @@ export function AdminQuickLinks(props: AdminQuickLinksProps) {
   const columns = props.columns ?? (links.length >= 3 ? 3 : 2);
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-5 sm:space-y-6">
       {(props.title || props.description || actions.length > 0) && (
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            {props.title && <h2 className="text-xl font-semibold text-foreground">{props.title}</h2>}
-            {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}
+        <header className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1.5 sm:space-y-2">
+            {props.title && (
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+                <span className="h-5 w-1 rounded-full bg-primary" />
+                {props.title}
+              </h2>
+            )}
+            {props.description && (
+              <p className="text-sm text-muted-foreground pl-3">{props.description}</p>
+            )}
           </div>
           {actions.length > 0 && (
-            <div className="flex flex-wrap gap-3">{actions.map((action) => renderAction(action, "secondary"))}</div>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {actions.map((action) => renderAction(action, "secondary"))}
+            </div>
           )}
         </header>
       )}
+
       <div
         className={cn(
-          "grid gap-4",
-          columns <= 1 ? "grid-cols-1" : undefined,
-          columns === 2 ? "md:grid-cols-2" : undefined,
-          columns >= 3 ? "lg:grid-cols-3" : undefined,
-          columns >= 4 ? "xl:grid-cols-4" : undefined
+          "grid gap-3 sm:gap-4",
+          columns <= 1 && "grid-cols-1",
+          columns === 2 && "grid-cols-1 sm:grid-cols-2",
+          columns >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          columns >= 4 && "xl:grid-cols-4"
         )}
       >
-        {links.map((link) => {
-          const content = (
+        {links.map((link, index) => {
+          const Icon = link.icon ? iconMap[link.icon] : null;
+
+          const cardContent = (
             <Card
-              key={link.id ?? link.title}
-              className="relative group flex h-full flex-col justify-between border-border/60 transition hover:border-primary/50 hover:shadow-md"
+              className={cn(
+                "group relative flex h-full flex-col justify-between overflow-hidden",
+                "border-border/40 bg-card/50 backdrop-blur-sm",
+                "transition-all duration-300",
+                "hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5",
+                "active:scale-[0.99]"
+              )}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <CardHeader className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-bl-full" />
+
+              <CardHeader className="relative space-y-3 pb-2">
+                <div className="flex items-start justify-between gap-3">
                   <CardTitle className="text-base font-semibold text-foreground">
-                    <span className="flex items-center gap-2">
-                      {link.icon && (() => {
-                        const Icon = iconMap[link.icon];
-                        return Icon ? <Icon className="h-5 w-5 text-muted-foreground" aria-hidden /> : null;
-                      })()}
-                      <span>{link.title}</span>
+                    <span className="flex items-center gap-2.5">
+                      {Icon && (
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                          <Icon className="h-4 w-4" aria-hidden />
+                        </span>
+                      )}
+                      <span className="group-hover:text-primary transition-colors">{link.title}</span>
                     </span>
                   </CardTitle>
+
                   {link.badge && (
-                    <Badge variant="outline" className="border-border/60 text-xs uppercase tracking-wide">
+                    <Badge
+                      variant="outline"
+                      className="border-border/40 bg-muted/50 text-[10px] sm:text-xs uppercase tracking-wide font-medium shrink-0"
+                    >
                       {link.badge}
                     </Badge>
                   )}
                 </div>
-                {link.description && <p className="text-sm text-muted-foreground">{link.description}</p>}
+
+                {link.description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                    {link.description}
+                  </p>
+                )}
               </CardHeader>
+
               {(link.stat || link.footnote) && (
-                <CardContent className="flex flex-col gap-2">
-                  {link.stat && <p className="text-sm font-medium text-primary">{link.stat}</p>}
-                  {link.footnote && <p className="text-xs text-muted-foreground/80">{link.footnote}</p>}
+                <CardContent className="relative flex flex-col gap-1.5 pt-0 pb-4">
+                  {link.stat && (
+                    <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5" />
+                      {link.stat}
+                    </p>
+                  )}
+                  {link.footnote && (
+                    <p className="text-xs text-muted-foreground/70">{link.footnote}</p>
+                  )}
                 </CardContent>
               )}
+
               {link.action && (
-                <CardContent className="border-t border-border/60 bg-muted/40 py-4">
-                  <div className="flex justify-end">{renderAction(link.action, "ghost")}</div>
+                <CardContent className="relative border-t border-border/40 bg-muted/30 py-3 mt-auto">
+                  <div className="flex justify-end">
+                    {renderAction(link.action, "ghost")}
+                  </div>
                 </CardContent>
+              )}
+
+              {/* Arrow indicator for linked cards */}
+              {link.href && (
+                <ArrowUpRight
+                  className="absolute right-3 top-3 h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  aria-hidden
+                />
               )}
             </Card>
           );
 
           if (!link.href) {
-            return content;
+            return <div key={link.id ?? link.title}>{cardContent}</div>;
           }
 
           return (
             <Link
               key={link.id ?? link.title}
               href={link.href}
-              className="group block h-full"
+              className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
               prefetch={false}
             >
-              {content}
+              {cardContent}
               <span className="sr-only">Open {link.title}</span>
-              <ArrowUpRight className="pointer-events-none absolute right-4 top-4 text-primary opacity-0 transition group-hover:opacity-100" />
             </Link>
           );
         })}

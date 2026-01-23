@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { Download } from "lucide-react";
+import { Download, QrCode, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export interface MemberQRCodeProps {
   memberId: string;
@@ -121,30 +122,74 @@ export function MemberQRCode({
 
   if (!memberId) {
     return (
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-lg">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+      <Card className={cn(
+        "group relative overflow-hidden",
+        "border-border/40 bg-card/50 backdrop-blur-sm"
+      )}>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/40" />
+
+        <CardHeader className="relative space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 ring-1 ring-border/40">
+              <QrCode className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+              <CardDescription className="text-sm">{description}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No member ID available to generate QR code.
-          </p>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 shadow-inner mb-3">
+              <AlertCircle className="h-6 w-6 text-muted-foreground/60" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              No member ID available to generate QR code.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-border/60">
-      <CardHeader>
-        <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className={cn(
+      "group relative overflow-hidden",
+      "border-border/40 bg-card/50 backdrop-blur-sm",
+      "transition-all duration-300",
+      "hover:border-border hover:shadow-lg hover:shadow-primary/5"
+    )}>
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/60" />
+
+      {/* Gradient overlay on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+
+      <CardHeader className="relative space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <QrCode className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+            <CardDescription className="text-sm">{description}</CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
+
+      <CardContent className="relative flex flex-col items-center gap-4 sm:gap-5">
+        {/* QR Code Container */}
         <div
           ref={canvasRef}
-          className="relative rounded-lg border border-border/40 bg-white p-4"
+          className={cn(
+            "relative rounded-xl p-4 sm:p-5",
+            "bg-white",
+            "ring-1 ring-border/40",
+            "shadow-sm transition-shadow duration-300",
+            "group-hover:shadow-md group-hover:ring-border/60"
+          )}
         >
           <QRCodeCanvas
             value={memberProfileUrl}
@@ -181,15 +226,27 @@ export function MemberQRCode({
             />
           </div>
         </div>
-        <div className="text-center max-w-[250px]">
-          <p className="text-xs text-muted-foreground break-all font-mono">
+
+        {/* URL Display */}
+        <div className={cn(
+          "w-full max-w-[280px] p-3 rounded-lg",
+          "bg-muted/40 border border-border/30",
+          "text-center"
+        )}>
+          <p className="text-[10px] sm:text-xs text-muted-foreground break-all font-mono leading-relaxed">
             {memberProfileUrl}
           </p>
         </div>
+
+        {/* Download Button */}
         <Button
           variant="outline"
           onClick={handleDownload}
-          className="gap-2 h-11 min-h-[44px] px-4 touch-manipulation"
+          className={cn(
+            "gap-2 h-11 min-h-[44px] px-5 w-full sm:w-auto",
+            "border-border/60 hover:border-primary/40 hover:bg-primary/5",
+            "touch-manipulation transition-colors"
+          )}
         >
           <Download className="size-4" />
           Download QR Code

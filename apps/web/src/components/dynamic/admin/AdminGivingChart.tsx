@@ -2,9 +2,11 @@
 
 import React from "react";
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { TrendingUp, BarChart3 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 import { normalizeList } from "../shared";
 
@@ -26,92 +28,174 @@ export interface AdminGivingChartProps {
 export function AdminGivingChart(props: AdminGivingChartProps) {
   const data = normalizeList<GivingPoint>(props.data);
   const currency = props.currency || "USD";
+  const hasData = data.length > 0;
 
   return (
-    <section className="space-y-6">
-      <Card className="border-border/60">
-        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            {props.title && <CardTitle className="text-lg font-semibold text-foreground">{props.title}</CardTitle>}
-            {props.description && <p className="text-sm text-muted-foreground">{props.description}</p>}
+    <section className="space-y-5 sm:space-y-6">
+      <Card className={cn(
+        "group relative overflow-hidden",
+        "border-border/40 bg-card/50 backdrop-blur-sm",
+        "transition-all duration-300",
+        "hover:border-border hover:shadow-lg hover:shadow-primary/5"
+      )}>
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 group-hover:bg-primary/40 transition-colors" />
+
+        <CardHeader className="relative flex flex-col gap-4 pb-2 sm:pb-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-1.5 sm:space-y-2 min-w-0 flex-1">
+            {props.title && (
+              <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                <span className="h-4 w-1 rounded-full bg-primary shrink-0" />
+                <span className="truncate">{props.title}</span>
+              </CardTitle>
+            )}
+            {props.description && (
+              <p className="text-xs sm:text-sm text-muted-foreground pl-3 line-clamp-2">{props.description}</p>
+            )}
           </div>
+
           {props.highlight && props.highlight.value && (
-            <div className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 px-4 py-2">
-              <Badge variant="outline" className="border-primary/40 text-xs uppercase tracking-widest text-primary">
+            <div className={cn(
+              "flex items-center gap-2 sm:gap-3 shrink-0",
+              "rounded-xl sm:rounded-2xl border border-primary/30",
+              "bg-gradient-to-r from-primary/10 to-primary/5",
+              "px-3 sm:px-4 py-2 sm:py-2.5"
+            )}>
+              <Badge
+                variant="outline"
+                className="border-primary/40 bg-primary/10 text-[10px] sm:text-xs uppercase tracking-wide text-primary font-medium"
+              >
+                <TrendingUp className="h-3 w-3 mr-1" />
                 {props.highlight.label ?? "Year-to-date"}
               </Badge>
-              <span className="text-lg font-semibold text-primary">{props.highlight.value}</span>
+              <span className="text-base sm:text-lg font-bold text-primary tabular-nums">
+                {props.highlight.value}
+              </span>
               {props.highlight.change && (
-                <span className="text-sm text-muted-foreground">{props.highlight.change}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">
+                  {props.highlight.change}
+                </span>
               )}
             </div>
           )}
         </CardHeader>
-        <CardContent className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="4 4" className="stroke-border/40" />
-              <XAxis dataKey="period" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis
-                stroke="var(--muted-foreground)"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => formatCurrency(Number(value), currency)}
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (!active || !payload || payload.length === 0) {
-                    return null;
-                  }
-                  return (
-                    <div className="min-w-[180px] rounded-lg border border-border/60 bg-background/95 p-3 text-xs shadow-lg">
-                      <p className="font-semibold text-foreground">{label}</p>
-                      {payload.map((entry) => (
-                        <p key={entry.dataKey as string} className="mt-1 flex items-center justify-between gap-3">
-                          <span className="text-muted-foreground">{String(entry.name)}</span>
-                          <span className="font-medium text-foreground">
-                            {entry.dataKey === "participation"
-                              ? `${Number(entry.value ?? 0).toFixed(0)}%`
-                              : formatCurrency(Number(entry.value ?? 0), currency)}
-                          </span>
+
+        <CardContent className="relative h-72 sm:h-80 w-full pt-0">
+          {!hasData ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 shadow-inner mb-4">
+                <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground/60" aria-hidden />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                No giving data available for this period.
+              </p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 12, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="pledgedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.05} />
+                  </linearGradient>
+                  <linearGradient id="receivedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.05} />
+                  </linearGradient>
+                  <linearGradient id="participationGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--chart-3)" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="var(--chart-3)" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" vertical={false} />
+                <XAxis
+                  dataKey="period"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  dy={8}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => formatCurrency(Number(value), currency)}
+                  width={70}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload || payload.length === 0) {
+                      return null;
+                    }
+                    return (
+                      <div className={cn(
+                        "min-w-[180px] rounded-xl border border-border/60",
+                        "bg-background/95 backdrop-blur-sm",
+                        "p-3 text-xs shadow-xl"
+                      )}>
+                        <p className="font-semibold text-foreground mb-2 pb-2 border-b border-border/40">
+                          {label}
                         </p>
-                      ))}
-                    </div>
-                  );
-                }}
-              />
-              <Legend verticalAlign="top" height={32} iconType="circle" />
-              <Area
-                type="monotone"
-                dataKey="pledged"
-                name="Pledged"
-                stroke="var(--chart-1)"
-                fill="var(--chart-1)"
-                fillOpacity={0.2}
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="received"
-                name="Received"
-                stroke="var(--chart-2)"
-                fill="var(--chart-2)"
-                fillOpacity={0.25}
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="participation"
-                name="Participation %"
-                stroke="var(--chart-3)"
-                fill="var(--chart-3)"
-                fillOpacity={0.15}
-                strokeWidth={2}
-                yAxisId={0}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                        {payload.map((entry) => (
+                          <p key={entry.dataKey as string} className="flex items-center justify-between gap-3 py-0.5">
+                            <span className="flex items-center gap-2">
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-muted-foreground">{String(entry.name)}</span>
+                            </span>
+                            <span className="font-medium text-foreground tabular-nums">
+                              {entry.dataKey === "participation"
+                                ? `${Number(entry.value ?? 0).toFixed(0)}%`
+                                : formatCurrency(Number(entry.value ?? 0), currency)}
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  height={36}
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ paddingBottom: '8px' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="pledged"
+                  name="Pledged"
+                  stroke="var(--chart-1)"
+                  fill="url(#pledgedGradient)"
+                  strokeWidth={2}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="received"
+                  name="Received"
+                  stroke="var(--chart-2)"
+                  fill="url(#receivedGradient)"
+                  strokeWidth={2}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="participation"
+                  name="Participation %"
+                  stroke="var(--chart-3)"
+                  fill="url(#participationGradient)"
+                  strokeWidth={2}
+                  yAxisId={0}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </section>

@@ -936,7 +936,7 @@ export function PlanningCalendar({
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* View Mode Selector */}
-          <div className="flex items-center rounded-lg border border-border bg-muted/50 p-0.5">
+          <div className="flex items-center rounded-xl border border-border/40 bg-muted/30 backdrop-blur-sm p-0.5">
             <Button
               variant={viewMode === 'month' ? 'default' : 'ghost'}
               size="sm"
@@ -1044,13 +1044,18 @@ export function PlanningCalendar({
 
       {/* Calendar Views */}
       {(viewMode === 'month' || viewMode === 'week') && (
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className={cn(
+          "rounded-xl overflow-hidden",
+          "border border-border/40 bg-card/50 backdrop-blur-sm",
+          "shadow-sm",
+          "transition-all duration-300"
+        )}>
           {/* Day Headers */}
-          <div className="grid grid-cols-7 border-b border-border bg-muted/50">
+          <div className="grid grid-cols-7 border-b border-border/40 bg-gradient-to-b from-muted/60 to-muted/30">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
               <div
                 key={day}
-                className="py-2 px-2 text-center text-xs font-medium text-muted-foreground"
+                className="py-2.5 sm:py-3 px-2 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground"
               >
                 {day}
               </div>
@@ -1076,10 +1081,14 @@ export function PlanningCalendar({
 
       {/* Agenda View */}
       {viewMode === 'agenda' && (
-        <div className="bg-card rounded-xl border border-border shadow-sm">
-          <div className="p-4 border-b border-border">
-            <h3 className="font-semibold">Upcoming Events</h3>
-            <p className="text-sm text-muted-foreground">
+        <div className={cn(
+          "rounded-xl overflow-hidden",
+          "border border-border/40 bg-card/50 backdrop-blur-sm",
+          "shadow-sm"
+        )}>
+          <div className="p-4 sm:p-5 border-b border-border/40 bg-gradient-to-b from-muted/40 to-transparent">
+            <h3 className="font-semibold text-foreground">Upcoming Events</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               {upcomingEvents.length} events scheduled
             </p>
           </div>

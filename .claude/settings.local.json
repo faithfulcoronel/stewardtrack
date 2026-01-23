@@ -130,7 +130,16 @@
       "Bash(test:*)",
       "Bash(npm run:*)",
       "Bash(docker ps:*)",
-      "Bash(timeout 45 pnpm dev:web:*)"
+      "Bash(timeout 45 pnpm dev:web:*)",
+      "Bash(while read file)",
+      "Bash(do grep -o 'type=\"\"[^\"\"]*\"\"' \"$file\")",
+      "Bash(while read type)",
+      "Bash(do echo \"$type|$file\")",
+      "Bash(done)",
+      "Bash(for type in ActionButton AdminActivityTimeline AdminAICreditsSettings AdminCarePlansCard AdminCollapsibleSection AdminDataGridSection AdminDetailPanels AdminDiscipleshipPlansCard AdminFormSection AdminGivingChart AdminIntegrationSettings AdminLookupQuickCreate AdminMemberWorkspace AdminMetricCards AdminNotificationAnalytics AdminNotificationPreferences AdminNotificationTemplates AdminQuickLinks AdminReportChartsSection AdminReportHeader AdminReportSection AdminReportSummary AdminReportTable AdminScheduledNotifications AdminSettingsTabs AdminSummaryPanelsSection AdminSyncCard AdminTransactionEntry AIChat AttendanceTracker BentoGrid CTASection DangerZone DetailPanels DonationLinkShare EventQRCode FeatureGrid FeatureSection Fragment GoalCard GoalStatusTimeline HeaderSection HeroSection KeyResultProgressCard MemberImportActions MemberProfileCard MemberProfileHeader MemberProfileLayout MemberQRCode MetricCards MinistryTeamManager NewsletterSection NotebookCard NotebookSectionTree OKRTreeView PlanningCalendar PlanningDashboard PricingSection ProfileHeader PublicEventRegistration QRScannerView QuickActionsPanel RegistrationFormBuilder RegistrationList ScheduleCalendarView StatsSection SummaryCard SuperAdminIntegrationSettings SuperAdminSystemTemplates TeamAssignmentGrid TestimonialsSection Timeline)",
+      "Bash(do echo \"=== $type ===\")",
+      "Bash(pnpm why:*)",
+      "Bash(pnpm update:*)"
     ],
     "deny": [],
     "ask": []

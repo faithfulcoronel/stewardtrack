@@ -35,7 +35,7 @@ interface BaseChartProps {
   height?: number;
 }
 
-interface BarChartProps extends BaseChartProps {
+export interface BarChartProps extends BaseChartProps {
   xKey: string;
   yKey: string;
   xLabel?: string;
@@ -43,7 +43,7 @@ interface BarChartProps extends BaseChartProps {
   color?: string;
 }
 
-interface LineChartProps extends BaseChartProps {
+export interface LineChartProps extends BaseChartProps {
   xKey: string;
   yKey: string;
   xLabel?: string;
@@ -52,14 +52,14 @@ interface LineChartProps extends BaseChartProps {
   showPoints?: boolean;
 }
 
-interface PieChartProps extends BaseChartProps {
+export interface PieChartProps extends BaseChartProps {
   nameKey: string;
   valueKey: string;
   showLegend?: boolean;
   showPercentage?: boolean;
 }
 
-interface MultiBarChartProps extends BaseChartProps {
+export interface MultiBarChartProps extends BaseChartProps {
   xKey: string;
   bars: Array<{
     key: string;
