@@ -49,6 +49,7 @@ export class ScheduleRegistrationAdapter
     guest_phone,
     registration_date,
     party_size,
+    confirmation_code,
     status,
     waitlist_position,
     form_responses,
@@ -65,8 +66,8 @@ export class ScheduleRegistrationAdapter
       first_name,
       last_name,
       email,
-      phone,
-      avatar_url
+      contact_number,
+      profile_picture_url
     )
   `;
 

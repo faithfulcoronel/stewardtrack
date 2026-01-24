@@ -214,35 +214,10 @@ const resolveDashboardUpcoming: ServiceDataSourceHandler = async () => {
   return { items };
 };
 
-/**
- * Handles the sync events action from the planning dashboard.
- * Triggers a sync from care plans and discipleship plans to the calendar.
- */
-const handleSyncEvents: ServiceDataSourceHandler = async () => {
-  const tenantService = container.get<TenantService>(TYPES.TenantService);
-  const tenant = await tenantService.getCurrentTenant();
-  if (!tenant) {
-    throw new Error('No tenant context available');
-  }
-
-  const planningService = container.get<PlanningService>(TYPES.PlanningService);
-
-  try {
-    const result = await planningService.syncAllSources();
-    const totalSynced = result.carePlans + result.discipleshipPlans + result.birthdays + result.anniversaries;
-    return {
-      success: true,
-      message: `Synced ${totalSynced} events from care plans, discipleship plans, birthdays, and anniversaries.`,
-      synced: totalSynced,
-    };
-  } catch (error) {
-    console.error('[handleSyncEvents] Failed to sync events:', error);
-    return {
-      success: false,
-      message: 'Failed to sync events. Please try again.',
-    };
-  }
-};
+// Note: The bulk sync handler has been removed. Calendar events are now synced
+// in real-time when their source entities (care plans, discipleship plans, member
+// birthdays/anniversaries, schedule occurrences, goals, objectives) are created,
+// updated, or deleted. See the respective services for auto-sync implementations.
 
 // ==================== CALENDAR PAGE HANDLERS ====================
 
@@ -771,7 +746,7 @@ export const adminCommunityPlanningHandlers: Record<string, ServiceDataSourceHan
   'admin-community.planning.dashboard.metrics': resolveDashboardMetrics,
   'admin-community.planning.dashboard.quickLinks': resolveDashboardQuickLinks,
   'admin-community.planning.dashboard.upcoming': resolveDashboardUpcoming,
-  'admin-community.planning.sync': handleSyncEvents,
+  // Note: 'admin-community.planning.sync' removed - events now sync in real-time
 
   // Calendar handlers
   'admin-community.planning.calendar.hero': resolveCalendarHero,

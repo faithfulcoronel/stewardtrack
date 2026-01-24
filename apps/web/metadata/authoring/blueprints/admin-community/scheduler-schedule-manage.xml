@@ -36,6 +36,14 @@
           </Props>
         </Component>
 
+        <!-- Cover photo upload (for schedules with registration) -->
+        <Component id="cover-photo-upload" type="ScheduleCoverPhotoUpload">
+          <Props>
+            <Prop name="scheduleId" kind="binding" contract="scheduleForm.scheduleId"/>
+            <Prop name="className" kind="static">mt-6</Prop>
+          </Props>
+        </Component>
+
         <!-- Registration form builder (for schedules with registration) -->
         <Component id="registration-form-builder" type="RegistrationFormBuilder">
           <Props>
@@ -65,6 +73,7 @@
           <Field name="initialValues" path="form.initialValues" description="Binding for schedule-form.initialValues"/>
           <Field name="submitLabel" path="submitLabel" description="Binding for schedule-form.submitLabel"/>
           <Field name="mode" path="mode" description="Binding for schedule-form.mode"/>
+          <Field name="scheduleId" path="scheduleId" description="Binding for cover-photo-upload.scheduleId"/>
         </Contract>
         <Config>
           <Handler>admin-community.scheduler.schedules.manage.form</Handler>

@@ -14,6 +14,7 @@ import type {
   CarePlanPriorityBreakdown,
   DiscipleshipPathwayBreakdown,
   MembershipCenterDistribution,
+  AgeDistribution,
 } from '@/models/memberReports.model';
 import { tenantUtils } from '@/utils/tenantUtils';
 
@@ -75,6 +76,11 @@ export class MemberReportsService {
   async getCenterDistribution(tenantId?: string): Promise<MembershipCenterDistribution> {
     const resolvedTenantId = await this.resolveTenantId(tenantId);
     return this.repository.getCenterDistribution(resolvedTenantId);
+  }
+
+  async getAgeDistribution(tenantId?: string): Promise<AgeDistribution> {
+    const resolvedTenantId = await this.resolveTenantId(tenantId);
+    return this.repository.getAgeDistribution(resolvedTenantId);
   }
 
   async getAllReportsData(tenantId?: string): Promise<MemberReportsData> {

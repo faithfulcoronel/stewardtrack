@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import {
   QRCodeWithLogo,
   downloadQRCode,
@@ -35,13 +36,14 @@ import {
 
 interface QRTokenData {
   token: string;
+  attendanceUrl: string;
   expiresAt: string;
   expiresInHours: number;
 }
 
-export interface EventQRCodeProps {
-  occurrenceId: string;
-  occurrenceTitle?: string;
+export interface ScheduleQRCodeProps {
+  scheduleId: string;
+  scheduleName?: string;
   className?: string;
   logoUrl?: string;
 }
@@ -56,16 +58,22 @@ const formatDateTime = (dateString: string): string => {
   });
 };
 
-export function EventQRCode({
-  occurrenceId,
-  occurrenceTitle = 'Event',
+// Get default datetime for custom expiry (24 hours from now)
+const getDefaultCustomExpiry = (): Date => {
+  return new Date(Date.now() + 24 * 60 * 60 * 1000);
+};
+
+export function ScheduleQRCode({
+  scheduleId,
+  scheduleName = 'Schedule',
   className,
   logoUrl = '/logo_square.svg',
-}: EventQRCodeProps) {
+}: ScheduleQRCodeProps) {
   const [qrData, setQrData] = useState<QRTokenData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [expiryHours, setExpiryHours] = useState<string>('24');
+  const [expiryMode, setExpiryMode] = useState<string>('24');
+  const [customExpiry, setCustomExpiry] = useState<Date | undefined>(getDefaultCustomExpiry());
   const qrContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -73,7 +81,7 @@ export function EventQRCode({
     try {
       setIsLoading(true);
       const response = await fetch(
-        `/api/community/scheduler/occurrences/${occurrenceId}/qr-token`
+        `/api/community/scheduler/schedules/${scheduleId}/attendance-qr`
       );
 
       if (response.ok) {
@@ -87,7 +95,7 @@ export function EventQRCode({
     } finally {
       setIsLoading(false);
     }
-  }, [occurrenceId]);
+  }, [scheduleId]);
 
   useEffect(() => {
     fetchQRToken();
@@ -96,12 +104,44 @@ export function EventQRCode({
   const handleGenerateToken = async () => {
     try {
       setIsGenerating(true);
+
+      let requestBody: { expires_in_hours?: number; expires_at?: string };
+      let description: string;
+
+      if (expiryMode === 'custom') {
+        // Validate custom expiry is set and in the future
+        if (!customExpiry) {
+          toast({
+            title: 'Invalid Date',
+            description: 'Please select an expiration date and time.',
+            variant: 'destructive',
+          });
+          setIsGenerating(false);
+          return;
+        }
+        if (customExpiry <= new Date()) {
+          toast({
+            title: 'Invalid Date',
+            description: 'Expiration time must be in the future.',
+            variant: 'destructive',
+          });
+          setIsGenerating(false);
+          return;
+        }
+        requestBody = { expires_at: customExpiry.toISOString() };
+        description = `Valid until ${formatDateTime(customExpiry.toISOString())}.`;
+      } else {
+        const hours = parseInt(expiryMode);
+        requestBody = { expires_in_hours: hours };
+        description = `Valid for ${hours} hours.`;
+      }
+
       const response = await fetch(
-        `/api/community/scheduler/occurrences/${occurrenceId}/qr-token`,
+        `/api/community/scheduler/schedules/${scheduleId}/attendance-qr`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ expires_in_hours: parseInt(expiryHours) }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -114,7 +154,7 @@ export function EventQRCode({
 
       toast({
         title: 'QR Code Generated',
-        description: `Valid for ${expiryHours} hours.`,
+        description,
       });
     } catch (error) {
       console.error('Error generating QR token:', error);
@@ -128,29 +168,29 @@ export function EventQRCode({
     }
   };
 
-  const handleCopyToken = async () => {
-    if (!qrData?.token) return;
+  const handleCopyLink = async () => {
+    if (!qrData?.attendanceUrl) return;
 
     try {
-      await navigator.clipboard.writeText(qrData.token);
+      await navigator.clipboard.writeText(qrData.attendanceUrl);
       toast({
         title: 'Copied',
-        description: 'Token copied to clipboard.',
+        description: 'Attendance link copied to clipboard.',
       });
     } catch (error) {
-      console.error('Error copying token:', error);
+      console.error('Error copying link:', error);
       toast({
         title: 'Error',
-        description: 'Failed to copy token.',
+        description: 'Failed to copy link.',
         variant: 'destructive',
       });
     }
   };
 
   const handleDownloadQR = useCallback(async () => {
-    if (!qrData?.token) return;
+    if (!qrData?.attendanceUrl) return;
 
-    const filename = `${sanitizeFilename(occurrenceTitle)}_QRCode.jpg`;
+    const filename = `${sanitizeFilename(scheduleName)}_AttendanceQR.jpg`;
     const success = await downloadQRCode(qrContainerRef, filename, logoUrl);
 
     if (success) {
@@ -159,10 +199,10 @@ export function EventQRCode({
         description: 'QR code image downloaded.',
       });
     }
-  }, [qrData?.token, occurrenceTitle, logoUrl, toast]);
+  }, [qrData?.attendanceUrl, scheduleName, logoUrl, toast]);
 
   const handlePrint = useCallback(async () => {
-    if (!qrData?.token) return;
+    if (!qrData?.attendanceUrl) return;
 
     const qrImageUrl = await getQRCodeDataUrl(qrContainerRef, logoUrl);
     if (!qrImageUrl) return;
@@ -173,7 +213,7 @@ export function EventQRCode({
         <!DOCTYPE html>
         <html>
         <head>
-          <title>QR Code - ${occurrenceTitle}</title>
+          <title>Attendance QR Code - ${scheduleName}</title>
           <style>
             body {
               display: flex;
@@ -187,34 +227,53 @@ export function EventQRCode({
             h1 { margin-bottom: 10px; }
             p { color: #666; margin-bottom: 30px; }
             img { border: 1px solid #ddd; padding: 20px; }
+            .instructions {
+              margin-top: 30px;
+              padding: 20px;
+              background: #f5f5f5;
+              border-radius: 8px;
+              max-width: 400px;
+              text-align: center;
+            }
+            .instructions h3 { margin-bottom: 10px; }
+            .instructions ol { text-align: left; margin: 0; padding-left: 20px; }
+            .instructions li { margin-bottom: 8px; }
           </style>
         </head>
         <body>
-          <h1>${occurrenceTitle}</h1>
-          <p>Scan to check in</p>
-          <img src="${qrImageUrl}" alt="QR Code" />
+          <h1>${scheduleName}</h1>
+          <p>Scan to record your attendance</p>
+          <img src="${qrImageUrl}" alt="Attendance QR Code" />
           <p style="margin-top: 20px; font-size: 12px;">
             Valid until: ${formatDateTime(qrData.expiresAt)}
           </p>
+          <div class="instructions">
+            <h3>How to Check In</h3>
+            <ol>
+              <li>Open your phone's camera</li>
+              <li>Point it at this QR code</li>
+              <li>Tap the link that appears</li>
+              <li>Log in if prompted</li>
+              <li>Your attendance is automatically recorded!</li>
+            </ol>
+          </div>
         </body>
         </html>
       `);
       printWindow.document.close();
       printWindow.print();
     }
-  }, [qrData?.token, qrData?.expiresAt, occurrenceTitle, logoUrl]);
+  }, [qrData?.attendanceUrl, qrData?.expiresAt, scheduleName, logoUrl]);
 
   const handleShare = async () => {
-    if (!qrData?.token) return;
-
-    const checkInUrl = `${window.location.origin}/checkin?token=${qrData.token}`;
+    if (!qrData?.attendanceUrl) return;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Check-in: ${occurrenceTitle}`,
-          text: 'Scan this QR code or use this link to check in',
-          url: checkInUrl,
+          title: `Attendance: ${scheduleName}`,
+          text: 'Scan this QR code or use this link to record your attendance',
+          url: qrData.attendanceUrl,
         });
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
@@ -222,10 +281,10 @@ export function EventQRCode({
         }
       }
     } else {
-      await navigator.clipboard.writeText(checkInUrl);
+      await navigator.clipboard.writeText(qrData.attendanceUrl);
       toast({
         title: 'Link Copied',
-        description: 'Check-in link copied to clipboard.',
+        description: 'Attendance link copied to clipboard.',
       });
     }
   };
@@ -240,10 +299,10 @@ export function EventQRCode({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <QrCode className="w-5 h-5" />
-                Event QR Code
+                Attendance QR Code
               </CardTitle>
               <CardDescription>
-                Generate a QR code for self check-in
+                Generate a QR code for members to scan and record attendance
               </CardDescription>
             </div>
           </div>
@@ -254,12 +313,12 @@ export function EventQRCode({
             <div className="flex flex-col items-center space-y-4">
               {isLoading ? (
                 <div className="w-64 h-64 bg-muted animate-pulse rounded-lg" />
-              ) : qrData?.token ? (
+              ) : qrData?.attendanceUrl ? (
                 <>
                   <div className="relative">
                     <div ref={qrContainerRef}>
                       <QRCodeWithLogo
-                        value={qrData.token}
+                        value={qrData.attendanceUrl}
                         size={256}
                         logoUrl={logoUrl}
                         disabled={isExpired}
@@ -322,7 +381,7 @@ export function EventQRCode({
 
                 <div className="space-y-2">
                   <Label>Validity Period</Label>
-                  <Select value={expiryHours} onValueChange={setExpiryHours}>
+                  <Select value={expiryMode} onValueChange={setExpiryMode}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -332,12 +391,28 @@ export function EventQRCode({
                       <SelectItem value="4">4 hours</SelectItem>
                       <SelectItem value="8">8 hours</SelectItem>
                       <SelectItem value="12">12 hours</SelectItem>
-                      <SelectItem value="24">24 hours</SelectItem>
-                      <SelectItem value="48">48 hours</SelectItem>
-                      <SelectItem value="72">72 hours</SelectItem>
+                      <SelectItem value="24">24 hours (1 day)</SelectItem>
+                      <SelectItem value="48">48 hours (2 days)</SelectItem>
+                      <SelectItem value="72">72 hours (3 days)</SelectItem>
+                      <SelectItem value="custom">Custom date/time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {expiryMode === 'custom' && (
+                  <div className="space-y-2">
+                    <Label>Expires At</Label>
+                    <DateTimePicker
+                      value={customExpiry}
+                      onChange={setCustomExpiry}
+                      placeholder="Select expiration date & time"
+                      title="Set Expiration"
+                      description="Choose when the QR code should expire"
+                      minDate={new Date()}
+                      clearable={false}
+                    />
+                  </div>
+                )}
 
                 <Button
                   onClick={handleGenerateToken}
@@ -358,40 +433,40 @@ export function EventQRCode({
                 </Button>
               </div>
 
-              {qrData?.token && (
+              {qrData?.attendanceUrl && (
                 <>
                   <div className="space-y-2">
-                    <Label>Token</Label>
+                    <Label>Attendance Link</Label>
                     <div className="flex gap-2">
                       <Input
-                        value={qrData.token}
+                        value={qrData.attendanceUrl}
                         readOnly
                         className="font-mono text-sm"
                       />
-                      <Button variant="outline" size="icon" onClick={handleCopyToken}>
+                      <Button variant="outline" size="icon" onClick={handleCopyLink}>
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
 
                   <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <h4 className="font-medium text-sm">Instructions</h4>
+                    <h4 className="font-medium text-sm">How It Works</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
-                        Display QR code at venue entrance
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" />
+                        <span>Members scan the QR code with their phone camera</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
-                        Attendees scan with their phone camera
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" />
+                        <span>If not logged in, they&apos;ll be prompted to sign in</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
-                        They&apos;ll be taken to a check-in page
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" />
+                        <span>Attendance is recorded automatically with a confirmation sound</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
-                        No app installation required
+                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" />
+                        <span>Works for all occurrences of this schedule</span>
                       </li>
                     </ul>
                   </div>

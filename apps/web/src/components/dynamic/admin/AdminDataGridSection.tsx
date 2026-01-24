@@ -14,6 +14,7 @@ import {
   ExternalLink,
   FileQuestion,
   ChevronRight,
+  Download,
 } from "lucide-react";
 
 import {
@@ -70,10 +71,14 @@ interface DeleteConfirmState {
 }
 
 export interface GridColumnConfig {
-  field: string;
+  field?: string;
+  /** Alias for field - used by some service handlers */
+  key?: string;
   headerName?: string | null;
+  /** Alias for headerName - used by some service handlers */
+  label?: string | null;
   type?: "text" | "badge" | "currency" | "date" | "chip-list" | "actions" | "link" | null;
-  width?: number | null;
+  width?: number | string | null;
   minWidth?: number | null;
   flex?: number | null;
   badgeVariantField?: string | null;
@@ -88,6 +93,20 @@ export interface GridColumnConfig {
   dateFormat?: Intl.DateTimeFormatOptions | null;
   align?: "left" | "center" | "right" | null;
   hideOnMobile?: boolean | null;
+}
+
+/** Normalized column with required field property */
+interface NormalizedGridColumnConfig extends GridColumnConfig {
+  field: string;
+}
+
+/** Normalize column config to ensure field is set (handles key/label aliases) */
+function normalizeColumn(column: GridColumnConfig): NormalizedGridColumnConfig {
+  return {
+    ...column,
+    field: column.field || column.key || '',
+    headerName: column.headerName || column.label || undefined,
+  };
 }
 
 export interface GridFilterOption {
@@ -114,6 +133,8 @@ export interface AdminDataGridSectionProps {
   filters?: GridFilterConfig[] | { items?: GridFilterConfig[] } | null;
   actions?: ActionConfig[] | { items?: ActionConfig[] } | null;
   emptyState?: { title?: string; description?: string } | null;
+  exportable?: boolean;
+  exportFilename?: string;
 }
 
 const badgeVariants: Record<string, string> = {
@@ -133,7 +154,7 @@ const actionIntentIcons: Record<string, React.ReactNode> = {
 
 export function AdminDataGridSection(props: AdminDataGridSectionProps) {
   const columns = React.useMemo(
-    () => normalizeList<GridColumnConfig>(props.columns),
+    () => normalizeList<GridColumnConfig>(props.columns).map(normalizeColumn),
     [props.columns]
   );
   const filters = React.useMemo(
@@ -282,6 +303,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           body: JSON.stringify({
             action: {
               id: action.handler,
+            },
+            context: {
               params: { id: rowId },
             },
           }),
@@ -323,6 +346,8 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
       const style: React.CSSProperties = {};
       if (typeof column.width === "number") {
         style.width = `${column.width}px`;
+      } else if (typeof column.width === "string") {
+        style.width = column.width;
       }
       if (typeof column.minWidth === "number") {
         style.minWidth = `${column.minWidth}px`;
@@ -550,9 +575,61 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
     return true;
   });
 
+  // Export to Excel (CSV format)
+  const handleExport = React.useCallback(() => {
+    if (!filteredRows.length || !columns.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // Get all non-action columns for export
+    const exportColumns = columns.filter((col) => col.type !== "actions");
+
+    // Build CSV header
+    const headers = exportColumns.map((col) => col.headerName || startCase(col.field));
+
+    // Build CSV rows
+    const csvRows = filteredRows.map((row) => {
+      return exportColumns.map((col) => {
+        const value = resolveValue(row, col.field);
+        // Format the value for CSV
+        if (value === null || value === undefined) {
+          return "";
+        }
+        if (Array.isArray(value)) {
+          return `"${value.join(", ")}"`;
+        }
+        // Escape quotes and wrap in quotes if contains comma or newline
+        const stringValue = String(value);
+        if (stringValue.includes(",") || stringValue.includes("\n") || stringValue.includes('"')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      });
+    });
+
+    // Combine header and rows
+    const csvContent = [headers, ...csvRows]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    // Create and download file
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${props.exportFilename || "export"}-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${filteredRows.length} records`);
+  }, [filteredRows, columns, props.exportFilename]);
+
   return (
     <section className="space-y-5 sm:space-y-6">
-      {(props.title || props.description || topActions.length > 0) && (
+      {(props.title || props.description || topActions.length > 0 || props.exportable) && (
         <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1.5 sm:space-y-2">
             {props.title && (
@@ -565,9 +642,22 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               <p className="text-sm text-muted-foreground pl-3">{props.description}</p>
             )}
           </div>
-          {topActions.length > 0 && (
+          {(topActions.length > 0 || props.exportable) && (
             <div className="flex flex-wrap gap-2 sm:gap-3">
               {topActions.map((action) => renderAction(action, "primary"))}
+              {props.exportable && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={handleExport}
+                  disabled={filteredRows.length === 0}
+                >
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
+              )}
             </div>
           )}
         </header>
@@ -850,7 +940,8 @@ function RowActions({
   );
 }
 
-function startCase(value: string): string {
+function startCase(value: string | undefined): string {
+  if (!value) return '';
   return value
     .replace(/[-_]/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -859,7 +950,8 @@ function startCase(value: string): string {
     .replace(/^\w/, (match) => match.toUpperCase());
 }
 
-function resolveValue(source: GridValue, path: string): unknown {
+function resolveValue(source: GridValue, path: string | undefined): unknown {
+  if (!path) return undefined;
   if (!path.includes(".")) {
     return source[path];
   }
@@ -940,8 +1032,11 @@ function getComparableValue(value: unknown): string | number | null {
   if (value instanceof Date) {
     return value.getTime();
   }
-  if (typeof value === "number" || typeof value === "boolean") {
+  if (typeof value === "number") {
     return value;
+  }
+  if (typeof value === "boolean") {
+    return value ? 1 : 0;
   }
   return String(value).toLowerCase();
 }

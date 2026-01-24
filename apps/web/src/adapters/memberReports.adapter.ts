@@ -12,6 +12,8 @@ import type {
   CarePlanPriorityBreakdown,
   DiscipleshipPathwayBreakdown,
   MembershipCenterDistribution,
+  AgeDistribution,
+  AgeGroupItem,
   BreakdownItem,
   GrowthTrendDataPoint,
 } from '@/models/memberReports.model';
@@ -26,6 +28,7 @@ export interface IMemberReportsAdapter {
   getCarePriorityBreakdown(tenantId: string): Promise<CarePlanPriorityBreakdown>;
   getDiscipleshipPathwayBreakdown(tenantId: string): Promise<DiscipleshipPathwayBreakdown>;
   getCenterDistribution(tenantId: string): Promise<MembershipCenterDistribution>;
+  getAgeDistribution(tenantId: string): Promise<AgeDistribution>;
 }
 
 @injectable()
@@ -220,5 +223,34 @@ export class MemberReportsAdapter extends BaseAdapter<any> implements IMemberRep
     }));
 
     return { items };
+  }
+
+  async getAgeDistribution(tenantId: string): Promise<AgeDistribution> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase.rpc('get_member_age_distribution', {
+      p_tenant_id: tenantId,
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch age distribution: ${error.message}`);
+    }
+
+    const items: AgeGroupItem[] = (data?.items || []).map((item: any) => ({
+      ageGroup: item.ageGroup,
+      label: item.label,
+      minAge: Number(item.minAge),
+      maxAge: Number(item.maxAge),
+      count: Number(item.count),
+      percentage: Number(item.percentage),
+    }));
+
+    return {
+      items,
+      averageAge: Number(data?.averageAge || 0),
+      medianAge: Number(data?.medianAge || 0),
+      membersWithBirthday: Number(data?.membersWithBirthday || 0),
+      membersWithoutBirthday: Number(data?.membersWithoutBirthday || 0),
+    };
   }
 }

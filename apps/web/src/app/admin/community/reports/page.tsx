@@ -25,6 +25,8 @@ export default async function MemberReportsPage() {
     discipleshipChart,
     centerChart,
     engagementSummary,
+    ageInsightsMetrics,
+    ageDistributionChart,
   ] = await Promise.all([
     adminCommunityReportsHandlers['admin-community.reports.hero']({ params: {}, context: {} }),
     adminCommunityReportsHandlers['admin-community.reports.keyMetrics']({ params: {}, context: {} }),
@@ -36,6 +38,8 @@ export default async function MemberReportsPage() {
     adminCommunityReportsHandlers['admin-community.reports.discipleshipPathwayChart']({ params: {}, context: {} }),
     adminCommunityReportsHandlers['admin-community.reports.centerDistributionChart']({ params: {}, context: {} }),
     adminCommunityReportsHandlers['admin-community.reports.engagementSummary']({ params: {}, context: {} }),
+    adminCommunityReportsHandlers['admin-community.reports.ageInsightsMetrics']({ params: {}, context: {} }),
+    adminCommunityReportsHandlers['admin-community.reports.ageDistributionChart']({ params: {}, context: {} }),
   ]);
 
   // Type assertions for proper TypeScript support
@@ -49,6 +53,8 @@ export default async function MemberReportsPage() {
   const discipleshipChartTyped = discipleshipChart as ChartConfig;
   const centerChartTyped = centerChart as ChartConfig;
   const engagementSummaryTyped = engagementSummary as any;
+  const ageInsightsMetricsTyped = ageInsightsMetrics as any;
+  const ageDistributionChartTyped = ageDistributionChart as ChartConfig;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -121,6 +127,27 @@ export default async function MemberReportsPage() {
               },
             ]}
           />
+        </section>
+
+        {/* Age Demographics */}
+        <section>
+          <h2 className="mb-6 text-2xl font-bold tracking-tight">Age Demographics</h2>
+          <AdminMetricCards
+            title="Age Insights"
+            description="Understand the generational composition of your congregation - from nursery through seniors."
+            metrics={ageInsightsMetricsTyped.items}
+          />
+          <div className="mt-6">
+            <AdminReportChartsSection
+              charts={[
+                {
+                  ...ageDistributionChartTyped,
+                  title: 'Age Group Distribution',
+                  description: 'Visual breakdown of members by age group - Nursery, Primary, Juniors, Youth, Young Adults, Adults, and Seniors',
+                },
+              ]}
+            />
+          </div>
         </section>
 
         {/* Engagement Metrics */}

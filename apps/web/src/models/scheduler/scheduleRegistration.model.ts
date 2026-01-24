@@ -21,6 +21,7 @@ export interface ScheduleRegistration extends BaseModel {
   // Registration Details
   registration_date: string;
   party_size: number;
+  confirmation_code?: string | null;
 
   // Status
   status: RegistrationStatus;
@@ -90,6 +91,7 @@ export interface ScheduleRegistrationView {
   isGuest: boolean;
   registrationDate: Date;
   partySize: number;
+  confirmationCode?: string | null;
   status: RegistrationStatus;
   statusLabel: string;
   waitlistPosition?: number | null;

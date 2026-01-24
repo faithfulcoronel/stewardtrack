@@ -68,6 +68,23 @@ export interface MembershipCenterDistribution {
   items: BreakdownItem[];
 }
 
+export interface AgeGroupItem {
+  ageGroup: string;
+  label: string;
+  minAge: number;
+  maxAge: number;
+  count: number;
+  percentage: number;
+}
+
+export interface AgeDistribution {
+  items: AgeGroupItem[];
+  averageAge: number;
+  medianAge: number;
+  membersWithBirthday: number;
+  membersWithoutBirthday: number;
+}
+
 export interface MemberReportsData {
   overviewMetrics: MembershipOverviewMetrics;
   statusBreakdown: MembershipStatusBreakdown;

@@ -51,6 +51,24 @@
           </Props>
         </Component>
 
+        <!-- Age Insights Metrics -->
+        <Component id="age-insights-metrics" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Age Demographics</Prop>
+            <Prop name="description" kind="static">Understand the generational composition of your congregation - from nursery through seniors.</Prop>
+            <Prop name="metrics" kind="binding" contract="ageInsightsMetrics.items"/>
+          </Props>
+        </Component>
+
+        <!-- Age Distribution Chart -->
+        <Component id="age-distribution-chart" type="AdminReportChartsSection">
+          <Props>
+            <Prop name="title" kind="static">Age Group Distribution</Prop>
+            <Prop name="description" kind="static">Visual breakdown of members by age group - Nursery, Primary, Juniors, Youth, Young Adults, Adults, and Seniors</Prop>
+            <Prop name="charts" kind="binding" contract="ageInsights.charts"/>
+          </Props>
+        </Component>
+
         <!-- Engagement Summary -->
         <Component id="engagement-summary" type="AdminMetricCards">
           <Props>
@@ -161,6 +179,26 @@
         </Contract>
         <Config>
           <Handler>admin-community.reports.centerDistributionCharts</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Age Insights Metrics -->
+      <DataSource id="ageInsightsMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.reports.ageInsightsMetrics</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Age Insights Charts -->
+      <DataSource id="ageInsights" kind="service">
+        <Contract>
+          <Field name="charts" path="charts"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.reports.ageInsightsCharts</Handler>
         </Config>
       </DataSource>
     </DataSources>

@@ -396,6 +396,142 @@ const resolveCenterDistributionChart: ServiceDataSourceHandler = async (_request
 };
 
 // =====================================================
+// AGE DISTRIBUTION CHART HANDLER
+// =====================================================
+
+const resolveAgeDistributionChart: ServiceDataSourceHandler = async (_request) => {
+  // Get member reports service
+  const reportsService = container.get<MemberReportsService>(TYPES.MemberReportsService);
+
+  // Get age distribution (service handles tenant resolution)
+  const ageDistribution = await reportsService.getAgeDistribution();
+
+  // Transform for chart
+  const data = (ageDistribution.items || []).map((item) => ({
+    ageGroup: item.label,
+    count: item.count,
+    percentage: item.percentage,
+  }));
+
+  return {
+    type: 'bar',
+    data,
+    config: {
+      xKey: 'ageGroup',
+      yKey: 'count',
+      xLabel: 'Age Group',
+      yLabel: 'Number of Members',
+      color: 'hsl(262 83% 58%)', // Purple for age groups
+    },
+    summary: {
+      averageAge: ageDistribution.averageAge,
+      medianAge: ageDistribution.medianAge,
+      membersWithBirthday: ageDistribution.membersWithBirthday,
+      membersWithoutBirthday: ageDistribution.membersWithoutBirthday,
+    },
+  };
+};
+
+// =====================================================
+// AGE INSIGHTS METRICS HANDLER
+// =====================================================
+
+const resolveAgeInsightsMetrics: ServiceDataSourceHandler = async (_request) => {
+  // Get member reports service
+  const reportsService = container.get<MemberReportsService>(TYPES.MemberReportsService);
+
+  // Get age distribution (service handles tenant resolution)
+  const ageDistribution = await reportsService.getAgeDistribution();
+
+  const items = ageDistribution.items || [];
+  const totalWithBirthday = ageDistribution.membersWithBirthday || 0;
+  const totalWithoutBirthday = ageDistribution.membersWithoutBirthday || 0;
+  const totalMembers = totalWithBirthday + totalWithoutBirthday;
+
+  // Find largest age group
+  const largestGroup = items.reduce(
+    (max, item) => (item.count > max.count ? item : max),
+    { label: 'N/A', count: 0, percentage: 0 }
+  );
+
+  // Calculate children (0-12), youth (13-17), and adults (18+)
+  const childrenCount = items
+    .filter((item) => item.maxAge <= 12)
+    .reduce((sum, item) => sum + item.count, 0);
+  const youthCount = items
+    .filter((item) => item.minAge >= 13 && item.maxAge <= 17)
+    .reduce((sum, item) => sum + item.count, 0);
+  const adultCount = items
+    .filter((item) => item.minAge >= 18)
+    .reduce((sum, item) => sum + item.count, 0);
+
+  return {
+    items: [
+      {
+        id: 'average-age',
+        label: 'Average Age',
+        value: ageDistribution.averageAge > 0 ? `${ageDistribution.averageAge.toFixed(1)} yrs` : 'N/A',
+        change: `Median: ${ageDistribution.medianAge > 0 ? ageDistribution.medianAge.toFixed(1) : 'N/A'}`,
+        changeLabel: 'years',
+        trend: 'flat',
+        tone: 'informative',
+        description: `Based on ${totalWithBirthday} members with birthdays`,
+      },
+      {
+        id: 'largest-group',
+        label: 'Largest Age Group',
+        value: largestGroup.label || 'N/A',
+        change: `${largestGroup.count} members`,
+        changeLabel: `${largestGroup.percentage.toFixed(1)}%`,
+        trend: 'flat',
+        tone: 'informative',
+        description: 'Most represented age demographic',
+      },
+      {
+        id: 'children-count',
+        label: 'Children (0-12)',
+        value: childrenCount.toLocaleString(),
+        change: formatPercentage((childrenCount / (totalWithBirthday || 1)) * 100),
+        changeLabel: 'of members',
+        trend: childrenCount > 0 ? 'up' : 'flat',
+        tone: childrenCount > 0 ? 'positive' : 'neutral',
+        description: 'Nursery through Juniors',
+      },
+      {
+        id: 'youth-count',
+        label: 'Youth (13-17)',
+        value: youthCount.toLocaleString(),
+        change: formatPercentage((youthCount / (totalWithBirthday || 1)) * 100),
+        changeLabel: 'of members',
+        trend: youthCount > 0 ? 'up' : 'flat',
+        tone: youthCount > 0 ? 'positive' : 'neutral',
+        description: 'Teenagers and high schoolers',
+      },
+      {
+        id: 'adults-count',
+        label: 'Adults (18+)',
+        value: adultCount.toLocaleString(),
+        change: formatPercentage((adultCount / (totalWithBirthday || 1)) * 100),
+        changeLabel: 'of members',
+        trend: adultCount > 0 ? 'up' : 'flat',
+        tone: adultCount > 0 ? 'positive' : 'neutral',
+        description: 'Young adults through seniors',
+      },
+      {
+        id: 'missing-birthday',
+        label: 'Missing Birthdays',
+        value: totalWithoutBirthday.toLocaleString(),
+        change: formatPercentage((totalWithoutBirthday / (totalMembers || 1)) * 100),
+        changeLabel: 'of total',
+        trend: totalWithoutBirthday > 0 ? 'down' : 'flat',
+        tone: totalWithoutBirthday > 0 ? 'warning' : 'positive',
+        description: 'Members without birthday data',
+      },
+    ],
+  };
+};
+
+// =====================================================
 // ENGAGEMENT SUMMARY HANDLER
 // =====================================================
 
@@ -547,6 +683,23 @@ const resolveCenterDistributionCharts: ServiceDataSourceHandler = async (request
   };
 };
 
+/**
+ * Age Insights Charts - Wraps age distribution chart in array
+ */
+const resolveAgeInsightsCharts: ServiceDataSourceHandler = async (request) => {
+  const ageChart = await resolveAgeDistributionChart(request);
+
+  return {
+    charts: [
+      {
+        ...(ageChart as object),
+        title: 'Age Group Distribution',
+        description: 'Member distribution across church age groups (Nursery through Seniors)',
+      },
+    ],
+  };
+};
+
 // =====================================================
 // EXPORT HANDLERS
 // =====================================================
@@ -562,10 +715,13 @@ export const adminCommunityReportsHandlers: Record<string, ServiceDataSourceHand
   'admin-community.reports.discipleshipPathwayChart': resolveDiscipleshipPathwayChart,
   'admin-community.reports.centerDistributionChart': resolveCenterDistributionChart,
   'admin-community.reports.engagementSummary': resolveEngagementSummary,
+  'admin-community.reports.ageDistributionChart': resolveAgeDistributionChart,
+  'admin-community.reports.ageInsightsMetrics': resolveAgeInsightsMetrics,
   // Composite chart handlers
   'admin-community.reports.membershipCharts': resolveMembershipCharts,
   'admin-community.reports.growthTrendCharts': resolveGrowthTrendCharts,
   'admin-community.reports.familyInsightsCharts': resolveFamilyInsightsCharts,
   'admin-community.reports.engagementCharts': resolveEngagementCharts,
   'admin-community.reports.centerDistributionCharts': resolveCenterDistributionCharts,
+  'admin-community.reports.ageInsightsCharts': resolveAgeInsightsCharts,
 };

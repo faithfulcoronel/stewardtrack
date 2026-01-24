@@ -106,6 +106,7 @@ const handleMinistrySave: MetadataActionHandler = async (
 
 /**
  * Action handler for deleting ministries
+ * Supports both `id` (from row actions) and `ministryId` (from profile pages)
  */
 const handleMinistryDelete: MetadataActionHandler = async (
   execution: MetadataActionExecution
@@ -117,7 +118,8 @@ const handleMinistryDelete: MetadataActionHandler = async (
       return { success: false, message: "No tenant context available" };
     }
 
-    const ministryId = execution.context.params?.ministryId as string;
+    // Support both 'id' (from row actions) and 'ministryId' (from profile pages)
+    const ministryId = (execution.context.params?.id ?? execution.context.params?.ministryId) as string;
     if (!ministryId) {
       return { success: false, message: "Ministry ID is required" };
     }
@@ -128,7 +130,6 @@ const handleMinistryDelete: MetadataActionHandler = async (
     return {
       success: true,
       message: "Ministry deleted successfully",
-      redirectUrl: "/admin/community/planning/scheduler/ministries",
     };
   } catch (error) {
     console.error("[scheduler action] Ministry delete failed:", error);
@@ -157,7 +158,12 @@ const handleScheduleSave: MetadataActionHandler = async (
       return { success: false, message: "No form data provided" };
     }
 
-    const scheduleId = execution.context.params?.scheduleId as string | undefined;
+    // Look for scheduleId in multiple places:
+    // 1. From context params (URL params)
+    // 2. From form values (included in initialValues)
+    const scheduleIdFromContext = execution.context.params?.scheduleId as string | undefined;
+    const scheduleIdFromForm = formData.scheduleId as string | undefined;
+    const scheduleId = scheduleIdFromContext || scheduleIdFromForm;
     const isEditMode = !!scheduleId && scheduleId !== 'new';
 
     const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
@@ -189,6 +195,7 @@ const handleScheduleSave: MetadataActionHandler = async (
       virtual_meeting_url: (formData.virtualMeetingUrl as string) || null,
       capacity: formData.capacity ? Number(formData.capacity) : null,
       registration_required: formData.registrationRequired === true || formData.registrationRequired === 'true',
+      registration_form_schema: Array.isArray(formData.registrationFormSchema) ? formData.registrationFormSchema : [],
       is_active: formData.isActive === true || formData.isActive === 'true',
     };
 
@@ -240,6 +247,7 @@ const handleScheduleSave: MetadataActionHandler = async (
 
 /**
  * Action handler for deleting schedules
+ * Supports both `id` (from row actions) and `scheduleId` (from profile pages)
  */
 const handleScheduleDelete: MetadataActionHandler = async (
   execution: MetadataActionExecution
@@ -251,7 +259,8 @@ const handleScheduleDelete: MetadataActionHandler = async (
       return { success: false, message: "No tenant context available" };
     }
 
-    const scheduleId = execution.context.params?.scheduleId as string;
+    // Support both 'id' (from row actions) and 'scheduleId' (from profile pages)
+    const scheduleId = (execution.context.params?.id ?? execution.context.params?.scheduleId) as string;
     if (!scheduleId) {
       return { success: false, message: "Schedule ID is required" };
     }
@@ -262,7 +271,6 @@ const handleScheduleDelete: MetadataActionHandler = async (
     return {
       success: true,
       message: "Schedule deleted successfully",
-      redirectUrl: "/admin/community/planning/scheduler/schedules",
     };
   } catch (error) {
     console.error("[scheduler action] Schedule delete failed:", error);

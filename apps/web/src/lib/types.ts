@@ -193,8 +193,8 @@ export const TYPES = {
   IMembershipStageHistoryRepository: Symbol.for('IMembershipStageHistoryRepository'),
   IMemberCarePlanAdapter: Symbol.for('IMemberCarePlanAdapter'),
   IMemberCarePlanRepository: Symbol.for('IMemberCarePlanRepository'),
-  IMemberServingAssignmentAdapter: Symbol.for('IMemberServingAssignmentAdapter'),
-  IMemberServingAssignmentRepository: Symbol.for('IMemberServingAssignmentRepository'),
+  // IMemberServingAssignmentAdapter: REMOVED - table dropped, using ministry_teams instead
+  // IMemberServingAssignmentRepository: REMOVED - table dropped, using ministry_teams instead
   IMemberDiscipleshipPlanAdapter: Symbol.for('IMemberDiscipleshipPlanAdapter'),
   IMemberDiscipleshipPlanRepository: Symbol.for('IMemberDiscipleshipPlanRepository'),
   IDiscipleshipPathwayAdapter: Symbol.for('IDiscipleshipPathwayAdapter'),
