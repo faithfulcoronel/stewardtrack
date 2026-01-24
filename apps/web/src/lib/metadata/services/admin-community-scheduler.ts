@@ -1175,6 +1175,9 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     label: m.name,
   }));
 
+  // Use tenant's default currency for registration fees
+  const tenantDefaultCurrency = tenant.currency || 'USD';
+
   let initialValues: {
     scheduleId: string | null;
     ministryId: string;
@@ -1193,6 +1196,11 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     registrationRequired: boolean;
     registrationFormSchema: unknown[];
     coverPhotoUrl: string | null;
+    acceptOnlinePayment: boolean;
+    registrationFeeAmount: number | null;
+    registrationFeeCurrency: string;
+    earlyRegistrationFeeAmount: number | null;
+    earlyRegistrationDeadline: string;
     isActive: boolean;
   } = {
     scheduleId: null,
@@ -1212,6 +1220,11 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     registrationRequired: false,
     registrationFormSchema: [],
     coverPhotoUrl: null,
+    acceptOnlinePayment: false,
+    registrationFeeAmount: null,
+    registrationFeeCurrency: tenantDefaultCurrency,
+    earlyRegistrationFeeAmount: null,
+    earlyRegistrationDeadline: '',
     isActive: true,
   };
 
@@ -1245,6 +1258,11 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
         registrationRequired: schedule.registration_required ?? false,
         registrationFormSchema: schedule.registration_form_schema || [],
         coverPhotoUrl: schedule.cover_photo_url || null,
+        acceptOnlinePayment: schedule.accept_online_payment ?? false,
+        registrationFeeAmount: schedule.registration_fee_amount ?? null,
+        registrationFeeCurrency: schedule.registration_fee_currency || tenantDefaultCurrency,
+        earlyRegistrationFeeAmount: schedule.early_registration_fee_amount ?? null,
+        earlyRegistrationDeadline: schedule.early_registration_deadline || '',
         isActive: schedule.is_active ?? true,
       };
     }
@@ -1370,6 +1388,50 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
           helperText: 'Maximum number of registrations allowed',
           visibleWhen: {
             field: 'registrationRequired',
+            isTruthy: true,
+          },
+        },
+        // Online Payment Settings - only shown when registration is required
+        {
+          name: 'acceptOnlinePayment',
+          label: 'Accept online payment',
+          type: 'toggle',
+          helperText: 'Accept registration fees via Xendit (credit card, e-wallet, bank transfer)',
+          visibleWhen: {
+            field: 'registrationRequired',
+            isTruthy: true,
+          },
+        },
+        {
+          name: 'registrationFeeAmount',
+          label: 'Registration fee',
+          type: 'number',
+          placeholder: 'Enter fee amount',
+          helperText: 'Regular registration fee in PHP',
+          visibleWhen: {
+            field: 'acceptOnlinePayment',
+            isTruthy: true,
+          },
+        },
+        {
+          name: 'earlyRegistrationFeeAmount',
+          label: 'Early bird fee (optional)',
+          type: 'number',
+          placeholder: 'Discounted fee for early registrations',
+          helperText: 'Must be less than regular fee',
+          visibleWhen: {
+            field: 'acceptOnlinePayment',
+            isTruthy: true,
+          },
+        },
+        {
+          name: 'earlyRegistrationDeadline',
+          label: 'Early bird deadline',
+          type: 'date',
+          required: true,
+          helperText: 'Last day for early bird pricing (required when early fee is set)',
+          visibleWhen: {
+            field: 'earlyRegistrationFeeAmount',
             isTruthy: true,
           },
         },

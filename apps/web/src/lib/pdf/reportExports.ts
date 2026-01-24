@@ -461,7 +461,7 @@ function formatCellValue(
       if (Number.isNaN(amount)) return String(value);
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: currency || 'USD',
+        currency: currency || 'PHP',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(amount);

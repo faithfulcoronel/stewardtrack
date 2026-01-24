@@ -441,7 +441,7 @@ function renderValue(item: DetailItem) {
         <span className="font-semibold tabular-nums text-foreground">
           {new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
+            currency: "PHP",
             maximumFractionDigits: amount >= 1000 ? 0 : 2,
           }).format(amount)}
         </span>

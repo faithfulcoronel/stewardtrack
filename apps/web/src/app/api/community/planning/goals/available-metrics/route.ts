@@ -126,7 +126,7 @@ export async function GET(): Promise<NextResponse> {
         name: 'Total Donations',
         description: 'Total donation amount in the period',
         type: 'currency',
-        unit: 'USD',
+        unit: 'PHP',
         source: 'donations',
         requiresFeature: 'finance.core',
         isAvailable: false, // TODO: Check if finance feature is enabled
@@ -147,7 +147,7 @@ export async function GET(): Promise<NextResponse> {
         name: 'Average Gift Amount',
         description: 'Average donation amount per gift',
         type: 'currency',
-        unit: 'USD',
+        unit: 'PHP',
         source: 'donations',
         requiresFeature: 'finance.core',
         isAvailable: false,

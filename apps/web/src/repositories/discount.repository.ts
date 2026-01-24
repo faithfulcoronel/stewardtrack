@@ -132,7 +132,7 @@ export class DiscountRepository implements IDiscountRepository {
 
   async getActiveDiscountsForOffering(
     offeringId: string,
-    currency: string = 'USD'
+    currency: string = 'PHP'
   ): Promise<ActiveDiscount[]> {
     return this.adapter.getActiveDiscountsForOffering(offeringId, currency);
   }

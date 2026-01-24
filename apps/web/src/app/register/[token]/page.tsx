@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'motion/react';
+import { motion, useMotionValue, useTransform, animate } from 'motion/react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import confetti from 'canvas-confetti';
 import {
@@ -19,9 +19,13 @@ import {
   Mail,
   Phone,
   Building2,
-  ChevronDown,
   PartyPopper,
   Shield,
+  CreditCard,
+  Wallet,
+  Building,
+  Tag,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -63,6 +67,14 @@ interface ScheduleInfo {
     end_time: string | null;
     status: string;
   }>;
+  // Payment configuration
+  acceptOnlinePayment: boolean;
+  registrationFeeAmount?: number | null;
+  registrationFeeCurrency: string;
+  earlyRegistrationFeeAmount?: number | null;
+  earlyRegistrationDeadline?: string | null;
+  isEarlyBird: boolean;
+  effectiveFee?: number | null;
 }
 
 interface FormField {
@@ -80,6 +92,22 @@ interface RegistrationResult {
   status: 'registered' | 'waitlisted';
   waitlistPosition?: number;
   confirmationCode?: string;
+  requiresPayment?: boolean;
+  paymentUrl?: string | null;
+  paymentExpiresAt?: string | null;
+  isEarlyBird?: boolean;
+}
+
+type PaymentMethodType = 'ewallet' | 'card' | 'bank_transfer';
+
+interface FeeBreakdown {
+  registration_fee: number;
+  xendit_fee: number;
+  platform_fee: number;
+  total_fees: number;
+  total_charged: number;
+  currency: string;
+  is_early_bird: boolean;
 }
 
 type PageState = 'loading' | 'form' | 'success' | 'expired' | 'error';
@@ -160,6 +188,22 @@ const formatTime = (timeString: string | null | undefined, timezone?: string): s
     hour12: true,
     timeZone: timezone,
   });
+};
+
+const formatCurrency = (amount: number, currency: string): string => {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: currency || 'PHP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const getDaysUntil = (dateString: string): number => {
+  const target = new Date(dateString);
+  const now = new Date();
+  const diffTime = target.getTime() - now.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 const fireConfetti = () => {
@@ -642,6 +686,12 @@ export default function PublicRegistrationPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
+  // Payment state
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType | null>(null);
+  const [channelCode, setChannelCode] = useState<string | null>(null);
+  const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown | null>(null);
+  const [isLoadingFees, setIsLoadingFees] = useState(false);
+
   // Turnstile ref
   const turnstileRef = useRef<TurnstileInstance>(null);
 
@@ -694,6 +744,40 @@ export default function PublicRegistrationPage() {
     }
   }, [token, fetchScheduleInfo]);
 
+  // Fetch fee breakdown when payment method changes
+  useEffect(() => {
+    const fetchFees = async () => {
+      if (!paymentMethod || !scheduleInfo?.acceptOnlinePayment || !scheduleInfo?.registrationFeeAmount) {
+        setFeeBreakdown(null);
+        return;
+      }
+
+      setIsLoadingFees(true);
+      try {
+        const response = await fetch(`/api/register/${token}/fees`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ payment_method_type: paymentMethod }),
+        });
+        const result = await response.json();
+
+        if (response.ok && result.data) {
+          setFeeBreakdown(result.data);
+        } else {
+          console.error('Failed to fetch fees:', result.error);
+          setFeeBreakdown(null);
+        }
+      } catch (err) {
+        console.error('Error fetching fees:', err);
+        setFeeBreakdown(null);
+      } finally {
+        setIsLoadingFees(false);
+      }
+    };
+
+    fetchFees();
+  }, [paymentMethod, token, scheduleInfo?.acceptOnlinePayment, scheduleInfo?.registrationFeeAmount]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -738,6 +822,28 @@ export default function PublicRegistrationPage() {
       return;
     }
 
+    // Validate payment method if payment is required
+    if (scheduleInfo?.acceptOnlinePayment && scheduleInfo?.registrationFeeAmount) {
+      if (!paymentMethod) {
+        toast({
+          title: 'Payment Method Required',
+          description: 'Please select a payment method.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // E-wallet requires channel code
+      if (paymentMethod === 'ewallet' && !channelCode) {
+        toast({
+          title: 'E-Wallet Required',
+          description: 'Please select an e-wallet provider.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     // Validate required custom fields
     if (scheduleInfo?.formSchema) {
       for (const field of scheduleInfo.formSchema) {
@@ -780,6 +886,9 @@ export default function PublicRegistrationPage() {
           occurrence_id: selectedOccurrence || undefined,
           turnstile_token: turnstileToken,
           terms_accepted: termsAccepted,
+          // Payment info
+          payment_method_type: paymentMethod || undefined,
+          channel_code: channelCode || undefined,
         }),
       });
 
@@ -792,11 +901,28 @@ export default function PublicRegistrationPage() {
         throw new Error(result.error || 'Registration failed');
       }
 
+      // If payment is required, redirect to payment URL
+      if (result.data.requires_payment && result.data.payment_url) {
+        toast({
+          title: 'Redirecting to Payment',
+          description: 'You will be redirected to complete your payment.',
+        });
+
+        // Small delay to show the toast
+        setTimeout(() => {
+          window.location.href = result.data.payment_url;
+        }, 1500);
+        return;
+      }
+
       setRegistrationResult({
         success: true,
         status: result.data.status,
         waitlistPosition: result.data.waitlist_position,
         confirmationCode: result.data.confirmation_code,
+        requiresPayment: result.data.requires_payment,
+        paymentUrl: result.data.payment_url,
+        isEarlyBird: result.data.is_early_bird,
       });
 
       setState('success');
@@ -931,6 +1057,132 @@ export default function PublicRegistrationPage() {
             scheduleInfo={scheduleInfo}
             selectedOccurrence={selectedOccurrence}
           />
+
+          {/* Pricing Card - only if payment is required */}
+          {scheduleInfo.acceptOnlinePayment && scheduleInfo.registrationFeeAmount && (
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              className="relative backdrop-blur-xl bg-white/70 border border-white/50 rounded-2xl p-6 shadow-lg shadow-[#179a65]/5"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tag className="w-5 h-5 text-[#179a65]" />
+                    <h3 className="font-semibold text-gray-900">Registration Fee</h3>
+                  </div>
+
+                  {/* Early Bird Banner */}
+                  {scheduleInfo.isEarlyBird && scheduleInfo.earlyRegistrationDeadline && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-200 px-3 py-1 rounded-full">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">
+                          Early Bird Special!
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {getDaysUntil(scheduleInfo.earlyRegistrationDeadline) > 0
+                          ? `${getDaysUntil(scheduleInfo.earlyRegistrationDeadline)} days left`
+                          : 'Ends today!'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Base Price Display */}
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl font-bold text-[#179a65]">
+                      {formatCurrency(scheduleInfo.effectiveFee || scheduleInfo.registrationFeeAmount, scheduleInfo.registrationFeeCurrency)}
+                    </span>
+                    {scheduleInfo.isEarlyBird && scheduleInfo.registrationFeeAmount !== scheduleInfo.earlyRegistrationFeeAmount && (
+                      <span className="text-lg text-gray-400 line-through">
+                        {formatCurrency(scheduleInfo.registrationFeeAmount, scheduleInfo.registrationFeeCurrency)}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-500">per person</span>
+                  </div>
+
+                  {/* Early Bird Deadline */}
+                  {scheduleInfo.isEarlyBird && scheduleInfo.earlyRegistrationDeadline && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Early bird pricing ends {formatDate(scheduleInfo.earlyRegistrationDeadline, scheduleInfo.timezone)}
+                    </p>
+                  )}
+
+                  {/* Regular Price Info when Early Bird */}
+                  {!scheduleInfo.isEarlyBird && scheduleInfo.earlyRegistrationFeeAmount && scheduleInfo.earlyRegistrationDeadline && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Early bird pricing has ended. Regular price applies.
+                    </p>
+                  )}
+                </div>
+
+                {/* Savings Badge */}
+                {scheduleInfo.isEarlyBird && scheduleInfo.registrationFeeAmount && scheduleInfo.earlyRegistrationFeeAmount && (
+                  <div className="bg-[#179a65] text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+                    Save {formatCurrency(scheduleInfo.registrationFeeAmount - scheduleInfo.earlyRegistrationFeeAmount, scheduleInfo.registrationFeeCurrency)}
+                  </div>
+                )}
+              </div>
+
+              {/* Fee Breakdown - shown when payment method is selected */}
+              {paymentMethod && (
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  {isLoadingFees ? (
+                    <div className="flex items-center justify-center py-3">
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-500">Calculating fees...</span>
+                    </div>
+                  ) : feeBreakdown ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">
+                          Registration Fee {feeBreakdown.is_early_bird && <span className="text-amber-600">(Early Bird)</span>}
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          {formatCurrency(feeBreakdown.registration_fee, feeBreakdown.currency)}
+                        </span>
+                      </div>
+                      {feeBreakdown.xendit_fee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Payment Processing Fee</span>
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(feeBreakdown.xendit_fee, feeBreakdown.currency)}
+                          </span>
+                        </div>
+                      )}
+                      {feeBreakdown.platform_fee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Service Fee</span>
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(feeBreakdown.platform_fee, feeBreakdown.currency)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between pt-2 border-t border-gray-200">
+                        <span className="font-semibold text-gray-900">Total Amount</span>
+                        <span className="font-bold text-lg text-[#179a65]">
+                          {formatCurrency(feeBreakdown.total_charged, feeBreakdown.currency)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-2">
+                      Select a payment method to see the total amount.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Prompt to select payment method */}
+              {!paymentMethod && (
+                <p className="text-xs text-gray-500 mt-3 text-center">
+                  Select a payment method below to see the total amount including fees.
+                </p>
+              )}
+            </motion.div>
+          )}
 
           {/* No upcoming events */}
           {scheduleInfo.upcomingOccurrences.length === 0 ? (
@@ -1100,6 +1352,163 @@ export default function PublicRegistrationPage() {
                   />
                 </motion.div>
 
+                {/* Payment Method Selection */}
+                {scheduleInfo.acceptOnlinePayment && scheduleInfo.registrationFeeAmount && (
+                  <motion.div variants={itemVariants} className="space-y-4 pt-2">
+                    <div className="h-px bg-gray-200" />
+                    <div>
+                      <Label className="text-gray-700 mb-3 block">
+                        Payment Method <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="grid gap-3">
+                        {/* E-Wallet Option */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('ewallet');
+                            setChannelCode(null);
+                          }}
+                          className={cn(
+                            'flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left',
+                            paymentMethod === 'ewallet'
+                              ? 'border-[#179a65] bg-[#179a65]/5 shadow-md'
+                              : 'border-gray-200 bg-white/50 hover:border-gray-300'
+                          )}
+                        >
+                          <div className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center',
+                            paymentMethod === 'ewallet'
+                              ? 'bg-[#179a65] text-white'
+                              : 'bg-gray-100 text-gray-600'
+                          )}>
+                            <Wallet className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">E-Wallet</p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Image src="/icons/payment-methods/gcash.svg" alt="GCash" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/maya.svg" alt="Maya" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/grabpay.svg" alt="GrabPay" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/shopeepay.svg" alt="ShopeePay" width={20} height={20} className="rounded" />
+                            </div>
+                          </div>
+                          {paymentMethod === 'ewallet' && (
+                            <CheckCircle2 className="w-6 h-6 text-[#179a65]" />
+                          )}
+                        </button>
+
+                        {/* E-Wallet Channel Selection */}
+                        {paymentMethod === 'ewallet' && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="grid grid-cols-2 gap-2 pl-4"
+                          >
+                            {[
+                              { code: 'GCASH', name: 'GCash', icon: '/icons/payment-methods/gcash.svg' },
+                              { code: 'PAYMAYA', name: 'Maya', icon: '/icons/payment-methods/maya.svg' },
+                              { code: 'GRABPAY', name: 'GrabPay', icon: '/icons/payment-methods/grabpay.svg' },
+                              { code: 'SHOPEEPAY', name: 'ShopeePay', icon: '/icons/payment-methods/shopeepay.svg' },
+                            ].map((channel) => (
+                              <button
+                                key={channel.code}
+                                type="button"
+                                onClick={() => setChannelCode(channel.code)}
+                                className={cn(
+                                  'flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all text-sm font-medium',
+                                  channelCode === channel.code
+                                    ? 'border-[#179a65] bg-[#179a65]/10 text-[#179a65] ring-1 ring-[#179a65]'
+                                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                )}
+                              >
+                                <Image
+                                  src={channel.icon}
+                                  alt={channel.name}
+                                  width={24}
+                                  height={24}
+                                  className="rounded"
+                                />
+                                {channel.name}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+
+                        {/* Credit/Debit Card Option */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('card');
+                            setChannelCode(null);
+                          }}
+                          className={cn(
+                            'flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left',
+                            paymentMethod === 'card'
+                              ? 'border-[#179a65] bg-[#179a65]/5 shadow-md'
+                              : 'border-gray-200 bg-white/50 hover:border-gray-300'
+                          )}
+                        >
+                          <div className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center',
+                            paymentMethod === 'card'
+                              ? 'bg-[#179a65] text-white'
+                              : 'bg-gray-100 text-gray-600'
+                          )}>
+                            <CreditCard className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">Credit / Debit Card</p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Image src="/icons/payment-methods/visa.svg" alt="Visa" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/mastercard.svg" alt="Mastercard" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/jcb.svg" alt="JCB" width={20} height={20} className="rounded" />
+                            </div>
+                          </div>
+                          {paymentMethod === 'card' && (
+                            <CheckCircle2 className="w-6 h-6 text-[#179a65]" />
+                          )}
+                        </button>
+
+                        {/* Bank Transfer Option */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('bank_transfer');
+                            setChannelCode(null);
+                          }}
+                          className={cn(
+                            'flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left',
+                            paymentMethod === 'bank_transfer'
+                              ? 'border-[#179a65] bg-[#179a65]/5 shadow-md'
+                              : 'border-gray-200 bg-white/50 hover:border-gray-300'
+                          )}
+                        >
+                          <div className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center',
+                            paymentMethod === 'bank_transfer'
+                              ? 'bg-[#179a65] text-white'
+                              : 'bg-gray-100 text-gray-600'
+                          )}>
+                            <Building className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">Bank Transfer</p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Image src="/icons/payment-methods/bpi.svg" alt="BPI" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/bdo.svg" alt="BDO" width={20} height={20} className="rounded" />
+                              <Image src="/icons/payment-methods/unionbank.svg" alt="UnionBank" width={20} height={20} className="rounded" />
+                              <span className="text-xs text-gray-400">+more</span>
+                            </div>
+                          </div>
+                          {paymentMethod === 'bank_transfer' && (
+                            <CheckCircle2 className="w-6 h-6 text-[#179a65]" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Terms & Privacy */}
                 <motion.div variants={itemVariants} className="pt-2">
                   <div className="flex items-start gap-3">
@@ -1153,7 +1562,14 @@ export default function PublicRegistrationPage() {
                 <motion.div variants={itemVariants}>
                   <Button
                     type="submit"
-                    disabled={isSubmitting || !turnstileToken || !termsAccepted}
+                    disabled={
+                      isSubmitting ||
+                      !turnstileToken ||
+                      !termsAccepted ||
+                      !!(scheduleInfo.acceptOnlinePayment &&
+                        scheduleInfo.registrationFeeAmount &&
+                        (!paymentMethod || (paymentMethod === 'ewallet' && !channelCode)))
+                    }
                     className={cn(
                       'w-full h-14 text-lg font-semibold rounded-xl shadow-lg transition-all duration-300',
                       'bg-gradient-to-r from-[#179a65] to-[#10B981]',
@@ -1169,6 +1585,13 @@ export default function PublicRegistrationPage() {
                       </span>
                     ) : isFull ? (
                       'Join Waitlist'
+                    ) : scheduleInfo.acceptOnlinePayment && scheduleInfo.effectiveFee ? (
+                      <span className="flex items-center gap-2">
+                        Pay {formatCurrency(
+                          feeBreakdown?.total_charged || scheduleInfo.effectiveFee,
+                          feeBreakdown?.currency || scheduleInfo.registrationFeeCurrency
+                        )} & Register
+                      </span>
                     ) : (
                       'Register Now'
                     )}

@@ -499,6 +499,12 @@ export class AdminFormSubmitHandler {
     }
 
     this.notifyFormErrors(normalized);
+
+    // Also show the first error as a toast for immediate visibility
+    if (normalized[0]) {
+      this.notifier.error(normalized[0]);
+    }
+
     return true;
   }
 }

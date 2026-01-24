@@ -94,7 +94,7 @@ export function AdminReportTable({
   subtotals,
   grandTotal,
   emptyState,
-  currency = 'USD',
+  currency = 'PHP',
   printRef,
 }: AdminReportTableProps) {
   const tableRef = React.useRef<HTMLDivElement>(null);

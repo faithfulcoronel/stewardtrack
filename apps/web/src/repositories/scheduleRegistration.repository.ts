@@ -16,6 +16,7 @@ export interface IScheduleRegistrationRepository extends BaseRepository<Schedule
   getByMember(memberId: string, tenantId: string): Promise<ScheduleRegistration[]>;
   getByFilters(filters: ScheduleRegistrationFilters, tenantId: string): Promise<ScheduleRegistrationWithMember[]>;
   getByGuestEmail(email: string, occurrenceId: string, tenantId: string): Promise<ScheduleRegistration | null>;
+  getByPaymentRequestId(paymentRequestId: string, tenantId: string): Promise<ScheduleRegistration | null>;
   getWaitlist(occurrenceId: string, tenantId: string): Promise<ScheduleRegistrationWithMember[]>;
   createRegistration(data: ScheduleRegistrationCreateInput, tenantId: string): Promise<ScheduleRegistration>;
   updateRegistration(id: string, data: ScheduleRegistrationUpdateInput, tenantId: string): Promise<ScheduleRegistration>;
@@ -48,6 +49,10 @@ export class ScheduleRegistrationRepository extends BaseRepository<ScheduleRegis
 
   async getByGuestEmail(email: string, occurrenceId: string, tenantId: string): Promise<ScheduleRegistration | null> {
     return await this.scheduleRegistrationAdapter.getByGuestEmail(email, occurrenceId, tenantId);
+  }
+
+  async getByPaymentRequestId(paymentRequestId: string, tenantId: string): Promise<ScheduleRegistration | null> {
+    return await this.scheduleRegistrationAdapter.getByPaymentRequestId(paymentRequestId, tenantId);
   }
 
   async getWaitlist(occurrenceId: string, tenantId: string): Promise<ScheduleRegistrationWithMember[]> {

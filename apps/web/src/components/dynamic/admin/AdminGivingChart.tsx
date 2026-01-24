@@ -27,7 +27,7 @@ export interface AdminGivingChartProps {
 
 export function AdminGivingChart(props: AdminGivingChartProps) {
   const data = normalizeList<GivingPoint>(props.data);
-  const currency = props.currency || "USD";
+  const currency = props.currency || "PHP";
   const hasData = data.length > 0;
 
   return (
@@ -202,9 +202,9 @@ export function AdminGivingChart(props: AdminGivingChartProps) {
   );
 }
 
-function formatCurrency(value: number, currencyCode: string = "USD"): string {
+function formatCurrency(value: number, currencyCode: string = "PHP"): string {
   if (Number.isNaN(value)) {
-    return currencyCode === "USD" ? "$0" : `0 ${currencyCode}`;
+    return currencyCode === "PHP" ? "$0" : `0 ${currencyCode}`;
   }
   return new Intl.NumberFormat("en-US", {
     style: "currency",

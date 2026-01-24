@@ -60,6 +60,11 @@ export class MinistryScheduleAdapter
     registration_closes_hours_before,
     registration_form_schema,
     cover_photo_url,
+    accept_online_payment,
+    registration_fee_amount,
+    registration_fee_currency,
+    early_registration_fee_amount,
+    early_registration_deadline,
     is_active,
     created_at,
     updated_at,
@@ -215,6 +220,11 @@ export class MinistryScheduleAdapter
         registration_opens_days_before: data.registration_opens_days_before ?? 7,
         registration_closes_hours_before: data.registration_closes_hours_before ?? 1,
         registration_form_schema: data.registration_form_schema ?? [],
+        accept_online_payment: data.accept_online_payment ?? false,
+        registration_fee_amount: data.registration_fee_amount ?? null,
+        registration_fee_currency: data.registration_fee_currency ?? 'PHP',
+        early_registration_fee_amount: data.early_registration_fee_amount ?? null,
+        early_registration_deadline: data.early_registration_deadline ?? null,
         is_active: data.is_active ?? true,
         created_by: userId ?? null,
         updated_by: userId ?? null,
@@ -251,7 +261,9 @@ export class MinistryScheduleAdapter
       'recurrence_end_date', 'location', 'location_type', 'virtual_meeting_url',
       'capacity', 'waitlist_enabled', 'registration_required',
       'registration_opens_days_before', 'registration_closes_hours_before',
-      'registration_form_schema', 'is_active'
+      'registration_form_schema', 'accept_online_payment', 'registration_fee_amount',
+      'registration_fee_currency', 'early_registration_fee_amount',
+      'early_registration_deadline', 'is_active'
     ];
 
     for (const field of fields) {

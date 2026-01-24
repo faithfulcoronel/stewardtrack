@@ -53,7 +53,7 @@
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
-                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
+                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;PHP&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
                 return [
                   { label: &apos;YTD giving&apos;, value: formatCurrency(record.giving?.ytd ?? 0), caption: `Pledge ${formatCurrency(record.giving?.pledge ?? 0)}` },
                   { label: &apos;Serving rhythm&apos;, value: record.serving?.schedule ?? &apos;Every other week&apos;, caption: record.serving?.team ?? &apos;Serving team&apos; },
@@ -88,7 +88,7 @@
                 const records = data.memberDirectory?.records ?? [];
                 const fallback = records[0] ?? {};
                 const record = records.find((item) =&gt; item.id === params.memberId) ?? fallback;
-                const formatCurrency = (value) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: value &gt;= 1000 ? 0 : 2 }).format(value ?? 0);
+                const formatCurrency = (value) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;PHP&apos;, maximumFractionDigits: value &gt;= 1000 ? 0 : 2 }).format(value ?? 0);
                 return [
                   {
                     id: &apos;metric-recurring&apos;,
@@ -139,7 +139,7 @@
                 const envelope = record.envelopeNumber ? `Envelope #${record.envelopeNumber}` : &apos;No envelope assigned&apos;;
                 const attendancePercent = record.attendance?.twelveWeekAttendance ?? 0;
                 const attendanceDisplay = attendancePercent ? `${attendancePercent}% last 12 weeks` : &apos;Attendance unknown&apos;;
-                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;USD&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
+                const formatCurrency = (amount) =&gt; new Intl.NumberFormat(&apos;en-US&apos;, { style: &apos;currency&apos;, currency: &apos;PHP&apos;, maximumFractionDigits: amount &gt;= 1000 ? 0 : 2 }).format(amount ?? 0);
                 const lastGift = record.giving?.lastGift ?? {};
                 const givingSummary = record.giving?.pledge ? `${formatCurrency(record.giving.pledge)} pledge` : &apos;No active pledge&apos;;
 

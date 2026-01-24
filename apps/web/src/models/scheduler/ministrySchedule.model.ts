@@ -59,6 +59,13 @@ export interface MinistrySchedule extends BaseModel {
   // Cover Photo (for registration pages)
   cover_photo_url?: string | null;
 
+  // Online Payment (for paid registrations)
+  accept_online_payment: boolean;
+  registration_fee_amount?: number | null;
+  registration_fee_currency: string;
+  early_registration_fee_amount?: number | null;
+  early_registration_deadline?: string | null; // DATE format YYYY-MM-DD
+
   // Status
   is_active: boolean;
 }
@@ -94,6 +101,11 @@ export interface MinistryScheduleCreateInput {
   registration_opens_days_before?: number;
   registration_closes_hours_before?: number;
   registration_form_schema?: RegistrationFormField[];
+  accept_online_payment?: boolean;
+  registration_fee_amount?: number | null;
+  registration_fee_currency?: string;
+  early_registration_fee_amount?: number | null;
+  early_registration_deadline?: string | null;
   is_active?: boolean;
 }
 
@@ -117,6 +129,11 @@ export interface MinistryScheduleUpdateInput {
   registration_opens_days_before?: number;
   registration_closes_hours_before?: number;
   registration_form_schema?: RegistrationFormField[];
+  accept_online_payment?: boolean;
+  registration_fee_amount?: number | null;
+  registration_fee_currency?: string;
+  early_registration_fee_amount?: number | null;
+  early_registration_deadline?: string | null;
   is_active?: boolean;
 }
 

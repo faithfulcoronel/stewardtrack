@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { decodeRegistrationToken, isRegistrationTokenValid } from '@/lib/tokens/registrationToken';
 import { verifyTurnstileToken } from '@/lib/auth/turnstile';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { ScheduleRegistrationPaymentService } from '@/services/ScheduleRegistrationPaymentService';
+import type { PaymentMethodType } from '@/models/donation.model';
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -34,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Fetch schedule and tenant info
     const supabase = await getSupabaseServiceClient();
 
-    // Get schedule with ministry info
+    // Get schedule with ministry info and payment configuration
     const { data: schedule, error: scheduleError } = await supabase
       .from('ministry_schedules')
       .select(`
@@ -47,6 +51,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         cover_photo_url,
         registration_form_schema,
         timezone,
+        accept_online_payment,
+        registration_fee_amount,
+        registration_fee_currency,
+        early_registration_fee_amount,
+        early_registration_deadline,
         ministry:ministries!ministry_schedules_ministry_id_fkey (
           id,
           name
@@ -72,10 +81,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get tenant info
+    // Get tenant info (including currency for payment)
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name')
+      .select('id, name, currency')
       .eq('id', tenantId)
       .single();
 
@@ -116,6 +125,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const ministry = schedule.ministry as { id: string; name: string } | null;
 
+    // Calculate if early bird pricing applies
+    const now = new Date();
+    const hasEarlyBird = schedule.early_registration_fee_amount && schedule.early_registration_deadline;
+    const isEarlyBird = hasEarlyBird && new Date(schedule.early_registration_deadline!) >= now;
+
+    // Determine effective registration fee
+    const effectiveFee = isEarlyBird
+      ? schedule.early_registration_fee_amount
+      : schedule.registration_fee_amount;
+
+    // Get currency (schedule's configured currency or tenant's default)
+    const currency = schedule.registration_fee_currency || tenant.currency || 'PHP';
+
     // Transform occurrences to match frontend interface
     const transformedOccurrences = (occurrences || []).map((occ: {
       id: string;
@@ -148,6 +170,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         waitlistCount,
         expiresAt: new Date(expiresAt).toISOString(),
         upcomingOccurrences: transformedOccurrences,
+        // Payment configuration
+        acceptOnlinePayment: schedule.accept_online_payment || false,
+        registrationFeeAmount: schedule.registration_fee_amount || null,
+        registrationFeeCurrency: currency,
+        earlyRegistrationFeeAmount: schedule.early_registration_fee_amount || null,
+        earlyRegistrationDeadline: schedule.early_registration_deadline || null,
+        isEarlyBird,
+        effectiveFee,
       },
     });
   } catch (error) {
@@ -197,6 +227,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       occurrence_id, // Optional: specific occurrence
       turnstile_token, // CAPTCHA token
       terms_accepted, // Terms & Privacy acceptance
+      payment_method_type, // Payment method (ewallet, card, bank_transfer)
+      channel_code, // Xendit channel code (e.g., GCASH, MAYA)
     } = body;
 
     // Verify CAPTCHA token
@@ -237,10 +269,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const supabase = await getSupabaseServiceClient();
 
-    // Get schedule info
+    // Get schedule info (including payment configuration)
     const { data: schedule, error: scheduleError } = await supabase
       .from('ministry_schedules')
-      .select('id, name, registration_required, capacity')
+      .select('id, name, registration_required, capacity, accept_online_payment, registration_fee_amount')
       .eq('id', scheduleId)
       .eq('tenant_id', tenantId)
       .single();
@@ -330,6 +362,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Generate confirmation code
     const confirmationCode = generateConfirmationCode();
 
+    // Determine if payment is required
+    const requiresPayment = schedule.accept_online_payment && schedule.registration_fee_amount && schedule.registration_fee_amount > 0;
+
+    // Validate payment method if payment is required
+    if (requiresPayment && !payment_method_type) {
+      return NextResponse.json(
+        { success: false, error: 'Payment method is required for paid registrations' },
+        { status: 400 }
+      );
+    }
+
     // Create registration using service role client (bypasses RLS)
     const { data: registration, error: insertError } = await supabase
       .from('schedule_registrations')
@@ -345,6 +388,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         status,
         waitlist_position: waitlistPosition,
         confirmation_code: confirmationCode,
+        // Payment status
+        payment_status: requiresPayment ? 'pending' : 'not_required',
       })
       .select()
       .single();
@@ -357,6 +402,47 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // If payment is required, create Xendit payment request
+    let paymentUrl: string | null = null;
+    let paymentExpiresAt: string | null = null;
+    let isEarlyBird = false;
+
+    if (requiresPayment) {
+      try {
+        const paymentService = container.get<ScheduleRegistrationPaymentService>(TYPES.ScheduleRegistrationPaymentService);
+
+        const paymentResult = await paymentService.initiatePayment(
+          {
+            registration_id: registration.id,
+            occurrence_id: targetOccurrenceId,
+            schedule_id: scheduleId,
+            payment_method_type: payment_method_type as PaymentMethodType,
+            channel_code: channel_code || undefined,
+            registrant_name: guest_name.trim(),
+            registrant_email: guest_email.trim().toLowerCase(),
+            registrant_phone: guest_phone?.trim() || undefined,
+          },
+          tenantId
+        );
+
+        paymentUrl = paymentResult.payment_url;
+        paymentExpiresAt = paymentResult.expires_at;
+        isEarlyBird = paymentResult.is_early_bird;
+      } catch (paymentError) {
+        console.error('Error creating payment request:', paymentError);
+        // Registration was created but payment failed - update status
+        await supabase
+          .from('schedule_registrations')
+          .update({ payment_status: 'failed' })
+          .eq('id', registration.id);
+
+        return NextResponse.json(
+          { success: false, error: 'Failed to create payment. Please try again.' },
+          { status: 500 }
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -364,6 +450,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         status: registration.status,
         waitlist_position: waitlistPosition,
         confirmation_code: confirmationCode,
+        // Payment info
+        requires_payment: requiresPayment,
+        payment_url: paymentUrl,
+        payment_expires_at: paymentExpiresAt,
+        is_early_bird: isEarlyBird,
       },
     });
   } catch (error) {

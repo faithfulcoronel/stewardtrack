@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Minus, Shield, Lock, Eye, FileText, Globe, Cookie, Database, Users, Scale, Mail } from "lucide-react";
+import { Plus, Minus, Shield, Lock, Eye, FileText, Globe, Cookie, Database, Users, Scale, Mail, CalendarCheck } from "lucide-react";
 
 const privacySections = [
   {
@@ -17,6 +17,9 @@ const privacySections = [
 • **Organization Information:** Church or organization name, address, contact details, and administrative settings.
 • **Member Data:** Information about church members that your organization enters into the system, including names, contact information, family relationships, and membership details.
 • **Financial Information:** Donation records, contribution history, and financial reports that your organization manages through the Service.
+• **Payment Transaction Data:** For online donations and event registration payments, we collect transaction records including payment amount, date, payment method type (e.g., e-wallet, card, bank transfer), and transaction status. **Important:** We do NOT store donor/registrant payment credentials such as credit card numbers, CVV codes, or e-wallet PINs. All sensitive payment data from payers is processed and stored securely by our payment gateway provider, Xendit.
+• **Organization Disbursement Information:** For Organizations that receive payments through our platform, we collect and store bank account details necessary for fund disbursement. This sensitive financial information is encrypted using industry-standard encryption methods and stored with strict access controls. This data is not accessible in plain text, even by our development team, and is used solely for the purpose of transferring collected funds to the Organization.
+• **Event Registration Data:** When individuals register for events through StewardTrack's public registration pages, we collect personal information on behalf of the hosting Organization, including name, email address, phone number, and any custom fields configured by the Organization. This data is collected and processed by StewardTrack as a data processor, with the Organization acting as the data controller.
 • **Communication Data:** Messages, notes, and communications sent through the Service.
 
 **Information Collected Automatically:**
@@ -59,6 +62,7 @@ const privacySections = [
     content: `We do not sell, trade, or rent your personal information to third parties. We may share information in the following circumstances:
 
 • **Service Providers:** With third-party vendors who perform services on our behalf (e.g., hosting, payment processing, email delivery), subject to confidentiality agreements and data processing agreements.
+• **Payment Gateway (Xendit):** When you make a payment (donation or event registration), your payment information is transmitted directly to Xendit for processing. We share only the necessary transaction details with Xendit to complete the payment. Xendit processes payments in accordance with their Privacy Policy (https://www.xendit.co/en-ph/privacy-policy/) and PCI-DSS compliance requirements.
 • **Legal Requirements:** When required by law, court order, or governmental authority.
 • **Business Transfers:** In connection with a merger, acquisition, or sale of assets, with appropriate notice to affected users.
 • **With Your Consent:** When you have explicitly authorized the disclosure.
@@ -77,9 +81,58 @@ const privacySections = [
 • Subject to tenant-specific encryption keys where applicable.`
   },
   {
+    id: "registrant-privacy",
+    icon: CalendarCheck,
+    title: "6. Event Registrant Privacy",
+    content: `This section applies specifically to individuals who register for events through StewardTrack's public registration pages (referred to as "Registrants").
+
+**6.1 Data Controller and Processor Relationship**
+• **Organization as Data Controller:** The church or organization hosting the event ("Organization") is the data controller responsible for determining the purposes and means of processing your personal data.
+• **StewardTrack as Data Processor:** StewardTrack processes your personal data on behalf of the Organization in accordance with their instructions and this Privacy Policy.
+
+**6.2 Information Collected During Registration**
+When you register for an event, the following information may be collected:
+• **Required Information:** Full name, email address, and phone number.
+• **Custom Fields:** Additional information as configured by the Organization (e.g., address, emergency contact, dietary requirements, ministry preferences).
+• **Payment Information:** If the event requires payment, transaction details are processed as described in this policy. Sensitive payment credentials are not stored by StewardTrack.
+
+**6.3 How Your Registration Data is Used**
+Your personal information is used to:
+• Process and confirm your event registration.
+• Communicate event details, updates, and reminders.
+• Manage event attendance and capacity.
+• Generate attendance reports for the Organization.
+• Process payment transactions (if applicable).
+• Contact you regarding the event or related activities.
+
+**6.4 Data Sharing**
+• Your registration data is shared only with the Organization hosting the event.
+• Your data is not sold, rented, or shared with unaffiliated third parties for marketing purposes.
+• Payment data is shared with our payment processor (Xendit) solely to process transactions.
+
+**6.5 Data Retention**
+• Registration data is retained by the Organization through StewardTrack for as long as necessary to fulfill the event purposes and any subsequent record-keeping requirements.
+• Organizations may retain your data for future event communications unless you opt out.
+
+**6.6 Your Rights as a Registrant**
+You have the right to:
+• **Access:** Request a copy of the personal data held about you.
+• **Correction:** Request correction of inaccurate or incomplete data.
+• **Deletion:** Request deletion of your personal data, subject to any legal retention requirements.
+• **Opt-Out:** Unsubscribe from future communications from the Organization.
+
+To exercise these rights, please contact the Organization directly. If you are unable to reach the Organization, you may contact StewardTrack at privacy@cortanatechsolutions.com for assistance.
+
+**6.7 Consent**
+By submitting your registration, you:
+• Consent to the collection and processing of your personal information as described in this policy.
+• Acknowledge that the Organization is the data controller for your registration data.
+• Agree to the Terms of Service and this Privacy Policy.`
+  },
+  {
     id: "cookies",
     icon: Cookie,
-    title: "6. Cookies and Tracking Technologies",
+    title: "7. Cookies and Tracking Technologies",
     content: `We use cookies and similar tracking technologies to enhance your experience, analyze usage, and provide personalized content.
 
 **Types of Cookies We Use:**
@@ -119,23 +172,25 @@ Some browsers offer a "Do Not Track" (DNT) feature. While there is no industry s
   {
     id: "data-security",
     icon: Lock,
-    title: "7. Data Security",
+    title: "8. Data Security",
     content: `We implement industry-standard security measures to protect your information, including:
 
 • Encryption of data in transit using TLS 1.3.
 • Encryption of sensitive data at rest using AES-256.
+• **Enhanced protection for financial data:** Organization bank account details for disbursement are encrypted with additional security layers. This data is not accessible in plain text, even by authorized personnel or developers.
 • Secure authentication mechanisms including multi-factor authentication.
 • Regular security assessments and penetration testing.
 • Access controls limiting employee access to personal data.
 • Regular security training for all staff with data access.
 • Incident response procedures and breach notification protocols.
+• **Payment data isolation:** We do not store donor or registrant payment credentials. All payment processing is handled by our PCI-DSS compliant payment gateway, Xendit.
 
 While we strive to protect your information, no method of transmission over the Internet or electronic storage is 100% secure. We cannot guarantee absolute security.`
   },
   {
     id: "data-retention",
     icon: Database,
-    title: "8. Data Retention",
+    title: "9. Data Retention",
     content: `We retain your information for as long as your account is active or as needed to provide you with the Service. Specific retention periods include:
 
 • **Account Data:** Retained while account is active plus 30 days after deletion request.
@@ -148,7 +203,7 @@ Upon termination of your account, we will delete or anonymize your personal data
   {
     id: "gdpr-rights",
     icon: Globe,
-    title: "9. Your Rights Under GDPR (EEA Users)",
+    title: "10. Your Rights Under GDPR (EEA Users)",
     content: `If you are located in the European Economic Area (EEA), United Kingdom, or Switzerland, you have the following rights under the General Data Protection Regulation (GDPR):
 
 • **Right of Access:** Request a copy of all personal data we hold about you.
@@ -168,7 +223,7 @@ For GDPR-related inquiries, you may contact our Data Protection Officer at dpo@c
   {
     id: "ccpa-rights",
     icon: Scale,
-    title: "10. Your Rights Under CCPA (California Residents)",
+    title: "11. Your Rights Under CCPA (California Residents)",
     content: `If you are a California resident, you have the following rights under the California Consumer Privacy Act (CCPA) and California Privacy Rights Act (CPRA):
 
 • **Right to Know:** Request disclosure of the categories and specific pieces of personal information we have collected about you.
@@ -196,7 +251,7 @@ California residents may request information about our disclosure of personal in
   {
     id: "dpa",
     icon: FileText,
-    title: "11. Data Processing Agreement (DPA)",
+    title: "12. Data Processing Agreement (DPA)",
     content: `For organizations that require a Data Processing Agreement to comply with GDPR or other data protection regulations, we offer a comprehensive DPA that covers:
 
 • **Processing Details:** Subject matter, duration, nature, and purpose of processing.
@@ -225,24 +280,24 @@ We use the following categories of sub-processors to provide our Service:
   {
     id: "third-party",
     icon: Globe,
-    title: "12. Third-Party Services",
+    title: "13. Third-Party Services",
     content: `StewardTrack integrates with third-party services to provide functionality. These services have their own privacy policies, and we encourage you to review them:
 
 • **Supabase:** Authentication and database services
-• **Payment Processors:** For processing donations and subscription payments
+• **Xendit (Payment Gateway):** Xendit is our payment gateway provider for processing online donations and event registration payments. When you make a payment through StewardTrack, your payment information is transmitted directly to Xendit's secure servers. We do not store sensitive payment credentials (credit card numbers, CVV, bank account details). Xendit is PCI-DSS compliant and maintains strict security standards. Please review Xendit's Privacy Policy (https://www.xendit.co/en-ph/privacy-policy/) and Terms and Conditions (https://www.xendit.co/en-ph/terms-and-conditions/) for details on how they handle your payment data.
 • **Email Services:** For transactional and notification emails
 • **Analytics Services:** For usage analytics and performance monitoring`
   },
   {
     id: "children",
     icon: Users,
-    title: "13. Children's Privacy",
+    title: "14. Children's Privacy",
     content: `StewardTrack is not intended for use by individuals under the age of 16 (or 13 in the United States). We do not knowingly collect personal information from children. If you become aware that a child has provided us with personal information, please contact us so we can take appropriate action to delete the information.`
   },
   {
     id: "international",
     icon: Globe,
-    title: "14. International Data Transfers",
+    title: "15. International Data Transfers",
     content: `Your information may be transferred to and processed in countries other than your country of residence. When we transfer data internationally, we ensure appropriate safeguards are in place:
 
 • **Standard Contractual Clauses:** EU-approved contractual terms for data transfers.
@@ -253,13 +308,13 @@ We use the following categories of sub-processors to provide our Service:
   {
     id: "changes",
     icon: FileText,
-    title: "15. Changes to This Privacy Policy",
+    title: "16. Changes to This Privacy Policy",
     content: `We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page, updating the "Last updated" date, and where required by law, sending you an email notification. Your continued use of the Service after such changes constitutes acceptance of the updated policy.`
   },
   {
     id: "contact",
     icon: Mail,
-    title: "16. Contact Us",
+    title: "17. Contact Us",
     content: `If you have questions or concerns about this Privacy Policy, please contact us at:
 
 **Cortanatech Solutions, Inc.**
@@ -369,7 +424,7 @@ function AccordionItem({ section, isOpen, onClick, index }: {
 
 export default function PrivacyPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const lastUpdated = "January 1, 2026";
+  const lastUpdated = "January 24, 2026";
 
   return (
     <div className="relative min-h-screen">

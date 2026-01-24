@@ -5,12 +5,18 @@ import { XenditService } from '@/services/XenditService';
 import { PaymentService } from '@/services/PaymentService';
 import { PaymentSubscriptionService } from '@/services/PaymentSubscriptionService';
 import type { AICreditPurchaseService } from '@/services/AICreditPurchaseService';
+import type { ScheduleRegistrationPaymentService } from '@/services/ScheduleRegistrationPaymentService';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/webhooks/xendit
  *
- * Xendit webhook handler for invoice payment events.
+ * Xendit webhook handler for payment events.
+ *
+ * Supported Payment Types (via metadata.payment_type):
+ * - ai_credits: AI credit purchases
+ * - event_registration: Event/schedule registration payments
+ * - (default): Subscription/license payments
  *
  * Webhook Events:
  * - invoice.paid: Invoice has been paid
@@ -93,6 +99,70 @@ export async function POST(request: NextRequest) {
         console.error('[Xendit Webhook] AI credit purchase processing error:', error);
         return NextResponse.json(
           { error: 'Failed to process AI credit purchase', details: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // === EVENT REGISTRATION: Check if this is an event registration payment ===
+    if (event.metadata?.payment_type === 'event_registration') {
+      console.log('[Xendit Webhook] Processing event registration payment:', {
+        external_id: event.external_id,
+        event_id: event.id,
+        status: event.status,
+        metadata: event.metadata,
+      });
+
+      const registrationId = event.metadata?.registration_id;
+      const tenantId = event.metadata?.tenant_id;
+
+      if (!registrationId || !tenantId) {
+        console.error('[Xendit Webhook] Missing registration_id or tenant_id in metadata:', event.metadata);
+        return NextResponse.json(
+          { error: 'Missing registration or tenant ID in payment metadata' },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const registrationPaymentService = container.get<ScheduleRegistrationPaymentService>(
+          TYPES.ScheduleRegistrationPaymentService
+        );
+
+        const status = event.status as string;
+        console.log(`[Xendit Webhook] Event registration status: ${status}, registrationId: ${registrationId}, tenantId: ${tenantId}`);
+
+        if (status === 'PAID' || status === 'SETTLED') {
+          console.log('[Xendit Webhook] Calling processSuccessfulPayment...');
+          await registrationPaymentService.processSuccessfulPayment(
+            registrationId,
+            tenantId,
+            event.id,
+            event.payment_method
+          );
+          console.log('[Xendit Webhook] Event registration payment processed successfully');
+        } else if (status === 'FAILED' || status.toLowerCase() === 'failed') {
+          await registrationPaymentService.processFailedPayment(
+            registrationId,
+            tenantId,
+            'Payment failed'
+          );
+          console.log('[Xendit Webhook] Event registration payment marked as failed');
+        } else if (status === 'EXPIRED') {
+          await registrationPaymentService.processExpiredPayment(
+            registrationId,
+            tenantId
+          );
+          console.log('[Xendit Webhook] Event registration payment marked as expired');
+        } else {
+          console.log('[Xendit Webhook] Event registration payment status:', status);
+        }
+
+        return NextResponse.json({ success: true, type: 'event_registration' });
+      } catch (error: any) {
+        console.error('[Xendit Webhook] Event registration payment processing error:', error);
+        return NextResponse.json(
+          { error: 'Failed to process event registration payment', details: error.message },
           { status: 500 }
         );
       }

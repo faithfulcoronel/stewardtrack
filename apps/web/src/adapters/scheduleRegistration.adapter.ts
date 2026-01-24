@@ -18,6 +18,7 @@ export interface IScheduleRegistrationAdapter extends IBaseAdapter<ScheduleRegis
   getByMember(memberId: string, tenantId: string): Promise<ScheduleRegistration[]>;
   getByFilters(filters: ScheduleRegistrationFilters, tenantId: string): Promise<ScheduleRegistrationWithMember[]>;
   getByGuestEmail(email: string, occurrenceId: string, tenantId: string): Promise<ScheduleRegistration | null>;
+  getByPaymentRequestId(paymentRequestId: string, tenantId: string): Promise<ScheduleRegistration | null>;
   getWaitlist(occurrenceId: string, tenantId: string): Promise<ScheduleRegistrationWithMember[]>;
   createRegistration(data: ScheduleRegistrationCreateInput, tenantId: string): Promise<ScheduleRegistration>;
   updateRegistration(id: string, data: ScheduleRegistrationUpdateInput, tenantId: string): Promise<ScheduleRegistration>;
@@ -55,6 +56,19 @@ export class ScheduleRegistrationAdapter
     form_responses,
     special_requests,
     admin_notes,
+    payment_status,
+    payment_amount,
+    xendit_fee,
+    platform_fee,
+    total_charged,
+    payment_currency,
+    xendit_payment_request_id,
+    xendit_payment_id,
+    external_id,
+    payment_method_type,
+    paid_at,
+    payment_url,
+    payment_expires_at,
     created_at,
     updated_at
   `;
@@ -177,6 +191,23 @@ export class ScheduleRegistrationAdapter
     return data as ScheduleRegistration | null;
   }
 
+  async getByPaymentRequestId(paymentRequestId: string, tenantId: string): Promise<ScheduleRegistration | null> {
+    const supabase = await this.getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select(this.defaultSelect)
+      .eq('xendit_payment_request_id', paymentRequestId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch registration by payment request ID: ${error.message}`);
+    }
+
+    return data as ScheduleRegistration | null;
+  }
+
   async getWaitlist(occurrenceId: string, tenantId: string): Promise<ScheduleRegistrationWithMember[]> {
     const supabase = await this.getSupabaseClient();
 
@@ -235,7 +266,12 @@ export class ScheduleRegistrationAdapter
 
     const fields = [
       'party_size', 'status', 'waitlist_position', 'form_responses',
-      'special_requests', 'admin_notes'
+      'special_requests', 'admin_notes',
+      // Payment fields
+      'payment_status', 'payment_amount', 'xendit_fee', 'platform_fee',
+      'total_charged', 'payment_currency', 'xendit_payment_request_id',
+      'xendit_payment_id', 'external_id', 'payment_method_type', 'paid_at',
+      'payment_url', 'payment_expires_at'
     ];
 
     for (const field of fields) {

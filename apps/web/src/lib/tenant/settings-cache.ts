@@ -24,7 +24,7 @@ const TENANT_CURRENCY_KEY = 'st-tenant-cur';
 
 // Default values
 export const DEFAULT_TIMEZONE = 'UTC';
-export const DEFAULT_CURRENCY = 'USD';
+export const DEFAULT_CURRENCY = 'PHP';
 
 // Cache TTL: 24 hours (settings rarely change)
 const CACHE_TTL_SECONDS = 24 * 60 * 60;

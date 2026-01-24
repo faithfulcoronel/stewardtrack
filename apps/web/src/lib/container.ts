@@ -163,6 +163,7 @@ import { MinistryService, type IMinistryService } from '@/services/MinistryServi
 import { SchedulerService, type ISchedulerService } from '@/services/SchedulerService';
 import { ScheduleOccurrenceService, type IScheduleOccurrenceService } from '@/services/ScheduleOccurrenceService';
 import { ScheduleRegistrationService, type IScheduleRegistrationService } from '@/services/ScheduleRegistrationService';
+import { ScheduleRegistrationPaymentService } from '@/services/ScheduleRegistrationPaymentService';
 import { ScheduleAttendanceService, type IScheduleAttendanceService } from '@/services/ScheduleAttendanceService';
 import {
   GoalCategoryService,
@@ -1012,6 +1013,7 @@ container.bind<IMinistryService>(TYPES.MinistryService).to(MinistryService).inRe
 container.bind<ISchedulerService>(TYPES.SchedulerService).to(SchedulerService).inRequestScope();
 container.bind<IScheduleOccurrenceService>(TYPES.ScheduleOccurrenceService).to(ScheduleOccurrenceService).inRequestScope();
 container.bind<IScheduleRegistrationService>(TYPES.ScheduleRegistrationService).to(ScheduleRegistrationService).inRequestScope();
+container.bind<ScheduleRegistrationPaymentService>(TYPES.ScheduleRegistrationPaymentService).to(ScheduleRegistrationPaymentService).inRequestScope();
 container.bind<IScheduleAttendanceService>(TYPES.ScheduleAttendanceService).to(ScheduleAttendanceService).inRequestScope();
 
 // ==================== SCHEDULED EVENTS (Background Jobs) ====================

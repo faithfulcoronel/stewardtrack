@@ -36,7 +36,7 @@ interface PivotRow {
 }
 
 const formatAmount = (amount: number, currency: string) => {
-  const currencySymbol = currency === 'PHP' ? 'PHP ' : currency === 'USD' ? '$' : `${currency} `;
+  const currencySymbol = currency === 'PHP' ? 'PHP ' : currency === 'PHP' ? '$' : `${currency} `;
   return `${currencySymbol}${amount.toLocaleString('en-PH', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
