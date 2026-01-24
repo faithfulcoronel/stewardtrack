@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+CAMPAIGN MANAGE (COMPOSE) PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the campaign compose/manage page for creating and
+editing communication campaigns. Uses a custom CampaignComposer component
+for the complex form interactions (rich text, recipients, AI assistance).
+
+FEATURE: Communication
+- Create new campaigns
+- Edit existing campaigns
+- Rich text message composition
+- Recipient selection from multiple sources
+- AI-powered composition assistance
+- Channel selection (email, SMS)
+- Schedule or send immediately
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-communication"
+  route="compose"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="communication.core"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-communication-campaign-manage">
+    <Title>Compose Message</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with context
+        -->
+        <Component id="compose-header" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">minimal</Prop>
+            <Prop name="eyebrow" kind="binding" contract="composeHeader.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="composeHeader.headline"/>
+            <Prop name="description" kind="binding" contract="composeHeader.description"/>
+          </Props>
+        </Component>
+
+        <!--
+        CAMPAIGN COMPOSER: Custom component for complex form
+        Note: This component handles:
+        - Rich text message editing
+        - Recipient selection (members, families, events, ministries, custom)
+        - Channel selection (email, SMS)
+        - Template loading
+        - AI assistance panel
+        - Preview mode
+        - Schedule options
+        -->
+        <Component id="campaign-composer" type="CampaignComposer">
+          <Props>
+            <Prop name="campaign" kind="binding" contract="campaignData.campaign"/>
+            <Prop name="templates" kind="binding" contract="campaignData.templates"/>
+            <Prop name="recipientSources" kind="binding" contract="campaignData.recipientSources"/>
+            <Prop name="aiEnabled" kind="binding" contract="campaignData.aiEnabled"/>
+            <Prop name="submitAction" kind="action" actionId="save-campaign"/>
+            <Prop name="sendAction" kind="action" actionId="send-campaign"/>
+            <Prop name="cancelAction" kind="action" actionId="cancel"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Header data -->
+      <DataSource id="composeHeader" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Form context eyebrow"/>
+          <Field name="headline" path="headline" description="Form headline"/>
+          <Field name="description" path="description" description="Form description"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.campaigns.manage.header</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Campaign and form data -->
+      <DataSource id="campaignData" kind="service">
+        <Contract>
+          <Field name="campaign" path="campaign" description="Campaign data for editing"/>
+          <Field name="templates" path="templates" description="Available templates"/>
+          <Field name="recipientSources" path="recipientSources" description="Available recipient sources"/>
+          <Field name="aiEnabled" path="aiEnabled" description="Whether AI features are enabled"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.campaigns.manage.form</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="save-campaign" kind="submit">
+        <Config>
+          <Label>Save draft</Label>
+          <Handler>admin-communication.campaigns.save</Handler>
+          <SuccessUrl>/admin/communication/campaigns</SuccessUrl>
+          <SuccessMessage>Campaign saved as draft</SuccessMessage>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+      <Action id="send-campaign" kind="submit">
+        <Config>
+          <Label>Send now</Label>
+          <Handler>admin-communication.campaigns.send</Handler>
+          <SuccessUrl>/admin/communication/campaigns</SuccessUrl>
+          <SuccessMessage>Campaign sent successfully</SuccessMessage>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="cancel" kind="link">
+        <Config>
+          <Label>Cancel</Label>
+          <Url>/admin/communication/campaigns</Url>
+          <Variant>ghost</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

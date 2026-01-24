@@ -437,6 +437,29 @@ export const TYPES = {
   IAICreditPackageAdapter: Symbol.for('IAICreditPackageAdapter'),
   IAICreditPurchaseAdapter: Symbol.for('IAICreditPurchaseAdapter'),
   IAICreditTransactionAdapter: Symbol.for('IAICreditTransactionAdapter'),
+
+  // ==================== Communication Module ====================
+  // Note: These are separate from the Donation Campaign system
+
+  // Communication Services
+  CommunicationService: Symbol.for('CommunicationService'),
+  CommCampaignService: Symbol.for('CommCampaignService'),
+  TemplateService: Symbol.for('TemplateService'),
+  RecipientService: Symbol.for('RecipientService'),
+  DeliveryService: Symbol.for('DeliveryService'),
+  CommunicationAIService: Symbol.for('CommunicationAIService'),
+
+  // Communication Adapters
+  ICommCampaignAdapter: Symbol.for('ICommCampaignAdapter'),
+  ITemplateAdapter: Symbol.for('ITemplateAdapter'),
+  IRecipientAdapter: Symbol.for('IRecipientAdapter'),
+  IPreferenceAdapter: Symbol.for('IPreferenceAdapter'),
+
+  // Communication Repositories
+  ICommCampaignRepository: Symbol.for('ICommCampaignRepository'),
+  ITemplateRepository: Symbol.for('ITemplateRepository'),
+  IRecipientRepository: Symbol.for('IRecipientRepository'),
+  IPreferenceRepository: Symbol.for('IPreferenceRepository'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

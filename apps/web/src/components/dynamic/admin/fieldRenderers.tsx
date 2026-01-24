@@ -1,5 +1,6 @@
 import * as React from "react";
 import { format, isValid, parseISO } from "date-fns";
+import Link from "next/link";
 
 import { normalizeList } from "../shared";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, UploadCloud } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { AlertCircle, Loader2, Settings, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -392,16 +399,56 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
     }
     case "image":
       return <ImageUploadField field={field} value={controller.value} onChange={controller.onChange} />;
-    case "toggle":
-      return (
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2">
+    case "toggle": {
+      const toggleContent = (
+        <div className={`flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
           <Switch
             checked={Boolean(controller.value)}
             onCheckedChange={(checked) => controller.onChange(checked)}
+            disabled={disabled}
           />
           <span className="text-sm text-muted-foreground">{basePlaceholder || "Enable"}</span>
         </div>
       );
+
+      // If disabled with a reason, wrap in tooltip
+      if (disabled && field.disabledReason) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-flex w-full">
+                  {toggleContent}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start" className="max-w-xs p-3">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-sm">{field.disabledReason.message}</p>
+                  </div>
+                  {field.disabledReason.link && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2 mt-1"
+                      asChild
+                    >
+                      <Link href={field.disabledReason.link.href}>
+                        <Settings className="h-3.5 w-3.5" />
+                        {field.disabledReason.link.label}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+
+      return toggleContent;
+    }
     case "currency":
       return (
         <Input

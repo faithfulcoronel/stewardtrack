@@ -28,6 +28,17 @@ export interface FieldVisibilityCondition {
   isFalsy?: boolean;
 }
 
+/** Configuration for displaying a reason when a field is disabled */
+export interface FieldDisabledReason {
+  /** Message explaining why the field is disabled */
+  message: string;
+  /** Optional link to resolve the disabled state */
+  link?: {
+    href: string;
+    label: string;
+  } | null;
+}
+
 export interface FormFieldConfig {
   name: string;
   label?: string | null;
@@ -63,6 +74,8 @@ export interface FormFieldConfig {
   lookupId?: string | null;
   quickCreate?: FormFieldQuickCreateConfig | null;
   disabled?: boolean | null;
+  /** Reason why the field is disabled - shown in tooltip */
+  disabledReason?: FieldDisabledReason | null;
   readOnly?: boolean | null;
   /** Auto-generate this field's value as a slug from another field (e.g., 'name') */
   deriveSlugFrom?: string | null;

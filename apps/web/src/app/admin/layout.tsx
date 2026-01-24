@@ -56,6 +56,15 @@ const NAV_SECTIONS: AdminNavSection[] = [
     ],
   },
   {
+    label: "Communication",
+    items: [
+      { title: "Dashboard", href: "/admin/communication", icon: "messaging" },
+      { title: "Campaigns", href: "/admin/communication/campaigns", icon: "campaigns" },
+      { title: "Compose", href: "/admin/communication/compose", icon: "compose" },
+      { title: "Templates", href: "/admin/communication/templates", icon: "templates" },
+    ],
+  },
+  {
     label: "Stewardship",
     items: [
       // Overview & Daily Operations (frequently used)
@@ -401,6 +410,24 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   '/admin/finance': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
     permission: 'finance:view',
+  },
+
+  // Communication - All roles for testing (permission checks disabled per plan)
+  '/admin/communication': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
+    // No permission required - testing phase
+  },
+  '/admin/communication/campaigns': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
+    // No permission required - testing phase
+  },
+  '/admin/communication/compose': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
+    // No permission required - testing phase
+  },
+  '/admin/communication/templates': {
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
+    // No permission required - testing phase
   },
 
   // Administration - AI Assistant

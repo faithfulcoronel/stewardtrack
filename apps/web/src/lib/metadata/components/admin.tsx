@@ -211,6 +211,23 @@ import {
   AdminAICreditsSettings,
   type AdminAICreditsSettingsProps,
 } from '@/components/dynamic/admin/AdminAICreditsSettings';
+// Communication Components
+import {
+  CampaignComposer,
+  type CampaignComposerProps,
+  MessageComposer,
+  type MessageComposerProps,
+  RecipientSelector,
+  type RecipientSelectorProps,
+  TemplateSelector,
+  type TemplateSelectorProps,
+  AIAssistantPanel,
+  type AIAssistantPanelProps,
+  DeliveryStats,
+  type DeliveryStatsProps,
+  TemplateEditor,
+  type TemplateEditorProps,
+} from '@/components/dynamic/admin/communication';
 
 function withoutChildren<Props extends object>(Component: React.ComponentType<Props>, displayName: string) {
   const Renderer = (props: Record<string, unknown>) => <Component {...(props as unknown as Props)} />;
@@ -638,5 +655,48 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<NotebookSectionTreeProps>(NotebookSectionTree, 'NotebookSectionTreeRenderer'),
+  },
+  // Communication Components
+  {
+    type: 'CampaignComposer',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<CampaignComposerProps>(CampaignComposer, 'CampaignComposerRenderer'),
+  },
+  {
+    type: 'MessageComposer',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<MessageComposerProps>(MessageComposer, 'MessageComposerRenderer'),
+  },
+  {
+    type: 'RecipientSelector',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<RecipientSelectorProps>(RecipientSelector, 'RecipientSelectorRenderer'),
+  },
+  {
+    type: 'TemplateSelector',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TemplateSelectorProps>(TemplateSelector, 'TemplateSelectorRenderer'),
+  },
+  {
+    type: 'AIAssistantPanel',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AIAssistantPanelProps>(AIAssistantPanel, 'AIAssistantPanelRenderer'),
+  },
+  {
+    type: 'DeliveryStats',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<DeliveryStatsProps>(DeliveryStats, 'DeliveryStatsRenderer'),
+  },
+  {
+    type: 'TemplateEditor',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TemplateEditorProps>(TemplateEditor, 'TemplateEditorRenderer'),
   },
 ];

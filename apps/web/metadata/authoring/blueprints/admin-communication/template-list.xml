@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+TEMPLATE LIST PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the template list page that shows all reusable
+message templates with filtering, category organization, and AI generation.
+
+FEATURE: Communication
+- Template list with search and filters
+- Category filtering (welcome, event, newsletter, etc.)
+- Channel filtering (email, SMS)
+- AI template generation access
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-communication"
+  route="templates"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="communication.core"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-communication-templates">
+    <Title>Message Templates</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with template metrics
+        -->
+        <Component id="templates-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="templatesHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="templatesHero.headline"/>
+            <Prop name="description" kind="binding" contract="templatesHero.description"/>
+            <Prop name="metrics" kind="binding" contract="templatesHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-template"/>
+            <Prop name="secondaryCta" kind="action" actionId="ai-generate"/>
+          </Props>
+        </Component>
+
+        <!--
+        DATA GRID: Template list with filters and actions
+        -->
+        <Component id="templates-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">All templates</Prop>
+            <Prop name="description" kind="static">Manage your reusable message templates.</Prop>
+            <Prop name="rows" kind="binding" contract="templatesTable.rows"/>
+            <Prop name="columns" kind="binding" contract="templatesTable.columns"/>
+            <Prop name="filters" kind="binding" contract="templatesTable.filters"/>
+            <Prop name="actions" kind="binding" contract="templatesTable.actions"/>
+            <Prop name="emptyState" kind="binding" contract="templatesTable.emptyState"/>
+            <Prop name="searchable" kind="static">true</Prop>
+            <Prop name="searchPlaceholder" kind="static">Search templates...</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="templatesHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Templates module eyebrow text"/>
+          <Field name="headline" path="headline" description="Template list headline"/>
+          <Field name="description" path="description" description="Template list description"/>
+          <Field name="metrics" path="metrics" description="Template statistics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.templates.list.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Template table data -->
+      <DataSource id="templatesTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Template data rows"/>
+          <Field name="columns" path="columns" description="Table column definitions"/>
+          <Field name="filters" path="filters" description="Filter configurations"/>
+          <Field name="actions" path="actions" description="Row action definitions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.templates.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-template" kind="link">
+        <Config>
+          <Label>Create template</Label>
+          <Url>/admin/communication/templates/new</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="ai-generate" kind="link">
+        <Config>
+          <Label>AI Generate</Label>
+          <Url>/admin/communication/templates/generate</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>
