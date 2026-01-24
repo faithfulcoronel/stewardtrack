@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { useState, useCallback } from 'react';
 import {
-  Plus,
   Trash2,
   GripVertical,
   Settings2,
@@ -17,6 +16,10 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  BookOpen,
+  Users,
+  Presentation,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,7 +40,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { useFormValue } from '@/lib/metadata/context';
+import { Badge } from '@/components/ui/badge';
+import { useFormValue, useFormValues } from '@/lib/metadata/context';
 
 interface FormField {
   id: string;
@@ -64,6 +68,146 @@ const FIELD_TYPES = [
   { value: 'select', label: 'Dropdown', icon: List },
   { value: 'checkbox', label: 'Checkbox', icon: ToggleLeft },
   { value: 'textarea', label: 'Long Text', icon: FileText },
+];
+
+// Registration Form Templates - Frontend driven, users can customize after applying
+interface RegistrationTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: typeof BookOpen;
+  fields: Omit<FormField, 'id'>[];
+}
+
+const REGISTRATION_TEMPLATES: RegistrationTemplate[] = [
+  {
+    id: 'seminar',
+    name: 'Seminar',
+    description: 'Fields for educational seminars and workshops',
+    icon: BookOpen,
+    fields: [
+      {
+        type: 'select',
+        label: 'How did you hear about this seminar?',
+        placeholder: 'Select an option',
+        required: false,
+        options: ['Social Media', 'Church Announcement', 'Friend/Family', 'Email Newsletter', 'Website', 'Other'],
+        helpText: 'Help us know how to reach more people',
+      },
+      {
+        type: 'select',
+        label: 'Experience Level',
+        placeholder: 'Select your level',
+        required: true,
+        options: ['Beginner', 'Intermediate', 'Advanced'],
+        helpText: 'This helps us tailor the content',
+      },
+      {
+        type: 'textarea',
+        label: 'What do you hope to learn?',
+        placeholder: 'Share your learning goals...',
+        required: false,
+        helpText: 'Let us know your expectations',
+      },
+      {
+        type: 'checkbox',
+        label: 'I would like to receive seminar materials via email',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'conference',
+    name: 'Conference',
+    description: 'Fields for multi-day conferences and events',
+    icon: Presentation,
+    fields: [
+      {
+        type: 'select',
+        label: 'Which days will you attend?',
+        placeholder: 'Select attendance',
+        required: true,
+        options: ['All Days', 'Day 1 Only', 'Day 2 Only', 'Day 3 Only'],
+      },
+      {
+        type: 'select',
+        label: 'Meal Preference',
+        placeholder: 'Select meal preference',
+        required: true,
+        options: ['Regular', 'Vegetarian', 'Vegan', 'Gluten-Free', 'No Meal Needed'],
+        helpText: 'For catering purposes',
+      },
+      {
+        type: 'text',
+        label: 'Dietary Restrictions/Allergies',
+        placeholder: 'e.g., Nut allergy, dairy-free',
+        required: false,
+        helpText: 'Please specify any food allergies',
+      },
+      {
+        type: 'select',
+        label: 'T-Shirt Size',
+        placeholder: 'Select size',
+        required: false,
+        options: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+        helpText: 'For conference merchandise',
+      },
+      {
+        type: 'checkbox',
+        label: 'I need accommodation assistance',
+        required: false,
+        helpText: 'Check if you need help finding nearby accommodation',
+      },
+      {
+        type: 'textarea',
+        label: 'Special Requirements',
+        placeholder: 'Accessibility needs, childcare, etc.',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'fellowship',
+    name: 'Fellowship',
+    description: 'Fields for social gatherings and fellowship events',
+    icon: Users,
+    fields: [
+      {
+        type: 'number',
+        label: 'Number of Family Members Attending',
+        placeholder: 'Including yourself',
+        required: true,
+        helpText: 'Total number in your party',
+      },
+      {
+        type: 'text',
+        label: 'Names of Additional Guests',
+        placeholder: 'e.g., John (spouse), Mary (child)',
+        required: false,
+        helpText: 'List names and relationship',
+      },
+      {
+        type: 'select',
+        label: 'Will you bring a dish to share?',
+        placeholder: 'Select an option',
+        required: false,
+        options: ['Yes - Main Dish', 'Yes - Side Dish', 'Yes - Dessert', 'Yes - Drinks', 'No'],
+        helpText: 'Potluck contribution (optional)',
+      },
+      {
+        type: 'text',
+        label: 'Dish Description',
+        placeholder: 'What will you bring?',
+        required: false,
+        helpText: 'Brief description of your dish',
+      },
+      {
+        type: 'checkbox',
+        label: 'I can help with setup/cleanup',
+        required: false,
+      },
+    ],
+  },
 ];
 
 const generateId = () => `field_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -238,7 +382,12 @@ export function RegistrationFormBuilder({
   onChange,
   className,
 }: RegistrationFormBuilderProps) {
-  const [fields, setFields] = useState<FormField[]>(value);
+  // Get form context for reading/writing registration form schema
+  const formContext = useFormValues();
+
+  // Read initial value from form context or props
+  const initialFields = formContext?.getValue<FormField[]>('registrationFormSchema') ?? value;
+  const [fields, setFields] = useState<FormField[]>(initialFields);
 
   // Only show when registration is required
   const registrationRequired = useFormValue<boolean>('registrationRequired');
@@ -294,10 +443,29 @@ export function RegistrationFormBuilder({
     });
   }, []);
 
-  // Sync changes to parent
+  // Apply template - adds template fields to existing fields (or replaces if empty)
+  const handleApplyTemplate = useCallback((template: RegistrationTemplate) => {
+    const newFields: FormField[] = template.fields.map((field) => ({
+      ...field,
+      id: generateId(),
+    }));
+
+    setFields((prev) => {
+      // If no existing fields, just use the template
+      if (prev.length === 0) {
+        return newFields;
+      }
+      // Otherwise append template fields to existing
+      return [...prev, ...newFields];
+    });
+  }, []);
+
+  // Sync changes to parent and form context
   React.useEffect(() => {
     onChange?.(fields);
-  }, [fields, onChange]);
+    // Write back to form context so it's included in form submission
+    formContext?.setValue('registrationFormSchema', fields);
+  }, [fields, onChange, formContext]);
 
   // Hide the entire component if registration is not required
   if (!registrationRequired) {
@@ -315,6 +483,46 @@ export function RegistrationFormBuilder({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Template Selection Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">Quick Start Templates</p>
+              <Badge variant="secondary" className="text-xs">Click to apply</Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {REGISTRATION_TEMPLATES.map((template) => {
+                const TemplateIcon = template.icon;
+                return (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => handleApplyTemplate(template)}
+                    className="group relative flex flex-col items-start p-4 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20">
+                        <TemplateIcon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-medium text-sm">{template.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {template.description}
+                    </p>
+                    <span className="text-xs text-muted-foreground mt-2">
+                      {template.fields.length} fields
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Templates add preconfigured fields. You can customize or remove them after applying.
+            </p>
+          </div>
+
+          <div className="border-t pt-4" />
+
           {/* Field List */}
           {fields.length === 0 ? (
             <div className="text-center py-8 border-2 border-dashed rounded-lg">

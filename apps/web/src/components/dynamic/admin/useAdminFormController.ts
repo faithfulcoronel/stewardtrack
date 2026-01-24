@@ -6,7 +6,7 @@ import { useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/n
 
 import { normalizeList } from "../shared";
 import { executeMetadataAction } from "@/lib/metadata/actions/execute";
-import { useMetadataClientContext } from "@/lib/metadata/context";
+import { useMetadataClientContext, useFormValues } from "@/lib/metadata/context";
 import { toast } from "sonner";
 
 import type { AdminFormSectionProps, FormFieldConfig } from "./types";
@@ -58,6 +58,7 @@ export function useAdminFormController(props: AdminFormSectionProps) {
   );
 
   const metadataContext = useMetadataClientContext();
+  const formValuesContext = useFormValues();
 
   const form = useForm<Record<string, unknown>>({
     defaultValues,
@@ -142,16 +143,25 @@ export function useAdminFormController(props: AdminFormSectionProps) {
         const familyMemberships = form.getValues('familyMemberships');
         console.log('[useAdminFormController] familyMemberships from getValues:', familyMemberships);
 
-        // Merge the dynamically registered familyMemberships into the values
+        // Get registrationFormSchema from form context since RegistrationFormBuilder writes there
+        // (it's a sibling component that uses formValuesContext.setValue)
+        const registrationFormSchemaFromContext = formValuesContext?.getValue('registrationFormSchema');
+        console.log('[useAdminFormController] registrationFormSchema from context:', registrationFormSchemaFromContext);
+
+        // Merge the dynamically registered fields into the values
         const mergedValues = {
           ...values,
           familyMemberships: familyMemberships !== undefined ? familyMemberships : values.familyMemberships,
+          // Use registrationFormSchema from context if available (updated by RegistrationFormBuilder)
+          registrationFormSchema: registrationFormSchemaFromContext !== undefined
+            ? registrationFormSchemaFromContext
+            : values.registrationFormSchema,
         };
-        console.log('[useAdminFormController] Merged values familyMemberships:', mergedValues.familyMemberships);
+        console.log('[useAdminFormController] Merged registrationFormSchema:', mergedValues.registrationFormSchema);
 
         await submitHandler.handleSubmit(mergedValues);
       }),
-    [form, submitHandler],
+    [form, submitHandler, formValuesContext],
   );
 
   return {
@@ -163,7 +173,7 @@ export function useAdminFormController(props: AdminFormSectionProps) {
 }
 
 // Hidden fields that should be included in form values even without explicit form fields
-const HIDDEN_FORM_FIELDS = ['householdId', 'memberId', 'familyMemberships'] as const;
+const HIDDEN_FORM_FIELDS = ['householdId', 'memberId', 'familyMemberships', 'scheduleId', 'ministryId', 'registrationFormSchema', 'coverPhotoUrl'] as const;
 
 function buildDefaultValues(
   fields: FormFieldConfig[],

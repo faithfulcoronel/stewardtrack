@@ -158,7 +158,12 @@ const handleScheduleSave: MetadataActionHandler = async (
       return { success: false, message: "No form data provided" };
     }
 
-    const scheduleId = execution.context.params?.scheduleId as string | undefined;
+    // Look for scheduleId in multiple places:
+    // 1. From context params (URL params)
+    // 2. From form values (included in initialValues)
+    const scheduleIdFromContext = execution.context.params?.scheduleId as string | undefined;
+    const scheduleIdFromForm = formData.scheduleId as string | undefined;
+    const scheduleId = scheduleIdFromContext || scheduleIdFromForm;
     const isEditMode = !!scheduleId && scheduleId !== 'new';
 
     const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
@@ -190,6 +195,7 @@ const handleScheduleSave: MetadataActionHandler = async (
       virtual_meeting_url: (formData.virtualMeetingUrl as string) || null,
       capacity: formData.capacity ? Number(formData.capacity) : null,
       registration_required: formData.registrationRequired === true || formData.registrationRequired === 'true',
+      registration_form_schema: Array.isArray(formData.registrationFormSchema) ? formData.registrationFormSchema : [],
       is_active: formData.isActive === true || formData.isActive === 'true',
     };
 

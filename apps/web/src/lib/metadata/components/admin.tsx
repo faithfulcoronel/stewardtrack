@@ -154,6 +154,10 @@ import {
   type MinistryListViewProps,
   ScheduleQRCode,
   type ScheduleQRCodeProps,
+  ScheduleCoverPhotoUpload,
+  type ScheduleCoverPhotoUploadProps,
+  ScheduleRegistrationQRCode,
+  type ScheduleRegistrationQRCodeProps,
 } from '@/components/dynamic/admin/scheduler';
 import {
   AdminSyncCard,
@@ -526,6 +530,18 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<ScheduleQRCodeProps>(ScheduleQRCode, 'ScheduleQRCodeRenderer'),
+  },
+  {
+    type: 'ScheduleCoverPhotoUpload',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ScheduleCoverPhotoUploadProps>(ScheduleCoverPhotoUpload, 'ScheduleCoverPhotoUploadRenderer'),
+  },
+  {
+    type: 'ScheduleRegistrationQRCode',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ScheduleRegistrationQRCodeProps>(ScheduleRegistrationQRCode, 'ScheduleRegistrationQRCodeRenderer'),
   },
   {
     type: 'AdminSyncCard',

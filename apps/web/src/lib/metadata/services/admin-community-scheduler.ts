@@ -8,6 +8,7 @@ import type { MinistryService } from '@/services/MinistryService';
 import type { SchedulerService } from '@/services/SchedulerService';
 import type { ScheduleOccurrenceService } from '@/services/ScheduleOccurrenceService';
 import type { MemberProfileService } from '@/services/MemberProfileService';
+import type { IScheduleRegistrationService } from '@/services/ScheduleRegistrationService';
 import { getTenantTimezone, formatDate, formatTime } from './datetime-utils';
 
 // ==================== SCHEDULER DASHBOARD HANDLERS ====================
@@ -541,7 +542,7 @@ function formatOccurrenceStatus(status: string | null | undefined): string {
  * Resolves the hero section for the ministry detail page.
  */
 const resolveMinistryDetailHero: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
 
   // If no ministry ID, return default for new ministry
   if (!ministryId || ministryId === 'new') {
@@ -587,7 +588,7 @@ const resolveMinistryDetailHero: ServiceDataSourceHandler = async (request) => {
  * Resolves the ministry context for the detail page.
  */
 const resolveMinistryDetailContext: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
 
   if (!ministryId || ministryId === 'new') {
     return { ministry: null, isNew: true };
@@ -612,7 +613,7 @@ const resolveMinistryDetailContext: ServiceDataSourceHandler = async (request) =
  * Resolves the ministry summary data.
  */
 const resolveMinistryDetailSummary: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
 
   if (!ministryId || ministryId === 'new') {
     return { summary: null };
@@ -654,7 +655,7 @@ const resolveMinistryDetailSummary: ServiceDataSourceHandler = async (request) =
  * Resolves the schedules table for a specific ministry.
  */
 const resolveMinistryDetailSchedules: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
 
   if (!ministryId || ministryId === 'new') {
     return {
@@ -738,7 +739,7 @@ const resolveAvailableMembers: ServiceDataSourceHandler = async () => {
  * Context-aware: shows different content for create vs edit mode.
  */
 const resolveMinistryManageHero: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
   const isEditMode = ministryId && ministryId !== 'new';
 
   if (!isEditMode) {
@@ -789,7 +790,7 @@ const resolveMinistryManageHero: ServiceDataSourceHandler = async (request) => {
  * Provides form fields, initial values, and submission configuration.
  */
 const resolveMinistryManageForm: ServiceDataSourceHandler = async (request) => {
-  const ministryId = firstParam(request.params.ministryId);
+  const ministryId = firstParam(request.params?.ministryId);
   const isEditMode = ministryId && ministryId !== 'new';
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -909,7 +910,7 @@ const resolveMinistryManageForm: ServiceDataSourceHandler = async (request) => {
  * Resolves the hero section for the schedule profile page.
  */
 const resolveScheduleProfileHero: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
 
   if (!scheduleId || scheduleId === 'new') {
     return {
@@ -964,10 +965,10 @@ const resolveScheduleProfileHero: ServiceDataSourceHandler = async (request) => 
  * Returns flat fields for direct binding in XML components.
  */
 const resolveScheduleProfileContext: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
 
   if (!scheduleId || scheduleId === 'new') {
-    return { schedule: null, scheduleId: null, scheduleName: null, isNew: true };
+    return { schedule: null, scheduleId: null, scheduleName: null, isNew: true, registrationRequired: false };
   }
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -984,6 +985,7 @@ const resolveScheduleProfileContext: ServiceDataSourceHandler = async (request) 
     scheduleId: schedule?.id ?? null,
     scheduleName: schedule?.name ?? null,
     isNew: false,
+    registrationRequired: schedule?.registration_required ?? false,
   };
 };
 
@@ -991,7 +993,7 @@ const resolveScheduleProfileContext: ServiceDataSourceHandler = async (request) 
  * Resolves the schedule summary data.
  */
 const resolveScheduleProfileSummary: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
 
   if (!scheduleId || scheduleId === 'new') {
     return { summary: null };
@@ -1042,7 +1044,7 @@ const resolveScheduleProfileSummary: ServiceDataSourceHandler = async (request) 
  * Resolves the upcoming occurrences for a schedule.
  */
 const resolveScheduleProfileOccurrences: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
 
   if (!scheduleId || scheduleId === 'new') {
     return {
@@ -1108,7 +1110,7 @@ const resolveScheduleProfileOccurrences: ServiceDataSourceHandler = async (reque
  * Resolves the hero section for the schedule manage page.
  */
 const resolveScheduleManageHero: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
   const isEditMode = scheduleId && scheduleId !== 'new';
 
   if (!isEditMode) {
@@ -1156,7 +1158,7 @@ const resolveScheduleManageHero: ServiceDataSourceHandler = async (request) => {
  * Resolves the form configuration for the schedule manage page.
  */
 const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
-  const scheduleId = firstParam(request.params.scheduleId);
+  const scheduleId = firstParam(request.params?.scheduleId);
   const isEditMode = scheduleId && scheduleId !== 'new';
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -1174,6 +1176,7 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
   }));
 
   let initialValues: {
+    scheduleId: string | null;
     ministryId: string;
     name: string;
     description: string;
@@ -1188,8 +1191,11 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     virtualMeetingUrl: string;
     capacity: number | null;
     registrationRequired: boolean;
+    registrationFormSchema: unknown[];
+    coverPhotoUrl: string | null;
     isActive: boolean;
   } = {
+    scheduleId: null,
     ministryId: '',
     name: '',
     description: '',
@@ -1204,6 +1210,8 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     virtualMeetingUrl: '',
     capacity: null,
     registrationRequired: false,
+    registrationFormSchema: [],
+    coverPhotoUrl: null,
     isActive: true,
   };
 
@@ -1213,6 +1221,7 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
 
     if (schedule) {
       initialValues = {
+        scheduleId: schedule.id,
         ministryId: schedule.ministry_id || '',
         name: schedule.name || '',
         description: schedule.description || '',
@@ -1227,6 +1236,8 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
         virtualMeetingUrl: schedule.virtual_meeting_url || '',
         capacity: schedule.capacity || null,
         registrationRequired: schedule.registration_required ?? false,
+        registrationFormSchema: schedule.registration_form_schema || [],
+        coverPhotoUrl: schedule.cover_photo_url || null,
         isActive: schedule.is_active ?? true,
       };
     }
@@ -1250,6 +1261,7 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
 
   return {
     mode: isEditMode ? 'edit' : 'create',
+    scheduleId: isEditMode ? scheduleId : null,
     form: {
       fields: [
         // Basic Information
@@ -1375,6 +1387,206 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
   };
 };
 
+// ==================== SCHEDULE REGISTRANTS HANDLER ====================
+
+/**
+ * Helper to format form response value for display
+ */
+function formatFormResponseValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'Yes' : 'No';
+  }
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+/**
+ * Resolves the registrants table for a schedule profile page.
+ * Shows all registrations across all occurrences for this schedule.
+ * Dynamically includes form response fields as columns.
+ */
+const resolveScheduleProfileRegistrants: ServiceDataSourceHandler = async (request) => {
+  const scheduleId = firstParam(request.params?.scheduleId);
+
+  if (!scheduleId || scheduleId === 'new') {
+    return {
+      rows: [],
+      columns: [],
+      emptyState: {
+        title: 'No registrations',
+        description: 'Create a schedule first to see registrations.',
+      },
+    };
+  }
+
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Get tenant timezone (cached)
+  const timezone = await getTenantTimezone();
+
+  const schedulerService = container.get<SchedulerService>(TYPES.SchedulerService);
+  const occurrenceService = container.get<ScheduleOccurrenceService>(TYPES.ScheduleOccurrenceService);
+  const registrationService = container.get<IScheduleRegistrationService>(TYPES.ScheduleRegistrationService);
+
+  // Get schedule to access form schema
+  const schedule = await schedulerService.getById(scheduleId, tenant.id);
+  const formSchema = schedule?.registration_form_schema || [];
+
+  // Get all occurrences for this schedule
+  const occurrences = await occurrenceService.getByFilters(
+    { scheduleId },
+    tenant.id
+  );
+
+  if (occurrences.length === 0) {
+    return {
+      rows: [],
+      columns: [],
+      emptyState: {
+        title: 'No registrations yet',
+        description: 'Generate occurrences and enable registration to see registrations here.',
+      },
+    };
+  }
+
+  // Collect all unique form field IDs from registrations (in case schema changed over time)
+  // NOTE: Form responses use field.id as the key, not field.name
+  const formFieldsMap = new Map<string, { id: string; label: string }>();
+
+  // Add fields from schema first (preserves intended order)
+  for (const field of formSchema) {
+    formFieldsMap.set(field.id, { id: field.id, label: field.label });
+  }
+
+  // Fetch registrations for all occurrences
+  const allRegistrations: Array<Record<string, unknown>> = [];
+
+  for (const occurrence of occurrences) {
+    const registrations = await registrationService.getByOccurrence(occurrence.id, tenant.id);
+    const views = registrationService.toRegistrationViewList(registrations);
+
+    for (const reg of views) {
+      // Build base row data
+      const row: Record<string, unknown> = {
+        id: reg.id,
+        displayName: reg.displayName,
+        displayEmail: reg.displayEmail ?? '',
+        displayPhone: reg.displayPhone ?? '',
+        partySize: reg.partySize,
+        confirmationCode: reg.confirmationCode ?? '',
+        status: reg.status,
+        statusLabel: reg.statusLabel,
+        registrationDate: formatDate(reg.registrationDate, timezone, { month: 'short', day: 'numeric', year: 'numeric' }),
+        occurrenceDate: formatDate(new Date(occurrence.start_at), timezone, { month: 'short', day: 'numeric', year: 'numeric' }),
+        specialRequests: reg.specialRequests ?? '',
+      };
+
+      // Flatten form responses into the row
+      const formResponses = reg.formResponses || {};
+      for (const [key, value] of Object.entries(formResponses)) {
+        // Add any fields not in schema (for backwards compatibility)
+        if (!formFieldsMap.has(key)) {
+          // Field not in current schema - use a generic label
+          // (This can happen if schema was modified after registrations were created)
+          formFieldsMap.set(key, { id: key, label: `Field ${formFieldsMap.size + 1}` });
+        }
+        // Store formatted value with a prefix to distinguish from base fields
+        row[`form_${key}`] = formatFormResponseValue(value);
+      }
+
+      allRegistrations.push(row);
+    }
+  }
+
+  // Sort by registration date (newest first)
+  allRegistrations.sort((a, b) => {
+    const dateA = new Date(a.registrationDate as string).getTime();
+    const dateB = new Date(b.registrationDate as string).getTime();
+    return dateB - dateA;
+  });
+
+  // Build base columns
+  const baseColumns = [
+    { field: 'displayName', headerName: 'Name', width: 180 },
+    { field: 'displayEmail', headerName: 'Email', width: 200 },
+    { field: 'displayPhone', headerName: 'Phone', width: 140 },
+    { field: 'confirmationCode', headerName: 'Confirmation', width: 120 },
+    { field: 'partySize', headerName: 'Party Size', width: 100, align: 'center' },
+    { field: 'statusLabel', headerName: 'Status', width: 100 },
+    { field: 'occurrenceDate', headerName: 'Event Date', width: 120 },
+    { field: 'registrationDate', headerName: 'Registered', width: 120 },
+  ];
+
+  // Add dynamic form field columns
+  const formFieldColumns: Array<{ field: string; headerName: string; width: number }> = [];
+  for (const [fieldName, fieldInfo] of formFieldsMap) {
+    formFieldColumns.push({
+      field: `form_${fieldName}`,
+      headerName: fieldInfo.label,
+      width: 150,
+    });
+  }
+
+  // Add special requests column at the end
+  const allColumns = [
+    ...baseColumns,
+    ...formFieldColumns,
+    { field: 'specialRequests', headerName: 'Special Requests', width: 200 },
+  ];
+
+  // Build search fields including form fields
+  const searchFields = ['displayName', 'displayEmail', 'confirmationCode', 'specialRequests'];
+  for (const [fieldName] of formFieldsMap) {
+    searchFields.push(`form_${fieldName}`);
+  }
+
+  return {
+    rows: allRegistrations,
+    columns: allColumns,
+    filters: [
+      {
+        id: 'search',
+        label: 'Search',
+        type: 'search',
+        placeholder: 'Search registrants...',
+        fields: searchFields,
+      },
+      {
+        id: 'status',
+        label: 'Status',
+        type: 'select',
+        field: 'status',
+        options: [
+          { label: 'All', value: 'all' },
+          { label: 'Registered', value: 'registered' },
+          { label: 'Waitlisted', value: 'waitlisted' },
+          { label: 'Checked In', value: 'checked_in' },
+          { label: 'No Show', value: 'no_show' },
+          { label: 'Cancelled', value: 'cancelled' },
+        ],
+      },
+    ],
+    exportable: true,
+    exportFilename: 'schedule-registrations',
+    emptyState: {
+      title: 'No registrations yet',
+      description: 'No one has registered for this schedule yet.',
+    },
+  };
+};
+
 // ==================== EXPORT HANDLERS ====================
 
 export const adminCommunitySchedulerHandlers: Record<string, ServiceDataSourceHandler> = {
@@ -1414,6 +1626,7 @@ export const adminCommunitySchedulerHandlers: Record<string, ServiceDataSourceHa
   'admin-community.scheduler.schedules.profile.context': resolveScheduleProfileContext,
   'admin-community.scheduler.schedules.profile.summary': resolveScheduleProfileSummary,
   'admin-community.scheduler.schedules.profile.occurrences': resolveScheduleProfileOccurrences,
+  'admin-community.scheduler.schedules.profile.registrants': resolveScheduleProfileRegistrants,
 
   // Schedule manage handlers
   'admin-community.scheduler.schedules.manage.hero': resolveScheduleManageHero,

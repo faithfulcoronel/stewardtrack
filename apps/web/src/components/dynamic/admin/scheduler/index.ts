@@ -41,3 +41,9 @@ export type { MinistryListViewProps } from './MinistryListView';
 
 export { ScheduleQRCode } from './ScheduleQRCode';
 export type { ScheduleQRCodeProps } from './ScheduleQRCode';
+
+export { ScheduleCoverPhotoUpload } from './ScheduleCoverPhotoUpload';
+export type { ScheduleCoverPhotoUploadProps } from './ScheduleCoverPhotoUpload';
+
+export { ScheduleRegistrationQRCode } from './ScheduleRegistrationQRCode';
+export type { ScheduleRegistrationQRCodeProps } from './ScheduleRegistrationQRCode';

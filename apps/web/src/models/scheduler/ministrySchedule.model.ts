@@ -56,6 +56,9 @@ export interface MinistrySchedule extends BaseModel {
   registration_closes_hours_before: number;
   registration_form_schema: RegistrationFormField[];
 
+  // Cover Photo (for registration pages)
+  cover_photo_url?: string | null;
+
   // Status
   is_active: boolean;
 }

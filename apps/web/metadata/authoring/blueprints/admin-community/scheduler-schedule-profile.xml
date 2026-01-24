@@ -18,6 +18,7 @@ SERVICE HANDLERS:
 - admin-community.scheduler.schedules.profile.context
 - admin-community.scheduler.schedules.profile.summary
 - admin-community.scheduler.schedules.profile.occurrences
+- admin-community.scheduler.schedules.profile.registrants
 
 ================================================================================
 -->
@@ -72,6 +73,17 @@ SERVICE HANDLERS:
         </Component>
 
         <!--
+        REGISTRATION QR CODE: Generate QR code for event registration
+        -->
+        <Component id="registration-qr" type="ScheduleRegistrationQRCode">
+          <Props>
+            <Prop name="scheduleId" kind="binding" contract="scheduleContext.scheduleId"/>
+            <Prop name="scheduleName" kind="binding" contract="scheduleContext.scheduleName"/>
+            <Prop name="registrationRequired" kind="binding" contract="scheduleContext.registrationRequired"/>
+          </Props>
+        </Component>
+
+        <!--
         OCCURRENCES TABLE: List of schedule occurrences
         -->
         <Component id="occurrences-table" type="AdminDataGridSection">
@@ -82,6 +94,22 @@ SERVICE HANDLERS:
             <Prop name="columns" kind="binding" contract="scheduleOccurrences.columns"/>
             <Prop name="actions" kind="binding" contract="scheduleOccurrences.actions"/>
             <Prop name="emptyState" kind="binding" contract="scheduleOccurrences.emptyState"/>
+          </Props>
+        </Component>
+
+        <!--
+        REGISTRANTS TABLE: List of event registrations
+        -->
+        <Component id="registrants-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">Registrants</Prop>
+            <Prop name="description" kind="static">People registered for events in this schedule.</Prop>
+            <Prop name="rows" kind="binding" contract="scheduleRegistrants.rows"/>
+            <Prop name="columns" kind="binding" contract="scheduleRegistrants.columns"/>
+            <Prop name="filters" kind="binding" contract="scheduleRegistrants.filters"/>
+            <Prop name="exportable" kind="binding" contract="scheduleRegistrants.exportable"/>
+            <Prop name="exportFilename" kind="binding" contract="scheduleRegistrants.exportFilename"/>
+            <Prop name="emptyState" kind="binding" contract="scheduleRegistrants.emptyState"/>
           </Props>
         </Component>
       </Region>
@@ -108,6 +136,7 @@ SERVICE HANDLERS:
           <Field name="scheduleId" path="scheduleId" description="Schedule ID for component binding"/>
           <Field name="scheduleName" path="scheduleName" description="Schedule name for component binding"/>
           <Field name="isNew" path="isNew" description="Is new schedule flag"/>
+          <Field name="registrationRequired" path="registrationRequired" description="Whether registration is required for this schedule"/>
         </Contract>
         <Config>
           <Handler>admin-community.scheduler.schedules.profile.context</Handler>
@@ -134,6 +163,21 @@ SERVICE HANDLERS:
         </Contract>
         <Config>
           <Handler>admin-community.scheduler.schedules.profile.occurrences</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Schedule registrants -->
+      <DataSource id="scheduleRegistrants" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Registrant rows"/>
+          <Field name="columns" path="columns" description="Column configuration"/>
+          <Field name="filters" path="filters" description="Filter configuration"/>
+          <Field name="exportable" path="exportable" description="Whether export is enabled"/>
+          <Field name="exportFilename" path="exportFilename" description="Export filename"/>
+          <Field name="emptyState" path="emptyState" description="Empty state config"/>
+        </Contract>
+        <Config>
+          <Handler>admin-community.scheduler.schedules.profile.registrants</Handler>
         </Config>
       </DataSource>
     </DataSources>

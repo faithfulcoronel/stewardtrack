@@ -49,6 +49,7 @@ export class ScheduleRegistrationAdapter
     guest_phone,
     registration_date,
     party_size,
+    confirmation_code,
     status,
     waitlist_position,
     form_responses,

@@ -335,6 +335,7 @@ export class ScheduleRegistrationService implements IScheduleRegistrationService
       isGuest,
       registrationDate: new Date(registration.registration_date),
       partySize: registration.party_size,
+      confirmationCode: registration.confirmation_code,
       status: registration.status,
       statusLabel: STATUS_LABELS[registration.status],
       waitlistPosition: registration.waitlist_position,
