@@ -388,6 +388,19 @@ export function RegistrationFormBuilder({
   // Read initial value from form context or props
   const initialFields = formContext?.getValue<FormField[]>('registrationFormSchema') ?? value;
   const [fields, setFields] = useState<FormField[]>(initialFields);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Sync initial value from form context when it becomes available
+  // (form context may be populated asynchronously after component mounts)
+  React.useEffect(() => {
+    if (hasInitialized) return;
+
+    const contextValue = formContext?.getValue<FormField[]>('registrationFormSchema');
+    if (contextValue && Array.isArray(contextValue) && contextValue.length > 0) {
+      setFields(contextValue);
+      setHasInitialized(true);
+    }
+  }, [formContext, hasInitialized]);
 
   // Only show when registration is required
   const registrationRequired = useFormValue<boolean>('registrationRequired');

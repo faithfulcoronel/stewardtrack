@@ -1220,14 +1220,21 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
     const schedule = await schedulerService.getById(scheduleId, tenant.id);
 
     if (schedule) {
+      // Normalize time format from "HH:mm:ss" to "HH:mm" (TimePicker expects HH:mm)
+      const normalizeTime = (time: string | null | undefined): string => {
+        if (!time) return '';
+        // If time has seconds (HH:mm:ss), strip them to get HH:mm
+        return time.length > 5 ? time.substring(0, 5) : time;
+      };
+
       initialValues = {
         scheduleId: schedule.id,
         ministryId: schedule.ministry_id || '',
         name: schedule.name || '',
         description: schedule.description || '',
         scheduleType: schedule.schedule_type || 'service',
-        startTime: schedule.start_time || '09:00',
-        endTime: schedule.end_time || '',
+        startTime: normalizeTime(schedule.start_time) || '09:00',
+        endTime: normalizeTime(schedule.end_time) || '',
         durationMinutes: schedule.duration_minutes || 60,
         recurrenceRule: schedule.recurrence_rule || '',
         recurrenceStartDate: schedule.recurrence_start_date || format(new Date(), 'yyyy-MM-dd'),
