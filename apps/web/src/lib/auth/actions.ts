@@ -11,6 +11,7 @@ import { clearTenantSession, writeTenantSession } from "@/lib/tenant/session-cac
 import { warmTenantSettingsCache, clearTenantSettingsCache } from "@/lib/tenant/settings-cache";
 import { renderPasswordResetEmail } from "@/emails/service/EmailTemplateService";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 
 export type SignInState = {
   error?: string;
@@ -22,49 +23,6 @@ export type ForgotPasswordState = {
   error?: string;
   success?: boolean;
 };
-
-/**
- * Verify Cloudflare Turnstile token
- */
-async function verifyTurnstileToken(token: string): Promise<{ success: boolean; error?: string }> {
-  const secretKey = process.env.TURNSTILE_SECRET_KEY;
-
-  if (!secretKey) {
-    console.warn('[Auth] TURNSTILE_SECRET_KEY not configured, skipping verification');
-    return { success: true };
-  }
-
-  try {
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      console.error('[Auth] Turnstile verification failed:', result['error-codes']);
-      return {
-        success: false,
-        error: 'Security verification failed. Please try again.'
-      };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('[Auth] Turnstile verification error:', error);
-    return {
-      success: false,
-      error: 'Security verification failed. Please try again.'
-    };
-  }
-}
 
 export async function signInWithPassword(
   _prevState: SignInState,
