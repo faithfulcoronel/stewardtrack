@@ -22,7 +22,7 @@ const requestSchema = z.object({
   context: z
     .object({
       params: z
-        .record(z.union([z.string(), z.array(z.string())]))
+        .record(z.string(), z.union([z.string(), z.array(z.string())]))
         .optional()
         .default({}),
       role: z.string().optional().nullable(),
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = requestSchema.safeParse(body);
     if (!parsed.success) {
+      console.error('Metadata action payload validation failed:', parsed.error.issues);
       return NextResponse.json({ error: 'Invalid request payload.' }, { status: 422 });
     }
     payload = parsed.data;
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
     },
     input: payload.input ?? null,
     context: {
-      params: payload.context.params,
+      params: payload.context.params as Record<string, string | string[] | undefined>,
       role: payload.context.role ?? 'guest',
     },
   };

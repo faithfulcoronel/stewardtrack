@@ -152,6 +152,8 @@ import {
   type OccurrenceListViewProps,
   MinistryListView,
   type MinistryListViewProps,
+  ScheduleQRCode,
+  type ScheduleQRCodeProps,
 } from '@/components/dynamic/admin/scheduler';
 import {
   AdminSyncCard,
@@ -518,6 +520,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<MinistryListViewProps>(MinistryListView, 'MinistryListViewRenderer'),
+  },
+  {
+    type: 'ScheduleQRCode',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<ScheduleQRCodeProps>(ScheduleQRCode, 'ScheduleQRCodeRenderer'),
   },
   {
     type: 'AdminSyncCard',

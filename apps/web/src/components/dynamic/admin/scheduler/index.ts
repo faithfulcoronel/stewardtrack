@@ -38,3 +38,6 @@ export type { OccurrenceListViewProps } from './OccurrenceListView';
 
 export { MinistryListView } from './MinistryListView';
 export type { MinistryListViewProps } from './MinistryListView';
+
+export { ScheduleQRCode } from './ScheduleQRCode';
+export type { ScheduleQRCodeProps } from './ScheduleQRCode';

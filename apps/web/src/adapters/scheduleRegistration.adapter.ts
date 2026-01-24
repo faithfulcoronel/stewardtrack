@@ -65,8 +65,8 @@ export class ScheduleRegistrationAdapter
       first_name,
       last_name,
       email,
-      phone,
-      avatar_url
+      contact_number,
+      profile_picture_url
     )
   `;
 

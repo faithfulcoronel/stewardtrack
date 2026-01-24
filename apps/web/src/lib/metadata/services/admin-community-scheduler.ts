@@ -961,12 +961,13 @@ const resolveScheduleProfileHero: ServiceDataSourceHandler = async (request) => 
 
 /**
  * Resolves the schedule context for the profile page.
+ * Returns flat fields for direct binding in XML components.
  */
 const resolveScheduleProfileContext: ServiceDataSourceHandler = async (request) => {
   const scheduleId = firstParam(request.params.scheduleId);
 
   if (!scheduleId || scheduleId === 'new') {
-    return { schedule: null, isNew: true };
+    return { schedule: null, scheduleId: null, scheduleName: null, isNew: true };
   }
 
   const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -980,6 +981,8 @@ const resolveScheduleProfileContext: ServiceDataSourceHandler = async (request) 
 
   return {
     schedule,
+    scheduleId: schedule?.id ?? null,
+    scheduleName: schedule?.name ?? null,
     isNew: false,
   };
 };

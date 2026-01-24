@@ -62,6 +62,16 @@ SERVICE HANDLERS:
         </Component>
 
         <!--
+        ATTENDANCE QR CODE: Generate QR code for self check-in
+        -->
+        <Component id="attendance-qr" type="ScheduleQRCode">
+          <Props>
+            <Prop name="scheduleId" kind="binding" contract="scheduleContext.scheduleId"/>
+            <Prop name="scheduleName" kind="binding" contract="scheduleContext.scheduleName"/>
+          </Props>
+        </Component>
+
+        <!--
         OCCURRENCES TABLE: List of schedule occurrences
         -->
         <Component id="occurrences-table" type="AdminDataGridSection">
@@ -95,6 +105,8 @@ SERVICE HANDLERS:
       <DataSource id="scheduleContext" kind="service">
         <Contract>
           <Field name="schedule" path="schedule" description="Full schedule object"/>
+          <Field name="scheduleId" path="scheduleId" description="Schedule ID for component binding"/>
+          <Field name="scheduleName" path="scheduleName" description="Schedule name for component binding"/>
           <Field name="isNew" path="isNew" description="Is new schedule flag"/>
         </Contract>
         <Config>
