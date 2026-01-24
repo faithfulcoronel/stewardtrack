@@ -165,15 +165,25 @@ export class EmailChannel implements IDeliveryChannel {
         };
       }
 
-      const { apiKey, fromEmail, fromName, replyTo } = config;
+      const { apiKey, fromEmail, fromName: configFromName, replyTo: configReplyTo } = config;
       console.log('[EmailChannel] Config loaded, fromEmail:', fromEmail);
 
       // Build email HTML using React Email templates
       const htmlBody = message.htmlBody || await this.buildDefaultHtml(message);
       console.log('[EmailChannel] HTML body length:', htmlBody?.length);
 
+      // Check for message-level overrides for fromName and replyTo
+      // These allow campaign emails to use tenant name and tenant email
+      const effectiveFromName = (message.metadata?.fromName as string | undefined) || configFromName;
+      const effectiveReplyTo = (message.metadata?.replyTo as string | undefined) || configReplyTo;
+
+      console.log('[EmailChannel] Effective from/reply-to:', {
+        fromName: effectiveFromName,
+        replyTo: effectiveReplyTo,
+      });
+
       // Build the "from" field with optional display name
-      const fromField = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+      const fromField = effectiveFromName ? `${effectiveFromName} <${fromEmail}>` : fromEmail;
 
       // Build email payload
       const emailPayload: Record<string, unknown> = {
@@ -183,9 +193,9 @@ export class EmailChannel implements IDeliveryChannel {
         html: htmlBody,
       };
 
-      // Add reply-to if configured
-      if (replyTo) {
-        emailPayload.reply_to = replyTo;
+      // Add reply-to if configured (message override or config)
+      if (effectiveReplyTo) {
+        emailPayload.reply_to = effectiveReplyTo;
       }
 
       console.log('[EmailChannel] Sending to Resend API...', {

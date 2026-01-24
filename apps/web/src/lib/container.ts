@@ -1156,4 +1156,87 @@ container.bind<AICreditService>(TYPES.AICreditService).to(AICreditService).inReq
 container.bind<AICreditPackageService>(TYPES.AICreditPackageService).to(AICreditPackageService).inRequestScope();
 container.bind<AICreditPurchaseService>(TYPES.AICreditPurchaseService).to(AICreditPurchaseService).inRequestScope();
 
+// ==================== COMMUNICATION MODULE ====================
+// Communication Adapters
+import {
+  CampaignAdapter as CommCampaignAdapter,
+  type ICampaignAdapter as ICommCampaignAdapter,
+} from '@/adapters/communication/campaign.adapter';
+import {
+  TemplateAdapter,
+  type ITemplateAdapter,
+} from '@/adapters/communication/template.adapter';
+import {
+  RecipientAdapter,
+  type IRecipientAdapter,
+} from '@/adapters/communication/recipient.adapter';
+import {
+  PreferenceAdapter,
+  type IPreferenceAdapter,
+} from '@/adapters/communication/preference.adapter';
+
+// Communication Repositories
+import {
+  CampaignRepository as CommCampaignRepository,
+  type ICampaignRepository as ICommCampaignRepository,
+} from '@/repositories/communication/campaign.repository';
+import {
+  TemplateRepository,
+  type ITemplateRepository,
+} from '@/repositories/communication/template.repository';
+import {
+  RecipientRepository,
+  type IRecipientRepository,
+} from '@/repositories/communication/recipient.repository';
+import {
+  PreferenceRepository,
+  type IPreferenceRepository,
+} from '@/repositories/communication/preference.repository';
+
+// Communication Services
+import {
+  SupabaseCommunicationService,
+  type CommunicationService,
+} from '@/services/communication/CommunicationService';
+import {
+  SupabaseCampaignService,
+  type CampaignService as CommCampaignService,
+} from '@/services/communication/CampaignService';
+import {
+  SupabaseTemplateService,
+  type TemplateService,
+} from '@/services/communication/TemplateService';
+import {
+  SupabaseRecipientService,
+  type RecipientService,
+} from '@/services/communication/RecipientService';
+import {
+  SupabaseDeliveryService,
+  type DeliveryService,
+} from '@/services/communication/DeliveryService';
+import {
+  SupabaseCommunicationAIService,
+  type ICommunicationAIService,
+} from '@/services/communication/CommunicationAIService';
+
+// Communication Adapters Binding
+container.bind<ICommCampaignAdapter>(TYPES.ICommCampaignAdapter).to(CommCampaignAdapter).inRequestScope();
+container.bind<ITemplateAdapter>(TYPES.ITemplateAdapter).to(TemplateAdapter).inRequestScope();
+container.bind<IRecipientAdapter>(TYPES.IRecipientAdapter).to(RecipientAdapter).inRequestScope();
+container.bind<IPreferenceAdapter>(TYPES.IPreferenceAdapter).to(PreferenceAdapter).inRequestScope();
+
+// Communication Repositories Binding
+container.bind<ICommCampaignRepository>(TYPES.ICommCampaignRepository).to(CommCampaignRepository).inRequestScope();
+container.bind<ITemplateRepository>(TYPES.ITemplateRepository).to(TemplateRepository).inRequestScope();
+container.bind<IRecipientRepository>(TYPES.IRecipientRepository).to(RecipientRepository).inRequestScope();
+container.bind<IPreferenceRepository>(TYPES.IPreferenceRepository).to(PreferenceRepository).inRequestScope();
+
+// Communication Services Binding
+container.bind<CommCampaignService>(TYPES.CommCampaignService).to(SupabaseCampaignService).inRequestScope();
+container.bind<TemplateService>(TYPES.TemplateService).to(SupabaseTemplateService).inRequestScope();
+container.bind<RecipientService>(TYPES.RecipientService).to(SupabaseRecipientService).inRequestScope();
+container.bind<DeliveryService>(TYPES.DeliveryService).to(SupabaseDeliveryService).inRequestScope();
+container.bind<CommunicationService>(TYPES.CommunicationService).to(SupabaseCommunicationService).inRequestScope();
+container.bind<ICommunicationAIService>(TYPES.CommunicationAIService).to(SupabaseCommunicationAIService).inRequestScope();
+
 export { container };

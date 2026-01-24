@@ -139,7 +139,9 @@
       "Bash(for type in ActionButton AdminActivityTimeline AdminAICreditsSettings AdminCarePlansCard AdminCollapsibleSection AdminDataGridSection AdminDetailPanels AdminDiscipleshipPlansCard AdminFormSection AdminGivingChart AdminIntegrationSettings AdminLookupQuickCreate AdminMemberWorkspace AdminMetricCards AdminNotificationAnalytics AdminNotificationPreferences AdminNotificationTemplates AdminQuickLinks AdminReportChartsSection AdminReportHeader AdminReportSection AdminReportSummary AdminReportTable AdminScheduledNotifications AdminSettingsTabs AdminSummaryPanelsSection AdminSyncCard AdminTransactionEntry AIChat AttendanceTracker BentoGrid CTASection DangerZone DetailPanels DonationLinkShare EventQRCode FeatureGrid FeatureSection Fragment GoalCard GoalStatusTimeline HeaderSection HeroSection KeyResultProgressCard MemberImportActions MemberProfileCard MemberProfileHeader MemberProfileLayout MemberQRCode MetricCards MinistryTeamManager NewsletterSection NotebookCard NotebookSectionTree OKRTreeView PlanningCalendar PlanningDashboard PricingSection ProfileHeader PublicEventRegistration QRScannerView QuickActionsPanel RegistrationFormBuilder RegistrationList ScheduleCalendarView StatsSection SummaryCard SuperAdminIntegrationSettings SuperAdminSystemTemplates TeamAssignmentGrid TestimonialsSection Timeline)",
       "Bash(do echo \"=== $type ===\")",
       "Bash(pnpm why:*)",
-      "Bash(pnpm update:*)"
+      "Bash(pnpm update:*)",
+      "Bash(pnpm --filter @stewardtrack/web exec grep:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\" -Filter \"*RecipientSelector*\" -Recurse -Name)"
     ],
     "deny": [],
     "ask": []

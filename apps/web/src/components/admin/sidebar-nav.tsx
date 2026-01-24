@@ -41,6 +41,11 @@ import {
   Cog,
   Bot,
   Church,
+  // Communication module icons
+  MessageSquare,
+  Send,
+  FileText,
+  PenSquare,
 } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -87,6 +92,11 @@ export const ADMIN_NAV_ICONS = {
   aiAssistant: Bot,
   // Scheduler
   ministries: Church,
+  // Communication module
+  messaging: MessageSquare,
+  campaigns: Send,
+  templates: FileText,
+  compose: PenSquare,
 } satisfies Record<string, ComponentType<{ className?: string }>>;
 
 type IconKey = keyof typeof ADMIN_NAV_ICONS;

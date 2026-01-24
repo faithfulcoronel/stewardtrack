@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+CAMPAIGN LIST PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the campaign list page that shows all communication
+campaigns with filtering, sorting, and bulk actions.
+
+FEATURE: Communication
+- Campaign list with search and filters
+- Status filtering (draft, scheduled, sent, etc.)
+- Channel filtering (email, SMS)
+- Bulk actions for campaign management
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-communication"
+  route="campaigns"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="communication.core"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-communication-campaigns">
+    <Title>Campaigns</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with campaign metrics
+        -->
+        <Component id="campaigns-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="campaignsHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="campaignsHero.headline"/>
+            <Prop name="description" kind="binding" contract="campaignsHero.description"/>
+            <Prop name="metrics" kind="binding" contract="campaignsHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="create-campaign"/>
+          </Props>
+        </Component>
+
+        <!--
+        DATA GRID: Campaign list with filters and actions
+        -->
+        <Component id="campaigns-table" type="AdminDataGridSection">
+          <Props>
+            <Prop name="title" kind="static">All campaigns</Prop>
+            <Prop name="description" kind="static">View and manage your communication campaigns.</Prop>
+            <Prop name="rows" kind="binding" contract="campaignsTable.rows"/>
+            <Prop name="columns" kind="binding" contract="campaignsTable.columns"/>
+            <Prop name="filters" kind="binding" contract="campaignsTable.filters"/>
+            <Prop name="actions" kind="binding" contract="campaignsTable.actions"/>
+            <Prop name="emptyState" kind="binding" contract="campaignsTable.emptyState"/>
+            <Prop name="searchable" kind="static">true</Prop>
+            <Prop name="searchPlaceholder" kind="static">Search campaigns...</Prop>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="campaignsHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Communication module eyebrow text"/>
+          <Field name="headline" path="headline" description="Campaign list headline"/>
+          <Field name="description" path="description" description="Campaign list description"/>
+          <Field name="metrics" path="metrics" description="Campaign statistics"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.campaigns.list.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Campaign table data -->
+      <DataSource id="campaignsTable" kind="service">
+        <Contract>
+          <Field name="rows" path="rows" description="Campaign data rows"/>
+          <Field name="columns" path="columns" description="Table column definitions"/>
+          <Field name="filters" path="filters" description="Filter configurations"/>
+          <Field name="actions" path="actions" description="Row action definitions"/>
+          <Field name="emptyState" path="emptyState" description="Empty state configuration"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.campaigns.list.table</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="create-campaign" kind="link">
+        <Config>
+          <Label>Create campaign</Label>
+          <Url>/admin/communication/compose</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

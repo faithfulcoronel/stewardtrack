@@ -60,6 +60,13 @@ import {
   ManageAccountTool,
 } from '../infrastructure/tools/plugins/accounts';
 
+// Import communication tools
+import {
+  ComposeMessageTool,
+  GenerateTemplateTool,
+  SuggestAudienceTool,
+} from '../infrastructure/tools/plugins/communication';
+
 /**
  * Configure and register all tools for the AI Assistant
  *
@@ -150,11 +157,20 @@ export async function configureTools(): Promise<ToolRegistry> {
   registry.register(new ManageAccountTool());
 
   // ============================================================================
+  // COMMUNICATION TOOLS
+  // ============================================================================
+  console.log('📧 Registering communication tools...');
+
+  // Communication tools (AI-powered message composition and audience targeting)
+  registry.register(new ComposeMessageTool());
+  registry.register(new GenerateTemplateTool());
+  registry.register(new SuggestAudienceTool());
+
+  // ============================================================================
   // TODO: Add more tool categories here
   // ============================================================================
   // - Donation Tools
   // - Event Tools
-  // - Communication Tools
   // ============================================================================
 
   console.log(`✅ Configured ${registry.count()} tools`);

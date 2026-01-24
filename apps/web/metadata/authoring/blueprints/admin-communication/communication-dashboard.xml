@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+================================================================================
+COMMUNICATION DASHBOARD PAGE - METADATA-DRIVEN ARCHITECTURE
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+This XML blueprint defines the communication dashboard that shows messaging
+statistics, recent campaign activity, and quick access to communication tools.
+
+FEATURE: Communication
+- Dashboard with messaging statistics
+- Quick links to campaigns, compose, templates
+- Recent activity feed
+- Channel overview (email, SMS)
+
+================================================================================
+-->
+<PageDefinition
+  kind="blueprint"
+  module="admin-communication"
+  route="dashboard"
+  schemaVersion="1.0.0"
+  contentVersion="1.0.0"
+  featureCode="communication.core"
+  requiredPermissions="members:view"
+  locale="en-US">
+
+  <Page id="admin-communication-dashboard">
+    <Title>Communication Dashboard</Title>
+
+    <Regions>
+      <Region id="main">
+        <!--
+        HERO SECTION: Page header with key metrics
+        -->
+        <Component id="communication-hero" type="HeroSection">
+          <Props>
+            <Prop name="variant" kind="static">stats-panel</Prop>
+            <Prop name="eyebrow" kind="binding" contract="dashboardHero.eyebrow"/>
+            <Prop name="headline" kind="binding" contract="dashboardHero.headline"/>
+            <Prop name="description" kind="binding" contract="dashboardHero.description"/>
+            <Prop name="metrics" kind="binding" contract="dashboardHero.metrics"/>
+            <Prop name="primaryCta" kind="action" actionId="compose-message"/>
+            <Prop name="secondaryCta" kind="action" actionId="view-campaigns"/>
+          </Props>
+        </Component>
+
+        <!--
+        KPI METRICS: Communication statistics
+        -->
+        <Component id="communication-kpis" type="AdminMetricCards">
+          <Props>
+            <Prop name="title" kind="static">Messaging overview</Prop>
+            <Prop name="description" kind="static">Track message delivery and engagement across all channels.</Prop>
+            <Prop name="metrics" kind="binding" contract="dashboardMetrics.items"/>
+            <Prop name="footnote" kind="static">Statistics updated in real-time.</Prop>
+          </Props>
+        </Component>
+
+        <!--
+        QUICK LINKS: Navigation to communication features
+        -->
+        <Component id="communication-quick-links" type="AdminQuickLinks">
+          <Props>
+            <Prop name="title" kind="static">Communication tools</Prop>
+            <Prop name="description" kind="static">Create campaigns, manage templates, and send messages.</Prop>
+            <Prop name="columns" kind="static">3</Prop>
+            <Prop name="links" kind="binding" contract="dashboardQuickLinks.items"/>
+            <Prop name="actions" kind="binding" contract="dashboardQuickLinks.actions"/>
+          </Props>
+        </Component>
+
+        <!--
+        RECENT ACTIVITY: Campaign activity timeline
+        -->
+        <Component id="recent-activity" type="AdminActivityTimeline">
+          <Props>
+            <Prop name="title" kind="static">Recent activity</Prop>
+            <Prop name="description" kind="static">Latest campaign and messaging activity.</Prop>
+            <Prop name="accentLabel" kind="static">New</Prop>
+            <Prop name="events" kind="binding" contract="dashboardActivity.items"/>
+          </Props>
+        </Component>
+      </Region>
+    </Regions>
+
+    <DataSources>
+      <!-- Hero section data -->
+      <DataSource id="dashboardHero" kind="service">
+        <Contract>
+          <Field name="eyebrow" path="eyebrow" description="Communication module eyebrow text"/>
+          <Field name="headline" path="headline" description="Dashboard headline"/>
+          <Field name="description" path="description" description="Dashboard description"/>
+          <Field name="metrics" path="metrics" description="Key metrics display"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.dashboard.hero</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- KPI metrics -->
+      <DataSource id="dashboardMetrics" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Messaging metric cards"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.dashboard.metrics</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Quick links -->
+      <DataSource id="dashboardQuickLinks" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Quick link navigation cards"/>
+          <Field name="actions" path="actions" description="Quick action buttons"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.dashboard.quickLinks</Handler>
+        </Config>
+      </DataSource>
+
+      <!-- Recent activity timeline -->
+      <DataSource id="dashboardActivity" kind="service">
+        <Contract>
+          <Field name="items" path="items" description="Recent campaign activity"/>
+        </Contract>
+        <Config>
+          <Handler>admin-communication.dashboard.activity</Handler>
+        </Config>
+      </DataSource>
+    </DataSources>
+
+    <Actions>
+      <Action id="compose-message" kind="link">
+        <Config>
+          <Label>Compose message</Label>
+          <Url>/admin/communication/compose</Url>
+          <Variant>primary</Variant>
+        </Config>
+      </Action>
+      <Action id="view-campaigns" kind="link">
+        <Config>
+          <Label>View campaigns</Label>
+          <Url>/admin/communication/campaigns</Url>
+          <Variant>secondary</Variant>
+        </Config>
+      </Action>
+    </Actions>
+  </Page>
+</PageDefinition>

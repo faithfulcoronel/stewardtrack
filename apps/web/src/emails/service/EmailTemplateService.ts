@@ -80,6 +80,9 @@ import { ErrorReportEmail } from '../templates/ErrorReportEmail';
 // Subscription Templates
 import { TenantSubscriptionWelcomeEmail } from '../templates/TenantSubscriptionWelcomeEmail';
 
+// Campaign Templates
+import { CampaignEmail } from '../templates/CampaignEmail';
+
 /** Default base URL for email assets */
 const DEFAULT_BASE_URL = 'https://stewardtrack.com';
 
@@ -1606,7 +1609,9 @@ export type EmailTemplateType =
   | 'system-announcement'
   | 'error-report'
   // Subscription
-  | 'tenant-subscription-welcome';
+  | 'tenant-subscription-welcome'
+  // Campaign
+  | 'campaign';
 
 /**
  * Renders an email template by type.
@@ -1728,7 +1733,44 @@ export async function renderEmailByType(
     case 'tenant-subscription-welcome':
       return await renderTenantSubscriptionWelcomeEmail(data as unknown as TenantSubscriptionWelcomeEmailData, options);
 
+    // Campaign
+    case 'campaign':
+      return await renderCampaignEmail(data as unknown as CampaignEmailData, options);
+
     default:
       throw new Error(`Unknown email template type: ${templateType}`);
   }
+}
+
+// =============================================================================
+// Campaign Email Data Interfaces & Render Functions
+// =============================================================================
+
+export interface CampaignEmailData {
+  /** Email preview text */
+  preview?: string;
+  /** Email subject (used as fallback preview) */
+  subject?: string;
+  /** Custom HTML content for the campaign */
+  contentHtml: string;
+}
+
+/**
+ * Renders a campaign email template to HTML.
+ * Wraps custom campaign HTML content in the standard email layout with header and footer.
+ */
+export async function renderCampaignEmail(
+  data: CampaignEmailData,
+  options: EmailRenderOptions = {}
+): Promise<string> {
+  const element = React.createElement(CampaignEmail, {
+    preview: data.preview,
+    subject: data.subject,
+    contentHtml: data.contentHtml,
+    tenantName: options.tenantName,
+    tenantLogoUrl: options.tenantLogoUrl,
+    baseUrl: options.baseUrl || DEFAULT_BASE_URL,
+  });
+
+  return await renderEmail(element);
 }
