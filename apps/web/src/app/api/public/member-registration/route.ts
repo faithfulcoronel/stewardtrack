@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { PublicMemberRegistrationService } from "@/services/PublicMemberRegistrationService";
+import { verifyTurnstileToken, isTurnstileConfigured } from "@/lib/auth/turnstile";
 
 // Force Node.js runtime for this route
 export const runtime = "nodejs";
@@ -19,59 +20,6 @@ interface RegistrationRequest {
   password: string;
   confirmPassword: string;
   turnstileToken?: string;
-}
-
-/**
- * Verify Cloudflare Turnstile token
- */
-async function verifyTurnstileToken(
-  token: string
-): Promise<{ success: boolean; error?: string }> {
-  const secretKey = process.env.TURNSTILE_SECRET_KEY;
-
-  if (!secretKey) {
-    console.warn(
-      "[Member Registration API] TURNSTILE_SECRET_KEY not configured, skipping verification"
-    );
-    return { success: true };
-  }
-
-  try {
-    const response = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          secret: secretKey,
-          response: token,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!result.success) {
-      console.error(
-        "[Member Registration API] Turnstile verification failed:",
-        result["error-codes"]
-      );
-      return {
-        success: false,
-        error: "Security verification failed. Please try again.",
-      };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error("[Member Registration API] Turnstile verification error:", error);
-    return {
-      success: false,
-      error: "Security verification failed. Please try again.",
-    };
-  }
 }
 
 /**
@@ -118,7 +66,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    } else if (process.env.TURNSTILE_SECRET_KEY) {
+    } else if (isTurnstileConfigured()) {
       // If Turnstile is configured but no token provided, reject the request
       return NextResponse.json(
         { success: false, error: "Security verification required" },

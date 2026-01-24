@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { decodeRegistrationToken, isRegistrationTokenValid } from '@/lib/tokens/registrationToken';
+import { verifyTurnstileToken } from '@/lib/auth/turnstile';
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -194,7 +195,37 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       special_requests,
       form_responses,
       occurrence_id, // Optional: specific occurrence
+      turnstile_token, // CAPTCHA token
+      terms_accepted, // Terms & Privacy acceptance
     } = body;
+
+    // Verify CAPTCHA token
+    if (!turnstile_token) {
+      return NextResponse.json(
+        { success: false, error: 'Please complete the security verification' },
+        { status: 400 }
+      );
+    }
+
+    // Get client IP for additional verification
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const remoteIp = forwardedFor?.split(',')[0]?.trim();
+
+    const turnstileResult = await verifyTurnstileToken(turnstile_token, remoteIp);
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { success: false, error: turnstileResult.error || 'Security verification failed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate terms acceptance
+    if (!terms_accepted) {
+      return NextResponse.json(
+        { success: false, error: 'You must accept the Terms of Service and Privacy Policy' },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!guest_name?.trim() || !guest_email?.trim()) {
