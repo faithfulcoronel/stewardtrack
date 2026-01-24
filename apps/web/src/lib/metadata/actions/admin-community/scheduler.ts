@@ -4,6 +4,7 @@ import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
 import type { MinistryService } from "@/services/MinistryService";
 import type { SchedulerService } from "@/services/SchedulerService";
+import type { FinancialSourceService } from "@/services/FinancialSourceService";
 import type { MinistryCategory } from "@/models/scheduler/ministry.model";
 import type { ScheduleType, LocationType } from "@/models/scheduler/ministrySchedule.model";
 
@@ -200,6 +201,17 @@ const handleScheduleSave: MetadataActionHandler = async (
 
     // Validate registration fee when online payment is enabled
     if (acceptOnlinePayment) {
+      // Check if a financial source is configured for online payments (donation destination)
+      const financialSourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+      const donationDestination = await financialSourceService.getDonationDestination(tenant.id);
+
+      if (!donationDestination) {
+        return {
+          success: false,
+          message: "Online payment cannot be enabled. Please configure a financial source with payout settings for online donations first. Go to Finance > Sources to set up a donation destination."
+        };
+      }
+
       const feeAmount = formData.registrationFeeAmount ? Number(formData.registrationFeeAmount) : 0;
       if (feeAmount <= 0) {
         return { success: false, message: "Registration fee amount is required when accepting online payments" };

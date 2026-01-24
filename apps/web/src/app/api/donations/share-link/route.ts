@@ -4,10 +4,12 @@ import { encodeTenantToken } from '@/lib/tokens/shortUrlTokens';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { TenantService } from '@/services/TenantService';
+import type { FinancialSourceService } from '@/services/FinancialSourceService';
 
 /**
  * GET /api/donations/share-link
  * Returns the public donation link for the current tenant
+ * Also checks if online donations are properly configured
  */
 export async function GET() {
   try {
@@ -31,6 +33,26 @@ export async function GET() {
       );
     }
 
+    // Check if online donations are properly configured (financial source with payout settings)
+    const financialSourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+    const donationDestination = await financialSourceService.getDonationDestination(tenantId);
+
+    const isConfigured = !!donationDestination;
+
+    // If not configured, return status without generating the link
+    if (!isConfigured) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          tenantId,
+          tenantName: tenant.name,
+          isConfigured: false,
+          configurationRequired: true,
+          message: 'Online donations are not configured. Please set up a financial source with payout settings.',
+        },
+      });
+    }
+
     // Generate the donation token
     const token = encodeTenantToken(tenantId);
 
@@ -47,6 +69,7 @@ export async function GET() {
         donationUrl,
         // Short URL format for QR codes and sharing
         shortPath: `/donate/${token}`,
+        isConfigured: true,
       },
     });
   } catch (error) {

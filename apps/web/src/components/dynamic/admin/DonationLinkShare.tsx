@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, QrCode, ExternalLink, Share2, Loader2, Link2 } from 'lucide-react';
+import { Copy, Check, QrCode, ExternalLink, Share2, Loader2, Link2, AlertCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,14 +18,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface DonationLinkData {
   tenantId: string;
   tenantName: string;
-  token: string;
-  donationUrl: string;
-  shortPath: string;
+  token?: string;
+  donationUrl?: string;
+  shortPath?: string;
+  isConfigured: boolean;
+  configurationRequired?: boolean;
+  message?: string;
 }
 
 export interface DonationLinkShareProps {
@@ -37,15 +47,21 @@ export function DonationLinkShare({
   triggerVariant = 'outline',
 }: DonationLinkShareProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [linkData, setLinkData] = useState<DonationLinkData | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Check configuration status on mount
   useEffect(() => {
-    if (isOpen && !linkData) {
+    fetchDonationLink();
+  }, []);
+
+  // Refetch when dialog opens
+  useEffect(() => {
+    if (isOpen) {
       fetchDonationLink();
     }
-  }, [isOpen, linkData]);
+  }, [isOpen]);
 
   const fetchDonationLink = async () => {
     setIsLoading(true);
@@ -66,8 +82,10 @@ export function DonationLinkShare({
     }
   };
 
+  const isConfigured = linkData?.isConfigured ?? false;
+
   const handleCopyLink = async () => {
-    if (!linkData) return;
+    if (!linkData?.donationUrl) return;
 
     try {
       await navigator.clipboard.writeText(linkData.donationUrl);
@@ -80,12 +98,12 @@ export function DonationLinkShare({
   };
 
   const handleOpenLink = () => {
-    if (!linkData) return;
+    if (!linkData?.donationUrl) return;
     window.open(linkData.donationUrl, '_blank');
   };
 
   const handleShare = async () => {
-    if (!linkData) return;
+    if (!linkData?.donationUrl) return;
 
     if (navigator.share) {
       try {
@@ -131,6 +149,69 @@ export function DonationLinkShare({
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
+  // If still loading initial state, show loading button
+  if (isLoading && !linkData) {
+    return (
+      <Button
+        variant={triggerVariant}
+        disabled
+        className={cn(
+          "gap-2",
+          triggerVariant === 'outline' && "border-border/60"
+        )}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {triggerLabel}
+      </Button>
+    );
+  }
+
+  // If not configured, show disabled button with tooltip
+  if (!isConfigured) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex">
+              <Button
+                variant={triggerVariant}
+                disabled
+                className={cn(
+                  "gap-2 cursor-not-allowed opacity-60",
+                  triggerVariant === 'outline' && "border-border/60"
+                )}
+              >
+                <Share2 className="h-4 w-4" />
+                {triggerLabel}
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs p-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-sm">
+                  Online donations require a financial source with payout settings configured.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2 mt-1"
+                asChild
+              >
+                <Link href="/admin/finance/sources">
+                  <Settings className="h-3.5 w-3.5" />
+                  Configure Financial Sources
+                </Link>
+              </Button>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -163,7 +244,7 @@ export function DonationLinkShare({
             </div>
             <p className="text-sm text-muted-foreground">Loading donation link...</p>
           </div>
-        ) : linkData ? (
+        ) : linkData && linkData.donationUrl ? (
           <Tabs defaultValue="link" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-muted/50 rounded-xl">
               <TabsTrigger

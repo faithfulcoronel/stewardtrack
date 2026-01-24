@@ -9,6 +9,7 @@ import type { SchedulerService } from '@/services/SchedulerService';
 import type { ScheduleOccurrenceService } from '@/services/ScheduleOccurrenceService';
 import type { MemberProfileService } from '@/services/MemberProfileService';
 import type { IScheduleRegistrationService } from '@/services/ScheduleRegistrationService';
+import type { FinancialSourceService } from '@/services/FinancialSourceService';
 import { getTenantTimezone, formatDate, formatTime } from './datetime-utils';
 
 // ==================== SCHEDULER DASHBOARD HANDLERS ====================
@@ -1178,6 +1179,11 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
   // Use tenant's default currency for registration fees
   const tenantDefaultCurrency = tenant.currency || 'USD';
 
+  // Check if online payments are properly configured (financial source with payout settings)
+  const financialSourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+  const donationDestination = await financialSourceService.getDonationDestination(tenant.id);
+  const isOnlinePaymentConfigured = !!donationDestination;
+
   let initialValues: {
     scheduleId: string | null;
     ministryId: string;
@@ -1396,11 +1402,21 @@ const resolveScheduleManageForm: ServiceDataSourceHandler = async (request) => {
           name: 'acceptOnlinePayment',
           label: 'Accept online payment',
           type: 'toggle',
-          helperText: 'Accept registration fees via Xendit (credit card, e-wallet, bank transfer)',
+          helperText: isOnlinePaymentConfigured
+            ? 'Accept registration fees via Xendit (credit card, e-wallet, bank transfer)'
+            : 'Configure a financial source with payout settings to enable online payments',
           visibleWhen: {
             field: 'registrationRequired',
             isTruthy: true,
           },
+          disabled: !isOnlinePaymentConfigured,
+          disabledReason: !isOnlinePaymentConfigured ? {
+            message: 'Online payments require a financial source with payout settings configured.',
+            link: {
+              href: '/admin/finance/sources',
+              label: 'Configure Financial Sources',
+            },
+          } : null,
         },
         {
           name: 'registrationFeeAmount',

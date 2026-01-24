@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { DonationService } from '@/services/DonationService';
+import type { FinancialSourceService } from '@/services/FinancialSourceService';
 import { decodeTenantToken } from '@/lib/tokens/shortUrlTokens';
 import type { CreateDonationDto } from '@/models/donation.model';
 
@@ -86,6 +87,20 @@ export async function POST(request: NextRequest) {
     if (!donationData.terms_accepted) {
       return NextResponse.json(
         { success: false, error: 'Terms and conditions must be accepted' },
+        { status: 400 }
+      );
+    }
+
+    // Check if online donations are properly configured (financial source with payout settings)
+    const financialSourceService = container.get<FinancialSourceService>(TYPES.FinancialSourceService);
+    const donationDestination = await financialSourceService.getDonationDestination(tenantId);
+
+    if (!donationDestination) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Online donations are not available for this organization. Please contact the church administrator.'
+        },
         { status: 400 }
       );
     }
