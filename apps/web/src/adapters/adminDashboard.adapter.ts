@@ -320,7 +320,7 @@ export class AdminDashboardAdapter implements IAdminDashboardAdapter {
     const averageDonation = donationCount > 0 ? totalDonations / donationCount : 0;
 
     // Get tenant currency
-    let currency = 'USD';
+    let currency = 'PHP';
     if (tenantId) {
       const { data: tenant } = await supabase
         .from('tenants')

@@ -415,7 +415,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
             if (Number.isNaN(amount)) {
               return <span className="text-muted-foreground/50">—</span>;
             }
-            const currency = column.currency?.currency ?? "USD";
+            const currency = column.currency?.currency ?? "PHP";
             const notation = column.currency?.notation ?? "standard";
             return (
               <span className="font-medium tabular-nums">

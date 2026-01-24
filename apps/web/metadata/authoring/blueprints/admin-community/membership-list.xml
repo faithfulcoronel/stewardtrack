@@ -247,7 +247,7 @@
                 <Field name="currency">
                   <Object>
                     <Field name="currency">
-                      <Value>USD</Value>
+                      <Value>PHP</Value>
                     </Field>
                     <Field name="notation">
                       <Value>standard</Value>

@@ -326,7 +326,7 @@ export class DiscountAdapter
 
   async getActiveDiscountsForOffering(
     offeringId: string,
-    currency: string = 'USD'
+    currency: string = 'PHP'
   ): Promise<ActiveDiscount[]> {
     const supabase = await this.getSupabaseClient();
 

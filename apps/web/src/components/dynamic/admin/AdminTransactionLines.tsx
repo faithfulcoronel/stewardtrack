@@ -115,7 +115,7 @@ function createEmptyLine(lineNumber: number): TransactionLine {
   };
 }
 
-function formatCurrencyInput(value: number, currency = "USD"): string {
+function formatCurrencyInput(value: number, currency = "PHP"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
@@ -577,7 +577,7 @@ export function AdminTransactionLines({
   fundOptions = [],
   sourceOptions = [],
   accountOptions = [],
-  currency = "USD",
+  currency = "PHP",
   transactionType = "income",
   onLinesChange,
   onTotalChange,

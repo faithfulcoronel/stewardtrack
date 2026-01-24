@@ -94,7 +94,7 @@ function formatMetricValue(
     case "currency":
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "PHP",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(value);

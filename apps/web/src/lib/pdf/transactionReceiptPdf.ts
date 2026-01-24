@@ -26,7 +26,7 @@ export interface TransactionPdfData {
 const formatAmount = (amount: number, currency: string) => {
   // Use text representations for currency symbols that aren't supported by WinAnsi encoding
   // Standard PDF fonts (Helvetica) don't support special characters like ₱
-  const currencySymbol = currency === 'PHP' ? 'PHP ' : currency === 'USD' ? '$' : `${currency} `;
+  const currencySymbol = currency === 'PHP' ? 'PHP ' : currency === 'PHP' ? '$' : `${currency} `;
   return `${currencySymbol}${amount.toLocaleString('en-PH', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

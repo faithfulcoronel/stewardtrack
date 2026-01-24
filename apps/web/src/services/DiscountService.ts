@@ -192,7 +192,7 @@ export class DiscountService {
 
   async getActiveDiscountsForOffering(
     offeringId: string,
-    currency: string = 'USD'
+    currency: string = 'PHP'
   ): Promise<ActiveDiscount[]> {
     return this.discountRepository.getActiveDiscountsForOffering(offeringId, currency);
   }
@@ -200,7 +200,7 @@ export class DiscountService {
   async getBestDiscountForOffering(
     offeringId: string,
     amount: number,
-    currency: string = 'USD'
+    currency: string = 'PHP'
   ): Promise<ActiveDiscount | null> {
     const discounts = await this.getActiveDiscountsForOffering(offeringId, currency);
 
@@ -236,7 +236,7 @@ export class DiscountService {
   async applyBestDiscount(
     offeringId: string,
     amount: number,
-    currency: string = 'USD'
+    currency: string = 'PHP'
   ): Promise<ApplyDiscountResult> {
     const bestDiscount = await this.getBestDiscountForOffering(offeringId, amount, currency);
 
@@ -438,7 +438,7 @@ export class DiscountService {
     if (calculationType === 'percentage') {
       return `${discountValue}% OFF`;
     } else {
-      const currencySymbol = this.getCurrencySymbol(currency || 'USD');
+      const currencySymbol = this.getCurrencySymbol(currency || 'PHP');
       return `${currencySymbol}${discountValue} OFF`;
     }
   }

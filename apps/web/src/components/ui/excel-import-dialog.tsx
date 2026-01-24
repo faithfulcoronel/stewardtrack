@@ -86,7 +86,7 @@ export function ExcelImportDialog<T extends Record<string, unknown>>({
   previewColumns,
   importState,
   onImport,
-  currency = "USD",
+  currency = "PHP",
   maxPreviewRows = 100,
 }: ExcelImportDialogProps<T>) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);

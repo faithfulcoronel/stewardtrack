@@ -36,7 +36,7 @@
                   <Value>month</Value>
                 </Field>
                 <Field name="badge">
-                  <Value>USD</Value>
+                  <Value>PHP</Value>
                 </Field>
                 <Field name="description">
                   <Value>Support U.S. and Canada go-to-market teams with localized compliance checklists.</Value>
@@ -44,7 +44,7 @@
                 <Field name="features">
                   <Array>
                     <Value>SOC 2 + HIPAA addendum</Value>
-                    <Value>USD &amp; CAD billing</Value>
+                    <Value>PHP &amp; CAD billing</Value>
                     <Value>EN/FR localization</Value>
                     <Value>Dedicated PST support window</Value>
                   </Array>

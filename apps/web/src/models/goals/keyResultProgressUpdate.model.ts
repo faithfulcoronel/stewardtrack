@@ -106,7 +106,7 @@ export function formatChangeValue(change: number, metricType: string = 'number')
     case 'currency':
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'PHP',
         signDisplay: 'always',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,

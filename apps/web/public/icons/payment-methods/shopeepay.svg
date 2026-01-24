@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="8" fill="#FFFFFF"/>
+  <!-- Orange wallet shape -->
+  <rect x="8" y="16" width="22" height="18" rx="3" fill="#EE4D2D"/>
+  <!-- Wallet flap -->
+  <path d="M8 20C8 18.3 9.3 17 11 17H27C28.7 17 30 18.3 30 20V22H8V20Z" fill="#EE4D2D"/>
+  <!-- White S logo on wallet -->
+  <text x="19" y="30" fill="white" font-size="12" font-weight="bold" text-anchor="middle" font-family="Arial, sans-serif">S</text>
+  <!-- Shopee text -->
+  <text x="36" y="20" fill="#EE4D2D" font-size="6" font-weight="bold" text-anchor="middle" font-family="Arial, sans-serif">Shopee</text>
+  <!-- Pay text -->
+  <text x="36" y="32" fill="#EE4D2D" font-size="8" font-weight="bold" text-anchor="middle" font-family="Arial, sans-serif">Pay</text>
+</svg>

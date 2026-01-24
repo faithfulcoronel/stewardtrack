@@ -4,6 +4,8 @@ import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
 import type { MinistryService } from "@/services/MinistryService";
 import type { SchedulerService } from "@/services/SchedulerService";
+import type { MinistryCategory } from "@/models/scheduler/ministry.model";
+import type { ScheduleType, LocationType } from "@/models/scheduler/ministrySchedule.model";
 
 /**
  * Normalizes the action payload to extract form values.
@@ -72,8 +74,8 @@ const handleMinistrySave: MetadataActionHandler = async (
     const ministryData = {
       name: name.trim(),
       code: (formData.code as string) || generateCodeFromName(name),
-      description: (formData.description as string) || null,
-      category: (formData.category as string) || 'general',
+      description: (formData.description as string) || undefined,
+      category: ((formData.category as string) || 'general') as MinistryCategory,
       color: (formData.color as string) || '#6366f1',
       icon: (formData.icon as string) || 'church',
       is_active: formData.isActive === true || formData.isActive === 'true',
@@ -179,23 +181,62 @@ const handleScheduleSave: MetadataActionHandler = async (
     }
 
     // Build data matching ScheduleCreateInput/ScheduleUpdateInput
+    const registrationRequired = formData.registrationRequired === true || formData.registrationRequired === 'true';
+    const acceptOnlinePayment = registrationRequired && (formData.acceptOnlinePayment === true || formData.acceptOnlinePayment === 'true');
+
+    // Use tenant's default currency for registration fees
+    const tenantDefaultCurrency = tenant.currency || 'USD';
+
+    // Validate early registration settings
+    const hasEarlyFee = acceptOnlinePayment && formData.earlyRegistrationFeeAmount && Number(formData.earlyRegistrationFeeAmount) > 0;
+    const hasEarlyDeadline = acceptOnlinePayment && formData.earlyRegistrationDeadline && (formData.earlyRegistrationDeadline as string).trim() !== '';
+
+    if (hasEarlyFee && !hasEarlyDeadline) {
+      return { success: false, message: "Early registration deadline is required when early registration fee is set" };
+    }
+    if (hasEarlyDeadline && !hasEarlyFee) {
+      return { success: false, message: "Early registration fee is required when early registration deadline is set" };
+    }
+
+    // Validate registration fee when online payment is enabled
+    if (acceptOnlinePayment) {
+      const feeAmount = formData.registrationFeeAmount ? Number(formData.registrationFeeAmount) : 0;
+      if (feeAmount <= 0) {
+        return { success: false, message: "Registration fee amount is required when accepting online payments" };
+      }
+
+      // Validate early fee is less than regular fee
+      if (hasEarlyFee) {
+        const earlyFeeAmount = Number(formData.earlyRegistrationFeeAmount);
+        if (earlyFeeAmount >= feeAmount) {
+          return { success: false, message: "Early registration fee must be less than the regular registration fee" };
+        }
+      }
+    }
+
     const scheduleData = {
       ministry_id: ministryId,
       name: name.trim(),
-      description: (formData.description as string) || null,
-      schedule_type: (formData.scheduleType as string) || 'service',
-      start_time: (formData.startTime as string) || null,
-      end_time: (formData.endTime as string) || null,
-      duration_minutes: formData.durationMinutes ? Number(formData.durationMinutes) : null,
+      description: (formData.description as string) || undefined,
+      schedule_type: ((formData.scheduleType as string) || 'service') as ScheduleType,
+      start_time: (formData.startTime as string) || '',
+      end_time: (formData.endTime as string) || undefined,
+      duration_minutes: formData.durationMinutes ? Number(formData.durationMinutes) : undefined,
       timezone: 'Asia/Manila', // Default timezone
-      recurrence_rule: (formData.recurrenceRule as string) || null,
-      recurrence_start_date: (formData.recurrenceStartDate as string) || null,
-      location: (formData.location as string) || null,
-      location_type: (formData.locationType as string) || 'physical',
-      virtual_meeting_url: (formData.virtualMeetingUrl as string) || null,
-      capacity: formData.capacity ? Number(formData.capacity) : null,
-      registration_required: formData.registrationRequired === true || formData.registrationRequired === 'true',
+      recurrence_rule: (formData.recurrenceRule as string) || undefined,
+      recurrence_start_date: (formData.recurrenceStartDate as string) || '',
+      location: (formData.location as string) || undefined,
+      location_type: ((formData.locationType as string) || 'physical') as LocationType,
+      virtual_meeting_url: (formData.virtualMeetingUrl as string) || undefined,
+      capacity: formData.capacity ? Number(formData.capacity) : undefined,
+      registration_required: registrationRequired,
       registration_form_schema: Array.isArray(formData.registrationFormSchema) ? formData.registrationFormSchema : [],
+      // Online payment settings (only if registration is required)
+      accept_online_payment: acceptOnlinePayment,
+      registration_fee_amount: acceptOnlinePayment && formData.registrationFeeAmount ? Number(formData.registrationFeeAmount) : undefined,
+      registration_fee_currency: acceptOnlinePayment ? ((formData.registrationFeeCurrency as string) || tenantDefaultCurrency) : tenantDefaultCurrency,
+      early_registration_fee_amount: acceptOnlinePayment && formData.earlyRegistrationFeeAmount ? Number(formData.earlyRegistrationFeeAmount) : undefined,
+      early_registration_deadline: acceptOnlinePayment && formData.earlyRegistrationDeadline ? (formData.earlyRegistrationDeadline as string) : undefined,
       is_active: formData.isActive === true || formData.isActive === 'true',
     };
 

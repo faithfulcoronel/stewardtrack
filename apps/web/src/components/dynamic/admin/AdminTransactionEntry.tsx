@@ -153,7 +153,7 @@ function createEmptyLine(lineNumber: number): TransactionLine {
   };
 }
 
-function formatCurrency(value: number, currency = "USD"): string {
+function formatCurrency(value: number, currency = "PHP"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
@@ -595,7 +595,7 @@ export function AdminTransactionEntry({
   budgetOptions = [],
   coaOptions = [],
   postedTransactions = [],
-  currency = "USD",
+  currency = "PHP",
   defaultTransactionType = "income",
   initialData,
   cancelUrl = "/admin/finance/transactions",

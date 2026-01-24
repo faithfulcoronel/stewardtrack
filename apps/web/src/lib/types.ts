@@ -353,6 +353,7 @@ export const TYPES = {
   ScheduleOccurrenceService: Symbol.for('ScheduleOccurrenceService'),
   ScheduleRegistrationService: Symbol.for('ScheduleRegistrationService'),
   ScheduleAttendanceService: Symbol.for('ScheduleAttendanceService'),
+  ScheduleRegistrationPaymentService: Symbol.for('ScheduleRegistrationPaymentService'),
 
   // Background Job Services
   ScheduledEventsService: Symbol.for('ScheduledEventsService'),

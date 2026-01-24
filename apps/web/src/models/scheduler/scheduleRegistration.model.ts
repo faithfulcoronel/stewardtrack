@@ -7,6 +7,14 @@ export type RegistrationStatus =
   | 'checked_in'
   | 'no_show';
 
+export type PaymentStatus =
+  | 'not_required'
+  | 'pending'
+  | 'paid'
+  | 'failed'
+  | 'expired'
+  | 'refunded';
+
 export interface ScheduleRegistration extends BaseModel {
   id: string;
   tenant_id: string;
@@ -33,6 +41,21 @@ export interface ScheduleRegistration extends BaseModel {
   // Notes
   special_requests?: string | null;
   admin_notes?: string | null;
+
+  // Payment (for paid registrations)
+  payment_status?: PaymentStatus;
+  payment_amount?: number | null;
+  xendit_fee?: number | null;
+  platform_fee?: number | null;
+  total_charged?: number | null;
+  payment_currency?: string | null;
+  xendit_payment_request_id?: string | null;
+  xendit_payment_id?: string | null;
+  external_id?: string | null;
+  payment_method_type?: string | null;
+  paid_at?: string | null;
+  payment_url?: string | null;
+  payment_expires_at?: string | null;
 }
 
 export interface ScheduleRegistrationWithMember extends ScheduleRegistration {
@@ -64,6 +87,21 @@ export interface ScheduleRegistrationUpdateInput {
   form_responses?: Record<string, unknown>;
   special_requests?: string | null;
   admin_notes?: string | null;
+
+  // Payment fields
+  payment_status?: PaymentStatus;
+  payment_amount?: number | null;
+  xendit_fee?: number | null;
+  platform_fee?: number | null;
+  total_charged?: number | null;
+  payment_currency?: string | null;
+  xendit_payment_request_id?: string | null;
+  xendit_payment_id?: string | null;
+  external_id?: string | null;
+  payment_method_type?: string | null;
+  paid_at?: string | null;
+  payment_url?: string | null;
+  payment_expires_at?: string | null;
 }
 
 export interface ScheduleRegistrationFilters {

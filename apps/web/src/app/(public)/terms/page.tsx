@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Minus, FileText, Shield, CreditCard, Ban, Database, Lightbulb, Globe, Server, AlertTriangle, Scale, XCircle, Gavel, Settings, RefreshCw, Mail } from "lucide-react";
+import { Plus, Minus, FileText, Shield, CreditCard, Ban, Database, Lightbulb, Globe, Server, AlertTriangle, Scale, XCircle, Gavel, Settings, RefreshCw, Mail, Heart, CalendarCheck } from "lucide-react";
 
 const termsSections = [
   {
@@ -53,9 +53,86 @@ We may modify our pricing with at least 30 days' notice. Price changes will take
 We may offer free trials at our discretion. At the end of a trial period, your account will automatically convert to a paid subscription unless you cancel before the trial ends.`
   },
   {
+    id: "donations",
+    icon: Heart,
+    title: "4. Online Donations",
+    content: `**4.1 Donation Processing**
+StewardTrack enables Organizations to accept online donations from their members and supporters through integrated payment processing. By using the donation features, both Organizations and donors agree to the following terms.
+
+**4.2 Payment Processing**
+• Online donations are processed through Xendit, our third-party payment gateway provider. Xendit is a licensed payment service provider that handles all payment transactions securely.
+• Donations may be made via e-wallets (GCash, Maya, GrabPay, ShopeePay), credit/debit cards (Visa, Mastercard, JCB), or bank transfer.
+• Organizations are responsible for providing accurate banking and payment information for fund disbursement.
+• Donors must ensure they have authorization to use the payment method selected.
+• **Donor Payment Security:** StewardTrack does not store donor payment information such as credit card numbers, CVV codes, or e-wallet credentials. All donor payment data is securely processed and stored by Xendit in compliance with PCI-DSS standards.
+• **Organization Disbursement Details:** For fund disbursement purposes, Organizations provide their bank account details. This information is stored with industry-standard encryption and is accessible only through secure, audited processes. Even our development team cannot access this sensitive data in plain text.
+• By using our payment features, you also agree to Xendit's Terms and Conditions (https://www.xendit.co/en-ph/terms-and-conditions/) and Privacy Policy (https://www.xendit.co/en-ph/privacy-policy/).
+
+**4.3 Processing Fees**
+• All online donations are subject to processing fees charged by Xendit and a platform fee charged by StewardTrack.
+• Processing fees vary by payment method and are displayed to donors before completing the transaction.
+• **Fee Structure:** Fees include Xendit payment processing fees and StewardTrack platform fees, both calculated as a percentage of the donation amount.
+• **Fee Changes:** Processing fees are subject to change without prior notice due to changes in payment processor rates or platform operating costs. Updated fees will be displayed at the time of transaction.
+
+**4.4 Donation Refunds**
+• Donation refunds are at the sole discretion of the receiving Organization.
+• To request a donation refund, donors must contact the Organization directly.
+• Processing fees may not be refundable even if the donation is refunded.
+• StewardTrack is not responsible for disputes between donors and Organizations regarding donations.
+
+**4.5 Tax Receipts**
+• Organizations are responsible for issuing appropriate tax receipts or acknowledgments to donors.
+• StewardTrack provides tools to generate donation reports but does not guarantee compliance with local tax regulations.
+• Donors should consult with tax professionals regarding the deductibility of their donations.`
+  },
+  {
+    id: "event-registration",
+    icon: CalendarCheck,
+    title: "5. Event Registration Payments",
+    content: `**5.1 Event Registration**
+Organizations may use StewardTrack to manage event registrations with optional payment collection for registration fees, tickets, or related costs.
+
+**5.2 Registration Fee Processing**
+• Event registration payments are processed through Xendit, our third-party payment gateway provider.
+• Payment methods include e-wallets (GCash, Maya, GrabPay, ShopeePay), credit/debit cards (Visa, Mastercard, JCB), and bank transfers.
+• Registrants must complete payment within the specified time window to secure their registration.
+• Unpaid registrations may be automatically cancelled or moved to a waitlist.
+• **Data Security:** StewardTrack does not store sensitive payment information. All payment credentials are securely handled by Xendit.
+• By completing a registration payment, you agree to Xendit's Terms and Conditions (https://www.xendit.co/en-ph/terms-and-conditions/) and Privacy Policy (https://www.xendit.co/en-ph/privacy-policy/).
+
+**5.3 Processing Fees for Event Registrations**
+• All event registration payments are subject to processing fees charged by Xendit and a platform fee charged by StewardTrack.
+• Fees are calculated based on the payment method selected and the registration amount.
+• **Fee Disclosure:** The total amount including all fees will be displayed to registrants before payment confirmation.
+• **Fee Changes:** Processing fees are subject to change without prior notice. The fees in effect at the time of registration will apply to that transaction.
+
+**5.4 Early Bird Pricing**
+• Organizations may offer early bird pricing for event registrations.
+• Early bird rates are valid only during the specified early registration period.
+• Once the early bird deadline passes, standard registration fees apply automatically.
+
+**5.5 Refund Policy for Event Registrations**
+• Refund policies for event registrations are determined by each Organization.
+• Registrants should review the Organization's refund policy before completing payment.
+• Processing fees are generally non-refundable even if the registration fee is refunded.
+• StewardTrack is not liable for refund disputes between registrants and Organizations.
+
+**5.6 Event Cancellation**
+• If an Organization cancels an event, the Organization is responsible for communicating with registrants and processing refunds.
+• StewardTrack will assist with processing refunds but is not responsible for refund delays or disputes.
+
+**5.7 Registrant Data Collection and Privacy**
+• When you register for an event through StewardTrack, the Organization collects personal information such as your name, email address, phone number, and any additional information required by the Organization's registration form.
+• **Data Controller:** The Organization hosting the event is the data controller for the personal information you provide during registration. StewardTrack acts as a data processor on behalf of the Organization.
+• **Purpose of Collection:** Your personal information is collected to process your registration, communicate event details, and manage attendance. The Organization may also use this information in accordance with their own privacy practices.
+• **Data Retention:** Your registration data is retained by the Organization through StewardTrack for as long as necessary to fulfill the purposes for which it was collected, or as required by applicable law.
+• **Your Rights:** For questions about how your registration data is used, or to exercise your data privacy rights (access, correction, deletion), please contact the Organization directly.
+• **Consent:** By completing an event registration, you consent to the collection and processing of your personal information by the Organization and acknowledge that you have read and agree to these Terms of Service and our Privacy Policy.`
+  },
+  {
     id: "refunds",
     icon: RefreshCw,
-    title: "4. Refund and Cancellation Policy",
+    title: "6. Subscription Refund and Cancellation Policy",
     content: `**4.1 Cancellation**
 You may cancel your subscription at any time through your account settings or by contacting our support team. Cancellation will take effect at the end of your current billing period.
 
@@ -83,7 +160,7 @@ If you downgrade your subscription plan, the change will take effect at the star
   {
     id: "acceptable-use",
     icon: Ban,
-    title: "5. Acceptable Use Policy",
+    title: "7. Acceptable Use Policy",
     content: `You agree not to use the Service to:
 • Violate any applicable laws, regulations, or third-party rights.
 • Upload or transmit malicious code, viruses, or harmful content.
@@ -99,7 +176,7 @@ We reserve the right to investigate violations and take appropriate action, incl
   {
     id: "content",
     icon: Database,
-    title: "6. Content and Data",
+    title: "8. Content and Data",
     content: `**6.1 Your Content**
 You retain ownership of all Content you upload to the Service. By uploading Content, you grant us a limited license to store, process, and display your Content solely to provide the Service to you.
 
@@ -115,7 +192,7 @@ You may export your Content at any time through the Service's data export featur
   {
     id: "intellectual-property",
     icon: Lightbulb,
-    title: "7. Intellectual Property",
+    title: "9. Intellectual Property",
     content: `**7.1 Our Rights**
 The Service, including its design, features, code, documentation, and all related intellectual property, is owned by Cortanatech Solutions, Inc. and protected by copyright, trademark, and other intellectual property laws. Nothing in these Terms grants you any right, title, or interest in the Service except the limited right to use it as described herein.
 
@@ -128,13 +205,13 @@ If you provide feedback, suggestions, or ideas about the Service, you grant us a
   {
     id: "third-party",
     icon: Globe,
-    title: "8. Third-Party Services",
+    title: "10. Third-Party Services",
     content: `The Service may integrate with or provide links to third-party services, applications, or websites. These third-party services are not under our control, and we are not responsible for their content, privacy practices, or terms. Your use of third-party services is at your own risk and subject to their respective terms and policies.`
   },
   {
     id: "availability",
     icon: Server,
-    title: "9. Service Availability and Support",
+    title: "11. Service Availability and Support",
     content: `**9.1 Availability**
 We strive to maintain high availability of the Service but do not guarantee uninterrupted access. The Service may be temporarily unavailable due to maintenance, updates, or circumstances beyond our control.
 
@@ -156,7 +233,7 @@ Support availability and response times vary by subscription plan:
   {
     id: "warranties",
     icon: AlertTriangle,
-    title: "10. Disclaimer of Warranties",
+    title: "12. Disclaimer of Warranties",
     content: `**IMPORTANT NOTICE**
 
 THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
@@ -166,7 +243,7 @@ WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, SECURE, OR
   {
     id: "liability",
     icon: Scale,
-    title: "11. Limitation of Liability",
+    title: "13. Limitation of Liability",
     content: `TO THE MAXIMUM EXTENT PERMITTED BY LAW, CORTANATECH SOLUTIONS, INC. AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE.
 
 OUR TOTAL LIABILITY FOR ANY CLAIMS ARISING FROM OR RELATED TO THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.`
@@ -174,7 +251,7 @@ OUR TOTAL LIABILITY FOR ANY CLAIMS ARISING FROM OR RELATED TO THESE TERMS OR THE
   {
     id: "indemnification",
     icon: Shield,
-    title: "12. Indemnification",
+    title: "14. Indemnification",
     content: `You agree to indemnify, defend, and hold harmless Cortanatech Solutions, Inc. and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or related to:
 
 • Your use of the Service.
@@ -185,7 +262,7 @@ OUR TOTAL LIABILITY FOR ANY CLAIMS ARISING FROM OR RELATED TO THESE TERMS OR THE
   {
     id: "termination",
     icon: XCircle,
-    title: "13. Termination",
+    title: "15. Termination",
     content: `**13.1 Termination by You**
 You may terminate your account at any time by contacting us or using the account cancellation feature in the Service. Termination does not entitle you to a refund of any prepaid fees except as stated in our Refund Policy.
 
@@ -201,7 +278,7 @@ You may request a copy of your data within 30 days of termination. After this pe
   {
     id: "disputes",
     icon: Gavel,
-    title: "14. Dispute Resolution",
+    title: "16. Dispute Resolution",
     content: `**14.1 Informal Resolution**
 Before initiating any formal dispute resolution, you agree to first contact us and attempt to resolve the dispute informally for at least 30 days.
 
@@ -217,7 +294,7 @@ Notwithstanding the above, either party may bring an individual action in small 
   {
     id: "general",
     icon: Settings,
-    title: "15. General Provisions",
+    title: "17. General Provisions",
     content: `**15.1 Governing Law**
 These Terms shall be governed by and construed in accordance with the laws of the jurisdiction where Cortanatech Solutions, Inc. is incorporated, without regard to its conflict of law provisions.
 
@@ -239,7 +316,7 @@ We shall not be liable for any failure or delay in performance due to circumstan
   {
     id: "changes",
     icon: RefreshCw,
-    title: "16. Changes to These Terms",
+    title: "18. Changes to These Terms",
     content: `We may revise these Terms at any time by posting the updated terms on the Service. We will notify you of material changes by email or through the Service at least 30 days before they take effect. Your continued use of the Service after such changes constitutes acceptance of the revised Terms. We encourage you to review these Terms periodically.
 
 If you do not agree to the revised Terms, you must stop using the Service before the changes take effect.`
@@ -247,7 +324,7 @@ If you do not agree to the revised Terms, you must stop using the Service before
   {
     id: "contact",
     icon: Mail,
-    title: "17. Contact Us",
+    title: "19. Contact Us",
     content: `If you have questions about these Terms of Service, please contact us at:
 
 **Cortanatech Solutions, Inc.**
@@ -351,7 +428,7 @@ function AccordionItem({ section, isOpen, onClick, index }: {
 
 export default function TermsPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const lastUpdated = "January 1, 2026";
+  const lastUpdated = "January 24, 2026";
 
   return (
     <div className="relative min-h-screen">
