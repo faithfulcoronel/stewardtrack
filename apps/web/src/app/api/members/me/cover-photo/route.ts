@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authUtils } from '@/utils/authUtils';
 import { tenantUtils } from '@/utils/tenantUtils';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { StorageService } from '@/services/StorageService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,22 +37,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'Image must be less than 5MB' },
-        { status: 400 }
-      );
-    }
-
     const supabase = await createSupabaseServerClient();
 
     // Get the member linked to this user
@@ -68,56 +55,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get storage service from container
+    const storageService = container.get<StorageService>(TYPES.StorageService);
+
     // Delete old cover photo if exists
     if (member.cover_photo_url) {
       try {
-        // Extract path from URL
-        const url = new URL(member.cover_photo_url);
-        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/profiles\/(.+)/);
-        if (pathMatch) {
-          await supabase.storage.from('profiles').remove([pathMatch[1]]);
-        }
+        await storageService.deleteMemberPhoto(member.cover_photo_url);
       } catch (deleteError) {
         console.error('Error deleting old cover photo:', deleteError);
         // Continue anyway
       }
     }
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop() || 'jpg';
-    const fileName = `${tenantId}/${member.id}/cover-${Date.now()}.${fileExt}`;
-
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('profiles')
-      .upload(fileName, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json(
-        { error: 'Failed to upload image' },
-        { status: 500 }
-      );
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('profiles')
-      .getPublicUrl(uploadData.path);
-
-    const publicUrl = urlData.publicUrl;
+    // Upload new photo using storage service (tracks upload automatically)
+    const uploadResult = await storageService.uploadMemberPhoto(tenantId, member.id, file);
 
     // Update member record with new cover photo URL
     const { error: updateError } = await supabase
       .from('members')
-      .update({ cover_photo_url: publicUrl })
+      .update({ cover_photo_url: uploadResult.publicUrl })
       .eq('id', member.id)
       .eq('tenant_id', tenantId);
 
@@ -131,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
+      url: uploadResult.publicUrl,
     });
   } catch (error) {
     console.error('Error uploading cover photo:', error);
@@ -180,11 +137,8 @@ export async function DELETE(_request: NextRequest) {
     // Delete from storage if exists
     if (member.cover_photo_url) {
       try {
-        const url = new URL(member.cover_photo_url);
-        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/profiles\/(.+)/);
-        if (pathMatch) {
-          await supabase.storage.from('profiles').remove([pathMatch[1]]);
-        }
+        const storageService = container.get<StorageService>(TYPES.StorageService);
+        await storageService.deleteMemberPhoto(member.cover_photo_url);
       } catch (deleteError) {
         console.error('Error deleting cover photo from storage:', deleteError);
       }

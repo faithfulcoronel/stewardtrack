@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import type { CommunicationChannelSelection } from "@/models/communication/campaign.model";
 
 /** Tone types for content improvement */
 type ToneType = "formal" | "friendly" | "casual" | "urgent";
@@ -79,7 +80,7 @@ export interface AIAssistantPanelProps {
   /** Current message content (HTML or text) */
   content?: string;
   /** Current channel selection */
-  channel?: "email" | "sms" | "both";
+  channel?: CommunicationChannelSelection;
   /** Callback when subject is updated */
   onSubjectChange?: (subject: string) => void;
   /** Callback when content is updated */

@@ -13,7 +13,59 @@ export type CampaignStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'pause
 /**
  * Communication channel types
  */
-export type CommunicationChannel = 'email' | 'sms';
+export type CommunicationChannel = 'email' | 'sms' | 'facebook';
+
+/**
+ * Array of all available communication channels (for iteration/validation)
+ */
+export const COMMUNICATION_CHANNELS: readonly CommunicationChannel[] = ['email', 'sms', 'facebook'] as const;
+
+/**
+ * Channel filter type (includes 'all' option for UI filtering)
+ */
+export type CommunicationChannelFilter = CommunicationChannel | 'all';
+
+/**
+ * Channel selection type for components that need 'both' option
+ */
+export type CommunicationChannelSelection = CommunicationChannel | 'both';
+
+/**
+ * Facebook media type for posts
+ */
+export type FacebookMediaType = 'image' | 'video' | 'none';
+
+/**
+ * Facebook post data for campaigns
+ */
+export interface FacebookPostData {
+  /** Plain text content (max 63,206 characters) */
+  text: string;
+  /** URL to media file (image or video) */
+  mediaUrl?: string;
+  /** Type of media being posted */
+  mediaType: FacebookMediaType;
+  /** Link URL to include in post (generates preview) */
+  linkUrl?: string;
+}
+
+/**
+ * Facebook post character limits
+ */
+export const FACEBOOK_LIMITS = {
+  /** Maximum characters for text posts */
+  MAX_TEXT_LENGTH: 63206,
+  /** Recommended characters for optimal engagement */
+  RECOMMENDED_TEXT_LENGTH: 500,
+  /** Maximum video file size in bytes (10GB) */
+  MAX_VIDEO_SIZE: 10 * 1024 * 1024 * 1024,
+  /** Maximum image file size in bytes (4MB) */
+  MAX_IMAGE_SIZE: 4 * 1024 * 1024,
+  /** Supported image formats */
+  SUPPORTED_IMAGE_FORMATS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'] as const,
+  /** Supported video formats */
+  SUPPORTED_VIDEO_FORMATS: ['mp4', 'mov', 'avi', 'wmv', 'flv', 'm4v'] as const,
+} as const;
 
 /**
  * Recipient criteria for dynamic audience selection
@@ -44,6 +96,8 @@ export interface Campaign extends BaseModel {
   subject?: string | null;
   content_html?: string | null;
   content_text?: string | null;
+  /** Facebook-specific post data */
+  facebook_post_data?: FacebookPostData | null;
   template_id?: string | null;
   recipient_criteria?: RecipientCriteria | null;
   scheduled_at?: string | null;
@@ -104,6 +158,7 @@ export interface CreateCampaignDto {
   subject?: string;
   content_html?: string;
   content_text?: string;
+  facebook_post_data?: FacebookPostData;
   template_id?: string;
   recipient_criteria?: RecipientCriteria;
   scheduled_at?: string;
@@ -121,6 +176,7 @@ export interface UpdateCampaignDto {
   subject?: string;
   content_html?: string;
   content_text?: string;
+  facebook_post_data?: FacebookPostData;
   template_id?: string;
   recipient_criteria?: RecipientCriteria;
   scheduled_at?: string;

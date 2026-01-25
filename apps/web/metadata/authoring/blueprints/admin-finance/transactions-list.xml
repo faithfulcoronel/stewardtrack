@@ -29,13 +29,15 @@
             <Prop name="metrics" kind="binding" contract="statusOverview.items"/>
           </Props>
         </Component>
-        <Component id="transactions-grid" type="AdminDataGridSection">
+        <Component id="transactions-grid" type="TransactionsGridWithExport">
           <Props>
             <Prop name="title" kind="static">Transaction ledger</Prop>
             <Prop name="description" kind="static">View, filter, and manage all income and expense transactions.</Prop>
             <Prop name="rows" kind="binding" contract="transactionsTable.rows"/>
             <Prop name="columns" kind="binding" contract="transactionsTable.columns"/>
             <Prop name="filters" kind="binding" contract="transactionsTable.filters"/>
+            <Prop name="tenantName" kind="binding" contract="transactionsTable.tenantName"/>
+            <Prop name="currency" kind="binding" contract="transactionsTable.currency"/>
             <Prop name="emptyState" kind="static">{"title": "No transactions recorded yet", "description": "Start tracking your church finances by recording income from tithes, offerings, and donations, or log expenses for ministry operations. Click 'Record transaction' above to get started."}</Prop>
           </Props>
         </Component>
@@ -74,6 +76,8 @@
           <Field name="rows" path="rows" description="Binding for transactions-grid.rows"/>
           <Field name="columns" path="columns" description="Binding for transactions-grid.columns"/>
           <Field name="filters" path="filters" description="Binding for transactions-grid.filters"/>
+          <Field name="tenantName" path="tenantName" description="Organization name for export"/>
+          <Field name="currency" path="currency" description="Currency code for export"/>
         </Contract>
         <Config>
           <Handler>admin-finance.transactions.list.table</Handler>

@@ -27,8 +27,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { RichTextViewerInline } from '@/components/ui/rich-text-viewer';
+import { CKEditorRichText } from '@/components/ui/ckeditor-rich-text';
+import { CKEditorRichTextViewerInline } from '@/components/ui/ckeditor-rich-text-viewer';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -530,7 +530,7 @@ export function SuperAdminSystemTemplates({
                             <div>
                               <Label className="text-xs text-muted-foreground">Body</Label>
                               {template.channel === 'email' || template.channel === 'in_app' ? (
-                                <RichTextViewerInline
+                                <CKEditorRichTextViewerInline
                                   content={template.body_template}
                                   className="text-sm bg-background rounded p-2 mt-1 max-w-none"
                                 />
@@ -659,7 +659,7 @@ export function SuperAdminSystemTemplates({
             <div className="space-y-2">
               <Label htmlFor="body_template">Body Template *</Label>
               {formData.channel === 'email' || formData.channel === 'in_app' ? (
-                <RichTextEditor
+                <CKEditorRichText
                   value={formData.body_template}
                   onChange={(value) => setFormData({ ...formData, body_template: value })}
                   placeholder="Write your notification content here. Use {{variable}} for dynamic values."

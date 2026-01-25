@@ -14,6 +14,8 @@ import {
   Shield,
   Settings,
   ChevronRight,
+  Image,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -64,6 +66,8 @@ const iconMap: Record<string, LucideIcon> = {
   'credit-card': CreditCard,
   shield: Shield,
   settings: Settings,
+  image: Image,
+  zap: Zap,
 };
 
 function getIcon(iconName?: string): LucideIcon {

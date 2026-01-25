@@ -4,17 +4,24 @@
  * AI-powered assistance for message composition.
  * Uses CommunicationAIService to improve content, suggest subject lines,
  * personalize messages, fix grammar, and shorten content.
+ *
+ * Supports multimodal content - can analyze images embedded in messages
+ * when extractImages option is enabled.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentTenantId } from '@/lib/server/context';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import type { ICommunicationAIService, ToneType, AssistType } from '@/services/communication/CommunicationAIService';
+import type { ICommunicationAIService, ToneType, AssistType, ImageData } from '@/services/communication/CommunicationAIService';
 
 interface AssistRequest {
   type: AssistType;
   content: string;
+  /** Enable image extraction from HTML content */
+  extractImages?: boolean;
+  /** Pre-extracted images (base64 encoded) */
+  images?: ImageData[];
   context?: {
     subject?: string;
     recipientCount?: number;
@@ -64,6 +71,12 @@ export async function POST(request: NextRequest) {
 
     let response: { result: string; suggestions?: string[]; tokensUsed: number; changes?: string[] };
 
+    // Prepare AI assist options with image support
+    const aiOptions = {
+      extractImages: body.extractImages ?? false,
+      images: body.images,
+    };
+
     switch (body.type) {
       case 'subject': {
         const result = await aiService.suggestSubjectLines(
@@ -72,7 +85,8 @@ export async function POST(request: NextRequest) {
             purpose: body.context?.purpose,
             audience: body.context?.audience,
           },
-          tenantId
+          tenantId,
+          aiOptions
         );
         response = {
           result: result.data[0]?.text ?? '',
@@ -84,7 +98,7 @@ export async function POST(request: NextRequest) {
 
       case 'improve': {
         const tone: ToneType = body.context?.tone ?? 'friendly';
-        const result = await aiService.improveContent(body.content, tone, tenantId);
+        const result = await aiService.improveContent(body.content, tone, tenantId, aiOptions);
         response = {
           result: result.data.improved,
           changes: result.data.changes,
@@ -116,7 +130,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'grammar': {
-        const result = await aiService.fixGrammar(body.content, tenantId);
+        const result = await aiService.fixGrammar(body.content, tenantId, aiOptions);
         response = {
           result: result.data,
           tokensUsed: result.tokensUsed,
@@ -126,7 +140,7 @@ export async function POST(request: NextRequest) {
 
       case 'shorten': {
         const maxLength = body.context?.maxLength ?? (body.context?.channel === 'sms' ? 160 : 500);
-        const result = await aiService.shortenContent(body.content, maxLength, tenantId);
+        const result = await aiService.shortenContent(body.content, maxLength, tenantId, aiOptions);
         response = {
           result: result.data,
           tokensUsed: result.tokensUsed,

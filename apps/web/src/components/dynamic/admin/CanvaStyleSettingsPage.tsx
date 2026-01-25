@@ -12,6 +12,7 @@ import { AdminNotificationPreferences } from './AdminNotificationPreferences';
 import { AdminIntegrationSettings } from './AdminIntegrationSettings';
 import { TeamMembersSection } from './TeamMembersSection';
 import { AdminAICreditsSettings } from './AdminAICreditsSettings';
+import { AdminMediaGallery } from './AdminMediaGallery';
 
 // ============================================================================
 // Types
@@ -80,6 +81,18 @@ const defaultSections: SettingsNavSection[] = [
         label: 'AI Credits',
         icon: 'zap',
         description: 'Manage AI Assistant credits',
+      },
+    ],
+  },
+  {
+    id: 'media-storage',
+    title: 'Media & Storage',
+    items: [
+      {
+        id: 'media',
+        label: 'Media Gallery',
+        icon: 'image',
+        description: 'Manage uploaded images and files',
       },
     ],
   },
@@ -327,6 +340,24 @@ function AICreditsSection({ currency }: AICreditsSectionProps) {
 }
 
 // ============================================================================
+// Media Section Component
+// ============================================================================
+
+function MediaSection() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">Media Gallery</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          View and manage all uploaded images and files
+        </p>
+      </div>
+      <AdminMediaGallery />
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -520,6 +551,9 @@ export function CanvaStyleSettingsPage({
 
       {/* AI Credits Section */}
       <AICreditsSection currency={data.currency || 'PHP'} />
+
+      {/* Media Section */}
+      <MediaSection />
 
       {/* Team Section */}
       {showTeam ? (

@@ -44,7 +44,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RichTextViewer } from "@/components/ui/rich-text-viewer";
+import { CKEditorRichTextViewer } from "@/components/ui/ckeditor-rich-text-viewer";
+import type { CommunicationChannel, CommunicationChannelFilter } from "@/models/communication/campaign.model";
 
 /** Template category types */
 export type TemplateCategory =
@@ -64,7 +65,7 @@ export interface MessageTemplate {
   name: string;
   description?: string;
   category: TemplateCategory;
-  channels: ("email" | "sms")[];
+  channels: CommunicationChannel[];
   subject?: string;
   contentHtml?: string;
   contentText?: string;
@@ -81,7 +82,7 @@ export interface TemplateSelectorProps {
   /** Callback when template is selected */
   onSelect?: (template: MessageTemplate) => void;
   /** Filter by channel */
-  channelFilter?: "email" | "sms" | "all";
+  channelFilter?: CommunicationChannelFilter;
   /** Whether templates are loading */
   isLoading?: boolean;
   /** Callback to generate AI template */
@@ -449,7 +450,7 @@ export function TemplateSelector({
             <div className="space-y-1.5">
               <span className="text-sm font-medium text-muted-foreground">Content</span>
               {previewTemplate?.contentHtml ? (
-                <RichTextViewer content={previewTemplate.contentHtml} />
+                <CKEditorRichTextViewer content={previewTemplate.contentHtml} />
               ) : previewTemplate?.contentText ? (
                 <div className="bg-muted/50 rounded-lg p-3 whitespace-pre-wrap text-sm">
                   {previewTemplate.contentText}

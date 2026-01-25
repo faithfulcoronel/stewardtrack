@@ -51,7 +51,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CKEditorRichText } from "@/components/ui/ckeditor-rich-text";
 import { toast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -1232,13 +1232,14 @@ export function NotebookLayout({ notebook, canEdit }: NotebookLayoutProps) {
               <div className="flex-1 overflow-hidden">
                 <div className="h-full p-3 md:p-5 lg:p-6">
                   <div className="h-full bg-card/70 rounded-2xl border border-border/40 shadow-sm shadow-black/5 overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-md hover:shadow-black/5">
-                    <RichTextEditor
+                    <CKEditorRichText
                       value={pageContent}
                       onChange={handleContentChange}
                       placeholder="Start writing your notes..."
                       disabled={!canEdit}
                       readOnly={!canEdit}
                       minHeight="100%"
+                      toolbar="full"
                     />
                   </div>
                 </div>

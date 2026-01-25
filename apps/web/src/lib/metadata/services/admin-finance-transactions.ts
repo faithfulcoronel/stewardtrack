@@ -483,6 +483,8 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
     rows,
     columns,
     filters,
+    tenantName: tenant.name || 'Organization',
+    currency,
   };
 };
 

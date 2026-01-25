@@ -116,20 +116,20 @@ export class SupabaseRecipientService implements RecipientService {
           console.log('[RecipientService] Fetching specific members:', criteria.memberIds);
           for (const memberId of criteria.memberIds) {
             try {
-              const member = await this.memberAdapter.findById(memberId);
+              const member = await this.memberAdapter.fetchById(memberId);
               if (member) {
                 // Check preferences
                 const prefs = await this.preferenceRepo.checkPreferences(
                   tenantId,
                   member.email || undefined,
-                  member.mobile_phone || member.home_phone || undefined
+                  member.contact_number || undefined
                 );
 
                 recipients.push({
                   type: 'member',
                   memberId: member.id,
                   email: prefs.canSendEmail ? (member.email || undefined) : undefined,
-                  phone: prefs.canSendSms ? (member.mobile_phone || member.home_phone || undefined) : undefined,
+                  phone: prefs.canSendSms ? (member.contact_number || undefined) : undefined,
                   firstName: member.first_name,
                   lastName: member.last_name,
                   fullName: `${member.first_name} ${member.last_name}`.trim(),
@@ -138,7 +138,7 @@ export class SupabaseRecipientService implements RecipientService {
                     last_name: member.last_name,
                     full_name: `${member.first_name} ${member.last_name}`.trim(),
                     email: member.email || undefined,
-                    phone: member.mobile_phone || member.home_phone || undefined,
+                    phone: member.contact_number || undefined,
                   },
                 });
               }

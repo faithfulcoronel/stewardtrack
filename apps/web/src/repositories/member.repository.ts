@@ -6,11 +6,16 @@ import { Member } from '@/models/member.model';
 import { MemberValidator } from '@/validators/member.validator';
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
+import type { QueryOptions } from '@/lib/repository/query';
 
 export interface IMemberRepository extends BaseRepository<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
   getBirthdaysByMonth(month: number): Promise<Member[]>;
   getCurrentUserMember(): Promise<Member | null>;
+  findByAccount(accountId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  findByScheduleRegistration(scheduleId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  findByMinistry(ministryId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  search(searchTerm: string, limit?: number): Promise<{ data: Member[]; count: number | null }>;
 }
 
 @injectable()
@@ -32,6 +37,22 @@ export class MemberRepository
 
   async getCurrentUserMember(): Promise<Member | null> {
     return await this.memberAdapter.getCurrentUserMember();
+  }
+
+  async findByAccount(accountId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }> {
+    return await this.memberAdapter.fetchByAccount(accountId, options);
+  }
+
+  async findByScheduleRegistration(scheduleId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }> {
+    return await this.memberAdapter.fetchByScheduleRegistration(scheduleId, options);
+  }
+
+  async findByMinistry(ministryId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }> {
+    return await this.memberAdapter.fetchByMinistry(ministryId, options);
+  }
+
+  async search(searchTerm: string, limit?: number): Promise<{ data: Member[]; count: number | null }> {
+    return await this.memberAdapter.searchMembers(searchTerm, limit);
   }
 
   protected override async beforeCreate(data: Partial<Member>): Promise<Partial<Member>> {

@@ -15,3 +15,6 @@ export * from './DeliveryService';
 
 // AI-powered features service
 export * from './CommunicationAIService';
+
+// Facebook channel service
+export * from './FacebookChannelService';

@@ -69,6 +69,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { CommunicationChannel } from "@/models/communication/campaign.model";
 
 /** Recipient source types */
 export type RecipientSource =
@@ -128,7 +129,7 @@ export interface RecipientSelectorProps {
   /** Whether to allow external (manual) recipients */
   allowExternal?: boolean;
   /** Which channels are enabled (affects which fields are required) */
-  channels?: ("email" | "sms")[];
+  channels?: CommunicationChannel[];
   /** Whether the selector is disabled */
   disabled?: boolean;
   /** Optional class name */

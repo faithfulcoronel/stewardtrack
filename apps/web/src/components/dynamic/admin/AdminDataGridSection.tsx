@@ -135,6 +135,8 @@ export interface AdminDataGridSectionProps {
   emptyState?: { title?: string; description?: string } | null;
   exportable?: boolean;
   exportFilename?: string;
+  /** Custom content to render in the header actions area */
+  headerSlot?: React.ReactNode;
 }
 
 const badgeVariants: Record<string, string> = {
@@ -629,7 +631,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
 
   return (
     <section className="space-y-5 sm:space-y-6">
-      {(props.title || props.description || topActions.length > 0 || props.exportable) && (
+      {(props.title || props.description || topActions.length > 0 || props.exportable || props.headerSlot) && (
         <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1.5 sm:space-y-2">
             {props.title && (
@@ -642,9 +644,10 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
               <p className="text-sm text-muted-foreground pl-3">{props.description}</p>
             )}
           </div>
-          {(topActions.length > 0 || props.exportable) && (
+          {(topActions.length > 0 || props.exportable || props.headerSlot) && (
             <div className="flex flex-wrap gap-2 sm:gap-3">
               {topActions.map((action) => renderAction(action, "primary"))}
+              {props.headerSlot}
               {props.exportable && (
                 <Button
                   type="button"

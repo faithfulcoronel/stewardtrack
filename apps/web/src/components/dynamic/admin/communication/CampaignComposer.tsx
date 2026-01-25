@@ -36,6 +36,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Calendar,
+  Facebook,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -89,6 +90,7 @@ import { MessageComposer } from "./MessageComposer";
 import { RecipientSelector, type Recipient, type RecipientGroup } from "./RecipientSelector";
 import { TemplateSelector, type MessageTemplate, type TemplateCategory } from "./TemplateSelector";
 import { AIAssistantPanel } from "./AIAssistantPanel";
+import type { CommunicationChannel, FacebookMediaType, FacebookPostData } from "@/models/communication/campaign.model";
 
 /** Campaign types */
 export type CampaignType = "individual" | "bulk" | "scheduled" | "recurring";
@@ -98,10 +100,15 @@ interface CampaignFormData {
   name: string;
   description: string;
   campaignType: CampaignType;
-  channels: ("email" | "sms")[];
+  channels: CommunicationChannel[];
   subject: string;
   contentHtml: string;
   contentText: string;
+  // Facebook-specific fields
+  facebookText: string;
+  facebookMediaUrl: string;
+  facebookMediaType: FacebookMediaType;
+  facebookLinkUrl: string;
   templateId?: string;
   recipients: Recipient[];
   scheduledAt?: string;
@@ -148,7 +155,7 @@ export interface CampaignComposerProps {
   className?: string;
 }
 
-type AiAssistType = "improve" | "subject" | "personalize" | "grammar";
+type AiAssistType = "improve" | "subject" | "personalize" | "grammar" | "shorten";
 
 export function CampaignComposer({
   campaignId,
@@ -182,10 +189,21 @@ export function CampaignComposer({
     subject: initialData?.subject ?? "",
     contentHtml: initialData?.contentHtml ?? "",
     contentText: initialData?.contentText ?? "",
+    facebookText: initialData?.facebookText ?? "",
+    facebookMediaUrl: initialData?.facebookMediaUrl ?? "",
+    facebookMediaType: initialData?.facebookMediaType ?? "none",
+    facebookLinkUrl: initialData?.facebookLinkUrl ?? "",
     templateId: initialData?.templateId,
     recipients: initialData?.recipients ?? [],
     scheduledAt: initialData?.scheduledAt,
   });
+
+  // Link preview state for Facebook
+  const [facebookLinkPreview, setFacebookLinkPreview] = React.useState<{
+    title?: string;
+    description?: string;
+    image?: string;
+  } | null>(null);
 
   // UI state
   const [isSaving, setIsSaving] = React.useState(false);
@@ -200,9 +218,10 @@ export function CampaignComposer({
   const isEditing = Boolean(campaignId);
   const hasEmail = form.channels.includes("email");
   const hasSms = form.channels.includes("sms");
+  const hasFacebook = form.channels.includes("facebook");
 
   // Channel toggle
-  const toggleChannel = React.useCallback((channel: "email" | "sms") => {
+  const toggleChannel = React.useCallback((channel: CommunicationChannel) => {
     setForm((prev) => {
       const channels = prev.channels.includes(channel)
         ? prev.channels.filter((c) => c !== channel)
@@ -210,6 +229,32 @@ export function CampaignComposer({
       return { ...prev, channels };
     });
   }, []);
+
+  // Fetch Facebook link preview
+  const handleFetchLinkPreview = React.useCallback(
+    async (url: string): Promise<{ title?: string; description?: string; image?: string } | null> => {
+      try {
+        const response = await fetch("/api/admin/communication/facebook/link-preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const data = await response.json();
+        const preview = data.preview || null;
+        setFacebookLinkPreview(preview);
+        return preview;
+      } catch (error) {
+        console.error("Failed to fetch link preview:", error);
+        return null;
+      }
+    },
+    []
+  );
 
   // Validate form
   const validate = React.useCallback((): string[] => {
@@ -220,7 +265,7 @@ export function CampaignComposer({
     }
 
     if (form.channels.length === 0) {
-      errors.push("Select at least one channel (Email or SMS)");
+      errors.push("Select at least one channel (Email, SMS, or Facebook)");
     }
 
     if (hasEmail && !form.subject.trim()) {
@@ -251,29 +296,120 @@ export function CampaignComposer({
     toast.success(`Template "${template.name}" applied`);
   }, []);
 
+  // AI assist type descriptions for user feedback
+  const getAiAssistDescription = (type: AiAssistType): { action: string; result: string } => {
+    switch (type) {
+      case "subject":
+        return { action: "Generating subject line suggestions", result: "Subject line updated" };
+      case "improve":
+        return { action: "Improving your content (analyzing text and images)", result: "Content improved" };
+      case "grammar":
+        return { action: "Checking grammar and spelling", result: "Grammar fixed" };
+      case "shorten":
+        return { action: "Shortening your message", result: "Content shortened" };
+      case "personalize":
+        return { action: "Adding personalization placeholders", result: "Personalization added" };
+      default:
+        return { action: "Processing with AI", result: "AI suggestion applied" };
+    }
+  };
+
+  // Extract images from HTML content to preserve them after AI processing
+  // This captures both standalone <img> tags and <figure> wrapped images (CKEditor format)
+  // which includes sizing, alignment, and caption information
+  const extractImagesFromContent = (html: string): string[] => {
+    const images: string[] = [];
+
+    // First, extract <figure> elements containing images (CKEditor's format for resized images)
+    // This preserves width, height, alignment, and any captions
+    const figureRegex = /<figure[^>]*class="[^"]*image[^"]*"[^>]*>[\s\S]*?<\/figure>/gi;
+    const figures = html.match(figureRegex) || [];
+    images.push(...figures);
+
+    // Then extract standalone <img> tags that are NOT inside figures
+    // Remove figures temporarily to find standalone images
+    const htmlWithoutFigures = html.replace(figureRegex, "");
+    const imgRegex = /<img[^>]+>/gi;
+    const standaloneImages = htmlWithoutFigures.match(imgRegex) || [];
+    images.push(...standaloneImages);
+
+    return images;
+  };
+
+  // Merge AI-improved text with preserved images
+  const mergeContentWithImages = (improvedContent: string, originalImages: string[]): string => {
+    if (originalImages.length === 0) {
+      return improvedContent;
+    }
+
+    // Append preserved images at the end, maintaining their original structure
+    // (including figure wrappers with sizing)
+    const imagesHtml = originalImages.join("\n");
+
+    // Check if improved content ends with a closing tag
+    if (improvedContent.trim().endsWith(">")) {
+      return improvedContent + "\n" + imagesHtml;
+    }
+
+    return improvedContent + "\n" + imagesHtml;
+  };
+
   // Handle AI assist
   const handleAiAssist = React.useCallback(
     async (type: AiAssistType) => {
       if (!onAiAssist) return;
 
+      const content = type === "subject" ? form.subject : form.contentHtml || form.contentText;
+
+      // Validate content before making API call
+      if (!content?.trim()) {
+        toast.error("Please write some content first to use AI assistance");
+        return;
+      }
+
+      const aiDescription = getAiAssistDescription(type);
+
+      // Extract images from original content to preserve them
+      const originalImages = type !== "subject" ? extractImagesFromContent(form.contentHtml || "") : [];
+
       setAiLoading(true);
+
+      // Show a loading toast with the action being performed
+      const loadingToastId = toast.loading(aiDescription.action + "...", {
+        description: originalImages.length > 0
+          ? "Analyzing your content and images..."
+          : "This may take a moment",
+      });
+
       try {
-        const content = type === "subject" ? form.subject : form.contentHtml || form.contentText;
         const result = await onAiAssist(type, content);
+
+        // Dismiss the loading toast
+        toast.dismiss(loadingToastId);
 
         if (type === "subject") {
           setForm((prev) => ({ ...prev, subject: result }));
         } else {
+          // Merge the AI result with preserved images
+          const mergedContent = mergeContentWithImages(result, originalImages);
           setForm((prev) => ({
             ...prev,
-            contentHtml: result,
+            contentHtml: mergedContent,
           }));
         }
 
-        toast.success("AI suggestion applied");
+        toast.success(aiDescription.result, {
+          description: type === "improve" && originalImages.length > 0
+            ? "Your images have been preserved"
+            : type === "improve"
+              ? "Review the changes in the editor"
+              : undefined,
+        });
       } catch (error) {
+        // Dismiss the loading toast on error
+        toast.dismiss(loadingToastId);
         console.error("AI assist failed:", error);
-        toast.error("Failed to get AI suggestion");
+        toast.error(error instanceof Error ? error.message : "Failed to get AI suggestion");
       } finally {
         setAiLoading(false);
       }
@@ -519,6 +655,16 @@ export function CampaignComposer({
                   onContentHtmlChange={(contentHtml) => setForm({ ...form, contentHtml })}
                   contentText={form.contentText}
                   onContentTextChange={(contentText) => setForm({ ...form, contentText })}
+                  facebookText={form.facebookText}
+                  onFacebookTextChange={(facebookText) => setForm({ ...form, facebookText })}
+                  facebookMediaUrl={form.facebookMediaUrl}
+                  onFacebookMediaUrlChange={(facebookMediaUrl) => setForm({ ...form, facebookMediaUrl })}
+                  facebookMediaType={form.facebookMediaType}
+                  onFacebookMediaTypeChange={(facebookMediaType) => setForm({ ...form, facebookMediaType })}
+                  facebookLinkUrl={form.facebookLinkUrl}
+                  onFacebookLinkUrlChange={(facebookLinkUrl) => setForm({ ...form, facebookLinkUrl })}
+                  facebookLinkPreview={facebookLinkPreview}
+                  onFetchLinkPreview={handleFetchLinkPreview}
                   channels={form.channels}
                   placeholder="Write your message here..."
                   disabled={isLoading}
@@ -563,6 +709,23 @@ export function CampaignComposer({
                     SMS
                   </Label>
                 </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="facebook"
+                    checked={hasFacebook}
+                    onCheckedChange={() => toggleChannel("facebook")}
+                    disabled={isLoading}
+                  />
+                  <Label htmlFor="facebook" className="flex items-center gap-2 cursor-pointer">
+                    <Facebook className="h-4 w-4" />
+                    Facebook Page
+                  </Label>
+                </div>
+                {hasFacebook && (
+                  <p className="text-xs text-muted-foreground pl-6">
+                    Posts to your connected Facebook Page. Max 63,206 characters.
+                  </p>
+                )}
               </CardContent>
             </Card>
 

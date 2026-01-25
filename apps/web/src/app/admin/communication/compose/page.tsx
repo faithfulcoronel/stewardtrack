@@ -30,10 +30,15 @@ interface CampaignFormData {
   name: string;
   description: string;
   campaignType: "individual" | "bulk" | "scheduled" | "recurring";
-  channels: ("email" | "sms")[];
+  channels: ("email" | "sms" | "facebook")[];
   subject: string;
   contentHtml: string;
   contentText: string;
+  // Facebook-specific fields
+  facebookText: string;
+  facebookMediaUrl: string;
+  facebookMediaType: "image" | "video" | "none";
+  facebookLinkUrl: string;
   templateId?: string;
   recipients: Recipient[];
   scheduledAt?: string;
@@ -255,13 +260,21 @@ export default function ComposePage() {
     [handleSaveDraft]
   );
 
-  // AI assist
+  // AI assist with image support
   const handleAiAssist = useCallback(
     async (type: string, content: string): Promise<string> => {
+      // Enable image extraction for content that may contain images
+      // This allows the AI to analyze embedded images (e.g., event posters)
+      const extractImages = type !== 'personalize'; // Skip for personalization which doesn't need AI
+
       const response = await fetch("/api/admin/communication/ai/assist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, content }),
+        body: JSON.stringify({
+          type,
+          content,
+          extractImages,
+        }),
       });
 
       if (!response.ok) {

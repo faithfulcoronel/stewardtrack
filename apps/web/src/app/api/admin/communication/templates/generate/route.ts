@@ -2,17 +2,22 @@
  * API Route: POST /api/admin/communication/templates/generate
  *
  * AI-powered template generation.
- * Uses Claude AI to generate message templates based on a prompt.
+ * Uses the AI service (via AIProviderFactory) to generate message templates based on a prompt.
+ * Supports both Anthropic API and AWS Bedrock as providers.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import type { AICreditService } from '@/services/ai-chat/AICreditService';
+import type { AICreditService } from '@/services/AICreditService';
 import type { CommunicationService } from '@/services/communication/CommunicationService';
 import type { TemplateCategory } from '@/models/communication/template.model';
-import Anthropic from '@anthropic-ai/sdk';
+import {
+  createAIService,
+  isAIServiceAvailable,
+} from '@/lib/ai-assistant/infrastructure/ai/AIProviderFactory';
+import { extractTextFromResponse } from '@/lib/ai-assistant/infrastructure/ai/IAIService';
 
 interface GenerateRequest {
   prompt: string;
@@ -37,6 +42,7 @@ const CATEGORY_CONTEXTS: Record<TemplateCategory, string> = {
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
     const body: GenerateRequest = await request.json();
 
     // Validate request
@@ -97,12 +103,22 @@ Return the template in this exact JSON format:
 
 Return ONLY the JSON, no additional text or markdown formatting.`;
 
-    // Call Claude AI
-    const anthropic = new Anthropic();
+    // Check if AI service is available
+    if (!isAIServiceAvailable()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'AI service is not configured. Please contact your administrator.',
+        },
+        { status: 503 }
+      );
+    }
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
+    // Create AI service via factory (single source of truth)
+    const aiService = createAIService();
+
+    // Send message to AI service
+    const response = await aiService.sendMessage({
       messages: [
         {
           role: 'user',
@@ -110,15 +126,25 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
         },
       ],
       system: systemPrompt,
+      max_tokens: 2048,
     });
 
-    // Extract text response
-    const textContent = message.content.find((block) => block.type === 'text');
-    const rawResult = textContent ? textContent.text : '{}';
+    // Extract text response using helper function
+    const rawResult = extractTextFromResponse(response) || '{}';
 
-    // Deduct credits
-    const tokensUsed = (message.usage?.input_tokens ?? 0) + (message.usage?.output_tokens ?? 0);
-    await creditService.deductCredits(tenantId, tokensUsed);
+    // Deduct credits for AI usage
+    const inputTokens = response.usage?.input_tokens ?? 0;
+    const outputTokens = response.usage?.output_tokens ?? 0;
+    await creditService.deductCredits(
+      tenantId,
+      userId,
+      `template-gen-${Date.now()}`, // sessionId for template generation
+      1, // conversationTurn - single request
+      inputTokens,
+      outputTokens,
+      0, // toolCount - no tools used
+      response.model ?? 'claude-3-5-sonnet'
+    );
 
     // Parse the JSON response
     let templateData: {

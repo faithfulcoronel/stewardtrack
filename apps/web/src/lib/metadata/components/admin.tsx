@@ -168,6 +168,10 @@ import {
   type AdminTransactionLinesProps,
 } from '@/components/dynamic/admin/AdminTransactionLines';
 import {
+  TransactionsGridWithExport,
+  type TransactionsGridWithExportProps,
+} from '@/components/dynamic/admin/TransactionsGridWithExport';
+import {
   AdminTransactionEntry,
   type AdminTransactionEntryProps,
 } from '@/components/dynamic/admin/AdminTransactionEntry';
@@ -211,6 +215,10 @@ import {
   AdminAICreditsSettings,
   type AdminAICreditsSettingsProps,
 } from '@/components/dynamic/admin/AdminAICreditsSettings';
+import {
+  AdminMediaGallery,
+  type AdminMediaGalleryProps,
+} from '@/components/dynamic/admin/AdminMediaGallery';
 // Communication Components
 import {
   CampaignComposer,
@@ -574,6 +582,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     renderer: withoutChildren<AdminTransactionLinesProps>(AdminTransactionLines, 'AdminTransactionLinesRenderer'),
   },
   {
+    type: 'TransactionsGridWithExport',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TransactionsGridWithExportProps>(TransactionsGridWithExport, 'TransactionsGridWithExportRenderer'),
+  },
+  {
     type: 'AdminTransactionEntry',
     namespace: 'admin',
     version: '1.0.0',
@@ -642,6 +656,13 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
+  },
+  // Media Gallery Component
+  {
+    type: 'AdminMediaGallery',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminMediaGalleryProps>(AdminMediaGallery, 'AdminMediaGalleryRenderer'),
   },
   // Notebook Components
   {
