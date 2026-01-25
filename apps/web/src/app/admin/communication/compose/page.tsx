@@ -30,10 +30,15 @@ interface CampaignFormData {
   name: string;
   description: string;
   campaignType: "individual" | "bulk" | "scheduled" | "recurring";
-  channels: ("email" | "sms")[];
+  channels: ("email" | "sms" | "facebook")[];
   subject: string;
   contentHtml: string;
   contentText: string;
+  // Facebook-specific fields
+  facebookText: string;
+  facebookMediaUrl: string;
+  facebookMediaType: "image" | "video" | "none";
+  facebookLinkUrl: string;
   templateId?: string;
   recipients: Recipient[];
   scheduledAt?: string;

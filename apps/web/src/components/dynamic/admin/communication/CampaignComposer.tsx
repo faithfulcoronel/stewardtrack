@@ -90,7 +90,7 @@ import { MessageComposer } from "./MessageComposer";
 import { RecipientSelector, type Recipient, type RecipientGroup } from "./RecipientSelector";
 import { TemplateSelector, type MessageTemplate, type TemplateCategory } from "./TemplateSelector";
 import { AIAssistantPanel } from "./AIAssistantPanel";
-import type { CommunicationChannel } from "@/models/communication/campaign.model";
+import type { CommunicationChannel, FacebookMediaType, FacebookPostData } from "@/models/communication/campaign.model";
 
 /** Campaign types */
 export type CampaignType = "individual" | "bulk" | "scheduled" | "recurring";
@@ -104,6 +104,11 @@ interface CampaignFormData {
   subject: string;
   contentHtml: string;
   contentText: string;
+  // Facebook-specific fields
+  facebookText: string;
+  facebookMediaUrl: string;
+  facebookMediaType: FacebookMediaType;
+  facebookLinkUrl: string;
   templateId?: string;
   recipients: Recipient[];
   scheduledAt?: string;
@@ -184,10 +189,21 @@ export function CampaignComposer({
     subject: initialData?.subject ?? "",
     contentHtml: initialData?.contentHtml ?? "",
     contentText: initialData?.contentText ?? "",
+    facebookText: initialData?.facebookText ?? "",
+    facebookMediaUrl: initialData?.facebookMediaUrl ?? "",
+    facebookMediaType: initialData?.facebookMediaType ?? "none",
+    facebookLinkUrl: initialData?.facebookLinkUrl ?? "",
     templateId: initialData?.templateId,
     recipients: initialData?.recipients ?? [],
     scheduledAt: initialData?.scheduledAt,
   });
+
+  // Link preview state for Facebook
+  const [facebookLinkPreview, setFacebookLinkPreview] = React.useState<{
+    title?: string;
+    description?: string;
+    image?: string;
+  } | null>(null);
 
   // UI state
   const [isSaving, setIsSaving] = React.useState(false);
@@ -213,6 +229,32 @@ export function CampaignComposer({
       return { ...prev, channels };
     });
   }, []);
+
+  // Fetch Facebook link preview
+  const handleFetchLinkPreview = React.useCallback(
+    async (url: string): Promise<{ title?: string; description?: string; image?: string } | null> => {
+      try {
+        const response = await fetch("/api/admin/communication/facebook/link-preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const data = await response.json();
+        const preview = data.preview || null;
+        setFacebookLinkPreview(preview);
+        return preview;
+      } catch (error) {
+        console.error("Failed to fetch link preview:", error);
+        return null;
+      }
+    },
+    []
+  );
 
   // Validate form
   const validate = React.useCallback((): string[] => {
@@ -613,6 +655,16 @@ export function CampaignComposer({
                   onContentHtmlChange={(contentHtml) => setForm({ ...form, contentHtml })}
                   contentText={form.contentText}
                   onContentTextChange={(contentText) => setForm({ ...form, contentText })}
+                  facebookText={form.facebookText}
+                  onFacebookTextChange={(facebookText) => setForm({ ...form, facebookText })}
+                  facebookMediaUrl={form.facebookMediaUrl}
+                  onFacebookMediaUrlChange={(facebookMediaUrl) => setForm({ ...form, facebookMediaUrl })}
+                  facebookMediaType={form.facebookMediaType}
+                  onFacebookMediaTypeChange={(facebookMediaType) => setForm({ ...form, facebookMediaType })}
+                  facebookLinkUrl={form.facebookLinkUrl}
+                  onFacebookLinkUrlChange={(facebookLinkUrl) => setForm({ ...form, facebookLinkUrl })}
+                  facebookLinkPreview={facebookLinkPreview}
+                  onFetchLinkPreview={handleFetchLinkPreview}
                   channels={form.channels}
                   placeholder="Write your message here..."
                   disabled={isLoading}

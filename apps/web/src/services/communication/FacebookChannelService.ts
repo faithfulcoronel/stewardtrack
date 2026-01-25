@@ -22,6 +22,38 @@ export interface FacebookPostResult {
 }
 
 /**
+ * Options for posting to Facebook
+ */
+export interface FacebookPostOptions {
+  /** Plain text content for the post */
+  message: string;
+  /** Optional link URL (will generate Open Graph preview) */
+  linkUrl?: string;
+}
+
+/**
+ * Options for posting a photo to Facebook
+ */
+export interface FacebookPhotoPostOptions {
+  /** Caption for the photo */
+  caption?: string;
+  /** URL of the image to post (must be publicly accessible) */
+  imageUrl: string;
+}
+
+/**
+ * Options for posting a video to Facebook
+ */
+export interface FacebookVideoPostOptions {
+  /** Description for the video */
+  description?: string;
+  /** URL of the video to post (must be publicly accessible) */
+  videoUrl: string;
+  /** Optional title for the video */
+  title?: string;
+}
+
+/**
  * Result of validating a Facebook access token
  */
 export interface FacebookTokenValidationResult {
@@ -128,6 +160,177 @@ export class FacebookChannelService {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error posting to Facebook',
       };
+    }
+  }
+
+  /**
+   * Post a photo to a Facebook Page
+   *
+   * @param pageId - The Facebook Page ID
+   * @param accessToken - The Page Access Token
+   * @param options - Photo post options including imageUrl and optional caption
+   * @returns Result containing success status and post ID or error
+   */
+  async postPhotoToPage(
+    pageId: string,
+    accessToken: string,
+    options: FacebookPhotoPostOptions
+  ): Promise<FacebookPostResult> {
+    try {
+      const url = `${this.graphApiBaseUrl}/${pageId}/photos`;
+
+      const body: Record<string, string> = {
+        url: options.imageUrl, // Facebook accepts image URL
+        access_token: accessToken,
+      };
+
+      // Add caption if provided
+      if (options.caption) {
+        body.caption = options.caption;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(body).toString(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorData = data as FacebookErrorResponse;
+        console.error('[FacebookChannelService] Photo post failed:', errorData);
+        return {
+          success: false,
+          error: errorData.error?.message || `Facebook API error: ${response.status}`,
+        };
+      }
+
+      const successData = data as FacebookPostResponse;
+      console.log('[FacebookChannelService] Photo post successful:', successData.id);
+
+      return {
+        success: true,
+        postId: successData.id,
+      };
+    } catch (error) {
+      console.error('[FacebookChannelService] Photo post exception:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error posting photo to Facebook',
+      };
+    }
+  }
+
+  /**
+   * Post a video to a Facebook Page
+   *
+   * Note: For large videos, Facebook recommends using resumable upload.
+   * This method uses the simple URL-based upload suitable for videos hosted on public URLs.
+   *
+   * @param pageId - The Facebook Page ID
+   * @param accessToken - The Page Access Token
+   * @param options - Video post options including videoUrl and optional description/title
+   * @returns Result containing success status and post ID or error
+   */
+  async postVideoToPage(
+    pageId: string,
+    accessToken: string,
+    options: FacebookVideoPostOptions
+  ): Promise<FacebookPostResult> {
+    try {
+      const url = `${this.graphApiBaseUrl}/${pageId}/videos`;
+
+      const body: Record<string, string> = {
+        file_url: options.videoUrl, // Facebook accepts video URL
+        access_token: accessToken,
+      };
+
+      // Add description if provided
+      if (options.description) {
+        body.description = options.description;
+      }
+
+      // Add title if provided
+      if (options.title) {
+        body.title = options.title;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(body).toString(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorData = data as FacebookErrorResponse;
+        console.error('[FacebookChannelService] Video post failed:', errorData);
+        return {
+          success: false,
+          error: errorData.error?.message || `Facebook API error: ${response.status}`,
+        };
+      }
+
+      const successData = data as FacebookPostResponse;
+      console.log('[FacebookChannelService] Video post successful:', successData.id);
+
+      return {
+        success: true,
+        postId: successData.id,
+      };
+    } catch (error) {
+      console.error('[FacebookChannelService] Video post exception:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error posting video to Facebook',
+      };
+    }
+  }
+
+  /**
+   * Fetch Open Graph metadata for a URL (link preview)
+   *
+   * @param url - The URL to fetch metadata for
+   * @param accessToken - The Page Access Token
+   * @returns Open Graph metadata or null if not available
+   */
+  async fetchLinkPreview(
+    url: string,
+    accessToken: string
+  ): Promise<{ title?: string; description?: string; image?: string } | null> {
+    try {
+      const apiUrl = `${this.graphApiBaseUrl}/?id=${encodeURIComponent(url)}&fields=og_object{title,description,image}&access_token=${encodeURIComponent(accessToken)}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        console.error('[FacebookChannelService] Link preview fetch failed');
+        return null;
+      }
+
+      const data = await response.json();
+      const ogObject = data.og_object;
+
+      if (!ogObject) {
+        return null;
+      }
+
+      return {
+        title: ogObject.title,
+        description: ogObject.description,
+        image: ogObject.image?.[0]?.url || ogObject.image,
+      };
+    } catch (error) {
+      console.error('[FacebookChannelService] Link preview exception:', error);
+      return null;
     }
   }
 
