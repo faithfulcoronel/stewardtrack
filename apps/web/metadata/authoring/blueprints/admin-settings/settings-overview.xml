@@ -90,6 +90,13 @@
                 <Prop name="currency" kind="binding" contract="settingsOverview.aiCreditsCurrency"/>
               </Props>
             </Component>
+            <Component id="media-tab-content" type="AdminMediaGallery">
+              <Props>
+                <Prop name="items" kind="binding" contract="settingsOverview.mediaItems"/>
+                <Prop name="storageUsage" kind="binding" contract="settingsOverview.mediaStorageUsage"/>
+                <Prop name="categories" kind="binding" contract="settingsOverview.mediaCategories"/>
+              </Props>
+            </Component>
           </Children>
         </Component>
       </Region>
@@ -124,6 +131,9 @@
           <Field name="aiCreditsUsageStats" path="aiCredits.usageStats" description="AI credits usage statistics"/>
           <Field name="aiCreditsAutoRecharge" path="aiCredits.autoRecharge" description="Auto-recharge configuration"/>
           <Field name="aiCreditsCurrency" path="aiCredits.currency" description="Tenant currency for AI credits"/>
+          <Field name="mediaItems" path="media.items" description="Media gallery items"/>
+          <Field name="mediaStorageUsage" path="media.storageUsage" description="Media storage usage statistics"/>
+          <Field name="mediaCategories" path="media.categories" description="Media category filters"/>
         </Contract>
         <Config>
           <Handler>admin-settings.settings.overview</Handler>

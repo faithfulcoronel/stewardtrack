@@ -3,6 +3,8 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
 import type { IStorageRepository } from '@/repositories/storage.repository';
 import type { UploadResult } from '@/adapters/storage.adapter';
+import type { IMediaService } from '@/services/MediaService';
+import type { MediaCategory } from '@/adapters/media.adapter';
 import { randomUUID } from 'crypto';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -44,6 +46,12 @@ export interface StorageService {
     file: File
   ): Promise<UploadResult>;
   deleteEditorImage(imageUrl: string): Promise<void>;
+  uploadMemberPhoto(
+    tenantId: string,
+    memberId: string,
+    file: File
+  ): Promise<UploadResult>;
+  deleteMemberPhoto(photoUrl: string): Promise<void>;
 }
 
 @injectable()
@@ -52,8 +60,37 @@ export class SupabaseStorageService implements StorageService {
 
   constructor(
     @inject(TYPES.IStorageRepository)
-    private storageRepo: IStorageRepository
+    private storageRepo: IStorageRepository,
+    @inject(TYPES.MediaService)
+    private mediaService: IMediaService
   ) {}
+
+  /**
+   * Track an uploaded file in the tenant_media table
+   */
+  private async trackMedia(
+    tenantId: string,
+    result: UploadResult,
+    category: MediaCategory,
+    originalFilename: string,
+    mimeType: string,
+    fileSize: number
+  ): Promise<void> {
+    try {
+      await this.mediaService.trackUpload({
+        bucket_name: this.bucketName,
+        file_path: result.path,
+        public_url: result.publicUrl,
+        original_filename: originalFilename,
+        mime_type: mimeType,
+        file_size_bytes: fileSize,
+        category,
+      }, tenantId);
+    } catch (error) {
+      // Log but don't fail the upload - tracking is best-effort
+      console.error('Failed to track media upload:', error);
+    }
+  }
 
   async uploadChurchImage(
     tenantId: string,
@@ -81,12 +118,17 @@ export class SupabaseStorageService implements StorageService {
     const buffer = await file.arrayBuffer();
 
     // Upload to storage
-    return this.storageRepo.upload(
+    const result = await this.storageRepo.upload(
       this.bucketName,
       filename,
       buffer,
       file.type
     );
+
+    // Track in tenant_media table
+    await this.trackMedia(tenantId, result, 'church_images', file.name, file.type, file.size);
+
+    return result;
   }
 
   async deleteChurchImage(imageUrl: string): Promise<void> {
@@ -126,12 +168,17 @@ export class SupabaseStorageService implements StorageService {
     const buffer = await file.arrayBuffer();
 
     // Upload to storage
-    return this.storageRepo.upload(
+    const result = await this.storageRepo.upload(
       this.bucketName,
       filename,
       buffer,
       file.type
     );
+
+    // Track in tenant_media table
+    await this.trackMedia(tenantId, result, 'church_logos', file.name, file.type, file.size);
+
+    return result;
   }
 
   async deleteChurchLogo(logoUrl: string): Promise<void> {
@@ -184,17 +231,72 @@ export class SupabaseStorageService implements StorageService {
     const buffer = await file.arrayBuffer();
 
     // Upload to storage
-    return this.storageRepo.upload(
+    const result = await this.storageRepo.upload(
       this.bucketName,
       filename,
       buffer,
       file.type
     );
+
+    // Track in tenant_media table
+    await this.trackMedia(tenantId, result, 'editor_images', file.name, file.type, file.size);
+
+    return result;
   }
 
   async deleteEditorImage(imageUrl: string): Promise<void> {
     // Extract path from URL
     const urlPath = imageUrl.split(`/${this.bucketName}/`)[1];
+
+    if (urlPath) {
+      await this.storageRepo.delete(this.bucketName, [urlPath]);
+    }
+  }
+
+  async uploadMemberPhoto(
+    tenantId: string,
+    memberId: string,
+    file: File
+  ): Promise<UploadResult> {
+    // Validate file type
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      throw new Error(
+        `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
+      );
+    }
+
+    // Validate file size (5MB max for member photos)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new Error(
+        `File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`
+      );
+    }
+
+    // Generate unique filename
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filename = `member-photos/${tenantId}/${memberId}/${randomUUID()}.${fileExtension}`;
+
+    // Read file buffer
+    const buffer = await file.arrayBuffer();
+
+    // Upload to storage
+    const result = await this.storageRepo.upload(
+      this.bucketName,
+      filename,
+      buffer,
+      file.type
+    );
+
+    // Track in tenant_media table
+    await this.trackMedia(tenantId, result, 'member_photos', file.name, file.type, file.size);
+
+    return result;
+  }
+
+  async deleteMemberPhoto(photoUrl: string): Promise<void> {
+    // Extract path from URL
+    const urlPath = photoUrl.split(`/${this.bucketName}/`)[1];
 
     if (urlPath) {
       await this.storageRepo.delete(this.bucketName, [urlPath]);

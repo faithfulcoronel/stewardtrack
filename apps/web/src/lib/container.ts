@@ -1063,6 +1063,15 @@ container.bind<IStorageAdapter>(TYPES.IStorageAdapter).to(StorageAdapter).inRequ
 container.bind<IStorageRepository>(TYPES.IStorageRepository).to(StorageRepository).inRequestScope();
 container.bind<StorageService>(TYPES.StorageService).to(SupabaseStorageService).inRequestScope();
 
+// ==================== MEDIA GALLERY ====================
+import { MediaAdapter, type IMediaAdapter } from '@/adapters/media.adapter';
+import { MediaRepository, type IMediaRepository } from '@/repositories/media.repository';
+import { MediaService, type IMediaService } from '@/services/MediaService';
+
+container.bind<IMediaAdapter>(TYPES.IMediaAdapter).to(MediaAdapter).inRequestScope();
+container.bind<IMediaRepository>(TYPES.IMediaRepository).to(MediaRepository).inRequestScope();
+container.bind<IMediaService>(TYPES.MediaService).to(MediaService).inRequestScope();
+
 // ==================== DONATION SYSTEM (Online Giving with Xendit) ====================
 // Donation Adapters
 import { DonationAdapter, type IDonationAdapter } from '@/adapters/donation.adapter';

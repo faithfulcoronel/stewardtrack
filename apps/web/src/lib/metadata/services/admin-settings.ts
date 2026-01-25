@@ -7,6 +7,7 @@ import type { AICreditService } from "@/services/AICreditService";
 import type { AICreditPackageService } from "@/services/AICreditPackageService";
 import type { AICreditPurchaseService } from "@/services/AICreditPurchaseService";
 import type { AICreditTransactionRepository } from "@/repositories/aiCreditTransaction.repository";
+import type { IMediaService } from "@/services/MediaService";
 import { TIMEZONE_OPTIONS, clearTimezoneCache, formatDate } from "./datetime-utils";
 
 const SETTINGS_OVERVIEW_HANDLER_ID = "admin-settings.settings.overview";
@@ -117,8 +118,15 @@ const resolveSettingsOverview: ServiceDataSourceHandler = async (_request) => {
         icon: 'zap',
         description: 'Manage AI Assistant credits and usage',
       },
+      {
+        id: 'media',
+        label: 'Media',
+        icon: 'image',
+        description: 'Manage uploaded images and files',
+      },
     ],
     aiCredits: await resolveAICreditsTab(tenant.id, currency, timezone),
+    media: await resolveMediaTab(tenant.id),
     hero: {
       eyebrow: "StewardTrack Admin",
       headline: `Configure ${ministryName} Settings`,
@@ -490,6 +498,97 @@ const resolveAICreditsTab = async (tenantId: string, currency: string, timezone:
       },
       currency: 'PHP',
       error: error instanceof Error ? error.message : 'Failed to load AI Credits data',
+    };
+  }
+};
+
+/**
+ * Resolve Media Gallery tab data
+ */
+const resolveMediaTab = async (tenantId: string) => {
+  try {
+    const mediaService = container.get<IMediaService>(TYPES.MediaService);
+
+    // Fetch gallery items and storage usage in parallel
+    const [gallery, storageUsage] = await Promise.all([
+      mediaService.getGallery(tenantId, { limit: 50, offset: 0 }),
+      mediaService.getStorageUsage(tenantId),
+    ]);
+
+    // Format storage bytes to human-readable
+    const formatBytes = (bytes: number): string => {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+    };
+
+    // Define category options for filtering
+    const categories = [
+      { value: 'all', label: 'All Media' },
+      { value: 'church_logos', label: 'Church Logos' },
+      { value: 'church_images', label: 'Church Images' },
+      { value: 'member_photos', label: 'Member Photos' },
+      { value: 'editor_images', label: 'Editor Images' },
+      { value: 'schedule_covers', label: 'Schedule Covers' },
+      { value: 'other', label: 'Other' },
+    ];
+
+    return {
+      items: gallery.items.map((item) => ({
+        id: item.id,
+        fileName: item.original_filename || 'Unknown',
+        url: item.public_url,
+        category: item.category,
+        categoryLabel: categories.find(c => c.value === item.category)?.label || item.category,
+        mimeType: item.mime_type,
+        fileSize: item.file_size_bytes,
+        fileSizeFormatted: formatBytes(item.file_size_bytes),
+        uploadedAt: item.uploaded_at,
+        uploadedAtFormatted: item.uploaded_at
+          ? new Date(item.uploaded_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })
+          : 'Unknown',
+      })),
+      storageUsage: {
+        totalFiles: storageUsage.totalFiles,
+        totalBytes: storageUsage.totalBytes,
+        totalBytesFormatted: formatBytes(storageUsage.totalBytes),
+        byCategory: Object.entries(storageUsage.byCategory || {}).map(([category, stats]) => ({
+          category,
+          categoryLabel: categories.find(c => c.value === category)?.label || category,
+          count: (stats as { count: number; bytes: number }).count,
+          bytes: (stats as { count: number; bytes: number }).bytes,
+          bytesFormatted: formatBytes((stats as { count: number; bytes: number }).bytes),
+        })),
+      },
+      categories,
+    };
+  } catch (error) {
+    console.error('[Media Tab] Error fetching data:', error);
+    // Return empty state on error
+    return {
+      items: [],
+      storageUsage: {
+        totalFiles: 0,
+        totalBytes: 0,
+        totalBytesFormatted: '0 B',
+        byCategory: [],
+      },
+      categories: [
+        { value: 'all', label: 'All Media' },
+        { value: 'church_logos', label: 'Church Logos' },
+        { value: 'church_images', label: 'Church Images' },
+        { value: 'member_photos', label: 'Member Photos' },
+        { value: 'editor_images', label: 'Editor Images' },
+        { value: 'schedule_covers', label: 'Schedule Covers' },
+        { value: 'other', label: 'Other' },
+      ],
+      error: error instanceof Error ? error.message : 'Failed to load media data',
     };
   }
 };

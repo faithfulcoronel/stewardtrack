@@ -211,6 +211,10 @@ import {
   AdminAICreditsSettings,
   type AdminAICreditsSettingsProps,
 } from '@/components/dynamic/admin/AdminAICreditsSettings';
+import {
+  AdminMediaGallery,
+  type AdminMediaGalleryProps,
+} from '@/components/dynamic/admin/AdminMediaGallery';
 // Communication Components
 import {
   CampaignComposer,
@@ -642,6 +646,13 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminAICreditsSettingsProps>(AdminAICreditsSettings, 'AdminAICreditsSettingsRenderer'),
+  },
+  // Media Gallery Component
+  {
+    type: 'AdminMediaGallery',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminMediaGalleryProps>(AdminMediaGallery, 'AdminMediaGalleryRenderer'),
   },
   // Notebook Components
   {

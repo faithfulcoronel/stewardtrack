@@ -3,6 +3,7 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { AuthorizationService } from '@/services/AuthorizationService';
 import type { ISchedulerService } from '@/services/SchedulerService';
+import type { IMediaService } from '@/services/MediaService';
 import { getCurrentTenantId } from '@/lib/server/context';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -104,6 +105,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Get public URL
     const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filename);
     const coverPhotoUrl = urlData.publicUrl;
+
+    // Track upload in tenant_media table
+    try {
+      const mediaService = container.get<IMediaService>(TYPES.MediaService);
+      await mediaService.trackUpload({
+        bucket_name: BUCKET_NAME,
+        file_path: filename,
+        public_url: coverPhotoUrl,
+        original_filename: file.name,
+        mime_type: file.type,
+        file_size_bytes: file.size,
+        category: 'schedule_covers',
+      }, tenantId);
+    } catch (trackError) {
+      // Log but don't fail - tracking is best-effort
+      console.error('Failed to track schedule cover upload:', trackError);
+    }
 
     // Update schedule with cover photo URL
     const { error: updateError } = await supabase

@@ -383,6 +383,11 @@ export const TYPES = {
   IStorageRepository: Symbol.for('IStorageRepository'),
   StorageService: Symbol.for('StorageService'),
 
+  // Media Gallery
+  IMediaAdapter: Symbol.for('IMediaAdapter'),
+  IMediaRepository: Symbol.for('IMediaRepository'),
+  MediaService: Symbol.for('MediaService'),
+
   // Donation System (Online Giving with Xendit)
   IDonationAdapter: Symbol.for('IDonationAdapter'),
   IDonationRepository: Symbol.for('IDonationRepository'),
