@@ -101,25 +101,50 @@ function Calendar({
     }
   }, [controlledMonth, isMonthControlled])
 
+  // Track previous selected value to detect actual changes
+  const prevSelectedRef = React.useRef(selected)
+
   React.useEffect(() => {
     if (isMonthControlled) return
 
-    if (selected instanceof Date && !isSameMonth(selected, internalMonth)) {
+    // Only sync month when selected value actually changes, not on every render
+    const prevSelected = prevSelectedRef.current
+    prevSelectedRef.current = selected
+
+    // Check if selected actually changed
+    const selectedChanged = (() => {
+      if (prevSelected === selected) return false
+      if (prevSelected instanceof Date && selected instanceof Date) {
+        return prevSelected.getTime() !== selected.getTime()
+      }
+      if (prevSelected && selected && typeof prevSelected === "object" && typeof selected === "object") {
+        const prevRange = prevSelected as { from?: Date; to?: Date }
+        const currRange = selected as { from?: Date; to?: Date }
+        const fromChanged = prevRange.from?.getTime() !== currRange.from?.getTime()
+        const toChanged = prevRange.to?.getTime() !== currRange.to?.getTime()
+        return fromChanged || toChanged
+      }
+      return true
+    })()
+
+    if (!selectedChanged) return
+
+    if (selected instanceof Date) {
       setInternalMonth(startOfMonth(selected))
       return
     }
 
     if (selected && typeof selected === "object" && !Array.isArray(selected)) {
       const range = selected as { from?: Date | undefined; to?: Date | undefined }
-      if (range.from instanceof Date && !isSameMonth(range.from, internalMonth)) {
+      if (range.from instanceof Date) {
         setInternalMonth(startOfMonth(range.from))
         return
       }
-      if (range.to instanceof Date && !isSameMonth(range.to, internalMonth)) {
+      if (range.to instanceof Date) {
         setInternalMonth(startOfMonth(range.to))
       }
     }
-  }, [internalMonth, isMonthControlled, selected])
+  }, [isMonthControlled, selected])
 
   const displayedMonth = isMonthControlled ? startOfMonth(controlledMonth!) : internalMonth
 

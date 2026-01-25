@@ -168,6 +168,10 @@ import {
   type AdminTransactionLinesProps,
 } from '@/components/dynamic/admin/AdminTransactionLines';
 import {
+  TransactionsGridWithExport,
+  type TransactionsGridWithExportProps,
+} from '@/components/dynamic/admin/TransactionsGridWithExport';
+import {
   AdminTransactionEntry,
   type AdminTransactionEntryProps,
 } from '@/components/dynamic/admin/AdminTransactionEntry';
@@ -576,6 +580,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminTransactionLinesProps>(AdminTransactionLines, 'AdminTransactionLinesRenderer'),
+  },
+  {
+    type: 'TransactionsGridWithExport',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<TransactionsGridWithExportProps>(TransactionsGridWithExport, 'TransactionsGridWithExportRenderer'),
   },
   {
     type: 'AdminTransactionEntry',
