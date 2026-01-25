@@ -13,7 +13,22 @@ export type CampaignStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'pause
 /**
  * Communication channel types
  */
-export type CommunicationChannel = 'email' | 'sms';
+export type CommunicationChannel = 'email' | 'sms' | 'facebook';
+
+/**
+ * Array of all available communication channels (for iteration/validation)
+ */
+export const COMMUNICATION_CHANNELS: readonly CommunicationChannel[] = ['email', 'sms', 'facebook'] as const;
+
+/**
+ * Channel filter type (includes 'all' option for UI filtering)
+ */
+export type CommunicationChannelFilter = CommunicationChannel | 'all';
+
+/**
+ * Channel selection type for components that need 'both' option
+ */
+export type CommunicationChannelSelection = CommunicationChannel | 'both';
 
 /**
  * Recipient criteria for dynamic audience selection

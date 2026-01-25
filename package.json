@@ -3,6 +3,15 @@
   "version": "1.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "overrides": {
+      "@ckeditor/ckeditor5-watchdog": "47.4.0",
+      "@ckeditor/ckeditor5-core": "47.4.0",
+      "@ckeditor/ckeditor5-engine": "47.4.0",
+      "@ckeditor/ckeditor5-utils": "47.4.0",
+      "@ckeditor/ckeditor5-ui": "47.4.0"
+    }
+  },
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@stewardtrack/web",

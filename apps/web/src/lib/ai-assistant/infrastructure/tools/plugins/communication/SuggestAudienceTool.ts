@@ -11,7 +11,8 @@
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
 import { createSupabaseServerClient as createClient } from '@/lib/supabase/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { createAIService, isAIServiceAvailable } from '../../../ai/AIProviderFactory';
+import { extractTextFromResponse } from '../../../ai/IAIService';
 
 export interface SuggestAudienceInput {
   message_content: string;
@@ -147,8 +148,13 @@ export class SuggestAudienceTool extends BaseTool {
         })),
       ];
 
+      // Check if AI service is available
+      if (!isAIServiceAvailable()) {
+        return this.error('AI service is not configured. Please contact your administrator.');
+      }
+
       // Use AI to analyze and suggest appropriate audience
-      const anthropic = new Anthropic();
+      const aiService = createAIService();
 
       const systemPrompt = `You are an expert at targeting church communications to the right audience.
 Analyze the message content and available recipient groups to suggest the most appropriate audiences.
@@ -178,16 +184,14 @@ Return ONLY the JSON, no additional text.`;
         ? `Message purpose: ${input.message_purpose}\n\nMessage content:\n${input.message_content}`
         : `Message content:\n${input.message_content}`;
 
-      const message = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
+      const response = await aiService.sendMessage({
         messages: [{ role: 'user', content: userPrompt }],
         system: systemPrompt,
+        max_tokens: 1500,
       });
 
       // Extract text response
-      const textContent = message.content.find((block) => block.type === 'text');
-      const rawResult = textContent ? textContent.text : '';
+      const rawResult = extractTextFromResponse(response) || '';
 
       // Parse the JSON response
       let aiAnalysis: {
@@ -220,7 +224,7 @@ Return ONLY the JSON, no additional text.`;
         };
       }
 
-      const tokensUsed = (message.usage?.input_tokens ?? 0) + (message.usage?.output_tokens ?? 0);
+      const tokensUsed = (response.usage?.input_tokens ?? 0) + (response.usage?.output_tokens ?? 0);
 
       this.logSuccess(Date.now() - startTime);
 

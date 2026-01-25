@@ -46,6 +46,14 @@ export interface FirebaseConfig {
   lastTested: string | null;
 }
 
+export interface FacebookConfig {
+  pageId: string;
+  pageName: string;
+  accessToken: string;
+  verified: boolean;
+  lastTested: string | null;
+}
+
 export interface IntegrationSettings {
   twilio: {
     accountSid: string;
@@ -84,6 +92,14 @@ export interface IntegrationSettings {
     verified: boolean;
     lastTested: string | null;
   };
+  facebook: {
+    pageId: string;
+    pageName: string;
+    accessToken: string;
+    configured: boolean;
+    verified: boolean;
+    lastTested: string | null;
+  };
 }
 
 // Setting keys for integrations
@@ -109,6 +125,12 @@ const INTEGRATION_KEYS = {
   // Firebase (system-level, uses env vars for config but persists verification status)
   FIREBASE_VERIFIED: 'integration.firebase.verified',
   FIREBASE_LAST_TESTED: 'integration.firebase.last_tested',
+  // Facebook Page integration
+  FACEBOOK_PAGE_ID: 'integration.facebook.page_id',
+  FACEBOOK_PAGE_NAME: 'integration.facebook.page_name',
+  FACEBOOK_ACCESS_TOKEN: 'integration.facebook.access_token',
+  FACEBOOK_VERIFIED: 'integration.facebook.verified',
+  FACEBOOK_LAST_TESTED: 'integration.facebook.last_tested',
 } as const;
 
 export interface SettingService {
@@ -134,6 +156,10 @@ export interface SettingService {
   // Firebase (system-level, uses env vars for config)
   getFirebaseStatus(): Promise<{ verified: boolean; lastTested: string | null }>;
   markFirebaseVerified(): Promise<void>;
+  // Facebook Page integration
+  getFacebookConfig(): Promise<FacebookConfig | null>;
+  saveFacebookConfig(config: { pageId: string; pageName: string; accessToken: string }): Promise<void>;
+  markFacebookVerified(): Promise<void>;
   getIntegrationConfiguredCount(): Promise<number>;
   // System-level email settings (tenant_id = NULL, used for registration emails)
   getSystemEmailConfig(): Promise<EmailConfig | null>;
@@ -233,6 +259,8 @@ export class SupabaseSettingService implements SettingService {
     const emailApiKey = settings[INTEGRATION_KEYS.EMAIL_API_KEY] || '';
     const webhookUrl = settings[INTEGRATION_KEYS.WEBHOOK_URL] || '';
     const webhookSecret = settings[INTEGRATION_KEYS.WEBHOOK_SECRET] || '';
+    const facebookPageId = settings[INTEGRATION_KEYS.FACEBOOK_PAGE_ID] || '';
+    const facebookAccessToken = settings[INTEGRATION_KEYS.FACEBOOK_ACCESS_TOKEN] || '';
 
     return {
       twilio: {
@@ -276,6 +304,15 @@ export class SupabaseSettingService implements SettingService {
         // Verified status comes from database
         verified: settings[INTEGRATION_KEYS.FIREBASE_VERIFIED] === 'true',
         lastTested: settings[INTEGRATION_KEYS.FIREBASE_LAST_TESTED] || null,
+      },
+      facebook: {
+        pageId: facebookPageId,
+        pageName: settings[INTEGRATION_KEYS.FACEBOOK_PAGE_NAME] || '',
+        // Mask access token if configured
+        accessToken: facebookAccessToken ? '••••••••••••••••' : '',
+        configured: !!(facebookPageId && facebookAccessToken),
+        verified: settings[INTEGRATION_KEYS.FACEBOOK_VERIFIED] === 'true',
+        lastTested: settings[INTEGRATION_KEYS.FACEBOOK_LAST_TESTED] || null,
       },
     };
   }
@@ -438,12 +475,57 @@ export class SupabaseSettingService implements SettingService {
     await this.upsertSetting(INTEGRATION_KEYS.FIREBASE_LAST_TESTED, new Date().toISOString(), 'tenant');
   }
 
+  // Facebook Page integration
+  async getFacebookConfig(): Promise<FacebookConfig | null> {
+    const settings = await this.getAllIntegrationKeys();
+
+    const pageId = settings[INTEGRATION_KEYS.FACEBOOK_PAGE_ID];
+    const accessToken = settings[INTEGRATION_KEYS.FACEBOOK_ACCESS_TOKEN];
+
+    if (!pageId || !accessToken) {
+      return null;
+    }
+
+    return {
+      pageId,
+      pageName: settings[INTEGRATION_KEYS.FACEBOOK_PAGE_NAME] || '',
+      accessToken,
+      verified: settings[INTEGRATION_KEYS.FACEBOOK_VERIFIED] === 'true',
+      lastTested: settings[INTEGRATION_KEYS.FACEBOOK_LAST_TESTED] || null,
+    };
+  }
+
+  async saveFacebookConfig(config: {
+    pageId: string;
+    pageName: string;
+    accessToken: string;
+  }): Promise<void> {
+    // Get existing access token if the new one is masked
+    let accessToken = config.accessToken;
+    if (accessToken.includes('•')) {
+      const existing = await this.getFacebookConfig();
+      accessToken = existing?.accessToken || '';
+    }
+
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_PAGE_ID, config.pageId, 'tenant');
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_PAGE_NAME, config.pageName, 'tenant');
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_ACCESS_TOKEN, accessToken, 'tenant');
+    // Reset verification when config changes
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_VERIFIED, 'false', 'tenant');
+  }
+
+  async markFacebookVerified(): Promise<void> {
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_VERIFIED, 'true', 'tenant');
+    await this.upsertSetting(INTEGRATION_KEYS.FACEBOOK_LAST_TESTED, new Date().toISOString(), 'tenant');
+  }
+
   async getIntegrationConfiguredCount(): Promise<number> {
     const settings = await this.getIntegrationSettings();
     let count = 0;
     if (settings.twilio.configured) count++;
     if (settings.email.configured) count++;
     if (settings.webhook.configured) count++;
+    if (settings.facebook.configured) count++;
     return count;
   }
 

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Webhook,
   Crown,
+  Facebook,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ export interface AdminIntegrationSettingsProps {
   showTwilio?: boolean;
   showEmail?: boolean;
   showWebhook?: boolean;
+  showFacebook?: boolean;
 }
 
 interface IntegrationStatus {
@@ -64,21 +66,29 @@ interface WebhookConfig {
   enabled: boolean;
 }
 
+interface FacebookConfig {
+  pageId: string;
+  pageName: string;
+  accessToken: string;
+}
+
 export function AdminIntegrationSettings({
   title = 'Integration Settings',
   description = 'Configure external services for messaging and email',
   showTwilio = true,
   showEmail = true,
   showWebhook = true,
+  showFacebook = true,
 }: AdminIntegrationSettingsProps) {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<'twilio' | 'email' | 'webhook' | null>(null);
-  const [testing, setTesting] = useState<'twilio' | 'email' | 'webhook' | null>(null);
+  const [saving, setSaving] = useState<'twilio' | 'email' | 'webhook' | 'facebook' | null>(null);
+  const [testing, setTesting] = useState<'twilio' | 'email' | 'webhook' | 'facebook' | null>(null);
 
   // Visibility toggles for sensitive fields
   const [showTwilioToken, setShowTwilioToken] = useState(false);
   const [showEmailApiKey, setShowEmailApiKey] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [showFacebookToken, setShowFacebookToken] = useState(false);
 
   // Integration status
   const [twilioStatus, setTwilioStatus] = useState<IntegrationStatus>({
@@ -90,6 +100,10 @@ export function AdminIntegrationSettings({
     verified: false,
   });
   const [webhookStatus, setWebhookStatus] = useState<IntegrationStatus>({
+    configured: false,
+    verified: false,
+  });
+  const [facebookStatus, setFacebookStatus] = useState<IntegrationStatus>({
     configured: false,
     verified: false,
   });
@@ -111,6 +125,11 @@ export function AdminIntegrationSettings({
     url: '',
     secret: '',
     enabled: true,
+  });
+  const [facebookConfig, setFacebookConfig] = useState<FacebookConfig>({
+    pageId: '',
+    pageName: '',
+    accessToken: '',
   });
 
   // Test configuration
@@ -163,6 +182,19 @@ export function AdminIntegrationSettings({
           configured: data.webhook.configured || false,
           verified: data.webhook.verified || false,
           lastTested: data.webhook.lastTested,
+        });
+      }
+
+      if (data.facebook) {
+        setFacebookConfig({
+          pageId: data.facebook.pageId || '',
+          pageName: data.facebook.pageName || '',
+          accessToken: data.facebook.accessToken ? '••••••••••••••••' : '',
+        });
+        setFacebookStatus({
+          configured: data.facebook.configured || false,
+          verified: data.facebook.verified || false,
+          lastTested: data.facebook.lastTested,
         });
       }
     } catch (error) {
@@ -404,6 +436,105 @@ export function AdminIntegrationSettings({
     } finally {
       setTesting(null);
     }
+  };
+
+  const saveFacebookConfig = async () => {
+    setSaving('facebook');
+    try {
+      const response = await fetch('/api/settings/integrations/facebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(facebookConfig),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to save Facebook configuration');
+      }
+
+      const data = await response.json();
+      setFacebookStatus({
+        configured: true,
+        verified: data.verified || false,
+        lastTested: data.lastTested,
+      });
+
+      // Update page name from response if available
+      if (data.pageName) {
+        setFacebookConfig(prev => ({ ...prev, pageName: data.pageName }));
+      }
+
+      toast({
+        title: 'Facebook Configuration Saved',
+        description: 'Your Facebook Page integration settings have been updated.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save configuration',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const testFacebook = async () => {
+    setTesting('facebook');
+    try {
+      const response = await fetch('/api/settings/integrations/facebook/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Test failed');
+      }
+
+      setFacebookStatus(prev => ({
+        ...prev,
+        verified: true,
+        lastTested: new Date().toISOString(),
+      }));
+
+      toast({
+        title: 'Test Post Published',
+        description: 'A test post has been published to your Facebook Page',
+      });
+    } catch (error) {
+      toast({
+        title: 'Test Failed',
+        description: error instanceof Error ? error.message : 'Failed to publish test post',
+        variant: 'destructive',
+      });
+    } finally {
+      setTesting(null);
+    }
+  };
+
+  const connectFacebook = () => {
+    // Redirect to Facebook OAuth
+    const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
+    const redirectUri = `${window.location.origin}/api/settings/integrations/facebook/callback`;
+    const scopes = 'pages_manage_posts,pages_read_engagement,pages_show_list';
+
+    if (!appId) {
+      toast({
+        title: 'Feature Not Available',
+        description: 'Facebook integration is not yet enabled for your account. Please contact your administrator.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+      `client_id=${encodeURIComponent(appId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scopes)}&` +
+      `response_type=code`;
+
+    window.location.href = authUrl;
   };
 
   const renderStatusBadge = (status: IntegrationStatus) => {
@@ -872,6 +1003,188 @@ export function AdminIntegrationSettings({
                     disabled={saving === 'webhook'}
                   >
                     {saving === 'webhook' ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </AccordionContent>
+            </Card>
+          </AccordionItem>
+        )}
+
+        {/* Facebook Page Integration */}
+        {showFacebook && (
+          <AccordionItem value="facebook" className="border rounded-lg overflow-hidden">
+            <Card className="border-0 shadow-none">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/30">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="p-2.5 rounded-lg bg-blue-600/10">
+                    <Facebook className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium">Facebook Page</span>
+                      {renderStatusBadge(facebookStatus)}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Post announcements to your church&apos;s Facebook Page
+                    </p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+
+              <AccordionContent>
+                <CardContent className="pt-0 space-y-6">
+                  <Separator />
+
+                  {/* Connect with Facebook Button */}
+                  {!facebookStatus.configured && (
+                    <div className="p-6 rounded-lg bg-muted/30 border text-center">
+                      <Facebook className="h-12 w-12 mx-auto text-blue-600 mb-4" />
+                      <h4 className="text-sm font-medium mb-2">Connect Your Facebook Page</h4>
+                      {process.env.NEXT_PUBLIC_FACEBOOK_APP_ID ? (
+                        <>
+                          <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                            Click the button below to authorize StewardTrack to post on your Facebook Page.
+                            You&apos;ll be redirected to Facebook to select which Page to connect.
+                          </p>
+                          <Button onClick={connectFacebook} className="bg-blue-600 hover:bg-blue-700">
+                            <Facebook className="h-4 w-4 mr-2" />
+                            Connect with Facebook
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                          Facebook integration is not yet available. Please contact your administrator to enable this feature.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Facebook Form (shown when configured or manually entering) */}
+                  {facebookStatus.configured && (
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="facebook-page-id">Page ID</Label>
+                        <Input
+                          id="facebook-page-id"
+                          placeholder="123456789012345"
+                          value={facebookConfig.pageId}
+                          onChange={(e) => setFacebookConfig(prev => ({ ...prev, pageId: e.target.value }))}
+                          className="font-mono text-sm"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your Facebook Page ID (found in Page settings)
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="facebook-page-name">Page Name</Label>
+                        <Input
+                          id="facebook-page-name"
+                          placeholder="Your Church Name"
+                          value={facebookConfig.pageName}
+                          onChange={(e) => setFacebookConfig(prev => ({ ...prev, pageName: e.target.value }))}
+                          disabled
+                          className="bg-muted/50"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Auto-detected from your Page Access Token
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="facebook-token">Page Access Token</Label>
+                        <div className="relative">
+                          <Input
+                            id="facebook-token"
+                            type={showFacebookToken ? 'text' : 'password'}
+                            placeholder="Enter your page access token"
+                            value={facebookConfig.accessToken}
+                            onChange={(e) => setFacebookConfig(prev => ({ ...prev, accessToken: e.target.value }))}
+                            className="font-mono text-sm pr-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            onClick={() => setShowFacebookToken(!showFacebookToken)}
+                          >
+                            {showFacebookToken ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Long-lived Page Access Token with pages_manage_posts permission
+                        </p>
+                      </div>
+
+                      {/* Reconnect Button */}
+                      <div className="pt-2">
+                        <Button variant="outline" size="sm" onClick={connectFacebook}>
+                          <Facebook className="h-4 w-4 mr-2" />
+                          Reconnect Facebook Page
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Test Section */}
+                  <div className="p-4 rounded-lg bg-muted/30 border">
+                    <h4 className="text-sm font-medium mb-3">Test Configuration</h4>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <p className="flex-1 text-sm text-muted-foreground">
+                        Publish a test post to your Facebook Page to verify the integration is working.
+                        The test post can be deleted afterward.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={testFacebook}
+                        disabled={testing === 'facebook' || !facebookStatus.configured}
+                        className="shrink-0"
+                      >
+                        {testing === 'facebook' ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-2" />
+                        )}
+                        Send Test Post
+                      </Button>
+                    </div>
+                    {facebookStatus.lastTested && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Last tested: {new Date(facebookStatus.lastTested).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                    <h4 className="text-sm font-medium mb-2 text-blue-600">About Facebook Integration</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Connect your Facebook Page to post announcements, events, and updates directly from your communication campaigns.
+                      {facebookStatus.configured
+                        ? ' Your Page is connected and ready to use.'
+                        : process.env.NEXT_PUBLIC_FACEBOOK_APP_ID
+                          ? ' Click "Connect with Facebook" to authorize access to your Page.'
+                          : ' Contact your administrator to enable this feature.'}
+                    </p>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex justify-end border-t pt-4">
+                  <Button
+                    onClick={saveFacebookConfig}
+                    disabled={saving === 'facebook' || !facebookConfig.pageId}
+                  >
+                    {saving === 'facebook' ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-2" />

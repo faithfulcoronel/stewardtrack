@@ -27,7 +27,7 @@ import { container } from "@/lib/container";
 import { TYPES } from "@/lib/types";
 import type { NotebookService } from "@/services/NotebookService";
 import { notFound } from "next/navigation";
-import { RichTextViewer } from "@/components/ui/rich-text-viewer";
+import { CKEditorRichTextViewer } from "@/components/ui/ckeditor-rich-text-viewer";
 
 type Awaitable<T> = T | Promise<T>;
 
@@ -87,7 +87,7 @@ export default async function NotebookPageDetailPage({ params }: PageProps) {
 
         {/* Page Content */}
         {page.content ? (
-          <RichTextViewer
+          <CKEditorRichTextViewer
             content={page.content}
             className="bg-card dark:bg-card rounded-lg border border-border p-4 sm:p-6 shadow-sm"
           />

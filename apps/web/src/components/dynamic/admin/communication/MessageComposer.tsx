@@ -7,13 +7,22 @@
  *
  * Rich text editor with variable insertion and AI assistance for composing
  * communication campaign messages. Supports both email (HTML) and SMS (text)
- * content modes.
+ * content modes with fullscreen editing support.
  *
  * ================================================================================
  */
 
 import * as React from "react";
-import { Sparkles, Eye, Code, MessageSquare, Mail, Phone } from "lucide-react";
+import {
+  Sparkles,
+  Eye,
+  Code,
+  MessageSquare,
+  Mail,
+  Phone,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,9 +37,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { RichTextViewer } from "@/components/ui/rich-text-viewer";
+import { CKEditorRichText } from "@/components/ui/ckeditor-rich-text";
+import { CKEditorRichTextViewer } from "@/components/ui/ckeditor-rich-text-viewer";
 import { VariableInserter, type VariableDefinition } from "./VariableInserter";
+import type { CommunicationChannel } from "@/models/communication/campaign.model";
 
 export interface MessageComposerProps {
   /** Email subject line (only used when channel includes email) */
@@ -46,7 +56,7 @@ export interface MessageComposerProps {
   /** Callback when text content changes */
   onContentTextChange?: (text: string) => void;
   /** Which channels are enabled */
-  channels?: ("email" | "sms")[];
+  channels?: CommunicationChannel[];
   /** Placeholder text for the editor */
   placeholder?: string;
   /** Custom variables to add beyond defaults */
@@ -132,6 +142,7 @@ export function MessageComposer({
   const [activeTab, setActiveTab] = React.useState<ContentTab>(
     channels.includes("email") ? "email" : "sms"
   );
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const subjectInputRef = React.useRef<HTMLInputElement>(null);
@@ -139,6 +150,35 @@ export function MessageComposer({
   const hasEmail = channels.includes("email");
   const hasSms = channels.includes("sms");
   const showTabs = hasEmail && hasSms;
+
+  // Update activeTab when channels change
+  // If current tab is no longer available, switch to the available one
+  React.useEffect(() => {
+    if (activeTab === "email" && !hasEmail && hasSms) {
+      setActiveTab("sms");
+    } else if (activeTab === "sms" && !hasSms && hasEmail) {
+      setActiveTab("email");
+    }
+  }, [activeTab, hasEmail, hasSms]);
+
+  // Reset viewMode when switching to SMS-only (code view not available)
+  React.useEffect(() => {
+    if (!hasEmail && viewMode === "code") {
+      setViewMode("edit");
+    }
+  }, [hasEmail, viewMode]);
+
+  // Handle ESC key to exit fullscreen
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
 
   // Sync plain text from HTML when only email content provided
   React.useEffect(() => {
@@ -212,166 +252,154 @@ export function MessageComposer({
   const smsCharCount = smsText.length;
   const smsSegments = getSmsSegmentCount(smsText);
 
-  return (
-    <TooltipProvider>
-      <div className={cn("space-y-4", className)}>
-        {/* Subject Line (Email only) */}
-        {hasEmail && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="subject" className="text-sm font-medium">
-                Email Subject *
-              </Label>
-              <VariableInserter
-                onInsert={handleSubjectVariableInsert}
-                customVariables={customVariables}
-                disabled={disabled}
-                size="sm"
-                variant="ghost"
-              />
-            </div>
-            <Input
-              ref={subjectInputRef}
-              id="subject"
-              placeholder="Enter a compelling subject line..."
-              value={subject}
-              onChange={(e) => onSubjectChange?.(e.target.value)}
+  // Toolbar component (shared between normal and fullscreen views)
+  const renderToolbar = (inFullscreen = false) => (
+    <div className="flex items-center gap-2">
+      {/* AI Assist Button */}
+      {aiEnabled && onAiAssist && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onAiAssist("improve")}
               disabled={disabled}
-              className="h-11"
-            />
-          </div>
-        )}
-
-        {/* Message Content */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <Label className="text-sm font-medium">Message Content *</Label>
-
-            <div className="flex items-center gap-2">
-              {/* AI Assist Button */}
-              {aiEnabled && onAiAssist && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAiAssist("improve")}
-                      disabled={disabled}
-                      className="text-primary"
-                    >
-                      <Sparkles className="h-4 w-4 mr-1.5" />
-                      AI Assist
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Get AI help improving your message</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {/* Variable Inserter */}
-              <VariableInserter
-                onInsert={handleVariableInsert}
-                customVariables={customVariables}
-                disabled={disabled}
-              />
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center border rounded-lg p-0.5 bg-muted/50">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={viewMode === "edit" ? "secondary" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("edit")}
-                      className="h-7 px-2"
-                    >
-                      <MessageSquare className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Edit mode</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={viewMode === "preview" ? "secondary" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("preview")}
-                      className="h-7 px-2"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Preview mode</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                {hasEmail && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={viewMode === "code" ? "secondary" : "ghost"}
-                        size="sm"
-                        onClick={() => setViewMode("code")}
-                        className="h-7 px-2"
-                      >
-                        <Code className="h-3.5 w-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">HTML code view</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Channel Tabs */}
-          {showTabs ? (
-            <Tabs
-              value={activeTab}
-              onValueChange={(v) => setActiveTab(v as ContentTab)}
+              className="text-primary"
             >
-              <TabsList className="mb-3">
-                <TabsTrigger value="email" className="gap-1.5">
-                  <Mail className="h-3.5 w-3.5" />
-                  Email
-                </TabsTrigger>
-                <TabsTrigger value="sms" className="gap-1.5">
-                  <Phone className="h-3.5 w-3.5" />
-                  SMS
-                </TabsTrigger>
-              </TabsList>
+              <Sparkles className="h-4 w-4 mr-1.5" />
+              AI Assist
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Get AI help improving your message</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
-              <TabsContent value="email" className="mt-0">
-                {renderEmailContent()}
-              </TabsContent>
+      {/* Variable Inserter */}
+      <VariableInserter
+        onInsert={handleVariableInsert}
+        customVariables={customVariables}
+        disabled={disabled}
+      />
 
-              <TabsContent value="sms" className="mt-0">
-                {renderSmsContent()}
-              </TabsContent>
-            </Tabs>
-          ) : hasEmail ? (
-            renderEmailContent()
-          ) : (
-            renderSmsContent()
-          )}
-        </div>
+      {/* View Mode Toggle */}
+      <div className="flex items-center border rounded-lg p-0.5 bg-muted/50">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={viewMode === "edit" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("edit")}
+              className="h-7 px-2"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Edit mode</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={viewMode === "preview" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("preview")}
+              className="h-7 px-2"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Preview mode</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {hasEmail && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={viewMode === "code" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("code")}
+                className="h-7 px-2"
+              >
+                <Code className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">HTML code view</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
-    </TooltipProvider>
+
+      {/* Fullscreen Toggle */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="h-7 px-2"
+          >
+            {inFullscreen ? (
+              <Minimize2 className="h-3.5 w-3.5" />
+            ) : (
+              <Maximize2 className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">{inFullscreen ? "Exit fullscreen" : "Fullscreen editor"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 
-  function renderEmailContent() {
+  // Editor content based on current tab/view mode
+  const renderEditorContent = (fullscreenHeight?: string) => {
+    const height = fullscreenHeight || minHeight;
+
+    if (showTabs) {
+      return (
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as ContentTab)}
+        >
+          <TabsList className="mb-3">
+            <TabsTrigger value="email" className="gap-1.5">
+              <Mail className="h-3.5 w-3.5" />
+              Email
+            </TabsTrigger>
+            <TabsTrigger value="sms" className="gap-1.5">
+              <Phone className="h-3.5 w-3.5" />
+              SMS
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="email" className="mt-0">
+            {renderEmailContent(height)}
+          </TabsContent>
+
+          <TabsContent value="sms" className="mt-0">
+            {renderSmsContent(height)}
+          </TabsContent>
+        </Tabs>
+      );
+    }
+
+    return hasEmail ? renderEmailContent(height) : renderSmsContent(height);
+  };
+
+  function renderEmailContent(height: string = minHeight) {
     if (viewMode === "preview") {
       return (
         <div
           className="rounded-xl border border-border/50 bg-card/50 overflow-hidden"
-          style={{ minHeight }}
+          style={{ minHeight: height }}
         >
           <div className="p-4 border-b border-border/30 bg-muted/30">
             <p className="text-sm">
@@ -381,7 +409,7 @@ export function MessageComposer({
           </div>
           <div className="p-4">
             {contentHtml ? (
-              <RichTextViewer content={contentHtml} withContainer={false} />
+              <CKEditorRichTextViewer content={contentHtml} withContainer={false} />
             ) : (
               <p className="text-muted-foreground text-sm italic">
                 No content to preview
@@ -400,28 +428,29 @@ export function MessageComposer({
           placeholder="<p>Enter HTML content...</p>"
           disabled={disabled}
           className="font-mono text-sm"
-          style={{ minHeight }}
+          style={{ minHeight: height }}
         />
       );
     }
 
     return (
-      <RichTextEditor
+      <CKEditorRichText
         value={contentHtml}
         onChange={onContentHtmlChange}
         placeholder={placeholder}
         disabled={disabled}
-        minHeight={minHeight}
+        minHeight={height}
+        toolbar="standard"
       />
     );
   }
 
-  function renderSmsContent() {
+  function renderSmsContent(height: string = minHeight) {
     if (viewMode === "preview") {
       return (
         <div
           className="rounded-xl border border-border/50 bg-card/50 p-4"
-          style={{ minHeight }}
+          style={{ minHeight: height }}
         >
           <div className="max-w-xs mx-auto">
             {/* Mock SMS Bubble */}
@@ -448,7 +477,7 @@ export function MessageComposer({
           placeholder="Type your SMS message..."
           disabled={disabled}
           className="resize-none"
-          style={{ minHeight }}
+          style={{ minHeight: height }}
         />
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -467,4 +496,103 @@ export function MessageComposer({
       </div>
     );
   }
+
+  return (
+    <TooltipProvider>
+      <div
+        className={cn(
+          "flex flex-col bg-background transition-all duration-300 ease-out",
+          isFullscreen ? "fixed inset-0 z-50 h-screen" : "space-y-4",
+          className
+        )}
+      >
+        {/* Fullscreen Header */}
+        {isFullscreen && (
+          <div className="px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/90 via-card/80 to-card/90 backdrop-blur-md shrink-0">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">
+                {hasEmail ? "Compose Email" : "Compose SMS"}
+              </h2>
+              <div className="flex items-center gap-4">
+                {renderToolbar(true)}
+              </div>
+            </div>
+            {/* Subject in fullscreen for email */}
+            {hasEmail && (
+              <div className="mt-4 flex items-center gap-3">
+                <Label htmlFor="fullscreen-subject" className="text-sm font-medium shrink-0">
+                  Subject:
+                </Label>
+                <Input
+                  id="fullscreen-subject"
+                  placeholder="Enter a compelling subject line..."
+                  value={subject}
+                  onChange={(e) => onSubjectChange?.(e.target.value)}
+                  disabled={disabled}
+                  className="h-9 flex-1"
+                />
+                <VariableInserter
+                  onInsert={handleSubjectVariableInsert}
+                  customVariables={customVariables}
+                  disabled={disabled}
+                  size="sm"
+                  variant="ghost"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Normal (non-fullscreen) view */}
+        {!isFullscreen && (
+          <>
+            {/* Subject Line (Email only) */}
+            {hasEmail && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="subject" className="text-sm font-medium">
+                    Email Subject *
+                  </Label>
+                  <VariableInserter
+                    onInsert={handleSubjectVariableInsert}
+                    customVariables={customVariables}
+                    disabled={disabled}
+                    size="sm"
+                    variant="ghost"
+                  />
+                </div>
+                <Input
+                  ref={subjectInputRef}
+                  id="subject"
+                  placeholder="Enter a compelling subject line..."
+                  value={subject}
+                  onChange={(e) => onSubjectChange?.(e.target.value)}
+                  disabled={disabled}
+                  className="h-11"
+                />
+              </div>
+            )}
+
+            {/* Message Content */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <Label className="text-sm font-medium">Message Content *</Label>
+                {renderToolbar(false)}
+              </div>
+
+              {/* Channel Tabs / Editor */}
+              {renderEditorContent()}
+            </div>
+          </>
+        )}
+
+        {/* Fullscreen Editor Content */}
+        {isFullscreen && (
+          <div className="flex-1 overflow-auto p-6">
+            {renderEditorContent("calc(100vh - 180px)")}
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
+  );
 }

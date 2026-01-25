@@ -97,6 +97,17 @@ export class GlobalErrorBoundary extends React.Component<
     // Avoid duplicate handling - React will already catch component errors
     if (this.state.hasError) return;
 
+    // Filter out benign browser warnings that are not real errors
+    const benignErrors = [
+      'ResizeObserver loop completed with undelivered notifications',
+      'ResizeObserver loop limit exceeded',
+    ];
+
+    if (benignErrors.some(msg => event.message?.includes(msg))) {
+      // These are harmless browser warnings, not real errors
+      return;
+    }
+
     const error = event.error instanceof Error
       ? event.error
       : new Error(event.message || 'An unexpected error occurred');

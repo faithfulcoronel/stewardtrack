@@ -31,7 +31,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useMetadataClientContext } from "@/lib/metadata/context";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CKEditorRichText } from "@/components/ui/ckeditor-rich-text";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { RecurrencePicker } from "@/components/ui/recurrence-picker";
@@ -330,13 +330,14 @@ export function renderFieldInput(field: FormFieldConfig, controller: ControllerR
   switch (field.type) {
     case "richtext":
       return (
-        <RichTextEditor
+        <CKEditorRichText
           value={String(controller.value ?? "")}
           onChange={(value) => controller.onChange(value)}
           placeholder={basePlaceholder || "Start typing..."}
           disabled={disabled}
           readOnly={readOnly}
           minHeight="200px"
+          toolbar="standard"
         />
       );
     case "textarea":

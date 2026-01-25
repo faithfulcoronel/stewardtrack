@@ -11,7 +11,8 @@
 
 import { BaseTool } from '../../BaseTool';
 import { ToolResult, ToolExecutionContext } from '../../../../core/interfaces/ITool';
-import Anthropic from '@anthropic-ai/sdk';
+import { createAIService, isAIServiceAvailable } from '../../../ai/AIProviderFactory';
+import { extractTextFromResponse } from '../../../ai/IAIService';
 
 export interface ComposeMessageInput {
   purpose: string;
@@ -94,19 +95,22 @@ export class ComposeMessageTool extends BaseTool {
       const systemPrompt = this.buildSystemPrompt(tone, channel, includePersonalization);
       const userPrompt = this.buildUserPrompt(input);
 
-      // Call Claude AI
-      const anthropic = new Anthropic();
+      // Check if AI service is available
+      if (!isAIServiceAvailable()) {
+        return this.error('AI service is not configured. Please contact your administrator.');
+      }
 
-      const message = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
+      // Create AI service via factory (single source of truth)
+      const aiService = createAIService();
+
+      const response = await aiService.sendMessage({
         messages: [{ role: 'user', content: userPrompt }],
         system: systemPrompt,
+        max_tokens: 2048,
       });
 
       // Extract text response
-      const textContent = message.content.find((block) => block.type === 'text');
-      const rawResult = textContent ? textContent.text : '';
+      const rawResult = extractTextFromResponse(response) || '';
 
       // Parse the JSON response
       let composedMessage: {
@@ -143,7 +147,7 @@ export class ComposeMessageTool extends BaseTool {
           sms_text: composedMessage.sms_text,
         },
         personalization_used: includePersonalization,
-        tokens_used: (message.usage?.input_tokens ?? 0) + (message.usage?.output_tokens ?? 0),
+        tokens_used: (response.usage?.input_tokens ?? 0) + (response.usage?.output_tokens ?? 0),
         summary: `Composed ${channel} message for "${input.purpose}"`,
       });
     } catch (error: any) {

@@ -448,6 +448,7 @@ export const TYPES = {
   RecipientService: Symbol.for('RecipientService'),
   DeliveryService: Symbol.for('DeliveryService'),
   CommunicationAIService: Symbol.for('CommunicationAIService'),
+  FacebookChannelService: Symbol.for('FacebookChannelService'),
 
   // Communication Adapters
   ICommCampaignAdapter: Symbol.for('ICommCampaignAdapter'),

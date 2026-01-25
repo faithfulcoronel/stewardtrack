@@ -44,8 +44,6 @@ export function createAIService(config?: Partial<AIProviderConfig>): IAIService 
   // Determine provider from config or environment
   const provider = (config?.provider || process.env.AI_PROVIDER || 'anthropic') as AIProvider;
 
-  console.log('[AIProviderFactory] Creating AI service with provider:', provider);
-
   switch (provider) {
     case 'anthropic':
       return createAnthropicService(config);

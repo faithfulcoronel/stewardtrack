@@ -15,6 +15,10 @@ export interface IMemberAdapter extends IBaseAdapter<Member> {
   getCurrentMonthBirthdays(): Promise<Member[]>;
   getBirthdaysByMonth(month: number): Promise<Member[]>;
   getCurrentUserMember(): Promise<Member | null>;
+  fetchByAccount(accountId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  fetchByScheduleRegistration(scheduleId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  fetchByMinistry(ministryId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  searchMembers(searchTerm: string, limit?: number): Promise<{ data: Member[]; count: number | null }>;
 }
 
 /**
@@ -248,6 +252,148 @@ export class MemberAdapter
     }
 
     return memberData as Member;
+  }
+
+  /**
+   * Fetch members belonging to a specific account (family) through the account_members join table
+   */
+  async fetchByAccount(accountId: string, options: Omit<QueryOptions, 'filters'> = {}): Promise<{ data: Member[]; count: number | null }> {
+    const supabase = await this.getSupabaseClient();
+    const tenantId = await this.getTenantId();
+
+    // First get member IDs from account_members join table
+    const { data: accountMembers, error: joinError } = await supabase
+      .from('account_members')
+      .select('member_id')
+      .eq('account_id', accountId)
+      .eq('tenant_id', tenantId);
+
+    if (joinError) {
+      throw new Error(`Failed to fetch account members: ${joinError.message}`);
+    }
+
+    if (!accountMembers || accountMembers.length === 0) {
+      return { data: [], count: 0 };
+    }
+
+    const memberIds = accountMembers.map((am: { member_id: string }) => am.member_id);
+
+    // Fetch members with those IDs using the parent fetch (which handles decryption)
+    return this.fetch({
+      ...options,
+      filters: {
+        id: { operator: 'in', value: memberIds }
+      }
+    });
+  }
+
+  /**
+   * Fetch members registered for a specific schedule (event) through the registrations join table
+   */
+  async fetchByScheduleRegistration(scheduleId: string, options: Omit<QueryOptions, 'filters'> = {}): Promise<{ data: Member[]; count: number | null }> {
+    const supabase = await this.getSupabaseClient();
+    const tenantId = await this.getTenantId();
+
+    // First get member IDs from registrations join table
+    const { data: registrations, error: joinError } = await supabase
+      .from('registrations')
+      .select('member_id')
+      .eq('schedule_id', scheduleId)
+      .eq('tenant_id', tenantId);
+
+    if (joinError) {
+      throw new Error(`Failed to fetch event registrations: ${joinError.message}`);
+    }
+
+    if (!registrations || registrations.length === 0) {
+      return { data: [], count: 0 };
+    }
+
+    const memberIds = registrations
+      .filter((r: { member_id: string | null }) => r.member_id)
+      .map((r: { member_id: string }) => r.member_id);
+
+    if (memberIds.length === 0) {
+      return { data: [], count: 0 };
+    }
+
+    // Fetch members with those IDs using the parent fetch (which handles decryption)
+    return this.fetch({
+      ...options,
+      filters: {
+        id: { operator: 'in', value: memberIds }
+      }
+    });
+  }
+
+  /**
+   * Fetch members belonging to a specific ministry through the ministry_members join table
+   */
+  async fetchByMinistry(ministryId: string, options: Omit<QueryOptions, 'filters'> = {}): Promise<{ data: Member[]; count: number | null }> {
+    const supabase = await this.getSupabaseClient();
+
+    // First get member IDs from ministry_members join table
+    const { data: ministryMembers, error: joinError } = await supabase
+      .from('ministry_members')
+      .select('member_id')
+      .eq('ministry_id', ministryId)
+      .is('deleted_at', null);
+
+    if (joinError) {
+      throw new Error(`Failed to fetch ministry members: ${joinError.message}`);
+    }
+
+    if (!ministryMembers || ministryMembers.length === 0) {
+      return { data: [], count: 0 };
+    }
+
+    const memberIds = ministryMembers.map((mm: { member_id: string }) => mm.member_id);
+
+    // Fetch members with those IDs using the parent fetch (which handles decryption)
+    return this.fetch({
+      ...options,
+      filters: {
+        id: { operator: 'in', value: memberIds }
+      }
+    });
+  }
+
+  /**
+   * Search members by name or email
+   * Note: For encrypted fields, this performs in-memory search after decryption
+   */
+  async searchMembers(searchTerm: string, limit: number = 20): Promise<{ data: Member[]; count: number | null }> {
+    if (!searchTerm.trim()) {
+      return { data: [], count: 0 };
+    }
+
+    // Fetch all members (with decryption handled by the fetch method)
+    // Then filter in-memory since encrypted fields can't be searched via SQL
+    const result = await this.fetch({
+      select: 'id, first_name, last_name, email, contact_number',
+      order: { column: 'last_name', ascending: true },
+    });
+
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+
+    // Filter members in-memory after decryption
+    const filteredMembers = result.data.filter((member) => {
+      const firstName = (member.first_name ?? '').toLowerCase();
+      const lastName = (member.last_name ?? '').toLowerCase();
+      const email = (member.email ?? '').toLowerCase();
+
+      return (
+        firstName.includes(normalizedSearch) ||
+        lastName.includes(normalizedSearch) ||
+        email.includes(normalizedSearch) ||
+        `${firstName} ${lastName}`.includes(normalizedSearch)
+      );
+    });
+
+    // Apply limit
+    const limitedMembers = filteredMembers.slice(0, limit);
+
+    return { data: limitedMembers, count: filteredMembers.length };
   }
 
   private cleanOptionalString(value: unknown): string | null | undefined {

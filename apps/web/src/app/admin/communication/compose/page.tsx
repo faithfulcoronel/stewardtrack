@@ -255,13 +255,21 @@ export default function ComposePage() {
     [handleSaveDraft]
   );
 
-  // AI assist
+  // AI assist with image support
   const handleAiAssist = useCallback(
     async (type: string, content: string): Promise<string> => {
+      // Enable image extraction for content that may contain images
+      // This allows the AI to analyze embedded images (e.g., event posters)
+      const extractImages = type !== 'personalize'; // Skip for personalization which doesn't need AI
+
       const response = await fetch("/api/admin/communication/ai/assist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, content }),
+        body: JSON.stringify({
+          type,
+          content,
+          extractImages,
+        }),
       });
 
       if (!response.ok) {

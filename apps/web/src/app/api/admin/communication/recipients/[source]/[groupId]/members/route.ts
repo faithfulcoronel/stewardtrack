@@ -2,11 +2,17 @@
  * API Route: GET /api/admin/communication/recipients/[source]/[groupId]/members
  *
  * Returns members belonging to a specific group (family, event, ministry, or custom list).
+ * Uses MemberRepository for data access to ensure proper encryption/decryption of PII fields.
  */
 
 import { NextResponse } from 'next/server';
 import { getCurrentTenantId } from '@/lib/server/context';
-import { createSupabaseServerClient as createClient } from '@/lib/supabase/server';
+import { container } from '@/lib/container';
+import { TYPES } from '@/lib/types';
+import type { IMemberRepository } from '@/repositories/member.repository';
+import type { IAccountRepository } from '@/repositories/account.repository';
+import type { ISchedulerService } from '@/services/SchedulerService';
+import type { IMinistryRepository } from '@/repositories/ministry.repository';
 
 type RouteParams = {
   params: Promise<{
@@ -19,7 +25,12 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     const tenantId = await getCurrentTenantId();
     const { source, groupId } = await params;
-    const supabase = await createClient();
+
+    // Get repositories/services from DI container
+    const memberRepository = container.get<IMemberRepository>(TYPES.IMemberRepository);
+    const accountRepository = container.get<IAccountRepository>(TYPES.IAccountRepository);
+    const schedulerService = container.get<ISchedulerService>(TYPES.SchedulerService);
+    const ministryRepository = container.get<IMinistryRepository>(TYPES.IMinistryRepository);
 
     let members: Array<{
       id: string;
@@ -33,160 +44,77 @@ export async function GET(request: Request, { params }: RouteParams) {
 
     switch (source) {
       case 'family': {
-        // Get family account info
-        const { data: account } = await supabase
-          .from('accounts')
-          .select('id, name')
-          .eq('id', groupId)
-          .eq('tenant_id', tenantId)
-          .single();
-
+        // Get family account info using repository
+        const account = await accountRepository.findById(groupId);
         if (!account) {
           return NextResponse.json({ error: 'Family not found' }, { status: 404 });
         }
 
-        // Get family members
-        const { data: memberData } = await supabase
-          .from('account_members')
-          .select(`
-            member:members(
-              id,
-              first_name,
-              last_name,
-              email,
-              mobile_phone,
-              home_phone
-            )
-          `)
-          .eq('account_id', groupId);
+        // Get family members using repository
+        const memberResult = await memberRepository.findByAccount(groupId, {
+          select: 'id, first_name, last_name, email, contact_number',
+          order: { column: 'last_name', ascending: true },
+        });
 
-        members = (memberData ?? [])
-          .filter((m) => m.member)
-          .map((m) => {
-            const member = m.member as {
-              id: string;
-              first_name: string;
-              last_name: string;
-              email?: string;
-              mobile_phone?: string;
-              home_phone?: string;
-            };
-            return {
-              id: member.id,
-              source: 'member' as const,
-              sourceId: groupId,
-              sourceName: account.name,
-              name: `${member.first_name} ${member.last_name}`.trim(),
-              email: member.email ?? undefined,
-              phone: member.mobile_phone ?? member.home_phone ?? undefined,
-            };
-          });
+        members = memberResult.data.map((member) => ({
+          id: member.id,
+          source: 'member' as const,
+          sourceId: groupId,
+          sourceName: account.name ?? 'Unknown Family',
+          name: `${member.first_name} ${member.last_name}`.trim(),
+          email: member.email ?? undefined,
+          phone: member.contact_number ?? undefined,
+        }));
         break;
       }
 
       case 'event': {
-        // Get event info
-        const { data: event } = await supabase
-          .from('schedules')
-          .select('id, title')
-          .eq('id', groupId)
-          .eq('tenant_id', tenantId)
-          .single();
-
+        // Get event info using scheduler service
+        const event = await schedulerService.getById(groupId, tenantId);
         if (!event) {
           return NextResponse.json({ error: 'Event not found' }, { status: 404 });
         }
 
-        // Get event registrations with member info
-        const { data: registrations } = await supabase
-          .from('registrations')
-          .select(`
-            member:members(
-              id,
-              first_name,
-              last_name,
-              email,
-              mobile_phone,
-              home_phone
-            )
-          `)
-          .eq('schedule_id', groupId)
-          .eq('tenant_id', tenantId);
+        // Get registered members for the event
+        const memberResult = await memberRepository.findByScheduleRegistration(groupId, {
+          select: 'id, first_name, last_name, email, contact_number',
+          order: { column: 'last_name', ascending: true },
+        });
 
-        members = (registrations ?? [])
-          .filter((r) => r.member)
-          .map((r) => {
-            const member = r.member as {
-              id: string;
-              first_name: string;
-              last_name: string;
-              email?: string;
-              mobile_phone?: string;
-              home_phone?: string;
-            };
-            return {
-              id: member.id,
-              source: 'member' as const,
-              sourceId: groupId,
-              sourceName: event.title,
-              name: `${member.first_name} ${member.last_name}`.trim(),
-              email: member.email ?? undefined,
-              phone: member.mobile_phone ?? member.home_phone ?? undefined,
-            };
-          });
+        members = memberResult.data.map((member) => ({
+          id: member.id,
+          source: 'member' as const,
+          sourceId: groupId,
+          sourceName: event.name ?? 'Unknown Event',
+          name: `${member.first_name} ${member.last_name}`.trim(),
+          email: member.email ?? undefined,
+          phone: member.contact_number ?? undefined,
+        }));
         break;
       }
 
       case 'ministry': {
-        // Get ministry info
-        const { data: ministry } = await supabase
-          .from('ministries')
-          .select('id, name')
-          .eq('id', groupId)
-          .eq('tenant_id', tenantId)
-          .single();
-
+        // Get ministry info using repository
+        const ministry = await ministryRepository.findById(groupId);
         if (!ministry) {
           return NextResponse.json({ error: 'Ministry not found' }, { status: 404 });
         }
 
-        // Get ministry members
-        const { data: ministryMembers } = await supabase
-          .from('ministry_members')
-          .select(`
-            member:members(
-              id,
-              first_name,
-              last_name,
-              email,
-              mobile_phone,
-              home_phone
-            )
-          `)
-          .eq('ministry_id', groupId)
-          .is('deleted_at', null);
+        // Get ministry members using repository
+        const memberResult = await memberRepository.findByMinistry(groupId, {
+          select: 'id, first_name, last_name, email, contact_number',
+          order: { column: 'last_name', ascending: true },
+        });
 
-        members = (ministryMembers ?? [])
-          .filter((m) => m.member)
-          .map((m) => {
-            const member = m.member as {
-              id: string;
-              first_name: string;
-              last_name: string;
-              email?: string;
-              mobile_phone?: string;
-              home_phone?: string;
-            };
-            return {
-              id: member.id,
-              source: 'member' as const,
-              sourceId: groupId,
-              sourceName: ministry.name,
-              name: `${member.first_name} ${member.last_name}`.trim(),
-              email: member.email ?? undefined,
-              phone: member.mobile_phone ?? member.home_phone ?? undefined,
-            };
-          });
+        members = memberResult.data.map((member) => ({
+          id: member.id,
+          source: 'member' as const,
+          sourceId: groupId,
+          sourceName: ministry.name ?? 'Unknown Ministry',
+          name: `${member.first_name} ${member.last_name}`.trim(),
+          email: member.email ?? undefined,
+          phone: member.contact_number ?? undefined,
+        }));
         break;
       }
 

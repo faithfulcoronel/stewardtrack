@@ -25,8 +25,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { RichTextViewerInline } from '@/components/ui/rich-text-viewer';
+import { CKEditorRichText } from '@/components/ui/ckeditor-rich-text';
+import { CKEditorRichTextViewerInline } from '@/components/ui/ckeditor-rich-text-viewer';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -54,12 +54,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 
 export interface AdminNotificationTemplatesProps {
   title?: string;
@@ -473,7 +467,7 @@ export function AdminNotificationTemplates({
                               <Label className="text-xs text-muted-foreground">Body</Label>
                               {/* Render HTML for email/in_app, plain text for others */}
                               {template.channel === 'email' || template.channel === 'in_app' ? (
-                                <RichTextViewerInline
+                                <CKEditorRichTextViewerInline
                                   content={template.body_template}
                                   className="text-sm bg-background rounded p-2 mt-1 max-w-none"
                                 />
@@ -592,9 +586,9 @@ export function AdminNotificationTemplates({
 
             <div className="space-y-2">
               <Label htmlFor="body_template">Body Template *</Label>
-              {/* Use RichTextEditor for email and in_app channels, plain textarea for SMS/push/webhook */}
+              {/* Use CKEditorRichText for email and in_app channels, plain textarea for SMS/push/webhook */}
               {formData.channel === 'email' || formData.channel === 'in_app' ? (
-                <RichTextEditor
+                <CKEditorRichText
                   value={formData.body_template}
                   onChange={(value) => setFormData({ ...formData, body_template: value })}
                   placeholder="Write your notification content here. Use {{variable}} for dynamic values."

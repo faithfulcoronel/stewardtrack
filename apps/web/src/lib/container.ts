@@ -1218,6 +1218,7 @@ import {
   SupabaseCommunicationAIService,
   type ICommunicationAIService,
 } from '@/services/communication/CommunicationAIService';
+import { FacebookChannelService } from '@/services/communication/FacebookChannelService';
 
 // Communication Adapters Binding
 container.bind<ICommCampaignAdapter>(TYPES.ICommCampaignAdapter).to(CommCampaignAdapter).inRequestScope();
@@ -1238,5 +1239,6 @@ container.bind<RecipientService>(TYPES.RecipientService).to(SupabaseRecipientSer
 container.bind<DeliveryService>(TYPES.DeliveryService).to(SupabaseDeliveryService).inRequestScope();
 container.bind<CommunicationService>(TYPES.CommunicationService).to(SupabaseCommunicationService).inRequestScope();
 container.bind<ICommunicationAIService>(TYPES.CommunicationAIService).to(SupabaseCommunicationAIService).inRequestScope();
+container.bind<FacebookChannelService>(TYPES.FacebookChannelService).to(FacebookChannelService).inRequestScope();
 
 export { container };

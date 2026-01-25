@@ -51,6 +51,8 @@ import {
   ColumnsIcon,
   FileCode,
   X,
+  Upload,
+  Loader2,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -382,20 +384,76 @@ function LinkPopover({ editor, disabled }: { editor: Editor | null; disabled?: b
   );
 }
 
-// Image input popover component
+// Image input popover component with URL and file upload support
 function ImagePopover({ editor, disabled }: { editor: Editor | null; disabled?: boolean }) {
   const [url, setUrl] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"url" | "upload">("upload");
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleAddImage = () => {
+  const handleAddImageFromUrl = () => {
     if (!editor || !url) return;
     editor.chain().focus().setImage({ src: url }).run();
     setUrl("");
     setIsOpen(false);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    // Reset state
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/editor/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      // Insert the uploaded image into the editor
+      editor.chain().focus().setImage({ src: data.url }).run();
+      setIsOpen(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to upload image";
+      setUploadError(message);
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Reset state when popover closes
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setUrl("");
+      setUploadError(null);
+      setActiveTab("upload");
+    }
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -412,22 +470,102 @@ function ImagePopover({ editor, disabled }: { editor: Editor | null; disabled?: 
           <ImageIcon className="size-4" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-3" align="start">
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Image URL</label>
-            <Input
-              placeholder="https://example.com/image.png"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddImage()}
-              className="h-9"
-            />
-          </div>
-          <Button size="sm" onClick={handleAddImage} className="w-full h-8">
-            <ImageIcon className="size-3.5 mr-1.5" />
-            Insert Image
-          </Button>
+      <PopoverContent className="w-80 p-0" align="start">
+        {/* Tab headers */}
+        <div className="flex border-b border-border">
+          <button
+            type="button"
+            onClick={() => setActiveTab("upload")}
+            className={cn(
+              "flex-1 px-3 py-2 text-xs font-medium transition-colors",
+              activeTab === "upload"
+                ? "bg-muted text-foreground border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Upload className="size-3.5 inline-block mr-1.5" />
+            Upload
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("url")}
+            className={cn(
+              "flex-1 px-3 py-2 text-xs font-medium transition-colors",
+              activeTab === "url"
+                ? "bg-muted text-foreground border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <LinkIcon className="size-3.5 inline-block mr-1.5" />
+            URL
+          </button>
+        </div>
+
+        <div className="p-3">
+          {activeTab === "upload" ? (
+            <div className="space-y-3">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Upload area */}
+              <div
+                onClick={handleBrowseClick}
+                onKeyDown={(e) => e.key === "Enter" && handleBrowseClick()}
+                role="button"
+                tabIndex={0}
+                className={cn(
+                  "border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer transition-colors",
+                  "hover:border-primary/50 hover:bg-muted/50",
+                  isUploading && "pointer-events-none opacity-50"
+                )}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="size-8 text-muted-foreground animate-spin" />
+                    <p className="text-xs text-muted-foreground">Uploading...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="size-8 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">
+                      Click to browse or drag and drop
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70">
+                      JPG, PNG, WebP, GIF (max 5MB)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Error message */}
+              {uploadError && (
+                <p className="text-xs text-destructive">{uploadError}</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Image URL</label>
+                <Input
+                  placeholder="https://example.com/image.png"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddImageFromUrl()}
+                  className="h-9"
+                />
+              </div>
+              <Button size="sm" onClick={handleAddImageFromUrl} disabled={!url} className="w-full h-8">
+                <ImageIcon className="size-3.5 mr-1.5" />
+                Insert Image
+              </Button>
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>
