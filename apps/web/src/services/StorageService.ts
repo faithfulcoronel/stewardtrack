@@ -52,6 +52,12 @@ export interface StorageService {
     file: File
   ): Promise<UploadResult>;
   deleteMemberPhoto(photoUrl: string): Promise<void>;
+  uploadScheduleCover(
+    tenantId: string,
+    scheduleId: string,
+    file: File
+  ): Promise<UploadResult>;
+  deleteScheduleCover(coverUrl: string): Promise<void>;
 }
 
 @injectable()
@@ -300,6 +306,75 @@ export class SupabaseStorageService implements StorageService {
 
     if (urlPath) {
       await this.storageRepo.delete(this.bucketName, [urlPath]);
+    }
+  }
+
+  // =========================================================================
+  // Schedule Cover Photos (uses separate bucket)
+  // =========================================================================
+
+  private readonly scheduleCoverBucket = 'schedule-covers';
+
+  async uploadScheduleCover(
+    tenantId: string,
+    scheduleId: string,
+    file: File
+  ): Promise<UploadResult> {
+    // Validate file type
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      throw new Error(
+        `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
+      );
+    }
+
+    // Validate file size (5MB max for schedule covers)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new Error(
+        `File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`
+      );
+    }
+
+    // Generate unique filename
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filename = `${tenantId}/${scheduleId}/${randomUUID()}.${fileExtension}`;
+
+    // Read file buffer
+    const buffer = await file.arrayBuffer();
+
+    // Upload to storage (schedule covers use a different bucket)
+    const result = await this.storageRepo.upload(
+      this.scheduleCoverBucket,
+      filename,
+      buffer,
+      file.type
+    );
+
+    // Track in tenant_media table
+    try {
+      await this.mediaService.trackUpload({
+        bucket_name: this.scheduleCoverBucket,
+        file_path: result.path,
+        public_url: result.publicUrl,
+        original_filename: file.name,
+        mime_type: file.type,
+        file_size_bytes: file.size,
+        category: 'schedule_covers',
+      }, tenantId);
+    } catch (error) {
+      // Log but don't fail the upload - tracking is best-effort
+      console.error('Failed to track schedule cover upload:', error);
+    }
+
+    return result;
+  }
+
+  async deleteScheduleCover(coverUrl: string): Promise<void> {
+    // Extract path from URL
+    const urlPath = coverUrl.split(`/${this.scheduleCoverBucket}/`)[1];
+
+    if (urlPath) {
+      await this.storageRepo.delete(this.scheduleCoverBucket, [urlPath]);
     }
   }
 }

@@ -3,15 +3,11 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { AuthorizationService } from '@/services/AuthorizationService';
 import type { ISchedulerService } from '@/services/SchedulerService';
-import type { IMediaService } from '@/services/MediaService';
+import type { StorageService } from '@/services/StorageService';
 import { getCurrentTenantId } from '@/lib/server/context';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 type RouteParams = { params: Promise<{ id: string }> };
-
-const BUCKET_NAME = 'schedule-covers';
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 /**
  * POST /api/community/scheduler/schedules/[id]/cover-photo
@@ -44,89 +40,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { success: false, error: 'File too large. Maximum size is 5MB' },
-        { status: 400 }
-      );
-    }
-
-    const supabase = await createSupabaseServerClient();
-
-    // Ensure bucket exists (create if not)
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some((b) => b.name === BUCKET_NAME);
-    if (!bucketExists) {
-      await supabase.storage.createBucket(BUCKET_NAME, {
-        public: true,
-        fileSizeLimit: MAX_FILE_SIZE,
-        allowedMimeTypes: ALLOWED_TYPES,
-      });
-    }
+    // Get storage service from container (single source of truth for all uploads)
+    const storageService = container.get<StorageService>(TYPES.StorageService);
 
     // Delete existing cover photo if present
     if (schedule.cover_photo_url) {
-      const oldPath = extractPathFromUrl(schedule.cover_photo_url);
-      if (oldPath) {
-        await supabase.storage.from(BUCKET_NAME).remove([oldPath]);
+      try {
+        await storageService.deleteScheduleCover(schedule.cover_photo_url);
+      } catch (deleteError) {
+        console.error('Error deleting old cover photo:', deleteError);
+        // Continue anyway
       }
     }
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop() || 'jpg';
-    const filename = `${tenantId}/${scheduleId}/cover.${ext}`;
-
-    // Upload file
-    const arrayBuffer = await file.arrayBuffer();
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(filename, arrayBuffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error('Error uploading cover photo:', uploadError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to upload file' },
-        { status: 500 }
-      );
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filename);
-    const coverPhotoUrl = urlData.publicUrl;
-
-    // Track upload in tenant_media table
-    try {
-      const mediaService = container.get<IMediaService>(TYPES.MediaService);
-      await mediaService.trackUpload({
-        bucket_name: BUCKET_NAME,
-        file_path: filename,
-        public_url: coverPhotoUrl,
-        original_filename: file.name,
-        mime_type: file.type,
-        file_size_bytes: file.size,
-        category: 'schedule_covers',
-      }, tenantId);
-    } catch (trackError) {
-      // Log but don't fail - tracking is best-effort
-      console.error('Failed to track schedule cover upload:', trackError);
-    }
+    // Upload new cover photo using storage service (handles validation and tracking automatically)
+    const uploadResult = await storageService.uploadScheduleCover(tenantId, scheduleId, file);
 
     // Update schedule with cover photo URL
+    const supabase = await createSupabaseServerClient();
     const { error: updateError } = await supabase
       .from('ministry_schedules')
-      .update({ cover_photo_url: coverPhotoUrl })
+      .update({ cover_photo_url: uploadResult.publicUrl })
       .eq('id', scheduleId);
 
     if (updateError) {
@@ -139,12 +73,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      url: coverPhotoUrl,
+      url: uploadResult.publicUrl,
     });
   } catch (error) {
     console.error('Error uploading cover photo:', error);
+
+    const message = error instanceof Error ? error.message : 'Failed to upload cover photo';
+
+    // Return user-friendly error messages for validation errors
+    if (message.includes('Invalid file type') || message.includes('File too large')) {
+      return NextResponse.json({ success: false, error: message }, { status: 400 });
+    }
+
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to upload cover photo' },
+      { success: false, error: message },
       { status: 500 }
     );
   }
@@ -172,17 +114,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'Schedule not found' }, { status: 404 });
     }
 
-    const supabase = await createSupabaseServerClient();
-
     // Delete from storage if exists
     if (schedule.cover_photo_url) {
-      const filePath = extractPathFromUrl(schedule.cover_photo_url);
-      if (filePath) {
-        await supabase.storage.from(BUCKET_NAME).remove([filePath]);
+      try {
+        const storageService = container.get<StorageService>(TYPES.StorageService);
+        await storageService.deleteScheduleCover(schedule.cover_photo_url);
+      } catch (deleteError) {
+        console.error('Error deleting cover photo from storage:', deleteError);
+        // Continue anyway to clear the URL from schedule record
       }
     }
 
     // Update schedule to remove cover photo URL
+    const supabase = await createSupabaseServerClient();
     const { error: updateError } = await supabase
       .from('ministry_schedules')
       .update({ cover_photo_url: null })
@@ -203,17 +147,5 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       { success: false, error: error instanceof Error ? error.message : 'Failed to delete cover photo' },
       { status: 500 }
     );
-  }
-}
-
-/**
- * Extract the file path from a Supabase storage URL
- */
-function extractPathFromUrl(url: string): string | null {
-  try {
-    const match = url.match(new RegExp(`/storage/v1/object/public/${BUCKET_NAME}/(.+)$`));
-    return match ? match[1] : null;
-  } catch {
-    return null;
   }
 }
