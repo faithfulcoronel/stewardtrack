@@ -69,7 +69,7 @@ SERVICE HANDLERS:
         </Component>
 
         <!-- Ministry schedules grid -->
-        <Component id="ministry-schedules" type="AdminDataGridSection">
+        <Component id="ministry-schedules" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Schedules</Prop>
             <Prop name="description" kind="static">Recurring schedules associated with this ministry.</Prop>

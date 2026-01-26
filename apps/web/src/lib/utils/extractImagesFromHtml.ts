@@ -265,3 +265,40 @@ export function htmlToPlainText(html: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+/**
+ * Fetch a single image URL and convert to ExtractedImage format
+ * Useful for social media images that are separate from HTML content
+ *
+ * @param url - The image URL to fetch
+ * @returns ExtractedImage or null if fetch fails
+ */
+export async function fetchImageFromUrl(url: string): Promise<ExtractedImage | null> {
+  if (!url || url.startsWith('blob:')) {
+    return null;
+  }
+
+  // Handle data URLs
+  if (url.startsWith('data:image/')) {
+    const mediaType = extractMediaTypeFromDataUrl(url);
+    const data = extractBase64FromDataUrl(url);
+    if (mediaType && data) {
+      return { data, mediaType, source: 'data-url' };
+    }
+    return null;
+  }
+
+  // Handle remote URLs
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    const result = await fetchImageAsBase64(url);
+    if (result) {
+      return {
+        data: result.data,
+        mediaType: result.mediaType,
+        source: url,
+      };
+    }
+  }
+
+  return null;
+}

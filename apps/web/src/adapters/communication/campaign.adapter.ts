@@ -49,7 +49,7 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   protected tableName = 'communication_campaigns';
   protected defaultSelect = `
     id, tenant_id, name, description, campaign_type, status, channels,
-    subject, content_html, content_text, template_id, recipient_criteria,
+    subject, content_html, content_text, facebook_post_data, template_id, recipient_criteria,
     scheduled_at, sent_at, total_recipients, sent_count, delivered_count,
     failed_count, opened_count, clicked_count, created_by, created_at,
     updated_at, deleted_at
@@ -83,6 +83,7 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
         subject: data.subject ?? null,
         content_html: data.content_html ?? null,
         content_text: data.content_text ?? null,
+        facebook_post_data: data.facebook_post_data ?? null,
         template_id: data.template_id ?? null,
         recipient_criteria: data.recipient_criteria ?? null,
         scheduled_at: data.scheduled_at ?? null,
@@ -129,6 +130,7 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
     if (data.subject !== undefined) updateData.subject = data.subject;
     if (data.content_html !== undefined) updateData.content_html = data.content_html;
     if (data.content_text !== undefined) updateData.content_text = data.content_text;
+    if (data.facebook_post_data !== undefined) updateData.facebook_post_data = data.facebook_post_data;
     if (data.template_id !== undefined) updateData.template_id = data.template_id;
     if (data.recipient_criteria !== undefined) updateData.recipient_criteria = data.recipient_criteria;
     if (data.scheduled_at !== undefined) updateData.scheduled_at = data.scheduled_at;

@@ -22,7 +22,7 @@
             <Prop name="metrics" kind="binding" contract="statusSummary.items"/>
           </Props>
         </Component>
-        <Component id="opening-balances-grid" type="AdminDataGridSection">
+        <Component id="opening-balances-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Opening balance records</Prop>
             <Prop name="description" kind="static">Manage opening balances for funds by fiscal year.</Prop>

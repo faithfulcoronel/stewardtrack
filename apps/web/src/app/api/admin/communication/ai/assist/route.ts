@@ -6,7 +6,7 @@
  * personalize messages, fix grammar, and shorten content.
  *
  * Supports multimodal content - can analyze images embedded in messages
- * when extractImages option is enabled.
+ * when extractImages option is enabled, or via imageUrls for remote images.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,6 +14,7 @@ import { getCurrentTenantId } from '@/lib/server/context';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { ICommunicationAIService, ToneType, AssistType, ImageData } from '@/services/communication/CommunicationAIService';
+import { fetchImageFromUrl } from '@/lib/utils/extractImagesFromHtml';
 
 interface AssistRequest {
   type: AssistType;
@@ -22,14 +23,22 @@ interface AssistRequest {
   extractImages?: boolean;
   /** Pre-extracted images (base64 encoded) */
   images?: ImageData[];
+  /** Remote image URLs to fetch and include in analysis (e.g., social media uploads) */
+  imageUrls?: string[];
   context?: {
     subject?: string;
     recipientCount?: number;
-    channel?: 'email' | 'sms' | 'both';
+    channel?: 'email' | 'sms' | 'both' | 'facebook';
     tone?: ToneType;
     maxLength?: number;
     purpose?: string;
     audience?: string;
+    /** Existing campaign name (for autofill - only fill if empty) */
+    existingName?: string;
+    /** Existing campaign description (for autofill - only fill if empty) */
+    existingDescription?: string;
+    /** Existing subject line (for autofill - only fill if empty) */
+    existingSubject?: string;
   };
 }
 
@@ -46,7 +55,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validTypes: AssistType[] = ['improve', 'subject', 'personalize', 'grammar', 'shorten'];
+    const validTypes: AssistType[] = ['improve', 'subject', 'personalize', 'grammar', 'shorten', 'autofill'];
     if (!validTypes.includes(body.type)) {
       return NextResponse.json(
         { success: false, error: 'Invalid assist type' },
@@ -69,12 +78,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let response: { result: string; suggestions?: string[]; tokensUsed: number; changes?: string[] };
+    let response: {
+      result: string;
+      suggestions?: string[];
+      tokensUsed: number;
+      changes?: string[];
+      campaignName?: string;
+      campaignDescription?: string;
+      subject?: string;
+    };
 
-    // Prepare AI assist options with image support
+    // Fetch any remote images (e.g., from social media uploads)
+    const fetchedImages: ImageData[] = [];
+    if (body.imageUrls && body.imageUrls.length > 0) {
+      console.log('[Communication AI] Fetching remote images for analysis:', body.imageUrls.length);
+      for (const url of body.imageUrls.slice(0, 5)) { // Limit to 5 images
+        try {
+          const extracted = await fetchImageFromUrl(url);
+          if (extracted) {
+            fetchedImages.push({
+              data: extracted.data,
+              mediaType: extracted.mediaType,
+            });
+            console.log('[Communication AI] Successfully fetched image from URL');
+          }
+        } catch (error) {
+          console.warn('[Communication AI] Failed to fetch image from URL:', url, error);
+        }
+      }
+    }
+
+    // Combine pre-extracted images with fetched images
+    const allImages = [...(body.images ?? []), ...fetchedImages];
+
+    // Prepare AI assist options with image support and channel info
     const aiOptions = {
       extractImages: body.extractImages ?? false,
-      images: body.images,
+      images: allImages.length > 0 ? allImages : undefined,
+      // Pass channel so AI service can return plain text for Facebook/SMS
+      channel: body.context?.channel,
     };
 
     switch (body.type) {
@@ -98,7 +140,9 @@ export async function POST(request: NextRequest) {
 
       case 'improve': {
         const tone: ToneType = body.context?.tone ?? 'friendly';
+        console.log('[Communication AI] Improve request:', { tone, channel: body.context?.channel, contentLength: body.content?.length });
         const result = await aiService.improveContent(body.content, tone, tenantId, aiOptions);
+        console.log('[Communication AI] Improve result:', { hasImproved: !!result.data.improved, improvedLength: result.data.improved?.length, changes: result.data.changes });
         response = {
           result: result.data.improved,
           changes: result.data.changes,
@@ -143,6 +187,41 @@ export async function POST(request: NextRequest) {
         const result = await aiService.shortenContent(body.content, maxLength, tenantId, aiOptions);
         response = {
           result: result.data,
+          tokensUsed: result.tokensUsed,
+        };
+        break;
+      }
+
+      case 'autofill': {
+        console.log('[Communication AI] Autofill request:', {
+          channel: body.context?.channel,
+          existingName: body.context?.existingName,
+          existingDescription: body.context?.existingDescription,
+          existingSubject: body.context?.existingSubject,
+          contentLength: body.content?.length,
+        });
+        const result = await aiService.autoFillCampaignDetails(
+          body.content,
+          {
+            channel: body.context?.channel,
+            existingName: body.context?.existingName,
+            existingDescription: body.context?.existingDescription,
+            existingSubject: body.context?.existingSubject,
+          },
+          tenantId,
+          aiOptions
+        );
+        console.log('[Communication AI] Autofill result:', {
+          campaignName: result.data.campaignName,
+          campaignDescription: result.data.campaignDescription,
+          subject: result.data.subject,
+          tokensUsed: result.tokensUsed,
+        });
+        response = {
+          result: '',
+          campaignName: result.data.campaignName,
+          campaignDescription: result.data.campaignDescription,
+          subject: result.data.subject,
           tokensUsed: result.tokensUsed,
         };
         break;

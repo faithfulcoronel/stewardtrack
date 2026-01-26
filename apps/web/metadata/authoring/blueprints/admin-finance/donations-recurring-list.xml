@@ -54,7 +54,7 @@
         </Component>
 
         <!-- Data Grid Table -->
-        <Component id="recurring-table" type="AdminDataGridSection">
+        <Component id="recurring-table" type="AdminAgGrid">
           <Props>
             <Prop name="rows" kind="binding" contract="recurringTable.rows"/>
             <Prop name="columns" kind="binding" contract="recurringTable.columns"/>

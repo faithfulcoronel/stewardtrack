@@ -140,6 +140,12 @@ export interface SettingService {
   setTenantCurrency(code: string): Promise<Setting>;
   getTenantTimezone(): Promise<string | null>;
   setTenantTimezone(timezone: string): Promise<Setting>;
+  getTenantDefaultCountry(): Promise<string | null>;
+  setTenantDefaultCountry(countryCode: string): Promise<Setting>;
+  /**
+   * Set default country for a specific tenant (used during registration when tenant context isn't available)
+   */
+  setTenantDefaultCountryForTenant(tenantId: string, countryCode: string): Promise<Setting>;
   getUserWelcomeFlag(): Promise<boolean>;
   setUserWelcomeFlag(value: boolean): Promise<Setting>;
   // Integration settings
@@ -219,6 +225,34 @@ export class SupabaseSettingService implements SettingService {
 
   async setTenantTimezone(timezone: string): Promise<Setting> {
     return this.upsertSetting('tenant.timezone', timezone, 'tenant');
+  }
+
+  async getTenantDefaultCountry(): Promise<string | null> {
+    const setting = await this.getSetting('tenant.default_country');
+    return setting?.value || null;
+  }
+
+  async setTenantDefaultCountry(countryCode: string): Promise<Setting> {
+    return this.upsertSetting('tenant.default_country', countryCode.toUpperCase(), 'tenant');
+  }
+
+  /**
+   * Set default country for a specific tenant (used during registration)
+   * This bypasses the normal tenant context resolution.
+   */
+  async setTenantDefaultCountryForTenant(tenantId: string, countryCode: string): Promise<Setting> {
+    const existing = await this.repo.getByKey('tenant.default_country');
+    const payload: Partial<Setting> = {
+      key: 'tenant.default_country',
+      value: countryCode.toUpperCase(),
+      tenant_id: tenantId,
+    };
+
+    if (existing && existing.tenant_id === tenantId) {
+      return this.repo.update(existing.id, { value: countryCode.toUpperCase() });
+    }
+
+    return this.repo.create(payload as Partial<Setting>);
   }
 
   async getUserWelcomeFlag(): Promise<boolean> {

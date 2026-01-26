@@ -19,7 +19,7 @@
             <Prop name="panels" kind="binding" contract="transactionDetails.panels"/>
           </Props>
         </Component>
-        <Component id="line-items" type="AdminDataGridSection">
+        <Component id="line-items" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Line items</Prop>
             <Prop name="description" kind="static">Individual entries that make up this transaction.</Prop>
@@ -36,7 +36,7 @@
             <Prop name="defaultOpen" kind="static">false</Prop>
           </Props>
           <Children>
-            <Component id="journal-entries-grid" type="AdminDataGridSection">
+            <Component id="journal-entries-grid" type="AdminAgGrid">
               <Props>
                 <Prop name="rows" kind="binding" contract="journalEntries.rows"/>
                 <Prop name="columns" kind="binding" contract="journalEntries.columns"/>

@@ -15,7 +15,7 @@
             <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
           </Props>
         </Component>
-        <Component id="care-plans-grid" type="AdminDataGridSection">
+        <Component id="care-plans-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Care plan roster</Prop>
             <Prop name="description" kind="static">Search and manage member care plans with status, priority, and follow-up tracking.</Prop>

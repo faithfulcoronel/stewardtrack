@@ -5,13 +5,13 @@ import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Menu } from "lucid
 import { NotificationBell } from "@/components/notifications";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { AdminSidebar, type AdminNavSection } from "./sidebar-nav";
 import { ProfileMenu } from "./profile-menu";
 import { InactivityTimeoutProvider } from "./inactivity-timeout-provider";
+import { GlobalSearch } from "@/components/search";
 
 type AdminLayoutShellProps = {
   sections: AdminNavSection[];
@@ -85,9 +85,15 @@ export function AdminLayoutShell({
                 </Button>
               </div>
               <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4">
-                <Input
-                  placeholder="Search projects, users..."
-                  className="hidden h-11 w-44 rounded-full border border-border/60 bg-muted/20 px-4 text-sm sm:block md:w-60"
+                {/* Global Search - Mobile (compact) */}
+                <GlobalSearch
+                  className="flex sm:hidden"
+                  compact
+                />
+                {/* Global Search - Desktop */}
+                <GlobalSearch
+                  className="hidden sm:flex"
+                  placeholder="Search StewardTrack"
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>

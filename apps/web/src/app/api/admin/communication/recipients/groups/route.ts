@@ -1,7 +1,7 @@
 /**
  * API Route: GET /api/admin/communication/recipients/groups
  *
- * Returns recipient groups (families, events, ministries, custom lists).
+ * Returns recipient groups (families, events, ministries, registrants, custom lists).
  */
 
 import { NextResponse } from 'next/server';
@@ -28,22 +28,79 @@ export async function GET() {
       memberCount: f.account_members?.[0]?.count ?? 0,
     }));
 
-    // Get events (schedules that are events)
-    const { data: eventData } = await supabase
-      .from('schedules')
-      .select('id, title, registrations(count)')
+    // Get events (ministry_schedules with registration_required) - for member attendees
+    const { data: eventData, error: eventError } = await supabase
+      .from('ministry_schedules')
+      .select('id, name, recurrence_start_date')
       .eq('tenant_id', tenantId)
-      .eq('schedule_type', 'event')
+      .eq('registration_required', true)
       .is('deleted_at', null)
-      .order('start_date', { ascending: false })
+      .order('recurrence_start_date', { ascending: false })
       .limit(20);
 
-    const events = (eventData ?? []).map((e: { id: string; title: string; registrations?: { count: number }[] }) => ({
-      id: e.id,
-      source: 'event' as const,
-      name: e.title,
-      memberCount: e.registrations?.[0]?.count ?? 0,
-    }));
+    if (eventError) {
+      console.error('Failed to fetch events:', eventError);
+    }
+
+    // Build events array with registration counts
+    const events: Array<{
+      id: string;
+      source: 'event';
+      name: string;
+      memberCount: number;
+    }> = [];
+
+    for (const schedule of (eventData ?? [])) {
+      // Count member registrations for this event
+      const { count } = await supabase
+        .from('schedule_registrations')
+        .select('id, occurrence:schedule_occurrences!inner(schedule_id)', { count: 'exact', head: true })
+        .eq('occurrence.schedule_id', schedule.id)
+        .eq('tenant_id', tenantId)
+        .not('member_id', 'is', null) // Only count member registrations for "events" source
+        .in('status', ['registered', 'waitlisted', 'checked_in']);
+
+      events.push({
+        id: schedule.id,
+        source: 'event' as const,
+        name: schedule.name,
+        memberCount: count ?? 0,
+      });
+    }
+
+    console.log(`[groups] Found ${events.length} events for tenant ${tenantId}`);
+
+    // Get registrants - events with ALL registrations (members + guests)
+    // Reuse the same schedule data from events query above, but count ALL registrations
+    const registrants: Array<{
+      id: string;
+      source: 'registrant';
+      name: string;
+      description?: string;
+      memberCount: number;
+    }> = [];
+
+    for (const schedule of (eventData ?? [])) {
+      // Count ALL registrations (members + guests) for this schedule
+      const { count } = await supabase
+        .from('schedule_registrations')
+        .select('id, occurrence:schedule_occurrences!inner(schedule_id)', { count: 'exact', head: true })
+        .eq('occurrence.schedule_id', schedule.id)
+        .eq('tenant_id', tenantId)
+        .in('status', ['registered', 'waitlisted', 'checked_in']);
+
+      if (count && count > 0) {
+        registrants.push({
+          id: schedule.id,
+          source: 'registrant' as const,
+          name: schedule.name,
+          description: schedule.recurrence_start_date ? `Event on ${new Date(schedule.recurrence_start_date).toLocaleDateString()}` : undefined,
+          memberCount: count,
+        });
+      }
+    }
+
+    console.log(`[groups] Found ${registrants.length} registrants for tenant ${tenantId}`);
 
     // Get ministries
     const { data: ministryData } = await supabase
@@ -62,9 +119,12 @@ export async function GET() {
     // Custom lists would come from a communication_lists table (future feature)
     const customLists: Array<{ id: string; source: 'list'; name: string; memberCount: number }> = [];
 
+    console.log(`[groups] Returning: ${families.length} families, ${events.length} events, ${registrants.length} registrants, ${ministries.length} ministries`);
+
     return NextResponse.json({
       families,
       events,
+      registrants,
       ministries,
       customLists,
     });

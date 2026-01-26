@@ -15,7 +15,7 @@
             <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
           </Props>
         </Component>
-        <Component id="accounts-grid" type="AdminDataGridSection">
+        <Component id="accounts-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Account roster</Prop>
             <Prop name="description" kind="static">Search and manage account records for organizations and individuals.</Prop>

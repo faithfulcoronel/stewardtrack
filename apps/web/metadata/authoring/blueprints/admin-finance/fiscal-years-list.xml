@@ -15,7 +15,7 @@
             <Prop name="secondaryCta" kind="action" actionId="back-to-dashboard"/>
           </Props>
         </Component>
-        <Component id="fiscal-years-grid" type="AdminDataGridSection">
+        <Component id="fiscal-years-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Fiscal year records</Prop>
             <Prop name="description" kind="static">Manage your organization's fiscal years and periods.</Prop>

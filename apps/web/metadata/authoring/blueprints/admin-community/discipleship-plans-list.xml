@@ -95,7 +95,7 @@ DATA BINDING:
           - Row actions (view, edit links)
           - Empty state messaging
         -->
-        <Component id="discipleship-plans-grid" type="AdminDataGridSection">
+        <Component id="discipleship-plans-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Discipleship plan roster</Prop>
             <Prop name="description" kind="static">Search and manage member discipleship journeys with pathway, mentor, and milestone tracking.</Prop>

@@ -35,7 +35,7 @@
             <Prop name="triggerVariant" kind="static">outline</Prop>
           </Props>
         </Component>
-        <Component id="donations-grid" type="AdminDataGridSection">
+        <Component id="donations-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Donation records</Prop>
             <Prop name="description" kind="static">View and manage all online donations received through the giving portal.</Prop>

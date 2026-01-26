@@ -326,6 +326,8 @@ function RegisterFormContent() {
           contactNumber: formData.contactNumber,
           address: formData.address,
           turnstileToken,
+          // Browser timezone for default country detection (e.g., 'Asia/Manila' -> 'PH')
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           // Include offering type flags
           isTrial,
           isFree,

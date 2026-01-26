@@ -53,7 +53,7 @@ SERVICE HANDLERS:
         <!--
         OCCURRENCES TABLE: Data grid for occurrence list
         -->
-        <Component id="occurrences-table" type="AdminDataGridSection">
+        <Component id="occurrences-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Event occurrences</Prop>
             <Prop name="description" kind="static">Specific event instances with attendance tracking and check-in.</Prop>

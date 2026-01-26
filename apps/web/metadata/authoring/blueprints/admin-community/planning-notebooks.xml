@@ -92,7 +92,7 @@ FEATURE: Notebooks (OneNote-style)
         <!--
         NOTEBOOKS TABLE: Data grid for detailed list view (alternative to cards)
         -->
-        <Component id="notebooks-table" type="AdminDataGridSection">
+        <Component id="notebooks-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">All notebooks</Prop>
             <Prop name="description" kind="static">Comprehensive list of notebooks with detailed information.</Prop>

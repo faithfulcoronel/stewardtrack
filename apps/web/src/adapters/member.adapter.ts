@@ -53,8 +53,20 @@ export class MemberAdapter
     return getFieldEncryptionConfig('members');
   }
 
-  private async getTenantId() {
-    return this.context?.tenantId ?? (await tenantUtils.getTenantId());
+  /**
+   * Get tenant ID with proper fallback resolution.
+   * Uses ensureTenantContext for consistent behavior across all adapter methods.
+   * Returns null only if no tenant context can be resolved (for non-throwing cases).
+   */
+  private async getTenantId(): Promise<string | null> {
+    try {
+      return await this.ensureTenantContext();
+    } catch {
+      // For non-critical paths (like decryption), return null if no tenant
+      // This allows gradual migration and legacy unencrypted data handling
+      console.warn('[MemberAdapter] Could not resolve tenant context, will skip decryption');
+      return null;
+    }
   }
   protected tableName = 'members';
 
@@ -1060,92 +1072,145 @@ export class MemberAdapter
 
   /**
    * Decrypt PII fields after fetching members
+   *
+   * CRITICAL: Tenant context is resolved ONCE at the start to ensure consistency
+   * between query filtering and decryption. This prevents timing issues where
+   * async context resolution might return different values between calls.
    */
   public override async fetch(
     options: QueryOptions = {}
   ): Promise<{ data: Member[]; count: number | null }> {
+    // CRITICAL: Resolve tenant context ONCE at the very start, BEFORE any async operations
+    // This ensures the same tenant ID is used for both the query and decryption
+    let tenantId: string | null = null;
+    try {
+      // Try to get tenant from explicit context first, then fallback to session resolution
+      tenantId = this.context?.tenantId || await this.ensureTenantContext();
+      console.log(`[MemberAdapter.fetch] Pre-resolved tenantId: ${tenantId}`);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`[MemberAdapter.fetch] Could not resolve tenant context: ${errorMsg}`);
+      // Continue without tenant - super.fetch() may still work via RLS
+    }
+
     // Fetch encrypted records from parent
     const result = await super.fetch(options);
+    console.log(`[MemberAdapter.fetch] Records fetched: ${result.data.length}`);
 
-    // Get tenant context with fallback
-    const tenantId = await this.getTenantId();
-    console.log(`[MemberAdapter.fetch] Context tenantId: ${tenantId}, Records fetched: ${result.data.length}`);
+    // Check if we can proceed with decryption
+    if (!tenantId) {
+      console.warn('[MemberAdapter.fetch] No tenant context - returning encrypted data');
+      return result;
+    }
 
-    if (!tenantId || !result.data.length) {
-      console.log(`[MemberAdapter.fetch] Skipping decryption - ${!tenantId ? 'no tenant context' : 'no records'}`);
+    if (!result.data.length) {
+      console.log('[MemberAdapter.fetch] No records to decrypt');
       return result;
     }
 
     try {
       // Log sample of raw data from database before decryption
-      if (result.data.length > 0) {
-        const firstRecord = result.data[0];
-        console.log(`[MemberAdapter.fetch] Sample record BEFORE decryption:`, {
-          id: firstRecord.id,
-          email: firstRecord.email,
-          email_length: firstRecord.email?.length,
-          encrypted_fields: firstRecord.encrypted_fields,
-          encryption_key_version: firstRecord.encryption_key_version
-        });
-      }
+      const firstRecord = result.data[0];
+      console.log(`[MemberAdapter.fetch] Sample record BEFORE decryption:`, {
+        id: firstRecord.id,
+        first_name: firstRecord.first_name?.substring(0, 20),
+        first_name_looks_encrypted: this.looksEncrypted(firstRecord.first_name),
+        encrypted_fields: firstRecord.encrypted_fields,
+        encryption_key_version: firstRecord.encryption_key_version
+      });
 
-      // Decrypt all records in parallel
+      // Decrypt all records in parallel using the pre-resolved tenant ID
       const decrypted = await Promise.all(
         result.data.map(async (record, index) => {
-          // Check if record has encrypted fields
-          if (!record.encrypted_fields || (record.encrypted_fields as any[]).length === 0) {
-            console.log(`[MemberAdapter.fetch] Record ${index} has no encrypted_fields, skipping decryption`);
-            // Legacy plaintext record or no PII fields
+          // Check if record has encrypted fields marker
+          const hasEncryptedFieldsMarker = record.encrypted_fields && (record.encrypted_fields as any[]).length > 0;
+
+          // Also check if data actually looks encrypted (starts with version.iv pattern)
+          const dataLooksEncrypted = this.looksEncrypted(record.first_name) ||
+                                     this.looksEncrypted(record.last_name) ||
+                                     this.looksEncrypted(record.email);
+
+          if (!hasEncryptedFieldsMarker && !dataLooksEncrypted) {
+            // Legacy plaintext record - no decryption needed
+            if (index === 0) {
+              console.log(`[MemberAdapter.fetch] Record ${index} is plaintext (no encrypted_fields marker, data not encrypted)`);
+            }
             return record;
           }
 
-          console.log(`[MemberAdapter.fetch] Decrypting record ${index} with ${(record.encrypted_fields as any[]).length} encrypted fields`);
+          // Decrypt the record
+          if (index === 0) {
+            console.log(`[MemberAdapter.fetch] Decrypting record ${index} (marker: ${hasEncryptedFieldsMarker}, looks_encrypted: ${dataLooksEncrypted})`);
+          }
+
           const decryptedRecord = await this.encryptionService.decryptFields(
             record,
-            tenantId,
+            tenantId!, // We know tenantId is not null at this point
             this.getPIIFields()
           );
 
-          console.log(`[MemberAdapter.fetch] Record ${index} AFTER decryption:`, {
-            id: decryptedRecord.id,
-            email: decryptedRecord.email,
-            email_length: decryptedRecord.email?.length
-          });
+          if (index === 0) {
+            console.log(`[MemberAdapter.fetch] Record ${index} AFTER decryption:`, {
+              id: decryptedRecord.id,
+              first_name: decryptedRecord.first_name?.substring(0, 30),
+              first_name_looks_encrypted: this.looksEncrypted(decryptedRecord.first_name)
+            });
+          }
 
           return decryptedRecord;
         })
       );
 
-      console.log(
-        `[MemberAdapter] Decrypted ${decrypted.length} member records`
-      );
-
-      // Log sample of decrypted data
-      if (decrypted.length > 0) {
-        const firstDecrypted = decrypted[0];
-        console.log(`[MemberAdapter.fetch] Final sample AFTER all decryption:`, {
-          id: firstDecrypted.id,
-          email: firstDecrypted.email,
-          first_name: firstDecrypted.first_name,
-          last_name: firstDecrypted.last_name
-        });
-      }
+      console.log(`[MemberAdapter.fetch] Successfully decrypted ${decrypted.length} member records`);
 
       return { data: decrypted, count: result.count };
     } catch (error) {
-      console.error('[MemberAdapter.fetch] Decryption failed during fetch:', error);
-      // Return encrypted data rather than failing completely
+      // Log detailed error information for debugging
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[MemberAdapter.fetch] Decryption failed:', {
+        error: errorMessage,
+        tenantId,
+        recordCount: result.data.length,
+        possibleCause: errorMessage.includes('key not found')
+          ? 'Tenant encryption key may not exist - run: pnpm --filter @stewardtrack/web generate-tenant-keys'
+          : errorMessage.includes('ENCRYPTION_MASTER_KEY')
+          ? 'ENCRYPTION_MASTER_KEY environment variable not configured'
+          : 'Check encryption service logs for details'
+      });
+
+      // Return encrypted data as fallback - frontend should detect and handle
+      console.warn('[MemberAdapter.fetch] Returning encrypted data as fallback');
       return result;
     }
   }
 
   /**
+   * Check if a value looks like encrypted data (version.iv.ciphertext.tag format)
+   */
+  private looksEncrypted(value: unknown): boolean {
+    if (typeof value !== 'string') return false;
+    // Encrypted format: "1.base64iv.base64ciphertext.base64tag" or similar
+    // Check for pattern: number.base64.base64... (at least 3 dots and base64-like chars)
+    return /^\d+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/.test(value);
+  }
+
+  /**
    * Decrypt PII fields after fetching single member
+   *
+   * CRITICAL: Tenant context is resolved ONCE at the start to ensure consistency.
    */
   public override async fetchById(
     id: string,
     options: Omit<QueryOptions, 'pagination'> = {}
   ): Promise<Member | null> {
+    // CRITICAL: Resolve tenant context FIRST, before fetching
+    let tenantId: string | null = null;
+    try {
+      tenantId = this.context?.tenantId || await this.ensureTenantContext();
+    } catch (error) {
+      console.warn(`[MemberAdapter.fetchById] Could not resolve tenant context: ${error instanceof Error ? error.message : 'Unknown'}`);
+    }
+
     // Fetch encrypted record from parent
     const record = await super.fetchById(id, options);
 
@@ -1153,16 +1218,21 @@ export class MemberAdapter
       return null;
     }
 
-    // Get tenant context with fallback
-    const tenantId = await this.getTenantId();
+    // Check if we can proceed with decryption
     if (!tenantId) {
+      console.warn(`[MemberAdapter.fetchById] No tenant context for member ${id} - returning encrypted data`);
       return record;
     }
 
     try {
-      // Check if record has encrypted fields
-      if (!record.encrypted_fields || (record.encrypted_fields as any[]).length === 0) {
-        // Legacy plaintext record or no PII fields
+      // Check if record needs decryption
+      const hasEncryptedFieldsMarker = record.encrypted_fields && (record.encrypted_fields as any[]).length > 0;
+      const dataLooksEncrypted = this.looksEncrypted(record.first_name) ||
+                                 this.looksEncrypted(record.last_name) ||
+                                 this.looksEncrypted(record.email);
+
+      if (!hasEncryptedFieldsMarker && !dataLooksEncrypted) {
+        // Legacy plaintext record
         return record;
       }
 
@@ -1172,13 +1242,19 @@ export class MemberAdapter
         this.getPIIFields()
       );
 
-      console.log(
-        `[MemberAdapter] Decrypted member ${id}`
-      );
-
+      console.log(`[MemberAdapter.fetchById] Decrypted member ${id}`);
       return decrypted;
     } catch (error) {
-      console.error(`[MemberAdapter] Decryption failed for member ${id}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[MemberAdapter.fetchById] Decryption failed for member ${id}:`, {
+        error: errorMessage,
+        tenantId,
+        possibleCause: errorMessage.includes('key not found')
+          ? 'Tenant encryption key may not exist - run: pnpm --filter @stewardtrack/web generate-tenant-keys'
+          : errorMessage.includes('ENCRYPTION_MASTER_KEY')
+          ? 'ENCRYPTION_MASTER_KEY environment variable not configured'
+          : 'Check encryption service logs for details'
+      });
       // Return encrypted data rather than failing
       return record;
     }

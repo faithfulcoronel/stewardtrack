@@ -10,6 +10,10 @@ import {
   AdminDataGridSection,
   type AdminDataGridSectionProps,
 } from '@/components/dynamic/admin/AdminDataGridSection';
+import {
+  AdminAgGrid,
+  type AdminAgGridProps,
+} from '@/components/dynamic/admin/AdminAgGrid';
 import { AdminDetailPanels, type AdminDetailPanelsProps } from '@/components/dynamic/admin/AdminDetailPanels';
 import { AdminFormSection, type AdminFormSectionProps } from '@/components/dynamic/admin/AdminFormSection';
 import { AdminGivingChart, type AdminGivingChartProps } from '@/components/dynamic/admin/AdminGivingChart';
@@ -287,6 +291,12 @@ export const adminComponentDefinitions: ComponentDefinition[] = [
     namespace: 'admin',
     version: '1.0.0',
     renderer: withoutChildren<AdminDataGridSectionProps>(AdminDataGridSection, 'AdminDataGridSectionRenderer'),
+  },
+  {
+    type: 'AdminAgGrid',
+    namespace: 'admin',
+    version: '1.0.0',
+    renderer: withoutChildren<AdminAgGridProps>(AdminAgGrid, 'AdminAgGridRenderer'),
   },
   {
     type: 'AdminDetailPanels',

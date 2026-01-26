@@ -53,7 +53,7 @@ SERVICE HANDLERS:
         <!--
         SCHEDULES TABLE: Data grid for schedule list
         -->
-        <Component id="schedules-table" type="AdminDataGridSection">
+        <Component id="schedules-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Schedule definitions</Prop>
             <Prop name="description" kind="static">Recurring schedules that generate event occurrences.</Prop>

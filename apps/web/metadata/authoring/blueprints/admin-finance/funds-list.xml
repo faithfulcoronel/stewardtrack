@@ -22,7 +22,7 @@
             <Prop name="metrics" kind="binding" contract="fundTypeSummary.items"/>
           </Props>
         </Component>
-        <Component id="funds-grid" type="AdminDataGridSection">
+        <Component id="funds-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Fund records</Prop>
             <Prop name="description" kind="static">Manage your organization's funds and track balances.</Prop>

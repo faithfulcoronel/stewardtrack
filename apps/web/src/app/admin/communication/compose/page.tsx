@@ -57,6 +57,7 @@ export default function ComposePage() {
   const [families, setFamilies] = useState<RecipientGroup[]>([]);
   const [events, setEvents] = useState<RecipientGroup[]>([]);
   const [ministries, setMinistries] = useState<RecipientGroup[]>([]);
+  const [registrants, setRegistrants] = useState<RecipientGroup[]>([]);
   const [customLists, setCustomLists] = useState<RecipientGroup[]>([]);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
 
@@ -100,6 +101,7 @@ export default function ComposePage() {
           setFamilies(data.families || []);
           setEvents(data.events || []);
           setMinistries(data.ministries || []);
+          setRegistrants(data.registrants || []);
           setCustomLists(data.customLists || []);
         }
 
@@ -209,6 +211,17 @@ export default function ComposePage() {
         ? `/api/admin/communication/campaigns/${campaignId}`
         : "/api/admin/communication/campaigns";
 
+      // Build facebook_post_data if Facebook channel is selected
+      const hasFacebook = data.channels.includes("facebook");
+      const facebookPostData = hasFacebook && data.facebookText?.trim()
+        ? {
+            text: data.facebookText,
+            mediaUrl: data.facebookMediaUrl || undefined,
+            mediaType: data.facebookMediaType || "none",
+            linkUrl: data.facebookLinkUrl || undefined,
+          }
+        : undefined;
+
       const response = await fetch(url, {
         method: campaignId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -220,6 +233,7 @@ export default function ComposePage() {
           subject: data.subject,
           content_html: data.contentHtml,
           content_text: data.contentText,
+          facebook_post_data: facebookPostData,
           template_id: data.templateId,
           scheduled_at: data.scheduledAt,
           recipients: data.recipients,
@@ -308,6 +322,7 @@ export default function ComposePage() {
       families={families}
       events={events}
       ministries={ministries}
+      registrants={registrants}
       customLists={customLists}
       templates={templates}
       onSearchMembers={handleSearchMembers}
