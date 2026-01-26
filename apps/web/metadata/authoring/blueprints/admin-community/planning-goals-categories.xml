@@ -54,7 +54,7 @@ FEATURES:
         <!--
         CATEGORIES LIST: Data grid showing all categories
         -->
-        <Component id="categories-list" type="AdminDataGridSection">
+        <Component id="categories-list" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Categories</Prop>
             <Prop name="description" kind="static">Categories help organize goals by ministry area or theme</Prop>

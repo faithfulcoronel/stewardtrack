@@ -5,6 +5,211 @@
 @import "ag-grid-community/styles/ag-grid.css";
 @import "ag-grid-community/styles/ag-theme-quartz.css";
 
+/* AG Grid Theme Customizations - Modern Design System */
+.ag-theme-quartz,
+.ag-theme-quartz-dark {
+  --ag-font-family: 'DM Sans', var(--font-family-body), system-ui, -apple-system, sans-serif;
+  --ag-font-size: 14px;
+  --ag-grid-size: 6px;
+  --ag-row-height: 52px;
+  --ag-header-height: 44px;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-borders: none;
+  --ag-border-radius: 0;
+  --ag-row-border-width: 1px;
+  --ag-wrapper-border-radius: 16px;
+  --ag-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  font-family: 'DM Sans', var(--font-family-body), system-ui, -apple-system, sans-serif;
+}
+
+.ag-theme-quartz {
+  --ag-background-color: hsl(var(--background));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-background-color: hsl(var(--muted) / 0.5);
+  --ag-header-foreground-color: hsl(var(--foreground));
+  --ag-odd-row-background-color: hsl(var(--muted) / 0.15);
+  --ag-row-hover-color: hsl(var(--primary) / 0.08);
+  --ag-selected-row-background-color: hsl(var(--primary) / 0.12);
+  --ag-range-selection-border-color: hsl(var(--primary));
+  --ag-range-selection-background-color: hsl(var(--primary) / 0.1);
+  --ag-border-color: hsl(var(--border) / 0.5);
+  --ag-row-border-color: hsl(var(--border) / 0.3);
+  --ag-secondary-border-color: hsl(var(--border) / 0.2);
+  --ag-input-focus-border-color: hsl(var(--primary));
+  --ag-checkbox-checked-color: hsl(var(--primary));
+  --ag-checkbox-unchecked-color: hsl(var(--muted-foreground));
+  --ag-toggle-button-on-background-color: hsl(var(--primary));
+  --ag-toggle-button-off-background-color: hsl(var(--muted));
+  --ag-chip-background-color: hsl(var(--muted));
+  --ag-invalid-color: hsl(var(--destructive));
+}
+
+.ag-theme-quartz-dark {
+  --ag-background-color: hsl(var(--background));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-background-color: hsl(var(--muted) / 0.4);
+  --ag-header-foreground-color: hsl(var(--foreground));
+  --ag-odd-row-background-color: hsl(var(--muted) / 0.1);
+  --ag-row-hover-color: hsl(var(--primary) / 0.12);
+  --ag-selected-row-background-color: hsl(var(--primary) / 0.18);
+  --ag-range-selection-border-color: hsl(var(--primary));
+  --ag-range-selection-background-color: hsl(var(--primary) / 0.15);
+  --ag-border-color: hsl(var(--border) / 0.5);
+  --ag-row-border-color: hsl(var(--border) / 0.25);
+  --ag-secondary-border-color: hsl(var(--border) / 0.15);
+  --ag-input-focus-border-color: hsl(var(--primary));
+  --ag-checkbox-checked-color: hsl(var(--primary));
+  --ag-checkbox-unchecked-color: hsl(var(--muted-foreground));
+  --ag-toggle-button-on-background-color: hsl(var(--primary));
+  --ag-toggle-button-off-background-color: hsl(var(--muted));
+  --ag-chip-background-color: hsl(var(--muted));
+  --ag-invalid-color: hsl(var(--destructive));
+}
+
+/* AG Grid Root Wrapper - Modern card styling */
+.ag-theme-quartz .ag-root-wrapper,
+.ag-theme-quartz-dark .ag-root-wrapper {
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 16px;
+  box-shadow: var(--ag-card-shadow);
+  overflow: hidden;
+}
+
+/* Header styling - Modern gradient effect */
+.ag-theme-quartz .ag-header,
+.ag-theme-quartz-dark .ag-header {
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+}
+
+.ag-theme-quartz .ag-header-cell-text,
+.ag-theme-quartz-dark .ag-header-cell-text {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.ag-theme-quartz .ag-header-cell:hover,
+.ag-theme-quartz-dark .ag-header-cell:hover {
+  background-color: hsl(var(--muted) / 0.6);
+}
+
+/* Row styling - Smooth transitions */
+.ag-theme-quartz .ag-row,
+.ag-theme-quartz-dark .ag-row {
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.ag-theme-quartz .ag-row:hover,
+.ag-theme-quartz-dark .ag-row:hover {
+  z-index: 1;
+}
+
+.ag-theme-quartz .ag-row-selected,
+.ag-theme-quartz-dark .ag-row-selected {
+  background-color: var(--ag-selected-row-background-color) !important;
+}
+
+/* Cell styling */
+.ag-theme-quartz .ag-cell,
+.ag-theme-quartz-dark .ag-cell {
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.ag-theme-quartz .ag-cell-focus,
+.ag-theme-quartz-dark .ag-cell-focus {
+  border-color: hsl(var(--primary) / 0.5) !important;
+}
+
+/* Pinned columns styling */
+.ag-theme-quartz .ag-pinned-right-cols-container,
+.ag-theme-quartz-dark .ag-pinned-right-cols-container {
+  box-shadow: -4px 0 8px -4px rgb(0 0 0 / 0.1);
+}
+
+.ag-theme-quartz-dark .ag-pinned-right-cols-container {
+  box-shadow: -4px 0 8px -4px rgb(0 0 0 / 0.3);
+}
+
+/* Modern pagination panel */
+.ag-theme-quartz .ag-paging-panel,
+.ag-theme-quartz-dark .ag-paging-panel {
+  border-top: 1px solid hsl(var(--border) / 0.4);
+  background: linear-gradient(to top, hsl(var(--muted) / 0.4), hsl(var(--muted) / 0.2));
+  padding: 12px 20px;
+  min-height: 52px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.ag-theme-quartz .ag-paging-button,
+.ag-theme-quartz-dark .ag-paging-button {
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.ag-theme-quartz .ag-paging-button:hover:not(.ag-disabled),
+.ag-theme-quartz-dark .ag-paging-button:hover:not(.ag-disabled) {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+/* Page size selector styling */
+.ag-theme-quartz .ag-paging-page-size .ag-picker-field-wrapper,
+.ag-theme-quartz-dark .ag-paging-page-size .ag-picker-field-wrapper {
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background-color: hsl(var(--background));
+  transition: all 0.15s ease;
+}
+
+.ag-theme-quartz .ag-paging-page-size .ag-picker-field-wrapper:hover,
+.ag-theme-quartz-dark .ag-paging-page-size .ag-picker-field-wrapper:hover {
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+/* Column resize handle */
+.ag-theme-quartz .ag-header-cell-resize,
+.ag-theme-quartz-dark .ag-header-cell-resize {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ag-theme-quartz .ag-header-cell:hover .ag-header-cell-resize,
+.ag-theme-quartz-dark .ag-header-cell:hover .ag-header-cell-resize {
+  opacity: 1;
+}
+
+/* Sort icons styling */
+.ag-theme-quartz .ag-sort-indicator-icon,
+.ag-theme-quartz-dark .ag-sort-indicator-icon {
+  color: hsl(var(--primary));
+}
+
+/* Loading overlay */
+.ag-theme-quartz .ag-overlay-loading-center,
+.ag-theme-quartz-dark .ag-overlay-loading-center {
+  background-color: hsl(var(--background) / 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 24px 32px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+}
+
+/* No rows overlay */
+.ag-theme-quartz .ag-overlay-no-rows-center,
+.ag-theme-quartz-dark .ag-overlay-no-rows-center {
+  background-color: hsl(var(--background) / 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 32px;
+}
+
 /* Fonts are linked in layout head */
 
 @custom-variant dark (&:is(.dark *));

@@ -22,7 +22,7 @@
             <Prop name="metrics" kind="binding" contract="budgetPerformance.items"/>
           </Props>
         </Component>
-        <Component id="budgets-grid" type="AdminDataGridSection">
+        <Component id="budgets-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Budget allocations</Prop>
             <Prop name="description" kind="static">Track spending against approved budget allocations by category.</Prop>

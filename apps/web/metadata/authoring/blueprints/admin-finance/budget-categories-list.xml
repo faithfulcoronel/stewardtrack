@@ -28,7 +28,7 @@
         </Component>
 
         <!-- Categories Data Table -->
-        <Component id="categories-table" type="AdminDataGridSection">
+        <Component id="categories-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">All budget categories</Prop>
             <Prop name="rows" kind="binding" contract="table.rows"/>

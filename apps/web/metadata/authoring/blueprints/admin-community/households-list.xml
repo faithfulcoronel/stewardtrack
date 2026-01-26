@@ -15,7 +15,7 @@
             <Prop name="secondaryCta" kind="action" actionId="open-dashboard"/>
           </Props>
         </Component>
-        <Component id="households-grid" type="AdminDataGridSection">
+        <Component id="households-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Household roster</Prop>
             <Prop name="description" kind="static">Search and manage household records with envelope numbers and address information.</Prop>

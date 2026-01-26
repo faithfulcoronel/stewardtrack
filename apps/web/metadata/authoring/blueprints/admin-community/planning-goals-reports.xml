@@ -61,7 +61,7 @@ FEATURE: Goals Progress Reports
         <!--
         PROGRESS BY CATEGORY: Breakdown of progress per goal category
         -->
-        <Component id="category-progress" type="AdminDataGridSection">
+        <Component id="category-progress" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Progress by Category</Prop>
             <Prop name="description" kind="static">Goal achievement metrics grouped by strategic category.</Prop>
@@ -74,7 +74,7 @@ FEATURE: Goals Progress Reports
         <!--
         STATUS DISTRIBUTION: Goals grouped by status
         -->
-        <Component id="status-distribution" type="AdminDataGridSection">
+        <Component id="status-distribution" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Status Distribution</Prop>
             <Prop name="description" kind="static">Current status of all goals and objectives.</Prop>
@@ -112,7 +112,7 @@ FEATURE: Goals Progress Reports
         <!--
         OVERDUE ITEMS: Goals and key results that need attention
         -->
-        <Component id="overdue-items" type="AdminDataGridSection">
+        <Component id="overdue-items" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Items Needing Attention</Prop>
             <Prop name="description" kind="static">Overdue key results and at-risk goals that require updates.</Prop>

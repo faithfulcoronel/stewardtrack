@@ -35,7 +35,7 @@
         </Component>
 
         <!-- Recent Transactions -->
-        <Component id="transactions-table" type="AdminDataGridSection">
+        <Component id="transactions-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Recent transactions</Prop>
             <Prop name="rows" kind="binding" contract="transactions.rows"/>

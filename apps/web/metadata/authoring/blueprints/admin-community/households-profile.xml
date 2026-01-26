@@ -21,7 +21,7 @@
             <Prop name="panels" kind="binding" contract="profileSummary.panels"/>
           </Props>
         </Component>
-        <Component id="household-members" type="AdminDataGridSection">
+        <Component id="household-members" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Household members</Prop>
             <Prop name="description" kind="static">Members associated with this household.</Prop>

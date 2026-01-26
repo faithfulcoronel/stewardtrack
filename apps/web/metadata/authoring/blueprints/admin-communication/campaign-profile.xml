@@ -70,7 +70,7 @@ FEATURE: Communication
         <!--
         RECIPIENTS TABLE: List of recipients with status
         -->
-        <Component id="recipients-table" type="AdminDataGridSection">
+        <Component id="recipients-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Recipients</Prop>
             <Prop name="description" kind="static">Individual recipient delivery status.</Prop>

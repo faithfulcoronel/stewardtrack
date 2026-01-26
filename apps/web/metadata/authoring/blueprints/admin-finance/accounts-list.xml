@@ -22,7 +22,7 @@
             <Prop name="metrics" kind="binding" contract="accountTypeSummary.items"/>
           </Props>
         </Component>
-        <Component id="accounts-grid" type="AdminDataGridSection">
+        <Component id="accounts-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">General ledger accounts</Prop>
             <Prop name="description" kind="static">View and manage your organization's chart of accounts hierarchy.</Prop>

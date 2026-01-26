@@ -48,7 +48,7 @@ FEATURE: Communication
         <!--
         DATA GRID: Campaign list with filters and actions
         -->
-        <Component id="campaigns-table" type="AdminDataGridSection">
+        <Component id="campaigns-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">All campaigns</Prop>
             <Prop name="description" kind="static">View and manage your communication campaigns.</Prop>

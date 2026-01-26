@@ -52,7 +52,7 @@ SERVICE HANDLERS:
         <!--
         MINISTRIES TABLE: Data grid for ministry list
         -->
-        <Component id="ministries-grid" type="AdminDataGridSection">
+        <Component id="ministries-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Ministry groups</Prop>
             <Prop name="description" kind="static">View and manage ministry groups, teams, and schedules.</Prop>

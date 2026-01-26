@@ -35,7 +35,7 @@
         </Component>
 
         <!-- Budget Line Items -->
-        <Component id="budget-items-table" type="AdminDataGridSection">
+        <Component id="budget-items-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Budget line items</Prop>
             <Prop name="rows" kind="binding" contract="budgetItems.rows"/>

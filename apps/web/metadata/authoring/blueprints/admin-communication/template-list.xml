@@ -49,7 +49,7 @@ FEATURE: Communication
         <!--
         DATA GRID: Template list with filters and actions
         -->
-        <Component id="templates-table" type="AdminDataGridSection">
+        <Component id="templates-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">All templates</Prop>
             <Prop name="description" kind="static">Manage your reusable message templates.</Prop>

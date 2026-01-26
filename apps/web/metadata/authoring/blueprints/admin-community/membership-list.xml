@@ -27,7 +27,7 @@
             <Prop name="showLabels" kind="static">true</Prop>
           </Props>
         </Component>
-        <Component id="membership-grid" type="AdminDataGridSection">
+        <Component id="membership-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Community roster</Prop>
             <Prop name="description" kind="static">Search, filter, and update member records with finance and pastoral context at your fingertips.</Prop>

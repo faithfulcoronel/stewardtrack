@@ -86,7 +86,7 @@ SERVICE HANDLERS:
         <!--
         OCCURRENCES TABLE: List of schedule occurrences
         -->
-        <Component id="occurrences-table" type="AdminDataGridSection">
+        <Component id="occurrences-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Occurrences</Prop>
             <Prop name="description" kind="static">Generated event occurrences from this schedule.</Prop>
@@ -100,7 +100,7 @@ SERVICE HANDLERS:
         <!--
         REGISTRANTS TABLE: List of event registrations
         -->
-        <Component id="registrants-table" type="AdminDataGridSection">
+        <Component id="registrants-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Registrants</Prop>
             <Prop name="description" kind="static">People registered for events in this schedule.</Prop>

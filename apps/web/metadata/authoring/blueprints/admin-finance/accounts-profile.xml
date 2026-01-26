@@ -27,7 +27,7 @@
             <Prop name="metrics" kind="binding" contract="balanceSummary.items"/>
           </Props>
         </Component>
-        <Component id="transaction-history" type="AdminDataGridSection">
+        <Component id="transaction-history" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Transaction history</Prop>
             <Prop name="description" kind="static">All journal entries affecting this account.</Prop>

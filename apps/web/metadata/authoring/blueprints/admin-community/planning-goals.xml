@@ -89,7 +89,7 @@ FEATURE: Goals & Objectives
         <!--
         GOALS TABLE: Data grid for detailed list view (alternative to cards)
         -->
-        <Component id="goals-table" type="AdminDataGridSection">
+        <Component id="goals-table" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">All goals</Prop>
             <Prop name="description" kind="static">Church-wide strategic goals and ministry objectives in table format.</Prop>

@@ -22,7 +22,7 @@
             <Prop name="metrics" kind="binding" contract="sourceTypeSummary.items"/>
           </Props>
         </Component>
-        <Component id="sources-grid" type="AdminDataGridSection">
+        <Component id="sources-grid" type="AdminAgGrid">
           <Props>
             <Prop name="title" kind="static">Money sources</Prop>
             <Prop name="description" kind="static">Manage bank accounts, cash funds, digital wallets, and other financial sources.</Prop>
