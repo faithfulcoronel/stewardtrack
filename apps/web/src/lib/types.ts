@@ -466,6 +466,11 @@ export const TYPES = {
   ITemplateRepository: Symbol.for('ITemplateRepository'),
   IRecipientRepository: Symbol.for('IRecipientRepository'),
   IPreferenceRepository: Symbol.for('IPreferenceRepository'),
+
+  // ==================== Global Search ====================
+  ISearchAdapter: Symbol.for('ISearchAdapter'),
+  ISearchRepository: Symbol.for('ISearchRepository'),
+  SearchService: Symbol.for('SearchService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

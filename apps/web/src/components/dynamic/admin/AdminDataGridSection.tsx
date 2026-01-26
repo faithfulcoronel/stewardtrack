@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
 import {
@@ -155,6 +156,9 @@ const actionIntentIcons: Record<string, React.ReactNode> = {
 };
 
 export function AdminDataGridSection(props: AdminDataGridSectionProps) {
+  const searchParams = useSearchParams();
+  const urlSearchQuery = searchParams.get('search') || '';
+
   const columns = React.useMemo(
     () => normalizeList<GridColumnConfig>(props.columns).map(normalizeColumn),
     [props.columns]
@@ -169,15 +173,43 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
   );
   const rawRows = React.useMemo(() => [...(props.rows ?? [])], [props.rows]);
   const [tableRows, setTableRows] = React.useState<GridValue[]>(rawRows);
-  const [filterState, setFilterState] = React.useState<Record<string, string | DateRange | undefined>>(() => {
+
+  // Initialize filter state from both default values and URL search param
+  const getInitialFilterState = React.useCallback(() => {
     const initial: Record<string, string | DateRange | undefined> = {};
-    for (const filter of filters) {
+    const normalizedFilters = normalizeList<GridFilterConfig>(props.filters);
+
+    for (const filter of normalizedFilters) {
       if (filter.defaultValue) {
         initial[filter.id] = filter.defaultValue;
       }
     }
+
+    // Apply URL search param to the first search filter
+    if (urlSearchQuery) {
+      const searchFilter = normalizedFilters.find(f => f.type === 'search');
+      if (searchFilter) {
+        initial[searchFilter.id] = urlSearchQuery;
+      }
+    }
+
     return initial;
-  });
+  }, [props.filters, urlSearchQuery]);
+
+  const [filterState, setFilterState] = React.useState<Record<string, string | DateRange | undefined>>(getInitialFilterState);
+
+  // Update filter state when URL search param changes
+  React.useEffect(() => {
+    if (urlSearchQuery) {
+      const searchFilter = filters.find(f => f.type === 'search');
+      if (searchFilter) {
+        setFilterState(prev => ({
+          ...prev,
+          [searchFilter.id]: urlSearchQuery,
+        }));
+      }
+    }
+  }, [urlSearchQuery, filters]);
   const [deleteConfirm, setDeleteConfirm] = React.useState<DeleteConfirmState>({
     isOpen: false,
     isDeleting: false,

@@ -1250,4 +1250,11 @@ container.bind<CommunicationService>(TYPES.CommunicationService).to(SupabaseComm
 container.bind<ICommunicationAIService>(TYPES.CommunicationAIService).to(SupabaseCommunicationAIService).inRequestScope();
 container.bind<FacebookChannelService>(TYPES.FacebookChannelService).to(FacebookChannelService).inRequestScope();
 
+// ==================== GLOBAL SEARCH ====================
+import { SearchAdapter, type ISearchAdapter } from '@/adapters/search.adapter';
+import { SearchService, type ISearchService } from '@/services/SearchService';
+
+container.bind<ISearchAdapter>(TYPES.ISearchAdapter).to(SearchAdapter).inRequestScope();
+container.bind<SearchService>(TYPES.SearchService).to(SearchService).inRequestScope();
+
 export { container };
