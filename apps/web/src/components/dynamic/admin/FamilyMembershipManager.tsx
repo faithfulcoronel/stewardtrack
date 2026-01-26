@@ -19,7 +19,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -38,10 +40,19 @@ export interface FamilyOption {
   member_count?: number;
 }
 
+export type FamilyRoleType =
+  | 'head' | 'spouse' | 'parent' | 'child' | 'sibling' | 'dependent'
+  | 'grandparent' | 'grandchild'
+  | 'uncle' | 'aunt' | 'nephew' | 'niece' | 'cousin'
+  | 'parent_in_law' | 'child_in_law' | 'sibling_in_law'
+  | 'stepparent' | 'stepchild' | 'stepsibling'
+  | 'guardian' | 'ward' | 'foster_parent' | 'foster_child'
+  | 'other';
+
 export interface FamilyMembership {
   familyId: string;
   familyName: string;
-  role: 'head' | 'spouse' | 'child' | 'dependent' | 'other';
+  role: FamilyRoleType;
   isPrimary: boolean;
   address_street?: string | null;
   address_city?: string | null;
@@ -68,12 +79,37 @@ export interface FamilyMembershipManagerProps {
   description?: string;
 }
 
-const ROLE_OPTIONS: { value: FamilyMembership['role']; label: string }[] = [
-  { value: 'head', label: 'Head of Family' },
-  { value: 'spouse', label: 'Spouse' },
-  { value: 'child', label: 'Child' },
-  { value: 'dependent', label: 'Dependent' },
-  { value: 'other', label: 'Other' },
+const ROLE_OPTIONS: { value: FamilyMembership['role']; label: string; group?: string }[] = [
+  // Primary household roles
+  { value: 'head', label: 'Head of Family', group: 'Primary' },
+  { value: 'spouse', label: 'Spouse', group: 'Primary' },
+  { value: 'parent', label: 'Parent', group: 'Primary' },
+  { value: 'child', label: 'Child', group: 'Primary' },
+  { value: 'sibling', label: 'Sibling', group: 'Primary' },
+  { value: 'dependent', label: 'Dependent', group: 'Primary' },
+  // Extended family
+  { value: 'grandparent', label: 'Grandparent', group: 'Extended' },
+  { value: 'grandchild', label: 'Grandchild', group: 'Extended' },
+  { value: 'uncle', label: 'Uncle', group: 'Extended' },
+  { value: 'aunt', label: 'Aunt', group: 'Extended' },
+  { value: 'nephew', label: 'Nephew', group: 'Extended' },
+  { value: 'niece', label: 'Niece', group: 'Extended' },
+  { value: 'cousin', label: 'Cousin', group: 'Extended' },
+  // In-laws
+  { value: 'parent_in_law', label: 'Parent-in-Law', group: 'In-Laws' },
+  { value: 'child_in_law', label: 'Child-in-Law', group: 'In-Laws' },
+  { value: 'sibling_in_law', label: 'Sibling-in-Law', group: 'In-Laws' },
+  // Step relations
+  { value: 'stepparent', label: 'Stepparent', group: 'Step' },
+  { value: 'stepchild', label: 'Stepchild', group: 'Step' },
+  { value: 'stepsibling', label: 'Stepsibling', group: 'Step' },
+  // Legal relationships
+  { value: 'guardian', label: 'Guardian', group: 'Legal' },
+  { value: 'ward', label: 'Ward', group: 'Legal' },
+  { value: 'foster_parent', label: 'Foster Parent', group: 'Legal' },
+  { value: 'foster_child', label: 'Foster Child', group: 'Legal' },
+  // Other
+  { value: 'other', label: 'Other', group: 'Other' },
 ];
 
 export function FamilyMembershipManager({
@@ -319,15 +355,24 @@ export function FamilyMembershipManager({
                       value={membership.role}
                       onValueChange={(value) => handleRoleChange(membership.familyId, value as FamilyMembership['role'])}
                     >
-                      <SelectTrigger className="w-[140px]">
+                      <SelectTrigger className="w-[160px]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                      <SelectContent className="max-h-[300px]">
+                        {['Primary', 'Extended', 'In-Laws', 'Step', 'Legal', 'Other'].map((group) => {
+                          const groupOptions = ROLE_OPTIONS.filter(opt => opt.group === group);
+                          if (groupOptions.length === 0) return null;
+                          return (
+                            <SelectGroup key={group}>
+                              <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{group}</SelectLabel>
+                              {groupOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
 
