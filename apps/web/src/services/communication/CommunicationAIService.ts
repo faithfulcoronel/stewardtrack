@@ -19,6 +19,28 @@ import {
 } from '@/lib/utils/extractImagesFromHtml';
 
 /**
+ * Safely parse JSON from AI responses, handling common issues like:
+ * - Markdown code block wrappers (```json ... ```)
+ * - Unescaped newlines/tabs within string values
+ * @param rawResult The raw AI response text
+ * @returns Parsed JSON object or null if parsing fails
+ */
+function safeParseAIJson<T = unknown>(rawResult: string): T | null {
+  try {
+    // Remove markdown code block wrappers
+    const cleanJson = rawResult.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
+    // Escape unescaped newlines, tabs, and carriage returns within JSON string values
+    const sanitizedJson = cleanJson.replace(
+      /"([^"\\]|\\.)*"/g,
+      (match) => match.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+    );
+    return JSON.parse(sanitizedJson) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Tone types for message composition
  */
 export type ToneType = 'formal' | 'friendly' | 'casual' | 'urgent';
@@ -26,7 +48,16 @@ export type ToneType = 'formal' | 'friendly' | 'casual' | 'urgent';
 /**
  * AI assist types
  */
-export type AssistType = 'improve' | 'subject' | 'personalize' | 'grammar' | 'shorten';
+export type AssistType = 'improve' | 'subject' | 'personalize' | 'grammar' | 'shorten' | 'autofill';
+
+/**
+ * Auto-fill campaign details result
+ */
+export interface AutoFillResult {
+  campaignName?: string;
+  campaignDescription?: string;
+  subject?: string;
+}
 
 /**
  * Image data for multimodal AI requests
@@ -82,6 +113,8 @@ export interface AIAssistOptions {
   images?: ImageData[];
   /** Whether to extract images from HTML content automatically */
   extractImages?: boolean;
+  /** Channel type - determines if output should be HTML or plain text */
+  channel?: 'email' | 'sms' | 'facebook' | 'both';
 }
 
 /**
@@ -181,6 +214,21 @@ export interface ICommunicationAIService {
     audience: string,
     tenantId: string
   ): Promise<AIOperationResult<{ suggestedTime: string; reasoning: string }>>;
+
+  /**
+   * Auto-fill campaign details (name, description, subject) based on content
+   */
+  autoFillCampaignDetails(
+    content: string,
+    context: {
+      channel?: 'email' | 'sms' | 'both' | 'facebook';
+      existingName?: string;
+      existingDescription?: string;
+      existingSubject?: string;
+    },
+    tenantId: string,
+    options?: AIAssistOptions
+  ): Promise<AIOperationResult<AutoFillResult>>;
 }
 
 @injectable()
@@ -344,16 +392,14 @@ Return the subject lines in this exact JSON format:
 
     const rawResult = extractTextFromResponse(response) || '{"subjects":[]}';
 
-    try {
-      const cleanJson = rawResult.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
-      const parsed = JSON.parse(cleanJson);
+    const parsed = safeParseAIJson<{ subjects?: string[] }>(rawResult);
+    if (parsed) {
       return {
         data: (parsed.subjects ?? []).map((text: string) => ({ text })),
         tokensUsed,
       };
-    } catch {
-      return { data: [], tokensUsed };
     }
+    return { data: [], tokensUsed };
   }
 
   async improveContent(
@@ -371,6 +417,12 @@ Return the subject lines in this exact JSON format:
     const images = await this.processImages(content, options);
     const hasImages = images.length > 0;
 
+    // Determine if output should be plain text (for SMS, Facebook) or HTML (for email)
+    const isPlainTextChannel = options?.channel === 'sms' || options?.channel === 'facebook';
+    const formatInstruction = isPlainTextChannel
+      ? 'plain text format (NO HTML tags, NO formatting - just clean readable text with line breaks where appropriate)'
+      : 'HTML format with <p>, <strong>, <ul>/<li> tags as appropriate';
+
     const systemPrompt = `You are an expert church communication writer.
 Improve the following message to be more engaging, clear, and ${tone} while maintaining a warm, welcoming tone appropriate for a church community.
 
@@ -382,7 +434,7 @@ ${hasImages ? `IMPORTANT: The message includes images. Analyze the image content
 
 Return in this exact JSON format:
 {
-  "improved": "the improved message text (HTML format with <p>, <strong>, <ul>/<li> tags as appropriate)",
+  "improved": "the improved message text (${formatInstruction})",
   "changes": ["list of changes made"]
 }`;
 
@@ -402,10 +454,11 @@ Return in this exact JSON format:
     await this.deductCredits(tenantId, inputTokens, outputTokens);
 
     const rawResult = extractTextFromResponse(response) || '';
+    console.log('[CommunicationAIService] improveContent raw result length:', rawResult.length);
 
-    try {
-      const cleanJson = rawResult.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
-      const parsed = JSON.parse(cleanJson);
+    const parsed = safeParseAIJson<{ improved?: string; changes?: string[] }>(rawResult);
+    if (parsed) {
+      console.log('[CommunicationAIService] improveContent parsed:', { hasImproved: !!parsed.improved, improvedLength: parsed.improved?.length });
       return {
         data: {
           improved: parsed.improved ?? content,
@@ -413,12 +466,27 @@ Return in this exact JSON format:
         },
         tokensUsed,
       };
-    } catch {
+    }
+
+    // Fallback: try to extract improved content directly if JSON parsing fails
+    console.error('[CommunicationAIService] Failed to parse improve response. Raw result:', rawResult.substring(0, 500));
+    const improvedMatch = rawResult.match(/"improved"\s*:\s*"([^]*?)(?:"(?:\s*,\s*"changes"|}))/);
+    if (improvedMatch && improvedMatch[1]) {
+      const extractedContent = improvedMatch[1]
+        .replace(/\\n/g, '\n')
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, '\\')
+        .trim();
+      console.log('[CommunicationAIService] Extracted improved content via fallback, length:', extractedContent.length);
       return {
-        data: { improved: content, changes: [] },
+        data: { improved: extractedContent, changes: [] },
         tokensUsed,
       };
     }
+    return {
+      data: { improved: content, changes: [] },
+      tokensUsed,
+    };
   }
 
   async personalizeMessage(
@@ -602,9 +670,8 @@ Return in this exact JSON format:
 
     const rawResult = extractTextFromResponse(response) || '{}';
 
-    try {
-      const cleanJson = rawResult.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
-      const parsed = JSON.parse(cleanJson);
+    const parsed = safeParseAIJson<{ subject?: string; bodyHtml?: string; bodyText?: string; smsText?: string }>(rawResult);
+    if (parsed) {
       return {
         data: {
           subject: parsed.subject,
@@ -614,12 +681,11 @@ Return in this exact JSON format:
         },
         tokensUsed,
       };
-    } catch {
-      return {
-        data: { bodyText: rawResult },
-        tokensUsed,
-      };
     }
+    return {
+      data: { bodyText: rawResult },
+      tokensUsed,
+    };
   }
 
   async suggestSendTime(
@@ -654,24 +720,116 @@ Return in this exact JSON format:
 
     const rawResult = extractTextFromResponse(response) || '{}';
 
-    try {
-      const cleanJson = rawResult.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
-      const parsed = JSON.parse(cleanJson);
+    const parsed = safeParseAIJson<{ suggestedTime?: string; reasoning?: string }>(rawResult);
+    const defaultResponse = {
+      suggestedTime: 'Tuesday 10:00 AM',
+      reasoning: 'Mid-week mornings typically have high open rates',
+    };
+
+    return {
+      data: {
+        suggestedTime: parsed?.suggestedTime ?? defaultResponse.suggestedTime,
+        reasoning: parsed?.reasoning ?? defaultResponse.reasoning,
+      },
+      tokensUsed,
+    };
+  }
+
+  async autoFillCampaignDetails(
+    content: string,
+    context: {
+      channel?: 'email' | 'sms' | 'both' | 'facebook';
+      existingName?: string;
+      existingDescription?: string;
+      existingSubject?: string;
+    },
+    tenantId: string,
+    options?: AIAssistOptions
+  ): Promise<AIOperationResult<AutoFillResult>> {
+    const hasCredits = await this.checkCredits(tenantId);
+    if (!hasCredits) {
+      throw new Error('Insufficient AI credits');
+    }
+
+    // Process images if available
+    const images = await this.processImages(content, options);
+    const hasImages = images.length > 0;
+
+    // Determine what needs to be filled
+    const needsName = !context.existingName?.trim();
+    const needsDescription = !context.existingDescription?.trim();
+    const needsSubject = !context.existingSubject?.trim() && context.channel === 'email';
+
+    console.log('[CommunicationAIService] autoFillCampaignDetails:', {
+      needsName,
+      needsDescription,
+      needsSubject,
+      existingName: context.existingName,
+      existingDescription: context.existingDescription,
+      channel: context.channel,
+    });
+
+    if (!needsName && !needsDescription && !needsSubject) {
+      console.log('[CommunicationAIService] No fields need to be filled, returning early');
+      return { data: {}, tokensUsed: 0 };
+    }
+
+    const fieldsToGenerate: string[] = [];
+    if (needsName) fieldsToGenerate.push('"campaignName": "a concise campaign name (max 60 characters)"');
+    if (needsDescription) fieldsToGenerate.push('"campaignDescription": "a brief description of the campaign purpose (1-2 sentences)"');
+    if (needsSubject) fieldsToGenerate.push('"subject": "a compelling email subject line (max 50 characters)"');
+
+    const systemPrompt = `You are an expert at creating campaign metadata for church communications.
+Based on the message content${hasImages ? ' and any images provided' : ''}, generate the requested fields.
+
+Context:
+- Channel: ${context.channel ?? 'email'}
+${hasImages ? '- Analyze any images to extract relevant details (event name, date, topic) for use in names and descriptions' : ''}
+
+Return ONLY the following JSON object with these exact fields (no extra fields):
+{
+  ${fieldsToGenerate.join(',\n  ')}
+}
+
+Guidelines:
+- Campaign name should be descriptive and identify the campaign (e.g., "January Newsletter", "Easter Service Invitation", "Youth Group Signup")
+- Description should briefly explain the campaign's purpose
+- Subject line should be engaging and encourage opens (if requested)`;
+
+    // Get text content for the prompt
+    const textContent = htmlToPlainText(content);
+    const messageContent = this.createMessageContent(textContent, images);
+
+    const response = await this.getAIService().sendMessage({
+      messages: [{ role: 'user', content: messageContent }],
+      system: systemPrompt,
+      max_tokens: 500,
+    });
+
+    const inputTokens = response.usage?.input_tokens ?? 0;
+    const outputTokens = response.usage?.output_tokens ?? 0;
+    const tokensUsed = inputTokens + outputTokens;
+    await this.deductCredits(tenantId, inputTokens, outputTokens);
+
+    const rawResult = extractTextFromResponse(response) || '{}';
+    console.log('[CommunicationAIService] autoFillCampaignDetails raw result:', rawResult);
+
+    const parsed = safeParseAIJson<{ campaignName?: string; campaignDescription?: string; subject?: string }>(rawResult);
+    if (parsed) {
+      console.log('[CommunicationAIService] autoFillCampaignDetails parsed:', parsed);
       return {
         data: {
-          suggestedTime: parsed.suggestedTime ?? 'Tuesday 10:00 AM',
-          reasoning: parsed.reasoning ?? 'Mid-week mornings typically have high open rates',
-        },
-        tokensUsed,
-      };
-    } catch {
-      return {
-        data: {
-          suggestedTime: 'Tuesday 10:00 AM',
-          reasoning: 'Mid-week mornings typically have high open rates',
+          campaignName: needsName ? parsed.campaignName : undefined,
+          campaignDescription: needsDescription ? parsed.campaignDescription : undefined,
+          subject: needsSubject ? parsed.subject : undefined,
         },
         tokensUsed,
       };
     }
+    console.error('[CommunicationAIService] autoFillCampaignDetails parse error. Raw:', rawResult);
+    return {
+      data: {},
+      tokensUsed,
+    };
   }
 }

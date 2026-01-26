@@ -12,6 +12,7 @@ import type { EncryptionKeyManager } from '@/lib/encryption/EncryptionKeyManager
 import { seedDefaultRBAC, assignTenantAdminRole } from '@/lib/tenant/seedDefaultRBAC';
 import { initializeFeaturePlugins } from '@/lib/onboarding/plugins';
 import { renderTenantSubscriptionWelcomeEmail } from '@/emails/service/EmailTemplateService';
+import { inferCountryFromTimezone } from '@/utils/phoneUtils';
 
 // Re-export types for convenience
 export type { PublicProductOffering } from '@/repositories/tenant.repository';
@@ -443,6 +444,9 @@ export class RegistrationService {
    * - Creates role assignments
    * - Handles any missing features or permissions
    *
+   * Also initializes tenant default settings:
+   * - Default country for phone number formatting (defaults to 'PH')
+   *
    * Marks setup as complete in the tenants table when finished.
    * NOTE: Member profile creation is handled in admin layout on first access.
    */
@@ -452,12 +456,32 @@ export class RegistrationService {
     offeringId: string,
     userId: string,
     churchName?: string,
-    email?: string
+    email?: string,
+    timezone?: string
   ): void {
     // Use setImmediate to ensure this runs after the current event loop
     // This allows the registration response to return immediately
     setImmediate(async () => {
       console.log(`[ASYNC] Starting background feature sync for tenant ${tenantId}`);
+
+      // ===== INITIALIZE TENANT DEFAULT SETTINGS =====
+      // Set default country for phone number formatting (used by SMS channel)
+      try {
+        // Infer country from timezone if provided, otherwise default to 'PH'
+        let defaultCountry = 'PH';
+        if (timezone) {
+          const inferredCountry = inferCountryFromTimezone(timezone);
+          if (inferredCountry) {
+            defaultCountry = inferredCountry;
+            console.log(`[ASYNC] Inferred default country ${defaultCountry} from timezone ${timezone}`);
+          }
+        }
+        await this.settingService.setTenantDefaultCountryForTenant(tenantId, defaultCountry);
+        console.log(`[ASYNC] Set default country to ${defaultCountry} for tenant ${tenantId}`);
+      } catch (error) {
+        // Non-fatal - will use environment variable fallback
+        console.error(`[ASYNC] Failed to set default country for tenant ${tenantId}:`, error);
+      }
 
       // ===== PROVISION XENPLATFORM SUB-ACCOUNT =====
       // Create Xendit sub-account for donation collection (runs in background)

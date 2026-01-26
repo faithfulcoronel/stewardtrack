@@ -8,6 +8,8 @@ import type { Campaign, CommunicationChannel } from '@/models/communication/camp
 import type { IDeliveryChannel, NotificationMessage } from '@/services/notification/channels/IDeliveryChannel';
 import type { NotificationEvent } from '@/models/notification/notificationEvent.model';
 import type { TenantService } from '@/services/TenantService';
+import type { SettingService } from '@/services/SettingService';
+import { FacebookChannelService } from '@/services/communication/FacebookChannelService';
 import { renderCampaignEmail } from '@/emails/service/EmailTemplateService';
 
 export interface DeliveryResult {
@@ -36,7 +38,9 @@ export class SupabaseDeliveryService implements DeliveryService {
     @inject(TYPES.IRecipientRepository) private recipientRepo: IRecipientRepository,
     @inject(TYPES.EmailChannel) private emailChannel: IDeliveryChannel,
     @inject(TYPES.SmsChannel) private smsChannel: IDeliveryChannel,
-    @inject(TYPES.TenantService) private tenantService: TenantService
+    @inject(TYPES.TenantService) private tenantService: TenantService,
+    @inject(TYPES.SettingService) private settingService: SettingService,
+    @inject(TYPES.FacebookChannelService) private facebookChannelService: FacebookChannelService
   ) {}
 
   async sendCampaign(campaignId: string, tenantId: string): Promise<void> {
@@ -74,7 +78,17 @@ export class SupabaseDeliveryService implements DeliveryService {
     console.log(`[DeliveryService] Campaign status updated to 'sending'`);
 
     try {
-      // Get all pending recipients
+      // Check if this is a Facebook-only campaign
+      const isFacebookOnly = campaign.channels.length === 1 && campaign.channels[0] === 'facebook';
+
+      if (isFacebookOnly) {
+        // Handle Facebook post - doesn't require recipients
+        console.log(`[DeliveryService] Processing Facebook post for campaign ${campaignId}`);
+        await this.sendFacebookPost(campaign, tenantId);
+        return;
+      }
+
+      // Get all pending recipients for email/SMS campaigns
       const recipients = await this.recipientRepo.getPendingRecipients(campaignId);
       console.log(`[DeliveryService] Found ${recipients.length} pending recipients for campaign ${campaignId}`);
 
@@ -486,6 +500,113 @@ export class SupabaseDeliveryService implements DeliveryService {
     // TODO: Process webhooks from email/SMS providers
     // Update recipient status based on delivery events (delivered, bounced, opened, clicked)
     console.log('[DeliveryService] Processing webhook:', payload);
+  }
+
+  /**
+   * Send a Facebook post for a campaign
+   * Facebook posts don't have individual recipients - they post directly to the Page
+   */
+  private async sendFacebookPost(campaign: Campaign, tenantId: string): Promise<void> {
+    console.log(`[DeliveryService] sendFacebookPost called for campaign ${campaign.id}`);
+
+    // Get Facebook configuration from tenant settings
+    const facebookConfig = await this.settingService.getFacebookConfig();
+    if (!facebookConfig) {
+      console.error(`[DeliveryService] Facebook not configured for tenant ${tenantId}`);
+      await this.campaignRepo.updateCampaign(campaign.id, { status: 'failed' }, tenantId);
+      throw new Error('Facebook integration is not configured. Please set up Facebook in Settings > Integrations.');
+    }
+
+    if (!facebookConfig.verified) {
+      console.warn(`[DeliveryService] Facebook integration not verified for tenant ${tenantId}`);
+    }
+
+    console.log(`[DeliveryService] Using Facebook Page: ${facebookConfig.pageName} (${facebookConfig.pageId})`);
+
+    // Get the Facebook post data from the campaign
+    const postData = campaign.facebook_post_data;
+    if (!postData || !postData.text?.trim()) {
+      console.error(`[DeliveryService] No Facebook post content for campaign ${campaign.id}`);
+      await this.campaignRepo.updateCampaign(campaign.id, { status: 'failed' }, tenantId);
+      throw new Error('Facebook post content is required');
+    }
+
+    let result;
+
+    try {
+      // Determine how to post based on media type
+      if (postData.mediaType === 'image' && postData.mediaUrl) {
+        // Post with photo
+        console.log(`[DeliveryService] Posting photo to Facebook: ${postData.mediaUrl}`);
+        result = await this.facebookChannelService.postPhotoToPage(
+          facebookConfig.pageId,
+          facebookConfig.accessToken,
+          {
+            caption: postData.text,
+            imageUrl: postData.mediaUrl,
+          }
+        );
+      } else if (postData.mediaType === 'video' && postData.mediaUrl) {
+        // Post with video
+        console.log(`[DeliveryService] Posting video to Facebook: ${postData.mediaUrl}`);
+        result = await this.facebookChannelService.postVideoToPage(
+          facebookConfig.pageId,
+          facebookConfig.accessToken,
+          {
+            description: postData.text,
+            videoUrl: postData.mediaUrl,
+          }
+        );
+      } else {
+        // Text post (possibly with link preview)
+        console.log(`[DeliveryService] Posting text to Facebook${postData.linkUrl ? ' with link' : ''}`);
+        result = await this.facebookChannelService.postToPage(
+          facebookConfig.pageId,
+          facebookConfig.accessToken,
+          postData.text,
+          postData.linkUrl
+        );
+      }
+
+      console.log(`[DeliveryService] Facebook post result:`, result);
+
+      if (result.success) {
+        // Update campaign as sent
+        await this.campaignRepo.updateCampaign(
+          campaign.id,
+          {
+            status: 'sent',
+          },
+          tenantId
+        );
+        await this.campaignRepo.updateCampaignCounts(campaign.id, {
+          sent_count: 1,
+          failed_count: 0,
+        });
+        console.log(`[DeliveryService] Facebook post successful. Post ID: ${result.postId}`);
+      } else {
+        // Mark campaign as failed
+        await this.campaignRepo.updateCampaign(
+          campaign.id,
+          { status: 'failed' },
+          tenantId
+        );
+        await this.campaignRepo.updateCampaignCounts(campaign.id, {
+          sent_count: 0,
+          failed_count: 1,
+        });
+        console.error(`[DeliveryService] Facebook post failed: ${result.error}`);
+        throw new Error(result.error || 'Failed to post to Facebook');
+      }
+    } catch (error) {
+      console.error(`[DeliveryService] Facebook post exception:`, error);
+      await this.campaignRepo.updateCampaign(
+        campaign.id,
+        { status: 'failed' },
+        tenantId
+      );
+      throw error;
+    }
   }
 
   private personalizeContent(

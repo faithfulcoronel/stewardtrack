@@ -47,7 +47,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import {
   Card,
@@ -127,6 +127,8 @@ export interface CampaignComposerProps {
   events?: RecipientGroup[];
   /** Available ministries for recipient selection */
   ministries?: RecipientGroup[];
+  /** Available event registrants for recipient selection */
+  registrants?: RecipientGroup[];
   /** Available custom lists for recipient selection */
   customLists?: RecipientGroup[];
   /** Available templates */
@@ -164,6 +166,7 @@ export function CampaignComposer({
   families = [],
   events = [],
   ministries = [],
+  registrants = [],
   customLists = [],
   templates = [],
   onLoadGroupMembers,
@@ -214,20 +217,16 @@ export function CampaignComposer({
   const [aiLoading, setAiLoading] = React.useState(false);
   const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
 
-  // Derived state
+  // Derived state (single channel selection)
   const isEditing = Boolean(campaignId);
-  const hasEmail = form.channels.includes("email");
-  const hasSms = form.channels.includes("sms");
-  const hasFacebook = form.channels.includes("facebook");
+  const selectedChannel = form.channels[0] || "email";
+  const hasEmail = selectedChannel === "email";
+  const hasSms = selectedChannel === "sms";
+  const hasFacebook = selectedChannel === "facebook";
 
-  // Channel toggle
-  const toggleChannel = React.useCallback((channel: CommunicationChannel) => {
-    setForm((prev) => {
-      const channels = prev.channels.includes(channel)
-        ? prev.channels.filter((c) => c !== channel)
-        : [...prev.channels, channel];
-      return { ...prev, channels };
-    });
+  // Channel selection (single select - each channel has different formatting)
+  const selectChannel = React.useCallback((channel: CommunicationChannel) => {
+    setForm((prev) => ({ ...prev, channels: [channel] }));
   }, []);
 
   // Fetch Facebook link preview
@@ -265,23 +264,36 @@ export function CampaignComposer({
     }
 
     if (form.channels.length === 0) {
-      errors.push("Select at least one channel (Email, SMS, or Facebook)");
+      errors.push("Select a channel (Email, SMS, or Facebook)");
     }
 
-    if (hasEmail && !form.subject.trim()) {
-      errors.push("Email subject is required");
+    // Email-specific validations
+    if (hasEmail) {
+      if (!form.subject.trim()) {
+        errors.push("Email subject is required");
+      }
+      if (!form.contentHtml.trim() && !form.contentText.trim()) {
+        errors.push("Email content is required");
+      }
     }
 
-    if (!form.contentHtml.trim() && !form.contentText.trim()) {
-      errors.push("Message content is required");
+    // SMS-specific validations
+    if (hasSms && !form.contentHtml.trim() && !form.contentText.trim()) {
+      errors.push("SMS content is required");
     }
 
-    if (form.recipients.length === 0) {
+    // Facebook-specific validations
+    if (hasFacebook && !form.facebookText.trim()) {
+      errors.push("Facebook post content is required");
+    }
+
+    // Recipients are only required for Email/SMS, not for Facebook
+    if (!hasFacebook && form.recipients.length === 0) {
       errors.push("Add at least one recipient");
     }
 
     return errors;
-  }, [form, hasEmail]);
+  }, [form, hasEmail, hasSms, hasFacebook]);
 
   // Handle template selection
   const handleTemplateSelect = React.useCallback((template: MessageTemplate) => {
@@ -681,61 +693,64 @@ export function CampaignComposer({
             {/* Channels Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Channels</CardTitle>
-                <CardDescription>Select delivery methods</CardDescription>
+                <CardTitle>Channel</CardTitle>
+                <CardDescription>Select delivery method</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="email"
-                    checked={hasEmail}
-                    onCheckedChange={() => toggleChannel("email")}
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="sms"
-                    checked={hasSms}
-                    onCheckedChange={() => toggleChannel("sms")}
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor="sms" className="flex items-center gap-2 cursor-pointer">
-                    <Phone className="h-4 w-4" />
-                    SMS
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="facebook"
-                    checked={hasFacebook}
-                    onCheckedChange={() => toggleChannel("facebook")}
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor="facebook" className="flex items-center gap-2 cursor-pointer">
-                    <Facebook className="h-4 w-4" />
-                    Facebook Page
-                  </Label>
-                </div>
+              <CardContent>
+                <RadioGroup
+                  value={form.channels[0] || "email"}
+                  onValueChange={(value) => selectChannel(value as CommunicationChannel)}
+                  disabled={isLoading}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="email" id="email" />
+                    <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer font-normal">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="sms" id="sms" />
+                    <Label htmlFor="sms" className="flex items-center gap-2 cursor-pointer font-normal">
+                      <Phone className="h-4 w-4" />
+                      SMS
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="facebook" id="facebook" />
+                    <Label htmlFor="facebook" className="flex items-center gap-2 cursor-pointer font-normal">
+                      <Facebook className="h-4 w-4" />
+                      Facebook Page
+                    </Label>
+                  </div>
+                </RadioGroup>
                 {hasFacebook && (
-                  <p className="text-xs text-muted-foreground pl-6">
+                  <p className="text-xs text-muted-foreground mt-3">
                     Posts to your connected Facebook Page. Max 63,206 characters.
                   </p>
                 )}
               </CardContent>
             </Card>
 
-            {/* Recipients Card */}
-            <Card>
+            {/* Recipients Card - Not required for Facebook posts */}
+            <Card className={hasFacebook ? "opacity-60" : ""}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Recipients</CardTitle>
-                    <CardDescription>Select who receives this message</CardDescription>
+                    <CardTitle className="flex items-center gap-2">
+                      Recipients
+                      {hasFacebook && (
+                        <Badge variant="outline" className="font-normal text-xs">
+                          Not required
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      {hasFacebook
+                        ? "Facebook posts go to your Page followers"
+                        : "Select who receives this message"}
+                    </CardDescription>
                   </div>
                   {form.recipients.length > 0 && (
                     <Badge variant="secondary">{form.recipients.length}</Badge>
@@ -743,7 +758,14 @@ export function CampaignComposer({
                 </div>
               </CardHeader>
               <CardContent>
-                {form.recipients.length === 0 ? (
+                {hasFacebook ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <Facebook className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Facebook posts are published to your connected Page and visible to all followers.
+                    </p>
+                  </div>
+                ) : form.recipients.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-6 text-center">
                     <Users className="h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground mb-4">
@@ -770,6 +792,7 @@ export function CampaignComposer({
                             families={families}
                             events={events}
                             ministries={ministries}
+                            registrants={registrants}
                             customLists={customLists}
                             onLoadGroupMembers={onLoadGroupMembers}
                             onSearchMembers={onSearchMembers}
@@ -814,6 +837,7 @@ export function CampaignComposer({
                             families={families}
                             events={events}
                             ministries={ministries}
+                            registrants={registrants}
                             customLists={customLists}
                             onLoadGroupMembers={onLoadGroupMembers}
                             onSearchMembers={onSearchMembers}
@@ -831,11 +855,18 @@ export function CampaignComposer({
             {/* AI Assistant Panel */}
             {aiEnabled && (
               <AIAssistantPanel
+                campaignName={form.name}
+                campaignDescription={form.description}
                 subject={form.subject}
                 content={form.contentHtml || form.contentText}
-                channel={form.channels.length === 1 ? form.channels[0] : "both"}
+                facebookText={form.facebookText}
+                imageUrl={hasFacebook && form.facebookMediaUrl ? form.facebookMediaUrl : undefined}
+                channel={selectedChannel}
+                onCampaignNameChange={(name) => setForm({ ...form, name })}
+                onCampaignDescriptionChange={(description) => setForm({ ...form, description })}
                 onSubjectChange={(subject) => setForm({ ...form, subject })}
                 onContentChange={(content) => setForm({ ...form, contentHtml: content })}
+                onFacebookTextChange={(facebookText) => setForm({ ...form, facebookText })}
                 enabled={aiEnabled}
               />
             )}

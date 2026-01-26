@@ -23,8 +23,6 @@ import {
   Maximize2,
   Minimize2,
   Facebook,
-  Image,
-  Video,
   Link2,
   AlertCircle,
   Loader2,
@@ -47,6 +45,7 @@ import { CKEditorRichText } from "@/components/ui/ckeditor-rich-text";
 import { CKEditorRichTextViewer } from "@/components/ui/ckeditor-rich-text-viewer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { VariableInserter, type VariableDefinition } from "./VariableInserter";
+import { SocialMediaUploader } from "./SocialMediaUploader";
 import type { CommunicationChannel, FacebookMediaType } from "@/models/communication/campaign.model";
 import { FACEBOOK_LIMITS } from "@/models/communication/campaign.model";
 
@@ -765,60 +764,14 @@ export function MessageComposer({
           </div>
         </div>
 
-        {/* Media attachment */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Media (Optional)</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={facebookMediaType === "image" ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => onFacebookMediaTypeChange?.(facebookMediaType === "image" ? "none" : "image")}
-              disabled={disabled}
-            >
-              <Image className="h-4 w-4 mr-1.5" />
-              Image
-            </Button>
-            <Button
-              type="button"
-              variant={facebookMediaType === "video" ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => onFacebookMediaTypeChange?.(facebookMediaType === "video" ? "none" : "video")}
-              disabled={disabled}
-            >
-              <Video className="h-4 w-4 mr-1.5" />
-              Video
-            </Button>
-          </div>
-
-          {facebookMediaType !== "none" && (
-            <div className="space-y-2">
-              <Input
-                value={facebookMediaUrl}
-                onChange={(e) => onFacebookMediaUrlChange?.(e.target.value)}
-                placeholder={
-                  facebookMediaType === "image"
-                    ? "https://example.com/image.jpg"
-                    : "https://example.com/video.mp4"
-                }
-                disabled={disabled}
-              />
-              <p className="text-xs text-muted-foreground">
-                {facebookMediaType === "image" ? (
-                  <>
-                    Supported formats: {FACEBOOK_LIMITS.SUPPORTED_IMAGE_FORMATS.join(", ")} •
-                    Max size: {(FACEBOOK_LIMITS.MAX_IMAGE_SIZE / 1024 / 1024).toFixed(0)}MB
-                  </>
-                ) : (
-                  <>
-                    Supported formats: {FACEBOOK_LIMITS.SUPPORTED_VIDEO_FORMATS.join(", ")} •
-                    Max size: {(FACEBOOK_LIMITS.MAX_VIDEO_SIZE / 1024 / 1024 / 1024).toFixed(0)}GB
-                  </>
-                )}
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Media attachment - Modern uploader */}
+        <SocialMediaUploader
+          mediaType={facebookMediaType}
+          mediaUrl={facebookMediaUrl}
+          onMediaTypeChange={(type) => onFacebookMediaTypeChange?.(type)}
+          onMediaUrlChange={(url) => onFacebookMediaUrlChange?.(url)}
+          disabled={disabled}
+        />
 
         {/* Link attachment */}
         <div className="space-y-2">

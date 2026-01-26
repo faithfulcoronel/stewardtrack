@@ -20,6 +20,8 @@ interface RegisterInitRequest {
   contactNumber?: string;
   address?: string;
   turnstileToken?: string;
+  // Browser timezone for default country detection
+  timezone?: string;
   // Offering type flags
   isTrial?: boolean;
   isFree?: boolean;
@@ -95,6 +97,8 @@ export async function POST(request: NextRequest) {
       denomination: body.denomination,
       contactNumber: body.contactNumber,
       address: body.address,
+      // Browser timezone for default country detection
+      timezone: body.timezone,
       // Offering type flags
       isTrial: body.isTrial,
       isFree: body.isFree,

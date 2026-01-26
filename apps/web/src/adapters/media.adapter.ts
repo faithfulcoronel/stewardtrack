@@ -12,6 +12,7 @@ export type MediaCategory =
   | 'member_photos'
   | 'editor_images'
   | 'schedule_covers'
+  | 'social_media'
   | 'other';
 
 // =============================================================================

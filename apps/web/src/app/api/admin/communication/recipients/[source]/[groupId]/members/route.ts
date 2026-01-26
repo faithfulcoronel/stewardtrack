@@ -1,8 +1,9 @@
 /**
  * API Route: GET /api/admin/communication/recipients/[source]/[groupId]/members
  *
- * Returns members belonging to a specific group (family, event, ministry, or custom list).
+ * Returns members belonging to a specific group (family, event, ministry, registrant, or custom list).
  * Uses MemberRepository for data access to ensure proper encryption/decryption of PII fields.
+ * For registrant source, includes both member registrants and guest registrants.
  */
 
 import { NextResponse } from 'next/server';
@@ -13,6 +14,7 @@ import type { IMemberRepository } from '@/repositories/member.repository';
 import type { IAccountRepository } from '@/repositories/account.repository';
 import type { ISchedulerService } from '@/services/SchedulerService';
 import type { IMinistryRepository } from '@/repositories/ministry.repository';
+import type { IScheduleRegistrationRepository } from '@/repositories/scheduleRegistration.repository';
 
 type RouteParams = {
   params: Promise<{
@@ -115,6 +117,124 @@ export async function GET(request: Request, { params }: RouteParams) {
           email: member.email ?? undefined,
           phone: member.contact_number ?? undefined,
         }));
+        break;
+      }
+
+      case 'registrant': {
+        // Get event info using scheduler service
+        const schedule = await schedulerService.getById(groupId, tenantId);
+        if (!schedule) {
+          return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+        }
+
+        // Direct Supabase query to get registrations with member data via occurrences
+        const { createSupabaseServerClient } = await import('@/lib/supabase/server');
+        const supabase = await createSupabaseServerClient();
+
+        // Query registrations joined with occurrences to filter by schedule_id
+        // Also join member data for member registrants
+        const { data: registrations, error: regError } = await supabase
+          .from('schedule_registrations')
+          .select(`
+            id,
+            member_id,
+            guest_name,
+            guest_email,
+            guest_phone,
+            status,
+            occurrence:schedule_occurrences!inner(
+              id,
+              schedule_id
+            ),
+            member:members!member_id(
+              id,
+              first_name,
+              last_name,
+              email,
+              contact_number
+            )
+          `)
+          .eq('tenant_id', tenantId)
+          .eq('occurrence.schedule_id', groupId)
+          .in('status', ['registered', 'waitlisted', 'checked_in'])
+          .order('registration_date', { ascending: true });
+
+        if (regError) {
+          console.error('Failed to fetch registrations:', regError);
+          return NextResponse.json({ error: 'Failed to load registrations' }, { status: 500 });
+        }
+
+        // Track seen member IDs and guest emails to avoid duplicates
+        const seenMemberIds = new Set<string>();
+        const seenGuestEmails = new Set<string>();
+
+        // Process registrations - members get their full data, guests use registration data
+        for (const reg of (registrations ?? [])) {
+          const memberData = reg.member as { id: string; first_name: string; last_name: string; email?: string | null; contact_number?: string | null } | null;
+
+          if (reg.member_id && memberData) {
+            // Member registrant - use member data
+            // Note: PII is NOT decrypted here since we're using direct Supabase query
+            // For encrypted member data, we'd need to use MemberRepository
+            if (!seenMemberIds.has(reg.member_id)) {
+              seenMemberIds.add(reg.member_id);
+              members.push({
+                id: reg.member_id,
+                source: 'registrant' as const,
+                sourceId: groupId,
+                sourceName: schedule.name ?? 'Unknown Event',
+                name: `${memberData.first_name ?? ''} ${memberData.last_name ?? ''}`.trim() || 'Unknown Member',
+                email: memberData.email ?? undefined,
+                phone: memberData.contact_number ?? undefined,
+              });
+            }
+          } else if (reg.guest_name || reg.guest_email) {
+            // Guest registrant - use registration data directly
+            const guestKey = reg.guest_email || reg.id;
+            if (!seenGuestEmails.has(guestKey)) {
+              seenGuestEmails.add(guestKey);
+              members.push({
+                id: `guest-${reg.id}`,
+                source: 'registrant' as const,
+                sourceId: groupId,
+                sourceName: schedule.name ?? 'Unknown Event',
+                name: reg.guest_name || 'Guest',
+                email: reg.guest_email ?? undefined,
+                phone: reg.guest_phone ?? undefined,
+              });
+            }
+          }
+        }
+
+        // If member data needs decryption, fetch members separately via repository
+        // This ensures proper PII handling for member registrants
+        if (seenMemberIds.size > 0) {
+          const memberIds = Array.from(seenMemberIds);
+          const memberResult = await memberRepository.find({
+            filters: { id: { operator: 'in', value: memberIds } },
+            select: 'id, first_name, last_name, email, contact_number',
+          });
+
+          // Update member data with decrypted info
+          const memberMap = new Map(
+            memberResult.data.map(m => [m.id, m])
+          );
+
+          members = members.map(r => {
+            if (r.source === 'registrant' && !r.id.startsWith('guest-')) {
+              const decryptedMember = memberMap.get(r.id);
+              if (decryptedMember) {
+                return {
+                  ...r,
+                  name: `${decryptedMember.first_name ?? ''} ${decryptedMember.last_name ?? ''}`.trim() || r.name,
+                  email: decryptedMember.email ?? r.email,
+                  phone: decryptedMember.contact_number ?? r.phone,
+                };
+              }
+            }
+            return r;
+          });
+        }
         break;
       }
 

@@ -7,16 +7,25 @@
  *
  * Feature Code: integrations.sms (Professional tier)
  *
+ * Phone Number Formatting:
+ * - Automatically formats phone numbers to E.164 format for Twilio
+ * - Default country is determined by: Tenant Setting > Env Variable > 'PH'
+ * - Tenant setting: 'tenant.default_country' (set during registration/onboarding)
+ *
  * Required Environment Variables:
  * - TWILIO_ACCOUNT_SID
  * - TWILIO_AUTH_TOKEN
  * - TWILIO_PHONE_NUMBER
  *
+ * Optional Environment Variables:
+ * - DEFAULT_PHONE_COUNTRY (fallback if tenant setting not available, defaults to 'PH')
+ *
  * ================================================================================
  */
 
 import 'server-only';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@/lib/types';
 import type {
   IDeliveryChannel,
   NotificationMessage,
@@ -24,11 +33,39 @@ import type {
   RecipientInfo,
 } from './IDeliveryChannel';
 import type { DeliveryChannelType } from '@/models/notification/notificationEvent.model';
+import type { SettingService } from '@/services/SettingService';
+import {
+  formatPhoneForTwilio,
+  isValidE164,
+  getDefaultCountryCode,
+} from '@/utils/phoneUtils';
 
 @injectable()
 export class SmsChannel implements IDeliveryChannel {
   readonly channelType: DeliveryChannelType = 'sms';
   readonly featureCode: string = 'integrations.sms';
+
+  constructor(
+    @inject(TYPES.SettingService)
+    private settingService: SettingService
+  ) {}
+
+  /**
+   * Get the default country code for phone number formatting.
+   * Priority: Tenant setting > Environment variable > Default (PH)
+   */
+  private async getDefaultCountry(): Promise<string> {
+    try {
+      const tenantCountry = await this.settingService.getTenantDefaultCountry();
+      if (tenantCountry) {
+        return tenantCountry;
+      }
+    } catch (error) {
+      // If no tenant context available, fall back to env var
+      console.log('[SmsChannel] No tenant context for default country, using fallback');
+    }
+    return getDefaultCountryCode();
+  }
 
   async isAvailable(): Promise<boolean> {
     // Check if Twilio is configured
@@ -61,6 +98,25 @@ export class SmsChannel implements IDeliveryChannel {
       };
     }
 
+    // Format phone number to E.164 format for Twilio
+    // Use tenant's default country setting for phone formatting
+    const defaultCountry = await this.getDefaultCountry();
+    const phoneResult = formatPhoneForTwilio(message.recipient.phone, {
+      defaultCountry,
+    });
+
+    if (!phoneResult.success || !phoneResult.formatted) {
+      return {
+        success: false,
+        messageId: message.id,
+        error: `Invalid phone number: ${phoneResult.error || 'Unable to format'}`,
+        retryable: false,
+      };
+    }
+
+    const formattedPhone = phoneResult.formatted;
+    console.log(`[SmsChannel] Formatted phone: ${message.recipient.phone} -> ${formattedPhone}`);
+
     try {
       // Build SMS body (limited to 160 chars for single segment)
       const smsBody = this.buildSmsBody(message);
@@ -76,7 +132,7 @@ export class SmsChannel implements IDeliveryChannel {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          To: message.recipient.phone,
+          To: formattedPhone,
           From: fromNumber,
           Body: smsBody,
         }).toString(),
@@ -119,10 +175,15 @@ export class SmsChannel implements IDeliveryChannel {
       return false;
     }
 
-    // Basic phone number validation (E.164 format recommended)
-    // Accepts formats like: +1234567890, 1234567890, (123) 456-7890
-    const phoneRegex = /^\+?[\d\s\-()]{10,}$/;
-    return phoneRegex.test(recipient.phone);
+    // Try to format the phone number - if it succeeds, it's valid
+    // Use tenant's default country setting for phone formatting
+    const defaultCountry = await this.getDefaultCountry();
+    const phoneResult = formatPhoneForTwilio(recipient.phone, {
+      defaultCountry,
+    });
+
+    // Phone is valid if we can format it to E.164 or it's already valid E.164
+    return phoneResult.success || isValidE164(recipient.phone);
   }
 
   private buildSmsBody(message: NotificationMessage): string {

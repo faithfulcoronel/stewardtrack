@@ -10,6 +10,10 @@ import { randomUUID } from 'crypto';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
+// Video types for social media
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/x-m4v'];
+const MAX_VIDEO_SIZE = 1024 * 1024 * 1024; // 1GB for videos (Facebook limit is 10GB but we cap at 1GB)
+
 // Extended image types for editor (includes SVG and BMP)
 const ALLOWED_EDITOR_IMAGE_TYPES = [
   'image/jpeg',
@@ -58,6 +62,12 @@ export interface StorageService {
     file: File
   ): Promise<UploadResult>;
   deleteScheduleCover(coverUrl: string): Promise<void>;
+  uploadSocialMedia(
+    tenantId: string,
+    file: File,
+    mediaType: 'image' | 'video'
+  ): Promise<UploadResult>;
+  deleteSocialMedia(mediaUrl: string): Promise<void>;
 }
 
 @injectable()
@@ -375,6 +385,86 @@ export class SupabaseStorageService implements StorageService {
 
     if (urlPath) {
       await this.storageRepo.delete(this.scheduleCoverBucket, [urlPath]);
+    }
+  }
+
+  // =========================================================================
+  // Social Media Uploads (for Facebook, etc.)
+  // =========================================================================
+
+  async uploadSocialMedia(
+    tenantId: string,
+    file: File,
+    mediaType: 'image' | 'video'
+  ): Promise<UploadResult> {
+    if (mediaType === 'image') {
+      // Validate image file type
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        throw new Error(
+          `Invalid image type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
+        );
+      }
+
+      // Validate image file size (4MB for Facebook images)
+      const imageMaxSize = 4 * 1024 * 1024;
+      if (file.size > imageMaxSize) {
+        throw new Error(
+          `Image too large. Maximum size: ${imageMaxSize / (1024 * 1024)}MB`
+        );
+      }
+    } else {
+      // Validate video file type
+      if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+        throw new Error(
+          `Invalid video type. Allowed types: mp4, mov, avi, wmv, flv, m4v`
+        );
+      }
+
+      // Validate video file size
+      if (file.size > MAX_VIDEO_SIZE) {
+        throw new Error(
+          `Video too large. Maximum size: ${MAX_VIDEO_SIZE / (1024 * 1024 * 1024)}GB`
+        );
+      }
+    }
+
+    // Get file extension
+    let fileExtension: string;
+    if (MIME_TO_EXTENSION[file.type]) {
+      fileExtension = MIME_TO_EXTENSION[file.type];
+    } else {
+      const nameParts = file.name.split('.');
+      fileExtension = nameParts.length > 1
+        ? nameParts.pop()?.toLowerCase() || (mediaType === 'image' ? 'jpg' : 'mp4')
+        : (mediaType === 'image' ? 'jpg' : 'mp4');
+    }
+
+    // Generate unique filename
+    const filename = `social-media/${tenantId}/${randomUUID()}.${fileExtension}`;
+
+    // Read file buffer
+    const buffer = await file.arrayBuffer();
+
+    // Upload to storage
+    const result = await this.storageRepo.upload(
+      this.bucketName,
+      filename,
+      buffer,
+      file.type
+    );
+
+    // Track in tenant_media table
+    await this.trackMedia(tenantId, result, 'social_media', file.name, file.type, file.size);
+
+    return result;
+  }
+
+  async deleteSocialMedia(mediaUrl: string): Promise<void> {
+    // Extract path from URL
+    const urlPath = mediaUrl.split(`/${this.bucketName}/`)[1];
+
+    if (urlPath) {
+      await this.storageRepo.delete(this.bucketName, [urlPath]);
     }
   }
 }
