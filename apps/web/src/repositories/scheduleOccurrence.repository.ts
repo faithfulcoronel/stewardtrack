@@ -1,3 +1,16 @@
+/**
+ * Schedule Occurrence Repository
+ *
+ * Data access interface for schedule occurrence records.
+ * Delegates database operations to the schedule occurrence adapter.
+ *
+ * @module planner.scheduler
+ * @featureCode planner.scheduler
+ *
+ * @permission scheduler:view - Required to read occurrence data
+ * @permission scheduler:manage - Required to create/update occurrences
+ * @permission registrations:manage - Required for registration operations
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IScheduleOccurrenceAdapter } from '@/adapters/scheduleOccurrence.adapter';

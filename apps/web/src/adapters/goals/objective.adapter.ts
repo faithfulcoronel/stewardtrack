@@ -1,3 +1,16 @@
+/**
+ * Objective Adapter
+ *
+ * Data access layer for objective records.
+ * Handles direct database operations for ministry objectives linked to goals.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission objectives:view - Required to read objective data
+ * @permission objectives:manage - Required to create/update objectives
+ * @permission objectives:delete - Required to delete objectives
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject, optional } from 'inversify';

@@ -1,3 +1,16 @@
+/**
+ * Objective Repository
+ *
+ * Data access interface for objective records.
+ * Delegates database operations to the objective adapter.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission objectives:view - Required to read objective data
+ * @permission objectives:manage - Required to create/update objectives
+ * @permission objectives:delete - Required to delete objectives
+ */
 import { injectable, inject } from 'inversify';
 
 import type {

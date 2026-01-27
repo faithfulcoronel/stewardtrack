@@ -6,6 +6,15 @@ import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 import type { IMemberCarePlanAdapter } from '@/adapters/memberCarePlan.adapter';
 
+/**
+ * Repository interface for member care plan data access.
+ *
+ * @module members.care
+ *
+ * @permission careplans:view - Required for read operations (getAll, getById, getByMember)
+ * @permission careplans:manage - Required for create/update operations
+ * @permission careplans:delete - Required for delete operations
+ */
 export interface IMemberCarePlanRepository extends BaseRepository<MemberCarePlan> {
   getAll(): Promise<MemberCarePlan[]>;
   getAllWithMembers(): Promise<MemberCarePlan[]>;
@@ -13,6 +22,15 @@ export interface IMemberCarePlanRepository extends BaseRepository<MemberCarePlan
   getByMember(memberId: string): Promise<MemberCarePlan[]>;
 }
 
+/**
+ * Repository implementation for member care plans.
+ *
+ * @module members.care
+ *
+ * @permission careplans:view - Required for read operations
+ * @permission careplans:manage - Required for create/update operations
+ * @permission careplans:delete - Required for delete operations
+ */
 @injectable()
 export class MemberCarePlanRepository
   extends BaseRepository<MemberCarePlan>

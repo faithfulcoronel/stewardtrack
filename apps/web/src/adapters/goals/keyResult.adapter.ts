@@ -1,3 +1,16 @@
+/**
+ * Key Result Adapter
+ *
+ * Data access layer for key result records.
+ * Handles direct database operations for measurable key results linked to goals/objectives.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission key_results:view - Required to read key result data
+ * @permission key_results:manage - Required to create/update key results
+ * @permission key_results:delete - Required to delete key results
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject, optional } from 'inversify';

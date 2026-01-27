@@ -46,6 +46,13 @@ export class SearchCarePlansTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing care plans
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['careplans:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

@@ -5,7 +5,8 @@
  *
  * QR code scanning and manual check-in interface for event attendance.
  *
- * SECURITY: Protected by AccessGate requiring scheduler:attendance permission.
+ * SECURITY: Protected by AccessGate requiring attendance:manage permission.
+ * @permission attendance:manage - Required to manage attendance check-ins
  *
  * METADATA ROUTE: admin-community/scheduler/checkin
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-checkin.xml
@@ -34,8 +35,8 @@ export const metadata: Metadata = {
 export default async function CheckInPage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["scheduler:attendance"], "any", {
-    fallbackPath: "/unauthorized?reason=scheduler_attendance_access",
+  const gate = Gate.withPermission(["attendance:manage"], "any", {
+    fallbackPath: "/unauthorized?reason=attendance_access",
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

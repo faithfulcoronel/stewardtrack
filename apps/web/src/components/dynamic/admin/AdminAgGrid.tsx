@@ -77,6 +77,8 @@ export interface GridActionConfig {
   cancelLabel?: string | null;
   handler?: string | null;
   successMessage?: string | null;
+  /** Permission code(s) required to see this action. Comma-separated for multiple (OR logic). */
+  requirePermissions?: string | null;
 }
 
 export interface GridColumnConfig {
@@ -132,6 +134,8 @@ export interface AdminAgGridProps {
   exportable?: boolean;
   exportFilename?: string;
   headerSlot?: React.ReactNode;
+  /** Current user's permission codes for filtering row actions */
+  userPermissions?: string[] | null;
   /** AG Grid specific: enable pagination (default: true) */
   pagination?: boolean;
   /** AG Grid specific: rows per page options */
@@ -226,6 +230,25 @@ function getInitials(
 
 function getRowIdentifier(row: GridValue): string {
   return String(row.id ?? row.ID ?? row.uuid ?? "");
+}
+
+/**
+ * Checks if the user has the required permission for an action.
+ * If no requirePermissions is set, the action is allowed.
+ * Supports comma-separated permissions (OR logic).
+ */
+function hasActionPermission(
+  action: GridActionConfig,
+  userPermissions: string[] | null | undefined,
+): boolean {
+  if (!action.requirePermissions) {
+    return true;
+  }
+  if (!userPermissions || userPermissions.length === 0) {
+    return false;
+  }
+  const requiredPerms = action.requirePermissions.split(",").map((p) => p.trim());
+  return requiredPerms.some((reqPerm) => userPermissions.includes(reqPerm));
 }
 
 // ============================================================================
@@ -383,6 +406,7 @@ function LinkCellRenderer({ value, data, colConfig }: LinkCellProps) {
 interface ActionsCellProps extends ICellRendererParams {
   colConfig: GridColumnConfig;
   onRequestDelete: (rowId: string, row: GridValue, action: GridActionConfig) => void;
+  userPermissions?: string[] | null;
 }
 
 const actionIntentIcons: Record<string, React.ReactNode> = {
@@ -392,9 +416,12 @@ const actionIntentIcons: Record<string, React.ReactNode> = {
   link: <ExternalLink className="h-3.5 w-3.5" />,
 };
 
-function ActionsCellRenderer({ data, colConfig, onRequestDelete }: ActionsCellProps) {
-  const actions = normalizeList<GridActionConfig>(colConfig.actions);
+function ActionsCellRenderer({ data, colConfig, onRequestDelete, userPermissions }: ActionsCellProps) {
+  const allActions = normalizeList<GridActionConfig>(colConfig.actions);
   const rowId = getRowIdentifier(data);
+
+  // Filter actions based on user permissions
+  const actions = allActions.filter((action) => hasActionPermission(action, userPermissions));
 
   if (!actions.length) return null;
 
@@ -746,6 +773,7 @@ export function AdminAgGrid(props: AdminAgGridProps) {
                 {...params}
                 colConfig={column}
                 onRequestDelete={requestDeleteConfirmation}
+                userPermissions={props.userPermissions}
               />
             ),
           };
@@ -761,7 +789,7 @@ export function AdminAgGrid(props: AdminAgGridProps) {
           };
       }
     });
-  }, [columns, requestDeleteConfirmation]);
+  }, [columns, requestDeleteConfirmation, props.userPermissions]);
 
   // Apply quick filter from search filters
   const quickFilterText = React.useMemo(() => {

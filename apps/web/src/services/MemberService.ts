@@ -32,6 +32,33 @@ import type { FamilyRole } from '@/models/familyMember.model';
 import type { PlanningService } from '@/services/PlanningService';
 import { tenantUtils } from '@/utils/tenantUtils';
 
+/**
+ * MemberService - Core member management business logic
+ *
+ * This service handles all member-related operations including CRUD operations,
+ * financial calculations, family linking, and notifications.
+ *
+ * ## Required Feature
+ * - `members.core` - All operations require this feature to be licensed
+ *
+ * ## Required Permissions
+ * The following RBAC permissions control access to member operations:
+ * - `members:view` - Required to read member data (find, findById, findAll)
+ * - `members:manage` - Required to create, update, import, and export members
+ * - `members:delete` - Required to soft-delete (archive) members
+ *
+ * Permission checks should be performed at the API route or metadata layer,
+ * not within this service. This service assumes the caller has been authorized.
+ *
+ * @example
+ * // API route should check permission using PermissionGate (single source of truth)
+ * const permissionGate = new PermissionGate('members:manage', 'all');
+ * const accessResult = await permissionGate.check(userId, tenantId);
+ * if (!accessResult.allowed) {
+ *   return NextResponse.json({ error: accessResult.reason || 'Permission denied' }, { status: 403 });
+ * }
+ * const member = await memberService.create(data);
+ */
 @injectable()
 export class MemberService implements CrudService<Member> {
   constructor(
@@ -49,6 +76,10 @@ export class MemberService implements CrudService<Member> {
     private planningService: PlanningService,
   ) {}
 
+  /**
+   * Find members with pagination and filtering
+   * @permission members:view
+   */
   find(options: QueryOptions = {}) {
     return this.repo.find({
       ...options,
@@ -59,6 +90,10 @@ export class MemberService implements CrudService<Member> {
     });
   }
 
+  /**
+   * Find all members without pagination
+   * @permission members:view
+   */
   findAll(options: Omit<QueryOptions, 'pagination'> = {}) {
     return this.repo.findAll({
       ...options,
@@ -69,6 +104,10 @@ export class MemberService implements CrudService<Member> {
     });
   }
 
+  /**
+   * Find a member by ID
+   * @permission members:view
+   */
   findById(id: string, options: Omit<QueryOptions, 'pagination'> = {}) {
     return this.repo.findById(id, options);
   }
@@ -119,6 +158,10 @@ export class MemberService implements CrudService<Member> {
     return data[0];
   }
 
+  /**
+   * Create a new member record
+   * @permission members:manage
+   */
   async create(
     data: Partial<Member>,
     relations?: Record<string, any[]>,
@@ -165,6 +208,10 @@ export class MemberService implements CrudService<Member> {
     return member;
   }
 
+  /**
+   * Update an existing member record
+   * @permission members:manage
+   */
   async update(
     id: string,
     data: Partial<Member>,
@@ -310,6 +357,10 @@ export class MemberService implements CrudService<Member> {
     }
   }
 
+  /**
+   * Soft-delete (archive) a member record
+   * @permission members:delete
+   */
   delete(id: string) {
     return this.repo.delete(id);
   }

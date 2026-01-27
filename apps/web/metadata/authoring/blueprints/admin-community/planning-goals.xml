@@ -23,7 +23,7 @@ FEATURE: Goals & Objectives
   route="planning/goals"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="goals:view"
   locale="en-US">
 
@@ -187,7 +187,7 @@ FEATURE: Goals & Objectives
 
     <Actions>
       <Action id="create-goal" kind="link">
-        <RBAC requirePermissions="goals:create" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Label>Create goal</Label>
           <Url>/admin/community/planning/goals/create</Url>
@@ -202,7 +202,7 @@ FEATURE: Goals & Objectives
         </Config>
       </Action>
       <Action id="manage-categories" kind="link">
-        <RBAC requirePermissions="goals:edit" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Label>Manage categories</Label>
           <Url>/admin/community/planning/goals/categories</Url>

@@ -51,6 +51,13 @@ export class SuggestAudienceTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for suggesting communication audience
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['communication:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

@@ -6,7 +6,8 @@
  * Unified page for creating new notebooks and editing existing ones.
  * Adapts based on the presence of notebookId query parameter.
  *
- * SECURITY: Protected by AccessGate requiring notebooks:edit permission.
+ * SECURITY: Protected by AccessGate requiring notebooks:manage permission.
+ * @permission notebooks:manage - Required to create or edit notebooks
  *
  * METADATA ROUTE: admin-community/planning/notebooks/manage
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-notebooks-manage.xml
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
 export default async function ManageNotebookPage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:edit"], "all", {
+  const gate = Gate.withPermission(["notebooks:manage"], "all", {
     fallbackPath: "/unauthorized?reason=notebooks_write_required",
   });
 

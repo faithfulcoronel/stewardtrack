@@ -6,6 +6,12 @@
  * - Reduces boilerplate code
  * - Enforces consistent tool structure
  * - Makes plugin development easier
+ * - Provides permission declaration for secure tool execution
+ *
+ * PERMISSION MODEL:
+ * Tools declare required permissions via getRequiredPermissions().
+ * Permission enforcement is handled by PermissionGate at the executor level
+ * (PluginAwareAgenticExecutor) - the single source of truth for permissions.
  */
 
 import { ITool, ToolDefinition, ToolResult, ToolExecutionContext } from '../../core/interfaces/ITool';
@@ -136,5 +142,18 @@ export abstract class BaseTool implements ITool {
    */
   protected logError(error: any): void {
     console.error(`❌ [${this.name}] Execution failed:`, error);
+  }
+
+  /**
+   * Get required permissions for this tool
+   * Override this to specify permissions required for tool execution
+   * Return null or empty array if no permissions required
+   *
+   * NOTE: Permission enforcement is handled by PermissionGate at the
+   * executor level (PluginAwareAgenticExecutor) - the single source of truth.
+   * Tools only need to DECLARE their required permissions here.
+   */
+  protected getRequiredPermissions(): string[] | null {
+    return null;
   }
 }

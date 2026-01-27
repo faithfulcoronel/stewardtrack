@@ -22,6 +22,7 @@
           </Props>
         </Component>
         <Component id="member-import" type="MemberImportActions">
+          <RBAC requirePermissions="members:manage" />
           <Props>
             <Prop name="variant" kind="static">primary</Prop>
             <Prop name="showLabels" kind="static">true</Prop>
@@ -35,6 +36,7 @@
             <Prop name="columns" kind="binding" contract="membersTable.columns"/>
             <Prop name="filters" kind="binding" contract="membersTable.filters"/>
             <Prop name="emptyState" kind="static">{&quot;title&quot;: &quot;No members match your filters&quot;, &quot;description&quot;: &quot;Try expanding your filters to include additional centers or membership stages.&quot;}</Prop>
+            <Prop name="userPermissions" kind="expression">permissions</Prop>
           </Props>
         </Component>
       </Region>
@@ -314,6 +316,9 @@
                       <Field name="variant">
                         <Value>secondary</Value>
                       </Field>
+                      <Field name="requirePermissions">
+                        <Value>members:manage</Value>
+                      </Field>
                     </Object>
                     <Object>
                       <Field name="id">
@@ -331,6 +336,9 @@
                       <Field name="successMessage">
                         <Value>{{name}} was marked as archived.</Value>
                       </Field>
+                      <Field name="requirePermissions">
+                        <Value>members:delete</Value>
+                      </Field>
                     </Object>
                   </Array>
                 </Field>
@@ -342,6 +350,7 @@
     </DataSources>
     <Actions>
       <Action id="launch-new-member" kind="link">
+        <RBAC requirePermissions="members:manage" />
         <Config>
           <Label>Add new member</Label>
           <Url>/admin/members/manage</Url>

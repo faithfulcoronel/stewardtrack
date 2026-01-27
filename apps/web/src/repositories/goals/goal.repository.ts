@@ -1,3 +1,16 @@
+/**
+ * Goal Repository
+ *
+ * Data access interface for strategic goal records.
+ * Delegates database operations to the goal adapter.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission goals:view - Required to read goal data
+ * @permission goals:manage - Required to create/update goals
+ * @permission goals:delete - Required to delete goals
+ */
 import { injectable, inject } from 'inversify';
 
 import type {

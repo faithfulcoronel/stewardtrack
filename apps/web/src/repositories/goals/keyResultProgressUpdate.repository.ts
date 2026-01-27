@@ -1,3 +1,15 @@
+/**
+ * Key Result Progress Update Repository
+ *
+ * Data access interface for progress update records.
+ * Delegates database operations to the progress update adapter.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission key_results:view - Required to read progress updates
+ * @permission key_results:manage - Required to record progress updates
+ */
 import { injectable, inject } from 'inversify';
 
 import type {

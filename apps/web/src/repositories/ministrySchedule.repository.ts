@@ -1,3 +1,16 @@
+/**
+ * Ministry Schedule Repository
+ *
+ * Data access interface for ministry schedule records.
+ * Delegates database operations to the ministry schedule adapter.
+ *
+ * @module planner.scheduler
+ * @featureCode planner.scheduler
+ *
+ * @permission scheduler:view - Required to read schedule data
+ * @permission scheduler:manage - Required to create/update schedules
+ * @permission scheduler:delete - Required to soft-delete schedules
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IMinistryScheduleAdapter } from '@/adapters/ministrySchedule.adapter';

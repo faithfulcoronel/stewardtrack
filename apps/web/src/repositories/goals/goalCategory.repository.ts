@@ -1,3 +1,15 @@
+/**
+ * Goal Category Repository
+ *
+ * Data access interface for goal category records.
+ * Delegates database operations to the goal category adapter.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission goals:view - Required to read category data
+ * @permission goals:manage - Required to create/update/delete categories
+ */
 import { injectable, inject } from 'inversify';
 
 import type {

@@ -87,11 +87,25 @@ export class CreateFinancialTransactionTool extends BaseTool {
     };
   }
 
+  /**
+   * Required permission for creating financial transactions
+   *
+   * NOTE: Permission enforcement is handled by PermissionGate at the
+   * executor level (PluginAwareAgenticExecutor) - the single source of truth.
+   * This method only DECLARES the required permissions.
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['finance:manage'];
+  }
+
   async execute(input: CreateFinancialTransactionInput, _context: ToolExecutionContext): Promise<ToolResult> {
     this.logStart(input);
     const startTime = Date.now();
 
     try {
+      // NOTE: Permission check is handled by PermissionGate at executor level
+      // This tool only needs to implement its business logic
+
       // Validate required fields
       const validation = this.validateRequired(input, [
         'transaction_type',

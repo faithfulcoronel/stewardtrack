@@ -29,7 +29,7 @@ PERMISSIONS:
   route="planning/goals/objectives/detail"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="objectives:view"
   locale="en-US">
 

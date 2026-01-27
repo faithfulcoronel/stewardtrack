@@ -44,6 +44,13 @@ export class SearchDiscipleshipPlansTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing discipleship plans
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['discipleshipplans:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

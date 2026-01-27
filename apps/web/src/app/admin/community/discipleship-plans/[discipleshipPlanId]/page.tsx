@@ -9,7 +9,7 @@
  * ROUTE: /admin/community/discipleship-plans/[discipleshipPlanId]
  * Example: /admin/community/discipleship-plans/123e4567-e89b-12d3-a456-426614174000
  *
- * SECURITY: Protected by AccessGate requiring members:view permission.
+ * SECURITY: Protected by AccessGate requiring discipleshipplans:view permission.
  *
  * METADATA ROUTE: admin-community/discipleship-plans/profile
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/discipleship-plans-profile.xml
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
 export default async function DiscipleshipPlanProfilePage({ params, searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view"], "any", {
-    fallbackPath: "/unauthorized?reason=members_access",
+  const gate = Gate.withPermission(["discipleshipplans:view"], "any", {
+    fallbackPath: "/unauthorized?reason=discipleship_plans_access",
   });
 
   const resolvedParams = await Promise.resolve(params);

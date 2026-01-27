@@ -6,6 +6,7 @@
  * List all schedule occurrences with filters for date, status, and ministry.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:view permission.
+ * @permission scheduler:view - Required to view occurrences
  *
  * METADATA ROUTE: admin-community/planning/scheduler/occurrences
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-occurrences.xml

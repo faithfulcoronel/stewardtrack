@@ -22,8 +22,8 @@ FEATURE: Planning Event Management
   route="planning/manage"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
-  requiredPermissions="members:edit"
+  featureCode="planner.event"
+  requiredPermissions="events:manage"
   locale="en-US">
 
   <Page id="admin-community-planning-event-manage">

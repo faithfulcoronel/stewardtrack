@@ -41,6 +41,13 @@ export class GetMemberDetailsTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing member details
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['members:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

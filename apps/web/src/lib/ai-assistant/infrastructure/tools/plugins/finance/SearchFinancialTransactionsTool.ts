@@ -48,6 +48,17 @@ export class SearchFinancialTransactionsTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing financial transactions
+   *
+   * NOTE: Permission enforcement is handled by PermissionGate at the
+   * executor level (PluginAwareAgenticExecutor) - the single source of truth.
+   * This method only DECLARES the required permissions.
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['finance:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

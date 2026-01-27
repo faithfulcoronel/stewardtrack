@@ -1,3 +1,14 @@
+/**
+ * Schedule Attendance Repository
+ *
+ * Data access interface for attendance records.
+ * Delegates database operations to the schedule attendance adapter.
+ *
+ * @module planner.attendance
+ * @featureCode planner.attendance
+ *
+ * @permission attendance:manage - Required for all attendance operations
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IScheduleAttendanceAdapter } from '@/adapters/scheduleAttendance.adapter';

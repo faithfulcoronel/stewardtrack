@@ -35,6 +35,15 @@ import { NotificationEventType } from '@/models/notification/notificationEvent.m
 import type { PlanningService } from '@/services/PlanningService';
 import { randomUUID } from 'crypto';
 
+/**
+ * Service for managing member discipleship plans.
+ *
+ * @module members.discipleship
+ *
+ * @permission discipleshipplans:view - Required to read discipleship plan data (list, get by ID, get by member)
+ * @permission discipleshipplans:manage - Required to create or update discipleship plans
+ * @permission discipleshipplans:delete - Required to delete discipleship plans
+ */
 @injectable()
 export class MemberDiscipleshipPlanService {
   constructor(
@@ -52,6 +61,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Get all discipleship plans for the current tenant
+   *
+   * @permission discipleshipplans:view
    */
   async getPlansForTenant(): Promise<MemberDiscipleshipPlan[]> {
     return this.repo.getAll();
@@ -59,6 +70,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Get a specific discipleship plan by ID (tenant-scoped)
+   *
+   * @permission discipleshipplans:view
    */
   async getPlanById(planId: string): Promise<MemberDiscipleshipPlan | null> {
     return this.repo.getById(planId);
@@ -66,6 +79,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Get all discipleship plans for a specific member
+   *
+   * @permission discipleshipplans:view
    */
   async getPlansByMember(memberId: string): Promise<MemberDiscipleshipPlan[]> {
     return this.repo.getByMember(memberId);
@@ -136,6 +151,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Create a new discipleship plan
+   *
+   * @permission discipleshipplans:manage
    */
   async createPlan(data: Partial<MemberDiscipleshipPlan>): Promise<MemberDiscipleshipPlan> {
     // Set defaults if not provided
@@ -311,6 +328,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Update an existing discipleship plan
+   *
+   * @permission discipleshipplans:manage
    */
   async updatePlan(
     id: string,
@@ -335,6 +354,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Mark a discipleship plan as completed
+   *
+   * @permission discipleshipplans:manage
    */
   async completePlan(id: string): Promise<MemberDiscipleshipPlan> {
     return this.repo.update(id, {
@@ -344,6 +365,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Reopen a completed discipleship plan
+   *
+   * @permission discipleshipplans:manage
    */
   async reopenPlan(id: string): Promise<MemberDiscipleshipPlan> {
     return this.repo.update(id, {
@@ -353,6 +376,8 @@ export class MemberDiscipleshipPlanService {
 
   /**
    * Soft delete a discipleship plan
+   *
+   * @permission discipleshipplans:delete
    */
   async deletePlan(id: string): Promise<void> {
     await this.repo.delete(id);

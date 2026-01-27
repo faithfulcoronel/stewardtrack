@@ -7,6 +7,7 @@
  * and attendance tracking.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:view permission.
+ * @permission scheduler:view - Required to view occurrence details
  *
  * METADATA ROUTE: admin-community/scheduler/occurrence-detail
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-occurrence-detail.xml

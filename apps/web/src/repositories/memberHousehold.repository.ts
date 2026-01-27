@@ -5,8 +5,24 @@ import type { IMemberHouseholdAdapter } from '@/adapters/memberHousehold.adapter
 import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 
+/**
+ * MemberHouseholdRepository Interface
+ *
+ * Data access contract for household records.
+ *
+ * ## Permission Requirements (Feature: members.household)
+ *
+ * | Operation | Required Permission |
+ * |-----------|---------------------|
+ * | Read operations | `households:view` |
+ * | Create operations | `households:manage` |
+ * | Update operations | `households:manage` |
+ * | Delete operations | `households:delete` |
+ */
 export interface IMemberHouseholdRepository extends BaseRepository<MemberHousehold> {
+  /** @permission households:view */
   findByIdAndTenant(householdId: string, tenantId: string): Promise<MemberHousehold | null>;
+  /** @permission households:view */
   findByTenant(tenantId: string): Promise<MemberHousehold[]>;
 }
 

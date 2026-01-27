@@ -5,7 +5,7 @@
   route="planning/scheduler/schedules/manage"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="scheduler.core"
+  featureCode="planner.scheduler"
   requiredPermissions="scheduler:manage"
   locale="en-US">
 

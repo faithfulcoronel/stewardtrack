@@ -1,3 +1,16 @@
+/**
+ * Ministry Service
+ *
+ * Business logic layer for ministry management.
+ * Manages ministries, teams, and member assignments.
+ *
+ * @module planner.ministries
+ * @featureCode planner.ministries
+ *
+ * @permission ministries:view - Required to view ministries and teams
+ * @permission ministries:manage - Required to create, update ministries
+ * @permission ministries:delete - Required to delete ministries
+ */
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';

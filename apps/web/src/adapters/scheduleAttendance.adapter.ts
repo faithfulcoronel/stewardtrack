@@ -1,3 +1,14 @@
+/**
+ * Schedule Attendance Adapter
+ *
+ * Data access layer for attendance records.
+ * Handles check-in, check-out, and attendance tracking.
+ *
+ * @module planner.attendance
+ * @featureCode planner.attendance
+ *
+ * @permission attendance:manage - Required for all attendance operations
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';

@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import type { MemberImportService } from '@/services/MemberImportService';
+import { PermissionGate } from '@/lib/access-gate';
 
 /**
  * GET /api/members/export
  * Exports all members to Excel file in the same format as the import template.
  * This allows members to be migrated to another tenant.
+ * @requires members:manage permission
  */
 export async function GET(_request: NextRequest) {
   try {
@@ -18,6 +20,18 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'No tenant context available' },
         { status: 401 }
+      );
+    }
+
+    // Check permission using PermissionGate (single source of truth)
+    const userId = await getCurrentUserId();
+    const permissionGate = new PermissionGate('members:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
       );
     }
 

@@ -4,10 +4,12 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import type { MemberImportService } from '@/services/MemberImportService';
+import { PermissionGate } from '@/lib/access-gate';
 
 /**
  * GET /api/members/import
  * Downloads Excel template for member import with instructions and lookup data
+ * @requires members:manage permission
  */
 export async function GET(_request: NextRequest) {
   try {
@@ -17,6 +19,18 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'No tenant context available' },
         { status: 401 }
+      );
+    }
+
+    // Check permission using PermissionGate (single source of truth)
+    const userId = await getCurrentUserId();
+    const permissionGate = new PermissionGate('members:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
       );
     }
 
@@ -54,6 +68,7 @@ export async function GET(_request: NextRequest) {
 /**
  * POST /api/members/import
  * Imports members from Excel file
+ * @requires members:manage permission
  *
  * FormData parameters:
  * - file: The Excel file to import
@@ -75,6 +90,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('members:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
       );
     }
 

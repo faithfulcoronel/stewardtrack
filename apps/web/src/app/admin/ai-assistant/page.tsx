@@ -1,40 +1,47 @@
-'use client';
+/**
+ * AI Assistant Page
+ *
+ * Interactive AI chat interface for church management tasks.
+ *
+ * SECURITY: Protected by AccessGate requiring:
+ * - Feature license: ai_assistant (tenant must have AI feature enabled)
+ * - Permission: ai_assistant:access (user must have AI access permission)
+ *
+ * @module ai.assistant
+ * @featureCode ai.assistant
+ *
+ * @permission ai_assistant:access - Required to access AI Assistant
+ */
 
-import React, { useState } from 'react';
-import { ChatContainer } from '@/components/ai-chat';
-import { Card } from '@/components/ui/card';
+import type { Metadata } from 'next';
+import { Gate, all } from '@/lib/access-gate';
+import { ProtectedPage } from '@/components/access-gate';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 
-export default function AIAssistantPage() {
-  const [sessionId] = useState(() => `session_${Date.now()}`);
+import { AIAssistantClient } from './AIAssistantClient';
 
-  const handleSendMessage = async (message: string, attachments?: File[]) => {
-    // Return the fetch response for ChatContainer to handle streaming
-    const response = await fetch('/api/ai-chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        sessionId,
-        attachments: attachments?.map(f => ({ name: f.name, size: f.size, type: f.type })),
-      }),
-    });
+export const metadata: Metadata = {
+  title: 'AI Assistant | StewardTrack',
+  description: 'AI-powered assistant for church management tasks',
+};
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to send message' }));
-      throw new Error(errorData.error || 'Failed to send message');
-    }
+export default async function AIAssistantPage() {
+  const userId = await getCurrentUserId();
+  const tenantId = await getCurrentTenantId();
 
-    // Return response for ChatContainer to process the stream
-    return response;
-  };
+  // Combine feature license check AND permission check
+  const gate = all(
+    Gate.withLicense('ai_assistant', {
+      fallbackPath: '/unauthorized?reason=ai_feature_not_licensed',
+    }),
+    Gate.withPermission('ai_assistant:access', 'all', {
+      fallbackPath: '/unauthorized?reason=ai_access_denied',
+    })
+  );
 
   return (
-    <div className="h-[calc(100vh-4rem)] w-full">
-      <Card className="h-full border-0 md:border rounded-none md:rounded-lg overflow-hidden">
-        <ChatContainer onSendMessage={handleSendMessage} />
-      </Card>
-    </div>
+    <ProtectedPage gate={gate} userId={userId} tenantId={tenantId}>
+      <AIAssistantClient />
+    </ProtectedPage>
   );
 }

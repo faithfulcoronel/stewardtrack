@@ -46,6 +46,17 @@ export class ComposeMessageTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for composing messages
+   *
+   * NOTE: Permission enforcement is handled by PermissionGate at the
+   * executor level (PluginAwareAgenticExecutor) - the single source of truth.
+   * This method only DECLARES the required permissions.
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['communication:manage'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

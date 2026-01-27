@@ -11,6 +11,8 @@ import type { CanonicalComponent, CanonicalRegion } from "@/lib/metadata/generat
 import { MANAGE_SECTION_CONFIG, type ManageSectionConfigEntry } from "@/lib/members/manageSectionConfig";
 import type { FormFieldConfig, FormFieldOption } from "@/components/dynamic/admin/types";
 import type { ActionConfig } from "@/components/dynamic/shared";
+import { PermissionGate } from "@/lib/access-gate";
+import { getCurrentTenantId, getCurrentUserId } from "@/lib/server/context";
 
 interface WorkspaceFormSection {
   id?: string | null;
@@ -43,6 +45,11 @@ interface ManageSectionResponse {
   };
 }
 
+/**
+ * GET /api/admin/members/manage-section
+ * Loads form sections for inline editing of member data
+ * @requires members:manage permission
+ */
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const memberId = url.searchParams.get("memberId");
@@ -50,6 +57,19 @@ export async function GET(request: NextRequest) {
 
   if (!memberId || !actionId) {
     return NextResponse.json({ error: "Missing memberId or actionId." }, { status: 400 });
+  }
+
+  // Check permission using PermissionGate (single source of truth)
+  const tenantId = await getCurrentTenantId();
+  const userId = await getCurrentUserId();
+  const permissionGate = new PermissionGate("members:manage", "all");
+  const accessResult = await permissionGate.check(userId, tenantId);
+
+  if (!accessResult.allowed) {
+    return NextResponse.json(
+      { error: accessResult.reason || "Permission denied" },
+      { status: 403 }
+    );
   }
 
   const mapping = MANAGE_SECTION_CONFIG[actionId];

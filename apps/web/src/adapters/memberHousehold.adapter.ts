@@ -6,8 +6,26 @@ import { MemberHousehold } from '@/models/memberHousehold.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
 
+/**
+ * MemberHouseholdAdapter Interface
+ *
+ * Database adapter for household records in the member_households table.
+ *
+ * ## Permission Requirements (Feature: members.household)
+ *
+ * | Operation | Required Permission |
+ * |-----------|---------------------|
+ * | Read operations | `households:view` |
+ * | Create operations | `households:manage` |
+ * | Update operations | `households:manage` |
+ * | Delete operations | `households:delete` |
+ *
+ * Permission checks are enforced at the service/API route level.
+ */
 export interface IMemberHouseholdAdapter extends IBaseAdapter<MemberHousehold> {
+  /** @permission households:view */
   findByIdAndTenant(householdId: string, tenantId: string): Promise<MemberHousehold | null>;
+  /** @permission households:view */
   findByTenant(tenantId: string): Promise<MemberHousehold[]>;
 }
 

@@ -31,8 +31,14 @@ import { TYPES } from '@/lib/types';
 import { TenantContextError } from '@/utils/errorHandler';
 
 /**
- * Extended interface for discipleship plan adapter
- * Adds domain-specific methods beyond base CRUD
+ * Extended interface for discipleship plan adapter.
+ * Adds domain-specific methods beyond base CRUD.
+ *
+ * @module members.discipleship
+ *
+ * @permission discipleshipplans:view - Required for read operations
+ * @permission discipleshipplans:manage - Required for create/update operations
+ * @permission discipleshipplans:delete - Required for delete operations
  */
 export interface IMemberDiscipleshipPlanAdapter extends IBaseAdapter<MemberDiscipleshipPlan> {
   getAll(): Promise<MemberDiscipleshipPlan[]>;
@@ -40,6 +46,15 @@ export interface IMemberDiscipleshipPlanAdapter extends IBaseAdapter<MemberDisci
   getByMember(memberId: string): Promise<MemberDiscipleshipPlan[]>;
 }
 
+/**
+ * Adapter implementation for member discipleship plan database operations.
+ *
+ * @module members.discipleship
+ *
+ * @permission discipleshipplans:view - Required for read operations
+ * @permission discipleshipplans:manage - Required for create/update operations
+ * @permission discipleshipplans:delete - Required for delete operations
+ */
 @injectable()
 export class MemberDiscipleshipPlanAdapter
   extends BaseAdapter<MemberDiscipleshipPlan>

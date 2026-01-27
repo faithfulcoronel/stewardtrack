@@ -1,3 +1,16 @@
+/**
+ * Schedule Occurrence Adapter
+ *
+ * Data access layer for schedule occurrence records.
+ * Handles individual event instances generated from schedules.
+ *
+ * @module planner.scheduler
+ * @featureCode planner.scheduler
+ *
+ * @permission scheduler:view - Required to read occurrence data
+ * @permission scheduler:manage - Required to create/update occurrences
+ * @permission registrations:manage - Required for registration operations
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';

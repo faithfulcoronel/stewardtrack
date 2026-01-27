@@ -37,6 +37,13 @@ export class GetFinancialCategoriesTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing financial categories
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['finance:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

@@ -12,6 +12,15 @@ import type { NotificationPriority } from '@/models/notification/notification.mo
 import type { PlanningService } from '@/services/PlanningService';
 import { randomUUID } from 'crypto';
 
+/**
+ * Service for managing member care plans.
+ *
+ * @module members.care
+ *
+ * @permission careplans:view - Required to read care plan data (list, get by ID, get by member)
+ * @permission careplans:manage - Required to create or update care plans
+ * @permission careplans:delete - Required to delete care plans
+ */
 @injectable()
 export class MemberCarePlanService implements CrudService<MemberCarePlan> {
   constructor(
@@ -81,6 +90,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Get all care plans for the current tenant
+   *
+   * @permission careplans:view
    */
   async getCarePlansForTenant(): Promise<MemberCarePlan[]> {
     return this.repo.getAll();
@@ -88,6 +99,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Get all care plans with member and caregiver information for GraphQL
+   *
+   * @permission careplans:view
    */
   async getCarePlansWithMembers(): Promise<MemberCarePlan[]> {
     return this.repo.getAllWithMembers();
@@ -95,6 +108,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Get a specific care plan by ID (tenant-scoped)
+   *
+   * @permission careplans:view
    */
   async getCarePlanById(carePlanId: string): Promise<MemberCarePlan | null> {
     return this.repo.getById(carePlanId);
@@ -102,6 +117,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Get all care plans for a specific member
+   *
+   * @permission careplans:view
    */
   async getCarePlansByMember(memberId: string): Promise<MemberCarePlan[]> {
     return this.repo.getByMember(memberId);
@@ -186,6 +203,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Create a new care plan for a member
+   *
+   * @permission careplans:manage
    */
   async createCarePlan(data: Partial<MemberCarePlan>): Promise<MemberCarePlan> {
     // Set defaults
@@ -374,6 +393,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Update an existing care plan
+   *
+   * @permission careplans:manage
    */
   async updateCarePlan(
     id: string,
@@ -398,6 +419,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Close a care plan
+   *
+   * @permission careplans:manage
    */
   async closeCarePlan(id: string): Promise<MemberCarePlan> {
     return this.repo.update(id, {
@@ -410,6 +433,8 @@ export class MemberCarePlanService implements CrudService<MemberCarePlan> {
 
   /**
    * Reopen a care plan
+   *
+   * @permission careplans:manage
    */
   async reopenCarePlan(id: string): Promise<MemberCarePlan> {
     return this.repo.update(id, {

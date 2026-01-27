@@ -6,6 +6,7 @@
  * Displays all goal categories with CRUD functionality.
  *
  * SECURITY: Protected by AccessGate requiring goals:view permission.
+ * @permission goals:view - Required to view goal categories
  *
  * METADATA ROUTE: admin-community/planning/goals/categories
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-categories.xml
@@ -23,7 +24,8 @@
  *
  * PERMISSIONS:
  *   - goals:view   - Required to view the page
- *   - goals:create - Required to add/edit/delete categories
+ *   - goals:manage - Required to add/edit categories
+ *   - goals:delete - Required to delete categories
  *
  * ================================================================================
  */

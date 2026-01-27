@@ -212,6 +212,7 @@ const resolveMinistriesTable: ServiceDataSourceHandler = async () => {
             label: 'Edit',
             urlTemplate: '/admin/community/planning/scheduler/ministries/manage?ministryId={{id}}',
             intent: 'edit',
+            requirePermissions: 'ministries:manage',
           },
           {
             id: 'delete',
@@ -220,6 +221,7 @@ const resolveMinistriesTable: ServiceDataSourceHandler = async () => {
             handler: 'admin-community.scheduler.ministries.delete',
             confirm: 'Are you sure you want to delete "{{name}}"?',
             successMessage: 'Ministry "{{name}}" deleted successfully',
+            requirePermissions: 'ministries:delete',
           },
         ],
       },
@@ -340,6 +342,7 @@ const resolveSchedulesTable: ServiceDataSourceHandler = async () => {
             label: 'Edit',
             urlTemplate: '/admin/community/planning/scheduler/schedules/manage?scheduleId={{id}}',
             intent: 'edit',
+            requirePermissions: 'scheduler:manage',
           },
           {
             id: 'delete',
@@ -348,6 +351,7 @@ const resolveSchedulesTable: ServiceDataSourceHandler = async () => {
             handler: 'admin-community.scheduler.schedules.delete',
             confirm: 'Are you sure you want to delete "{{name}}"?',
             successMessage: 'Schedule "{{name}}" deleted successfully',
+            requirePermissions: 'scheduler:delete',
           },
         ],
       },

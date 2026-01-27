@@ -7,6 +7,7 @@
  * and key result tracking with progress updates.
  *
  * SECURITY: Protected by AccessGate requiring goals:view permission.
+ * @permission goals:view - Required to view the goals list
  *
  * METADATA ROUTE: admin-community/planning/goals
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals.xml

@@ -1,3 +1,17 @@
+/**
+ * Scheduler Service
+ *
+ * Business logic layer for ministry scheduling.
+ * Manages worship services, bible studies, rehearsals, conferences, and seminars.
+ *
+ * @module planner.scheduler
+ * @featureCode planner.scheduler
+ *
+ * @permission scheduler:view - Required to view schedules and occurrences
+ * @permission scheduler:manage - Required to create, update schedules
+ * @permission scheduler:delete - Required to delete schedules
+ * @permission attendance:manage - Required to manage attendance records
+ */
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';

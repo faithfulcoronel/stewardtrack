@@ -62,8 +62,8 @@ FORM FIELD STRUCTURE (from handler):
   route="discipleship-plans/manage"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="discipleship.plans"
-  requiredPermissions="members:edit"
+  featureCode="members.discipleship"
+  requiredPermissions="discipleshipplans:manage"
   locale="en-US">
 
   <Page id="admin-community-discipleship-plans-manage">

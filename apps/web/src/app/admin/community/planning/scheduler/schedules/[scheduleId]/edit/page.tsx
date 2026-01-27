@@ -6,6 +6,7 @@
  * Edit an existing ministry schedule.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:manage permission.
+ * @permission scheduler:manage - Required to edit schedules
  *
  * METADATA ROUTE: admin-community/planning/scheduler/schedules/manage
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-schedule-manage.xml

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="households/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="households.core" requiredPermissions="members:view" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="households/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="members.household" requiredPermissions="households:view" locale="en-US">
   <Page id="admin-community-households-list">
     <Title>Household directory</Title>
     <Regions>
@@ -24,6 +24,7 @@
             <Prop name="filters" kind="binding" contract="householdsTable.filters"/>
             <Prop name="actions" kind="binding" contract="householdsTable.actions"/>
             <Prop name="emptyState" kind="static">{"title": "No households found", "description": "Try adjusting your search or create a new household record."}</Prop>
+            <Prop name="userPermissions" kind="expression">permissions</Prop>
           </Props>
         </Component>
       </Region>
@@ -54,6 +55,7 @@
     </DataSources>
     <Actions>
       <Action id="launch-new-household" kind="link">
+        <RBAC requirePermissions="households:manage"/>
         <Config>
           <Label>Add household</Label>
           <Url>/admin/community/households/manage</Url>

@@ -1,3 +1,22 @@
+/**
+ * Goals Service
+ *
+ * Business logic layer for strategic goals, objectives, and key results.
+ * Manages church-wide goals, ministry objectives, and measurable key results.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission goals:view - Required to view goals and progress
+ * @permission goals:manage - Required to create, update goals and categories
+ * @permission goals:delete - Required to delete goals
+ * @permission objectives:view - Required to view objectives
+ * @permission objectives:manage - Required to create, update objectives
+ * @permission objectives:delete - Required to delete objectives
+ * @permission key_results:view - Required to view key results
+ * @permission key_results:manage - Required to create, update, record progress on key results
+ * @permission key_results:delete - Required to delete key results
+ */
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { randomUUID } from 'crypto';

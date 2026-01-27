@@ -5,8 +5,8 @@
   route="planning/scheduler/checkin"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="scheduler.core"
-  requiredPermissions="scheduler:attendance"
+  featureCode="planner.attendance"
+  requiredPermissions="attendance:manage"
   locale="en-US">
 
   <Page id="admin-community-scheduler-checkin">

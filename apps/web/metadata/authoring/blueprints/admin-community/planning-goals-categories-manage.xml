@@ -29,8 +29,8 @@ FORM FIELDS:
   route="planning/goals/categories/create"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
-  requiredPermissions="goals:create"
+  featureCode="planner.core"
+  requiredPermissions="goals:manage"
   locale="en-US">
 
   <Page id="admin-community-planning-goals-categories-manage">

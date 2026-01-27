@@ -367,29 +367,29 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   },
   '/admin/community/care-plans': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
-    permission: 'care:view',
+    permission: 'careplans:view',
   },
   '/admin/community/discipleship-plans': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader'],
-    permission: 'discipleship:view',
+    permission: 'discipleshipplans:view',
   },
 
   // Planning
   '/admin/community/planning': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
-    permission: 'goals:view',
+    permission: 'planner:view',
   },
   '/admin/community/planning/calendar': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_volunteer'],
-    permission: 'events:view',
+    permission: 'calendar:view',
   },
   '/admin/community/planning/scheduler': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
-    permission: 'events:view',
+    permission: 'scheduler:view',
   },
   '/admin/community/planning/scheduler/ministries': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
-    permission: 'events:view',
+    permission: 'ministries:view',
   },
   '/admin/community/planning/goals': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_deacon_elder'],
@@ -397,7 +397,7 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   },
   '/admin/community/planning/notebooks': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer'],
-    permission: 'members:view',
+    permission: 'notebooks:view',
   },
 
   // Accounts

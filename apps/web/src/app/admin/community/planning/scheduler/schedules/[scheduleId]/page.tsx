@@ -6,6 +6,7 @@
  * View schedule details and upcoming occurrences.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:view permission.
+ * @permission scheduler:view - Required to view schedule profile
  *
  * METADATA ROUTE: admin-community/scheduler/schedule-profile
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-schedule-profile.xml

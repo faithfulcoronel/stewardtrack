@@ -1,3 +1,16 @@
+/**
+ * Notebook Service
+ *
+ * Business logic layer for OneNote-style notebook management.
+ * Manages notebooks, sections, pages, sharing, and attachments.
+ *
+ * @module planner.notebook
+ * @featureCode planner.notebook
+ *
+ * @permission notebooks:view - Required to view notebooks and pages
+ * @permission notebooks:manage - Required to create, update notebooks
+ * @permission notebooks:delete - Required to delete notebooks
+ */
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';
@@ -24,11 +37,6 @@ import type {
   NotebookListView,
   NotebookDetailView
 } from '@/models/notebook.model';
-
-/**
- * Notebook Service
- * Business logic layer for OneNote-style notebook management
- */
 @injectable()
 export class NotebookService {
   constructor(

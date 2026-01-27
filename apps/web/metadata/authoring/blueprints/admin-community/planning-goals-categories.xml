@@ -28,7 +28,7 @@ FEATURES:
   route="planning/goals/categories"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="goals:view"
   locale="en-US">
 
@@ -124,7 +124,7 @@ FEATURES:
 
     <Actions>
       <Action id="add-category" kind="link">
-        <RBAC requirePermissions="goals:create" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Label>Add category</Label>
           <Url>/admin/community/planning/goals/categories/create</Url>
@@ -140,7 +140,7 @@ FEATURES:
       </Action>
 
       <Action id="save-category" kind="service">
-        <RBAC requirePermissions="goals:create" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Handler>admin-community.planning.goals.categories.save</Handler>
           <OnSuccess>
@@ -154,7 +154,7 @@ FEATURES:
       </Action>
 
       <Action id="delete-category" kind="service">
-        <RBAC requirePermissions="goals:create" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Handler>admin-community.planning.goals.categories.delete</Handler>
           <ConfirmMessage>Are you sure you want to delete this category? This action cannot be undone.</ConfirmMessage>

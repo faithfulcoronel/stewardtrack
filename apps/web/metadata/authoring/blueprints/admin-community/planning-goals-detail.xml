@@ -37,7 +37,7 @@ PERMISSIONS:
   route="planning/goals/detail"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="goals:view"
   locale="en-US">
 
@@ -252,7 +252,7 @@ PERMISSIONS:
     -->
     <Actions>
       <Action id="edit-goal" kind="link">
-        <RBAC requirePermissions="goals:edit" />
+        <RBAC requirePermissions="goals:manage" />
         <Config>
           <Label>Edit goal</Label>
           <Url>/admin/community/planning/goals/create?goalId={{params.goalId}}</Url>
