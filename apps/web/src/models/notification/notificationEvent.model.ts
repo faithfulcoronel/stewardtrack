@@ -163,14 +163,3 @@ export const DEFAULT_CHANNELS_BY_CATEGORY: Record<NotificationCategory, Delivery
   communication: ['in_app', 'push'],
   planning: ['in_app', 'email', 'push'],
 };
-
-/**
- * Feature code required for each channel
- */
-export const CHANNEL_FEATURE_CODES: Record<DeliveryChannelType, string> = {
-  in_app: 'notifications.core',
-  email: 'integrations.email',
-  sms: 'integrations.sms',
-  push: 'notifications.push',
-  webhook: 'integrations.api',
-};

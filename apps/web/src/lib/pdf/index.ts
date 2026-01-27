@@ -55,3 +55,12 @@ export {
   type ReportSection,
   type ReportTotals,
 } from './reportExports';
+
+// Feature import report
+export {
+  generateFeatureImportReport,
+  type FeatureImportReportData,
+  type FeatureDetail,
+  type PermissionDetail,
+  type RoleTemplateDetail,
+} from './featureImportReport';

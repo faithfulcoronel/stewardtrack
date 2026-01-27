@@ -81,6 +81,7 @@ export interface RenderedTemplate {
   subject?: string;
   title?: string;
   body: string;
+  htmlBody?: string;
   metadata?: Record<string, unknown>;
 }
 

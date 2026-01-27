@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Search, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { LicenseFeatureBundle, UpdateLicenseFeatureBundleDto } from '@/models/licenseFeatureBundle.model';
+import { LicenseFeatureBundle, CreateLicenseFeatureBundleDto, UpdateLicenseFeatureBundleDto } from '@/models/licenseFeatureBundle.model';
 import { LicenseFeature } from '@/models/licenseFeature.model';
 import { BundleType, BundleTypeLabels, BundleTypeDescriptions } from '@/enums';
 
@@ -33,7 +33,8 @@ export default function BundlePage({ params }: BundlePageProps) {
   const [features, setFeatures] = useState<LicenseFeature[]>([]);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
   const [featureSearch, setFeatureSearch] = useState('');
-  const [formData, setFormData] = useState<UpdateLicenseFeatureBundleDto>({
+  const [formData, setFormData] = useState<CreateLicenseFeatureBundleDto & UpdateLicenseFeatureBundleDto>({
+    code: '',
     name: '',
     description: '',
     bundle_type: BundleType.MODULE,
@@ -58,6 +59,7 @@ export default function BundlePage({ params }: BundlePageProps) {
         const bundleData = result.data;
         setBundle(bundleData);
         setFormData({
+          code: bundleData.code,
           name: bundleData.name,
           description: bundleData.description,
           bundle_type: bundleData.bundle_type,
@@ -132,6 +134,11 @@ export default function BundlePage({ params }: BundlePageProps) {
 
     if (!formData.name.trim()) {
       toast.error('Name is required');
+      return;
+    }
+
+    if (isCreateMode && !formData.code?.trim()) {
+      toast.error('Code is required');
       return;
     }
 
@@ -218,6 +225,22 @@ export default function BundlePage({ params }: BundlePageProps) {
             <CardDescription>Basic information about the feature bundle</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">Code *</Label>
+              <Input
+                id="code"
+                value={formData.code || ''}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '_') })}
+                placeholder="professional_features"
+                required
+                disabled={!isCreateMode}
+                className={!isCreateMode ? 'bg-muted' : ''}
+              />
+              <p className="text-xs text-muted-foreground">
+                Unique identifier (lowercase, underscores allowed). Cannot be changed after creation.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input

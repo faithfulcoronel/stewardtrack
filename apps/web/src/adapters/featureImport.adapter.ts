@@ -114,9 +114,13 @@ export interface IFeatureImportAdapter {
 
 @injectable()
 export class FeatureImportAdapter implements IFeatureImportAdapter {
+  /**
+   * Gets the service role Supabase client for elevated permissions.
+   * This adapter requires service role access for super admin operations.
+   */
   private async getSupabaseClient() {
-    const { createSupabaseServerClient } = await import('@/lib/supabase/server');
-    return await createSupabaseServerClient();
+    const { getSupabaseServiceClient } = await import('@/lib/supabase/service');
+    return await getSupabaseServiceClient();
   }
 
   /**
@@ -176,7 +180,7 @@ export class FeatureImportAdapter implements IFeatureImportAdapter {
   }
 
   /**
-   * Imports features, permissions, and role templates via RPC
+   * Imports features, permissions, and role templates via RPC.
    */
   public async importBatch(data: ImportData, userId: string): Promise<ImportResult> {
     const supabase = await this.getSupabaseClient();

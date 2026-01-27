@@ -22,8 +22,6 @@ import type {
   NotificationEvent,
   DeliveryChannelType,
   ChannelDispatchResult,
-  DEFAULT_CHANNELS_BY_CATEGORY,
-  CHANNEL_FEATURE_CODES,
 } from '@/models/notification/notificationEvent.model';
 import type { IDeliveryChannel, NotificationMessage, RecipientInfo } from './channels/IDeliveryChannel';
 import type { NotificationCategory } from '@/models/notification/notification.model';
@@ -267,6 +265,7 @@ export class ChannelDispatcher {
       finance: ['in_app', 'email'],
       event: ['in_app', 'email', 'push'],
       communication: ['in_app', 'push'],
+      planning: ['in_app', 'email'],
     };
     return defaults[category] || ['in_app'];
   }

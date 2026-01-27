@@ -65,6 +65,7 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
       .from(this.tableName)
       .select('*')
       .eq('is_active', true)
+      .is('deleted_at', null) // Filter out soft-deleted features
       .order('category', { ascending: true });
 
     if (error) {
@@ -83,7 +84,8 @@ export class FeatureCatalogAdapter extends BaseAdapter<FeatureCatalog> implement
 
     let query = supabase
       .from(this.tableName)
-      .select('*');
+      .select('*')
+      .is('deleted_at', null); // Filter out soft-deleted features
 
     if (filters?.category) {
       query = query.eq('category', filters.category);

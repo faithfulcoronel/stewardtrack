@@ -64,6 +64,13 @@ import {
 import {
   getEnumValues
 } from '@/enums/helpers';
+import {
+  generateFeatureImportReport,
+  type FeatureImportReportData,
+  type FeatureDetail,
+  type PermissionDetail,
+  type RoleTemplateDetail,
+} from '@/lib/pdf';
 
 
 interface Feature {
@@ -137,8 +144,28 @@ export function FeaturesManager() {
         roleTemplates: { add: number; update: number; delete: number };
       };
     };
+    details?: {
+      features: FeatureDetail[];
+      permissions: PermissionDetail[];
+      roleTemplates: RoleTemplateDetail[];
+    };
     errors: Array<{ sheet: string; row: number; field: string; message: string }>;
   } | null>(null);
+  // Import result errors (strings from database RPC)
+  const [importResultErrors, setImportResultErrors] = useState<string[]>([]);
+  const [importResult, setImportResult] = useState<{
+    features_added: number;
+    features_updated: number;
+    features_deleted: number;
+    permissions_added: number;
+    permissions_updated: number;
+    permissions_deleted: number;
+    role_templates_added: number;
+    role_templates_updated: number;
+    role_templates_deleted: number;
+  } | null>(null);
+  // Store report data for re-download
+  const [importReportData, setImportReportData] = useState<FeatureImportReportData | null>(null);
 
   useEffect(() => {
     fetchFeatures();
@@ -341,6 +368,10 @@ export function FeaturesManager() {
     if (!importFile) return;
 
     setIsImporting(true);
+    setImportResultErrors([]);
+    setImportResult(null);
+    setImportReportData(null);
+
     try {
       const formData = new FormData();
       formData.append('file', importFile);
@@ -353,16 +384,88 @@ export function FeaturesManager() {
 
       const data = await response.json();
 
+      // Build report data for PDF generation
+      const buildReportData = (resultData: typeof data.data, errors: string[]): FeatureImportReportData => {
+        const hasErrors = errors.length > 0;
+        const hasAnyChanges = resultData && (
+          resultData.features_added > 0 ||
+          resultData.features_updated > 0 ||
+          resultData.features_deleted > 0 ||
+          resultData.permissions_added > 0 ||
+          resultData.permissions_updated > 0 ||
+          resultData.permissions_deleted > 0 ||
+          resultData.role_templates_added > 0 ||
+          resultData.role_templates_updated > 0 ||
+          resultData.role_templates_deleted > 0
+        );
+
+        let status: 'success' | 'partial' | 'failed' = 'failed';
+        if (!hasErrors && hasAnyChanges) {
+          status = 'success';
+        } else if (hasErrors && hasAnyChanges) {
+          status = 'partial';
+        }
+
+        return {
+          sourceFile: importFile.name,
+          importDate: new Date(),
+          status,
+          summary: {
+            features: {
+              added: resultData?.features_added || 0,
+              updated: resultData?.features_updated || 0,
+              deleted: resultData?.features_deleted || 0,
+            },
+            permissions: {
+              added: resultData?.permissions_added || 0,
+              updated: resultData?.permissions_updated || 0,
+              deleted: resultData?.permissions_deleted || 0,
+            },
+            roleTemplates: {
+              added: resultData?.role_templates_added || 0,
+              updated: resultData?.role_templates_updated || 0,
+              deleted: resultData?.role_templates_deleted || 0,
+            },
+          },
+          errors,
+          // Include detailed items from the preview for the PDF report
+          details: importPreview?.details,
+        };
+      };
+
       if (data.success) {
-        toast.success(data.message || 'Import completed successfully');
+        // Generate PDF report for successful import
+        const reportData = buildReportData(data.data, []);
+        setImportReportData(reportData);
+        generateFeatureImportReport(reportData);
+
+        toast.success(data.message || 'Import completed successfully. Report downloaded.');
         setImportDialogOpen(false);
         setImportFile(null);
         setImportPreview(null);
+        setImportResultErrors([]);
+        setImportResult(null);
+        setImportReportData(null);
         fetchFeatures();
       } else {
-        toast.error(data.error || 'Import failed');
-        if (data.errors) {
-          setImportPreview(prev => prev ? { ...prev, errors: data.errors } : null);
+        // Store import result data to show partial success
+        if (data.data) {
+          setImportResult(data.data);
+        }
+
+        // Handle import result errors (array of strings from RPC)
+        if (data.errors && Array.isArray(data.errors)) {
+          setImportResultErrors(data.errors);
+
+          // Generate PDF report for partial failure
+          const reportData = buildReportData(data.data, data.errors);
+          setImportReportData(reportData);
+          generateFeatureImportReport(reportData);
+
+          const errorCount = data.errors.length;
+          toast.error(`Import completed with ${errorCount} error${errorCount > 1 ? 's' : ''}. Report downloaded.`);
+        } else {
+          toast.error(data.error || 'Import failed');
         }
       }
     } catch (error) {
@@ -377,6 +480,16 @@ export function FeaturesManager() {
     setImportDialogOpen(false);
     setImportFile(null);
     setImportPreview(null);
+    setImportResultErrors([]);
+    setImportResult(null);
+    setImportReportData(null);
+  };
+
+  const handleDownloadReport = () => {
+    if (importReportData) {
+      generateFeatureImportReport(importReportData);
+      toast.success('Report downloaded');
+    }
   };
 
   return (
@@ -760,7 +873,7 @@ export function FeaturesManager() {
                 </div>
               </div>
 
-              {/* Validation Errors */}
+              {/* Validation Errors (from preview) */}
               {importPreview.errors.length > 0 && (
                 <div className="rounded-lg border border-destructive p-4">
                   <h4 className="font-medium text-destructive mb-2">
@@ -771,6 +884,45 @@ export function FeaturesManager() {
                       <div key={index} className="text-destructive">
                         <span className="font-medium">{error.sheet}</span> Row {error.row}:
                         {error.field} - {error.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Import Result Errors (from actual import) */}
+              {importResultErrors.length > 0 && (
+                <div className="rounded-lg border border-destructive p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-destructive">
+                      Import Errors ({importResultErrors.length})
+                    </h4>
+                    {importReportData && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadReport}
+                      >
+                        <Download className="mr-2 h-3 w-3" />
+                        Download Report
+                      </Button>
+                    )}
+                  </div>
+                  {importResult && (
+                    <div className="mb-3 text-sm text-muted-foreground border-b pb-2">
+                      <span className="font-medium">Partial result: </span>
+                      {importResult.features_added > 0 && `${importResult.features_added} features added, `}
+                      {importResult.features_updated > 0 && `${importResult.features_updated} features updated, `}
+                      {importResult.permissions_added > 0 && `${importResult.permissions_added} permissions added, `}
+                      {importResult.permissions_updated > 0 && `${importResult.permissions_updated} permissions updated, `}
+                      {importResult.role_templates_added > 0 && `${importResult.role_templates_added} role templates added, `}
+                      {importResult.role_templates_updated > 0 && `${importResult.role_templates_updated} role templates updated`}
+                    </div>
+                  )}
+                  <div className="max-h-60 overflow-y-auto space-y-1 text-sm">
+                    {importResultErrors.map((error, index) => (
+                      <div key={index} className="text-destructive">
+                        {error}
                       </div>
                     ))}
                   </div>
