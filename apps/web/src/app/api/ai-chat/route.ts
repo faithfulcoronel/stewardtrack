@@ -21,6 +21,7 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { AICreditService } from '@/services/AICreditService';
 import type { AuthorizationService } from '@/services/AuthorizationService';
+import { LicenseGate, PermissionGate, all } from '@/lib/access-gate';
 import { tenantUtils } from '@/utils/tenantUtils';
 
 export const runtime = 'nodejs';
@@ -125,6 +126,51 @@ export async function POST(request: NextRequest) {
         }),
         {
           status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // === ACCESS GATE: Single source of truth for license + permission checks ===
+    // Uses LicenseGate and PermissionGate from access-gate system
+    const accessGate = all(
+      new LicenseGate('ai_assistant', {
+        fallbackPath: '/admin/settings?tab=subscription'
+      }),
+      new PermissionGate('ai_assistant:access', 'all', {
+        fallbackPath: '/unauthorized?reason=ai_assistant_access'
+      })
+    );
+
+    const accessResult = await accessGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      // Determine error type based on what failed
+      const isLicenseIssue = accessResult.requiresUpgrade || accessResult.lockedFeatures?.length;
+
+      if (isLicenseIssue) {
+        return new Response(
+          JSON.stringify({
+            error: 'AI Assistant feature is not enabled for your account. Please upgrade your plan to access this feature.',
+            error_code: 'FEATURE_NOT_LICENSED',
+            upgrade_url: '/admin/settings?tab=subscription'
+          }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      // Permission issue
+      return new Response(
+        JSON.stringify({
+          error: 'You do not have permission to access the AI Assistant. Please contact your administrator.',
+          error_code: 'PERMISSION_DENIED',
+          missing_permissions: accessResult.missingPermissions
+        }),
+        {
+          status: 403,
           headers: { 'Content-Type': 'application/json' },
         }
       );

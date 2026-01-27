@@ -41,6 +41,13 @@ export class GetFinancialTransactionDetailsTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing financial transaction details
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['finance:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

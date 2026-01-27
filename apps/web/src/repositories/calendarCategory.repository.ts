@@ -1,3 +1,15 @@
+/**
+ * Calendar Category Repository
+ *
+ * Data access interface for calendar event categories.
+ * Delegates database operations to the calendar category adapter.
+ *
+ * @module planner.calendar
+ * @featureCode planner.calendar
+ *
+ * @permission calendar:view - Required to read categories
+ * @permission events:manage - Required to manage categories
+ */
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';

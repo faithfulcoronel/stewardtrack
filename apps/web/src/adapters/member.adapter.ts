@@ -11,13 +11,36 @@ import { tenantUtils } from '@/utils/tenantUtils';
 import { FieldValidationError } from '@/utils/errorHandler';
 import { getFieldEncryptionConfig } from '@/utils/encryptionUtils';
 
+/**
+ * MemberAdapter Interface
+ *
+ * Database adapter for member records in the members table.
+ *
+ * ## Permission Requirements (Feature: members.core)
+ *
+ * | Operation | Required Permission |
+ * |-----------|---------------------|
+ * | Read operations (fetch, fetchById, search) | `members:view` |
+ * | Create operations | `members:manage` |
+ * | Update operations | `members:manage` |
+ * | Delete operations (soft-delete/archive) | `members:delete` |
+ *
+ * Permission checks are enforced at the service/API route level.
+ */
 export interface IMemberAdapter extends IBaseAdapter<Member> {
+  /** @permission members:view */
   getCurrentMonthBirthdays(): Promise<Member[]>;
+  /** @permission members:view */
   getBirthdaysByMonth(month: number): Promise<Member[]>;
+  /** @permission members:view */
   getCurrentUserMember(): Promise<Member | null>;
+  /** @permission members:view */
   fetchByAccount(accountId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   fetchByScheduleRegistration(scheduleId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   fetchByMinistry(ministryId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   searchMembers(searchTerm: string, limit?: number): Promise<{ data: Member[]; count: number | null }>;
 }
 

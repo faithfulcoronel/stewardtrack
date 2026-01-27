@@ -38,6 +38,13 @@ export class GetMemberAnniversariesTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing member anniversaries
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['members:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

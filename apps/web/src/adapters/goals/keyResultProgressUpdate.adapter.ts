@@ -1,3 +1,15 @@
+/**
+ * Key Result Progress Update Adapter
+ *
+ * Data access layer for progress update records.
+ * Handles direct database operations for tracking key result progress over time.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission key_results:view - Required to read progress updates
+ * @permission key_results:manage - Required to record progress updates
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject, optional } from 'inversify';

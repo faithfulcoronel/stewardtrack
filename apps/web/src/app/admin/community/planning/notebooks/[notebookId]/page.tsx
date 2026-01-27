@@ -12,7 +12,8 @@
  * - Permission-based visibility
  * - Suspense for loading states
  *
- * SECURITY: Protected by AccessGate requiring members:view permission.
+ * SECURITY: Protected by AccessGate requiring notebooks:view permission.
+ * @permission notebooks:view - Required to view notebook details
  * Row-level security enforced at database level.
  *
  * LAYOUT:
@@ -178,7 +179,7 @@ async function NotebookContent({ notebookId }: { notebookId: string }) {
 
   // Permission checks
   const hasAny = (perms: string[]) => perms.some(p => userPermissions.includes(p));
-  const canEdit = hasAny(["members:edit", "members:create"]);
+  const canEdit = hasAny(["notebooks:manage"]);
 
   return <NotebookLayout notebook={notebook} canEdit={canEdit} />;
 }
@@ -188,7 +189,7 @@ export default async function NotebookDetailPage({ params }: PageProps) {
   const tenantId = await getCurrentTenantId();
 
   // Page-level access gate - requires at least members:view permission
-  const gate = Gate.withPermission(["members:view"], "any", {
+  const gate = Gate.withPermission(["notebooks:view"], "any", {
     fallbackPath: "/unauthorized?reason=notebooks_access",
   });
 

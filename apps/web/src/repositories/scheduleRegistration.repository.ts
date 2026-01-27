@@ -1,3 +1,14 @@
+/**
+ * Schedule Registration Repository
+ *
+ * Data access interface for event registration records.
+ * Delegates database operations to the schedule registration adapter.
+ *
+ * @module planner.registration
+ * @featureCode planner.registration
+ *
+ * @permission registrations:manage - Required for all registration operations
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IScheduleRegistrationAdapter } from '@/adapters/scheduleRegistration.adapter';

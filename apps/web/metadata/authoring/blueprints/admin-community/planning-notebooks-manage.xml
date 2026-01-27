@@ -22,8 +22,8 @@ FEATURE: Notebook Management (Create/Edit)
   route="planning/notebooks/manage"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="members.core"
-  requiredPermissions="members:edit"
+  featureCode="planner.notebook"
+  requiredPermissions="notebooks:manage"
   locale="en-US">
 
   <Page id="admin-community-planning-notebooks-manage">

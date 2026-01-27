@@ -3,7 +3,7 @@
  *
  * Provides searchable care plan directory with status, priority, and follow-up tracking.
  *
- * SECURITY: Protected by AccessGate requiring members:view permission.
+ * SECURITY: Protected by AccessGate requiring careplans:view permission.
  */
 
 import type { Metadata } from "next";
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 export default async function CarePlansListPage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view"], "any", {
-    fallbackPath: "/unauthorized?reason=members_access",
+  const gate = Gate.withPermission(["careplans:view"], "any", {
+    fallbackPath: "/unauthorized?reason=care_plans_access",
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

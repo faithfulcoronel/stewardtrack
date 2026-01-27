@@ -6,6 +6,7 @@
  * Creates or edits a key result linked directly to a goal.
  *
  * SECURITY: Protected by AccessGate requiring key_results:manage permission.
+ * @permission key_results:manage - Required to create or edit key results
  *
  * METADATA ROUTE: admin-community/planning/goals/key-results/create
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-key-results-manage.xml

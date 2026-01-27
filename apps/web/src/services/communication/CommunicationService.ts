@@ -29,6 +29,15 @@ import type { RecipientSource } from '@/models/communication/recipient.model';
  *
  * This service provides a unified interface for all communication operations,
  * delegating to specialized services for specific functionality.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements:
+ * - View operations (get*, list*): Requires `communication:view` permission
+ * - Manage operations (create*, update*, send*, schedule*, duplicate*): Requires `communication:manage` permission
+ * - Delete operations (delete*, cancel*): Requires `communication:delete` permission
+ *
+ * @see {@link PermissionGate} for permission enforcement in API routes
  */
 export interface CommunicationService {
   // Dashboard

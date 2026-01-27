@@ -53,7 +53,7 @@ export const dynamic = "force-dynamic";
  */
 const ENTITY_PERMISSIONS: Record<EntityType, string[]> = {
   member: ["members:view", "members:edit", "members:manage", "admin:full", "tenant:admin"],
-  family: ["families:view", "families:edit", "members:view", "admin:full", "tenant:admin"],
+  family: ["households:view", "households:edit", "members:view", "admin:full", "tenant:admin"],
   event: ["events:view", "events:edit", "admin:full", "tenant:admin"],
   group: ["groups:view", "groups:edit", "admin:full", "tenant:admin"],
   donation: ["donations:view", "finance:view", "admin:full", "tenant:admin"],

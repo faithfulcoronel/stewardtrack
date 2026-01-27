@@ -46,7 +46,7 @@ FORM FIELDS:
   route="planning/goals/key-results/create"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="key_results:manage"
   locale="en-US">
 

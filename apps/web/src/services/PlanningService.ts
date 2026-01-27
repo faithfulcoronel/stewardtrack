@@ -1,3 +1,16 @@
+/**
+ * Planning Service
+ *
+ * Business logic layer for calendar events and planning dashboard.
+ * Manages church events, follow-ups, milestones, and calendar categories.
+ *
+ * @module planner.calendar
+ * @featureCode planner.calendar, planner.event
+ *
+ * @permission calendar:view - Required to view calendar and events
+ * @permission events:view - Required to view event details
+ * @permission events:manage - Required to create, update, or delete events
+ */
 import 'server-only';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '@/lib/types';

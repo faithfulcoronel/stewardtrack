@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="households/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="households.core" requiredPermissions="members:view" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="households/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="members.household" requiredPermissions="households:view" locale="en-US">
   <Page id="admin-community-households-profile">
     <Title>Household profile</Title>
     <Regions>
@@ -64,6 +64,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-household" kind="link">
+        <RBAC requirePermissions="households:manage"/>
         <Config>
           <Label>Edit household</Label>
           <Url>/admin/community/households/manage?id={{params.householdId}}</Url>

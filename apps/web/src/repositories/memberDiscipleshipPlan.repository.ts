@@ -25,7 +25,13 @@ import { TYPES } from '@/lib/types';
 import type { IMemberDiscipleshipPlanAdapter } from '@/adapters/memberDiscipleshipPlan.adapter';
 
 /**
- * Repository interface extending base CRUD with domain-specific methods
+ * Repository interface extending base CRUD with domain-specific methods.
+ *
+ * @module members.discipleship
+ *
+ * @permission discipleshipplans:view - Required for read operations (getAll, getById, getByMember)
+ * @permission discipleshipplans:manage - Required for create/update operations
+ * @permission discipleshipplans:delete - Required for delete operations
  */
 export interface IMemberDiscipleshipPlanRepository extends BaseRepository<MemberDiscipleshipPlan> {
   getAll(): Promise<MemberDiscipleshipPlan[]>;
@@ -33,6 +39,15 @@ export interface IMemberDiscipleshipPlanRepository extends BaseRepository<Member
   getByMember(memberId: string): Promise<MemberDiscipleshipPlan[]>;
 }
 
+/**
+ * Repository implementation for member discipleship plans.
+ *
+ * @module members.discipleship
+ *
+ * @permission discipleshipplans:view - Required for read operations
+ * @permission discipleshipplans:manage - Required for create/update operations
+ * @permission discipleshipplans:delete - Required for delete operations
+ */
 @injectable()
 export class MemberDiscipleshipPlanRepository
   extends BaseRepository<MemberDiscipleshipPlan>

@@ -7,6 +7,7 @@
  * objectives, key results, and progress history.
  *
  * SECURITY: Protected by AccessGate requiring goals:view permission.
+ * @permission goals:view - Required to view goal details
  *
  * METADATA ROUTE: admin-community/planning/goals/detail
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-detail.xml
@@ -26,8 +27,8 @@
  *   - admin-community.planning.goals.detail.activity
  *
  * PERMISSIONS:
- *   - goals:view - Required to view the page
- *   - goals:edit - Required to edit the goal
+ *   - goals:view   - Required to view the page
+ *   - goals:manage - Required to edit the goal
  *   - goals:delete - Required to delete the goal
  *
  * ================================================================================

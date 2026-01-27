@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-finance" route="accounts/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/list" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="accounts.core" requiredPermissions="accounts:view" locale="en-US">
   <Page id="admin-finance-accounts-list">
     <Title>Chart of accounts</Title>
     <Regions>
@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-account" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add account</Label>
           <Url>/admin/finance/accounts/manage</Url>

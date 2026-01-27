@@ -69,6 +69,7 @@
                 const targetId = record.id ?? params.memberId ?? &apos;&apos;;
                 return {
                   id: &apos;edit-member-cta&apos;,
+                  rbac: { requirePermissions: &apos;members:manage&apos; },
                   config: {
                     label: &apos;Edit member&apos;,
                     url: `/admin/members/manage?memberId=${targetId}`,

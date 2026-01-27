@@ -32,6 +32,33 @@ import type { FamilyRole } from '@/models/familyMember.model';
 import type { PlanningService } from '@/services/PlanningService';
 import { tenantUtils } from '@/utils/tenantUtils';
 
+/**
+ * MemberService - Core member management business logic
+ *
+ * This service handles all member-related operations including CRUD operations,
+ * financial calculations, family linking, and notifications.
+ *
+ * ## Required Feature
+ * - `members.core` - All operations require this feature to be licensed
+ *
+ * ## Required Permissions
+ * The following RBAC permissions control access to member operations:
+ * - `members:view` - Required to read member data (find, findById, findAll)
+ * - `members:manage` - Required to create, update, import, and export members
+ * - `members:delete` - Required to soft-delete (archive) members
+ *
+ * Permission checks should be performed at the API route or metadata layer,
+ * not within this service. This service assumes the caller has been authorized.
+ *
+ * @example
+ * // API route should check permission using PermissionGate (single source of truth)
+ * const permissionGate = new PermissionGate('members:manage', 'all');
+ * const accessResult = await permissionGate.check(userId, tenantId);
+ * if (!accessResult.allowed) {
+ *   return NextResponse.json({ error: accessResult.reason || 'Permission denied' }, { status: 403 });
+ * }
+ * const member = await memberService.create(data);
+ */
 @injectable()
 export class MemberService implements CrudService<Member> {
   constructor(
@@ -49,6 +76,10 @@ export class MemberService implements CrudService<Member> {
     private planningService: PlanningService,
   ) {}
 
+  /**
+   * Find members with pagination and filtering
+   * @permission members:view
+   */
   find(options: QueryOptions = {}) {
     return this.repo.find({
       ...options,
@@ -59,6 +90,10 @@ export class MemberService implements CrudService<Member> {
     });
   }
 
+  /**
+   * Find all members without pagination
+   * @permission members:view
+   */
   findAll(options: Omit<QueryOptions, 'pagination'> = {}) {
     return this.repo.findAll({
       ...options,
@@ -69,16 +104,84 @@ export class MemberService implements CrudService<Member> {
     });
   }
 
+  /**
+   * Find a member by ID
+   * @permission members:view
+   */
   findById(id: string, options: Omit<QueryOptions, 'pagination'> = {}) {
     return this.repo.findById(id, options);
   }
 
+  /**
+   * Check if a member with the same first name, middle name, and last name already exists
+   * @param firstName - First name to check
+   * @param middleName - Middle name to check (can be null/undefined)
+   * @param lastName - Last name to check
+   * @param excludeMemberId - Optional member ID to exclude (for updates)
+   * @returns The existing member if found, null otherwise
+   */
+  async findDuplicate(
+    firstName: string,
+    middleName: string | null | undefined,
+    lastName: string,
+    excludeMemberId?: string
+  ): Promise<Member | null> {
+    const filters: Record<string, any> = {
+      deleted_at: { operator: 'isEmpty', value: true },
+      first_name: { operator: 'ilike', value: firstName.trim() },
+      last_name: { operator: 'ilike', value: lastName.trim() },
+    };
+
+    // Handle middle name - check for exact match including null/empty
+    if (middleName && middleName.trim()) {
+      filters.middle_name = { operator: 'ilike', value: middleName.trim() };
+    } else {
+      // If no middle name provided, look for records with no middle name
+      filters.middle_name = { operator: 'isEmpty', value: true };
+    }
+
+    const { data } = await this.repo.find({
+      filters,
+      pagination: { page: 1, pageSize: 1 },
+    });
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    // If excludeMemberId is provided, filter it out
+    if (excludeMemberId) {
+      const filtered = data.filter(m => m.id !== excludeMemberId);
+      return filtered.length > 0 ? filtered[0] : null;
+    }
+
+    return data[0];
+  }
+
+  /**
+   * Create a new member record
+   * @permission members:manage
+   */
   async create(
     data: Partial<Member>,
     relations?: Record<string, any[]>,
     fieldsToRemove: string[] = [],
   ) {
     validateOrThrow(MemberValidator, data);
+
+    // Check for duplicate member
+    if (data.first_name && data.last_name) {
+      const duplicate = await this.findDuplicate(
+        data.first_name,
+        data.middle_name,
+        data.last_name
+      );
+      if (duplicate) {
+        throw new Error(
+          `A member with the name "${data.first_name}${data.middle_name ? ' ' + data.middle_name : ''} ${data.last_name}" already exists. Duplicate member records are not allowed.`
+        );
+      }
+    }
 
     // Extract family input before passing to repository
     const familyInput = data.family;
@@ -105,6 +208,10 @@ export class MemberService implements CrudService<Member> {
     return member;
   }
 
+  /**
+   * Update an existing member record
+   * @permission members:manage
+   */
   async update(
     id: string,
     data: Partial<Member>,
@@ -112,6 +219,26 @@ export class MemberService implements CrudService<Member> {
     fieldsToRemove: string[] = [],
   ) {
     validateOrThrow(MemberValidator, data);
+
+    // Check for duplicate member if name fields are being updated
+    if (data.first_name || data.last_name || data.middle_name !== undefined) {
+      // Get current member to fill in any missing name fields
+      const currentMember = await this.repo.findById(id);
+      if (currentMember) {
+        const firstName = data.first_name ?? currentMember.first_name;
+        const middleName = data.middle_name !== undefined ? data.middle_name : currentMember.middle_name;
+        const lastName = data.last_name ?? currentMember.last_name;
+
+        if (firstName && lastName) {
+          const duplicate = await this.findDuplicate(firstName, middleName, lastName, id);
+          if (duplicate) {
+            throw new Error(
+              `A member with the name "${firstName}${middleName ? ' ' + middleName : ''} ${lastName}" already exists. Duplicate member records are not allowed.`
+            );
+          }
+        }
+      }
+    }
 
     // Extract family input before passing to repository
     const familyInput = data.family;
@@ -230,6 +357,10 @@ export class MemberService implements CrudService<Member> {
     }
   }
 
+  /**
+   * Soft-delete (archive) a member record
+   * @permission members:delete
+   */
   delete(id: string) {
     return this.repo.delete(id);
   }

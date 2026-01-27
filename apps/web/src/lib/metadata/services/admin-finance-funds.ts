@@ -7,6 +7,8 @@ import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeE
 import type { Fund } from '@/models/fund.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // Transaction type labels and variants for user-friendly display
 function getTransactionTypeDisplay(type: string): { label: string; variant: string; isDebit: boolean } {
@@ -147,6 +149,21 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
 
   const currency = await getTenantCurrency();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   const funds = await fundService.findAll();
   const allFunds = (funds.data || []) as Fund[];
 
@@ -217,25 +234,33 @@ const resolveFundsListTable: ServiceDataSourceHandler = async (_request) => {
           urlTemplate: '/admin/finance/funds/{{id}}',
           variant: 'ghost',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/funds/manage?fundId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.funds.delete',
-          confirmTitle: 'Delete fund',
-          confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: '{{name}} was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/funds/manage?fundId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.funds.delete',
+                confirmTitle: 'Delete fund',
+                confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: '{{name}} was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

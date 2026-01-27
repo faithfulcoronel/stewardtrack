@@ -13,6 +13,21 @@ import type {
   UpdateRecipientStatusDto,
 } from '@/models/communication/recipient.model';
 
+/**
+ * IRecipientRepository - Data access interface for campaign recipients
+ *
+ * This repository handles CRUD operations for recipients in communication campaigns.
+ * All operations are tenant-scoped and require appropriate permissions.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level):
+ * - View operations (get*, getPending*, getRecipientCounts): Requires `communication:view` permission
+ * - Manage operations (create*, update*): Requires `communication:manage` permission
+ * - Delete operations (delete*): Requires `communication:manage` permission
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ */
 export interface IRecipientRepository {
   createRecipient(data: CreateRecipientDto, tenantId: string): Promise<CampaignRecipient>;
   createRecipients(data: CreateRecipientDto[], tenantId: string): Promise<CampaignRecipient[]>;

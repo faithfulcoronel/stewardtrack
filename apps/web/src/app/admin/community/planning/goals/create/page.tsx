@@ -8,7 +8,8 @@
  *   - CREATE: /admin/community/planning/goals/create (no query param)
  *   - EDIT:   /admin/community/planning/goals/create?goalId=xxx
  *
- * SECURITY: Protected by AccessGate requiring goals:create permission.
+ * SECURITY: Protected by AccessGate requiring goals:manage permission.
+ * @permission goals:manage - Required to create or edit goals
  *
  * METADATA ROUTE: admin-community/planning/goals/create
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-manage.xml
@@ -23,8 +24,7 @@
  *   - admin-community.planning.goals.manage.save
  *
  * PERMISSIONS:
- *   - goals:create - Required to create a new goal
- *   - goals:edit   - Required to edit an existing goal
+ *   - goals:manage - Required to create or edit goals
  *
  * ================================================================================
  */
@@ -53,8 +53,8 @@ export default async function GoalCreatePage({ searchParams }: PageProps) {
 
   // Use goals:create for new goals
   // Note: Edit mode permission check is handled at the service level
-  const gate = Gate.withPermission(["goals:create"], "any", {
-    fallbackPath: "/unauthorized?reason=goals_create_access",
+  const gate = Gate.withPermission(["goals:manage"], "any", {
+    fallbackPath: "/unauthorized?reason=goals_manage_access",
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

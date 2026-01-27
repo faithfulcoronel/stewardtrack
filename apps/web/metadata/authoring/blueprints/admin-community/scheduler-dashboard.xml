@@ -28,7 +28,7 @@ SERVICE HANDLERS:
   route="planning/scheduler"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="scheduler.core"
+  featureCode="planner.scheduler"
   requiredPermissions="scheduler:view"
   locale="en-US">
 

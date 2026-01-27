@@ -122,6 +122,13 @@ const resolveHouseholdsListTable: ServiceDataSourceHandler = async (_request) =>
       label: 'Edit',
       type: 'link',
       href: '/admin/community/households/manage?householdId={{id}}',
+      requirePermissions: 'households:manage',
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      type: 'delete',
+      requirePermissions: 'households:delete',
     },
   ];
 

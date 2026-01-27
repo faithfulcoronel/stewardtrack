@@ -24,8 +24,8 @@ FEATURE: Notebooks (OneNote-style)
   route="planning/notebooks"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="members.core"
-  requiredPermissions="members:view"
+  featureCode="planner.notebook"
+  requiredPermissions="notebooks:view"
   locale="en-US">
 
   <Page id="admin-community-planning-notebooks">
@@ -173,7 +173,7 @@ FEATURE: Notebooks (OneNote-style)
     <Actions>
       <!-- Primary action: Create new notebook -->
       <Action id="create-notebook" kind="link">
-        <RBAC requirePermissions="notebooks:create"/>
+        <RBAC requirePermissions="notebooks:manage"/>
         <Config>
           <Label>Create notebook</Label>
           <Url>/admin/community/planning/notebooks/create</Url>

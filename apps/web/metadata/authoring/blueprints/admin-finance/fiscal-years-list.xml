@@ -52,7 +52,7 @@
     </DataSources>
     <Actions>
       <Action id="add-fiscal-year" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add fiscal year</Label>
           <Url>/admin/finance/fiscal-years/manage</Url>

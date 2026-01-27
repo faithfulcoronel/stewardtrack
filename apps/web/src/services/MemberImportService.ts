@@ -120,6 +120,19 @@ const IMPORT_BATCH_SIZE = 50;
 // Implementation
 // =============================================================================
 
+/**
+ * MemberImportService - Handles Excel import and export of member data
+ *
+ * ## Required Feature
+ * - `members.core` - All operations require this feature to be licensed
+ *
+ * ## Required Permissions
+ * All import and export operations require:
+ * - `members:manage` - Required to import members, export members, and download templates
+ *
+ * Permission checks are performed at the API route level (see `/api/members/import`
+ * and `/api/members/export`). This service assumes the caller has been authorized.
+ */
 @injectable()
 export class MemberImportService
   extends BaseExcelImportService<Record<string, unknown>, MemberPreview, MemberImportRow>

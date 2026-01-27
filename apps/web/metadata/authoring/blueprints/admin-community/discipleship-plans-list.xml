@@ -50,8 +50,8 @@ DATA BINDING:
   route="discipleship-plans/list"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="discipleship.plans"
-  requiredPermissions="members:view"
+  featureCode="members.discipleship"
+  requiredPermissions="discipleshipplans:view"
   locale="en-US">
 
   <Page id="admin-community-discipleship-plans-list">
@@ -103,6 +103,7 @@ DATA BINDING:
             <Prop name="columns" kind="binding" contract="discipleshipPlansTable.columns"/>
             <Prop name="filters" kind="binding" contract="discipleshipPlansTable.filters"/>
             <Prop name="actions" kind="binding" contract="discipleshipPlansTable.actions"/>
+            <Prop name="userPermissions" kind="expression">permissions</Prop>
             <Prop name="emptyState" kind="static">{"title": "No discipleship plans found", "description": "Try adjusting your search or create a new discipleship plan record."}</Prop>
           </Props>
         </Component>
@@ -159,6 +160,7 @@ DATA BINDING:
     -->
     <Actions>
       <Action id="launch-new-discipleship-plan" kind="link">
+        <RBAC requirePermissions="discipleshipplans:manage"/>
         <Config>
           <Label>Add discipleship plan</Label>
           <Url>/admin/community/discipleship-plans/manage</Url>

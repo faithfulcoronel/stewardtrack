@@ -7,6 +7,7 @@
  * bible studies, rehearsals, conferences, and seminars.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:view permission.
+ * @permission scheduler:view - Required to view the scheduler dashboard
  *
  * METADATA ROUTE: admin-community/planning/scheduler
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-dashboard.xml

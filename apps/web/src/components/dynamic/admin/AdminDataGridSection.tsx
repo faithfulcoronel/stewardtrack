@@ -61,6 +61,8 @@ export interface GridActionConfig {
   cancelLabel?: string | null;
   handler?: string | null;
   successMessage?: string | null;
+  /** Permission code(s) required to see this action. Comma-separated for multiple (OR logic). */
+  requirePermissions?: string | null;
 }
 
 interface DeleteConfirmState {
@@ -138,6 +140,8 @@ export interface AdminDataGridSectionProps {
   exportFilename?: string;
   /** Custom content to render in the header actions area */
   headerSlot?: React.ReactNode;
+  /** Current user's permission codes for filtering row actions */
+  userPermissions?: string[] | null;
 }
 
 const badgeVariants: Record<string, string> = {
@@ -397,7 +401,12 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
           align,
           sortable: false,
           renderCell: (row: GridValue) => (
-            <RowActions actions={actions} row={row} onRequestDelete={requestDeleteConfirmation} />
+            <RowActions
+              actions={actions}
+              row={row}
+              onRequestDelete={requestDeleteConfirmation}
+              userPermissions={props.userPermissions}
+            />
           ),
           headerClassName: hiddenClass,
           cellClassName: cn("whitespace-nowrap", hiddenClass),
@@ -597,7 +606,7 @@ export function AdminDataGridSection(props: AdminDataGridSectionProps) {
 
       return tableColumn;
     });
-  }, [columns, requestDeleteConfirmation]);
+  }, [columns, requestDeleteConfirmation, props.userPermissions]);
 
   const hasActiveFilters = Object.values(filterState).some((v) => {
     if (!v) return false;
@@ -918,18 +927,23 @@ function RowActions({
   actions,
   row,
   onRequestDelete,
+  userPermissions,
 }: {
   actions: GridActionConfig[];
   row: GridValue;
   onRequestDelete: (rowId: string, row: GridValue, action: GridActionConfig) => void;
+  userPermissions?: string[] | null;
 }) {
-  if (!actions.length) {
+  // Filter actions based on user permissions
+  const filteredActions = actions.filter((action) => hasActionPermission(action, userPermissions));
+
+  if (!filteredActions.length) {
     return null;
   }
   const rowId = getRowIdentifier(row);
   return (
     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-      {actions.map((action) => {
+      {filteredActions.map((action) => {
         const intent = action.intent ?? "link";
         const href = action.urlTemplate ? applyTemplate(action.urlTemplate, row) : "#";
         const icon = actionIntentIcons[intent];
@@ -1078,4 +1092,23 @@ function getComparableValue(value: unknown): string | number | null {
 
 function getRowIdentifier(row: GridValue): string {
   return String(row.id ?? row.ID ?? row.uuid ?? "");
+}
+
+/**
+ * Checks if the user has the required permission for an action.
+ * If no requirePermissions is set, the action is allowed.
+ * Supports comma-separated permissions (OR logic).
+ */
+function hasActionPermission(
+  action: GridActionConfig,
+  userPermissions: string[] | null | undefined,
+): boolean {
+  if (!action.requirePermissions) {
+    return true;
+  }
+  if (!userPermissions || userPermissions.length === 0) {
+    return false;
+  }
+  const requiredPerms = action.requirePermissions.split(",").map((p) => p.trim());
+  return requiredPerms.some((reqPerm) => userPermissions.includes(reqPerm));
 }

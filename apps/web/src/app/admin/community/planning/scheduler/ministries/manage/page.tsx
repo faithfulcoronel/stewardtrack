@@ -6,6 +6,7 @@
  * Create or edit a ministry with all configuration options.
  *
  * SECURITY: Protected by AccessGate requiring ministries:manage permission.
+ * @permission ministries:manage - Required to create or edit ministries
  *
  * METADATA ROUTE: admin-community/planning/scheduler/ministries/manage
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-ministry-manage.xml

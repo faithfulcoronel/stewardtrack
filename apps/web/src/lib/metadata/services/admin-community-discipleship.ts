@@ -315,12 +315,20 @@ const resolveDiscipleshipPlansListTable: ServiceDataSourceHandler = async (reque
       label: 'View',
       type: 'link',
       href: '/admin/community/discipleship-plans/{{id}}',
+      requirePermissions: 'discipleshipplans:view',
     },
     {
       id: 'edit',
       label: 'Edit',
       type: 'link',
       href: '/admin/community/discipleship-plans/manage?discipleshipPlanId={{id}}',
+      requirePermissions: 'discipleshipplans:manage',
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      type: 'action',
+      requirePermissions: 'discipleshipplans:delete',
     },
   ];
 
@@ -836,8 +844,9 @@ const resolveMemberDiscipleshipPlans: ServiceDataSourceHandler = async (request)
   ];
 
   const actions = [
-    { id: 'view', label: 'View', type: 'link', href: '/admin/community/discipleship-plans/{{id}}' },
-    { id: 'edit', label: 'Edit', type: 'link', href: '/admin/community/discipleship-plans/manage?discipleshipPlanId={{id}}' },
+    { id: 'view', label: 'View', type: 'link', href: '/admin/community/discipleship-plans/{{id}}', requirePermissions: 'discipleshipplans:view' },
+    { id: 'edit', label: 'Edit', type: 'link', href: '/admin/community/discipleship-plans/manage?discipleshipPlanId={{id}}', requirePermissions: 'discipleshipplans:manage' },
+    { id: 'delete', label: 'Delete', type: 'action', requirePermissions: 'discipleshipplans:delete' },
   ];
 
   // Build list items for workspace section

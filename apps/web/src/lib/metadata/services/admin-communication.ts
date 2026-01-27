@@ -12,6 +12,8 @@ import type { TemplateService } from '@/services/communication/TemplateService';
 import type { RecipientService } from '@/services/communication/RecipientService';
 import type { TenantService } from '@/services/TenantService';
 import { getTenantTimezone, formatDate, formatRelativeTime } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 import type { ServiceDataSourceHandler, ServiceDataSourceRequest } from './types';
 
@@ -200,6 +202,10 @@ async function resolveDashboardMetrics(
 
 /**
  * Dashboard Quick Links Handler
+ *
+ * Quick links and actions are permission-gated:
+ * - Compose message: Requires communication:manage permission
+ * - View campaigns/templates: Always visible (requires communication:view at route level)
  */
 async function resolveDashboardQuickLinks(
   _request: ServiceDataSourceRequest
@@ -223,52 +229,86 @@ async function resolveDashboardQuickLinks(
   const tenantService = getTenantService();
   const tenant = await tenantService.getCurrentTenant();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('communication:manage').check(userId, tenant.id);
+    canManage = manageResult.allowed;
+  }
+
   let draftCount = 0;
   if (tenant) {
     const campaigns = await campaignService.getCampaigns(tenant.id);
     draftCount = campaigns.filter((c) => c.status === 'draft').length;
   }
 
-  return {
-    items: [
-      {
-        id: 'link-compose',
-        title: 'Compose message',
-        description: 'Create a new message or campaign.',
-        href: '/admin/communication/compose',
-        icon: 'pen-square',
-      },
-      {
-        id: 'link-campaigns',
-        title: 'View campaigns',
-        description: 'Manage all your communication campaigns.',
-        href: '/admin/communication/campaigns',
-        icon: 'send',
-        badge: draftCount > 0 ? `${draftCount} drafts` : undefined,
-      },
-      {
-        id: 'link-templates',
-        title: 'Message templates',
-        description: 'Create and manage reusable templates.',
-        href: '/admin/communication/templates',
-        icon: 'file-text',
-      },
-    ],
-    actions: [
-      {
-        id: 'action-compose',
-        label: 'Compose message',
-        href: '/admin/communication/compose',
-        variant: 'primary',
-      },
-      {
-        id: 'action-campaigns',
-        label: 'View all campaigns',
-        href: '/admin/communication/campaigns',
-        variant: 'secondary',
-      },
-    ],
-  };
+  // Build items array based on permissions
+  const items: Array<{
+    id: string;
+    title: string;
+    description: string;
+    href: string;
+    icon: string;
+    badge?: string;
+  }> = [];
+
+  // Compose message link - requires manage permission
+  if (canManage) {
+    items.push({
+      id: 'link-compose',
+      title: 'Compose message',
+      description: 'Create a new message or campaign.',
+      href: '/admin/communication/compose',
+      icon: 'pen-square',
+    });
+  }
+
+  // View links - always visible
+  items.push(
+    {
+      id: 'link-campaigns',
+      title: 'View campaigns',
+      description: 'Manage all your communication campaigns.',
+      href: '/admin/communication/campaigns',
+      icon: 'send',
+      badge: draftCount > 0 ? `${draftCount} drafts` : undefined,
+    },
+    {
+      id: 'link-templates',
+      title: 'Message templates',
+      description: 'Create and manage reusable templates.',
+      href: '/admin/communication/templates',
+      icon: 'file-text',
+    }
+  );
+
+  // Build actions array based on permissions
+  const actions: Array<{
+    id: string;
+    label: string;
+    href: string;
+    variant: 'primary' | 'secondary' | 'ghost';
+  }> = [];
+
+  if (canManage) {
+    actions.push({
+      id: 'action-compose',
+      label: 'Compose message',
+      href: '/admin/communication/compose',
+      variant: 'primary',
+    });
+  }
+
+  actions.push({
+    id: 'action-campaigns',
+    label: 'View all campaigns',
+    href: '/admin/communication/campaigns',
+    variant: canManage ? 'secondary' : 'primary',
+  });
+
+  return { items, actions };
 }
 
 /**
@@ -407,6 +447,12 @@ async function resolveCampaignsListHero(
 
 /**
  * Campaigns List Table Handler
+ *
+ * Actions are permission-gated:
+ * - View: Always visible (requires communication:view at route level)
+ * - Edit: Requires communication:manage permission
+ * - Duplicate: Requires communication:manage permission
+ * - Delete: Requires communication:delete permission
  */
 async function resolveCampaignsListTable(
   _request: ServiceDataSourceRequest
@@ -423,6 +469,21 @@ async function resolveCampaignsListTable(
   const timezone = await getTenantTimezone();
 
   const rows: Array<Record<string, unknown>> = [];
+
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('communication:manage').check(userId, tenant.id),
+      new PermissionGate('communication:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
 
   if (tenant) {
     const campaigns = await campaignService.getCampaigns(tenant.id);
@@ -456,6 +517,20 @@ async function resolveCampaignsListTable(
         rawCreatedAt: campaign.created_at || '',
       });
     }
+  }
+
+  // Build actions array based on permissions
+  const actions: Array<Record<string, unknown>> = [
+    { id: 'view', label: 'View', href: '/admin/communication/campaigns/{{id}}' },
+  ];
+
+  if (canManage) {
+    actions.push({ id: 'edit', label: 'Edit', href: '/admin/communication/compose?id={{id}}' });
+    actions.push({ id: 'duplicate', label: 'Duplicate', href: '/admin/communication/compose?duplicate={{id}}' });
+  }
+
+  if (canDelete) {
+    actions.push({ id: 'delete', label: 'Delete', action: 'delete', variant: 'destructive' });
   }
 
   return {
@@ -503,11 +578,7 @@ async function resolveCampaignsListTable(
         placeholder: 'Filter by date',
       },
     ],
-    actions: [
-      { id: 'view', label: 'View', href: '/admin/communication/campaigns/{{id}}' },
-      { id: 'edit', label: 'Edit', href: '/admin/communication/compose?id={{id}}' },
-      { id: 'duplicate', label: 'Duplicate', href: '/admin/communication/compose?duplicate={{id}}' },
-    ],
+    actions,
     emptyState: {
       title: 'No campaigns yet',
       description: 'Create your first communication campaign to reach your congregation.',
@@ -910,6 +981,13 @@ async function resolveTemplatesListHero(
 
 /**
  * Templates List Table Handler
+ *
+ * Actions are permission-gated:
+ * - View: Always visible (requires communication:view at route level)
+ * - Edit: Requires communication:manage permission
+ * - Use in campaign: Requires communication:manage permission
+ * - Duplicate: Requires communication:manage permission
+ * - Delete: Requires communication:delete permission
  */
 async function resolveTemplatesListTable(
   _request: ServiceDataSourceRequest
@@ -926,6 +1004,21 @@ async function resolveTemplatesListTable(
   const timezone = await getTenantTimezone();
 
   const rows: Array<Record<string, unknown>> = [];
+
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('communication:manage').check(userId, tenant.id),
+      new PermissionGate('communication:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
 
   if (tenant) {
     const templates = await templateService.getTemplates(tenant.id);
@@ -946,6 +1039,21 @@ async function resolveTemplatesListTable(
         rawCreatedAt: template.created_at || '',
       });
     }
+  }
+
+  // Build actions array based on permissions
+  const actions: Array<Record<string, unknown>> = [
+    { id: 'view', label: 'View', href: '/admin/communication/templates/{{id}}' },
+  ];
+
+  if (canManage) {
+    actions.push({ id: 'edit', label: 'Edit', href: '/admin/communication/templates/{{id}}/edit' });
+    actions.push({ id: 'use', label: 'Use in campaign', href: '/admin/communication/compose?template={{id}}' });
+    actions.push({ id: 'duplicate', label: 'Duplicate', action: 'duplicate' });
+  }
+
+  if (canDelete) {
+    actions.push({ id: 'delete', label: 'Delete', action: 'delete', variant: 'destructive' });
   }
 
   return {
@@ -989,12 +1097,7 @@ async function resolveTemplatesListTable(
         ],
       },
     ],
-    actions: [
-      { id: 'view', label: 'View', href: '/admin/communication/templates/{{id}}' },
-      { id: 'edit', label: 'Edit', href: '/admin/communication/templates/{{id}}/edit' },
-      { id: 'use', label: 'Use in campaign', href: '/admin/communication/compose?template={{id}}' },
-      { id: 'duplicate', label: 'Duplicate', action: 'duplicate' },
-    ],
+    actions,
     emptyState: {
       title: 'No templates yet',
       description: 'Create your first message template to speed up campaign creation.',

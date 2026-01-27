@@ -80,7 +80,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-source" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit source</Label>
           <Url>/admin/finance/sources/manage?sourceId={{params.sourceId}}</Url>

@@ -2,15 +2,30 @@
  * API Route: GET /api/admin/communication/recipients/groups
  *
  * Returns recipient groups (families, events, ministries, registrants, custom lists).
+ * @requires communication:view permission
  */
 
 import { NextResponse } from 'next/server';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import { createSupabaseServerClient as createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const supabase = await createClient();
 
     // Get families (accounts with type='family')

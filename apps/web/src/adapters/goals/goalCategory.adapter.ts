@@ -1,3 +1,15 @@
+/**
+ * Goal Category Adapter
+ *
+ * Data access layer for goal category records.
+ * Handles direct database operations for goal categorization.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission goals:view - Required to read category data
+ * @permission goals:manage - Required to create/update/delete categories
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject, optional } from 'inversify';

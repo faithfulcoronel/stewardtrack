@@ -6,6 +6,7 @@
  * List and manage ministries with their teams and schedules.
  *
  * SECURITY: Protected by AccessGate requiring ministries:view permission.
+ * @permission ministries:view - Required to view ministries list
  *
  * METADATA ROUTE: admin-community/planning/scheduler/ministries/list
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-ministry-list.xml

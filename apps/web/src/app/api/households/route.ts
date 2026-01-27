@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { MemberHouseholdService } from '@/services/MemberHouseholdService';
 import type { TenantService } from '@/services/TenantService';
+import { PermissionGate } from '@/lib/access-gate';
+import { getCurrentUserId } from '@/lib/server/context';
 
 /**
  * GET /api/households
  *
  * Fetches all households for the current tenant.
  * Used by client components that need household data.
+ *
+ * @permission households:view
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get tenant context
     const tenantService = container.get<TenantService>(TYPES.TenantService);
@@ -20,6 +24,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'No tenant context available' },
         { status: 401 }
+      );
+    }
+
+    // Check permission using PermissionGate (single source of truth)
+    const userId = await getCurrentUserId();
+    const permissionGate = new PermissionGate('households:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenant.id);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { error: accessResult.reason || 'You do not have permission to view households' },
+        { status: 403 }
       );
     }
 

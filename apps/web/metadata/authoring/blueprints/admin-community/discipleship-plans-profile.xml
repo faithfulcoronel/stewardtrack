@@ -31,8 +31,8 @@ CREATING PROFILE PAGES:
   route="discipleship-plans/profile"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="discipleship.plans"
-  requiredPermissions="members:view"
+  featureCode="members.discipleship"
+  requiredPermissions="discipleshipplans:view"
   locale="en-US">
 
   <Page id="admin-community-discipleship-plans-profile">
@@ -146,6 +146,7 @@ CREATING PROFILE PAGES:
     -->
     <Actions>
       <Action id="edit-discipleship-plan" kind="link">
+        <RBAC requirePermissions="discipleshipplans:manage"/>
         <Config>
           <Label>Edit plan</Label>
           <Url>/admin/community/discipleship-plans/manage?discipleshipPlanId={{params.discipleshipPlanId}}</Url>

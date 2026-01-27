@@ -5,7 +5,8 @@
  *
  * Creates or edits an objective for a specific goal.
  *
- * SECURITY: Protected by AccessGate requiring objectives:create permission.
+ * SECURITY: Protected by AccessGate requiring objectives:manage permission.
+ * @permission objectives:manage - Required to create or edit objectives
  *
  * METADATA ROUTE: admin-community/planning/goals/objectives/create
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-objectives-manage.xml
@@ -20,8 +21,7 @@
  *   - admin-community.planning.goals.objectives.manage.save
  *
  * PERMISSIONS:
- *   - objectives:create - Required to create a new objective
- *   - objectives:edit   - Required to edit an existing objective
+ *   - objectives:manage - Required to create or edit objectives
  *
  * ================================================================================
  */

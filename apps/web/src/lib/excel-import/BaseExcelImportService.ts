@@ -96,9 +96,10 @@ export abstract class BaseExcelImportService<
   // ===========================================================================
 
   /**
-   * Generate the template Excel workbook
+   * Generate the base template Excel workbook (internal implementation)
+   * Subclasses should implement their own public template generation methods
    */
-  public generateTemplateWorkbook(): XLSX.WorkBook {
+  protected createBaseTemplate(): XLSX.WorkBook {
     const workbook = XLSX.utils.book_new();
     const columns = this.getColumns();
 
@@ -138,10 +139,11 @@ export abstract class BaseExcelImportService<
   }
 
   /**
-   * Get template as buffer for download
+   * Get template as buffer for download (uses createBaseTemplate)
+   * Override this in subclasses if using custom template generation
    */
-  public getTemplateBuffer(): Buffer {
-    const workbook = this.generateTemplateWorkbook();
+  protected getTemplateBuffer(): Buffer {
+    const workbook = this.createBaseTemplate();
     return Buffer.from(
       XLSX.write(workbook, { type: "buffer", bookType: "xlsx" })
     );
@@ -502,8 +504,9 @@ export abstract class BaseExcelImportService<
 
   /**
    * Get preview result for display to user
+   * Override this method in subclasses to provide custom preview handling
    */
-  public async getPreviewResult(
+  protected async getPreviewResultFromBuffer(
     buffer: ArrayBuffer,
     tenantId: string,
     userId: string
@@ -534,8 +537,9 @@ export abstract class BaseExcelImportService<
 
   /**
    * Execute the import using the provided repository
+   * Override this method in subclasses to provide custom import handling
    */
-  public async executeImport(
+  protected async executeImportFromBuffer(
     buffer: ArrayBuffer,
     tenantId: string,
     userId: string,

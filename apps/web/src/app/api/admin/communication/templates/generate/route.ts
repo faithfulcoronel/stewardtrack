@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { AICreditService } from '@/services/AICreditService';
@@ -39,10 +40,28 @@ const CATEGORY_CONTEXTS: Record<TemplateCategory, string> = {
   custom: 'This is a general-purpose template.',
 };
 
+/**
+ * POST /api/admin/communication/templates/generate
+ *
+ * AI-powered template generation
+ * @requires communication:manage permission
+ */
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
     const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body: GenerateRequest = await request.json();
 
     // Validate request

@@ -38,6 +38,13 @@ export class GetFinancialFundsTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing financial funds
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['finance:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

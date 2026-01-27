@@ -1,3 +1,15 @@
+/**
+ * Ministry Team Repository
+ *
+ * Data access interface for ministry team member records.
+ * Delegates database operations to the ministry team adapter.
+ *
+ * @module planner.ministries
+ * @featureCode planner.ministries
+ *
+ * @permission ministries:view - Required to read team member data
+ * @permission ministries:manage - Required to add/update team members
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IMinistryTeamAdapter } from '@/adapters/ministryTeam.adapter';

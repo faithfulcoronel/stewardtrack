@@ -10,6 +10,21 @@ import type {
   TemplateCategory,
 } from '@/models/communication/template.model';
 
+/**
+ * ITemplateRepository - Data access interface for communication templates
+ *
+ * This repository handles CRUD operations for message templates in the communication module.
+ * All operations are tenant-scoped and require appropriate permissions.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level):
+ * - View operations (get*, getTemplatesByCategory): Requires `communication:view` permission
+ * - Manage operations (create*, update*, incrementUsageCount): Requires `communication:manage` permission
+ * - Delete operations (delete*): Requires `communication:delete` permission
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ */
 export interface ITemplateRepository {
   createTemplate(data: CreateTemplateDto, tenantId: string): Promise<Template>;
   updateTemplate(id: string, data: UpdateTemplateDto, tenantId: string): Promise<Template>;

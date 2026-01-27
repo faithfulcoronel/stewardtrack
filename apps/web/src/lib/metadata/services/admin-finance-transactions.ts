@@ -17,6 +17,7 @@ import { IncomeExpenseTransactionService, type IncomeExpenseEntry } from '@/serv
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
 import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import {
   notifyTransactionSubmitted,
   notifyTransactionApproved,
@@ -286,6 +287,27 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
   const currency = await getTenantCurrency();
   const timezone = await getTenantTimezone();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canApprove = false;
+  let canPost = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, approveResult, postResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:approve').check(userId, tenant.id),
+      new PermissionGate('finance:post').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canApprove = approveResult.allowed;
+    canPost = postResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   // Fetch all transaction headers
   const headers = await transactionHeaderRepo.findAll();
   const allHeaders = (headers?.data || []) as FinancialTransactionHeader[];
@@ -367,6 +389,92 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
     };
   });
 
+  // Build actions array based on permissions
+  const tableActions: Array<{
+    id: string;
+    label: string;
+    intent: string;
+    urlTemplate?: string;
+    handler?: string;
+    confirmTitle?: string;
+    confirmDescription?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    successMessage?: string;
+    variant?: string;
+    condition?: string;
+  }> = [
+    {
+      id: 'view-record',
+      label: 'View',
+      intent: 'view',
+      urlTemplate: '/admin/finance/transactions/{{id}}',
+    },
+  ];
+
+  if (canManage) {
+    tableActions.push({
+      id: 'edit-record',
+      label: 'Edit',
+      intent: 'edit',
+      urlTemplate: '/admin/finance/transactions/entry?transactionId={{id}}',
+      variant: 'secondary',
+      // Only show edit for draft/submitted transactions
+      condition: '{{status}} === "Draft" || {{status}} === "Submitted"',
+    });
+  }
+
+  if (canApprove) {
+    tableActions.push({
+      id: 'approve-record',
+      label: 'Approve',
+      intent: 'action',
+      handler: 'admin-finance.transactions.approve',
+      confirmTitle: 'Approve transaction',
+      confirmDescription: 'Approve transaction {{transactionNumber}} for posting?',
+      confirmLabel: 'Approve',
+      cancelLabel: 'Cancel',
+      successMessage: 'Transaction approved.',
+      variant: 'secondary',
+      // Only show approve for submitted transactions
+      condition: '{{status}} === "Submitted"',
+    });
+  }
+
+  if (canPost) {
+    tableActions.push({
+      id: 'post-record',
+      label: 'Post',
+      intent: 'action',
+      handler: 'admin-finance.transactions.post',
+      confirmTitle: 'Post transaction',
+      confirmDescription: 'Post transaction {{transactionNumber}}? This action is final.',
+      confirmLabel: 'Post',
+      cancelLabel: 'Cancel',
+      successMessage: 'Transaction posted.',
+      variant: 'primary',
+      // Only show post for approved transactions
+      condition: '{{status}} === "Approved"',
+    });
+  }
+
+  if (canDelete) {
+    tableActions.push({
+      id: 'void-record',
+      label: 'Void',
+      intent: 'action',
+      handler: 'admin-finance.transactions.void',
+      confirmTitle: 'Void transaction',
+      confirmDescription: 'Void transaction {{transactionNumber}}? This cannot be undone.',
+      confirmLabel: 'Void',
+      cancelLabel: 'Cancel',
+      successMessage: 'Transaction voided.',
+      variant: 'destructive',
+      // Only show void for posted transactions (one action at a time)
+      condition: '{{status}} === "Posted"',
+    });
+  }
+
   const columns = [
     { field: 'date', headerName: 'Date', type: 'text', flex: 0.8 },
     { field: 'transactionNumber', headerName: 'Transaction #', type: 'text', flex: 0.8, hideOnMobile: true },
@@ -380,65 +488,7 @@ const resolveTransactionsListTable: ServiceDataSourceHandler = async (_request) 
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      actions: [
-        {
-          id: 'view-record',
-          label: 'View',
-          intent: 'view',
-          urlTemplate: '/admin/finance/transactions/{{id}}',
-        },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/transactions/entry?transactionId={{id}}',
-          variant: 'secondary',
-          // Only show edit for draft/submitted transactions
-          condition: '{{status}} === "Draft" || {{status}} === "Submitted"',
-        },
-        {
-          id: 'approve-record',
-          label: 'Approve',
-          intent: 'action',
-          handler: 'admin-finance.transactions.approve',
-          confirmTitle: 'Approve transaction',
-          confirmDescription: 'Approve transaction {{transactionNumber}} for posting?',
-          confirmLabel: 'Approve',
-          cancelLabel: 'Cancel',
-          successMessage: 'Transaction approved.',
-          variant: 'secondary',
-          // Only show approve for submitted transactions
-          condition: '{{status}} === "Submitted"',
-        },
-        {
-          id: 'post-record',
-          label: 'Post',
-          intent: 'action',
-          handler: 'admin-finance.transactions.post',
-          confirmTitle: 'Post transaction',
-          confirmDescription: 'Post transaction {{transactionNumber}}? This action is final.',
-          confirmLabel: 'Post',
-          cancelLabel: 'Cancel',
-          successMessage: 'Transaction posted.',
-          variant: 'primary',
-          // Only show post for approved transactions
-          condition: '{{status}} === "Approved"',
-        },
-        {
-          id: 'void-record',
-          label: 'Void',
-          intent: 'action',
-          handler: 'admin-finance.transactions.void',
-          confirmTitle: 'Void transaction',
-          confirmDescription: 'Void transaction {{transactionNumber}}? This cannot be undone.',
-          confirmLabel: 'Void',
-          cancelLabel: 'Cancel',
-          successMessage: 'Transaction voided.',
-          variant: 'destructive',
-          // Can void any non-voided transaction
-          condition: '{{status}} !== "Voided"',
-        },
-      ],
+      actions: tableActions,
     },
   ];
 

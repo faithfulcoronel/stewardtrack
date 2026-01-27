@@ -10,6 +10,7 @@ import type {
   CreateLicenseAssignmentDto,
   LicenseHistoryEntry,
   FeatureChangeSummary,
+  BulkTenantDeletionResult,
 } from '@/models/licenseAssignment.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
@@ -42,6 +43,12 @@ export interface ILicenseAssignmentAdapter extends IBaseAdapter<LicenseAssignmen
    * Gets assignment details with related data
    */
   getAssignmentWithDetails(assignmentId: string): Promise<LicenseAssignmentWithDetails | null>;
+
+  /**
+   * Bulk delete tenants and all associated data
+   * WARNING: This is a destructive operation - all tenant data will be permanently deleted
+   */
+  bulkDeleteTenants(tenantIds: string[]): Promise<BulkTenantDeletionResult>;
 }
 
 @injectable()
@@ -113,12 +120,13 @@ export class LicenseAssignmentAdapter
       features_revoked: dbResult.result_features_revoked,
     };
 
-    // Log the assignment
+    // Log the assignment as an update to tenant licensing
     await this.auditService.logAuditEvent(
-      'assign_license',
-      'tenant',
+      'update',
+      'tenant_license',
       data.tenant_id,
       {
+        action: 'assign_license',
         offering_id: data.offering_id,
         assigned_by: data.assigned_by,
         notes: data.notes,
@@ -274,5 +282,41 @@ export class LicenseAssignmentAdapter
       previous_offering_name: data.previous_offering?.name || null,
       assigned_by_email: data.assigned_by_user?.email || null,
     } as LicenseAssignmentWithDetails;
+  }
+
+  /**
+   * Bulk delete tenants and all associated data
+   * Uses service role client to bypass RLS and call the bulk deletion RPC
+   * WARNING: This is a destructive operation - all tenant data will be permanently deleted
+   */
+  async bulkDeleteTenants(tenantIds: string[]): Promise<BulkTenantDeletionResult> {
+    const { getSupabaseServiceClient } = await import('@/lib/supabase/service');
+    const supabase = await getSupabaseServiceClient();
+
+    const { data, error } = await supabase.rpc('bulk_delete_tenants', {
+      p_tenant_ids: tenantIds,
+    });
+
+    if (error) {
+      throw new Error(`Failed to bulk delete tenants: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('No result returned from bulk delete operation');
+    }
+
+    // Log the deletion for audit purposes
+    await this.auditService.logAuditEvent(
+      'delete',
+      'tenant_bulk',
+      tenantIds[0], // Use first tenant ID as reference
+      {
+        action: 'bulk_delete_tenants',
+        tenant_ids: tenantIds,
+        result: data,
+      }
+    );
+
+    return data as BulkTenantDeletionResult;
   }
 }

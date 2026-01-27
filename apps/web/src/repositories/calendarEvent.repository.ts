@@ -1,3 +1,16 @@
+/**
+ * Calendar Event Repository
+ *
+ * Data access interface for calendar event records.
+ * Delegates database operations to the calendar event adapter.
+ *
+ * @module planner.calendar
+ * @featureCode planner.calendar, planner.event
+ *
+ * @permission calendar:view - Required to read events
+ * @permission events:view - Required to view event details
+ * @permission events:manage - Required to create/update events
+ */
 import { injectable, inject } from 'inversify';
 
 import { BaseRepository } from '@/repositories/base.repository';

@@ -6,6 +6,7 @@
  * Displays objective details with ability to edit and manage key results.
  *
  * SECURITY: Protected by AccessGate requiring objectives:view permission.
+ * @permission objectives:view, objectives:manage - Required to view or manage objectives
  *
  * METADATA ROUTE: admin-community/planning/goals/objectives/detail
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-objectives-detail.xml

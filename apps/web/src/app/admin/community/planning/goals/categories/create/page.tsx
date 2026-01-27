@@ -8,7 +8,8 @@
  *   - CREATE: /admin/community/planning/goals/categories/create (no query param)
  *   - EDIT:   /admin/community/planning/goals/categories/create?categoryId=xxx
  *
- * SECURITY: Protected by AccessGate requiring goals:create permission.
+ * SECURITY: Protected by AccessGate requiring goals:manage permission.
+ * @permission goals:manage - Required to create or edit goal categories
  *
  * METADATA ROUTE: admin-community/planning/goals/categories/create
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-categories-manage.xml
@@ -23,7 +24,7 @@
  *   - admin-community.planning.goals.categories.manage.save
  *
  * PERMISSIONS:
- *   - goals:create - Required to create/edit categories
+ *   - goals:manage - Required to create/edit categories
  *
  * ================================================================================
  */
@@ -49,8 +50,8 @@ export const metadata: Metadata = {
 export default async function CategoryCreatePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["goals:create"], "any", {
-    fallbackPath: "/unauthorized?reason=goals_create_access",
+  const gate = Gate.withPermission(["goals:manage"], "any", {
+    fallbackPath: "/unauthorized?reason=goals_manage_access",
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

@@ -1,3 +1,15 @@
+/**
+ * Schedule Team Assignment Repository
+ *
+ * Data access interface for team assignment records.
+ * Delegates database operations to the schedule team assignment adapter.
+ *
+ * @module planner.scheduler
+ * @featureCode planner.scheduler
+ *
+ * @permission scheduler:view - Required to read team assignments
+ * @permission scheduler:manage - Required to manage team assignments
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IScheduleTeamAssignmentAdapter } from '@/adapters/scheduleTeamAssignment.adapter';

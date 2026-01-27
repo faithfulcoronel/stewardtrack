@@ -6,6 +6,7 @@
  * List all ministry schedules with search, filter, and management options.
  *
  * SECURITY: Protected by AccessGate requiring scheduler:view permission.
+ * @permission scheduler:view - Required to view schedules list
  *
  * METADATA ROUTE: admin-community/planning/scheduler/schedules
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-schedules.xml

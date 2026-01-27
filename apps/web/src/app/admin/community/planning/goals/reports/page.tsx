@@ -7,6 +7,7 @@
  * metrics across all strategic goals and ministry objectives.
  *
  * SECURITY: Protected by AccessGate requiring goals:view permission.
+ * @permission goals:view - Required to view goals reports
  *
  * METADATA ROUTE: admin-community/planning/goals/reports
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/planning-goals-reports.xml

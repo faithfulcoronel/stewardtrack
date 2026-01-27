@@ -38,6 +38,11 @@ export interface TenantForAssignment {
   current_offering_tier: string | null;
   feature_count: number;
   last_assignment_date: string | null;
+  // Enhanced fields for tenant management
+  user_count: number;
+  member_count: number;
+  created_at: string;
+  last_activity: string | null;
 }
 
 /**
@@ -77,6 +82,21 @@ export interface LicenseHistoryEntry {
   assigned_by: string | null;
   assigned_by_email: string | null;
   notes: string | null;
+}
+
+/**
+ * BulkTenantDeletionResult - Result of bulk tenant deletion operation
+ */
+export interface BulkTenantDeletionResult {
+  success: boolean;
+  total_tenants_deleted: number;
+  auth_users_deleted: number;
+  deleted: Array<{
+    tenant_id: string;
+    status: 'deleted' | 'failed';
+    error?: string;
+  }>;
+  error?: string;
 }
 
 /**

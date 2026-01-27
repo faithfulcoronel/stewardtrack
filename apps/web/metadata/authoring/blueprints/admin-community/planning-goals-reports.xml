@@ -23,7 +23,7 @@ FEATURE: Goals Progress Reports
   route="planning/goals/reports"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="events.core"
+  featureCode="planner.core"
   requiredPermissions="goals:view"
   locale="en-US">
 

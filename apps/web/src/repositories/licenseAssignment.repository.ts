@@ -9,6 +9,7 @@ import type {
   CreateLicenseAssignmentDto,
   LicenseHistoryEntry,
   FeatureChangeSummary,
+  BulkTenantDeletionResult,
 } from '@/models/licenseAssignment.model';
 import { TYPES } from '@/lib/types';
 
@@ -40,6 +41,12 @@ export interface ILicenseAssignmentRepository extends BaseRepository<LicenseAssi
    * Gets assignment details with related data
    */
   getAssignmentWithDetails(assignmentId: string): Promise<LicenseAssignmentWithDetails | null>;
+
+  /**
+   * Bulk delete tenants and all associated data
+   * WARNING: This is a destructive operation - all tenant data will be permanently deleted
+   */
+  bulkDeleteTenants(tenantIds: string[]): Promise<BulkTenantDeletionResult>;
 }
 
 @injectable()
@@ -97,5 +104,13 @@ export class LicenseAssignmentRepository
     assignmentId: string
   ): Promise<LicenseAssignmentWithDetails | null> {
     return await this.licenseAssignmentAdapter.getAssignmentWithDetails(assignmentId);
+  }
+
+  /**
+   * Bulk delete tenants and all associated data
+   * WARNING: This is a destructive operation - all tenant data will be permanently deleted
+   */
+  async bulkDeleteTenants(tenantIds: string[]): Promise<BulkTenantDeletionResult> {
+    return await this.licenseAssignmentAdapter.bulkDeleteTenants(tenantIds);
   }
 }

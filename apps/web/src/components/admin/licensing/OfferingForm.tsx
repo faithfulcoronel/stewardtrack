@@ -234,6 +234,27 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     }
   }, [mode, loadOffering]);
 
+  // Filter out soft-deleted features/bundles from selected IDs after data loads
+  useEffect(() => {
+    if (features.length > 0 && selectedFeatureIds.length > 0) {
+      const validFeatureIds = new Set(features.map(f => f.id));
+      const filteredIds = selectedFeatureIds.filter(id => validFeatureIds.has(id));
+      if (filteredIds.length !== selectedFeatureIds.length) {
+        setSelectedFeatureIds(filteredIds);
+      }
+    }
+  }, [features, selectedFeatureIds]);
+
+  useEffect(() => {
+    if (bundles.length > 0 && selectedBundleIds.length > 0) {
+      const validBundleIds = new Set(bundles.map(b => b.id));
+      const filteredIds = selectedBundleIds.filter(id => validBundleIds.has(id));
+      if (filteredIds.length !== selectedBundleIds.length) {
+        setSelectedBundleIds(filteredIds);
+      }
+    }
+  }, [bundles, selectedBundleIds]);
+
   const filteredBundles = useMemo(() => {
     if (!bundleSearch) {
       return bundles;

@@ -61,6 +61,13 @@ export class GenerateTemplateTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for generating communication templates
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['communication:manage'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

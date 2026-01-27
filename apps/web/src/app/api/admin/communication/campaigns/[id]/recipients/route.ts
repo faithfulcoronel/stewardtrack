@@ -7,7 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import type { CommunicationService } from '@/services/communication/CommunicationService';
 import type { RecipientService } from '@/services/communication/RecipientService';
 import type { RecipientCriteria, CommunicationChannel } from '@/models/communication/campaign.model';
@@ -20,11 +21,24 @@ interface RouteParams {
  * GET /api/admin/communication/campaigns/[id]/recipients
  *
  * Get all recipients for a campaign
+ * @requires communication:view permission
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
 
     const recipientService = container.get<RecipientService>(TYPES.RecipientService);
 
@@ -54,11 +68,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * POST /api/admin/communication/campaigns/[id]/recipients
  *
  * Add recipients to a campaign based on criteria
+ * @requires communication:manage permission
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     console.log('[Communication API] Adding recipients to campaign:', id);
@@ -128,11 +156,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/admin/communication/campaigns/[id]/recipients
  *
  * Remove all recipients from a campaign (useful for re-selecting)
+ * @requires communication:manage permission
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
 
     const recipientService = container.get<RecipientService>(TYPES.RecipientService);
     await recipientService.deleteRecipientsByCampaign(id, tenantId);

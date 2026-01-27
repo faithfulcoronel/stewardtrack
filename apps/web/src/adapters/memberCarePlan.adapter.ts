@@ -8,6 +8,15 @@ import type { TenantService } from '@/services/TenantService';
 import { TYPES } from '@/lib/types';
 import { TenantContextError } from '@/utils/errorHandler';
 
+/**
+ * Adapter interface for member care plan database operations.
+ *
+ * @module members.care
+ *
+ * @permission careplans:view - Required for read operations
+ * @permission careplans:manage - Required for create/update operations
+ * @permission careplans:delete - Required for delete operations
+ */
 export interface IMemberCarePlanAdapter extends IBaseAdapter<MemberCarePlan> {
   getAll(): Promise<MemberCarePlan[]>;
   getAllWithMembers(): Promise<MemberCarePlan[]>;
@@ -15,6 +24,15 @@ export interface IMemberCarePlanAdapter extends IBaseAdapter<MemberCarePlan> {
   getByMember(memberId: string): Promise<MemberCarePlan[]>;
 }
 
+/**
+ * Adapter implementation for member care plan database operations.
+ *
+ * @module members.care
+ *
+ * @permission careplans:view - Required for read operations
+ * @permission careplans:manage - Required for create/update operations
+ * @permission careplans:delete - Required for delete operations
+ */
 @injectable()
 export class MemberCarePlanAdapter
   extends BaseAdapter<MemberCarePlan>

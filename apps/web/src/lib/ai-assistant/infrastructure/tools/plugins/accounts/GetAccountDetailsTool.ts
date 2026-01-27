@@ -39,6 +39,13 @@ export class GetAccountDetailsTool extends BaseTool {
     ];
   }
 
+  /**
+   * Required permission for viewing account details
+   */
+  protected getRequiredPermissions(): string[] {
+    return ['accounts:view'];
+  }
+
   protected getInputSchema() {
     return {
       type: 'object' as const,

@@ -1,3 +1,16 @@
+/**
+ * Key Result Repository
+ *
+ * Data access interface for key result records.
+ * Delegates database operations to the key result adapter.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission key_results:view - Required to read key result data
+ * @permission key_results:manage - Required to create/update key results
+ * @permission key_results:delete - Required to delete key results
+ */
 import { injectable, inject } from 'inversify';
 
 import type {

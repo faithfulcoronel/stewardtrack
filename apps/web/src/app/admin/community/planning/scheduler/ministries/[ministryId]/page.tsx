@@ -6,6 +6,7 @@
  * View and manage a specific ministry including team members and schedules.
  *
  * SECURITY: Protected by AccessGate requiring ministries:view permission.
+ * @permission ministries:view - Required to view ministry profile
  *
  * METADATA ROUTE: admin-community/planning/scheduler/ministries/profile
  * XML BLUEPRINT: metadata/authoring/blueprints/admin-community/scheduler-ministry-profile.xml

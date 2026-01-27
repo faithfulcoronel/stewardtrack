@@ -25,7 +25,7 @@ SERVICE HANDLERS:
   route="planning/scheduler/ministries/list"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="ministries.core"
+  featureCode="planner.ministries"
   requiredPermissions="ministries:view"
   locale="en-US">
 

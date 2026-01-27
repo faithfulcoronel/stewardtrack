@@ -8,13 +8,36 @@ import { NotificationService } from '@/services/NotificationService';
 import { TYPES } from '@/lib/types';
 import type { QueryOptions } from '@/lib/repository/query';
 
+/**
+ * MemberRepository Interface
+ *
+ * Data access contract for member records in the membership module.
+ *
+ * ## Permission Requirements (Feature: members.core)
+ *
+ * | Operation | Required Permission |
+ * |-----------|---------------------|
+ * | Read operations (find, findById, findAll, search) | `members:view` |
+ * | Create operations | `members:manage` |
+ * | Update operations | `members:manage` |
+ * | Delete operations (soft-delete/archive) | `members:delete` |
+ *
+ * Permission checks are enforced at the service/API route level.
+ */
 export interface IMemberRepository extends BaseRepository<Member> {
+  /** @permission members:view */
   getCurrentMonthBirthdays(): Promise<Member[]>;
+  /** @permission members:view */
   getBirthdaysByMonth(month: number): Promise<Member[]>;
+  /** @permission members:view */
   getCurrentUserMember(): Promise<Member | null>;
+  /** @permission members:view */
   findByAccount(accountId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   findByScheduleRegistration(scheduleId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   findByMinistry(ministryId: string, options?: Omit<QueryOptions, 'filters'>): Promise<{ data: Member[]; count: number | null }>;
+  /** @permission members:view */
   search(searchTerm: string, limit?: number): Promise<{ data: Member[]; count: number | null }>;
 }
 

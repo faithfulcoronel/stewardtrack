@@ -4,10 +4,12 @@
  * Returns members belonging to a specific group (family, event, ministry, registrant, or custom list).
  * Uses MemberRepository for data access to ensure proper encryption/decryption of PII fields.
  * For registrant source, includes both member registrants and guest registrants.
+ * @requires communication:view permission
  */
 
 import { NextResponse } from 'next/server';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { IMemberRepository } from '@/repositories/member.repository';
@@ -23,9 +25,28 @@ type RouteParams = {
   }>;
 };
 
+/**
+ * GET /api/admin/communication/recipients/[source]/[groupId]/members
+ *
+ * Get members for a specific group
+ * @requires communication:view permission
+ */
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const { source, groupId } = await params;
 
     // Get repositories/services from DI container

@@ -11,6 +11,22 @@ import type {
   TemplateCategory,
 } from '@/models/communication/template.model';
 
+/**
+ * ITemplateAdapter - Database adapter interface for communication templates
+ *
+ * This adapter handles direct database operations for message templates in the communication module.
+ * Implements tenant-scoped queries and audit logging for all state changes.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level via PermissionGate):
+ * - View operations (getTemplates, getTemplateById, getTemplatesByCategory): `communication:view`
+ * - Manage operations (createTemplate, updateTemplate, incrementUsageCount): `communication:manage`
+ * - Delete operations (deleteTemplate): `communication:delete`
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ * @see {@link TemplateRepository} for the repository layer
+ */
 export type ITemplateAdapter = IBaseAdapter<Template> & {
   createTemplate(data: CreateTemplateDto, tenantId: string): Promise<Template>;
   updateTemplate(id: string, data: UpdateTemplateDto, tenantId: string): Promise<Template>;

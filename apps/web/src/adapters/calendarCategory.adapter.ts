@@ -1,3 +1,15 @@
+/**
+ * Calendar Category Adapter
+ *
+ * Data access layer for calendar event categories.
+ * Manages event categorization for the planning calendar.
+ *
+ * @module planner.calendar
+ * @featureCode planner.calendar
+ *
+ * @permission calendar:view - Required to read categories
+ * @permission events:manage - Required to manage categories
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';

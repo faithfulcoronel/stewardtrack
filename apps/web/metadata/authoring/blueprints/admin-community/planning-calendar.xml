@@ -32,8 +32,8 @@ The PlanningCalendar is a self-contained dynamic component that:
   route="planning/calendar"
   schemaVersion="1.0.0"
   contentVersion="1.1.0"
-  featureCode="events.core"
-  requiredPermissions="members:view"
+  featureCode="planner.calendar"
+  requiredPermissions="calendar:view"
   locale="en-US">
 
   <Page id="admin-community-planning-calendar">

@@ -1,3 +1,16 @@
+/**
+ * Ministry Adapter
+ *
+ * Data access layer for ministry records.
+ * Handles direct database operations for ministries and teams.
+ *
+ * @module planner.ministries
+ * @featureCode planner.ministries
+ *
+ * @permission ministries:view - Required to read ministry data
+ * @permission ministries:manage - Required to create/update ministries
+ * @permission ministries:delete - Required to soft-delete ministries
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';

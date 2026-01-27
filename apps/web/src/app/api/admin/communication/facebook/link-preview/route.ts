@@ -1,32 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import type { SettingService } from '@/services/SettingService';
 import { FacebookChannelService } from '@/services/communication/FacebookChannelService';
-import { authUtils } from '@/utils/authUtils';
-import { tenantUtils } from '@/utils/tenantUtils';
 
 /**
  * POST /api/admin/communication/facebook/link-preview
  * Fetch Open Graph metadata for a URL to generate link preview
+ * @requires communication:manage permission
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify user is authenticated
-    const user = await authUtils.getUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
 
-    // Verify tenant context
-    const tenantId = await tenantUtils.getTenantId();
-    if (!tenantId) {
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
       return NextResponse.json(
-        { success: false, error: 'No tenant context' },
-        { status: 400 }
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
       );
     }
 

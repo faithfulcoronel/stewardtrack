@@ -30,8 +30,9 @@ import {
 } from './IAIService';
 import { IToolRegistry } from '../../core/interfaces/IToolRegistry';
 import { IExecutor, ExecutionRequest, ExecutionResult, ExecutionStep, ProgressCallback } from '../../core/interfaces/IExecutor';
-import { ToolExecutionContext } from '../../core/interfaces/ITool';
+import { ToolExecutionContext, ITool } from '../../core/interfaces/ITool';
 import { SystemPromptBuilder } from './SystemPromptBuilder';
+import { PermissionGate } from '@/lib/access-gate';
 
 export class PluginAwareAgenticExecutor implements IExecutor {
   private maxTurns: number = 10; // Prevent infinite loops
@@ -253,6 +254,9 @@ export class PluginAwareAgenticExecutor implements IExecutor {
   /**
    * Execute a tool via plugin system
    * No switch statements - fully delegated to plugins!
+   *
+   * PERMISSION GATE: Uses PermissionGate as single source of truth
+   * Tools declare required permissions, gate enforces them here
    */
   private async executeToolViaPlugin(
     toolUse: ToolUse,
@@ -285,6 +289,13 @@ export class PluginAwareAgenticExecutor implements IExecutor {
       };
     }
 
+    // === PERMISSION GATE: Single source of truth for tool permissions ===
+    const permissionCheckResult = await this.checkToolPermissions(tool, context);
+    if (permissionCheckResult) {
+      // Permission denied - return error without executing tool
+      return permissionCheckResult;
+    }
+
     // Get progress message from plugin (no switch statement!)
     const progressMessage = tool.getProgressMessage(toolUse.input);
 
@@ -312,6 +323,85 @@ export class PluginAwareAgenticExecutor implements IExecutor {
       step,
       toolComponents,
     };
+  }
+
+  /**
+   * Permission Gate: Check tool permissions using PermissionGate
+   *
+   * This is the SINGLE SOURCE OF TRUTH for tool permission enforcement.
+   * Tools declare required permissions via getRequiredPermissions(),
+   * this method enforces them using the access-gate system.
+   *
+   * @returns null if allowed, or error result if permission denied
+   */
+  private async checkToolPermissions(
+    tool: ITool,
+    context: ToolExecutionContext
+  ): Promise<{ result: any; step: ExecutionStep; toolComponents: any[] } | null> {
+    // Get required permissions from tool (BaseTool method)
+    const requiredPermissions = (tool as any).getRequiredPermissions?.();
+
+    // No permissions required - allow execution
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      return null;
+    }
+
+    // No user context - skip permission check (shouldn't happen in practice)
+    if (!context.userId) {
+      console.warn(`[PermissionGate] No userId in context for tool ${tool.name}, skipping permission check`);
+      return null;
+    }
+
+    try {
+      // Use PermissionGate as single source of truth
+      const permissionGate = new PermissionGate(requiredPermissions, 'all');
+      const checkResult = await permissionGate.check(context.userId, context.tenantId);
+
+      if (!checkResult.allowed) {
+        console.log(`[PermissionGate] Tool ${tool.name} denied: ${checkResult.reason}`);
+
+        const errorResult = {
+          success: false,
+          error: `You do not have permission to perform this action. Required permission(s): ${requiredPermissions.join(', ')}`,
+        };
+
+        return {
+          result: errorResult,
+          step: {
+            type: 'tool_use' as const,
+            content: `Permission denied for ${tool.name}`,
+            toolName: tool.name,
+            toolInput: {},
+            toolResult: errorResult,
+            timestamp: new Date(),
+          },
+          toolComponents: [],
+        };
+      }
+
+      console.log(`[PermissionGate] Tool ${tool.name} allowed for user ${context.userId}`);
+      return null; // Permission granted - proceed with execution
+    } catch (error: any) {
+      console.error(`[PermissionGate] Error checking permissions for ${tool.name}:`, error);
+
+      const errorResult = {
+        success: false,
+        error: `Failed to verify permissions: ${error.message}`,
+      };
+
+      return {
+        result: errorResult,
+        step: {
+          type: 'tool_use' as const,
+          content: `Permission check failed for ${tool.name}`,
+          toolName: tool.name,
+          toolInput: {},
+          toolResult: errorResult,
+          timestamp: new Date(),
+        },
+        toolComponents: [],
+      };
+    }
   }
 
   /**

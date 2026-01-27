@@ -1,3 +1,16 @@
+/**
+ * Ministry Repository
+ *
+ * Data access interface for ministry records.
+ * Delegates database operations to the ministry adapter.
+ *
+ * @module planner.ministries
+ * @featureCode planner.ministries
+ *
+ * @permission ministries:view - Required to read ministry data
+ * @permission ministries:manage - Required to create/update ministries
+ * @permission ministries:delete - Required to soft-delete ministries
+ */
 import { injectable, inject } from 'inversify';
 import { BaseRepository } from '@/repositories/base.repository';
 import type { IMinistryAdapter } from '@/adapters/ministry.adapter';

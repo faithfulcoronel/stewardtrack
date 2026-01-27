@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default async function MembershipListPage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:view", "members:edit"], "any", {
+  const gate = Gate.withPermission(["members:view"], "any", {
     fallbackPath: "/unauthorized?reason=members_access",
   });
 

@@ -23,8 +23,8 @@ FEATURE: Notebook Detail View
   route="planning/notebooks/detail"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="members.core"
-  requiredPermissions="members:view"
+  featureCode="planner.notebook"
+  requiredPermissions="notebooks:view"
   locale="en-US">
 
   <Page id="admin-community-planning-notebooks-detail">
@@ -165,7 +165,7 @@ FEATURE: Notebook Detail View
     <Actions>
       <!-- Edit notebook -->
       <Action id="edit-notebook" kind="link">
-        <RBAC requirePermissions="notebooks:edit"/>
+        <RBAC requirePermissions="notebooks:manage"/>
         <Config>
           <Label>Edit notebook</Label>
           <Url>/admin/community/planning/notebooks/{notebookId}/edit</Url>
@@ -176,7 +176,7 @@ FEATURE: Notebook Detail View
 
       <!-- Add section -->
       <Action id="add-section" kind="link">
-        <RBAC requirePermissions="notebooks:edit"/>
+        <RBAC requirePermissions="notebooks:manage"/>
         <Config>
           <Label>Add section</Label>
           <Url>/admin/community/planning/notebooks/{notebookId}/sections/create</Url>

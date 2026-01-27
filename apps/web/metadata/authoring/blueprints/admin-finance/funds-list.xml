@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-fund" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add fund</Label>
           <Url>/admin/finance/funds/manage</Url>

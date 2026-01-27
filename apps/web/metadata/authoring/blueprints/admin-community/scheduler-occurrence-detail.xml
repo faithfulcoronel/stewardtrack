@@ -5,7 +5,7 @@
   route="planning/scheduler/occurrences/detail"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="scheduler.core"
+  featureCode="planner.scheduler"
   requiredPermissions="scheduler:view"
   locale="en-US">
 
@@ -112,7 +112,7 @@
 
     <Actions>
       <Action id="start-checkin" kind="link">
-        <RBAC requirePermissions="scheduler:attendance" />
+        <RBAC requirePermissions="attendance:manage" />
         <Config>
           <Label>Start Check-in</Label>
           <Url>/admin/community/planning/scheduler/checkin?occurrenceId={{params.occurrenceId}}</Url>

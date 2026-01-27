@@ -1,3 +1,16 @@
+/**
+ * Goal Adapter
+ *
+ * Data access layer for strategic goals records.
+ * Handles direct database operations for church-wide goals.
+ *
+ * @module planner.core
+ * @featureCode planner.core
+ *
+ * @permission goals:view - Required to read goal data
+ * @permission goals:manage - Required to create/update goals
+ * @permission goals:delete - Required to soft-delete goals
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject, optional } from 'inversify';

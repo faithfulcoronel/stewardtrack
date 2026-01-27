@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-community" route="care-plans/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="care.plans" requiredPermissions="members:view" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-community" route="care-plans/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="members.care" requiredPermissions="careplans:view" locale="en-US">
   <Page id="admin-community-care-plans-profile">
     <Title>Care plan profile</Title>
     <Regions>
@@ -47,6 +47,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-care-plan" kind="link">
+        <RBAC requirePermissions="careplans:manage"/>
         <Config>
           <Label>Edit care plan</Label>
           <Url>/admin/community/care-plans/manage?carePlanId={{params.carePlanId}}</Url>

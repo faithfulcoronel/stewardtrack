@@ -339,6 +339,14 @@ const resolveGoalsTable: ServiceDataSourceHandler = async (request) => {
         id: 'edit',
         label: 'Edit',
         icon: 'Pencil',
+        requirePermissions: 'goals:manage',
+      },
+      {
+        id: 'delete',
+        label: 'Delete',
+        icon: 'Trash2',
+        variant: 'destructive',
+        requirePermissions: 'goals:delete',
       },
     ],
     emptyState: {
@@ -630,7 +638,8 @@ const resolveGoalDetailObjectives: ServiceDataSourceHandler = async (request) =>
       ],
       actions: [
         { id: 'view', label: 'View', icon: 'Eye' },
-        { id: 'edit', label: 'Edit', icon: 'Pencil' },
+        { id: 'edit', label: 'Edit', icon: 'Pencil', requirePermissions: 'objectives:manage' },
+        { id: 'delete', label: 'Delete', icon: 'Trash2', variant: 'destructive', requirePermissions: 'objectives:delete' },
       ],
       emptyState: {
         title: 'No objectives yet',
@@ -691,8 +700,9 @@ const resolveGoalDetailKeyResults: ServiceDataSourceHandler = async (request) =>
         { field: 'lastUpdated', header: 'Updated', width: '100px' },
       ],
       actions: [
-        { id: 'update', label: 'Update', icon: 'TrendingUp' },
-        { id: 'edit', label: 'Edit', icon: 'Pencil' },
+        { id: 'update', label: 'Update', icon: 'TrendingUp', requirePermissions: 'key_results:manage' },
+        { id: 'edit', label: 'Edit', icon: 'Pencil', requirePermissions: 'key_results:manage' },
+        { id: 'delete', label: 'Delete', icon: 'Trash2', variant: 'destructive', requirePermissions: 'key_results:delete' },
       ],
       emptyState: {
         title: 'No key results yet',
@@ -1182,8 +1192,8 @@ const resolveCategoriesList: ServiceDataSourceHandler = async () => {
         { field: 'sortOrder', header: 'Order', width: '80px' },
       ],
       actions: [
-        { id: 'edit', label: 'Edit', icon: 'Pencil', href: '/admin/community/planning/goals/categories/create?categoryId={{id}}' },
-        { id: 'delete', label: 'Delete', icon: 'Trash2', variant: 'destructive', disabled: '{{isSystem}}' },
+        { id: 'edit', label: 'Edit', icon: 'Pencil', href: '/admin/community/planning/goals/categories/create?categoryId={{id}}', requirePermissions: 'goals:manage' },
+        { id: 'delete', label: 'Delete', icon: 'Trash2', variant: 'destructive', disabled: '{{isSystem}}', requirePermissions: 'goals:delete' },
       ],
       emptyState: {
         title: 'No categories yet',

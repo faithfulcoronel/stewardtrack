@@ -176,12 +176,20 @@ const resolveCarePlansListTable: ServiceDataSourceHandler = async (_request) => 
       label: 'View',
       type: 'link',
       href: '/admin/community/care-plans/{{id}}',
+      requirePermissions: 'careplans:view',
     },
     {
       id: 'edit',
       label: 'Edit',
       type: 'link',
       href: '/admin/community/care-plans/manage?carePlanId={{id}}',
+      requirePermissions: 'careplans:manage',
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      type: 'action',
+      requirePermissions: 'careplans:delete',
     },
   ];
 
@@ -622,12 +630,20 @@ const resolveMemberCarePlans: ServiceDataSourceHandler = async (request) => {
       label: 'View',
       type: 'link',
       href: '/admin/community/care-plans/{{id}}',
+      requirePermissions: 'careplans:view',
     },
     {
       id: 'edit',
       label: 'Edit',
       type: 'link',
       href: '/admin/community/care-plans/manage?carePlanId={{id}}',
+      requirePermissions: 'careplans:manage',
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      type: 'action',
+      requirePermissions: 'careplans:delete',
     },
   ];
 

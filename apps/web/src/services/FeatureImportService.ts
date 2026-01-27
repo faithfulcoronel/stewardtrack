@@ -29,6 +29,32 @@ export interface ParsedImportData {
   errors: ValidationError[];
 }
 
+/** Detail item for features in the preview result */
+export interface FeaturePreviewDetail {
+  action: 'add' | 'update' | 'delete';
+  code: string;
+  name: string;
+  category: string;
+  tier?: string;
+}
+
+/** Detail item for permissions in the preview result */
+export interface PermissionPreviewDetail {
+  action: 'add' | 'update' | 'delete';
+  featureCode: string;
+  permissionCode: string;
+  displayName: string;
+}
+
+/** Detail item for role templates in the preview result */
+export interface RoleTemplatePreviewDetail {
+  action: 'add' | 'update' | 'delete';
+  featureCode: string;
+  permissionCode: string;
+  roleKey: string;
+  isRecommended: boolean;
+}
+
 export interface ImportPreviewResult {
   success: boolean;
   preview: true;
@@ -41,6 +67,12 @@ export interface ImportPreviewResult {
       permissions: { add: number; update: number; delete: number };
       roleTemplates: { add: number; update: number; delete: number };
     };
+  };
+  /** Detailed items for report generation */
+  details: {
+    features: FeaturePreviewDetail[];
+    permissions: PermissionPreviewDetail[];
+    roleTemplates: RoleTemplatePreviewDetail[];
   };
   errors: ValidationError[];
 }
@@ -98,7 +130,7 @@ export class FeatureImportService implements IFeatureImportService {
       ['5. Required fields are marked with * in the column headers'],
       [''],
       ['FEATURES SHEET:'],
-      ['- code*: Unique feature code (lowercase, underscores, e.g., "member_management")'],
+      ['- code*: Unique feature code (lowercase, dots/underscores, e.g., "members.core")'],
       ['- name*: Display name for the feature'],
       ['- category*: Feature category (core, analytics, reporting, etc.)'],
       ['- tier: License tier (essential, premium, professional, enterprise)'],
@@ -278,8 +310,8 @@ export class FeatureImportService implements IFeatureImportService {
         if (action !== 'delete') {
           if (!code) {
             validationErrors.push({ sheet: 'Features', row: rowNum, field: 'Code', message: 'Code is required' });
-          } else if (!/^[a-z][a-z0-9_]*$/.test(code)) {
-            validationErrors.push({ sheet: 'Features', row: rowNum, field: 'Code', message: 'Code must be lowercase with underscores only, starting with a letter' });
+          } else if (!/^[a-z][a-z0-9_.]*$/.test(code)) {
+            validationErrors.push({ sheet: 'Features', row: rowNum, field: 'Code', message: 'Code must be lowercase with dots or underscores only, starting with a letter' });
           }
           if (!name) {
             validationErrors.push({ sheet: 'Features', row: rowNum, field: 'Name', message: 'Name is required' });
@@ -441,6 +473,28 @@ export class FeatureImportService implements IFeatureImportService {
             delete: data.roleTemplates.filter(r => r.action === 'delete').length,
           },
         },
+      },
+      details: {
+        features: data.features.map(f => ({
+          action: f.action,
+          code: f.code,
+          name: f.name,
+          category: f.category,
+          tier: f.tier || undefined,
+        })),
+        permissions: data.permissions.map(p => ({
+          action: p.action,
+          featureCode: p.feature_code,
+          permissionCode: p.permission_code,
+          displayName: p.display_name,
+        })),
+        roleTemplates: data.roleTemplates.map(rt => ({
+          action: rt.action,
+          featureCode: rt.feature_code,
+          permissionCode: rt.permission_code,
+          roleKey: rt.role_key,
+          isRecommended: rt.is_recommended,
+        })),
       },
       errors,
     };

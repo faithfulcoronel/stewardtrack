@@ -3,7 +3,7 @@
  *
  * Display detailed information about a specific account.
  *
- * SECURITY: Protected by AccessGate requiring finance:view permission.
+ * SECURITY: Protected by AccessGate requiring accounts:view permission.
  */
 
 import type { Metadata } from 'next';
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export default async function AccountProfilePage({ params, searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(['finance:view'], 'any', {
+  const gate = Gate.withPermission(['accounts:view'], 'any', {
     fallbackPath: '/unauthorized?reason=finance_access',
   });
 
