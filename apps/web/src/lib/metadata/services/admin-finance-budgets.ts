@@ -8,6 +8,8 @@ import type { ICategoryRepository } from '@/repositories/category.repository';
 import type { Category } from '@/models/category.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -114,6 +116,21 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
   const currency = await getTenantCurrency();
   const timezone = await getTenantTimezone();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   const budgets = await budgetService.findAll();
   const allBudgets = (budgets.data || []) as Budget[];
 
@@ -193,25 +210,33 @@ const resolveBudgetsListTable: ServiceDataSourceHandler = async (_request) => {
       headerName: 'Actions',
       type: 'actions',
       actions: [
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/budgets/manage?budgetId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.budgets.delete',
-          confirmTitle: 'Delete Budget',
-          confirmDescription: 'Are you sure you want to delete "{{name}}"?',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: '{{name}} was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/budgets/manage?budgetId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.budgets.delete',
+                confirmTitle: 'Delete Budget',
+                confirmDescription: 'Are you sure you want to delete "{{name}}"?',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: '{{name}} was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

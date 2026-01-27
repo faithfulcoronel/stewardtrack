@@ -123,7 +123,7 @@
         </Config>
       </Action>
       <Action id="record-transaction" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Record income/expense</Label>
           <Url>/admin/finance/transactions/entry</Url>

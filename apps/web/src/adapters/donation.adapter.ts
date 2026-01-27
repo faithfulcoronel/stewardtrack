@@ -1,3 +1,11 @@
+/**
+ * Donation Adapter
+ *
+ * Handles database operations for online and manual donations.
+ * Supports both authenticated and public (unauthenticated) donation flows.
+ *
+ * @module adapters/donation
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
@@ -12,46 +20,68 @@ import type {
 } from '@/models/donation.model';
 
 /**
- * Interface for Donation data access operations
+ * Interface for donation database operations.
+ * Extends IBaseAdapter with donation-specific methods for payment processing.
  */
 export interface IDonationAdapter extends IBaseAdapter<Donation> {
+  /** Create a donation for authenticated users */
   createDonation(data: Partial<Donation>, tenantId: string): Promise<Donation>;
   /**
-   * Create a new donation record for public/unauthenticated access.
+   * Create a donation for public/unauthenticated access.
    * Uses service role client to bypass RLS policies.
-   *
-   * SECURITY: Tenant ID must be explicitly provided - no session fallback.
-   * This is used for the public donation form where donors are not logged in.
+   * SECURITY: Tenant ID must be explicitly provided.
    */
   createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /** Update a donation for authenticated users */
   updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
-  /**
-   * Update a donation record for public/unauthenticated access.
-   * Uses service role client to bypass RLS policies.
-   */
+  /** Update a donation for public/unauthenticated access */
   updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation>;
+  /** Update donation status (used by payment webhooks) */
   updateDonationStatus(
     id: string,
     status: DonationStatus,
     tenantId: string,
     additionalData?: Partial<Donation>
   ): Promise<Donation>;
+  /** Find donation by Xendit payment request ID */
   findByXenditPaymentRequestId(paymentRequestId: string): Promise<Donation | null>;
+  /** Find donation by Xendit payment ID */
   findByXenditPaymentId(paymentId: string): Promise<Donation | null>;
+  /** Get all donations for a member */
   findByMemberId(memberId: string, tenantId: string): Promise<Donation[]>;
+  /** Get all donations for a campaign */
   findByCampaignId(campaignId: string, tenantId: string): Promise<Donation[]>;
+  /** Get donation with full details for display */
   getDonationWithDetails(id: string, tenantId: string): Promise<DonationWithDetails | null>;
+  /** Get recurring donations due for processing */
   getRecurringDonationsDue(tenantId: string, dueDate: string): Promise<Donation[]>;
 }
 
+/**
+ * Donation adapter implementation.
+ *
+ * Provides database operations for managing donations including:
+ * - Creating donations from online payment forms (public and authenticated)
+ * - Processing payment status updates via webhooks
+ * - Managing recurring donation schedules
+ * - Linking donations to campaigns, funds, and members
+ * - Tracking payment processor integration (Xendit)
+ *
+ * Supports both authenticated member donations and anonymous public giving.
+ *
+ * @extends BaseAdapter<Donation>
+ * @implements IDonationAdapter
+ */
 @injectable()
 export class DonationAdapter extends BaseAdapter<Donation> implements IDonationAdapter {
   constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
     super();
   }
 
+  /** Database table name for donations */
   protected tableName = 'donations';
 
+  /** Default fields to select in queries */
   protected defaultSelect = `
     id,
     tenant_id,
@@ -96,6 +126,7 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
     updated_at
   `;
 
+  /** Default relationships to include in queries */
   protected defaultRelationships: QueryOptions['relationships'] = [
     {
       table: 'categories',
@@ -119,6 +150,11 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
     },
   ];
 
+  /**
+   * Post-create hook to log audit event.
+   *
+   * @param data - Created donation data
+   */
   protected override async onAfterCreate(data: Donation): Promise<void> {
     await this.auditService.logAuditEvent('create', 'donation', data.id, {
       amount: data.amount,
@@ -127,6 +163,11 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
     });
   }
 
+  /**
+   * Post-update hook to log audit event.
+   *
+   * @param data - Updated donation data
+   */
   protected override async onAfterUpdate(data: Donation): Promise<void> {
     await this.auditService.logAuditEvent('update', 'donation', data.id, {
       status: data.status,
@@ -135,7 +176,11 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Create a new donation record
+   * Create a new donation record for authenticated users.
+   *
+   * @param data - Donation data
+   * @param tenantId - Tenant ID for isolation
+   * @returns Created donation record
    */
   async createDonation(data: Partial<Donation>, tenantId: string): Promise<Donation> {
     const supabase = await this.getSupabaseClient();
@@ -177,11 +222,16 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Create a new donation record for public/unauthenticated access.
+   * Create a donation for public/unauthenticated access.
    * Uses service role client to bypass RLS policies.
    *
    * SECURITY: Only used for public donation forms where donors are not logged in.
-   * Tenant ID must be explicitly provided - no session fallback.
+   * Tenant ID must be explicitly provided for proper data isolation.
+   *
+   * @param data - Donation data
+   * @param tenantId - Tenant ID (required, no session fallback)
+   * @returns Created donation record
+   * @throws Error if tenant ID is not provided
    */
   async createDonationPublic(data: Partial<Donation>, tenantId: string): Promise<Donation> {
     if (!tenantId) {
@@ -229,7 +279,12 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Update a donation record
+   * Update a donation record for authenticated users.
+   *
+   * @param id - Donation ID to update
+   * @param data - Donation update data
+   * @param tenantId - Tenant ID for isolation
+   * @returns Updated donation record
    */
   async updateDonation(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
     const supabase = await this.getSupabaseClient();
@@ -259,11 +314,16 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Update a donation record for public/unauthenticated access.
+   * Update a donation for public/unauthenticated access.
    * Uses service role client to bypass RLS policies.
    *
    * SECURITY: Only used for public donation flows where donors are not logged in.
-   * Tenant ID must be explicitly provided for isolation.
+   *
+   * @param id - Donation ID to update
+   * @param data - Donation update data
+   * @param tenantId - Tenant ID (required, no session fallback)
+   * @returns Updated donation record
+   * @throws Error if tenant ID is not provided
    */
   async updateDonationPublic(id: string, data: Partial<Donation>, tenantId: string): Promise<Donation> {
     if (!tenantId) {
@@ -298,7 +358,14 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Update donation status (commonly used by webhook handler)
+   * Update donation status (commonly used by payment webhook handlers).
+   * Automatically sets paid_at timestamp for successful payments.
+   *
+   * @param id - Donation ID to update
+   * @param status - New donation status
+   * @param tenantId - Tenant ID for isolation
+   * @param additionalData - Optional additional fields to update
+   * @returns Updated donation record
    */
   async updateDonationStatus(
     id: string,
@@ -348,7 +415,11 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Find donation by Xendit payment request ID
+   * Find a donation by Xendit payment request ID.
+   * Used by webhook handlers to locate the donation record.
+   *
+   * @param paymentRequestId - Xendit payment request ID
+   * @returns Donation record or null if not found
    */
   async findByXenditPaymentRequestId(paymentRequestId: string): Promise<Donation | null> {
     const supabase = await this.getSupabaseClient();
@@ -368,7 +439,11 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Find donation by Xendit payment ID
+   * Find a donation by Xendit payment ID.
+   * Used by webhook handlers after payment completion.
+   *
+   * @param paymentId - Xendit payment ID
+   * @returns Donation record or null if not found
    */
   async findByXenditPaymentId(paymentId: string): Promise<Donation | null> {
     const supabase = await this.getSupabaseClient();
@@ -388,7 +463,12 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Find all donations for a member
+   * Find all donations for a church member.
+   * Returns donations ordered by creation date (newest first).
+   *
+   * @param memberId - Member ID to fetch donations for
+   * @param tenantId - Tenant ID for isolation
+   * @returns Array of donation records
    */
   async findByMemberId(memberId: string, tenantId: string): Promise<Donation[]> {
     const supabase = await this.getSupabaseClient();
@@ -409,7 +489,12 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Find all donations for a campaign
+   * Find all donations for a fundraising campaign.
+   * Returns donations ordered by creation date (newest first).
+   *
+   * @param campaignId - Campaign ID to fetch donations for
+   * @param tenantId - Tenant ID for isolation
+   * @returns Array of donation records
    */
   async findByCampaignId(campaignId: string, tenantId: string): Promise<Donation[]> {
     const supabase = await this.getSupabaseClient();
@@ -430,7 +515,13 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Get donation with full details for display
+   * Get a donation with full details for display.
+   * Includes related category, fund, campaign, member, and transaction data.
+   * Enriches with computed display fields like donor name and payment method.
+   *
+   * @param id - Donation ID to fetch
+   * @param tenantId - Tenant ID for isolation
+   * @returns Donation with details or null if not found
    */
   async getDonationWithDetails(id: string, tenantId: string): Promise<DonationWithDetails | null> {
     const supabase = await this.getSupabaseClient();
@@ -479,7 +570,12 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Get recurring donations that are due for processing
+   * Get recurring donations that are due for processing.
+   * Returns active recurring donations where the next date is on or before the due date.
+   *
+   * @param tenantId - Tenant ID for isolation
+   * @param dueDate - Date to check against (ISO string)
+   * @returns Array of donations due for recurring charge
    */
   async getRecurringDonationsDue(tenantId: string, dueDate: string): Promise<Donation[]> {
     const supabase = await this.getSupabaseClient();
@@ -503,7 +599,13 @@ export class DonationAdapter extends BaseAdapter<Donation> implements IDonationA
   }
 
   /**
-   * Format payment method for display
+   * Format payment method information for user-friendly display.
+   * Combines payment type, channel, and masked card/account number.
+   *
+   * @param type - Payment method type (card, ewallet, bank_transfer, etc.)
+   * @param channel - Payment channel (GCash, Maya, BDO, etc.)
+   * @param masked - Masked card/account number
+   * @returns Formatted display string or null
    */
   private formatPaymentMethodDisplay(
     type: string | null,

@@ -2,12 +2,14 @@
  * API Route: POST /api/admin/communication/ai/generate-template
  *
  * Generate a message template using AI based on user prompt.
+ * @requires communication:manage permission
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import type { ICommunicationAIService, ToneType } from '@/services/communication/CommunicationAIService';
 
 interface GenerateTemplateRequest {
@@ -17,9 +19,28 @@ interface GenerateTemplateRequest {
   tone?: ToneType;
 }
 
+/**
+ * POST /api/admin/communication/ai/generate-template
+ *
+ * AI-powered template generation
+ * @requires communication:manage permission
+ */
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body: GenerateTemplateRequest = await request.json();
 
     if (!body.prompt?.trim()) {

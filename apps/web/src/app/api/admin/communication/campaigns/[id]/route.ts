@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import type { CommunicationService } from '@/services/communication/CommunicationService';
 import type { RecipientService } from '@/services/communication/RecipientService';
 import type { UpdateCampaignDto, CommunicationChannel } from '@/models/communication/campaign.model';
@@ -28,11 +29,24 @@ interface RecipientInput {
  * GET /api/admin/communication/campaigns/[id]
  *
  * Fetches a single campaign by ID
+ * @requires communication:view permission
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
 
     const communicationService = container.get<CommunicationService>(TYPES.CommunicationService);
     const campaign = await communicationService.getCampaignById(id, tenantId);
@@ -64,11 +78,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * PUT /api/admin/communication/campaigns/[id]
  *
  * Updates a campaign with recipients
+ * @requires communication:manage permission
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // Extract recipients from body (they're sent separately from the DTO)
@@ -163,11 +191,24 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/admin/communication/campaigns/[id]
  *
  * Deletes a campaign
+ * @requires communication:delete permission
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:delete', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
 
     const communicationService = container.get<CommunicationService>(TYPES.CommunicationService);
     await communicationService.deleteCampaign(id, tenantId);

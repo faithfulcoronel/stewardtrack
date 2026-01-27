@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import type { CommunicationService } from '@/services/communication/CommunicationService';
 import type { CreateTemplateDto, UpdateTemplateDto } from '@/models/communication/template.model';
 
@@ -9,10 +10,24 @@ import type { CreateTemplateDto, UpdateTemplateDto } from '@/models/communicatio
  * GET /api/admin/communication/templates
  *
  * Fetches all templates for the current tenant
+ * @requires communication:view permission
  */
 export async function GET(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:view', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     const category = searchParams.get('category') || undefined;
@@ -47,10 +62,24 @@ export async function GET(request: NextRequest) {
  * POST /api/admin/communication/templates
  *
  * Creates a new template
+ * @requires communication:manage permission
  */
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body: CreateTemplateDto = await request.json();
 
     // Basic validation
@@ -99,10 +128,24 @@ export async function POST(request: NextRequest) {
  * PUT /api/admin/communication/templates
  *
  * Updates an existing template
+ * @requires communication:manage permission
  */
 export async function PUT(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body: UpdateTemplateDto & { id: string } = await request.json();
 
     if (!body.id) {

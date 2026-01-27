@@ -14,6 +14,21 @@ import type {
 } from '@/models/communication/recipient.model';
 import type { RecipientCriteria, CommunicationChannel } from '@/models/communication/campaign.model';
 
+/**
+ * RecipientService - Manages campaign recipients for the Communication module
+ *
+ * This service handles recipient resolution, creation, and status management
+ * for communication campaigns.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements:
+ * - View operations (get*, resolve*): Requires `communication:view` permission
+ * - Manage operations (create*, update*, prepare*): Requires `communication:manage` permission
+ * - Delete operations (delete*): Requires `communication:manage` permission
+ *
+ * @see {@link PermissionGate} for permission enforcement in API routes
+ */
 export interface RecipientService {
   createRecipient(data: CreateRecipientDto, tenantId: string): Promise<CampaignRecipient>;
   createRecipients(data: CreateRecipientDto[], tenantId: string): Promise<CampaignRecipient[]>;

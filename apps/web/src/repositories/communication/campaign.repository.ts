@@ -11,6 +11,21 @@ import type {
   CampaignActivity,
 } from '@/models/communication/campaign.model';
 
+/**
+ * ICampaignRepository - Data access interface for communication campaigns
+ *
+ * This repository handles CRUD operations for campaigns in the communication module.
+ * All operations are tenant-scoped and require appropriate permissions.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level):
+ * - View operations (get*): Requires `communication:view` permission
+ * - Manage operations (create*, update*): Requires `communication:manage` permission
+ * - Delete operations (delete*): Requires `communication:delete` permission
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ */
 export interface ICampaignRepository {
   createCampaign(data: CreateCampaignDto, tenantId: string): Promise<Campaign>;
   updateCampaign(id: string, data: UpdateCampaignDto, tenantId: string): Promise<Campaign>;

@@ -6,6 +6,8 @@ import type { ChartOfAccountService } from '@/services/ChartOfAccountService';
 import type { ChartOfAccount, AccountType } from '@/models/chartOfAccount.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 function getAccountTypeLabel(type: AccountType): string {
   const labels: Record<AccountType, string> = {
@@ -168,6 +170,21 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   const accounts = await coaService.findAll();
   const allAccounts = accounts.data || [];
 
@@ -242,25 +259,33 @@ const resolveAccountsListTable: ServiceDataSourceHandler = async (_request) => {
           intent: 'view',
           urlTemplate: '/admin/finance/accounts/{{id}}',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/accounts/manage?accountId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.accounts.delete',
-          confirmTitle: 'Delete Account',
-          confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: '{{name}} was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/accounts/manage?accountId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.accounts.delete',
+                confirmTitle: 'Delete Account',
+                confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: '{{name}} was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

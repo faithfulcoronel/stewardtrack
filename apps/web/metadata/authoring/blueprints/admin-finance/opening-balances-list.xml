@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-opening-balance" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add opening balance</Label>
           <Url>/admin/finance/opening-balances/manage</Url>

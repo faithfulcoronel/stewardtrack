@@ -60,7 +60,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-opening-balance" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit opening balance</Label>
           <Url>/admin/finance/opening-balances/manage?openingBalanceId={{params.openingBalanceId}}</Url>

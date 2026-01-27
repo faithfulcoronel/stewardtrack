@@ -13,6 +13,8 @@ import type { Fund } from '@/models/fund.model';
 import type { FinancialSource } from '@/models/financialSource.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -150,6 +152,21 @@ const resolveOpeningBalancesListTable: ServiceDataSourceHandler = async (_reques
   const currency = await getTenantCurrency();
   const timezone = await getTenantTimezone();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   const balances = await openingBalanceRepo.findAll({
     select: '*, fiscal_year:fiscal_years(id,name), fund:funds(id,name,code)',
     relationships: [], // Override default relationships since select already has embedded joins
@@ -237,25 +254,33 @@ const resolveOpeningBalancesListTable: ServiceDataSourceHandler = async (_reques
           urlTemplate: '/admin/finance/opening-balances/{{id}}',
           variant: 'ghost',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/opening-balances/manage?openingBalanceId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.opening-balances.delete',
-          confirmTitle: 'Delete opening balance',
-          confirmDescription: 'Are you sure you want to delete this opening balance?',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: 'Opening balance was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/opening-balances/manage?openingBalanceId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.opening-balances.delete',
+                confirmTitle: 'Delete opening balance',
+                confirmDescription: 'Are you sure you want to delete this opening balance?',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: 'Opening balance was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

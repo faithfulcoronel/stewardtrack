@@ -108,7 +108,7 @@ export interface Campaign extends BaseModel {
   failed_count: number;
   opened_count: number;
   clicked_count: number;
-  created_by?: string | null;
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;

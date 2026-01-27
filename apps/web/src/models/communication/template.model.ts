@@ -44,7 +44,7 @@ export interface Template extends BaseModel {
   is_ai_generated: boolean;
   ai_prompt?: string | null;
   usage_count: number;
-  created_by?: string | null;
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;

@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-budget" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add budget</Label>
           <Url>/admin/finance/budgets/manage</Url>

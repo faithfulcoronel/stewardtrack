@@ -10,7 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { ICommunicationAIService, ToneType, AssistType, ImageData } from '@/services/communication/CommunicationAIService';
@@ -42,9 +43,28 @@ interface AssistRequest {
   };
 }
 
+/**
+ * POST /api/admin/communication/ai/assist
+ *
+ * AI-powered content assistance
+ * @requires communication:manage permission
+ */
 export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
+    const userId = await getCurrentUserId();
+
+    // Check permission using PermissionGate (single source of truth)
+    const permissionGate = new PermissionGate('communication:manage', 'all');
+    const accessResult = await permissionGate.check(userId, tenantId);
+
+    if (!accessResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: accessResult.reason || 'Permission denied' },
+        { status: 403 }
+      );
+    }
+
     const body: AssistRequest = await request.json();
 
     // Validate request

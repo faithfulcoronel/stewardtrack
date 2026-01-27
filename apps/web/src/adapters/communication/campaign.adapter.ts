@@ -12,6 +12,22 @@ import type {
   CampaignActivity,
 } from '@/models/communication/campaign.model';
 
+/**
+ * ICampaignAdapter - Database adapter interface for communication campaigns
+ *
+ * This adapter handles direct database operations for campaigns in the communication module.
+ * Implements tenant-scoped queries and audit logging for all state changes.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level via PermissionGate):
+ * - View operations (getCampaigns, getCampaignById, getCampaignStats, getRecentActivity): `communication:view`
+ * - Manage operations (createCampaign, updateCampaign, updateCampaignCounts): `communication:manage`
+ * - Delete operations (deleteCampaign): `communication:delete`
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ * @see {@link CampaignRepository} for the repository layer
+ */
 export type ICampaignAdapter = IBaseAdapter<Campaign> & {
   createCampaign(data: CreateCampaignDto, tenantId: string): Promise<Campaign>;
   updateCampaign(id: string, data: UpdateCampaignDto, tenantId: string): Promise<Campaign>;

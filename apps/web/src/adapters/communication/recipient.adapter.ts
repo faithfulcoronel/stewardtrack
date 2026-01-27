@@ -9,6 +9,22 @@ import type {
   RecipientStatus,
 } from '@/models/communication/recipient.model';
 
+/**
+ * IRecipientAdapter - Database adapter interface for campaign recipients
+ *
+ * This adapter handles direct database operations for recipients in communication campaigns.
+ * Implements tenant-scoped queries for recipient management and status tracking.
+ *
+ * @module communication.core
+ *
+ * Permission Requirements (enforced at API route level via PermissionGate):
+ * - View operations (getRecipientsByCampaign, getRecipientById, getPendingRecipients, getRecipientCounts): `communication:view`
+ * - Manage operations (createRecipient, createRecipients, updateRecipientStatus): `communication:manage`
+ * - Delete operations (deleteRecipientsByCampaign): `communication:manage`
+ *
+ * @see {@link PermissionGate} for permission enforcement
+ * @see {@link RecipientRepository} for the repository layer
+ */
 export type IRecipientAdapter = IBaseAdapter<CampaignRecipient> & {
   createRecipient(data: CreateRecipientDto, tenantId: string): Promise<CampaignRecipient>;
   createRecipients(data: CreateRecipientDto[], tenantId: string): Promise<CampaignRecipient[]>;

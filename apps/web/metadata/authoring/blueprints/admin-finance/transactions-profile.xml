@@ -106,7 +106,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-transaction" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit</Label>
           <Url>/admin/finance/transactions/entry?transactionId={{params.transactionId}}</Url>

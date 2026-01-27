@@ -23,7 +23,7 @@ FEATURE: Communication
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
   featureCode="communication.core"
-  requiredPermissions="members:view"
+  requiredPermissions="communication:view"
   locale="en-US">
 
   <Page id="admin-communication-templates">

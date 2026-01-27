@@ -80,7 +80,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-fund" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit fund</Label>
           <Url>/admin/finance/funds/manage?fundId={{params.fundId}}</Url>

@@ -5,6 +5,8 @@ import type { TenantService } from '@/services/TenantService';
 import type { FiscalYearService } from '@/services/FiscalYearService';
 import type { FiscalYear } from '@/models/fiscalYear.model';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -56,6 +58,21 @@ const resolveFiscalYearsListTable: ServiceDataSourceHandler = async (_request) =
   }
 
   const timezone = await getTenantTimezone();
+
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
 
   const fiscalYears = await fiscalYearService.findAll();
   const allFiscalYears = (fiscalYears.data || []) as FiscalYear[];
@@ -117,25 +134,33 @@ const resolveFiscalYearsListTable: ServiceDataSourceHandler = async (_request) =
           urlTemplate: '/admin/finance/fiscal-years/{{id}}',
           variant: 'ghost',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/fiscal-years/manage?fiscalYearId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.fiscal-years.delete',
-          confirmTitle: 'Delete fiscal year',
-          confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: '{{name}} was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/fiscal-years/manage?fiscalYearId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.fiscal-years.delete',
+                confirmTitle: 'Delete fiscal year',
+                confirmDescription: 'Are you sure you want to delete "{{name}}"? This cannot be undone.',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: '{{name}} was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

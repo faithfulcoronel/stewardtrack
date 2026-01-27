@@ -7,6 +7,8 @@ import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeE
 import { type FinancialSource, type SourceType, PH_BANK_CHANNELS } from '@/models/financialSource.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 function getSourceTypeLabel(type: SourceType): string {
   const labels: Record<SourceType, string> = {
@@ -162,6 +164,21 @@ const resolveSourcesListTable: ServiceDataSourceHandler = async (_request) => {
     throw new Error('No tenant context available');
   }
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  let canDelete = false;
+
+  if (userId && tenant) {
+    const [manageResult, deleteResult] = await Promise.all([
+      new PermissionGate('finance:manage').check(userId, tenant.id),
+      new PermissionGate('finance:delete').check(userId, tenant.id),
+    ]);
+    canManage = manageResult.allowed;
+    canDelete = deleteResult.allowed;
+  }
+
   const sources = await sourceService.findAll();
   const allSources = sources.data || [];
 
@@ -227,25 +244,33 @@ const resolveSourcesListTable: ServiceDataSourceHandler = async (_request) => {
           intent: 'view',
           urlTemplate: '/admin/finance/sources/{{id}}',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/sources/manage?sourceId={{id}}',
-          variant: 'secondary',
-        },
-        {
-          id: 'delete-record',
-          label: 'Delete',
-          intent: 'delete',
-          handler: 'admin-finance.sources.delete',
-          confirmTitle: 'Delete Source',
-          confirmDescription: 'Are you sure you want to delete "{{name}}"?',
-          confirmLabel: 'Delete',
-          cancelLabel: 'Cancel',
-          successMessage: '{{name}} was deleted.',
-          variant: 'destructive',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/sources/manage?sourceId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
+        ...(canDelete
+          ? [
+              {
+                id: 'delete-record',
+                label: 'Delete',
+                intent: 'delete',
+                handler: 'admin-finance.sources.delete',
+                confirmTitle: 'Delete Source',
+                confirmDescription: 'Are you sure you want to delete "{{name}}"?',
+                confirmLabel: 'Delete',
+                cancelLabel: 'Cancel',
+                successMessage: '{{name}} was deleted.',
+                variant: 'destructive',
+              },
+            ]
+          : []),
       ],
     },
   ];

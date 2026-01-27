@@ -8,6 +8,8 @@ import type { IDonationRepository } from '@/repositories/donation.repository';
 import type { Donation, DonationStatus, RecurringStatus } from '@/models/donation.model';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
 import { getTenantTimezone, formatDate } from './datetime-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // ==================== LIST PAGE HANDLERS ====================
 
@@ -229,6 +231,15 @@ const resolveDonationsListTable: ServiceDataSourceHandler = async (_request) => 
   const currency = await getTenantCurrency();
   const timezone = await getTenantTimezone();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManageDonations = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('donations:manage').check(userId, tenant.id);
+    canManageDonations = manageResult.allowed;
+  }
+
   // Get all donations
   const donationsResult = await donationRepo.findAll();
   const donations = (donationsResult?.data || []) as Donation[];
@@ -326,19 +337,23 @@ const resolveDonationsListTable: ServiceDataSourceHandler = async (_request) => 
           intent: 'view',
           urlTemplate: '/admin/finance/donations/{{id}}',
         },
-        {
-          id: 'refund-record',
-          label: 'Refund',
-          intent: 'action',
-          handler: 'admin-finance.donations.refund',
-          confirmTitle: 'Issue refund',
-          confirmDescription: 'Are you sure you want to refund this donation? This action cannot be undone.',
-          confirmLabel: 'Refund',
-          cancelLabel: 'Cancel',
-          successMessage: 'Refund initiated successfully',
-          variant: 'destructive',
-          condition: '{{status}} === "Paid"',
-        },
+        ...(canManageDonations
+          ? [
+              {
+                id: 'refund-record',
+                label: 'Refund',
+                intent: 'action',
+                handler: 'admin-finance.donations.refund',
+                confirmTitle: 'Issue refund',
+                confirmDescription: 'Are you sure you want to refund this donation? This action cannot be undone.',
+                confirmLabel: 'Refund',
+                cancelLabel: 'Cancel',
+                successMessage: 'Refund initiated successfully',
+                variant: 'destructive',
+                condition: '{{status}} === "Paid"',
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -1142,6 +1157,15 @@ const resolveRecurringDonationsListTable: ServiceDataSourceHandler = async (_req
   const currency = await getTenantCurrency();
   const timezone = await getTenantTimezone();
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManageDonations = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('donations:manage').check(userId, tenant.id);
+    canManageDonations = manageResult.allowed;
+  }
+
   // Get all donations
   const donationsResult = await donationRepo.findAll();
   const donations = (donationsResult?.data || []) as Donation[];
@@ -1234,45 +1258,49 @@ const resolveRecurringDonationsListTable: ServiceDataSourceHandler = async (_req
           intent: 'view',
           urlTemplate: '/admin/finance/donations/recurring/{{id}}',
         },
-        {
-          id: 'pause-subscription',
-          label: 'Pause',
-          intent: 'action',
-          handler: 'admin-finance.donations.recurring.pause',
-          confirmTitle: 'Pause subscription',
-          confirmDescription: 'Are you sure you want to pause this recurring donation? The donor will not be charged until resumed.',
-          confirmLabel: 'Pause',
-          cancelLabel: 'Cancel',
-          successMessage: 'Subscription paused successfully',
-          variant: 'secondary',
-          condition: '{{status}} === "Active"',
-        },
-        {
-          id: 'resume-subscription',
-          label: 'Resume',
-          intent: 'action',
-          handler: 'admin-finance.donations.recurring.resume',
-          confirmTitle: 'Resume subscription',
-          confirmDescription: 'Are you sure you want to resume this recurring donation? The donor will be charged on the next scheduled date.',
-          confirmLabel: 'Resume',
-          cancelLabel: 'Cancel',
-          successMessage: 'Subscription resumed successfully',
-          variant: 'primary',
-          condition: '{{status}} === "Paused"',
-        },
-        {
-          id: 'cancel-subscription',
-          label: 'Cancel',
-          intent: 'action',
-          handler: 'admin-finance.donations.recurring.cancel',
-          confirmTitle: 'Cancel subscription',
-          confirmDescription: 'Are you sure you want to permanently cancel this recurring donation? This action cannot be undone.',
-          confirmLabel: 'Cancel subscription',
-          cancelLabel: 'Keep active',
-          successMessage: 'Subscription cancelled',
-          variant: 'destructive',
-          condition: '{{status}} !== "Cancelled"',
-        },
+        ...(canManageDonations
+          ? [
+              {
+                id: 'pause-subscription',
+                label: 'Pause',
+                intent: 'action',
+                handler: 'admin-finance.donations.recurring.pause',
+                confirmTitle: 'Pause subscription',
+                confirmDescription: 'Are you sure you want to pause this recurring donation? The donor will not be charged until resumed.',
+                confirmLabel: 'Pause',
+                cancelLabel: 'Cancel',
+                successMessage: 'Subscription paused successfully',
+                variant: 'secondary',
+                condition: '{{status}} === "Active"',
+              },
+              {
+                id: 'resume-subscription',
+                label: 'Resume',
+                intent: 'action',
+                handler: 'admin-finance.donations.recurring.resume',
+                confirmTitle: 'Resume subscription',
+                confirmDescription: 'Are you sure you want to resume this recurring donation? The donor will be charged on the next scheduled date.',
+                confirmLabel: 'Resume',
+                cancelLabel: 'Cancel',
+                successMessage: 'Subscription resumed successfully',
+                variant: 'primary',
+                condition: '{{status}} === "Paused"',
+              },
+              {
+                id: 'cancel-subscription',
+                label: 'Cancel',
+                intent: 'action',
+                handler: 'admin-finance.donations.recurring.cancel',
+                confirmTitle: 'Cancel subscription',
+                confirmDescription: 'Are you sure you want to permanently cancel this recurring donation? This action cannot be undone.',
+                confirmLabel: 'Cancel subscription',
+                cancelLabel: 'Keep active',
+                successMessage: 'Subscription cancelled',
+                variant: 'destructive',
+                condition: '{{status}} !== "Cancelled"',
+              },
+            ]
+          : []),
       ],
     },
   ];

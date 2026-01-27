@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-finance" route="transactions/entry" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:edit" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-finance" route="transactions/entry" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:manage" locale="en-US">
   <Page id="admin-finance-transactions-entry">
     <Title>Record transaction</Title>
     <Regions>

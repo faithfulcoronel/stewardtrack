@@ -144,7 +144,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CortanatechSolutions\\\\source\\\\repos\\\\github\\\\stewardtrack\" -Filter \"*RecipientSelector*\" -Recurse -Name)",
       "Bash(Remove-Item -Recurse -Force node_modules, apps/web/node_modules, pnpm-lock.yaml -ErrorAction SilentlyContinue)",
       "Bash(npx rimraf:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-ChildItem ''C:/Users/CortanatechSolutions/source/repos/github/stewardtrack/apps/web/metadata/authoring/blueprints/admin-finance/accounts-*.xml'' | ForEach-Object { \\(Get-Content $_.FullName -Raw\\) -replace ''featureCode=\"\"finance.core\"\"'',''featureCode=\"\"accounts.core\"\"'' -replace ''requiredPermissions=\"\"finance:view\"\"'',''requiredPermissions=\"\"accounts:view\"\"'' -replace ''requiredPermissions=\"\"finance:manage\"\"'',''requiredPermissions=\"\"accounts:manage\"\"'' | Set-Content $_.FullName -NoNewline; Write-Host Updated: $_.Name }\")",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-ChildItem ''C:/Users/CortanatechSolutions/source/repos/github/stewardtrack/apps/web/metadata/authoring/blueprints/admin-community/accounts-*.xml'' | ForEach-Object { \\(Get-Content $_.FullName -Raw\\) -replace ''featureCode=\"\"finance.core\"\"'',''featureCode=\"\"accounts.core\"\"'' -replace ''requiredPermissions=\"\"finance:view\"\"'',''requiredPermissions=\"\"accounts:view\"\"'' -replace ''requiredPermissions=\"\"finance:manage\"\"'',''requiredPermissions=\"\"accounts:manage\"\"'' | Set-Content $_.FullName -NoNewline; Write-Host Updated: $_.Name }\")"
     ],
     "deny": [],
     "ask": []

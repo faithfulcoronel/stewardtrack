@@ -3,7 +3,7 @@
  *
  * Create or edit an account in the chart of accounts.
  *
- * SECURITY: Protected by AccessGate requiring finance:edit permission.
+ * SECURITY: Protected by AccessGate requiring accounts:manage permission.
  */
 
 import type { Metadata } from 'next';
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 export default async function AccountManagePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(['finance:edit'], 'any', {
-    fallbackPath: '/unauthorized?reason=finance_edit_access',
+  const gate = Gate.withPermission(['accounts:manage'], 'any', {
+    fallbackPath: '/unauthorized?reason=accounts_manage_access',
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

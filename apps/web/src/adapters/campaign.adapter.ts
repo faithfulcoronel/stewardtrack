@@ -1,3 +1,11 @@
+/**
+ * Campaign Adapter
+ *
+ * Handles database operations for fundraising campaigns.
+ * Campaigns track donation goals, progress, and donor engagement over time.
+ *
+ * @module adapters/campaign
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
@@ -13,25 +21,49 @@ import type {
 } from '@/models/campaign.model';
 
 /**
- * Interface for Campaign data access operations
+ * Interface for campaign database operations.
+ * Extends IBaseAdapter with campaign-specific methods for progress tracking.
  */
 export interface ICampaignAdapter extends IBaseAdapter<Campaign> {
+  /** Create a new fundraising campaign */
   createCampaign(data: CreateCampaignDto, tenantId: string): Promise<Campaign>;
+  /** Update campaign details */
   updateCampaign(id: string, data: UpdateCampaignDto, tenantId: string): Promise<Campaign>;
+  /** Update campaign status (draft, active, completed, cancelled) */
   updateCampaignStatus(id: string, status: CampaignStatus, tenantId: string): Promise<Campaign>;
+  /** Get campaign with calculated progress metrics */
   getCampaignWithProgress(id: string, tenantId: string): Promise<CampaignWithProgress | null>;
+  /** Get all active campaigns with progress */
   getActiveCampaigns(tenantId: string): Promise<CampaignWithProgress[]>;
+  /** Recalculate campaign totals from donations */
   refreshCampaignTotals(campaignId: string, tenantId: string): Promise<void>;
 }
 
+/**
+ * Campaign adapter implementation.
+ *
+ * Provides database operations for managing fundraising campaigns including:
+ * - Creating campaigns with goals, dates, and fund allocation
+ * - Tracking progress with real-time totals and donor counts
+ * - Managing campaign lifecycle (draft → active → completed)
+ * - Calculating progress percentages and days remaining
+ *
+ * Campaigns link donations to specific fundraising goals and
+ * provide visibility into giving progress over time.
+ *
+ * @extends BaseAdapter<Campaign>
+ * @implements ICampaignAdapter
+ */
 @injectable()
 export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignAdapter {
   constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
     super();
   }
 
+  /** Database table name for campaigns */
   protected tableName = 'campaigns';
 
+  /** Default fields to select in queries */
   protected defaultSelect = `
     id,
     tenant_id,
@@ -50,6 +82,7 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
     updated_at
   `;
 
+  /** Default relationships to include in queries */
   protected defaultRelationships: QueryOptions['relationships'] = [
     {
       table: 'funds',
@@ -58,6 +91,11 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
     },
   ];
 
+  /**
+   * Post-create hook to log audit event.
+   *
+   * @param data - Created campaign data
+   */
   protected override async onAfterCreate(data: Campaign): Promise<void> {
     await this.auditService.logAuditEvent('create', 'campaign', data.id, {
       name: data.name,
@@ -65,6 +103,11 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
     });
   }
 
+  /**
+   * Post-update hook to log audit event.
+   *
+   * @param data - Updated campaign data
+   */
   protected override async onAfterUpdate(data: Campaign): Promise<void> {
     await this.auditService.logAuditEvent('update', 'campaign', data.id, {
       name: data.name,
@@ -73,7 +116,11 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Create a new campaign
+   * Create a new fundraising campaign.
+   *
+   * @param data - Campaign creation data
+   * @param tenantId - Tenant ID for isolation
+   * @returns Created campaign record
    */
   async createCampaign(data: CreateCampaignDto, tenantId: string): Promise<Campaign> {
     const supabase = await this.getSupabaseClient();
@@ -116,7 +163,12 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Update a campaign
+   * Update a campaign's details.
+   *
+   * @param id - Campaign ID to update
+   * @param data - Campaign update data
+   * @param tenantId - Tenant ID for isolation
+   * @returns Updated campaign record
    */
   async updateCampaign(id: string, data: UpdateCampaignDto, tenantId: string): Promise<Campaign> {
     const supabase = await this.getSupabaseClient();
@@ -148,7 +200,13 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Update campaign status
+   * Update a campaign's status.
+   * Status transitions: draft → active → completed or cancelled.
+   *
+   * @param id - Campaign ID to update
+   * @param status - New campaign status
+   * @param tenantId - Tenant ID for isolation
+   * @returns Updated campaign record
    */
   async updateCampaignStatus(
     id: string,
@@ -184,7 +242,12 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Get campaign with progress calculation
+   * Get a campaign with calculated progress metrics.
+   * Includes progress percentage, days remaining, and active status.
+   *
+   * @param id - Campaign ID to fetch
+   * @param tenantId - Tenant ID for isolation
+   * @returns Campaign with progress data or null if not found
    */
   async getCampaignWithProgress(
     id: string,
@@ -213,7 +276,11 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Get all active campaigns with progress
+   * Get all active campaigns with progress metrics.
+   * Returns campaigns currently accepting donations.
+   *
+   * @param tenantId - Tenant ID for isolation
+   * @returns Array of active campaigns with progress data
    */
   async getActiveCampaigns(tenantId: string): Promise<CampaignWithProgress[]> {
     const supabase = await this.getSupabaseClient();
@@ -239,7 +306,12 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Refresh campaign totals (called by trigger or manually)
+   * Refresh campaign totals by recalculating from donations.
+   * Updates total_raised and donor_count based on paid donations.
+   * Can be called manually or triggered after donation updates.
+   *
+   * @param campaignId - Campaign ID to refresh
+   * @param tenantId - Tenant ID for isolation
    */
   async refreshCampaignTotals(campaignId: string, tenantId: string): Promise<void> {
     const supabase = await this.getSupabaseClient();
@@ -278,7 +350,11 @@ export class CampaignAdapter extends BaseAdapter<Campaign> implements ICampaignA
   }
 
   /**
-   * Enrich campaign with calculated progress fields
+   * Enrich campaign with calculated progress fields.
+   * Adds progress_percentage, days_remaining, and is_active flags.
+   *
+   * @param campaign - Base campaign record
+   * @returns Campaign enriched with progress metrics
    */
   private enrichCampaignWithProgress(campaign: Campaign): CampaignWithProgress {
     const now = new Date();

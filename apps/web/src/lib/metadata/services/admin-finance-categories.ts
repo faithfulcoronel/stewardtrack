@@ -11,6 +11,8 @@ import type { TenantService } from '@/services/TenantService';
 import type { ICategoryRepository } from '@/repositories/category.repository';
 import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
 import { getTenantCurrency, formatCurrency } from './finance-utils';
+import { getCurrentUserId } from '@/lib/server/context';
+import { PermissionGate } from '@/lib/access-gate';
 
 // Helper to get user-friendly transaction type display
 const getTransactionTypeDisplay = (type: string): { label: string; variant: string } => {
@@ -175,6 +177,15 @@ const resolveIncomeCategoriesListTable: ServiceDataSourceHandler = async (_reque
     throw new Error('No tenant context available');
   }
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('finance:manage').check(userId, tenant.id);
+    canManage = manageResult.allowed;
+  }
+
   const result = await categoryRepository.findAll();
   const categories = (result.data || []) as CategoryRecord[];
   const incomeCategories = categories.filter((cat) => cat.type === 'income_transaction');
@@ -217,13 +228,17 @@ const resolveIncomeCategoriesListTable: ServiceDataSourceHandler = async (_reque
           intent: 'view',
           urlTemplate: '/admin/finance/income-categories/{{id}}',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/income-categories/manage?categoryId={{id}}',
-          variant: 'secondary',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/income-categories/manage?categoryId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -732,6 +747,15 @@ const resolveExpenseCategoriesListTable: ServiceDataSourceHandler = async (_requ
     throw new Error('No tenant context available');
   }
 
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('finance:manage').check(userId, tenant.id);
+    canManage = manageResult.allowed;
+  }
+
   const result = await categoryRepository.findAll();
   const categories = (result.data || []) as CategoryRecord[];
   const expenseCategories = categories.filter((cat) => cat.type === 'expense_transaction');
@@ -774,13 +798,17 @@ const resolveExpenseCategoriesListTable: ServiceDataSourceHandler = async (_requ
           intent: 'view',
           urlTemplate: '/admin/finance/expense-categories/{{id}}',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/expense-categories/manage?categoryId={{id}}',
-          variant: 'secondary',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/expense-categories/manage?categoryId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -1282,6 +1310,21 @@ const resolveBudgetCategoriesListSummary: ServiceDataSourceHandler = async (_req
 
 const resolveBudgetCategoriesListTable: ServiceDataSourceHandler = async (_request) => {
   const categoryRepository = container.get<ICategoryRepository>(TYPES.ICategoryRepository);
+  const tenantService = container.get<TenantService>(TYPES.TenantService);
+
+  const tenant = await tenantService.getCurrentTenant();
+  if (!tenant) {
+    throw new Error('No tenant context available');
+  }
+
+  // Check user permissions for action visibility using PermissionGate
+  const userId = await getCurrentUserId({ optional: true });
+
+  let canManage = false;
+  if (userId && tenant) {
+    const manageResult = await new PermissionGate('finance:manage').check(userId, tenant.id);
+    canManage = manageResult.allowed;
+  }
 
   const result = await categoryRepository.findAll();
   const categories = (result.data || []) as CategoryRecord[];
@@ -1312,13 +1355,17 @@ const resolveBudgetCategoriesListTable: ServiceDataSourceHandler = async (_reque
           intent: 'view',
           urlTemplate: '/admin/finance/budget-categories/{{id}}',
         },
-        {
-          id: 'edit-record',
-          label: 'Edit',
-          intent: 'edit',
-          urlTemplate: '/admin/finance/budget-categories/manage?categoryId={{id}}',
-          variant: 'secondary',
-        },
+        ...(canManage
+          ? [
+              {
+                id: 'edit-record',
+                label: 'Edit',
+                intent: 'edit',
+                urlTemplate: '/admin/finance/budget-categories/manage?categoryId={{id}}',
+                variant: 'secondary',
+              },
+            ]
+          : []),
       ],
     },
   ];

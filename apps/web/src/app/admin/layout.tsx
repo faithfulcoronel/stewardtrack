@@ -403,7 +403,7 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
   // Accounts
   '/admin/community/accounts': {
     roles: ['role_tenant_admin', 'role_senior_pastor', 'role_treasurer', 'role_auditor', 'role_deacon_elder'],
-    permission: 'finance:view',
+    permission: 'accounts:view',
   },
 
   // Finance
@@ -412,22 +412,22 @@ const MENU_ACCESS_MATRIX: Record<string, MenuAccessConfig> = {
     permission: 'finance:view',
   },
 
-  // Communication - All roles for testing (permission checks disabled per plan)
+  // Communication
   '/admin/communication': {
-    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
-    // No permission required - testing phase
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_deacon_elder'],
+    permission: 'communication:view',
   },
   '/admin/communication/campaigns': {
-    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
-    // No permission required - testing phase
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_deacon_elder'],
+    permission: 'communication:view',
   },
   '/admin/communication/compose': {
-    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
-    // No permission required - testing phase
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary'],
+    permission: 'communication:manage',
   },
   '/admin/communication/templates': {
-    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_treasurer', 'role_auditor', 'role_secretary', 'role_deacon_elder', 'role_volunteer', 'role_member', 'role_visitor'],
-    // No permission required - testing phase
+    roles: ['role_tenant_admin', 'role_senior_pastor', 'role_associate_pastor', 'role_ministry_leader', 'role_secretary', 'role_deacon_elder'],
+    permission: 'communication:view',
   },
 
   // Administration - AI Assistant

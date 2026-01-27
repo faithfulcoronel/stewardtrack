@@ -91,7 +91,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-category" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit category</Label>
           <Url>/admin/finance/budget-categories/manage?categoryId={{params.categoryId}}</Url>

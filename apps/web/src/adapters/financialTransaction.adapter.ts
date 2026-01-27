@@ -1,3 +1,11 @@
+/**
+ * Financial Transaction Adapter
+ *
+ * Handles database operations for double-entry bookkeeping transaction lines.
+ * Financial transactions are the individual debit/credit entries within a journal entry.
+ *
+ * @module adapters/financialTransaction
+ */
 import 'server-only';
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
@@ -6,8 +14,27 @@ import { FinancialTransaction } from '@/models/financialTransaction.model';
 import type { AuditService } from '@/services/AuditService';
 import { TYPES } from '@/lib/types';
 
+/**
+ * Interface for financial transaction database operations.
+ * Extends IBaseAdapter with standard CRUD operations for transaction lines.
+ */
 export type IFinancialTransactionAdapter = IBaseAdapter<FinancialTransaction>;
 
+/**
+ * Financial Transaction adapter implementation.
+ *
+ * Provides database operations for managing double-entry transaction lines including:
+ * - Creating debit/credit entries linked to transaction headers
+ * - Linking transactions to chart of accounts, funds, and sources
+ * - Tracking reconciliation status for bank reconciliation
+ * - Enforcing header status rules (no changes to posted/voided transactions)
+ *
+ * Transactions follow double-entry bookkeeping principles where
+ * total debits must equal total credits within a header.
+ *
+ * @extends BaseAdapter<FinancialTransaction>
+ * @implements IFinancialTransactionAdapter
+ */
 @injectable()
 export class FinancialTransactionAdapter
   extends BaseAdapter<FinancialTransaction>
@@ -16,8 +43,11 @@ export class FinancialTransactionAdapter
   constructor(@inject(TYPES.AuditService) private auditService: AuditService) {
     super();
   }
+
+  /** Database table name for financial transactions */
   protected tableName = 'financial_transactions';
 
+  /** Default fields to select in queries */
   protected defaultSelect = `
     id,
     type,
@@ -42,6 +72,7 @@ export class FinancialTransactionAdapter
     updated_at
   `;
 
+  /** Default relationships to include in queries */
   protected defaultRelationships: QueryOptions['relationships'] = [
     {
       table: 'chart_of_accounts',
@@ -70,6 +101,14 @@ export class FinancialTransactionAdapter
     }
   ];
 
+  /**
+   * Pre-create hook to validate header status.
+   * Prevents adding transactions to posted or voided headers.
+   *
+   * @param data - Partial transaction data being created
+   * @returns Modified transaction data
+   * @throws Error if header is posted or voided
+   */
   protected override async onBeforeCreate(
     data: Partial<FinancialTransaction>
   ): Promise<Partial<FinancialTransaction>> {
@@ -88,6 +127,11 @@ export class FinancialTransactionAdapter
     return data;
   }
 
+  /**
+   * Post-create hook to log audit event.
+   *
+   * @param data - Created transaction data
+   */
   protected override async onAfterCreate(
     data: FinancialTransaction
   ): Promise<void> {
@@ -99,6 +143,15 @@ export class FinancialTransactionAdapter
     );
   }
 
+  /**
+   * Pre-update hook to validate header status.
+   * Prevents modifying transactions of posted or voided headers.
+   *
+   * @param id - ID of transaction being updated
+   * @param data - Partial transaction data to update
+   * @returns Modified transaction data
+   * @throws Error if header is posted or voided
+   */
   protected override async onBeforeUpdate(
     id: string,
     data: Partial<FinancialTransaction>
@@ -131,6 +184,11 @@ export class FinancialTransactionAdapter
     return data;
   }
 
+  /**
+   * Post-update hook to log audit event.
+   *
+   * @param data - Updated transaction data
+   */
   protected override async onAfterUpdate(
     data: FinancialTransaction
   ): Promise<void> {
@@ -142,6 +200,13 @@ export class FinancialTransactionAdapter
     );
   }
 
+  /**
+   * Pre-delete hook to validate header status.
+   * Prevents deleting transactions of posted or voided headers.
+   *
+   * @param id - ID of transaction being deleted
+   * @throws Error if header is posted or voided
+   */
   protected override async onBeforeDelete(id: string): Promise<void> {
     const supabase = await this.getSupabaseClient();
     const { data: tx, error } = await supabase
@@ -165,6 +230,11 @@ export class FinancialTransactionAdapter
     }
   }
 
+  /**
+   * Post-delete hook to log audit event.
+   *
+   * @param id - ID of deleted transaction
+   */
   protected override async onAfterDelete(id: string): Promise<void> {
     await this.auditService.logAuditEvent('delete', 'financial_transaction', id, {
       id

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PageDefinition kind="blueprint" module="admin-finance" route="accounts/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="finance.core" requiredPermissions="finance:view" locale="en-US">
+<PageDefinition kind="blueprint" module="admin-finance" route="accounts/profile" schemaVersion="1.0.0" contentVersion="1.0.0" featureCode="accounts.core" requiredPermissions="accounts:view" locale="en-US">
   <Page id="admin-finance-accounts-profile">
     <Title>Account details</Title>
     <Regions>
@@ -80,7 +80,7 @@
     </DataSources>
     <Actions>
       <Action id="edit-account" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Edit account</Label>
           <Url>/admin/finance/accounts/manage?accountId={{params.accountId}}</Url>
