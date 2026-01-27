@@ -64,3 +64,10 @@ export {
   type PermissionDetail,
   type RoleTemplateDetail,
 } from './featureImportReport';
+
+// Tenant deletion report
+export {
+  generateTenantDeletionReport,
+  type TenantDeletionReportData,
+  type DeletedTenantDetail,
+} from './tenantDeletionReport';

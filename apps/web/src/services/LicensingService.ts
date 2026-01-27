@@ -28,6 +28,7 @@ import type {
   CreateLicenseAssignmentDto,
   LicenseHistoryEntry,
   FeatureChangeSummary,
+  BulkTenantDeletionResult,
 } from '@/models/licenseAssignment.model';
 import type { TenantFeatureGrant } from '@/models/rbac.model';
 
@@ -616,6 +617,28 @@ export class LicensingService {
       );
     } catch (error) {
       console.error('Error getting feature change summary:', error);
+      throw error;
+    }
+  }
+
+  // ==================== BULK TENANT MANAGEMENT METHODS ====================
+
+  /**
+   * Bulk delete tenants and all associated data
+   * This is a destructive operation that permanently removes:
+   * - All tenant data (members, donations, finances, events, etc.)
+   * - All RBAC data (roles, permissions, user assignments)
+   * - All licensing data (feature grants, license history)
+   * - Auth users who no longer belong to any tenant
+   *
+   * @param tenantIds - Array of tenant UUIDs to delete
+   * @returns Result with counts of deleted items
+   */
+  async bulkDeleteTenants(tenantIds: string[]): Promise<BulkTenantDeletionResult> {
+    try {
+      return await this.licenseAssignmentRepository.bulkDeleteTenants(tenantIds);
+    } catch (error) {
+      console.error('Error bulk deleting tenants:', error);
       throw error;
     }
   }
