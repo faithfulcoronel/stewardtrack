@@ -21,6 +21,21 @@ export const metadata: Metadata = {
       'Simplify church management with StewardTrack. All-in-one platform for member management, events, giving, and communications.',
     type: 'website',
     siteName: 'StewardTrack',
+    images: [
+      {
+        url: 'https://stewardtrack.com/stewardtrack_promo.png',
+        width: 1200,
+        height: 630,
+        alt: 'StewardTrack - Modern Church Management System',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StewardTrack - Modern Church Management System',
+    description:
+      'Simplify church management with StewardTrack. All-in-one platform for member management, events, giving, and communications.',
+    images: ['https://stewardtrack.com/stewardtrack_promo.png'],
   },
 };
 
