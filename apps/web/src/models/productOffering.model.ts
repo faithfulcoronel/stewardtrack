@@ -24,6 +24,8 @@ export interface ProductOffering extends BaseModel {
   max_admin_users?: number | null;
   /** Maximum financial transactions per month. NULL = unlimited, 0 = not available */
   max_transactions_per_month?: number | null;
+  /** Monthly AI credits limit. NULL = unlimited, 0 = not available */
+  max_ai_credits_per_month?: number | null;
   /** Number of days for trial period. Only applicable when offering_type = 'trial' */
   trial_days?: number | null;
   is_active: boolean;
@@ -104,6 +106,8 @@ export interface CreateProductOfferingDto {
   max_admin_users?: number | null;
   /** Maximum financial transactions per month. NULL = unlimited */
   max_transactions_per_month?: number | null;
+  /** Monthly AI credits limit. NULL = unlimited */
+  max_ai_credits_per_month?: number | null;
   /** Number of days for trial period. Only applicable when offering_type = 'trial' */
   trial_days?: number | null;
   is_active?: boolean;
@@ -132,6 +136,8 @@ export interface UpdateProductOfferingDto {
   max_admin_users?: number | null;
   /** Maximum financial transactions per month. NULL = unlimited */
   max_transactions_per_month?: number | null;
+  /** Monthly AI credits limit. NULL = unlimited */
+  max_ai_credits_per_month?: number | null;
   /** Number of days for trial period. Only applicable when offering_type = 'trial' */
   trial_days?: number | null;
   is_active?: boolean;

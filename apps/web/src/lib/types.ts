@@ -471,6 +471,11 @@ export const TYPES = {
   ISearchAdapter: Symbol.for('ISearchAdapter'),
   ISearchRepository: Symbol.for('ISearchRepository'),
   SearchService: Symbol.for('SearchService'),
+
+  // ==================== Quota & Usage Tracking ====================
+  ITenantUsageAdapter: Symbol.for('ITenantUsageAdapter'),
+  ITenantUsageRepository: Symbol.for('ITenantUsageRepository'),
+  QuotaService: Symbol.for('QuotaService'),
 } as const;
 
 export type TypeBindings = typeof TYPES;

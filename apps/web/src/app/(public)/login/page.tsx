@@ -61,7 +61,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isChecking, setIsChecking] = useState(true);
-  const [trialDays, setTrialDays] = useState(14);
+  const [trialDays, setTrialDays] = useState(30);
 
   // Get the redirectTo parameter from URL (set by admin layout when unauthenticated)
   const redirectTo = searchParams.get('redirectTo') || '/admin';

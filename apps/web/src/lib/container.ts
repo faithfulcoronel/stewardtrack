@@ -1252,9 +1252,18 @@ container.bind<FacebookChannelService>(TYPES.FacebookChannelService).to(Facebook
 
 // ==================== GLOBAL SEARCH ====================
 import { SearchAdapter, type ISearchAdapter } from '@/adapters/search.adapter';
-import { SearchService, type ISearchService } from '@/services/SearchService';
+import { SearchService } from '@/services/SearchService';
 
 container.bind<ISearchAdapter>(TYPES.ISearchAdapter).to(SearchAdapter).inRequestScope();
 container.bind<SearchService>(TYPES.SearchService).to(SearchService).inRequestScope();
+
+// ==================== QUOTA & USAGE TRACKING ====================
+import { TenantUsageAdapter, type ITenantUsageAdapter } from '@/adapters/tenantUsage.adapter';
+import { TenantUsageRepository, type ITenantUsageRepository } from '@/repositories/tenantUsage.repository';
+import { QuotaService } from '@/services/QuotaService';
+
+container.bind<ITenantUsageAdapter>(TYPES.ITenantUsageAdapter).to(TenantUsageAdapter).inRequestScope();
+container.bind<ITenantUsageRepository>(TYPES.ITenantUsageRepository).to(TenantUsageRepository).inRequestScope();
+container.bind<QuotaService>(TYPES.QuotaService).to(QuotaService).inRequestScope();
 
 export { container };

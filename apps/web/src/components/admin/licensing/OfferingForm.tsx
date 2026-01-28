@@ -44,6 +44,7 @@ const DEFAULT_FORM_DATA: CreateProductOfferingDto = {
   max_storage_mb: null,
   max_admin_users: null,
   max_transactions_per_month: null,
+  max_ai_credits_per_month: null,
   trial_days: null,
   is_active: true,
   is_featured: false,
@@ -57,6 +58,13 @@ interface OfferingMetadata {
   converts_to_price?: number;
   cta_text?: string;
   features_headline?: string;
+  // Add-on pricing settings
+  online_donation_fee_percent?: number;
+  online_donation_fee_fixed?: number;
+  online_registration_fee_percent?: number;
+  online_registration_fee_fixed?: number;
+  ai_credits_price_per_1000?: number;
+  ai_credits_included?: number;
 }
 
 const DEFAULT_METADATA: OfferingMetadata = {
@@ -66,6 +74,12 @@ const DEFAULT_METADATA: OfferingMetadata = {
   converts_to_price: undefined,
   cta_text: '',
   features_headline: '',
+  online_donation_fee_percent: undefined,
+  online_donation_fee_fixed: undefined,
+  online_registration_fee_percent: undefined,
+  online_registration_fee_fixed: undefined,
+  ai_credits_price_per_1000: undefined,
+  ai_credits_included: undefined,
 };
 
 type OfferingFormMode = 'create' | 'edit';
@@ -181,6 +195,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
         max_storage_mb: offering.max_storage_mb ?? null,
         max_admin_users: offering.max_admin_users ?? null,
         max_transactions_per_month: offering.max_transactions_per_month ?? null,
+        max_ai_credits_per_month: offering.max_ai_credits_per_month ?? null,
         trial_days: (offering as any).trial_days ?? null,
         is_active: offering.is_active,
         is_featured: offering.is_featured,
@@ -200,6 +215,13 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
           converts_to_price: offeringMetadata.converts_to_price || undefined,
           cta_text: offeringMetadata.cta_text || '',
           features_headline: offeringMetadata.features_headline || '',
+          // Add-on pricing settings
+          online_donation_fee_percent: offeringMetadata.online_donation_fee_percent ?? undefined,
+          online_donation_fee_fixed: offeringMetadata.online_donation_fee_fixed ?? undefined,
+          online_registration_fee_percent: offeringMetadata.online_registration_fee_percent ?? undefined,
+          online_registration_fee_fixed: offeringMetadata.online_registration_fee_fixed ?? undefined,
+          ai_credits_price_per_1000: offeringMetadata.ai_credits_price_per_1000 ?? undefined,
+          ai_credits_included: offeringMetadata.ai_credits_included ?? undefined,
         });
       }
 
@@ -336,7 +358,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
   };
 
   const handleNumberChange = (
-    field: 'max_users' | 'max_tenants' | 'sort_order' | 'max_members' | 'max_sms_per_month' | 'max_emails_per_month' | 'max_storage_mb' | 'max_admin_users' | 'max_transactions_per_month' | 'trial_days',
+    field: 'max_users' | 'max_tenants' | 'sort_order' | 'max_members' | 'max_sms_per_month' | 'max_emails_per_month' | 'max_storage_mb' | 'max_admin_users' | 'max_transactions_per_month' | 'max_ai_credits_per_month' | 'trial_days',
     value: string
   ) => {
     if (value === '') {
@@ -497,6 +519,25 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
     if (metadata.features_headline?.trim()) {
       metadataPayload.features_headline = metadata.features_headline.trim();
     }
+    // Add-on pricing settings
+    if (metadata.online_donation_fee_percent !== undefined) {
+      metadataPayload.online_donation_fee_percent = metadata.online_donation_fee_percent;
+    }
+    if (metadata.online_donation_fee_fixed !== undefined) {
+      metadataPayload.online_donation_fee_fixed = metadata.online_donation_fee_fixed;
+    }
+    if (metadata.online_registration_fee_percent !== undefined) {
+      metadataPayload.online_registration_fee_percent = metadata.online_registration_fee_percent;
+    }
+    if (metadata.online_registration_fee_fixed !== undefined) {
+      metadataPayload.online_registration_fee_fixed = metadata.online_registration_fee_fixed;
+    }
+    if (metadata.ai_credits_price_per_1000 !== undefined) {
+      metadataPayload.ai_credits_price_per_1000 = metadata.ai_credits_price_per_1000;
+    }
+    if (metadata.ai_credits_included !== undefined) {
+      metadataPayload.ai_credits_included = metadata.ai_credits_included;
+    }
 
     const payload = {
       ...formData,
@@ -508,6 +549,7 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
       max_storage_mb: formData.max_storage_mb ?? null,
       max_admin_users: formData.max_admin_users ?? null,
       max_transactions_per_month: formData.max_transactions_per_month ?? null,
+      max_ai_credits_per_month: formData.max_ai_credits_per_month ?? null,
       trial_days: formData.offering_type === ProductOfferingType.TRIAL ? (formData.trial_days ?? null) : null,
       sort_order: formData.sort_order ?? 0,
       bundle_ids: selectedBundleIds,
@@ -687,6 +729,117 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                       <p className="text-xs text-muted-foreground mt-1">Display price after trial ends</p>
                     </div>
                   )}
+                </div>
+
+                {/* Add-on Pricing Settings */}
+                <div className="space-y-3 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                  <div>
+                    <Label className="text-sm font-medium">Add-on Pricing Settings</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Configure pricing for add-on services like online donations, registrations, and AI credits.
+                    </p>
+                  </div>
+
+                  {/* Online Donation Pricing */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Online Donation</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="online_donation_fee_percent">Fee Percentage (%)</Label>
+                        <Input
+                          id="online_donation_fee_percent"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={metadata.online_donation_fee_percent ?? ''}
+                          onChange={(e) => handleMetadataChange('online_donation_fee_percent', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="e.g. 2.9"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Percentage fee per donation</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="online_donation_fee_fixed">Fixed Fee</Label>
+                        <Input
+                          id="online_donation_fee_fixed"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={metadata.online_donation_fee_fixed ?? ''}
+                          onChange={(e) => handleMetadataChange('online_donation_fee_fixed', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="e.g. 0.30"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Fixed fee per transaction</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Online Registration Pricing */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Online Registration</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="online_registration_fee_percent">Fee Percentage (%)</Label>
+                        <Input
+                          id="online_registration_fee_percent"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={metadata.online_registration_fee_percent ?? ''}
+                          onChange={(e) => handleMetadataChange('online_registration_fee_percent', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="e.g. 2.5"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Percentage fee per registration</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="online_registration_fee_fixed">Fixed Fee</Label>
+                        <Input
+                          id="online_registration_fee_fixed"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={metadata.online_registration_fee_fixed ?? ''}
+                          onChange={(e) => handleMetadataChange('online_registration_fee_fixed', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="e.g. 0.25"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Fixed fee per transaction</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Credits Pricing */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Credits Add-on</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="ai_credits_price_per_1000">Price per 1,000 Credits</Label>
+                        <Input
+                          id="ai_credits_price_per_1000"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={metadata.ai_credits_price_per_1000 ?? ''}
+                          onChange={(e) => handleMetadataChange('ai_credits_price_per_1000', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="e.g. 5.00"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Cost per 1,000 additional credits</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="ai_credits_included">Included Credits</Label>
+                        <Input
+                          id="ai_credits_included"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={metadata.ai_credits_included ?? ''}
+                          onChange={(e) => handleMetadataChange('ai_credits_included', e.target.value ? parseInt(e.target.value, 10) : undefined)}
+                          placeholder="e.g. 1000"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Free credits included with plan</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -899,6 +1052,18 @@ export function OfferingForm({ mode, offeringId, redirectPath = '/admin/licensin
                         placeholder="Unlimited"
                       />
                       <p className="text-xs text-muted-foreground mt-1">Financial transactions limit</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="max_ai_credits_per_month">AI Credits/Month</Label>
+                      <Input
+                        id="max_ai_credits_per_month"
+                        type="number"
+                        min="0"
+                        value={formData.max_ai_credits_per_month ?? ''}
+                        onChange={(event) => handleNumberChange('max_ai_credits_per_month', event.target.value)}
+                        placeholder="Unlimited"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Monthly AI credits limit</p>
                     </div>
                   </div>
                 </div>

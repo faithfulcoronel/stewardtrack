@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Image,
   Zap,
+  Gauge,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -68,6 +69,7 @@ const iconMap: Record<string, LucideIcon> = {
   settings: Settings,
   image: Image,
   zap: Zap,
+  gauge: Gauge,
 };
 
 function getIcon(iconName?: string): LucideIcon {
@@ -86,7 +88,7 @@ interface NavItemProps {
 }
 
 function NavItem({ item, isActive, onClick }: NavItemProps) {
-  const Icon = getIcon(item.icon);
+  const Icon = useMemo(() => getIcon(item.icon), [item.icon]);
 
   return (
     <button
@@ -162,6 +164,7 @@ function MobileNav({ sections, activeItemId, onItemClick }: MobileNavProps) {
   const allItems = sections.flatMap((s) => s.items);
   const activeItem = allItems.find((i) => i.id === activeItemId);
   const [isOpen, setIsOpen] = useState(false);
+  const ActiveIcon = useMemo(() => getIcon(activeItem?.icon), [activeItem?.icon]);
 
   return (
     <div className="lg:hidden mb-6">
@@ -170,7 +173,7 @@ function MobileNav({ sections, activeItemId, onItemClick }: MobileNavProps) {
         className="w-full flex items-center justify-between px-4 py-3 bg-card border rounded-lg"
       >
         <div className="flex items-center gap-3">
-          {activeItem && React.createElement(getIcon(activeItem.icon), { className: 'h-4 w-4 text-muted-foreground' })}
+          {activeItem && <ActiveIcon className="h-4 w-4 text-muted-foreground" />}
           <span className="font-medium">{activeItem?.label || 'Select section'}</span>
         </div>
         <ChevronRight className={cn('h-4 w-4 text-muted-foreground transition-transform', isOpen && 'rotate-90')} />

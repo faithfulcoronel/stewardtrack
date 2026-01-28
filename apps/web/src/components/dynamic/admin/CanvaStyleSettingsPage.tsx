@@ -13,6 +13,7 @@ import { AdminIntegrationSettings } from './AdminIntegrationSettings';
 import { TeamMembersSection } from './TeamMembersSection';
 import { AdminAICreditsSettings } from './AdminAICreditsSettings';
 import { AdminMediaGallery } from './AdminMediaGallery';
+import { QuotaStatusSection } from './QuotaStatusSection';
 
 // ============================================================================
 // Types
@@ -69,6 +70,18 @@ const defaultSections: SettingsNavSection[] = [
         label: 'Integrations',
         icon: 'link',
         description: 'Email, SMS, webhooks',
+      },
+    ],
+  },
+  {
+    id: 'billing-usage',
+    title: 'Billing & Usage',
+    items: [
+      {
+        id: 'quota',
+        label: 'Usage & Quotas',
+        icon: 'gauge',
+        description: 'Monitor resource usage and plan limits',
       },
     ],
   },
@@ -548,6 +561,13 @@ export function CanvaStyleSettingsPage({
       ) : (
         <div className="text-center py-12 text-muted-foreground">Integrations not available</div>
       )}
+
+      {/* Quota Status Section */}
+      <QuotaStatusSection
+        title="Usage & Quotas"
+        description="Monitor your resource usage and plan limits"
+        showRefresh={true}
+      />
 
       {/* AI Credits Section */}
       <AICreditsSection currency={data.currency || 'PHP'} />

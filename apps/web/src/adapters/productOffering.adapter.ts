@@ -62,6 +62,7 @@ export class ProductOfferingAdapter
     max_storage_mb,
     max_admin_users,
     max_transactions_per_month,
+    max_ai_credits_per_month,
     trial_days,
     is_active,
     is_featured,
