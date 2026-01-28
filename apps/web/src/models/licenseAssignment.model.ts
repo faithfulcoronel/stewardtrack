@@ -43,6 +43,8 @@ export interface TenantForAssignment {
   member_count: number;
   created_at: string;
   last_activity: string | null;
+  // Tenant branding
+  tenant_logo_url: string | null;
 }
 
 /**

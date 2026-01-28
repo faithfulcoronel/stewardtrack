@@ -1,8 +1,8 @@
 -- =============================================================================
--- Migration: Enhance get_all_tenants_for_assignment RPC
+-- Migration: Add tenant_logo_url to get_all_tenants_for_assignment RPC
 -- =============================================================================
--- Description: Adds user_count, member_count, created_at, and last_activity
--- fields to support the enhanced tenant deletion UI.
+-- Description: Adds tenant_logo_url field to support displaying tenant logos
+-- in the License Assignments AG Grid.
 -- =============================================================================
 
 -- Drop the existing function first to allow changing the return type
@@ -21,11 +21,12 @@ RETURNS TABLE (
   current_offering_tier text,
   feature_count bigint,
   last_assignment_date timestamptz,
-  -- New fields for enhanced UI
   user_count bigint,
   member_count bigint,
   created_at timestamptz,
-  last_activity timestamptz
+  last_activity timestamptz,
+  -- New field for tenant logo
+  tenant_logo_url text
 )
 LANGUAGE sql
 STABLE
@@ -42,11 +43,12 @@ AS $$
     po.tier AS current_offering_tier,
     COALESCE(fc.feature_count, 0) AS feature_count,
     la.last_assigned AS last_assignment_date,
-    -- New fields
     COALESCE(uc.user_count, 0) AS user_count,
     COALESCE(mc.member_count, 0) AS member_count,
     t.created_at AS created_at,
-    activity.last_activity AS last_activity
+    activity.last_activity AS last_activity,
+    -- New field: tenant logo URL
+    t.logo_url AS tenant_logo_url
   FROM tenants t
   LEFT JOIN product_offerings po ON po.id = t.subscription_offering_id
   -- Feature count subquery
@@ -96,4 +98,4 @@ $$;
 
 COMMENT ON FUNCTION get_all_tenants_for_assignment IS
   'Returns all tenants with current license status, user counts, member counts,
-   and activity information for the assignment and management interface';
+   activity information, and logo URL for the assignment and management interface';
