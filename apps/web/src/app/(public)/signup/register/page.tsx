@@ -591,7 +591,7 @@ function RegisterFormContent() {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-4xl font-bold text-white">Free</span>
                         <span className="text-lg text-white/70">
-                          for {(selectedOffering as any)?.trial_days || 14} days
+                          for {(selectedOffering as any)?.trial_days || 30} days
                         </span>
                       </div>
                       <p className="text-sm text-green-200">
@@ -710,7 +710,7 @@ function RegisterFormContent() {
                     {selectedOffering.offering_type === 'trial' && (
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="size-4 text-green-200" />
-                        {(selectedOffering as any)?.trial_days || 14}-day trial period
+                        {(selectedOffering as any)?.trial_days || 30}-day trial period
                       </li>
                     )}
                     <li className="flex items-center gap-2">

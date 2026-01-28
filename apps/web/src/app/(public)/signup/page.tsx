@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, Loader2, Sparkles, Shield, Clock, Users, Tag } from 'lucide-react';
+import { Check, Loader2, Sparkles, Shield, Clock, Users, Tag, Heart, Zap, Crown, Building2, HardDrive, ArrowRight } from 'lucide-react';
+import { PlanComparisonMatrix } from '@/components/landing/PlanComparisonMatrix';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { svgPaths } from '@/components/landing/svg-paths';
@@ -99,7 +100,7 @@ export default function SignupPage() {
 
   // Find trial offering (for "Start Free Trial" CTA on paid tiers)
   const trialOffering = allOfferings.find(o => o.offering_type === 'trial');
-  const trialDays = (trialOffering as any)?.trial_days || 14;
+  const trialDays = (trialOffering as any)?.trial_days || 30;
 
   // Filter offerings based on selected billing cycle
   // Note: Trial offerings are NOT shown as separate cards - trials are a CTA option on paid tiers
@@ -293,6 +294,72 @@ export default function SignupPage() {
     return tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier);
   });
 
+  // Tier-specific configuration matching the landing page
+  const getTierConfig = (tier: string) => {
+    const configs: Record<string, {
+      icon: React.ReactNode;
+      tagline: string;
+      bestFor: string;
+      keyHighlights: string[];
+    }> = {
+      essential: {
+        icon: <Heart className="w-5 h-5" />,
+        tagline: 'Perfect Start',
+        bestFor: 'Small churches',
+        keyHighlights: ['Free forever', 'Up to 25 members', 'Up to 100 emails/month'],
+      },
+      premium: {
+        icon: <Zap className="w-5 h-5" />,
+        tagline: 'Growing Together',
+        bestFor: 'Growing congregations',
+        keyHighlights: ['Import/Export data', 'SMS & Email campaigns', 'Advanced reports'],
+      },
+      professional: {
+        icon: <Crown className="w-5 h-5" />,
+        tagline: 'Full Power',
+        bestFor: 'Established churches',
+        keyHighlights: ['Online donations & event payments', 'AI Chat & Compose', 'Facebook Integration'],
+      },
+      enterprise: {
+        icon: <Building2 className="w-5 h-5" />,
+        tagline: 'Scale Without Limits',
+        bestFor: 'Large & multi-campus',
+        keyHighlights: ['Unlimited everything', 'Multi-campus support', 'API access & integrations'],
+      },
+      custom: {
+        icon: <Building2 className="w-5 h-5" />,
+        tagline: 'Tailored Solution',
+        bestFor: 'Unique requirements',
+        keyHighlights: ['Custom features', 'Dedicated support', 'Enterprise SLA'],
+      },
+    };
+    return configs[tier] || configs.essential;
+  };
+
+  // Get quota highlights for display
+  const getQuotaHighlights = (offering: ProductOfferingWithFeatures) => {
+    const highlights: { icon: React.ReactNode; label: string; value: string }[] = [];
+    const o = offering as any;
+
+    if (o.max_members !== undefined) {
+      highlights.push({
+        icon: <Users className="w-4 h-4" />,
+        label: 'Members',
+        value: o.max_members === null ? 'Unlimited' : `Up to ${o.max_members}`,
+      });
+    }
+
+    if (o.max_storage_mb !== undefined) {
+      highlights.push({
+        icon: <HardDrive className="w-4 h-4" />,
+        label: 'Storage',
+        value: o.max_storage_mb === null ? 'Unlimited' : o.max_storage_mb >= 1024 ? `${(o.max_storage_mb / 1024).toFixed(0)} GB` : `${o.max_storage_mb} MB`,
+      });
+    }
+
+    return highlights.slice(0, 2);
+  };
+
   return (
     <div className="relative overflow-hidden min-h-[calc(100vh-200px)]">
       {/* Background */}
@@ -374,191 +441,261 @@ export default function SignupPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto"
           >
-            {sortedOfferings.map((offering, index) => (
-              <motion.div
-                key={offering.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 * index }}
-                className={`relative flex flex-col rounded-2xl p-6 transition-all duration-300 ${
-                  offering.is_featured
-                    ? 'bg-white text-gray-900 shadow-2xl scale-[1.02] z-10 border-none'
-                    : 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:-translate-y-1'
-                }`}
-              >
-                {/* Badge - from metadata or default for featured */}
-                {((offering.metadata as any)?.badge_text || offering.is_featured) && (
-                  <div className="absolute -top-4 left-0 right-0 text-center">
-                    <span className="inline-flex items-center gap-1 bg-[#179a65] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-                      <Sparkles className="h-3 w-3" />
-                      {(offering.metadata as any)?.badge_text || 'Most Popular'}
-                    </span>
-                  </div>
-                )}
+            {sortedOfferings.map((offering, index) => {
+              const tierConfig = getTierConfig(offering.tier);
+              const quotaHighlights = getQuotaHighlights(offering);
+              const hasBadge = (offering.metadata as any)?.badge_text || offering.is_featured;
 
-                <div className="mb-6 pt-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className={`text-xl font-bold ${offering.is_featured ? 'text-[#179a65]' : 'text-white'}`}>
-                      {offering.name}
-                    </h3>
-                    {offering.offering_type === 'trial' && (
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        offering.is_featured ? 'bg-gray-100 text-gray-600' : 'bg-white/20 text-white'
+              return (
+                <motion.div
+                  key={offering.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 * index }}
+                  className={`relative ${hasBadge ? 'pt-4' : ''}`}
+                >
+                  {/* Badge - positioned outside the card */}
+                  {hasBadge && (
+                    <div className="absolute top-0 left-0 right-0 text-center z-10">
+                      <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full shadow-lg ${
+                        offering.is_featured
+                          ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900'
+                          : 'bg-white text-[#179a65]'
                       }`}>
-                        Trial
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {(offering.metadata as any)?.badge_text || 'Most Popular'}
                       </span>
-                    )}
-                  </div>
-                  {/* Highlight text from metadata */}
-                  {(offering.metadata as any)?.highlight_text && (
-                    <p className={`text-xs font-semibold mb-2 ${offering.is_featured ? 'text-orange-500' : 'text-yellow-300'}`}>
-                      {(offering.metadata as any).highlight_text}
-                    </p>
-                  )}
-
-                  {offeringDiscounts[offering.id] ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-4xl font-bold">
-                          {formatPriceValue(offeringDiscounts[offering.id].discountedPrice, getOfferingPriceRaw(offering)?.currency || 'PHP')}
-                        </span>
-                        {hasPrice(offering) && (
-                          <span className={`text-sm ${offering.is_featured ? 'text-gray-400' : 'text-white/70'}`}>
-                            {getBillingPeriod(offering)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-lg line-through ${offering.is_featured ? 'text-gray-400' : 'text-white/50'}`}>
-                          {formatPrice(offering)}
-                        </span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                          offering.is_featured ? 'bg-red-100 text-red-600' : 'bg-yellow-400 text-gray-900'
-                        }`}>
-                          {offeringDiscounts[offering.id].discount.badge_text ||
-                           (offeringDiscounts[offering.id].discount.calculation_type === 'percentage'
-                             ? `${offeringDiscounts[offering.id].discount.discount_value}% OFF`
-                             : `Save ${formatPriceValue(offeringDiscounts[offering.id].discountAmount, getOfferingPriceRaw(offering)?.currency || 'PHP')}`
-                           )}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold">
-                        {formatPrice(offering)}
-                      </span>
-                      {hasPrice(offering) && (
-                        <span className={`text-sm ${offering.is_featured ? 'text-gray-400' : 'text-white/70'}`}>
-                          {getBillingPeriod(offering)}
-                        </span>
-                      )}
                     </div>
                   )}
-                </div>
 
-                <div className="flex-1 mb-6">
-                  <p className={`text-sm mb-6 ${offering.is_featured ? 'text-gray-500' : 'text-white/80'}`}>
-                    {offering.description}
-                  </p>
-
-                  {/* Features headline from metadata */}
-                  {(offering.metadata as any)?.features_headline && (
-                    <p className={`text-xs font-semibold mb-3 ${offering.is_featured ? 'text-gray-500' : 'text-white/70'}`}>
-                      {(offering.metadata as any).features_headline}
-                    </p>
-                  )}
-                  <div className="space-y-3">
-                    {offering.max_users && (
-                      <div className="flex items-start gap-3 text-sm">
-                        <Check className={`h-5 w-5 mt-0.5 flex-shrink-0 ${offering.is_featured ? 'text-[#179a65]' : 'text-green-200'}`} />
-                        <span>Up to {offering.max_users} users</span>
-                      </div>
-                    )}
-                    {!offering.max_users && (
-                      <div className="flex items-start gap-3 text-sm">
-                        <Check className={`h-5 w-5 mt-0.5 flex-shrink-0 ${offering.is_featured ? 'text-[#179a65]' : 'text-green-200'}`} />
-                        <span>Unlimited users</span>
-                      </div>
-                    )}
-                    {offering.features && offering.features.slice(0, 5).map((feature) => (
-                      <div key={feature.id} className="flex items-start gap-3 text-sm">
-                        <Check className={`h-5 w-5 mt-0.5 flex-shrink-0 ${offering.is_featured ? 'text-[#179a65]' : 'text-green-200'}`} />
-                        <span>{feature.name}</span>
-                      </div>
-                    ))}
-                    {offering.features && offering.features.length > 5 && (
-                      <p className={`text-sm italic pl-8 ${offering.is_featured ? 'text-gray-400' : 'text-white/60'}`}>
-                        + {offering.features.length - 5} more features
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* CTA Buttons */}
-                {hasTrial(offering.tier) ? (
-                  <div className="space-y-2">
-                    {/* Primary: Start Free Trial */}
-                    <button
-                      className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
-                        offering.is_featured
-                          ? 'bg-[#179a65] text-white hover:bg-green-600 shadow-lg'
-                          : 'bg-white text-[#179a65] hover:bg-gray-50'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      disabled={selectingId !== null}
-                      onClick={() => handleSelectPlan(trialOffering!.id)}
-                    >
-                      {selectingId === trialOffering?.id ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Starting Trial...
-                        </span>
-                      ) : (
-                        (trialOffering?.metadata as any)?.cta_text || `Start ${trialDays}-Day Free Trial`
-                      )}
-                    </button>
-                    {/* Secondary: Subscribe directly */}
-                    <button
-                      className={`w-full py-2 px-6 rounded-xl text-xs font-medium transition-all ${
-                        offering.is_featured
-                          ? 'text-gray-500 hover:text-[#179a65] hover:bg-gray-50'
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      disabled={selectingId !== null}
-                      onClick={() => handleSelectPlan(offering.id)}
-                    >
-                      {selectingId === offering.id ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </span>
-                      ) : (
-                        'or Subscribe Now'
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
+                  {/* Card */}
+                  <div
+                    className={`relative flex flex-col h-full rounded-2xl transition-all duration-300 overflow-hidden ${
+                      hasBadge ? 'mt-3' : ''
+                    } ${
                       offering.is_featured
-                        ? 'bg-[#179a65] text-white hover:bg-green-600 shadow-lg'
-                        : 'bg-white text-[#179a65] hover:bg-gray-50'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    disabled={selectingId !== null}
-                    onClick={() => handleSelectPlan(offering.id)}
+                        ? 'bg-white text-gray-900 shadow-2xl border-2 border-emerald-400/30'
+                        : 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:-translate-y-1'
+                    }`}
                   >
-                    {selectingId === offering.id ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Selecting...
-                      </span>
-                    ) : (
-                      (offering.metadata as any)?.cta_text || ((offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Choose Plan')
+                    {/* Decorative top gradient for featured */}
+                    {offering.is_featured && (
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-emerald-300 to-teal-400" />
                     )}
-                  </button>
-                )}
-              </motion.div>
-            ))}
+
+                    <div className="p-6 flex-1 flex flex-col">
+                      {/* Tier Icon & Name */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          offering.is_featured
+                            ? 'bg-[#179a65]/10 text-[#179a65]'
+                            : 'bg-white/20 text-white'
+                        }`}>
+                          {tierConfig.icon}
+                        </div>
+                        <div>
+                          <h3 className={`text-xl font-bold ${offering.is_featured ? 'text-gray-900' : 'text-white'}`}>
+                            {offering.name}
+                          </h3>
+                          <p className={`text-xs font-medium ${offering.is_featured ? 'text-[#179a65]' : 'text-emerald-200'}`}>
+                            {tierConfig.tagline}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Best For Tag */}
+                      <div className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full mb-4 w-fit ${
+                        offering.is_featured
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-white/10 text-white/80'
+                      }`}>
+                        <Users className="w-3 h-3" />
+                        Best for {tierConfig.bestFor}
+                      </div>
+
+                      {/* Price */}
+                      {offeringDiscounts[offering.id] ? (
+                        <div className="mb-4">
+                          <div className="flex items-baseline gap-2 mb-1">
+                            <span className={`text-4xl font-bold tracking-tight ${offering.is_featured ? 'text-gray-900' : 'text-white'}`}>
+                              {formatPriceValue(offeringDiscounts[offering.id].discountedPrice, getOfferingPriceRaw(offering)?.currency || 'PHP')}
+                            </span>
+                            {hasPrice(offering) && (
+                              <span className={`text-sm font-medium ${offering.is_featured ? 'text-gray-500' : 'text-white/70'}`}>
+                                {getBillingPeriod(offering)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-sm line-through ${offering.is_featured ? 'text-gray-400' : 'text-white/50'}`}>
+                              {formatPrice(offering)}
+                            </span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              offering.is_featured
+                                ? 'bg-red-500 text-white'
+                                : 'bg-yellow-400 text-gray-900'
+                            }`}>
+                              {offeringDiscounts[offering.id].discount.badge_text ||
+                               (offeringDiscounts[offering.id].discount.calculation_type === 'percentage'
+                                 ? `${offeringDiscounts[offering.id].discount.discount_value}% OFF`
+                                 : `Save ${formatPriceValue(offeringDiscounts[offering.id].discountAmount, getOfferingPriceRaw(offering)?.currency || 'PHP')}`
+                               )}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-baseline gap-2 mb-4">
+                          <span className={`text-4xl font-bold tracking-tight ${offering.is_featured ? 'text-gray-900' : 'text-white'}`}>
+                            {formatPrice(offering)}
+                          </span>
+                          {hasPrice(offering) && (
+                            <span className={`text-sm font-medium ${offering.is_featured ? 'text-gray-500' : 'text-white/70'}`}>
+                              {getBillingPeriod(offering)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      <p className={`text-sm mb-5 ${offering.is_featured ? 'text-gray-500' : 'text-white/80'}`}>
+                        {offering.description}
+                      </p>
+
+                      {/* Quota Highlights */}
+                      {quotaHighlights.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mb-5">
+                          {quotaHighlights.map((highlight, idx) => (
+                            <div
+                              key={idx}
+                              className={`flex items-center gap-2 p-2.5 rounded-lg ${
+                                offering.is_featured
+                                  ? 'bg-gray-50'
+                                  : 'bg-white/10'
+                              }`}
+                            >
+                              <div className={`${offering.is_featured ? 'text-[#179a65]' : 'text-emerald-300'}`}>
+                                {highlight.icon}
+                              </div>
+                              <div>
+                                <p className={`text-[10px] uppercase tracking-wider font-medium ${
+                                  offering.is_featured ? 'text-gray-500' : 'text-white/70'
+                                }`}>
+                                  {highlight.label}
+                                </p>
+                                <p className={`text-xs font-bold ${
+                                  offering.is_featured ? 'text-gray-900' : 'text-white'
+                                }`}>
+                                  {highlight.value}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Divider */}
+                      <div className={`border-t mb-5 ${offering.is_featured ? 'border-gray-100' : 'border-white/20'}`} />
+
+                      {/* Key Highlights */}
+                      <div className="space-y-2.5 flex-1">
+                        {tierConfig.keyHighlights.map((highlight, idx) => (
+                          <div key={idx} className="flex items-center gap-2.5">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              offering.is_featured
+                                ? 'bg-[#179a65]/10 text-[#179a65]'
+                                : 'bg-emerald-400/20 text-emerald-300'
+                            }`}>
+                              <Check className="w-3 h-3" />
+                            </div>
+                            <span className={`text-sm ${offering.is_featured ? 'text-gray-700' : 'text-white'}`}>
+                              {highlight}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* "All core features included" note */}
+                      <p className={`text-xs mt-4 ${offering.is_featured ? 'text-gray-400' : 'text-white/60'}`}>
+                        All core features included
+                      </p>
+                    </div>
+
+                    {/* CTA Section */}
+                    <div className={`p-6 pt-4 ${offering.is_featured ? 'bg-gray-50/50' : 'bg-black/10'}`}>
+                      {hasTrial(offering.tier) ? (
+                        <div className="space-y-2">
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <button
+                              className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
+                                offering.is_featured
+                                  ? 'bg-gradient-to-r from-[#179a65] to-emerald-600 text-white hover:from-[#148054] hover:to-emerald-700'
+                                  : 'bg-white text-[#179a65] hover:bg-gray-50'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              disabled={selectingId !== null}
+                              onClick={() => handleSelectPlan(trialOffering!.id)}
+                            >
+                              {selectingId === trialOffering?.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Starting Trial...
+                                </>
+                              ) : (
+                                <>
+                                  {(trialOffering?.metadata as any)?.cta_text || `Start ${trialDays}-Day Free Trial`}
+                                  <ArrowRight className="w-4 h-4" />
+                                </>
+                              )}
+                            </button>
+                          </motion.div>
+                          <button
+                            className={`w-full py-2 rounded-lg text-xs font-medium transition-colors text-center ${
+                              offering.is_featured
+                                ? 'text-gray-500 hover:text-[#179a65]'
+                                : 'text-white/70 hover:text-white hover:bg-white/10'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            disabled={selectingId !== null}
+                            onClick={() => handleSelectPlan(offering.id)}
+                          >
+                            {selectingId === offering.id ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Processing...
+                              </span>
+                            ) : (
+                              <>or subscribe now <ArrowRight className="inline w-3 h-3 ml-1" /></>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <button
+                            className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
+                              offering.is_featured
+                                ? 'bg-gradient-to-r from-[#179a65] to-emerald-600 text-white hover:from-[#148054] hover:to-emerald-700'
+                                : 'bg-white text-[#179a65] hover:bg-gray-50'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            disabled={selectingId !== null}
+                            onClick={() => handleSelectPlan(offering.id)}
+                          >
+                            {selectingId === offering.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Selecting...
+                              </>
+                            ) : (
+                              <>
+                                {(offering.metadata as any)?.cta_text || ((offering.metadata as any)?.pricing?.is_free ? 'Get Started Free' : 'Get Started')}
+                                <ArrowRight className="w-4 h-4" />
+                              </>
+                            )}
+                          </button>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
 
@@ -568,6 +705,27 @@ export default function SignupPage() {
               No pricing plans available at this time. Please contact support.
             </p>
           </div>
+        )}
+
+        {/* Plan Comparison Matrix */}
+        {!isLoading && sortedOfferings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-16"
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold text-white mb-2">Compare All Plans</h3>
+              <p className="text-white/70 text-sm">See what&apos;s included in each plan</p>
+            </div>
+            <PlanComparisonMatrix
+              variant="light"
+              offerings={allOfferings}
+              showPricing={true}
+              billingCycle={billingCycle}
+            />
+          </motion.div>
         )}
 
         {/* Trust Badges */}
