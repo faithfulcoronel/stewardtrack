@@ -369,6 +369,11 @@ export const TYPES = {
   IFeatureImportRepository: Symbol.for('IFeatureImportRepository'),
   FeatureImportService: Symbol.for('FeatureImportService'),
 
+  // Product Offering Import/Export (Licensing)
+  IProductOfferingImportExportAdapter: Symbol.for('IProductOfferingImportExportAdapter'),
+  IProductOfferingImportExportRepository: Symbol.for('IProductOfferingImportExportRepository'),
+  ProductOfferingImportExportService: Symbol.for('ProductOfferingImportExportService'),
+
   // Member Import (Bulk)
   IMemberImportAdapter: Symbol.for('IMemberImportAdapter'),
   IMemberImportRepository: Symbol.for('IMemberImportRepository'),

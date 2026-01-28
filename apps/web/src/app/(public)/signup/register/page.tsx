@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
+import { ExpandableText } from '@/components/ui/expandable-text';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
@@ -687,9 +688,16 @@ function RegisterFormContent() {
                   </div>
                 )}
 
-                <p className="text-white/80 text-sm mb-6">
-                  {selectedOffering.description}
-                </p>
+                {selectedOffering.description && (
+                  <div className="mb-6">
+                    <ExpandableText
+                      text={selectedOffering.description}
+                      maxLines={4}
+                      className="text-white/80 text-sm"
+                      toggleClassName="text-emerald-200 hover:text-white"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-3 border-t border-white/20 pt-4">
                   <h4 className="text-sm font-semibold text-white/90">

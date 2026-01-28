@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Check, ArrowRight, Loader2, Sparkles, Globe, Users, Zap, Shield, Clock, Heart, Building2, Crown, Infinity } from "lucide-react";
@@ -529,9 +530,16 @@ function PricingContent() {
                       })()}
 
                       {/* Description */}
-                      <p className={`text-sm mb-5 ${offering.is_featured ? 'text-emerald-100' : 'text-gray-500'}`}>
-                        {offering.description}
-                      </p>
+                      {offering.description && (
+                        <div className="mb-5">
+                          <ExpandableText
+                            text={offering.description}
+                            maxLines={4}
+                            className={`text-sm ${offering.is_featured ? 'text-emerald-100' : 'text-gray-500'}`}
+                            toggleClassName={offering.is_featured ? 'text-emerald-200 hover:text-white' : 'text-[#179a65] hover:text-[#127a4e]'}
+                          />
+                        </div>
+                      )}
 
                       {/* Quota Highlights - Visual Cards */}
                       {quotaHighlights.length > 0 && (

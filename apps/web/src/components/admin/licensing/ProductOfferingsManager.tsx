@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { ProductOfferingComplete, ProductOfferingPrice } from '@/models/productOffering.model';
 import { LicenseTier, LicenseTierColors, LicenseTierLabels } from '@/enums/licensing.enums';
 import { formatCurrency } from '@/lib/currency';
+import { ProductOfferingImportExportActions } from './ProductOfferingImportExportActions';
 
 export function ProductOfferingsManager() {
   const [offerings, setOfferings] = useState<ProductOfferingComplete[]>([]);
@@ -296,10 +297,13 @@ export function ProductOfferingsManager() {
                 Manage subscription plans and pricing tiers
               </CardDescription>
             </div>
-            <Button onClick={() => router.push('/admin/licensing/offerings/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Offering
-            </Button>
+            <div className="flex items-center gap-2">
+              <ProductOfferingImportExportActions onImportComplete={loadOfferings} />
+              <Button onClick={() => router.push('/admin/licensing/offerings/new')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Offering
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
