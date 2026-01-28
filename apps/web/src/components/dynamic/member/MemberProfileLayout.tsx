@@ -21,7 +21,7 @@ export function MemberProfileLayout({
 }: MemberProfileLayoutProps) {
   // Sidebar is shown for staff/admin (users with members:view or members:manage)
   const canViewSidebar = userPermissions.some(p =>
-    ["members:view", "members:manage", "members:edit"].includes(p)
+    ["members:view", "members:manage"].includes(p)
   );
   const hasSidebar = !!sidebar && canViewSidebar;
 

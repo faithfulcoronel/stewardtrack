@@ -3,7 +3,7 @@
  *
  * Create or edit family records with address and notes.
  *
- * SECURITY: Protected by AccessGate requiring members:edit permission.
+ * SECURITY: Protected by AccessGate requiring households:manage permission.
  */
 
 import type { Metadata } from "next";
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 export default async function FamilyManagePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
-  const gate = Gate.withPermission(["members:edit"], "any", {
-    fallbackPath: "/unauthorized?reason=members_edit_access",
+  const gate = Gate.withPermission(["households:manage"], "any", {
+    fallbackPath: "/unauthorized?reason=households_manage_access",
   });
 
   const resolvedSearchParams = await Promise.resolve(searchParams);

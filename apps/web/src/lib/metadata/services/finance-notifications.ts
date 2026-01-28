@@ -272,7 +272,7 @@ export async function notifyFiscalYearDeadline(
   console.log(`[finance-notifications] Fiscal year ${fiscalYearName} ending in ${daysUntilEnd} days`);
 
   // Get users with fiscal year management permission
-  const adminIds = await getUsersWithPermission('finance:edit', tenantId);
+  const adminIds = await getUsersWithPermission('finance:manage', tenantId);
 
   if (adminIds.length === 0) {
     console.log('[finance-notifications] No users to notify about fiscal year deadline');

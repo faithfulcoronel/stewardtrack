@@ -24,8 +24,7 @@ AdminFormSection component handles:
   - Post-save navigation
 
 PERMISSIONS:
-  - goals:create - Required to create a new goal
-  - goals:edit   - Required to edit an existing goal
+  - goals:manage - Required to create or edit goals
 
 FORM FIELDS:
   - title (required): Goal title

@@ -26,8 +26,7 @@ AdminFormSection component handles:
   - Post-save navigation
 
 PERMISSIONS:
-  - objectives:create - Required to create a new objective
-  - objectives:edit   - Required to edit an existing objective
+  - objectives:manage - Required to create or edit objectives
 
 FORM FIELDS:
   - title (required): Objective title

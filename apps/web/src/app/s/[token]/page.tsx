@@ -52,14 +52,14 @@ export const dynamic = "force-dynamic";
  * Permission requirements for each entity type
  */
 const ENTITY_PERMISSIONS: Record<EntityType, string[]> = {
-  member: ["members:view", "members:edit", "members:manage", "admin:full", "tenant:admin"],
-  family: ["households:view", "households:edit", "members:view", "admin:full", "tenant:admin"],
-  event: ["events:view", "events:edit", "admin:full", "tenant:admin"],
-  group: ["groups:view", "groups:edit", "admin:full", "tenant:admin"],
+  member: ["members:view", "members:manage", "admin:full", "tenant:admin"],
+  family: ["households:view", "households:manage", "members:view", "admin:full", "tenant:admin"],
+  event: ["events:view", "events:manage", "admin:full", "tenant:admin"],
+  group: ["groups:view", "groups:manage", "admin:full", "tenant:admin"],
   donation: ["donations:view", "finance:view", "admin:full", "tenant:admin"],
-  care: ["care:view", "care:edit", "admin:full", "tenant:admin"],
-  discipleship: ["discipleship:view", "discipleship:edit", "admin:full", "tenant:admin"],
-  goal: ["goals:view", "goals:edit", "planning:view", "admin:full", "tenant:admin"],
+  care: ["careplans:view", "careplans:manage", "admin:full", "tenant:admin"],
+  discipleship: ["discipleshipplans:view", "discipleshipplans:manage", "admin:full", "tenant:admin"],
+  goal: ["goals:view", "goals:manage", "planning:view", "admin:full", "tenant:admin"],
   invitation: ["members:invite", "members:manage", "admin:full", "tenant:admin"],
 };
 

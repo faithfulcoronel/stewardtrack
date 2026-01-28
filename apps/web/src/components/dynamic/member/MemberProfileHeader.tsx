@@ -96,7 +96,7 @@ export function MemberProfileHeader({
   );
 
   const canEditPhoto = onPhotoChange && userPermissions.some(p =>
-    ["members:edit_self", "members:edit"].includes(p)
+    ["members:edit_self", "members:manage"].includes(p)
   );
 
   // Filter metrics based on viewer role

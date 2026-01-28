@@ -51,8 +51,7 @@ export default async function GoalCreatePage({ searchParams }: PageProps) {
   const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId();
 
-  // Use goals:create for new goals
-  // Note: Edit mode permission check is handled at the service level
+  // Use goals:manage for create/edit operations
   const gate = Gate.withPermission(["goals:manage"], "any", {
     fallbackPath: "/unauthorized?reason=goals_manage_access",
   });

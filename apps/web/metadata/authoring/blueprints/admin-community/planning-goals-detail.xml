@@ -23,7 +23,7 @@ PAGE STRUCTURE:
 
 PERMISSIONS:
   - goals:view       - Required to view the page
-  - goals:edit       - Required to edit the goal
+  - goals:manage     - Required to edit the goal
   - goals:delete     - Required to delete the goal
   - objectives:manage - Required to add/edit objectives
   - key_results:manage - Required to add/edit key results

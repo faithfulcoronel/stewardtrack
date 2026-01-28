@@ -4,7 +4,7 @@
  * Modern, mobile-first card-based profile view for admin/staff.
  * Shows comprehensive member information with permission-based visibility.
  *
- * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
  * VISIBILITY: Field/card visibility controlled by user's actual permissions using the gate framework.
  */
 
@@ -129,7 +129,7 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
   const hasAny = (perms: string[]) => perms.some(p => userPermissions.includes(p));
 
   const _canViewSensitive = hasAny(["members:view-sensitive", "members:manage"]);
-  const canEditMembers = hasAny(["members:edit", "members:manage"]);
+  const canEditMembers = hasAny(["members:manage"]);
   const canViewCare = hasAny(["care:view", "members:manage"]);
   const canViewDiscipleship = hasAny(["discipleship:view", "members:manage"]);
   const canViewAdmin = hasAny(["members:manage", "admin:full", "tenant:admin"]);
@@ -182,7 +182,7 @@ async function MemberProfileContent({ memberId }: { memberId: string }) {
   }
 
   // Card-level edit permission check
-  const canEditSelf = hasAny(["members:edit_self", "members:edit", "members:manage"]);
+  const canEditSelf = hasAny(["members:edit_self", "members:manage"]);
   const canEditCard = (category: string) => {
     // Self-editable categories
     if (["contact", "emergency", "engagement"].includes(category)) {
@@ -565,7 +565,7 @@ export default async function MemberProfileViewPage({ params }: PageProps) {
   const tenantId = await getCurrentTenantId();
 
   // Page-level access gate - requires at least members:view permission
-  const gate = Gate.withPermission(["members:view", "members:edit"], "any", {
+  const gate = Gate.withPermission(["members:view", "members:manage"], "any", {
     fallbackPath: "/unauthorized?reason=members_access",
   });
 

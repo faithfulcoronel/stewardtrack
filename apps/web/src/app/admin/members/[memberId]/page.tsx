@@ -4,7 +4,7 @@
  * Redirects to the new card-based member profile view.
  * The legacy XML-driven profile can still be accessed at /admin/members/profile?memberId={id}
  *
- * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
  */
 
 import { redirect } from "next/navigation";

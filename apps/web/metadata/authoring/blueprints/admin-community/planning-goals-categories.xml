@@ -12,7 +12,7 @@ ROUTE: /admin/community/planning/goals/categories
 
 PERMISSIONS:
   - goals:view - Required to view the page
-  - goals:create - Required to create/edit/delete categories
+  - goals:manage - Required to create/edit/delete categories
 
 FEATURES:
   - List all categories with color swatches and icons

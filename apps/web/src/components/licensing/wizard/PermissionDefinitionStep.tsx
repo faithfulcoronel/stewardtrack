@@ -299,7 +299,7 @@ export function PermissionDefinitionStep({
         <code className="text-sm">
           {`{category}:{action}`}
           <br />
-          Example: members:view, finance:edit, events:export
+          Example: members:view, finance:manage, events:manage
           <br />
           Rules: lowercase, use underscores for multi-word terms
         </code>

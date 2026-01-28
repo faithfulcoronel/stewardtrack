@@ -42,8 +42,8 @@ export async function getUserAdminRole(): Promise<'super_admin' | 'tenant_admin'
  * @returns Promise<boolean> - True if user has the permission
  *
  * @example
- * const canEdit = await hasPermission(userId, 'member.edit');
- * if (!canEdit) {
+ * const canManage = await hasPermission(userId, 'members:manage');
+ * if (!canManage) {
  *   disableEditButton();
  * }
  */
@@ -65,7 +65,7 @@ export async function hasPermission(
  * @returns Promise<boolean> - True if user has at least one permission
  *
  * @example
- * const canModerate = await hasAnyPermission(userId, ['member.edit', 'member.delete']);
+ * const canModerate = await hasAnyPermission(userId, ['members:manage', 'members:delete']);
  */
 export async function hasAnyPermission(
   userId: string,
@@ -85,7 +85,7 @@ export async function hasAnyPermission(
  * @returns Promise<boolean> - True if user has all permissions
  *
  * @example
- * const canFullyManage = await hasAllPermissions(userId, ['member.create', 'member.edit', 'member.delete']);
+ * const canFullyManage = await hasAllPermissions(userId, ['members:manage', 'members:delete']);
  */
 export async function hasAllPermissions(
   userId: string,
@@ -153,7 +153,7 @@ export async function checkTenantAdmin(): Promise<boolean> {
  *
  * @example
  * const permissions = await getUserPermissionCodes(userId);
- * if (permissions.includes('members:edit')) {
+ * if (permissions.includes('members:manage')) {
  *   // User can edit members
  * }
  */

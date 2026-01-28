@@ -3,7 +3,7 @@
  *
  * Provides searchable roster views across the tenant.
  *
- * SECURITY: Protected by AccessGate requiring members:view or members:edit permission.
+ * SECURITY: Protected by AccessGate requiring members:view or members:manage permission.
  */
 
 import type { Metadata } from "next";

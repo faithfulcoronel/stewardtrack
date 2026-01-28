@@ -119,7 +119,7 @@
         </Config>
       </Action>
       <Action id="launch-new-account" kind="link">
-        <RBAC requirePermissions="finance:edit" />
+        <RBAC requirePermissions="finance:manage" />
         <Config>
           <Label>Add new account</Label>
           <Url>/admin/community/accounts/manage</Url>

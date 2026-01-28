@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // TODO: Check for goals:create permission
-    // const hasPermission = await authService.hasPermission('goals:create');
+    // TODO: Check for goals:manage permission
+    // const hasPermission = await authService.hasPermission('goals:manage');
     // if (!hasPermission) {
     //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     // }
