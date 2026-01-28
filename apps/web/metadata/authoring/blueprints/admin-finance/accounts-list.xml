@@ -67,7 +67,7 @@
     </DataSources>
     <Actions>
       <Action id="add-account" kind="link">
-        <RBAC requirePermissions="finance:manage" />
+        <RBAC requirePermissions="accounts:manage" />
         <Config>
           <Label>Add account</Label>
           <Url>/admin/finance/accounts/manage</Url>

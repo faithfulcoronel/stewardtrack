@@ -30,6 +30,8 @@ export interface CanvaStyleSettingsPageProps {
   showIntegrations?: boolean;
   /** Show team section */
   showTeam?: boolean;
+  /** User permission codes for granular access control */
+  userPermissions?: string[];
 }
 
 // ============================================================================
@@ -137,9 +139,10 @@ const defaultSections: SettingsNavSection[] = [
 interface PreferencesSectionProps {
   data: ChurchProfileData;
   onUpdate: (field: string, value: string) => Promise<void>;
+  readOnly?: boolean;
 }
 
-function PreferencesSection({ data, onUpdate }: PreferencesSectionProps) {
+function PreferencesSection({ data, onUpdate, readOnly = false }: PreferencesSectionProps) {
   const [currency, setCurrency] = useState(data.currency || 'PHP');
   const [timezone, setTimezone] = useState(data.timezone || 'Asia/Manila');
   const [isSaving, setIsSaving] = useState(false);
@@ -160,7 +163,12 @@ function PreferencesSection({ data, onUpdate }: PreferencesSectionProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground">Preferences</h2>
-        <p className="text-sm text-muted-foreground mt-1">Configure default settings for your church</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {readOnly
+            ? 'View default settings for your church'
+            : 'Configure default settings for your church'
+          }
+        </p>
       </div>
 
       {/* Currency Selection */}
@@ -172,8 +180,8 @@ function PreferencesSection({ data, onUpdate }: PreferencesSectionProps) {
             setCurrency(e.target.value);
             handleSave('currency', e.target.value);
           }}
-          disabled={isSaving}
-          className="w-full max-w-xs px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          disabled={isSaving || readOnly}
+          className="w-full max-w-xs px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <option value="PHP">Philippine Peso (PHP)</option>
           <option value="USD">US Dollar (USD)</option>
@@ -198,8 +206,8 @@ function PreferencesSection({ data, onUpdate }: PreferencesSectionProps) {
             setTimezone(e.target.value);
             handleSave('timezone', e.target.value);
           }}
-          disabled={isSaving}
-          className="w-full max-w-xs px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          disabled={isSaving || readOnly}
+          className="w-full max-w-xs px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
           <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
@@ -380,7 +388,12 @@ export function CanvaStyleSettingsPage({
   showNotifications = true,
   showIntegrations = true,
   showTeam = true,
+  userPermissions = [],
 }: CanvaStyleSettingsPageProps) {
+  // Permission checks
+  const canManageSettings = userPermissions.some(p =>
+    ['settings:manage', 'admin:full', 'tenant:admin'].includes(p)
+  );
   const [data, setData] = useState<ChurchProfileData | null>(initialData || null);
   const [isLoading, setIsLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
@@ -532,10 +545,11 @@ export function CanvaStyleSettingsPage({
         onUpdate={handleFieldUpdate}
         onLogoUpload={handleLogoUpload}
         onLogoRemove={handleLogoRemove}
+        readOnly={!canManageSettings}
       />
 
       {/* Preferences Section */}
-      <PreferencesSection data={data} onUpdate={handleFieldUpdate} />
+      <PreferencesSection data={data} onUpdate={handleFieldUpdate} readOnly={!canManageSettings} />
 
       {/* Notifications Section */}
       {showNotifications ? (

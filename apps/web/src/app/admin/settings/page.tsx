@@ -16,6 +16,7 @@ import { TYPES } from "@/lib/types";
 import type { TenantService } from "@/services/TenantService";
 import type { SettingService } from "@/services/SettingService";
 import { CanvaStyleSettingsPage } from "@/components/dynamic/admin/CanvaStyleSettingsPage";
+import { getUserPermissionCodes } from "@/lib/rbac/permissionHelpers";
 import { Loader2 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ function SettingsLoading() {
 
 // Server component that fetches initial data
 async function SettingsContent() {
+  const userId = await getCurrentUserId();
   const tenantId = await getCurrentTenantId({ optional: true });
 
   if (!tenantId) {
@@ -46,6 +48,9 @@ async function SettingsContent() {
       </div>
     );
   }
+
+  // Fetch user permissions for granular access control
+  const userPermissions = await getUserPermissionCodes(userId, tenantId);
 
   // Fetch initial tenant data on server
   let initialData = undefined;
@@ -87,7 +92,7 @@ async function SettingsContent() {
     // Will fall back to client-side fetch
   }
 
-  return <CanvaStyleSettingsPage initialData={initialData} />;
+  return <CanvaStyleSettingsPage initialData={initialData} userPermissions={userPermissions} />;
 }
 
 export default async function AdminSettingsPage() {
@@ -98,6 +103,7 @@ export default async function AdminSettingsPage() {
     [
       Gate.superAdminOnly({ fallbackPath: "/unauthorized?reason=super_admin_only" }),
       Gate.withRole("role_tenant_admin", "any", { fallbackPath: "/unauthorized?reason=tenant_admin_required" }),
+      Gate.withPermission(["settings:view", "settings:manage"], "any", { fallbackPath: "/unauthorized?reason=settings_permission_required" }),
     ],
     { requireAll: false, fallbackPath: "/unauthorized?reason=admin_settings" }
   );

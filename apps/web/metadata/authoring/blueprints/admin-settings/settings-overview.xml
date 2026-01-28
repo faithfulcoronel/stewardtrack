@@ -142,6 +142,7 @@
     </DataSources>
     <Actions>
       <Action id="save-settings" kind="metadata.service">
+        <RBAC requirePermissions="settings:manage" />
         <Config>
           <Handler>admin-settings.settings.overview.save</Handler>
           <SuccessMessage>Settings synced across every campus.</SuccessMessage>

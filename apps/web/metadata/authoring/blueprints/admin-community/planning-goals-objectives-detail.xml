@@ -192,6 +192,7 @@ PERMISSIONS:
       EDIT OBJECTIVE: Navigate to edit page
       -->
       <Action id="edit-objective" kind="link">
+        <RBAC requirePermissions="objectives:manage" />
         <Config>
           <Label>Edit</Label>
           <Url>/admin/community/planning/goals/{{params.goalId}}/objectives/create?objectiveId={{params.objectiveId}}</Url>
@@ -203,6 +204,7 @@ PERMISSIONS:
       ADD KEY RESULT: Navigate to key result create page
       -->
       <Action id="add-key-result" kind="link">
+        <RBAC requirePermissions="key_results:manage" />
         <Config>
           <Label>Add Key Result</Label>
           <Url>/admin/community/planning/goals/{{params.goalId}}/objectives/{{params.objectiveId}}/key-results/create</Url>
@@ -214,6 +216,7 @@ PERMISSIONS:
       DELETE OBJECTIVE: Remove objective and its key results
       -->
       <Action id="delete-objective" kind="service">
+        <RBAC requirePermissions="objectives:delete" />
         <Config>
           <Handler>admin-community.planning.goals.objectives.delete</Handler>
           <OnSuccess>

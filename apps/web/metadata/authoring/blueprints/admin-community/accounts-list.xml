@@ -52,6 +52,7 @@
     </DataSources>
     <Actions>
       <Action id="launch-new-account" kind="link">
+        <RBAC requirePermissions="accounts:manage" />
         <Config>
           <Label>Add account</Label>
           <Url>/admin/community/accounts/manage</Url>

@@ -45,9 +45,20 @@
     </DataSources>
     <Actions>
       <Action id="edit-account" kind="link">
+        <RBAC requirePermissions="accounts:manage" />
         <Config>
           <Label>Edit account</Label>
           <Url>/admin/community/accounts/manage?accountId={{params.accountId}}</Url>
+        </Config>
+      </Action>
+      <Action id="delete-account" kind="confirm">
+        <RBAC requirePermissions="accounts:delete" />
+        <Config>
+          <Label>Delete account</Label>
+          <Variant>danger</Variant>
+          <ConfirmTitle>Delete account?</ConfirmTitle>
+          <ConfirmMessage>This will permanently delete this account and all associated records. This action cannot be undone.</ConfirmMessage>
+          <ConfirmButton>Delete account</ConfirmButton>
         </Config>
       </Action>
       <Action id="back-to-list" kind="link">

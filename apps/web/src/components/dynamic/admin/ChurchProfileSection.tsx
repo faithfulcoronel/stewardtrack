@@ -65,6 +65,8 @@ export interface ChurchProfileSectionProps {
   onLogoUpload?: (file: File) => Promise<string>;
   /** Callback when logo is removed */
   onLogoRemove?: () => Promise<void>;
+  /** When true, hides all edit controls (requires settings:manage permission) */
+  readOnly?: boolean;
 }
 
 // ============================================================================
@@ -80,6 +82,7 @@ interface EditableFieldProps {
   inputType?: 'text' | 'email' | 'tel' | 'url' | 'textarea';
   onSave: (value: string) => Promise<void>;
   emptyText?: string;
+  readOnly?: boolean;
 }
 
 function EditableField({
@@ -91,6 +94,7 @@ function EditableField({
   inputType = 'text',
   onSave,
   emptyText = 'Not set',
+  readOnly = false,
 }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || '');
@@ -204,7 +208,7 @@ function EditableField({
           </AnimatePresence>
         </div>
 
-        {!isEditing && (
+        {!isEditing && !readOnly && (
           <Button variant="outline" size="sm" onClick={handleEdit} className="flex-shrink-0">
             <Pencil className="h-3 w-3 mr-1.5" />
             Edit
@@ -384,6 +388,7 @@ export function ChurchProfileSection({
   onUpdate,
   onLogoUpload,
   onLogoRemove,
+  readOnly = false,
 }: ChurchProfileSectionProps) {
   const handleFieldUpdate = useCallback(
     async (field: string, value: string) => {
@@ -421,7 +426,7 @@ export function ChurchProfileSection({
       )}
 
       {/* Logo Section */}
-      {(onLogoUpload || onLogoRemove) && (
+      {!readOnly && (onLogoUpload || onLogoRemove) && (
         <>
           <LogoUpload
             logoUrl={data.logoUrl}
@@ -441,6 +446,7 @@ export function ChurchProfileSection({
         icon={<Building2 className="h-4 w-4" />}
         placeholder="Enter church name"
         onSave={(value) => handleFieldUpdate('name', value)}
+        readOnly={readOnly}
       />
       <Separator />
 
@@ -454,6 +460,7 @@ export function ChurchProfileSection({
         placeholder="Enter email address"
         onSave={(value) => handleFieldUpdate('email', value)}
         emptyText="No email set"
+        readOnly={readOnly}
       />
       <Separator />
 
@@ -467,6 +474,7 @@ export function ChurchProfileSection({
         placeholder="Enter contact number"
         onSave={(value) => handleFieldUpdate('phone', value)}
         emptyText="No phone number set"
+        readOnly={readOnly}
       />
       <Separator />
 
@@ -480,6 +488,7 @@ export function ChurchProfileSection({
         placeholder="Enter church address"
         onSave={(value) => handleFieldUpdate('address', value)}
         emptyText="No address set"
+        readOnly={readOnly}
       />
       <Separator />
 
@@ -493,6 +502,7 @@ export function ChurchProfileSection({
         placeholder="https://yourchurch.com"
         onSave={(value) => handleFieldUpdate('website', value)}
         emptyText="No website set"
+        readOnly={readOnly}
       />
     </div>
   );
