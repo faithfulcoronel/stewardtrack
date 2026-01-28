@@ -78,7 +78,7 @@ export function LandingHeader() {
             alt="StewardTrack"
             width={160}
             height={32}
-            className="h-5 sm:h-8 w-auto"
+            className="h-7 sm:h-8 w-auto"
           />
         </Link>
 
