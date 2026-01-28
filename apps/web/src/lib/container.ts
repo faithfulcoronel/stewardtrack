@@ -1046,6 +1046,14 @@ container.bind<IFeatureImportAdapter>(TYPES.IFeatureImportAdapter).to(FeatureImp
 container.bind<IFeatureImportRepository>(TYPES.IFeatureImportRepository).to(FeatureImportRepository).inRequestScope();
 container.bind<FeatureImportService>(TYPES.FeatureImportService).to(FeatureImportService).inRequestScope();
 
+// ==================== PRODUCT OFFERING IMPORT/EXPORT (Licensing) ====================
+import { ProductOfferingImportExportAdapter, type IProductOfferingImportExportAdapter } from '@/adapters/productOfferingImportExport.adapter';
+import { ProductOfferingImportExportRepository, type IProductOfferingImportExportRepository } from '@/repositories/productOfferingImportExport.repository';
+import { ProductOfferingImportExportService } from '@/services/ProductOfferingImportExportService';
+container.bind<IProductOfferingImportExportAdapter>(TYPES.IProductOfferingImportExportAdapter).to(ProductOfferingImportExportAdapter).inRequestScope();
+container.bind<IProductOfferingImportExportRepository>(TYPES.IProductOfferingImportExportRepository).to(ProductOfferingImportExportRepository).inRequestScope();
+container.bind<ProductOfferingImportExportService>(TYPES.ProductOfferingImportExportService).to(ProductOfferingImportExportService).inRequestScope();
+
 // ==================== MEMBER IMPORT (Bulk) ====================
 import { MemberImportAdapter, type IMemberImportAdapter } from '@/adapters/memberImport.adapter';
 import { MemberImportRepository, type IMemberImportRepository } from '@/repositories/memberImport.repository';

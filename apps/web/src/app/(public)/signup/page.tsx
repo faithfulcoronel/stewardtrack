@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ExpandableText } from '@/components/ui/expandable-text';
 import { motion } from 'motion/react';
 import { Check, Loader2, Sparkles, Shield, Clock, Users, Tag, Heart, Zap, Crown, Building2, HardDrive, ArrowRight } from 'lucide-react';
 import { PlanComparisonMatrix } from '@/components/landing/PlanComparisonMatrix';
@@ -557,9 +558,16 @@ export default function SignupPage() {
                       )}
 
                       {/* Description */}
-                      <p className={`text-sm mb-5 ${offering.is_featured ? 'text-gray-500' : 'text-white/80'}`}>
-                        {offering.description}
-                      </p>
+                      {offering.description && (
+                        <div className="mb-5">
+                          <ExpandableText
+                            text={offering.description}
+                            maxLines={4}
+                            className={`text-sm ${offering.is_featured ? 'text-gray-500' : 'text-white/80'}`}
+                            toggleClassName={offering.is_featured ? 'text-[#179a65] hover:text-[#127a4e]' : 'text-emerald-200 hover:text-white'}
+                          />
+                        </div>
+                      )}
 
                       {/* Quota Highlights */}
                       {quotaHighlights.length > 0 && (
