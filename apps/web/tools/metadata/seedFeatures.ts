@@ -60,9 +60,9 @@ interface FeatureInfo {
 // Feature code to category mapping (updated to new dotted notation)
 const FEATURE_CATEGORIES: Record<string, string> = {
   'members.core': 'core',
-  'households.core': 'core',
+  'members.household': 'core',
   'groups.core': 'core',
-  'events.core': 'core',
+  'planner.event': 'core',
   'finance.core': 'core',
   'notifications.core': 'core',
   'integrations.email': 'core',
@@ -85,9 +85,9 @@ const FEATURE_CATEGORIES: Record<string, string> = {
 // Feature code to description mapping (updated to new dotted notation)
 const FEATURE_DESCRIPTIONS: Record<string, string> = {
   'members.core': 'Member directory, profiles, and basic management',
-  'households.core': 'Track family units and relationships',
+  'members.household': 'Track family units and relationships',
   'groups.core': 'Manage ministry groups and small groups',
-  'events.core': 'Church event planning and calendar management',
+  'planner.event': 'Church event planning and calendar management',
   'finance.core': 'View financial transactions and summaries',
   'notifications.core': 'In-app notifications and alerts',
   'integrations.email': 'Basic email sending capabilities',
@@ -227,8 +227,8 @@ async function mapFeaturesToBundles(supabaseUrl: string, supabaseKey: string) {
 
   // Define bundle-to-feature mappings (bundles map to new dotted feature codes)
   const bundleMappings: Record<string, string[]> = {
-    'core-foundation': ['members.core', 'households.core', 'groups.core', 'events.core', 'finance.core', 'notifications.core', 'integrations.email', 'rbac.core', 'settings.core', 'dashboard.core', 'reports.core'],
-    'member-management': ['members.core', 'households.core', 'care.plans', 'discipleship.plans'],
+    'core-foundation': ['members.core', 'members.household', 'groups.core', 'planner.event', 'finance.core', 'notifications.core', 'integrations.email', 'rbac.core', 'settings.core', 'dashboard.core', 'reports.core'],
+    'member-management': ['members.core', 'members.household', 'care.plans', 'discipleship.plans'],
     'financial-management': ['finance.core', 'finance.management', 'finance.budgets'],
     'rbac-security': ['rbac.core', 'rbac.management', 'rbac.multi_role', 'rbac.delegation'],
     'communication-tools': ['notifications.core', 'notifications.push', 'integrations.email', 'integrations.sms'],

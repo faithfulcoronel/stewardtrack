@@ -456,9 +456,9 @@ export function hasFeatureAccess(
   // These are the base features available to ALL tiers
   const CORE_FEATURES = [
     'members.core',
-    'households.core',
+    'members.household',
     'groups.core',
-    'events.core',
+    'planner.event',
     'finance.core',
     'notifications.core',
     'integrations.email',

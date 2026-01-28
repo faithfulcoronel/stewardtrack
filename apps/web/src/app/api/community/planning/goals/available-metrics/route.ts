@@ -105,7 +105,7 @@ export async function GET(): Promise<NextResponse> {
         description: 'Average attendance across all services per week',
         type: 'number',
         source: 'attendance',
-        requiresFeature: 'attendance.core',
+        requiresFeature: 'planner.attendance',
         isAvailable: false, // TODO: Check if attendance feature is enabled
       },
       {
@@ -115,7 +115,7 @@ export async function GET(): Promise<NextResponse> {
         description: 'Number of services held in the period',
         type: 'number',
         source: 'attendance',
-        requiresFeature: 'attendance.core',
+        requiresFeature: 'planner.attendance',
         isAvailable: false,
       },
 
