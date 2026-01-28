@@ -106,7 +106,7 @@ export function Introduction() {
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: false, amount: 0.5 }}
+          viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-12 md:mb-16 max-w-4xl"
         >
@@ -123,7 +123,7 @@ export function Introduction() {
           whileInView={{ scale: 1, opacity: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Link
@@ -138,7 +138,7 @@ export function Introduction() {
         <motion.div
           initial={{ y: 100, opacity: 0, scale: 0.9 }}
           whileInView={{ y: 0, opacity: 1, scale: 1 }}
-          viewport={{ once: false, amount: 0.3 }}
+          viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           className="relative w-full max-w-[1000px]"
         >
