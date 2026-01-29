@@ -289,6 +289,20 @@ PERMISSIONS:
           <Variant>secondary</Variant>
         </Config>
       </Action>
+      <Action id="delete-key-result" kind="service">
+        <RBAC requirePermissions="key_results:delete" />
+        <Config>
+          <Handler>admin-community.planning.goals.detail.deleteKeyResult</Handler>
+          <ConfirmMessage>Are you sure you want to delete this key result? This action cannot be undone.</ConfirmMessage>
+          <OnSuccess>
+            <Navigate>/admin/community/planning/goals/{{params.goalId}}</Navigate>
+            <ShowToast>Key result deleted successfully</ShowToast>
+          </OnSuccess>
+          <OnError>
+            <ShowToast>Failed to delete key result. Please try again.</ShowToast>
+          </OnError>
+        </Config>
+      </Action>
       <Action id="delete-goal" kind="service">
         <RBAC requirePermissions="goals:delete" />
         <Config>
