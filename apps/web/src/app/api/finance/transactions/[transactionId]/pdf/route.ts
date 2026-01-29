@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { LicenseGate } from '@/lib/access-gate';
 import type { TenantService } from '@/services/TenantService';
 import type { IFinancialTransactionHeaderRepository } from '@/repositories/financialTransactionHeader.repository';
 import type { IIncomeExpenseTransactionRepository } from '@/repositories/incomeExpenseTransaction.repository';
@@ -34,6 +35,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const tenantId = await getCurrentTenantId();
     if (!tenantId) {
       return NextResponse.json({ error: 'No tenant context' }, { status: 403 });
+    }
+
+    // Check license for PDF downloads feature
+    const licenseGate = new LicenseGate('pdf.downloads');
+    const licenseResult = await licenseGate.check(userId, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { error: 'PDF downloads require a license upgrade', requiresUpgrade: true },
+        { status: 403 }
+      );
     }
 
     const { transactionId } = await context.params;

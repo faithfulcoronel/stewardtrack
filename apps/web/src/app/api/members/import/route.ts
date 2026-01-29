@@ -4,7 +4,7 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
 import type { MemberImportService } from '@/services/MemberImportService';
-import { PermissionGate } from '@/lib/access-gate';
+import { PermissionGate, LicenseGate } from '@/lib/access-gate';
 
 /**
  * GET /api/members/import
@@ -22,8 +22,18 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // Check permission using PermissionGate (single source of truth)
+    // Check license for Excel import/export feature
     const userId = await getCurrentUserId();
+    const licenseGate = new LicenseGate('excel.importexport');
+    const licenseResult = await licenseGate.check(userId, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Excel import requires a license upgrade', requiresUpgrade: true },
+        { status: 403 }
+      );
+    }
+
+    // Check permission using PermissionGate (single source of truth)
     const permissionGate = new PermissionGate('members:manage', 'all');
     const accessResult = await permissionGate.check(userId, tenantId);
 
@@ -90,6 +100,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Check license for Excel import/export feature
+    const licenseGate = new LicenseGate('excel.importexport');
+    const licenseResult = await licenseGate.check(userId, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Excel import requires a license upgrade', requiresUpgrade: true },
+        { status: 403 }
       );
     }
 

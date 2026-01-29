@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     // === ACCESS GATE: Single source of truth for license + permission checks ===
     // Uses LicenseGate and PermissionGate from access-gate system
     const accessGate = all(
-      new LicenseGate('ai_assistant', {
+      new LicenseGate('ai.assistant', {
         fallbackPath: '/admin/settings?tab=subscription'
       }),
       new PermissionGate('ai_assistant:access', 'all', {

@@ -4,6 +4,7 @@ import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { ScheduleRegistrationPaymentService } from '@/services/ScheduleRegistrationPaymentService';
 import type { PaymentMethodType } from '@/models/donation.model';
+import { LicenseGate } from '@/lib/access-gate';
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { tenantId, scheduleId } = tokenData;
+
+    // Check license for event payments feature
+    const licenseGate = new LicenseGate('event.payments');
+    const licenseResult = await licenseGate.check('public', tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Event payments are not enabled for this organization', requiresUpgrade: true },
+        { status: 403 }
+      );
+    }
 
     // Parse request body
     const body = await request.json();

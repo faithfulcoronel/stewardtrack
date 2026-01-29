@@ -31,7 +31,7 @@ export default async function AIAssistantPage() {
 
   // Combine feature license check AND permission check
   const gate = all(
-    Gate.withLicense('ai_assistant', {
+    Gate.withLicense('ai.assistant', {
       fallbackPath: '/unauthorized?reason=ai_feature_not_licensed',
     }),
     Gate.withPermission('ai_assistant:access', 'all', {

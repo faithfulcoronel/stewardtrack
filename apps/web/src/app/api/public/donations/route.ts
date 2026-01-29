@@ -6,6 +6,7 @@ import { TYPES } from '@/lib/types';
 import { DonationService } from '@/services/DonationService';
 import type { FinancialSourceService } from '@/services/FinancialSourceService';
 import { decodeTenantToken } from '@/lib/tokens/shortUrlTokens';
+import { LicenseGate } from '@/lib/access-gate';
 import type { CreateDonationDto } from '@/models/donation.model';
 
 // Force Node.js runtime for this route
@@ -52,6 +53,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Invalid tenant token' },
         { status: 400 }
+      );
+    }
+
+    // Check license for online donations feature
+    const licenseGate = new LicenseGate('online.donations');
+    const licenseResult = await licenseGate.check('public', tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Online donations are not enabled for this organization', requiresUpgrade: true },
+        { status: 403 }
       );
     }
 

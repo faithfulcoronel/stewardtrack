@@ -5,6 +5,7 @@ import type { SettingService } from '@/services/SettingService';
 import { FacebookChannelService } from '@/services/communication/FacebookChannelService';
 import { authUtils } from '@/utils/authUtils';
 import { tenantUtils } from '@/utils/tenantUtils';
+import { LicenseGate } from '@/lib/access-gate';
 
 /**
  * POST /api/settings/integrations/facebook
@@ -20,6 +21,16 @@ export async function POST(request: NextRequest) {
     const tenantId = await tenantUtils.getTenantId();
     if (!tenantId) {
       return NextResponse.json({ error: 'No tenant context' }, { status: 400 });
+    }
+
+    // Check license for Facebook integration feature
+    const licenseGate = new LicenseGate('facebook.integration');
+    const licenseResult = await licenseGate.check(user.id, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { error: 'Facebook integration requires a license upgrade', requiresUpgrade: true },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

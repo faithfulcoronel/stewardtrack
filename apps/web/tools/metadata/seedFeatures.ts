@@ -80,6 +80,15 @@ const FEATURE_CATEGORIES: Record<string, string> = {
   'rbac.multi_role': 'security',
   'rbac.delegation': 'security',
   'integrations.api': 'integration',
+  'pdf.downloads': 'addon',
+  'excel.importexport': 'addon',
+  'advanced.reports': 'addon',
+  'ai.assistant': 'addon',
+  'ai.integration': 'addon',
+  'multi.center': 'addon',
+  'facebook.integration': 'integration',
+  'online.donations': 'addon',
+  'event.payments': 'addon',
 };
 
 // Feature code to description mapping (updated to new dotted notation)
@@ -105,6 +114,15 @@ const FEATURE_DESCRIPTIONS: Record<string, string> = {
   'rbac.multi_role': 'Allow users to have multiple roles simultaneously',
   'rbac.delegation': 'Delegate roles to other users with scopes',
   'integrations.api': 'REST API access and webhook integrations',
+  'pdf.downloads': 'Export reports and documents as PDF files',
+  'excel.importexport': 'Import and export data via Excel spreadsheets',
+  'advanced.reports': 'Advanced reporting with custom filters and visualizations',
+  'ai.assistant': 'AI-powered church management assistant',
+  'ai.integration': 'AI integrations for content generation and analysis',
+  'multi.center': 'Multi-campus/multi-center church management',
+  'facebook.integration': 'Facebook page integration and social media posting',
+  'online.donations': 'Accept online donations and digital giving',
+  'event.payments': 'Collect payments for event registrations',
 };
 
 async function readManifest(): Promise<ManifestFile> {

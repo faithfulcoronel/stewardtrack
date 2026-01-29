@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
-import { getCurrentTenantId } from '@/lib/server/context';
+import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
+import { LicenseGate } from '@/lib/access-gate';
 import type { IDonationRepository } from '@/repositories/donation.repository';
 import type { EncryptionService } from '@/lib/encryption/EncryptionService';
 import type { Donation, DonationStatus } from '@/models/donation.model';
@@ -25,6 +26,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'No tenant context available' },
         { status: 401 }
+      );
+    }
+
+    // Check license for Excel import/export feature
+    const userId = await getCurrentUserId();
+    const licenseGate = new LicenseGate('excel.importexport');
+    const licenseResult = await licenseGate.check(userId, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Excel export requires a license upgrade', requiresUpgrade: true },
+        { status: 403 }
       );
     }
 

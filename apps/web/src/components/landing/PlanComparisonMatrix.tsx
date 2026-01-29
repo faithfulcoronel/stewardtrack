@@ -175,15 +175,15 @@ const FEATURE_ROWS: QuotaRowConfig[] = [
 
 // Mapping from feature keys to potential feature codes in the database
 const FEATURE_CODE_MAPPINGS: Record<string, string[]> = {
-  'online_donations': ['online_donations', 'online_giving', 'digital_donations', 'payment_processing'],
-  'event_payments': ['event_payments', 'event_registration', 'registration_fees', 'online_registration'],
-  'import_export': ['import_export', 'data_import', 'data_export', 'bulk_import'],
-  'pdf_downloads': ['pdf_downloads', 'pdf_export', 'pdf_reports'],
-  'specialized_reports': ['specialized_reports', 'advanced_reports', 'custom_reports', 'member_reports'],
-  'facebook_integration': ['facebook_integration', 'facebook_posting', 'social_media_integration', 'facebook_pages'],
-  'ai_chat': ['ai_chat', 'ai_assistant', 'ai_help'],
-  'ai_compose': ['ai_compose', 'ai_content', 'ai_writing'],
-  'multi_campus': ['multi_campus', 'multiple_campuses', 'campus_management'],
+  'online_donations': ['online_donations', 'online_giving', 'digital_donations', 'payment_processing', 'online.donations'],
+  'event_payments': ['event_payments', 'event_registration', 'registration_fees', 'online_registration', 'event.payments'],
+  'import_export': ['import_export', 'data_import', 'data_export', 'bulk_import', 'excel.importexport'],
+  'pdf_downloads': ['pdf_downloads', 'pdf_export', 'pdf_reports', 'pdf.downloads'],
+  'specialized_reports': ['specialized_reports', 'advanced_reports', 'custom_reports', 'member_reports', 'advanced.reports'],
+  'facebook_integration': ['facebook_integration', 'facebook_posting', 'social_media_integration', 'facebook_pages', 'facebook.integration'],
+  'ai_chat': ['ai_chat', 'ai_assistant', 'ai_help', 'ai.assistant'],
+  'ai_compose': ['ai_compose', 'ai_content', 'ai_writing', 'ai.integration'],
+  'multi_campus': ['multi_campus', 'multiple_campuses', 'campus_management', 'multi.center'],
   'api_access': ['api_access', 'developer_api', 'rest_api'],
   'priority_support': ['priority_support', 'premium_support', 'dedicated_support'],
 };

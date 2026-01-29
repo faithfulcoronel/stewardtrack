@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentTenantId, getCurrentUserId } from '@/lib/server/context';
-import { PermissionGate } from '@/lib/access-gate';
+import { PermissionGate, LicenseGate } from '@/lib/access-gate';
 import { container } from '@/lib/container';
 import { TYPES } from '@/lib/types';
 import type { ICommunicationAIService, ToneType, AssistType, ImageData } from '@/services/communication/CommunicationAIService';
@@ -53,6 +53,16 @@ export async function POST(request: NextRequest) {
   try {
     const tenantId = await getCurrentTenantId();
     const userId = await getCurrentUserId();
+
+    // Check license for AI integration feature
+    const licenseGate = new LicenseGate('ai.integration');
+    const licenseResult = await licenseGate.check(userId, tenantId);
+    if (!licenseResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'AI integration requires a license upgrade', requiresUpgrade: true },
+        { status: 403 }
+      );
+    }
 
     // Check permission using PermissionGate (single source of truth)
     const permissionGate = new PermissionGate('communication:manage', 'all');

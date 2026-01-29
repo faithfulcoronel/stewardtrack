@@ -23,8 +23,8 @@ FEATURE: AI Assistant Chat
   route="assistant"
   schemaVersion="1.0.0"
   contentVersion="1.0.0"
-  featureCode="ai_assistant"
-  requiredPermissions="ai_assistant:use"
+  featureCode="ai.assistant"
+  requiredPermissions="ai_assistant:access"
   locale="en-US">
 
   <Page id="admin-ai-assistant">
